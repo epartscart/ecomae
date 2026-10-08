@@ -1,0 +1,55 @@
+<p><b>Courier &amp; &quot;delivery&quot;</b> — FedEx</p>
+<table class="table table-condensed">
+<tr><td>Sharjah, AE</td></tr>
+<tr><td>A &quot;1&quot;</td></tr>
+<tr><td>06</td></tr>
+</table>
+
+<div class="well well-sm">
+	<p>Create a demo shipment label (worldwide carriers — DHL, FedEx, Aramex, UPS, and more):</p>
+	<form id="epc_cp_create_shipment" class="form-inline">
+		<input type="hidden" name="order_id" value="40">
+		<select name="carrier_code" class="form-control input-sm">
+							<option value="dhl" >DHL Express</option>
+							<option value="fedex" selected>FedEx</option>
+							<option value="ups" >UPS</option>
+							<option value="tnt" >TNT Express</option>
+							<option value="aramex" >Aramex</option>
+							<option value="smsa" >SMSA Express</option>
+							<option value="naqel" >Naqel Express</option>
+							<option value="emirates_post" >Emirates Post</option>
+							<option value="imile" >iMile</option>
+							<option value="dpd" >DPD</option>
+							<option value="gls" >GLS</option>
+							<option value="postnl" >PostNL</option>
+							<option value="royal_mail" >Royal Mail</option>
+							<option value="chronopost" >Chronopost</option>
+							<option value="usps" >USPS</option>
+							<option value="canada_post" >Canada Post</option>
+							<option value="sf_express" >SF Express</option>
+							<option value="jt_express" >J&amp;T Express</option>
+							<option value="yamato" >Yamato Transport</option>
+							<option value="bluedart" >Blue Dart</option>
+					</select>
+		<input type="number" step="0.1" name="weight_kg" class="form-control input-sm" value="4" placeholder="kg">
+		<button type="submit" class="btn btn-sm btn-primary">Create demo label</button>
+	</form>
+	<div id="epc_ship_msg" class="text-muted" style="margin-top:8px;"></div>
+</div>
+<script>
+(function(){
+	var f = document.getElementById('epc_cp_create_shipment');
+	if (!f) return;
+	f.addEventListener('submit', function(ev){
+		ev.preventDefault();
+		var fd = new FormData(f);
+		fd.append('action', 'create_shipment');
+		fetch('/cp/shop/logistics/carriers', { method: 'POST', body: fd, credentials: 'same-origin' })
+			.then(function(r){ return r.json(); })
+			.then(function(j){
+				document.getElementById('epc_ship_msg').textContent = j.message || (j.status ? 'OK' : 'Error');
+				if (j.status) setTimeout(function(){ location.reload(); }, 900);
+			});
+	});
+})();
+</script>

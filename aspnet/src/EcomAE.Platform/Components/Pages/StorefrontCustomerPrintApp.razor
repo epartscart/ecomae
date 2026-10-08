@@ -7,6 +7,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
 @inject ILegacySessionValidator Sessions
+@inject EcomAE.Platform.Cp.ICpCsrfGuard Csrf
 @inject IHttpContextAccessor Http
 
 <PageTitle>Print documents · @_brand</PageTitle>
@@ -37,6 +38,7 @@
                     <div class="panel-heading">Print</div>
                     <div class="panel-body">
                         <form method="get" action="@PhpSellerRequest.PrintWriteHref" target="_blank">
+                            <input type="hidden" name="csrf_guard_key" value="@_csrf" />
                             <label for="order_id">Order number</label>
                             <input id="order_id" class="form-control" type="number" name="order_id" min="1" required value="@OrderId" />
                             <label for="doc_name">Document</label>
@@ -58,6 +60,7 @@
 @code {
     private string _brand = "eParts Cart";
     private bool _isCustomer;
+    private string _csrf = string.Empty;
 
     [SupplyParameterFromQuery(Name = "order_id")]
     public int? OrderId { get; set; }
@@ -76,5 +79,9 @@
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
         var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
         _isCustomer = session.Kind == LegacySessionKind.Customer && session.UserId > 0;
+        if (_isCustomer)
+        {
+            _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
+        }
     }
 }

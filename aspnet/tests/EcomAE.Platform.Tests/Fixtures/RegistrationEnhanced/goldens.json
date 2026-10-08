@@ -1,0 +1,2454 @@
+{
+  "retail_uae_full": {
+    "helpers": [
+      "retail",
+      "",
+      "",
+      false,
+      ""
+    ],
+    "results": [
+      "ok",
+      "ok",
+      {
+        "address_line1": "Villa 4, Jumeirah",
+        "authority_name": "",
+        "buyer_name": "Aisha Khan",
+        "buyer_onboarded": "0",
+        "city": "Dubai",
+        "country_code": "AE",
+        "electronic_id": "0235",
+        "email": "retail@example.test",
+        "emirate": "Dubai",
+        "legal_reg_no": "",
+        "legal_reg_type": "EID",
+        "peppol_endpoint": "",
+        "phone": "+971 50 111 2222",
+        "time_updated": "T",
+        "tin": "",
+        "trn": "",
+        "user_id": "11"
+      }
+    ],
+    "profiles": [
+      [
+        "11",
+        "customer_vat_type",
+        "local_b2c"
+      ],
+      [
+        "11",
+        "epc_reg_address",
+        "Villa 4, Jumeirah"
+      ],
+      [
+        "11",
+        "epc_reg_city",
+        "Dubai"
+      ],
+      [
+        "11",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "11",
+        "epc_reg_emirate",
+        "Dubai"
+      ],
+      [
+        "11",
+        "epc_reg_postal",
+        "12345"
+      ],
+      [
+        "11",
+        "epc_reg_sms_notify",
+        "1"
+      ],
+      [
+        "11",
+        "epc_reg_state",
+        "Dubai"
+      ],
+      [
+        "11",
+        "name",
+        "Aisha"
+      ],
+      [
+        "11",
+        "phone",
+        "+971 50 111 2222"
+      ],
+      [
+        "11",
+        "surname",
+        "Khan"
+      ],
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": [
+      [
+        "11",
+        "Aisha Khan",
+        "",
+        "",
+        "",
+        "EID",
+        "",
+        "Villa 4, Jumeirah",
+        "Dubai",
+        "Dubai",
+        "AE",
+        "+971 50 111 2222",
+        "retail@example.test",
+        "0235",
+        "",
+        "0",
+        "T"
+      ]
+    ],
+    "settings": [
+      [
+        "asp_api_key",
+        ""
+      ],
+      [
+        "asp_api_mode",
+        "manual"
+      ],
+      [
+        "asp_api_url",
+        ""
+      ],
+      [
+        "asp_name",
+        ""
+      ],
+      [
+        "auto_validate",
+        "1"
+      ],
+      [
+        "default_doc_category",
+        "tax_invoice"
+      ],
+      [
+        "default_payment_due_days",
+        "7"
+      ],
+      [
+        "einvoice_enabled",
+        "1"
+      ],
+      [
+        "payment_means_code",
+        "30"
+      ],
+      [
+        "payment_terms",
+        "Within 7 days"
+      ],
+      [
+        "seller_address_line1",
+        ""
+      ],
+      [
+        "seller_authority_name",
+        "Dubai Economy and Tourism"
+      ],
+      [
+        "seller_bank_account",
+        ""
+      ],
+      [
+        "seller_city",
+        "Dubai"
+      ],
+      [
+        "seller_country_code",
+        "AE"
+      ],
+      [
+        "seller_email",
+        ""
+      ],
+      [
+        "seller_emirate",
+        "Dubai"
+      ],
+      [
+        "seller_legal_reg_no",
+        ""
+      ],
+      [
+        "seller_legal_reg_type",
+        "TL"
+      ],
+      [
+        "seller_name",
+        "ePartsCart LLC"
+      ],
+      [
+        "seller_phone",
+        ""
+      ],
+      [
+        "seller_tin",
+        ""
+      ],
+      [
+        "seller_trn",
+        ""
+      ]
+    ],
+    "files": []
+  },
+  "retail_missing_mobile": {
+    "helpers": [
+      "retail",
+      "",
+      "",
+      false,
+      ""
+    ],
+    "results": [
+      {
+        "error": "Please fill in: Mobile phone"
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": null,
+    "settings": null,
+    "files": []
+  },
+  "retail_unknown_country": {
+    "helpers": [
+      "retail",
+      "",
+      "",
+      false,
+      ""
+    ],
+    "results": [
+      {
+        "error": "Please select your country."
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": null,
+    "settings": null,
+    "files": []
+  },
+  "retail_reg_country_fallback": {
+    "helpers": [
+      "retail",
+      "PK",
+      "",
+      false,
+      ""
+    ],
+    "results": [
+      "ok",
+      {
+        "address_line1": "Mall Road",
+        "authority_name": "",
+        "buyer_name": "Ali",
+        "buyer_onboarded": "0",
+        "city": "Lahore",
+        "country_code": "PK",
+        "electronic_id": "0235",
+        "email": "",
+        "emirate": "Dubai",
+        "legal_reg_no": "",
+        "legal_reg_type": "EID",
+        "peppol_endpoint": "",
+        "phone": "",
+        "time_updated": "T",
+        "tin": "",
+        "trn": "",
+        "user_id": "12"
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "customer_vat_type",
+        "export"
+      ],
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "12",
+        "epc_reg_address",
+        "Mall Road"
+      ],
+      [
+        "12",
+        "epc_reg_city",
+        "Lahore"
+      ],
+      [
+        "12",
+        "epc_reg_country",
+        "PK"
+      ],
+      [
+        "12",
+        "epc_reg_sms_notify",
+        "0"
+      ],
+      [
+        "12",
+        "epc_reg_state",
+        "Punjab"
+      ],
+      [
+        "12",
+        "name",
+        "Ali"
+      ],
+      [
+        "12",
+        "surname",
+        ""
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": [
+      [
+        "12",
+        "Ali",
+        "",
+        "",
+        "",
+        "EID",
+        "",
+        "Mall Road",
+        "Lahore",
+        "Dubai",
+        "PK",
+        "",
+        "",
+        "0235",
+        "",
+        "0",
+        "T"
+      ]
+    ],
+    "settings": [
+      [
+        "asp_api_key",
+        ""
+      ],
+      [
+        "asp_api_mode",
+        "manual"
+      ],
+      [
+        "asp_api_url",
+        ""
+      ],
+      [
+        "asp_name",
+        ""
+      ],
+      [
+        "auto_validate",
+        "1"
+      ],
+      [
+        "default_doc_category",
+        "tax_invoice"
+      ],
+      [
+        "default_payment_due_days",
+        "7"
+      ],
+      [
+        "einvoice_enabled",
+        "1"
+      ],
+      [
+        "payment_means_code",
+        "30"
+      ],
+      [
+        "payment_terms",
+        "Within 7 days"
+      ],
+      [
+        "seller_address_line1",
+        ""
+      ],
+      [
+        "seller_authority_name",
+        "Dubai Economy and Tourism"
+      ],
+      [
+        "seller_bank_account",
+        ""
+      ],
+      [
+        "seller_city",
+        "Dubai"
+      ],
+      [
+        "seller_country_code",
+        "AE"
+      ],
+      [
+        "seller_email",
+        ""
+      ],
+      [
+        "seller_emirate",
+        "Dubai"
+      ],
+      [
+        "seller_legal_reg_no",
+        ""
+      ],
+      [
+        "seller_legal_reg_type",
+        "TL"
+      ],
+      [
+        "seller_name",
+        "ePartsCart LLC"
+      ],
+      [
+        "seller_phone",
+        ""
+      ],
+      [
+        "seller_tin",
+        ""
+      ],
+      [
+        "seller_trn",
+        ""
+      ]
+    ],
+    "files": []
+  },
+  "wholesale_uae_with_documents": {
+    "helpers": [
+      "wholesale",
+      "AE",
+      "",
+      true,
+      "100123456700003"
+    ],
+    "results": [
+      {
+        "error": "Please fill in: Mobile phone"
+      },
+      "ok",
+      "ok",
+      {
+        "address_line1": "Ind. Area 6",
+        "authority_name": "",
+        "buyer_name": "Gulf Parts Trading LLC",
+        "buyer_onboarded": "1",
+        "city": "Sharjah",
+        "country_code": "AE",
+        "electronic_id": "0235",
+        "email": "",
+        "emirate": "Sharjah",
+        "legal_reg_no": "TL-778",
+        "legal_reg_type": "TL",
+        "peppol_endpoint": "0235:1001234567",
+        "phone": "+971500000021",
+        "time_updated": "T",
+        "tin": "1001234567",
+        "trn": "100123456700003",
+        "user_id": "21"
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "21",
+        "company_name",
+        "Gulf Parts"
+      ],
+      [
+        "21",
+        "customer_vat_type",
+        "local_b2c"
+      ],
+      [
+        "21",
+        "epc_doc_emirates_id",
+        "/content/files/kyc/21/epc_doc_emirates_id_D.jpg"
+      ],
+      [
+        "21",
+        "epc_doc_emirates_id_status",
+        "pending_review"
+      ],
+      [
+        "21",
+        "epc_doc_trade_licence",
+        "/content/files/kyc/21/epc_doc_trade_licence_D.pdf"
+      ],
+      [
+        "21",
+        "epc_doc_trade_licence_status",
+        "pending_review"
+      ],
+      [
+        "21",
+        "epc_doc_vat_certificate",
+        "/content/files/kyc/21/epc_doc_vat_certificate_D.png"
+      ],
+      [
+        "21",
+        "epc_doc_vat_certificate_status",
+        "pending_review"
+      ],
+      [
+        "21",
+        "epc_emirates_id_no",
+        "784-1990-1234567-1"
+      ],
+      [
+        "21",
+        "epc_legal_reg_type",
+        "TL"
+      ],
+      [
+        "21",
+        "epc_pep_declaration",
+        "No"
+      ],
+      [
+        "21",
+        "epc_reg_address",
+        "Ind. Area 6"
+      ],
+      [
+        "21",
+        "epc_reg_business_type",
+        "Garage"
+      ],
+      [
+        "21",
+        "epc_reg_city",
+        "Sharjah"
+      ],
+      [
+        "21",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "21",
+        "epc_reg_emirate",
+        "Sharjah"
+      ],
+      [
+        "21",
+        "epc_reg_job_title",
+        "Buyer"
+      ],
+      [
+        "21",
+        "epc_reg_legal_name",
+        "Gulf Parts Trading LLC"
+      ],
+      [
+        "21",
+        "epc_reg_sms_notify",
+        "1"
+      ],
+      [
+        "21",
+        "epc_reg_trade_licence",
+        "TL-778"
+      ],
+      [
+        "21",
+        "epc_reg_trn",
+        "100123456700003"
+      ],
+      [
+        "21",
+        "epc_reg_trn_mode",
+        "has_trn"
+      ],
+      [
+        "21",
+        "epc_reg_website",
+        "gulf.test"
+      ],
+      [
+        "21",
+        "epc_uae_company",
+        "1"
+      ],
+      [
+        "21",
+        "epc_ubo_name",
+        "Sara Ali"
+      ],
+      [
+        "21",
+        "name",
+        "Sara"
+      ],
+      [
+        "21",
+        "surname",
+        "Ali"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": [
+      [
+        "21",
+        "Gulf Parts Trading LLC",
+        "100123456700003",
+        "1001234567",
+        "TL-778",
+        "TL",
+        "",
+        "Ind. Area 6",
+        "Sharjah",
+        "Sharjah",
+        "AE",
+        "+971500000021",
+        "",
+        "0235",
+        "0235:1001234567",
+        "1",
+        "T"
+      ]
+    ],
+    "settings": [
+      [
+        "asp_api_key",
+        ""
+      ],
+      [
+        "asp_api_mode",
+        "manual"
+      ],
+      [
+        "asp_api_url",
+        ""
+      ],
+      [
+        "asp_name",
+        ""
+      ],
+      [
+        "auto_validate",
+        "1"
+      ],
+      [
+        "default_doc_category",
+        "tax_invoice"
+      ],
+      [
+        "default_payment_due_days",
+        "7"
+      ],
+      [
+        "einvoice_enabled",
+        "1"
+      ],
+      [
+        "payment_means_code",
+        "30"
+      ],
+      [
+        "payment_terms",
+        "Within 7 days"
+      ],
+      [
+        "seller_address_line1",
+        ""
+      ],
+      [
+        "seller_authority_name",
+        "Dubai Economy and Tourism"
+      ],
+      [
+        "seller_bank_account",
+        ""
+      ],
+      [
+        "seller_city",
+        "Dubai"
+      ],
+      [
+        "seller_country_code",
+        "AE"
+      ],
+      [
+        "seller_email",
+        ""
+      ],
+      [
+        "seller_emirate",
+        "Dubai"
+      ],
+      [
+        "seller_legal_reg_no",
+        ""
+      ],
+      [
+        "seller_legal_reg_type",
+        "TL"
+      ],
+      [
+        "seller_name",
+        "ePartsCart LLC"
+      ],
+      [
+        "seller_phone",
+        ""
+      ],
+      [
+        "seller_tin",
+        ""
+      ],
+      [
+        "seller_trn",
+        ""
+      ]
+    ],
+    "files": [
+      [
+        "/content/files/kyc/21/epc_doc_emirates_id_D.jpg",
+        64
+      ],
+      [
+        "/content/files/kyc/21/epc_doc_trade_licence_D.pdf",
+        120
+      ],
+      [
+        "/content/files/kyc/21/epc_doc_vat_certificate_D.png",
+        10
+      ]
+    ]
+  },
+  "wholesale_uae_short_trn": {
+    "helpers": [
+      "wholesale",
+      "",
+      "",
+      false,
+      ""
+    ],
+    "results": [
+      {
+        "error": "UAE TRN must be 15 digits."
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": null,
+    "settings": null,
+    "files": []
+  },
+  "wholesale_abroad_without_trn_status": {
+    "helpers": [
+      "retail",
+      "",
+      "",
+      false,
+      ""
+    ],
+    "results": [
+      {
+        "error": "Please choose TRN status: enter TRN or Not available."
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": null,
+    "settings": null,
+    "files": []
+  },
+  "wholesale_abroad_trn_missing": {
+    "helpers": [
+      "retail",
+      "",
+      "has_trn",
+      false,
+      ""
+    ],
+    "results": [
+      {
+        "error": "Please enter your TRN / VAT number."
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": null,
+    "settings": null,
+    "files": []
+  },
+  "wholesale_missing_pep": {
+    "helpers": [
+      "retail",
+      "",
+      "not_available",
+      false,
+      ""
+    ],
+    "results": [
+      {
+        "error": "Please complete the PEP declaration."
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": null,
+    "settings": null,
+    "files": []
+  },
+  "wholesale_missing_emirates_id_copy": {
+    "helpers": [
+      "retail",
+      "",
+      "not_available",
+      false,
+      ""
+    ],
+    "results": [
+      {
+        "error": "Please upload your Emirates ID copy."
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": null,
+    "settings": null,
+    "files": []
+  },
+  "wholesale_missing_job_title": {
+    "helpers": [
+      "retail",
+      "",
+      "",
+      false,
+      ""
+    ],
+    "results": [
+      {
+        "error": "Please fill in: Contact job title"
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": null,
+    "settings": null,
+    "files": []
+  },
+  "wholesale_saudi_save": {
+    "helpers": [
+      "wholesale",
+      "SA",
+      "has_trn",
+      false,
+      "SA-300-555"
+    ],
+    "results": [
+      {
+        "error": "Please fill in: Legal entity name"
+      },
+      "ok",
+      {
+        "address_line1": "King Fahd Rd",
+        "authority_name": "",
+        "buyer_name": "Riyadh Spares",
+        "buyer_onboarded": "0",
+        "city": "Riyadh",
+        "country_code": "SA",
+        "electronic_id": "0235",
+        "email": "sa@example.test",
+        "emirate": "Dubai",
+        "legal_reg_no": "CR-1",
+        "legal_reg_type": "TL",
+        "peppol_endpoint": "0235:300555",
+        "phone": "+966 55",
+        "time_updated": "T",
+        "tin": "300555",
+        "trn": "SA-300-555",
+        "user_id": "22"
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "22",
+        "company_name",
+        "Riyadh Spares"
+      ],
+      [
+        "22",
+        "customer_vat_type",
+        "gcc"
+      ],
+      [
+        "22",
+        "epc_doc_emirates_id",
+        "/content/files/kyc/22/epc_doc_emirates_id_D.jpeg"
+      ],
+      [
+        "22",
+        "epc_doc_emirates_id_status",
+        "pending_review"
+      ],
+      [
+        "22",
+        "epc_doc_trade_licence",
+        "/content/files/kyc/22/epc_doc_trade_licence_D.webp"
+      ],
+      [
+        "22",
+        "epc_doc_trade_licence_status",
+        "pending_review"
+      ],
+      [
+        "22",
+        "epc_legal_reg_type",
+        "TL"
+      ],
+      [
+        "22",
+        "epc_pep_declaration",
+        "Yes"
+      ],
+      [
+        "22",
+        "epc_reg_address",
+        "King Fahd Rd"
+      ],
+      [
+        "22",
+        "epc_reg_business_type",
+        "Dealer"
+      ],
+      [
+        "22",
+        "epc_reg_city",
+        "Riyadh"
+      ],
+      [
+        "22",
+        "epc_reg_country",
+        "SA"
+      ],
+      [
+        "22",
+        "epc_reg_job_title",
+        "Owner"
+      ],
+      [
+        "22",
+        "epc_reg_legal_name",
+        ""
+      ],
+      [
+        "22",
+        "epc_reg_sms_notify",
+        "0"
+      ],
+      [
+        "22",
+        "epc_reg_trade_licence",
+        "CR-1"
+      ],
+      [
+        "22",
+        "epc_reg_trn",
+        "SA-300-555"
+      ],
+      [
+        "22",
+        "epc_reg_trn_mode",
+        "has_trn"
+      ],
+      [
+        "22",
+        "name",
+        "Omar"
+      ],
+      [
+        "22",
+        "phone",
+        "+966 55"
+      ],
+      [
+        "22",
+        "surname",
+        "Saleh"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": [
+      [
+        "22",
+        "Riyadh Spares",
+        "SA-300-555",
+        "300555",
+        "CR-1",
+        "TL",
+        "",
+        "King Fahd Rd",
+        "Riyadh",
+        "Dubai",
+        "SA",
+        "+966 55",
+        "sa@example.test",
+        "0235",
+        "",
+        "0",
+        "T"
+      ]
+    ],
+    "settings": [
+      [
+        "asp_api_key",
+        ""
+      ],
+      [
+        "asp_api_mode",
+        "manual"
+      ],
+      [
+        "asp_api_url",
+        ""
+      ],
+      [
+        "asp_name",
+        ""
+      ],
+      [
+        "auto_validate",
+        "1"
+      ],
+      [
+        "default_doc_category",
+        "tax_invoice"
+      ],
+      [
+        "default_payment_due_days",
+        "7"
+      ],
+      [
+        "einvoice_enabled",
+        "1"
+      ],
+      [
+        "payment_means_code",
+        "30"
+      ],
+      [
+        "payment_terms",
+        "Within 7 days"
+      ],
+      [
+        "seller_address_line1",
+        ""
+      ],
+      [
+        "seller_authority_name",
+        "Dubai Economy and Tourism"
+      ],
+      [
+        "seller_bank_account",
+        ""
+      ],
+      [
+        "seller_city",
+        "Dubai"
+      ],
+      [
+        "seller_country_code",
+        "AE"
+      ],
+      [
+        "seller_email",
+        ""
+      ],
+      [
+        "seller_emirate",
+        "Dubai"
+      ],
+      [
+        "seller_legal_reg_no",
+        ""
+      ],
+      [
+        "seller_legal_reg_type",
+        "TL"
+      ],
+      [
+        "seller_name",
+        "ePartsCart LLC"
+      ],
+      [
+        "seller_phone",
+        ""
+      ],
+      [
+        "seller_tin",
+        ""
+      ],
+      [
+        "seller_trn",
+        ""
+      ]
+    ],
+    "files": [
+      [
+        "/content/files/kyc/22/epc_doc_emirates_id_D.jpeg",
+        8
+      ],
+      [
+        "/content/files/kyc/22/epc_doc_trade_licence_D.webp",
+        7
+      ]
+    ]
+  },
+  "wholesale_abroad_valid": {
+    "helpers": [
+      "wholesale",
+      "",
+      "not_available",
+      false,
+      ""
+    ],
+    "results": [
+      "ok",
+      "ok",
+      "gcc"
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "company_name",
+        "a"
+      ],
+      [
+        "32",
+        "customer_vat_type",
+        "gcc"
+      ],
+      [
+        "32",
+        "epc_doc_emirates_id",
+        "/content/files/kyc/32/epc_doc_emirates_id_D.png"
+      ],
+      [
+        "32",
+        "epc_doc_emirates_id_status",
+        "pending_review"
+      ],
+      [
+        "32",
+        "epc_doc_moa",
+        "/content/files/kyc/32/epc_doc_moa_D.pdf"
+      ],
+      [
+        "32",
+        "epc_doc_moa_status",
+        "pending_review"
+      ],
+      [
+        "32",
+        "epc_doc_trade_licence",
+        "/content/files/kyc/32/epc_doc_trade_licence_D.pdf"
+      ],
+      [
+        "32",
+        "epc_doc_trade_licence_status",
+        "pending_review"
+      ],
+      [
+        "32",
+        "epc_legal_reg_type",
+        "TL"
+      ],
+      [
+        "32",
+        "epc_pep_declaration",
+        "No"
+      ],
+      [
+        "32",
+        "epc_reg_address",
+        "h"
+      ],
+      [
+        "32",
+        "epc_reg_business_type",
+        "i"
+      ],
+      [
+        "32",
+        "epc_reg_city",
+        "g"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "OM"
+      ],
+      [
+        "32",
+        "epc_reg_job_title",
+        "e"
+      ],
+      [
+        "32",
+        "epc_reg_legal_name",
+        "b"
+      ],
+      [
+        "32",
+        "epc_reg_postal",
+        "112"
+      ],
+      [
+        "32",
+        "epc_reg_sms_notify",
+        "0"
+      ],
+      [
+        "32",
+        "epc_reg_state",
+        "Muscat"
+      ],
+      [
+        "32",
+        "epc_reg_trade_licence",
+        "j"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ],
+      [
+        "32",
+        "epc_reg_trn_mode",
+        "not_available"
+      ],
+      [
+        "32",
+        "name",
+        "c"
+      ],
+      [
+        "32",
+        "phone",
+        "f"
+      ],
+      [
+        "32",
+        "surname",
+        "d"
+      ]
+    ],
+    "buyers": [
+      [
+        "32",
+        "b",
+        "",
+        "",
+        "j",
+        "TL",
+        "",
+        "h",
+        "g",
+        "Dubai",
+        "OM",
+        "f",
+        "om@example.test",
+        "0235",
+        "",
+        "0",
+        "T"
+      ]
+    ],
+    "settings": [
+      [
+        "asp_api_key",
+        ""
+      ],
+      [
+        "asp_api_mode",
+        "manual"
+      ],
+      [
+        "asp_api_url",
+        ""
+      ],
+      [
+        "asp_name",
+        ""
+      ],
+      [
+        "auto_validate",
+        "1"
+      ],
+      [
+        "default_doc_category",
+        "tax_invoice"
+      ],
+      [
+        "default_payment_due_days",
+        "7"
+      ],
+      [
+        "einvoice_enabled",
+        "1"
+      ],
+      [
+        "payment_means_code",
+        "30"
+      ],
+      [
+        "payment_terms",
+        "Within 7 days"
+      ],
+      [
+        "seller_address_line1",
+        ""
+      ],
+      [
+        "seller_authority_name",
+        "Dubai Economy and Tourism"
+      ],
+      [
+        "seller_bank_account",
+        ""
+      ],
+      [
+        "seller_city",
+        "Dubai"
+      ],
+      [
+        "seller_country_code",
+        "AE"
+      ],
+      [
+        "seller_email",
+        ""
+      ],
+      [
+        "seller_emirate",
+        "Dubai"
+      ],
+      [
+        "seller_legal_reg_no",
+        ""
+      ],
+      [
+        "seller_legal_reg_type",
+        "TL"
+      ],
+      [
+        "seller_name",
+        "ePartsCart LLC"
+      ],
+      [
+        "seller_phone",
+        ""
+      ],
+      [
+        "seller_tin",
+        ""
+      ],
+      [
+        "seller_trn",
+        ""
+      ]
+    ],
+    "files": [
+      [
+        "/content/files/kyc/32/epc_doc_emirates_id_D.png",
+        3
+      ],
+      [
+        "/content/files/kyc/32/epc_doc_moa_D.pdf",
+        2
+      ],
+      [
+        "/content/files/kyc/32/epc_doc_trade_licence_D.pdf",
+        0
+      ]
+    ]
+  },
+  "kyc_bad_extension": {
+    "helpers": [
+      "wholesale",
+      "",
+      "",
+      false,
+      ""
+    ],
+    "results": [
+      {
+        "error": "Allowed document formats: PDF, JPG, PNG, WEBP."
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "21",
+        "company_name",
+        "X"
+      ],
+      [
+        "21",
+        "epc_legal_reg_type",
+        "TL"
+      ],
+      [
+        "21",
+        "epc_reg_address",
+        ""
+      ],
+      [
+        "21",
+        "epc_reg_business_type",
+        ""
+      ],
+      [
+        "21",
+        "epc_reg_city",
+        ""
+      ],
+      [
+        "21",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "21",
+        "epc_reg_emirate",
+        "Dubai"
+      ],
+      [
+        "21",
+        "epc_reg_job_title",
+        ""
+      ],
+      [
+        "21",
+        "epc_reg_legal_name",
+        ""
+      ],
+      [
+        "21",
+        "epc_reg_sms_notify",
+        "0"
+      ],
+      [
+        "21",
+        "epc_reg_trade_licence",
+        ""
+      ],
+      [
+        "21",
+        "epc_reg_trn_mode",
+        "has_trn"
+      ],
+      [
+        "21",
+        "name",
+        "Y"
+      ],
+      [
+        "21",
+        "surname",
+        "Z"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": null,
+    "settings": null,
+    "files": []
+  },
+  "kyc_too_large": {
+    "helpers": [
+      "wholesale",
+      "",
+      "",
+      false,
+      ""
+    ],
+    "results": [
+      {
+        "error": "Document too large (max 8 MB): epc_doc_emirates_id"
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "22",
+        "company_name",
+        "X"
+      ],
+      [
+        "22",
+        "epc_legal_reg_type",
+        "TL"
+      ],
+      [
+        "22",
+        "epc_reg_address",
+        ""
+      ],
+      [
+        "22",
+        "epc_reg_business_type",
+        ""
+      ],
+      [
+        "22",
+        "epc_reg_city",
+        ""
+      ],
+      [
+        "22",
+        "epc_reg_country",
+        "OM"
+      ],
+      [
+        "22",
+        "epc_reg_job_title",
+        ""
+      ],
+      [
+        "22",
+        "epc_reg_legal_name",
+        ""
+      ],
+      [
+        "22",
+        "epc_reg_sms_notify",
+        "0"
+      ],
+      [
+        "22",
+        "epc_reg_trade_licence",
+        ""
+      ],
+      [
+        "22",
+        "epc_reg_trn_mode",
+        ""
+      ],
+      [
+        "22",
+        "name",
+        ""
+      ],
+      [
+        "22",
+        "surname",
+        ""
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": null,
+    "settings": null,
+    "files": []
+  },
+  "uae_fields_fallback_keys": {
+    "helpers": [
+      "wholesale",
+      "AE",
+      "",
+      true,
+      "1001234567000"
+    ],
+    "results": [
+      {
+        "error": "UAE TRN must be 15 digits."
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": null,
+    "settings": null,
+    "files": []
+  },
+  "uae_fields_missing_city": {
+    "helpers": [
+      "wholesale",
+      "AE",
+      "",
+      true,
+      "100123456700003"
+    ],
+    "results": [
+      {
+        "error": "Complete UAE company fields (legal name, TRN, address, city)."
+      }
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": null,
+    "settings": null,
+    "files": []
+  },
+  "uae_fields_retail_skipped": {
+    "helpers": [
+      "retail",
+      "AE",
+      "",
+      false,
+      ""
+    ],
+    "results": [
+      "ok"
+    ],
+    "profiles": [
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": null,
+    "settings": null,
+    "files": []
+  },
+  "vat_sync_rules": {
+    "helpers": [
+      "retail",
+      "",
+      "",
+      false,
+      ""
+    ],
+    "results": [
+      "tax_exempt",
+      "local_b2c",
+      "local_b2c",
+      "local_b2c",
+      {
+        "address_line1": "",
+        "authority_name": "",
+        "buyer_name": "Muscat Motors",
+        "buyer_onboarded": "0",
+        "city": "Dubai",
+        "country_code": "AE",
+        "electronic_id": "0235",
+        "email": "om@example.test",
+        "emirate": "Dubai",
+        "legal_reg_no": "",
+        "legal_reg_type": "TL",
+        "peppol_endpoint": "0235:1234567890",
+        "phone": "+968111",
+        "tin": "1234567890",
+        "trn": "123456789012",
+        "user_id": "32"
+      },
+      {
+        "address_line1": null,
+        "authority_name": null,
+        "buyer_name": "Stored",
+        "buyer_onboarded": "0",
+        "city": null,
+        "country_code": "u.a.e",
+        "electronic_id": "0235",
+        "email": null,
+        "emirate": null,
+        "legal_reg_no": null,
+        "legal_reg_type": "TL",
+        "peppol_endpoint": "0235:3001112223",
+        "phone": null,
+        "time_updated": "0",
+        "tin": "3001112223",
+        "trn": "300111222333444",
+        "user_id": "12"
+      },
+      []
+    ],
+    "profiles": [
+      [
+        "12",
+        "customer_vat_type",
+        "local_b2c"
+      ],
+      [
+        "12",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "31",
+        "customer_vat_type",
+        "tax_exempt"
+      ],
+      [
+        "31",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "31",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "31",
+        "epc_tax_exempt_cert_status",
+        "approved"
+      ],
+      [
+        "32",
+        "company",
+        "Muscat Motors"
+      ],
+      [
+        "32",
+        "customer_vat_type",
+        "local_b2c"
+      ],
+      [
+        "32",
+        "epc_reg_country",
+        "ae"
+      ],
+      [
+        "32",
+        "epc_reg_trn",
+        "1234-5678-9012"
+      ]
+    ],
+    "buyers": [
+      [
+        "12",
+        "Stored",
+        "300111222333444",
+        null,
+        null,
+        "TL",
+        null,
+        null,
+        null,
+        null,
+        "u.a.e",
+        null,
+        null,
+        "0235",
+        null,
+        "0",
+        "T"
+      ]
+    ],
+    "settings": [
+      [
+        "asp_api_key",
+        ""
+      ],
+      [
+        "asp_api_mode",
+        "manual"
+      ],
+      [
+        "asp_api_url",
+        ""
+      ],
+      [
+        "asp_name",
+        ""
+      ],
+      [
+        "auto_validate",
+        "1"
+      ],
+      [
+        "default_doc_category",
+        "tax_invoice"
+      ],
+      [
+        "default_payment_due_days",
+        "7"
+      ],
+      [
+        "einvoice_enabled",
+        "1"
+      ],
+      [
+        "payment_means_code",
+        "30"
+      ],
+      [
+        "payment_terms",
+        "Within 7 days"
+      ],
+      [
+        "seller_address_line1",
+        ""
+      ],
+      [
+        "seller_authority_name",
+        "Dubai Economy and Tourism"
+      ],
+      [
+        "seller_bank_account",
+        ""
+      ],
+      [
+        "seller_city",
+        "Dubai"
+      ],
+      [
+        "seller_country_code",
+        "AE"
+      ],
+      [
+        "seller_email",
+        ""
+      ],
+      [
+        "seller_emirate",
+        "Dubai"
+      ],
+      [
+        "seller_legal_reg_no",
+        ""
+      ],
+      [
+        "seller_legal_reg_type",
+        "TL"
+      ],
+      [
+        "seller_name",
+        "ePartsCart LLC"
+      ],
+      [
+        "seller_phone",
+        ""
+      ],
+      [
+        "seller_tin",
+        ""
+      ],
+      [
+        "seller_trn",
+        ""
+      ]
+    ],
+    "files": []
+  }
+}

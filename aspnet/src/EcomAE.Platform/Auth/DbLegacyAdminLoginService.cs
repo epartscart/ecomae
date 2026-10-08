@@ -12,7 +12,8 @@ namespace EcomAE.Platform.Auth;
 
 /// <summary>
 /// Creates PHP-compatible <c>sessions</c> rows and returns cookie material.
-/// Opt-in: requires <see cref="EcomAeOptions.SecretSuccession"/> + DB. Does not upgrade password hashes (PHP remains authoritative for upgrades).
+/// Opt-in: requires <see cref="EcomAeOptions.SecretSuccession"/> + DB. Admin surfaces apply the PHP login rate limit, and a legacy
+/// md5 hash is upgraded to bcrypt after a successful password check, as the PHP authentication plugins do.
 /// </summary>
 public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
 {
@@ -85,11 +86,32 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                 "tenant_db_unbound");
         }
 
+        var adminSession = request.Surface is not (LegacyLoginSurface.Storefront or LegacyLoginSurface.LifeOs);
+        var clientIp = LegacyLoginSecurity.ClientIp(_http.HttpContext);
         try
         {
             await using var connection = await _connections
                 .OpenForTenantAsync(tenant, cancellationToken)
                 .ConfigureAwait(false);
+
+            async Task<LegacyLoginOutcome> Fail(string message, string code, int waitMinutes = 0)
+            {
+                if (adminSession)
+                {
+                    await LegacyLoginSecurity.RecordAsync(connection, clientIp, request.Contact ?? string.Empty, false, cancellationToken).ConfigureAwait(false);
+                }
+
+                return LegacyLoginOutcome.Failed(message, code, waitMinutes);
+            }
+
+            if (adminSession)
+            {
+                var limit = await LegacyLoginSecurity.CheckAsync(connection, clientIp, request.Contact ?? string.Empty, cancellationToken).ConfigureAwait(false);
+                if (limit.Blocked)
+                {
+                    return await Fail(limit.Message, "rate_limited", limit.WaitMinutes).ConfigureAwait(false);
+                }
+            }
 
             _log.LogInformation(
                 "Login attempt host={Host} siteKey={SiteKey} db={Database} surface={Surface} contactType={ContactType}",
@@ -122,16 +144,16 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                 {
                     if (!probe.Confirmed)
                     {
-                        return LegacyLoginOutcome.Failed(
+                        return await Fail(
                             contactType == "phone"
                                 ? "Phone is not confirmed on this account."
                                 : "Email is not confirmed on this account.",
-                            "email_unconfirmed");
+                            "email_unconfirmed").ConfigureAwait(false);
                     }
 
                     if (!probe.Unlocked)
                     {
-                        return LegacyLoginOutcome.Failed("This account is locked.", "account_locked");
+                        return await Fail("This account is locked.", "account_locked").ConfigureAwait(false);
                     }
                 }
 
@@ -140,7 +162,7 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                     host,
                     tenant?.DatabaseName,
                     tenant?.SiteKey);
-                return LegacyLoginOutcome.Failed("Incorrect login or password.", "invalid_credentials");
+                return await Fail("Incorrect login or password.", "invalid_credentials").ConfigureAwait(false);
             }
 
             if (!LegacyPasswordVerifier.Verify(password, user.PasswordHash, _options.SecretSuccession))
@@ -151,18 +173,26 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                     tenant?.DatabaseName,
                     user.UserId,
                     LegacyPasswordVerifier.IsLegacyMd5(user.PasswordHash) ? "md5" : "modern");
-                return LegacyLoginOutcome.Failed("Incorrect login or password.", "invalid_credentials");
+                return await Fail("Incorrect login or password.", "invalid_credentials").ConfigureAwait(false);
+            }
+
+            try
+            {
+                await LegacyLoginSecurity.UpgradePasswordIfNeededAsync(connection, user.UserId, password, user.PasswordHash, cancellationToken).ConfigureAwait(false);
+            }
+            catch (DbException ex)
+            {
+                _log.LogWarning(ex, "Password hash upgrade failed userId={UserId}", user.UserId);
             }
 
             // LifeOS personal join uses customer cookies (any signed-in account).
             // Storefront stays customer; CP/ERP/BOS/IP stay admin-gated.
-            var adminSession = request.Surface is not (LegacyLoginSurface.Storefront or LegacyLoginSurface.LifeOs);
             if (adminSession)
             {
                 var identity = await _sessions.GetAdminIdentityAsync(user.UserId, cancellationToken).ConfigureAwait(false);
                 if (identity is null || !identity.HasBackendAccess)
                 {
-                    return LegacyLoginOutcome.Failed("Account lacks backend permissions.", "no_backend_access");
+                    return await Fail("Account lacks backend permissions.", "no_backend_access").ConfigureAwait(false);
                 }
             }
 
@@ -190,6 +220,12 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                 }
 
                 await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            if (adminSession)
+            {
+                await LegacyLoginSecurity.ClearAsync(connection, clientIp, request.Contact ?? string.Empty, cancellationToken).ConfigureAwait(false);
+                await LegacyLoginSecurity.RecordAsync(connection, clientIp, request.Contact ?? string.Empty, true, cancellationToken).ConfigureAwait(false);
             }
 
             return LegacyLoginOutcome.Succeeded(new LegacyLoginSuccess(

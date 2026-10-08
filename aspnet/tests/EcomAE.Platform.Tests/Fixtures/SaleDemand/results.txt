@@ -1,0 +1,6 @@
+doc7=2
+doc7_again=0
+doc8=2
+doc9=1
+doc10=0
+doc0=0

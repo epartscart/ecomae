@@ -374,6 +374,7 @@ builder.Services.AddSingleton<IErpDemoSeedSalesDryRun, ErpDemoSeedSalesDryRun>()
 builder.Services.AddSingleton<IErpDemoClearSalesDryRun, ErpDemoClearSalesDryRun>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDemoSalesWriteService, EcomAE.Platform.Erp.ErpDemoSalesWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPfDemoSyncWriteService, EcomAE.Platform.Erp.ErpPfDemoSyncWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpProcessFlowSyncService, EcomAE.Platform.Erp.ErpPfDemoSyncWriteService>();
 builder.Services.AddSingleton<IErpCtrOcrDryRun, ErpCtrOcrDryRun>();
 builder.Services.AddSingleton<IErpDocxSaveDryRun, ErpDocxSaveDryRun>();
 builder.Services.AddSingleton<IErpDocxDeleteDryRun, ErpDocxDeleteDryRun>();
@@ -707,6 +708,14 @@ builder.Services.AddSingleton<IStorefrontCartAddDryRun, StorefrontCartAddDryRun>
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartAddService, EcomAE.Platform.Storefront.StorefrontCartAddService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartWriteService, EcomAE.Platform.Storefront.StorefrontCartWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCheckoutWriteService, EcomAE.Platform.Storefront.StorefrontCheckoutWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPlatformMailer, EcomAE.Platform.Cp.CpPlatformMailer>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontNotifyDispatcher, EcomAE.Platform.Storefront.StorefrontNotifyDispatcher>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontWhatsappNotifier, EcomAE.Platform.Storefront.StorefrontWhatsappNotifier>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IShopOrderProtocolService, EcomAE.Platform.Storefront.ShopOrderProtocolService>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IShopPayForOrderService, EcomAE.Platform.Storefront.ShopPayForOrderService>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontOrderNotificationService, EcomAE.Platform.Storefront.StorefrontOrderNotificationService>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontSupplierLpoNotifier, EcomAE.Platform.Storefront.StorefrontSupplierLpoNotifier>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontOrderCreatedPipeline, EcomAE.Platform.Storefront.StorefrontOrderCreatedPipeline>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontVendorPortalReader, EcomAE.Platform.Storefront.StorefrontVendorPortalReader>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontGuestSessionService, EcomAE.Platform.Storefront.StorefrontGuestSessionService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontPaymentWriteService, EcomAE.Platform.Storefront.StorefrontPaymentWriteService>();
@@ -917,6 +926,8 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCommunicationsDeskService, Ecom
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCommunicationsTestService, EcomAE.Platform.Cp.CpCommunicationsTestService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSmsGateway, EcomAE.Platform.Cp.CpSmsGateway>();
 builder.Services.AddHttpClient("epc-sms", client => client.Timeout = TimeSpan.FromSeconds(25));
+builder.Services.AddHttpClient(EcomAE.Platform.Cp.CpSmsLegacyOperators.NoRedirectClient, client => client.Timeout = TimeSpan.FromSeconds(25))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPriceStorageRuleWriteService, EcomAE.Platform.Cp.CpPriceStorageRuleWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpContentManagerWriteService, EcomAE.Platform.Cp.CpContentManagerWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMenuWriteService, EcomAE.Platform.Cp.CpMenuWriteService>();
@@ -1835,7 +1846,7 @@ app.MapPost(EcomAeRoutes.LegacyAdminLogin, async (HttpContext context, ILegacyAd
         {
             if (wantsHtml)
             {
-                return Results.Redirect($"/{LegacyLoginSurfaceParser.Key(surface)}/login?error={Uri.EscapeDataString(outcome.Failure?.Code ?? "invalid_credentials")}");
+                return Results.Redirect($"/{LegacyLoginSurfaceParser.Key(surface)}/login?" + (outcome.Failure ?? new LegacyLoginFailure(string.Empty, "invalid_credentials")).Query);
             }
 
             return Results.Json(new

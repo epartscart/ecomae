@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Sales receipt #40</title>
+<style>
+body { font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #111; margin: 24px; }
+h1 { font-size: 22px; margin: 0 0 6px; }
+.muted { color: #555; font-size: 12px; }
+table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+th, td { border: 1px solid #ccc; padding: 8px; vertical-align: top; }
+th { background: #f5f5f5; text-align: left; }
+.right { text-align: right; }
+.totals { width: 280px; margin-left: auto; margin-top: 12px; }
+.sign { margin-top: 36px; }
+@media print { body { margin: 12px; } .no-print { display: none; } }
+</style>
+</head>
+<body>
+<div class="no-print" style="margin-bottom:12px;">
+	<button onclick="window.print()">Print</button>
+</div>
+<h1>Sales receipt</h1>
+<div class="muted">Parts &amp; Co — Office 12, Business Bay, Dubai, United Arab Emirates — +97140000000</div>
+<p>
+	<strong>Receipt / Order No:</strong> 40<br />
+	<strong>Date:</strong> 2026-01-01 00:00<br />
+	<strong>Customer:</strong> buyer@example.test / +971500000007</p>
+
+<table>
+	<thead>
+		<tr>
+			<th style="width:40px;">#</th>
+			<th>Brand</th>
+			<th>Part number</th>
+			<th>Description</th>
+			<th class="right" style="width:70px;">Qty</th>
+			<th class="right" style="width:100px;">Price</th>
+			<th class="right" style="width:110px;">Amount</th>
+		</tr>
+	</thead>
+	<tbody>
+			<tr>
+			<td>1</td>
+			<td>MANN</td>
+			<td>W 712/75</td>
+			<td>Oil &lt;filter&gt;</td>
+			<td class="right">2</td>
+			<td class="right">15.00</td>
+			<td class="right">30.00</td>
+		</tr>
+				<tr>
+			<td>2</td>
+			<td>NGK</td>
+			<td>BKR6E</td>
+			<td>Plug&#039;s</td>
+			<td class="right">1.5</td>
+			<td class="right">2.50</td>
+			<td class="right">3.75</td>
+		</tr>
+				<tr>
+			<td>3</td>
+			<td>ACME</td>
+			<td>X-1</td>
+			<td>Cancelled line</td>
+			<td class="right">1</td>
+			<td class="right">99.00</td>
+			<td class="right">99.00</td>
+		</tr>
+			</tbody>
+</table>
+
+<table class="totals">
+	<tr>
+		<th>Total (AED)</th>
+		<th class="right">132.75</th>
+	</tr>
+</table>
+
+<div class="sign">
+	<p><strong>Received by (name &amp; signature):</strong> _______________________________</p>
+	<p><strong>Date:</strong> __________</p>
+</div>
+</body>
+</html>

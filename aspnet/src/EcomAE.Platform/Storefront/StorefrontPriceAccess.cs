@@ -119,12 +119,12 @@ public sealed class StorefrontPriceAccess : IStorefrontPriceAccess
             }
 
             var status = await ReadTradeApprovalStatusAsync(tenant, userId, cancellationToken).ConfigureAwait(false);
-            if (string.Equals(status, "pending", StringComparison.OrdinalIgnoreCase))
+            if (status == "pending")
             {
                 return Build(StorefrontPriceAccessState.Pending);
             }
 
-            if (string.Equals(status, "rejected", StringComparison.OrdinalIgnoreCase))
+            if (status == "rejected")
             {
                 return Build(StorefrontPriceAccessState.Rejected);
             }
@@ -209,21 +209,7 @@ public sealed class StorefrontPriceAccess : IStorefrontPriceAccess
         {
             await using var connection = await _connections.OpenForTenantAsync(tenant, cancellationToken)
                 .ConfigureAwait(false);
-            await using var command = connection.CreateCommand();
-            command.CommandText = """
-                SELECT `data_value`
-                FROM `users_profiles`
-                WHERE `user_id` = @userId AND `data_key` = 'epc_trade_approval_status'
-                LIMIT 1
-                """;
-            var p = command.CreateParameter();
-            p.ParameterName = "@userId";
-            p.Value = userId;
-            command.Parameters.Add(p);
-            var raw = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            var status = Convert.ToString(raw is DBNull or null ? string.Empty : raw, CultureInfo.InvariantCulture) ?? string.Empty;
-            // PHP: empty status → approved (legacy fail-open).
-            return string.IsNullOrWhiteSpace(status) ? "approved" : status.Trim().ToLowerInvariant();
+            return await EpcCustomerTrade.ApprovalStatusAsync(connection, null, userId, cancellationToken).ConfigureAwait(false);
         }
         catch
         {

@@ -31,7 +31,7 @@ public sealed class CpCommunicationsTestService : ICpCommunicationsTestService
 
     private readonly IErpWriteConnectionFactory _connections;
     private readonly ICpSmsGateway _sms;
-    private readonly PhpReferenceOptions _reference;
+    private readonly ICpPlatformMailer _mailer;
 
     public CpCommunicationsTestService(
         IErpWriteConnectionFactory connections,
@@ -40,7 +40,7 @@ public sealed class CpCommunicationsTestService : ICpCommunicationsTestService
     {
         _connections = connections;
         _sms = sms;
-        _reference = reference.Value;
+        _mailer = new CpPlatformMailer(reference);
     }
 
     /// <summary>PHP accepts exactly <c>email</c> and <c>phone</c>.</summary>
@@ -215,160 +215,11 @@ public sealed class CpCommunicationsTestService : ICpCommunicationsTestService
         return string.IsNullOrWhiteSpace(value) ? key : value;
     }
 
-    private async Task<CpSmsSendOutcome> SendEmailAsync(
+    private Task<CpSmsSendOutcome> SendEmailAsync(
         string to,
         (bool Found, bool EmailOn, bool SmsOn, bool SendForNotConfirmed, string Subject, string EmailBody, string SmsBody) template,
         CancellationToken cancellationToken)
-    {
-        var config = ReadConfig();
-        if (!CpCommunicationsDeskService.SmtpComplete(config))
-        {
-            return CpSmsSendOutcome.Fail("SMTP is not fully configured — fill the e-mail group in Configuration first.");
-        }
-
-        var host = config["smtp_host"].Trim();
-        if (!int.TryParse(config["smtp_port"].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var port)
-            || port is < 1 or > 65535)
-        {
-            return CpSmsSendOutcome.Fail("SMTP port is invalid.");
-        }
-
-        var fromEmail = config["from_email"].Trim();
-        if (!CpTenantEmailWriteService.IsEmail(fromEmail))
-        {
-            return CpSmsSendOutcome.Fail("From e-mail in Configuration is not a valid address.");
-        }
-
-        try
-        {
-            var encryption = CpTenantEmailWriteService.NormalizeEncryption(config["smtp_encryption"]);
-            if (encryption == "ssl" && port == 465)
-            {
-                await SendImplicitTlsAsync(
-                    host,
-                    port,
-                    fromEmail,
-                    config["from_name"].Trim(),
-                    config["smtp_username"].Trim(),
-                    config["smtp_password"],
-                    to,
-                    template.Subject,
-                    template.EmailBody,
-                    cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                using var mail = new MailMessage
-                {
-                    From = new MailAddress(fromEmail, config["from_name"].Trim()),
-                    Subject = template.Subject,
-                    Body = template.EmailBody,
-                    IsBodyHtml = true,
-                };
-                mail.To.Add(to);
-
-                using var client = new SmtpClient(host, port)
-                {
-                    EnableSsl = encryption is "tls" or "ssl",
-                    Timeout = 20_000,
-                    DeliveryMethod = SmtpDeliveryMethod.Network,
-                    Credentials = new NetworkCredential(config["smtp_username"].Trim(), config["smtp_password"]),
-                };
-                await client.SendMailAsync(mail, cancellationToken).ConfigureAwait(false);
-            }
-
-            return new CpSmsSendOutcome(true, string.Empty);
-        }
-        catch (SmtpException ex)
-        {
-            return CpSmsSendOutcome.Fail(ex.Message);
-        }
-        catch (FormatException ex)
-        {
-            return CpSmsSendOutcome.Fail(ex.Message);
-        }
-    }
-
-    private static async Task SendImplicitTlsAsync(
-        string host,
-        int port,
-        string fromEmail,
-        string fromName,
-        string username,
-        string password,
-        string to,
-        string subject,
-        string body,
-        CancellationToken cancellationToken)
-    {
-        using var client = new TcpClient();
-        await client.ConnectAsync(host, port, cancellationToken).ConfigureAwait(false);
-        await using var tls = new SslStream(client.GetStream(), leaveInnerStreamOpen: false);
-        await tls.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { TargetHost = host }, cancellationToken).ConfigureAwait(false);
-
-        using var reader = new StreamReader(tls, Encoding.ASCII, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
-        using var writer = new StreamWriter(tls, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), leaveOpen: true)
-        {
-            NewLine = "\r\n",
-            AutoFlush = true,
-        };
-
-        await ExpectSmtpAsync(reader, 220, cancellationToken).ConfigureAwait(false);
-        await writer.WriteLineAsync("EHLO ecomae".AsMemory(), cancellationToken).ConfigureAwait(false);
-        await ExpectSmtpAsync(reader, 250, cancellationToken).ConfigureAwait(false);
-        if (username.Length > 0)
-        {
-            await writer.WriteLineAsync("AUTH LOGIN".AsMemory(), cancellationToken).ConfigureAwait(false);
-            await ExpectSmtpAsync(reader, 334, cancellationToken).ConfigureAwait(false);
-            await writer.WriteLineAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(username)).AsMemory(), cancellationToken).ConfigureAwait(false);
-            await ExpectSmtpAsync(reader, 334, cancellationToken).ConfigureAwait(false);
-            await writer.WriteLineAsync(Convert.ToBase64String(Encoding.UTF8.GetBytes(password)).AsMemory(), cancellationToken).ConfigureAwait(false);
-            await ExpectSmtpAsync(reader, 235, cancellationToken).ConfigureAwait(false);
-        }
-
-        await writer.WriteLineAsync(("MAIL FROM:<" + fromEmail + ">").AsMemory(), cancellationToken).ConfigureAwait(false);
-        await ExpectSmtpAsync(reader, 250, cancellationToken).ConfigureAwait(false);
-        await writer.WriteLineAsync(("RCPT TO:<" + to + ">").AsMemory(), cancellationToken).ConfigureAwait(false);
-        await ExpectSmtpAsync(reader, 250, cancellationToken).ConfigureAwait(false);
-        await writer.WriteLineAsync("DATA".AsMemory(), cancellationToken).ConfigureAwait(false);
-        await ExpectSmtpAsync(reader, 354, cancellationToken).ConfigureAwait(false);
-        var safeSubject = subject.Replace("\r", string.Empty, StringComparison.Ordinal).Replace("\n", string.Empty, StringComparison.Ordinal);
-        var safeFromName = fromName.Replace("\r", string.Empty, StringComparison.Ordinal).Replace("\n", string.Empty, StringComparison.Ordinal);
-        await writer.WriteAsync((
-            "From: " + safeFromName + " <" + fromEmail + ">\r\n"
-            + "To: " + to + "\r\n"
-            + "Subject: " + safeSubject + "\r\n"
-            + "MIME-Version: 1.0\r\n"
-            + "Content-Type: text/html; charset=utf-8\r\n"
-            + "\r\n"
-            + body.Replace("\r\n", "\n", StringComparison.Ordinal).Replace("\n", "\r\n", StringComparison.Ordinal)
-            + "\r\n.\r\n").AsMemory(), cancellationToken).ConfigureAwait(false);
-        await ExpectSmtpAsync(reader, 250, cancellationToken).ConfigureAwait(false);
-        await writer.WriteLineAsync("QUIT".AsMemory(), cancellationToken).ConfigureAwait(false);
-    }
-
-    private static async Task ExpectSmtpAsync(StreamReader reader, int expected, CancellationToken cancellationToken)
-    {
-        var response = string.Empty;
-        while (true)
-        {
-            response = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false) ?? string.Empty;
-            if (response.Length < 3 || !int.TryParse(response[..3], NumberStyles.None, CultureInfo.InvariantCulture, out var code))
-            {
-                throw new SmtpException("SMTP returned an invalid response.");
-            }
-
-            if (response.Length < 4 || response[3] == ' ')
-            {
-                if (code != expected)
-                {
-                    throw new SmtpException("SMTP returned " + code.ToString(CultureInfo.InvariantCulture) + "; expected " + expected.ToString(CultureInfo.InvariantCulture) + ".");
-                }
-
-                return;
-            }
-        }
-    }
+        => _mailer.SendHtmlAsync(to, template.Subject, template.EmailBody, cancellationToken);
 
     private async Task<CpSmsSendOutcome> SendSmsAsync(
         DbConnection connection,
@@ -395,7 +246,8 @@ public sealed class CpCommunicationsTestService : ICpCommunicationsTestService
             return CpSmsSendOutcome.Fail("No SMS operator is active — activate one under SMS operators.");
         }
 
-        return await _sms.SendAsync(handler, parameters, phone, template.SmsBody, cancellationToken).ConfigureAwait(false);
+        return await _sms.SendAsync(
+            handler, parameters, phone, template.SmsBody, cancellationToken, CpSmsHandlerContext.For(connection, _mailer.ReadConfig())).ConfigureAwait(false);
     }
 
     /// <summary>Flattens <c>sms_api.parameters_values</c> (PHP stores scalars as JSON strings or numbers).</summary>
@@ -436,7 +288,7 @@ public sealed class CpCommunicationsTestService : ICpCommunicationsTestService
     }
 
     /// <summary>PHP <c>send_notify.php</c> upsert of the channel row in <c>debug_results</c>.</summary>
-    private static async Task RecordDebugAsync(
+    internal static async Task RecordDebugAsync(
         DbConnection connection,
         string name,
         bool ok,
@@ -475,33 +327,5 @@ public sealed class CpCommunicationsTestService : ICpCommunicationsTestService
             ok ? 1 : 0,
             text,
             now).ConfigureAwait(false);
-    }
-
-    private IReadOnlyDictionary<string, string> ReadConfig()
-    {
-        var root = (_reference.PhpDocRoot ?? Environment.GetEnvironmentVariable("ECOMAE_PHP_DOCROOT") ?? string.Empty).Trim();
-        if (root.Length == 0)
-        {
-            return new Dictionary<string, string>(StringComparer.Ordinal);
-        }
-
-        var path = Path.Combine(root, "config.php");
-        if (!File.Exists(path))
-        {
-            return new Dictionary<string, string>(StringComparer.Ordinal);
-        }
-
-        try
-        {
-            return PhpConfigFile.Values(PhpConfigFile.Parse(File.ReadAllText(path)));
-        }
-        catch (IOException)
-        {
-            return new Dictionary<string, string>(StringComparer.Ordinal);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return new Dictionary<string, string>(StringComparer.Ordinal);
-        }
     }
 }

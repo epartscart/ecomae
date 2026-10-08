@@ -187,6 +187,487 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
 
+### PHP reference re-review — missed items plan (2026-10-07)
+
+The ajax ratios count only ajax scripts. To make sure nothing in the PHP reference is missed, `scripts/php_reference_gap_inventory.py` now checks every PHP file and function against the ASP.NET implementation code. The migration catalogues, dry-runs, reporters and dashboards are left out, because they list PHP paths without porting them. The output is [`inventory/PHP_REFERENCE_GAP_INVENTORY.md`](inventory/PHP_REFERENCE_GAP_INVENTORY.md). Rerun it at every checkpoint with `--max-gap <current>`, so the gap count can only go down.
+
+| Triage | Files | Meaning |
+| --- | ---: | --- |
+| Mentioned | 771 | ASP.NET names the file or all its functions. This is a lead only; parity stays in the rows of this tracker |
+| ERP tab mapped | 118 | The `erp_tabs_*.php` key is routed by `ErpPhpTabRouteMap` (all 160 tabs are routed). Many tab writes are still PHP |
+| Third-party | 316 | PHPExcel, PHPMailer, PclZip, MobileDetect, elFinder, TinyMCE, inputmask, the Laximo SDK. Replaced by .NET packages, not ported |
+| Ops script | 417 | Root `epc-*.php`, `*-setup.php` and similar one-off deploy, seed, repair and audit scripts. Replaced by migrations and workers, not ported one-to-one |
+| Sitemap shard | 80 | Generated sitemap files |
+| **Gap** | **876 (about 298k lines)** | Nothing in ASP.NET references it. Each one must be ported, or retired with a reason in `inventory/PHP_RETIRED.tsv` |
+
+Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
+
+1. **Storefront customer pages (epartscart.com).**
+   - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`, `my_quotes.php`, `common_add_to_basket.php`, `checkout_login_offer.php`, `get_customer_offices.php`.
+   - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
+   - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
+   - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
+   - Done: the page access include `content/users/check_user_access.php`, used by the CP lang editor ajax and the storefront storage toggle. See the checkpoint below.
+   - Done: the trade account library `content/shop/pricing/epc_customer_trade.php` and the currency library `epc_currency.php` (except `epc_currency_js_config`), with the checkout and price gates switched to them. See the checkpoint below.
+   - Done: the country list `content/users/epc_countries.php`. Retired: `content/users/epc_reg_fields_compliance.php`, which nothing includes or calls.
+   - Done: the e-invoice schema `content/shop/finance/epc_einvoice_schema.php`. Partly done: the validation and save half of `epc_registration_enhanced.php` (the render half remains) and the `customer_vat_type` sync of `epc_uae_customer_vat.php`. See the checkpoint below.
+   - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `epc_session_security.php`, the agreement module.
+   - `content/shop/catalogue` (41 files): `printProducts.php`, `printProducts_2.php`, `printProduct_Info.php`, the product pages, compare, bookmarks, SKU media, the text search algorithm, the tree lists.
+   - `content/shop/docpart` (44 files): `part_search_page.php` and `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest.
+   - `modules/*`: login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats).
+   - Front templates `expan`, `modex` and `limo`; `core/dp_core.php` and `dp_helper.php` behaviour; plugins (metadata handler, phone/tablet, error pages, shop cart).
+2. **Checkout and order side effects still on PHP.**
+   - Done: process-flow sync (`epc_pf_sync_order_case` and `epc_pf_sync_po_case` in `content/shop/finance/epc_erp_processflow.php`). See the checkpoint below.
+   - Done: sales-invoice sale-demand capture (`epc_erp_inventory_record_sale_demand`). See the checkpoint below.
+   - Done: SMS and WhatsApp Cloud API fan-out of `docpart_dispatch_notification()` (`content/notifications/send_notify_dispatch.php`, `epc_whatsapp_notify.php`). See the checkpoint below.
+   - Done: the legacy SMS operators in `content/sms/handlers` (iqsms, rocketsms_by, semysms, smsaero, smsgorod_ru, smsimple, sms_ru, smstraffic, smsvizitka_com, terasms_ru) and the handler URLs of all 14 operators. See the checkpoint below.
+   - Retired: `content/sms/handlers/smsaero/send_sms_old.php` (reason in `inventory/PHP_RETIRED.tsv`).
+   - Done: contact confirmation (`content/users/ajax_contacts_works.php`) and the login code (`modules/login/code/frontAjax/ajax_sendCode.php`) send through the dispatcher and store their rows. See the checkpoint below.
+   - Done: the legacy `send_notify.php` HTTP endpoint, including its `debug_results` upsert for e-mail and SMS. See the checkpoint below. `epc_order_whatsapp_share.php` is a CP order page include and moves to step 3.
+   - Done: the order and line status protocol (`content/shop/protocol/set_order_status.php`, `set_order_item_status.php`), pay on place through it, and the post-commit part of `pay_for_order.php` for online payments. See the checkpoint below.
+   - Done: creating a return request (`content/shop/returns/ajax/ajax_load_returns_data.php` with `helper.php`): line split, photos, notifications and line status. See the checkpoint below.
+   - Done: order print (`content/shop/print_docs/service/print.php` with `get_html_sales_receipt.php` and `get_html_uae_tax_invoice.php`) and the document control template render. See the checkpoint below.
+   - Done: the `content/shop/returns` pages (`returns.php`, `return.php` with `return_messages.php`, `add_return.php`, `assets/add_return.js.php`), the payment method picker (`content/shop/payments/epc_payment_method_picker.php`) and the obtaining-mode includes (`content/shop/obtaining_modes`). See the checkpoint below.
+   - Done: the return selection on the customer order page (`my_order.php` `confirm_return()`).
+   - Done: Document Control print (`content/shop/document_control/service/print.php`) with the ERP access check `epc_erp_user_can_access` and the e-invoice context `epc_dc_einvoice_context`. See the checkpoint below.
+   - Retired: `content/shop/document_control/epc_document_control_cp_install.php` (PHP CP CMS installer; reason in `inventory/PHP_RETIRED.tsv`).
+   - Moved to step 7: the ERP portal half of `epc_erp_access.php` (`epc_erp_portal_*`, tab rights `epc_erp_user_allowed_tabs` / `epc_erp_user_can_access_tab`). Only the ERP shell (`erp_main.php`) and the `/erp` portal pages use it.
+3. **Control Panel shop pages.**
+   - `cp/content/shop/order_process` (20 files): `order_card.php`, `orders_items.php` and its add, edit and reload modals, the orders detail pane, the fulfilment, OMS and WhatsApp guides, `epc_order_whatsapp_share.php`.
+   - `cp/content/shop/catalogue/product.php` and its includes.
+   - `cp/content/shop/prices_upload` page bodies: `upload_file.php`, `price_review.php`, the download manager, update history, multivendor and commerce upload. These must reuse the existing price importer.
+   - Smaller sets: logistics, crosses, data transfer, document control, channels, marketing, tenant hub, POS, payments, demand countries, manufacturer synonyms, eparts catalogue and mod, accessories, statistics.
+   - `cp/content/users`, `cp/content/lang`, `cp/content/packs_control`, the file manager, `cp/content/requests`, the content structure dumps.
+   - The CP plugins `2fa` and `authentication`; CP modules (bread crumbs, left menu, SSL check, logout).
+4. **Control Panel control and portal.**
+   - `cp/content/control/portal` (52 files): the auto price engine shell, social media hub, auth settings, tax toolkit, industry kit, licence trends and consolidation, marketing broadcast, the visual page editor, the fleet dashboard, the customer board, tenant e-mail settings, governance, POS tenant management, mobile apps, the BOC panels, and the guides.
+   - Version control and admin-access check.
+   - Root CP includes: `epc_cp_mainstream_menu.php`, `epc_oms_menu_guide_lib.php`, `epc_storefront_stub_redirect.php`, `epc_static_serve.php`, `epc_deploy_auth.php`.
+5. **Marketing, platform, tenant, BOS and industries (`content/general_pages`, 205 files plus 31 industry templates).**
+   - The ecomae.com platform pages, router, data, capability guides, FAQ and legal content; the brochures; the free tools; the portal demo; the web tracker.
+   - The auth common, MFA, SMTP and OAuth providers; the API v1 and webhooks; Power BI.
+   - Commerce isolation, tenant data protection, and the portal tenant pages and intro.
+   - The BOS unified and blockchain BOS pages, and the BOC console.
+   - The industry consolidation and the industry templates (`_base_template.php`, the sub-industry page and 28 industries).
+   - `epc_cloudpanel_helpers.php` is moved to ops workers, not ported as a page.
+6. **Price engine.** `content/shop/price_engine` (23 files, including the 6,768-line `epc_auto_price_engine.php` and the discovery adapters) plus the CP auto-price shell. This must stay on the existing importer.
+7. **ERP to 100%, after the steps above.**
+   - The 152 finance libraries in `content/shop/finance`. The largest are the external reports build, the UAE tax compliance, jewellery, inventory, SCM, tax toolkit, `my_balance.php`, phase 8, order planning, AML, staff, concurrency, HR law, integration, access, datalink, industry packs, period close, WMS, payroll and procurement.
+   - The CP finance pages: nav areas, the dashboards, the operations editor and create operation, the payment systems, custom shipping.
+   - The write side of the 118 mapped tabs.
+   - The ERP portal half of `epc_erp_access.php`: portal URLs, the CP-admin session bridge, the guest session and auth post, and the tab rights by department (`epc_erp_staff_allowed_tabs`).
+   - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
+
+Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-08 — the user agreement module and the auth card layout like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap 828 to 826. Unnamed PHP functions: 8,014 to 8,011.
+- `StorefrontAuthPartials` ports two includes that `regform.php` and the login page need:
+  - `content/users/users_agreement_module.php`: the checkbox (strings 4751 to 4753), the `{lang}/polzovatelskoe-soglashenie` link, the script that resets the `users_agreement` cookie to `no` and sets it on change, and `check_user_agreement()` with the 4754 alert.
+  - `content/users/epc_storefront_auth_layout.php`: the stylesheet link (printed once per page), the `epc-auth-page` card (`--wide` for registration) and its close.
+- The output is PHP's byte for byte, including the file's CRLF line endings and translations echoed unescaped. `/content/users/epc_storefront_auth.css` is now served from the reference tree.
+- `StorefrontAuthPartialsTests` compares 7 cases with **goldens from the real PHP includes** (`Fixtures/AuthPartials/harness.py`). Translations are stubbed with HTML and quotes. The cases cover three language prefixes, the default and wide cards, the stylesheet printed once, and an unknown variant. A corrupted golden makes exactly one case fail.
+- Full suite: 5505 of 5505. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+- Next for `regform.php`: the render half of `epc_registration_enhanced.php` (social block, account tabs, tab scripts, UAE panel) and the email OTP modal with its send and verify-only endpoints, which need the modern auth core.
+
+### Checkpoint 2026-10-08 — the registration captcha (`lib/captcha`) like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap stays 828, because the inventory classes `lib/captcha` as third-party. Unnamed PHP functions: 8,016 to 8,014.
+- `StorefrontCaptcha` ports `captcha.php` and `check_captcha.php`, the first `regform.php` dependency:
+  - The image: a code of 4 to 7 shuffled characters from the PHP set, on one of the 30 PHP backgrounds. It has lines under and over the text and Agency letters at a random 20 to 30 points, with the same angle and position ranges, drawn with SkiaSharp.
+  - The `captcha` cookie is `md5(code)` for two minutes on `/`. The PHP cache headers are sent.
+  - The check: an empty body when `captcha_check` is missing, otherwise `true` or `false` from a PHP 8 loose comparison. A POST value overrides the query.
+  - The refresh button image is served at its PHP URL.
+- Intended deviations:
+  - Only PNG backgrounds are picked. PHP can pick the directory's `index.html` and then fails with a 500.
+  - Kestrel writes header names in its own order. The values and their order within each name match PHP.
+- `StorefrontCaptchaTests` compares 10 check cases with **goldens from the real PHP** (`Fixtures/Captcha/harness.py`, `php -S`, `request_order=GP`). The cases cover GET, POST, POST over GET, a missing cookie, an empty value, the `0` and `0e1` magic hashes, and an uppercase cookie. The tests also check the image headers and cookie, that a 150×70 PNG decodes, the refresh image bytes, and that generated codes pass their own check. A corrupted golden makes exactly one case fail.
+- Full suite: 5498 of 5498. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-08 — the registration form post (`/users/register`) like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap stays 828: `register.php` was already counted as mentioned through older route notes. Unnamed PHP functions: 8,017 to 8,016.
+- `StorefrontPhpAjax.UsersRegisterAsync` ports `content/users/register.php`. It runs in one transaction:
+  - The signed-in refusal, captcha, user agreement, contact type, regexp, uniqueness, empty IP and 24-hour IP checks.
+  - The enhanced and UAE field checks.
+  - The `users` row with the e-mail activation code or a random SMS code.
+  - The `simple_register` SMS-code account: attempts, a wrong code, expiry and a generated password.
+  - The registration fields (`show_for` loose match, file widgets and wholesale-only fields skipped, values through `htmlentities`) and the registered-customer group.
+  - The trade account, the buyer profile and KYC documents, then the `reg_email_confirm` or `reg_phone_confirm` send (strings 4697 and 4698, or `registration_continue_if_confirm_email_fails`).
+  - After the commit: `reg_notify_admin` to the admin inbox, the CRM manager and the backend groups, with the profile table, profile button and login-event block.
+  - The page text: e-mail sent or not, retail approved or wholesale pending, or the SMS code form.
+- `PhpHtmlEntities` is PHP 8.1 `htmlentities` (HTML 4.01 table plus `&#039;`).
+- Endpoint: GET `/users/register` and `/{lang}/users/register` redirect to the form as PHP does. POST runs the port; a refusal is a 302 to `{lang}/?error_message=`. The page text goes to `/users/registered` in a ten-minute protected token and renders inside the storefront chrome. The Blazor registration page keeps `/users/registration` and `/users/regform`, and its own write route, until `regform.php` (captcha and agreement) is ported.
+- Intended deviations:
+  - The e-invoice schema is ensured before the transaction, and its DDL runs once per connection. In MySQL that DDL commits implicitly, so in PHP 8 a refused confirmation send keeps the account and the final `commit()` throws.
+  - A 302 replaces the `<script>location=` page.
+  - The `simple_register` hand-over form escapes the posted values.
+  - A signed-in user gets the 4740 redirect; in PHP, `rollBack()` dies there because no transaction has started.
+  - A `reg_fields` row with an invalid `show_for` is skipped on the `simple_register` path; PHP throws a TypeError there.
+- `StorefrontUsersRegisterTests` compares 21 cases with **goldens from the real PHP** (`Fixtures/UsersRegister/harness.py`): the real `register.php`, `dp_user.php`, translator, trade, e-invoice, enhanced-registration and admin-notification code behind `php -S`, with only `send_notify` stubbed to record calls. The checks cover the redirect or page; the `users`, `users_profiles`, `users_groups_bind`, `sessions` and buyer rows; every notify call (name, variables, persons); and the KYC files. One Fact covers the signed-in refusal. Another drives the HTTP endpoint end to end: GET redirects, a refusal, an e-mail registration with its result token, and a wholesale post with multipart KYC uploads.
+- Full suite: 5485 of 5485. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-08 — registration fields, KYC documents and e-invoice buyer profiles like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap ratchet: 829 to 828 (`epc_einvoice_schema.php`); unnamed PHP functions 8,017.
+- `EpcRegistrationEnhanced` ports the validation and save half of the enhanced registration form:
+  - The retail and wholesale required fields, the country check, the UAE 15-digit TRN, and the TRN status abroad.
+  - The PEP declaration and the two required wholesale documents.
+  - The UAE company fields.
+  - The `users_profiles` keys (contact, address, trade, KYC text and the legacy `name`, `surname`, `company_name`).
+  - The KYC documents: 8 MB at most; PDF, JPG, JPEG, PNG or WEBP; stored under `content/files/kyc/{user}/` and marked `pending_review`.
+  - The UAE buyer profile and the `epc_uae_company` flag.
+  - The form's render half stays a gap until the registration page is ported.
+- `EpcEinvoiceBuyer` is the twin of `epc_einvoice_schema.php` (the five tables and default settings) and the buyer half of `epc_einvoice.php`: the stored or user-built buyer profile, the TIN from the TRN, the Peppol endpoint, the country normalisation and the save.
+- `EpcUaeCustomerVat` ports the `customer_vat_type` sync: tax exempt, GCC, export, local B2B or local B2C, with the buyer profile country winning over `epc_reg_country`. The display-price, label and order-total functions of that library stay a gap.
+- `StorefrontRegistrationEnhancedTests` compares 19 cases with **goldens from the real PHP** (`Fixtures/RegistrationEnhanced/harness.py`). It runs the PHP behind `php -S` so the documents are genuine multipart uploads. The checks cover every validation and save result, the VAT types, the buyer profiles, and the rows left in `users_profiles`, `epc_einvoice_buyer_profiles` and `epc_einvoice_settings`. They also cover the KYC files written (name and size).
+- Full suite: 5462 of 5462. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-08 — trade accounts and storefront currencies like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap ratchet: 833 to 829 (`epc_customer_trade.php`, `epc_currency.php`, `epc_countries.php`, and the retired `epc_reg_fields_compliance.php`); unnamed PHP functions 8,032.
+- `EpcCustomerTrade` is the twin of `epc_customer_trade.php`:
+  - A retail registration is approved at once, with AED and the retail price profile group when they exist. Any other type becomes retail. A wholesale registration waits as pending.
+  - Approve, reject (with the note) and the currency change request write the same `users_profiles` keys. Assigning a price profile leaves every other price profile group.
+  - No status counts as approved; the status is compared exactly, as in PHP.
+  - Storage errors are ignored, as in PHP.
+- `EpcCurrency` is the twin of `epc_currency.php`: the ten supported currencies kept available, the records (a repeated ISO code replaced in place, the shop currency added when missing), the visitor's choice (the approved dealing currency, then the `epc_currency` cookie, then the `epc_country` map, then the shop currency) and the amount format.
+- The checkout ajax, the checkout write service and the price access state now use the shared library. Checkout returns PHP's block message, including the rejection note. Before this, the write service had its own message and compared case-insensitively, and the price state lowercased the status.
+- `StorefrontCustomerTradeTests` compares 13 cases with **goldens from the real PHP libraries** (`Fixtures/CustomerTrade/harness.py`): every operation result plus the rows left in `users_profiles`, `users_groups_bind` and `shop_currencies` match. A further test runs the checkout gate for pending, rejected-with-note and unknown statuses.
+- `EpcCountries` is the twin of `epc_countries.php`: the 244 names in PHP order, the Gulf-first registration order, the dial codes, the address rules and the code normalisation (two letters, else a name matched like `strcasecmp()`). `StorefrontCountriesTests` compares them with goldens from the real PHP (`Fixtures/Countries/harness.py`).
+- `epc_reg_fields_compliance.php` is retired in `inventory/PHP_RETIRED.tsv`: no PHP file includes it or calls its functions, and nothing reads the `reg_fields` columns it would add.
+- Full suite: 5443 of 5443. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-08 — page access checks like PHP check_user_access.php
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap ratchet: 834 to 833 (`check_user_access.php`); unnamed PHP functions 8,063.
+- `StorefrontPhpAjax.CheckUserAccessAsync` is the shared twin of the include. The group must reach every listed page:
+  - `content_access` rules plus the groups nested under them, recursively, only below a group whose `count` is not 0.
+  - A frontend page without rules is open; a backend page without rules is closed.
+  - Backend pages use the admin's bound groups. Frontend pages use the customer profile groups: the guest group, the bound groups, or else the first `for_registrated` group.
+  - No pages gives string 2387, a refusal 2388, both translated and `null` when untranslated.
+- The denial language follows `multilang_init()` for CP ajax: the active `backend_ui_lang`, else the active `lang_cp` cookie, else the active default language (multilang off: the default language).
+- The 10 CP lang editor ajax handlers and the storefront storage toggle now use it. Before this they ignored nested groups and answered the literal "2388".
+- Verified against goldens from the real include with the real `dp_user.php` and `lang/dp_lang.php` (php-cli, throwaway schema, only the config stubbed): 23 cases compare the decision and the `status`, `error` and `message` values. The CP ajax suites now seed `groups` and the `lang_languages` flags, as a PHP database has them.
+- 5427 of 5427 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-08 — the registration contact check like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap ratchet: 835 to 834 (`check_reg_contact.php`); unnamed PHP functions 8,063.
+- `content/users/check_reg_contact.php` answers on the same path (GET and POST) with PHP's content type:
+  - The `stop_csrf.php` check comes first (CSRF 1, 3, 3.1 and 4). The query key wins over the posted one, and a CP referer checks the admin session.
+  - A type other than `email` or `phone` gives an empty body. The developer domains `@intask.pro`, `@docpart.ru` and `@docpart.net` are refused for e-mail with string 5641 (`null` when untranslated).
+  - The `reg_fields` regexp must match the whole contact (4699 plus the caption). A missing row means no check.
+  - Another user with the contact, compared after `htmlentities()`, gives 4700, the caption and 4701. Otherwise `{"status":true,"message":"Ok"}`.
+- Verified against goldens from the real PHP script with the real `stop_csrf.php` and `dp_user.php` (php-cli with pdo_mysql on a throwaway schema; only the config and the translator are stubbed): 22 cases compare the exact body on Kestrel.
+- 5404 of 5404 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — admin login rate limit and the bcrypt upgrade like PHP
+
+Not complete.
+
+- Ratios unchanged. Weighted headline stays about 20.4%. Inventory gap ratchet: 837 to 835 (`epc_login_rate_limit.php` and `epc_password_upgrade.php`).
+- The shared ASP.NET login (`DbLegacyAdminLoginService`) now does what the PHP authentication plugins do:
+  - CP, ERP, BOS and IP logins check `epc_login_attempts` first. At 10 failures from the client IP (CF-Connecting-IP, then the first X-Forwarded-For hop, then the remote address) or for the contact (`strtolower(trim())`) within 15 minutes, the login is refused with "Too many failed attempts. Please wait N minutes before trying again." The login page shows N through `?error=rate_limited&wait=N`.
+  - Every refused admin attempt is recorded, including a blocked one, as in PHP. A success deletes that IP and contact's attempts and records the success. The table is created with PHP's DDL when missing, and storage errors never block a login.
+  - Storefront and LifeOS logins are not rate limited, as in PHP.
+  - On every surface, a legacy md5 hash that matched is replaced with bcrypt cost 12 (`$2y$12$`) before the backend group check, as in PHP.
+- `epc_login_rate_limit_cleanup()` is ported (`LegacyLoginSecurity.CleanupAsync`). PHP calls it nowhere, so it is not scheduled.
+- Intended deviation: a failed hash upgrade is logged and the login goes on (PHP would stop on the exception).
+- Local testing note: a login on the local app now writes `epc_login_attempts` and can upgrade that account's hash. Do not log in to a local app whose tenant DB is `ecomae` or `docpart`.
+- Verified on a throwaway database: wrong password and missing backend access are recorded (and the md5 hash is upgraded on the second), a success upgrades the hash, clears and records, a bcrypt account logs in again unchanged, a storefront login is not recorded but is upgraded, 10 contact failures 61 seconds old block with a 14-minute wait and record one more failure without a session, the block lifts after 15 minutes, and cleanup removes rows older than 24 hours.
+- 5382 of 5382 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — password reset pages like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112 (these are pages, not ajax scripts). Weighted headline stays about 20.4%. Inventory gap ratchet: 839 to 837 (`forgot_password.php` and `new_password.php`).
+- The forgot password page (`/users/forgot_password`, `/en/users/forgot_password`) shows the contact type select the way `available_communications()` decides: both types when every SMTP setting is filled and exactly one SMS operator is active, otherwise phone only or e-mail only.
+- The form posts to `/storefront/forgot-password-app/send`, which follows PHP:
+  - A logged-in customer goes home. No contact shows the form again. A missing or unknown type gives 4719. No account with that confirmed contact gives 4720. An active lock gives 4694.
+  - E-mail: a 64-hex code and the `new_password` link in the page language. Phone: a five-digit code.
+  - `forgot_password_time`, `forgot_password_code` and `{type}_code_send_lock_expired` (now + 300) are stored, then `forgot_password_by_email` or `forgot_password_by_phone` goes through the `send_notify.php` logic. A failed answer gives 4722, an unsent contact 4723. Success gives 4724 (e-mail) or the SMS code form (phone).
+  - The result redirects back to the page with `?r=<id>`, and only the ids above are shown.
+- `new_password` goes home unless the type, contact and stored code are valid. A wrong code (PHP loose compare) is discarded with 4729, and a code older than 30 minutes with 4730. Otherwise the password becomes `md5(new.secret_succession)` for a 10-hex new password, which is shown once under 4732.
+- Intended deviations: the e-mail link URL-escapes the contact. There is no captcha (PHP only checks it in the browser). Ids without a translation show English text.
+- Verified on Kestrel over a throwaway database, with the real dispatcher, a recording mailer and a recording SMS gateway: every redirect above; the stored code, time and lock; the mailed link; the lock refusal; the late and wrong code resets; a phone reset with a leading-zero code that sets the md5 password; and both `available_communications()` cases. The pages were also rendered on the local app.
+- 5378 of 5378 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — the send_notify.php endpoint like PHP
+
+Not complete.
+
+- Ratios unchanged. Weighted headline stays about 20.4%. Inventory: 839 gap files (the page itself was already mentioned).
+- `content/notifications/send_notify.php` answers on the same path (GET and POST). The secret is compared loosely ("Forbidden"). Missing input gives 4072, a bad persons list 4073 and an unknown notification 4074.
+- It differs from the inline dispatcher the way PHP does: bare translations; e-mail and SMS gated on `status_ref` when `orders_statuses_notifications_settings` is set (a missing flag counts as 0); SMS marked as tried even without an operator (4077); `debug_results` upserted for e-mail and SMS; `persons` echoed in PHP key order with typed user columns.
+- Verified against goldens from the real PHP script (php-cli with pdo_mysql on a throwaway schema, mailer, translator, template and curl stubbed): 11 cases compare the exact body, the `debug_results` rows and the mails.
+- Intended deviations: `debug_results.status` is written as 0 or 1 (PHP writes '', which fails on an int column in strict mode); the e-mail debug text is the mailer message; file attachments are ignored.
+
+### Checkpoint 2026-10-07 — contact confirmation and the login code like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112 (these two files were already mapped; their success paths were missing). Weighted headline stays about 20.4%. Inventory: 839 gap files.
+- `ajax_contacts_works.php` now finishes like PHP.
+  - Set, change and confirm write the `users` columns `{type}`, `_confirmed`, `_new`, `_code`, `_code_expired` (now + 1800), `_code_attempts` and `_code_send_lock_expired` (now + 300) in a transaction.
+  - The e-mail code is `md5(md5(contact.contact_new.rand).md5(secret_succession))`; the phone code is a six-digit number.
+  - It then sends `{type}_confirm_other` with `site_name`, `email_confirm_href` and `phone_confirm_code`, to the new contact on change. The send uses a second connection, as PHP's `send_notify.php` runs in another process.
+  - A missing notification or dispatch error rolls back with 4697. An unsent contact rolls back with 4698. Success answers `{status, message, type, action, contact}`.
+- `ajax_sendCode.php` sends `verification_code`. Then `sessions` gets `2fa_code`, `2fa_attempts` 3 and the PHP `json_encode` data (`timeSendFaCode`, `expireFaCode` + 300, `type`, `method`, `contact_string`, `contact`), and the answer is `{"status":200}`. A failed update is 5650.
+- Messages are translated in the page language taken from the referer, and the confirmation link carries that language. The regexp checks follow `preg_match`'s rule: the whole value must match, and no capture group may take part.
+- Intended deviation: an id with no translation is shown as the id, not as an empty message.
+- Verified on Kestrel over a throwaway database, with the real dispatcher and a recording mailer:
+  - Contact confirmation: a notification without `send_for_not_confirmed` gives "Code not sent" and nothing is stored. A partial regexp match gives "Bad contact". Set stores a 32-hex code and its expiry and lock, and mails the link. A locked change gives 4694. Change keeps the old e-mail, stores `email_new` and mails the new address with the `ar` link and text. A refused SMTP send rolls the confirm back.
+  - Login code: the send stores a six-digit `2fa_code` that matches the mailed code.
+  - 5365 of 5365 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — the legacy SMS operators and the handler URLs like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 839 gap files, down from 841 (ratchet `--max-gap 839`): `smsimple.class.php` is ported and `smsaero/send_sms_old.php` is retired; unnamed PHP functions 8,066.
+- `CpSmsLegacyOperators` ports the ten legacy handlers. Each sends the same provider request as its `send_sms.php` (URL, query encoding, form or JSON body, basic auth, user agent) and reads the reply the same way, including PHP's loose `==` and `>=`:
+  - sms_ru strips whitespace from the reply before decoding it, and an empty `sms` list prints nothing;
+  - iqsms reports success for any two-part reply, with the code text as the message;
+  - semysms treats a missing `code` as 0; terasms treats an undecodable reply as success; smsvizitka succeeds whenever the raw response contains "200 OK";
+  - smsgorod prefixes the shop host when `domain` is on, and sends the sender only on the `char` channel.
+- The order notification dispatcher and the CP communications test now reach these operators (before, they answered "not implemented on ASP.NET"). Messages use `translate_str_by_id` in English, as PHP does for a server-to-server POST.
+- `/content/sms/handlers/<handler>/send_sms.php` answers in ASP.NET for all 14 operators. That is the URL the PHP dispatcher, password recovery and contact confirmation post to.
+  - Legacy handlers: the database first ("Error"), then the loose `check` against `secret_succession` ("Forbidden"), then the `sms_api` row by handler (active or not). They answer `json_encode` as HTML.
+  - GCC handlers: "Database error", a strict non-empty `check`, "<operator> operator not configured", and the POSTed `parameters_values` override, with the unescaped JSON of `epc_sms_exit_json`.
+- Intended deviations:
+  - smsimple cannot run on PHP 8: it includes a missing `lib/xmlrpc.inc`, and the xmlrpc extension was removed, so it always answers "XmlRpc libraries not available". ASP.NET sends its XML-RPC calls (`pajm.user.auth`, then `pajm.sms.send` with `signature_id`).
+  - rocketsms, smsgorod and terasms no longer write request logs with phone numbers and credentials into the web root.
+  - Certificates are verified (PHP turns verification off). Each call has a time limit (5 seconds for smstraffic and 20 for smsgorod and terasms, as in PHP; 25 where PHP waits forever). sms_ru, iqsms and rocketsms do not follow redirects, as in PHP.
+- Verified: the real PHP handlers, run in a harness with stubbed curl, PDO and translator (`Fixtures/SmsHandlers/harness.sh`), produce 36 goldens across the nine operators that run on PHP 8. ASP.NET sends byte-equal requests (method, URL, body, headers) and prints byte-equal answers for all 36. The smsimple XML-RPC exchange, its faults and a failed login have their own tests. On Kestrel over a throwaway database: an sms_ru send through the URL, Forbidden for a wrong or missing check (legacy and GCC), "du operator not configured", the Unifonic AppSid check and 404 for an unknown handler. 5357 of 5357 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — sales-invoice sale demand like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 841 gap files (ratchet `--max-gap 841`, unchanged: the PHP function lives in the large inventory library, which stays a gap).
+- `ErpSaleDemand` (PHP `epc_erp_inventory_record_sale_demand`) runs after every tax-invoice save commits: the manual invoice, the sales-order invoice, the order invoice and the order tax-invoice print. Credit notes (381) and other categories are skipped.
+  - The order's product lines map to active ERP items by `product_id`; when none match, the invoice lines match by item name.
+  - One `sale_out` movement per item in the warehouse holding the most stock (else the first active warehouse), at the average cost. Stock is reduced by at most what is on hand.
+  - The `SALEINV-<id>` reference makes it run once per invoice. A database error never fails the invoice, like PHP's catch.
+- Fixed with it: ASP.NET created `epc_uae_vat_advance` without `einvoice_document_id` (PHP `epc_uae_tax_compliance_ensure_schema` has it). On a tenant without that table, every order tax-invoice save rolled back with "Unknown column". The table is now created with the column, and the column is added when missing.
+- Verified: the PHP harness (`php` running the real function over the same fixture: two invoices from orders, a repeat, a name-matched invoice, an invoice with nothing to match, document 0) gives byte-equal movements, stock and return values on a throwaway database. A manual invoice save and an order tax-invoice print on a running test host record the movement and take the stock. 5300 of 5300 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — Document Control print and the ERP access check like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 841 gap files, down from 844 (ratchet `--max-gap 841`), with `epc_document_control_cp_install.php` retired; unnamed PHP functions 8,070.
+- `/content/shop/document_control/service/print.php` runs in ASP.NET at its PHP URL (`StorefrontPhpAjax.PrintDocumentControlAsync`). The CP order pane, the Document Control page and the ERP document tab already link there.
+- Access is one engine, `ErpUserAccess` (PHP `epc_erp_access.php`). It applies the same checks as PHP, in the same order:
+  - a CP admin session (`DP_User::isAdmin`), or a customer session in the backend group or one of its direct children (`isBackendGroup`);
+  - otherwise `epc_erp_user_can_access`: the admin with content access to `shop/finance/erp`, then for the signed-in user the whole backend tree, an “Administrator” group, the CP ERP page access list with its subgroups (no list lets every signed-in user in, like PHP), an `EPC_ERP_DEPT_*` group or an active staff profile department (read only when a department group exists, like PHP), or the `EPC_ERP_TEAM` group;
+  - a database error in that chain denies, like PHP's catch.
+- `ErpDocumentControlRender` now renders from an e-invoice (`invoice_id`, PHP `epc_dc_einvoice_context`) as well as from an order or the preview. The invoice wins over `order_id`, and `preview` ignores both. The company row falls back to the e-invoice seller settings, and the stored buyer profile's NULL fields fall back to the document, then the defaults.
+- Intended deviations: when no group has `for_backend = 1`, PHP's `isBackendGroup` builds `IN ()` and dies with a SQL error; ASP.NET treats the user as not backend. A database error while rendering shows the driver's message (PHP shows PDO's).
+- Verified: 22 PHP goldens (php -S serving the real `print.php`, `dp_user.php` and `epc_erp_access.php` over the same fixture) are byte-equal on a throwaway database:
+  - the guest, a mismatched cookie, a plain customer and an inactive staff profile get 403;
+  - the backend child, a backend grandchild, an Administrator group, a CP ERP subgroup, a staff profile, a department group and the ERP team get the page;
+  - as admin: the default template, order 40, preview with an invoice, invoice 7 as tax invoice, packing slip and receipt, invoice 8 as delivery note (no lines, no order, supply date 0), invoice 10 (no buyer), and the 400s for an inactive invoice, a missing order and an unknown template.
+  - Four more tests cover the no-access-list rule, the backend tree fallback to groups 1 and 3, department codes without department groups, and denial on a database error.
+  - 5295 of 5295 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — customer returns pages like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 844 gap files, down from 860 (ratchet `--max-gap 844`); unnamed PHP functions 8,081.
+- `/shop/returns`, `/shop/returns/return?return_id=` and `/shop/returns/add_return?items=` render `StorefrontReturnsPages` (the list with the unread-messages filter, the return card with its lines, photos and manager chat, and the request form). `/content/shop/returns/assets/add_return.js.php` is served at its PHP URL with the language prefix taken from the referer. The page reads the PHP path the slug middleware rewrote, so all three URLs keep their own page.
+- Opening a return marks the manager messages read, like `return.php`.
+- The customer order page now has `my_order.php`'s return selection when `return_available` is 1: a checkbox per line with select all, and the button 4527. With no line checked it alerts 4537; it posts the checked ids and the session CSRF key to `ajax_check_items_returns.php`, alerts 5683 when a line is already in a return or not in a returnable status, and otherwise opens `/shop/returns/add_return?items=[…]` with the language prefix. ASP.NET posts with `fetch` (PHP uses jQuery), and the select-all box has its own id because the orders list on the same page already uses `check_uncheck_all`.
+- Also in this tranche: `ajax_create_operation.php` checks the user first and uses the `DP_Config` partial minimum, the wholesaler office pay system and the payment-account handler; the payment method picker and the obtaining-mode includes (`show_details`, `manager_interface`, `show_office_info`) render like PHP on the pay, balance and checkout pages and the CP order card.
+- Intended deviations:
+  - `return_id` is HTML-escaped (PHP echoes it raw).
+  - The form no longer carries the `DP_Config` `tech_key` (PHP prints it into customer HTML). It carries an HMAC of the session CSRF key, which `ajax_load_returns_data.php` accepts in place of the tech key for that session only.
+  - `items` accepts integers only (PHP puts it into SQL unchecked); an empty list renders no lines instead of a PHP fatal.
+  - `domain_path` is the request origin; the script is served as `application/javascript`; the guest redirect script renders inside the page chrome (PHP exits).
+- Verified: 15 PHP goldens (`php -d short_open_tag=1` over the same fixture: guest, list, unread filter, another user, pending, decided and foreign return, list after read, request disabled, request with and without a retention period, foreign items, no items, the script) are byte-equal on a throwaway database. On a running app over a throwaway database, the three URLs render the list (returns 1–3), return 1 (total 0.3, chat with the session CSRF key), the request form (total 2289.6, derived key, script include). User 8's return 4 is “Return not found”, user 8's item 97 is not offered, and a guest is sent to the site root. The derived key from another session is Forbidden. In a browser on order 40: no line checked alerts “Check the positions to return.”, the not-returnable line 92 alerts 5683, select all toggles the five lines, and lines 90 and 91 open `/en/shop/returns/add_return?items=[90,91]` with both lines and total 2289.6. 5269 of 5269 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — order payments and UAE gateway stubs like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 860 gap files, down from 868 (ratchet `--max-gap 860`); unnamed PHP functions 8,105.
+- `/content/shop/protocol/pay_for_order.php` runs in ASP.NET (`ShopPayForOrderService`):
+  - The manager (initiator 1, office access), the customer (initiator 2, from the balance) and the payment system (initiator 3, tech key). CSRF as `stop_csrf.php` for 1 and 2.
+  - The partial payment minimum, the client overdraft, the direct-pay income for managers, the expense line, the UAE advance VAT row (`epc_uae_vat_record_advance_on_payment`), the paid flag, the order logs, the paid type, the pay notifications and the robot `for_paid` status.
+- The individual payment accounts (`epc_payment_accounts.php`) and `get_pay_system_parameters.php`:
+  - The account linked to the operation, else resolved for the order (vendor of the largest storage, office, the office's legacy pay system as a virtual account, platform).
+  - The settlements after a demo payment: one per vendor split, else one for the account, with the platform fee.
+- The gateway stubs under `content/shop/finance/payment_systems/` are served at their PHP URLs:
+  - `go_to_pay.php` for the 24 UAE handlers: CSRF, the pending operation of the user, then the crypto form, the "Configure gateway" alert or the demo form.
+  - `pay_page_entry.php`, `pay_page.php` and `epc_demo/pay_page.php`: the demo checkout and `pay_execute`.
+  - `crypto_pay_page.php`: the coin picker, the demo invoice and the live NOWPayments `/payment` call.
+  - `{handler}/notification.php`: activate, `pay_notify.php`, `pay_for_order.php`, settlements, then the redirect with translation 4355.
+  - `nowpayments/notification.php`: the IPN with the HMAC-SHA512 check, 400 "IPN rejected", "already processed".
+  - The direct `go_to_pay.php`, `notification.php` and `epc_demo/*` answer "No handler".
+- Intended deviations:
+  - The demo notification always needs the demo token; PHP skips the check when the gateway is in demo mode.
+  - The customer pay notification links the order's user; PHP reads an undefined `$user_id`.
+  - The KKT receipt include is skipped: the file is missing in the reference and PHP fails on it.
+  - The advance VAT schema is ensured before the transaction (DDL commits implicitly).
+  - A notification with sum 0 notifies and pays the operation amount; PHP passes 0.
+  - Not ported yet: the legacy Russian gateways (alfabank, assist, avangard, cdekpay, chronopay, maib_md, payanyway, paybox, paykeeper, paymaster, promsvbank, rbkmoney, robokassa, sbr, tinkoff, walletone, webpay_by, yandex, yookassa, docpart_emulator).
+- Verified:
+  - `Fixtures/PaymentGateways/harness.sh` serves the real PHP files with `php -S` on `fixture.sql`. ASP.NET gives the same bytes, status, content type and `Location` for 31 cases: go_to_pay order, top-up, live, nowpayments, code 2, CSRF 1, 3.1 and 4, no handler; pay pages including handler `0` and upper-case input; crypto pick, btc, small btc (`1.5384615384615E-5`), usdt, unknown coin, wrong coin, confirm, live with a dummy key; notifications; IPN rejected, bad signature, already processed.
+  - Throwaway-DB tests cover the pay_for_order gates, partial and overdraft rules, advance VAT, the manager direct payment, the vendor and platform settlements and the idempotent IPN. The live NOWPayments payload is checked against PHP `json_encode`.
+  - Over HTTP on a throwaway tenant: go_to_pay, checkout, pay_execute, the notification (302, operation activated, replay redirects without a second write), the IPN (400, applied, already processed) and the crypto invoice.
+  - 5246 of 5246 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — order print like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 868 gap files, down from 872 (ratchet `--max-gap 868`); unnamed PHP functions 8,116.
+- `/content/shop/print_docs/service/print.php` now runs in ASP.NET for the CP order card and the customer order page:
+  - Admin or customer CSRF as PHP decides it (`csrf_admin`, an admin cookie without a customer session, or a `/cp/` or `/control/` referer); an empty admin key is filled from the admin session.
+  - `sales_receipt` (and every unknown document) prints the receipt. `invoice_for_payment`, `uae_tax_invoice` and `fta_tax_invoice` print the UAE tax invoice: the saved e-invoice of the order, else the PINT-AE invoice built from the order (saved when it validates with the filled-in buyer), else the document control `fta_tax_invoice` template.
+  - Before a tax invoice the document control company is synced from the e-invoice seller settings with PHP's force mode.
+  - The customer print page now sends its CSRF key; before, PHP would have refused it.
+- Intended deviations:
+  - The tax invoice leaves out the blockchain BOS proof block.
+  - `content/shop/document_control/service/print.php` stays on PHP until `epc_erp_user_can_access` is ported.
+  - `get_html_invoice_for_payment.php` (the legacy Russian invoice) is not ported; PHP `print.php` no longer routes to it.
+- Verified: the real PHP generators were run on `Fixtures/OrderPrint/fixture.sql` (`harness.php`) and their HTML is the golden. ASP.NET gives the same bytes, with only the UUID normalized, for receipt 40, tax invoice 40, the reprint of the saved tax invoice 40, the document control fallback for order 41 (no lines), and receipt 41 after the seller sync. Both save `EINV-2026-00001` once. CSRF 1, 3, 3.1 and 4, the 400 and the 404 for another customer's order are covered. 5196 of 5196 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — return requests like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 872 gap files (ratchet `--max-gap 872`); unnamed PHP functions 8,125.
+- `/content/shop/returns/ajax/ajax_load_returns_data.php` now does the whole PHP flow instead of only the header and line rows:
+  - `tech_key` check, duplicate line refusal (string 4571), the first return status (4572).
+  - When fewer units are returned than ordered, the line is split: the original keeps the rest and a copy holds the returned units, which the return points to.
+  - Photos (`images[line][n]`): png, jpeg, jpg or bmp only, 5 MB each, 15 MB in total; stored under `content/files/returns_images` with random names and recorded in `shop_orders_returns_items_images`. A bad photo cancels the whole request (4576–4578).
+  - After the commit: `return_new_manager` to the office users and `return_new_customer` to the customer, the returned lines move to the `for_return` status with a robot history row, and the split lines get their catalogue reservation and history rows (5636, 5686) like `helper.php`.
+- Intended deviations:
+  - PHP's status-change history row has broken SQL and is never written; ASP.NET writes it.
+  - Notifications go out after the commit, and photo files already written are deleted when the request is rolled back.
+  - The line copy reads the columns of the current database only (PHP's `INFORMATION_SCHEMA` query is not limited to one database).
+- Verified on a throwaway database: a 2-of-5 return splits line 90 into 3 and 2, the 1-of-1 line is returned whole, the comment is stored HTML-escaped, three photos are stored and match the uploads, managers 3 and 4 and then customer 7 are notified, and the three history rows match. A repeat request is refused, a gif or a 5 MB+1 photo is refused with nothing left behind, and a wrong key answers Forbidden. 5195 of 5195 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — order and line status protocol like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 872 gap files (ratchet `--max-gap 872`); unnamed PHP functions 8,128.
+- New `ShopOrderProtocolService` is the one engine for order and line status changes (PHP `set_order_status.php` and `set_order_item_status.php`):
+  - Order status: a manager cancel first cancels the open lines; a manager finish needs a fully paid order (else PHP string 5296, code 101) and first issues the open lines. Then the status write, `order_status_to_manager` (backend office managers) and `order_status_to_customer` (user, or the guest e-mail and phone), the WhatsApp tracking line in the order history (`epc_wa_notify_order_status_change`), and the history row (manager as himself, robot as `is_robot` = 1).
+  - Line status: the optional return split (`retun=1`, one line, count checked, line and catalogue details copied, two history rows), the refund to balance when cancelling lines of a paid order (`5_refund_from_order_to_balance`, plus `6_refund_from_balance` for guests, then the paid flag is recomputed), the catalogue stock moves between exist, reserved and issued, the status write, the paid recheck, `order_item_status_*` notifications, the history, and for a manager the automatic order status (finished, cancelled, back to the paid status).
+  - Status notifications now pass the status row, so SMS and WhatsApp obey `to_manager_sms` / `to_customer_sms` when `orders_statuses_notifications_settings` = 1, like PHP.
+- The PHP URLs `/content/shop/protocol/set_order_status.php` (initiator 1 manager with session and CSRF, 4 robot with `tech_key`) and `set_order_item_status.php` (1 manager, 2 robot) are served by ASP.NET with the PHP JSON answers. The CP order card can call them as before.
+- Pay on place (`my_order.php`) now moves the order to the `for_paid` status through the robot protocol, so it gets the notifications and history like PHP.
+- Online payment (`pay_for_order.php` initiator 3) now does what PHP does after the commit: `paid_type` = 3 with its history line, `order_pay_to_manager` and `order_pay_to_customer` (amounts, paid state, order link in the template colour), and the robot status change once fully paid. The payment history line uses the PHP strings (1316, 4366, 4529, 3584/3515) instead of fixed English.
+- Intended deviations:
+  - An empty `tech_key` never opens the robot routes. PHP accepted any key when `tech_key` was empty.
+  - The return split copies the line through its column list instead of PHP's temporary table.
+  - An unreadable office manager list sends to nobody (PHP 8 would stop with a TypeError).
+- Fixed on the way: translated messages in the return split were read while a transaction was open, which the driver rejects; they are now read first.
+- Verified on a throwaway database: unpaid finish is refused; cancelling a paid line refunds 20.00 to the balance, returns 2 units to stock and keeps the order paid; issuing the last line finishes the order by robot with the WhatsApp tracking link to `971501111111`; a manager cancel of a guest order cancels its line, returns stock and notifies the guest directly; the return split refuses two lines and a bad count, then splits 5 into 3 and 2. The routes answer `Wrong key` 503, `Forbidden` 501, the CSRF errors and an empty body for unknown initiators. Pay on place moves order 300 to Paid; a full online payment sets paid, `paid_type` 3 and Paid, and a partial guest payment notifies the guest only. 5194 of 5194 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — notifications send SMS and WhatsApp like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 875 gap files (ratchet `--max-gap 875`); unnamed PHP functions 8,133.
+- `StorefrontNotifyDispatcher` now runs the phone branches of PHP `docpart_dispatch_notification()` for every person, after the e-mail:
+  - The phone comes from `users.phone` (needs `phone_confirmed` or `send_for_not_confirmed`) or from the `direct_contact` phone (needs `send_for_not_confirmed`).
+  - SMS goes when `sms_on` = 1 and an `sms_api` operator is active. The number is stripped like PHP (spaces, `+7`, brackets, `-`, `_`, `+`) and sent through the existing typed gateway (`CpSmsGateway`) with the operator's `parameters_values`. The `sms_body` template is translated and its declared vars are substituted.
+  - WhatsApp goes to the same phone through the Meta Cloud API (`StorefrontWhatsappNotifier`, a twin of `epc_whatsapp_notify.php`). It needs `epc_whatsapp_api_enabled` = 1 plus the token and phone number id in `config.php`, `email_on` or `sms_on`, and the notification name in `epc_whatsapp_notify_names` (PHP default list).
+  - The WhatsApp body is the SMS text, else the plain e-mail, else the order text, else `<site> — order #N`; capped at 3,500 bytes; with the Arabic line when `epc_whatsapp_bilingual_notify` is on (default). The site name is the site contact `trade_name`, then `hub_name`, then `ecomae`.
+  - Every WhatsApp attempt is written to `epc_whatsapp_notify_log` (created if missing), like PHP.
+- Checkout guests now pass their phone (`phone_not_auth`) with the e-mail, as PHP does, so a guest order can get the SMS and WhatsApp too.
+- Intended deviations:
+  - Only the four GCC/MENA operators (`epc_unifonic`, `epc_etisalat`, `epc_du`, `epc_pakistan`) send natively. A tenant on one of the legacy Russian-market handlers gets a "not implemented" SMS outcome instead of PHP's HTTP call to the handler script.
+  - The site name does not consult PHP's built-in site catalogue or the tenant registry row; it reads the site settings row only.
+  - Order-status SMS suppression (`status_ref`) is not ported, because no ASP.NET status notification passes it yet.
+- Verified on a throwaway database with a fake SMS gateway and a fake Graph API: a confirmed user gets e-mail, SMS (`971501111111`, "Order 77 received") and WhatsApp (bilingual body, Bearer token, `/v21.0/PHONE-ID/messages`, log row status 1). An unconfirmed phone and a direct contact without `send_for_not_confirmed` get nothing. With `sms_on` = 0, WhatsApp still goes with the plain e-mail text, and a Graph error is reported and logged as status 0. A notification outside the WhatsApp list sends SMS only, and an inactive operator stops SMS. 5179 of 5179 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — process-flow order and PO cases sync like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 876 gap files (ratchet `--max-gap 876`); unnamed PHP functions down from 8,152 to 8,145.
+- ASP.NET now runs PHP `epc_pf_sync_order_case` and `epc_pf_sync_po_case` at the same points as PHP:
+  - at the end of the checkout fulfillment bootstrap (order case);
+  - after each new supplier PO, after PO save, after PO status changes and goods receipt (PO case);
+  - in the fulfillment status, sync and auto-post actions (order case);
+  - after a sales tax invoice is saved for an order (order case).
+- The process-flow tables are created with PHP's DDL if missing (`ErpPfSchema`), and the order case advances by the PHP facts: sales order, paid, procured, fulfilled, delivered, invoiced. The PO case advances on approved, partial, received and received plus invoiced, and is cancelled when the PO is cancelled.
+- Checkout has no CP admin, so the case actor and the final assignee fallback is the customer, as with PHP `epc_pf_user_id()`.
+- Intended deviation: PHP's checkout only syncs a new PO case when the function is already loaded, which it never is at checkout. ASP.NET always syncs it.
+- Fixed: the order facts read `name`, `surname` and `email` columns that `shop_orders` does not have, so no order case could ever start. They are now read like PHP's `SELECT *`.
+- Sync failures are swallowed, like PHP, so they never block checkout or a PO save.
+- Still on PHP: SMS/WhatsApp fan-out, and the sales-invoice sale-demand capture.
+- Verified on a throwaway database: checkout creates the two processes, the order case at step 2 (sales head) and one case per PO assigned to the customer. A rerun stays at 3 cases. Approving a PO moves its case to step 2. 5171 of 5171 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — checkout sends staff and customer order e-mails like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%.
+- ASP.NET checkout now runs PHP `epc_checkout_send_order_notifications()` before the supplier LPO step, as PHP does:
+  - `new_order_to_manager` goes to the admin inbox, the customer's CRM manager and the office managers. CRM comes from `users_profiles` keys in PHP priority order. Office managers come from `shop_offices.users`, filtered to backend groups and their child groups.
+  - The admin inbox is the tenant `contact_json` admin_email, then from_email, then config `from_email`, otherwise `admin@` + host.
+  - If the admin did not get it, one admin-only retry follows. The log line reads `Order email to admin X: sent`, `sent (retry)` or `FAILED after retry`.
+  - `new_order_to_user` goes to the signed-in user (e-mail from `users`, with the `email_confirmed` / `send_for_not_confirmed` rule) or to the guest e-mail, with one retry. The log reads `Order email to customer (user #N | email): sent|FAILED`.
+- Staff body ports `get_order_info_html_epc_staff.php`:
+  - the Control Panel order link and the customer profile block;
+  - delivery address, delivery type, payment and cart;
+  - the warehouse line table with dual AED/USD prices (USD rate from currency 840);
+  - the destination-aware VAT and courier totals, using the ERP VAT twins;
+  - margin, weight and the comment.
+- Customer body ports `get_order_info_html_for_user.php`: status and payment tables, the courier or pickup-office block, the line table, and the comment block (string 4509).
+- `StorefrontNotifyDispatcher` now applies `content/notifications/template.php`:
+  - logo, subject and Dubai-time date;
+  - the 4929/4930 footer;
+  - the office-map hide and obtain-caption replacements;
+  - inline table styles.
+  - It also resolves `translate_str_by_key` like PHP (`is_error`, `same`, empty when missing).
+- Intended deviations:
+  - PHP `require_once` wraps only the first notification in a request. ASP.NET wraps every e-mail, including LPOs.
+  - The Yandex map `<script>` of `show_office_info.php` is not put into e-mails.
+- Fixed: checkout now stores the order comment through `htmlentities()` like PHP. Before this, raw HTML reached the e-mails.
+- Still on PHP: process-flow sync, and SMS/WhatsApp fan-out for these notifications.
+- Verified on a throwaway database. The signed-in checkout sends 7 e-mails in PHP order: admin (fails), CRM, office manager, admin retry, customer, then 2 LPOs, and the totals match (630.00 gross, 600.01 net, courier VAT 2.00, total 672.00). A guest order goes to the pickup office. A missing template is logged as FAILED. 5170 of 5170 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — checkout raises supplier POs and LPO e-mails like PHP
+
+Not complete.
+
+- Ratios on this branch (based on `main`): storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75, broader `cp/content` 95 of 110. The open CP parity branch (PR #2031) has 74 of 75 and 108 of 110. Weighted headline stays about 20.4%.
+- After the order commits, ASP.NET checkout now runs the same tail as PHP `ajax_checkout_create.php`, in the same order:
+  - One `lpo_to_supplier` e-mail per warehouse on the order. This includes own warehouses and catalogue stock found through `shop_orders_items_details`. The LPO number is the customer order number.
+  - The recipient comes from `connection_options` `order_email` / `supplier_order_email` / `lpo_email`, otherwise from the price list `sender_email`.
+  - Each send is retried once. Every outcome goes to `shop_orders_logs` with the PHP wording: sent, FAILED, skipped (no order e-mail), and the "0 sent" hint.
+  - For signed-in customers, `epc_erp_order_fulfillment_bootstrap` runs next. It creates a confirmed ERP sales order (`shop_order_id` = order) and one draft PO per supplier, with `order_id` = customer order, notes `Customer order ref #N` and title `PO for order #N — supplier`.
+  - A warehouse without an ERP supplier gets one auto-created from the warehouse name, so own warehouses get a PO too. A bootstrap failure is logged as `ERP fulfillment bootstrap skipped: …` and the order stays.
+- Bootstrap now runs PHP's additive fulfillment schema-ensure instead of failing closed.
+- Fixed own-catalogue (product type 1) checkout. Quoted `'?'` placeholders were renumbered, so `t2_json_params` bound to a missing parameter. They now bind `t2_storage_id`, `t2_storage_id`, `t2_json_params`, as PHP does.
+- Still on PHP: the staff and customer new-order e-mails (`get_order_info_html_*`), and the process-flow sync.
+- Verified with a throwaway-database checkout covering an own warehouse, a price-list supplier and a supplier with no e-mail: 3 POs, 1 sales order, 2 LPO e-mails (one after a retry), the exact log lines, and an idempotent re-run. 5152 of 5152 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
 ### Checkpoint 2026-10-07 — Cursor owns ERP; journal precision and transfer posting fixed
 
 Not complete.
@@ -593,7 +1074,7 @@ Not complete.
 - `ajax_load_returns_data.php` now answers on ASP.NET. A missing order-item, return-item, status, or returns table names that gap and is not created. An empty status list is `4572.`. A wrong tech key is `Forbidden`. A posted line stores status 1, user 7, sum `10.00`, and the encoded comment. The same item again is `4571`. Notify was not called.
 - `ajax_workshop_public.php` creates the PHP `epc_ws_*` tables and books job `WS-` plus the day plus `-001` with plate `D-9` and status `checkin`. Tracking returns `Check-in`. A phone whose last 7 digits differ is “No job found for that reference.”
 - `ajax_garage_manager.php` returns “Access denied — garage staff login required” without creating `epc_ws_jobs`. A bad admin CSRF is “CSRF failed — refresh and retry”. A staff create stores plate `G-2` as the next job number.
-- `ajax_contacts_works.php` returns `4689`, `4690`, `4691`, `4693`, and `4697`. The notify HTTP call was not made, so user 7’s email stays empty.
+- `ajax_contacts_works.php` returns `4689`, `4690`, `4691`, `4693`, and `4697`. The notify HTTP call was not made, so user 7’s email stays empty. (Superseded: the 2026-10-07 contact confirmation checkpoint sends and stores.)
 - `ajax_sendCode.php` returns `5648` for an unknown method and `4697` for SMTP, and does not change `2fa_code`. A send inside 30 seconds is `5656` … `5647`. `ajax_checkCode.php` returns `200` for a match, `5643: 2.` after a mismatch, `5642` when the code is expired, and `4003` when no attempts remain.
 - `ajax_process.php` returns the PHP login, CSRF, profile, history, warehouse, file, and part-number sentences. A file or a cross article says “Price lists are not in this database.” No price rows were written and no supplier HTTP was called.
 - `ajax_vendor_ingest.php` returns the sign-in, missing-account, approval, token, file, type, and size sentences. A CSV that would be ingested is “Import failed”. `storage_id` stays 0. No stock or price table was created.

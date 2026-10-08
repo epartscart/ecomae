@@ -17,6 +17,7 @@ namespace EcomAE.Platform.Erp;
 public interface IErpDocControlWriteService
 {
     Task<ErpSimpleWriteResult> SyncSellerFromEinvoiceAsync(int expectedVersion, CancellationToken cancellationToken = default);
+    Task<ErpSimpleWriteResult> SyncSellerAsync(DbConnection connection, int expectedVersion, bool force, CancellationToken cancellationToken = default);
     Task<ErpDocxRunRemindersResult> RunRemindersAsync(string tenantHost, CancellationToken cancellationToken = default);
     Task<ErpSimpleWriteResult> DocumentUploadAsync(ErpDocumentUploadRequest request, CancellationToken cancellationToken = default);
     Task<ErpSimpleWriteResult> DocumentDeleteAsync(long docId, CancellationToken cancellationToken = default);
@@ -116,8 +117,17 @@ public sealed class ErpDocControlWriteService : IErpDocControlWriteService
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
-        // MySQL DDL commits implicitly — schema ensure runs before the transaction (as PHP).
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        return await SyncSellerAsync(connection, expectedVersion, false, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// PHP <c>epc_dc_sync_seller_from_einvoice($db, $force)</c> on the caller's connection. With <paramref name="force"/>
+    /// every non-empty e-invoice seller value overwrites the company field and the legal footer is reset.
+    /// </summary>
+    public async Task<ErpSimpleWriteResult> SyncSellerAsync(DbConnection connection, int expectedVersion, bool force, CancellationToken cancellationToken = default)
+    {
+        // MySQL DDL commits implicitly — schema ensure runs before the transaction (as PHP).
         await EnsureDocCompanySchemaAsync(connection, null, cancellationToken).ConfigureAwait(false);
         await EnsureEinvoiceSettingsAsync(connection, null, cancellationToken).ConfigureAwait(false);
         await EnsureDocCompanyRowVersionColumnAsync(connection, cancellationToken).ConfigureAwait(false);
@@ -140,11 +150,17 @@ public sealed class ErpDocControlWriteService : IErpDocControlWriteService
             string Fill(object? current, string incoming)
             {
                 var c = (current?.ToString() ?? string.Empty).Trim();
-                return c.Length > 0 ? c : incoming.Trim();
+                incoming = incoming.Trim();
+                if (force && incoming.Length > 0)
+                {
+                    return incoming;
+                }
+
+                return c.Length > 0 ? c : incoming;
             }
 
             var legalFooter = (co.TryGetValue("legal_footer", out var lf) ? lf?.ToString() : string.Empty)?.Trim() ?? string.Empty;
-            if (legalFooter.Length == 0)
+            if (legalFooter.Length == 0 || force)
             {
                 legalFooter = LegalFooter;
             }

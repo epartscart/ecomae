@@ -20,6 +20,21 @@ public interface IErpPfDemoSyncWriteService
     Task<ErpPfDemoSyncResult> SyncTasksAsync(int adminId, int limit, CancellationToken cancellationToken = default);
 }
 
+/// <summary>
+/// PHP <c>epc_pf_sync_order_case</c> / <c>epc_pf_sync_po_case</c> / <c>epc_pf_sync_pay_case</c> /
+/// <c>epc_pf_sync_exp_case</c>: create the subject's lifecycle case if missing and auto-advance it to the
+/// subject's real status. Runs <c>epc_pf_ensure_schema</c> first and never throws (returns 0 like PHP).
+/// <paramref name="adminId"/> is PHP <c>epc_pf_admin_id()</c> (0 outside the CP);
+/// <paramref name="sessionUserId"/> is PHP <c>epc_pf_user_id()</c>, the fallback actor/assignee.
+/// </summary>
+public interface IErpProcessFlowSyncService
+{
+    Task<long> SyncOrderCaseAsync(long orderId, int adminId, long sessionUserId, CancellationToken cancellationToken = default);
+    Task<long> SyncPoCaseAsync(long poId, int adminId, long sessionUserId, CancellationToken cancellationToken = default);
+    Task<long> SyncPayCaseAsync(long batchId, int adminId, long sessionUserId, CancellationToken cancellationToken = default);
+    Task<long> SyncExpCaseAsync(long reportId, int adminId, long sessionUserId, CancellationToken cancellationToken = default);
+}
+
 public sealed record ErpPfDemoSyncResult(
     bool Ok,
     string Message,
@@ -30,7 +45,7 @@ public sealed record ErpPfDemoSyncResult(
     public static ErpPfDemoSyncResult Success(int writes, object payload) => new(true, "ok", writes, payload);
 }
 
-public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
+public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService, IErpProcessFlowSyncService
 {
     private const string DemoEmail = "@pf-demo.local";
     private const long DemoUidBase = 700000;
@@ -318,6 +333,42 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
         return res;
     }
 
+    public Task<long> SyncOrderCaseAsync(long orderId, int adminId, long sessionUserId, CancellationToken cancellationToken = default)
+        => SyncOneAsync(orderId, adminId, sessionUserId, SyncOrderCaseOnAsync, cancellationToken);
+
+    public Task<long> SyncPoCaseAsync(long poId, int adminId, long sessionUserId, CancellationToken cancellationToken = default)
+        => SyncOneAsync(poId, adminId, sessionUserId, SyncPoCaseOnAsync, cancellationToken);
+
+    public Task<long> SyncPayCaseAsync(long batchId, int adminId, long sessionUserId, CancellationToken cancellationToken = default)
+        => SyncOneAsync(batchId, adminId, sessionUserId, SyncPayCaseOnAsync, cancellationToken);
+
+    public Task<long> SyncExpCaseAsync(long reportId, int adminId, long sessionUserId, CancellationToken cancellationToken = default)
+        => SyncOneAsync(reportId, adminId, sessionUserId, SyncExpCaseOnAsync, cancellationToken);
+
+    private async Task<long> SyncOneAsync(
+        long subjectId,
+        int adminId,
+        long sessionUserId,
+        Func<DbConnection, long, int, long, CancellationToken, Task<long>> sync,
+        CancellationToken cancellationToken)
+    {
+        if (subjectId <= 0 || !_connections.IsConfigured)
+        {
+            return 0;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpPfSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+            return await sync(connection, subjectId, adminId, sessionUserId, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            return 0;
+        }
+    }
+
     /* ---------- demo clearing (PHP epc_pf_clear_demo) ---------- */
 
     private static async Task<int> ClearDemoOnAsync(DbConnection connection, CancellationToken cancellationToken)
@@ -514,7 +565,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
                 cancellationToken).ConfigureAwait(false);
             foreach (var oid in ids)
             {
-                if (await SyncOrderCaseAsync(connection, oid, adminId, cancellationToken).ConfigureAwait(false) > 0)
+                if (await SyncOrderCaseOnAsync(connection, oid, adminId, adminId, cancellationToken).ConfigureAwait(false) > 0)
                 {
                     counts["orders"]++;
                     writes++;
@@ -533,7 +584,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
                 cancellationToken).ConfigureAwait(false);
             foreach (var pid in ids)
             {
-                if (await SyncPoCaseAsync(connection, pid, adminId, cancellationToken).ConfigureAwait(false) > 0)
+                if (await SyncPoCaseOnAsync(connection, pid, adminId, adminId, cancellationToken).ConfigureAwait(false) > 0)
                 {
                     counts["purchase_orders"]++;
                     writes++;
@@ -552,7 +603,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
                 cancellationToken).ConfigureAwait(false);
             foreach (var bid in ids)
             {
-                if (await SyncPayCaseAsync(connection, bid, adminId, cancellationToken).ConfigureAwait(false) > 0)
+                if (await SyncPayCaseOnAsync(connection, bid, adminId, adminId, cancellationToken).ConfigureAwait(false) > 0)
                 {
                     counts["payments"]++;
                     writes++;
@@ -571,7 +622,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
                 cancellationToken).ConfigureAwait(false);
             foreach (var rid in ids)
             {
-                if (await SyncExpCaseAsync(connection, rid, adminId, cancellationToken).ConfigureAwait(false) > 0)
+                if (await SyncExpCaseOnAsync(connection, rid, adminId, adminId, cancellationToken).ConfigureAwait(false) > 0)
                 {
                     counts["expenses"]++;
                     writes++;
@@ -585,7 +636,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
         return ErpPfDemoSyncResult.Success(writes, counts);
     }
 
-    private async Task<long> SyncOrderCaseAsync(DbConnection connection, long orderId, int adminId, CancellationToken cancellationToken)
+    private async Task<long> SyncOrderCaseOnAsync(DbConnection connection, long orderId, int adminId, long fallbackUserId, CancellationToken cancellationToken)
     {
         if (orderId <= 0)
         {
@@ -609,7 +660,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
                 var title = "Customer order #" + orderId.ToString(CultureInfo.InvariantCulture)
                     + (customer.Length > 0 ? " — " + customer : string.Empty);
                 var started = await _caseStart.StartAsync(
-                    new ErpPfCaseStartWriteRequest(pid, title, "Order #" + orderId.ToString(CultureInfo.InvariantCulture), "normal", adminId, "shop_order", orderId, adminId),
+                    new ErpPfCaseStartWriteRequest(pid, title, "Order #" + orderId.ToString(CultureInfo.InvariantCulture), "normal", adminId, "shop_order", orderId, adminId, fallbackUserId),
                     cancellationToken).ConfigureAwait(false);
                 if (!started.Succeeded)
                 {
@@ -628,7 +679,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
             }
 
             var goal = order.Done ? 99 : order.Step;
-            await AutoAdvanceAsync(connection, caseId, goal, "Auto-advanced from order status", adminId, cancellationToken).ConfigureAwait(false);
+            await AutoAdvanceAsync(connection, caseId, goal, "Auto-advanced from order status", adminId, fallbackUserId, cancellationToken).ConfigureAwait(false);
             return caseId;
         }
         catch (Exception)
@@ -637,7 +688,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
         }
     }
 
-    private async Task<long> SyncPoCaseAsync(DbConnection connection, long poId, int adminId, CancellationToken cancellationToken)
+    private async Task<long> SyncPoCaseOnAsync(DbConnection connection, long poId, int adminId, long fallbackUserId, CancellationToken cancellationToken)
     {
         if (poId <= 0)
         {
@@ -660,7 +711,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
                 var title = "Purchase order " + (f.PoNo.Length > 0 ? f.PoNo : "#" + poId.ToString(CultureInfo.InvariantCulture))
                     + (f.Supplier.Length > 0 ? " — " + f.Supplier : string.Empty);
                 var started = await _caseStart.StartAsync(
-                    new ErpPfCaseStartWriteRequest(pid, title, f.PoNo.Length > 0 ? f.PoNo : "PO #" + poId.ToString(CultureInfo.InvariantCulture), "normal", adminId, "erp_po", poId, adminId),
+                    new ErpPfCaseStartWriteRequest(pid, title, f.PoNo.Length > 0 ? f.PoNo : "PO #" + poId.ToString(CultureInfo.InvariantCulture), "normal", adminId, "erp_po", poId, adminId, fallbackUserId),
                     cancellationToken).ConfigureAwait(false);
                 if (!started.Succeeded)
                 {
@@ -692,7 +743,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
             }
 
             var goal = f.Done ? 99 : f.Step;
-            await AutoAdvanceAsync(connection, caseId, goal, "Auto-advanced from PO status", adminId, cancellationToken).ConfigureAwait(false);
+            await AutoAdvanceAsync(connection, caseId, goal, "Auto-advanced from PO status", adminId, fallbackUserId, cancellationToken).ConfigureAwait(false);
             return caseId;
         }
         catch (Exception)
@@ -701,7 +752,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
         }
     }
 
-    private async Task<long> SyncPayCaseAsync(DbConnection connection, long batchId, int adminId, CancellationToken cancellationToken)
+    private async Task<long> SyncPayCaseOnAsync(DbConnection connection, long batchId, int adminId, long fallbackUserId, CancellationToken cancellationToken)
     {
         if (batchId <= 0)
         {
@@ -723,7 +774,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
             {
                 var title = "Supplier payment " + (f.BatchNo.Length > 0 ? f.BatchNo : "#" + batchId.ToString(CultureInfo.InvariantCulture));
                 var started = await _caseStart.StartAsync(
-                    new ErpPfCaseStartWriteRequest(pid, title, f.BatchNo.Length > 0 ? f.BatchNo : "PAY #" + batchId.ToString(CultureInfo.InvariantCulture), "normal", adminId, "erp_payment", batchId, adminId),
+                    new ErpPfCaseStartWriteRequest(pid, title, f.BatchNo.Length > 0 ? f.BatchNo : "PAY #" + batchId.ToString(CultureInfo.InvariantCulture), "normal", adminId, "erp_payment", batchId, adminId, fallbackUserId),
                     cancellationToken).ConfigureAwait(false);
                 if (!started.Succeeded)
                 {
@@ -755,7 +806,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
             }
 
             var goal = f.Done ? 99 : f.Step;
-            await AutoAdvanceAsync(connection, caseId, goal, "Auto-advanced from payment-batch status", adminId, cancellationToken).ConfigureAwait(false);
+            await AutoAdvanceAsync(connection, caseId, goal, "Auto-advanced from payment-batch status", adminId, fallbackUserId, cancellationToken).ConfigureAwait(false);
             return caseId;
         }
         catch (Exception)
@@ -764,7 +815,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
         }
     }
 
-    private async Task<long> SyncExpCaseAsync(DbConnection connection, long reportId, int adminId, CancellationToken cancellationToken)
+    private async Task<long> SyncExpCaseOnAsync(DbConnection connection, long reportId, int adminId, long fallbackUserId, CancellationToken cancellationToken)
     {
         if (reportId <= 0)
         {
@@ -794,7 +845,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
                 var title = label + " " + (f.ReportNo.Length > 0 ? f.ReportNo : "#" + reportId.ToString(CultureInfo.InvariantCulture));
                 var initiator = f.StaffId > 0 ? f.StaffId : adminId;
                 var started = await _caseStart.StartAsync(
-                    new ErpPfCaseStartWriteRequest(pid, title, f.ReportNo.Length > 0 ? f.ReportNo : "EXP #" + reportId.ToString(CultureInfo.InvariantCulture), "normal", initiator, "erp_expense", reportId, adminId),
+                    new ErpPfCaseStartWriteRequest(pid, title, f.ReportNo.Length > 0 ? f.ReportNo : "EXP #" + reportId.ToString(CultureInfo.InvariantCulture), "normal", initiator, "erp_expense", reportId, adminId, fallbackUserId),
                     cancellationToken).ConfigureAwait(false);
                 if (!started.Succeeded)
                 {
@@ -826,7 +877,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
             }
 
             var goal = f.Done ? 99 : f.Step;
-            await AutoAdvanceAsync(connection, caseId, goal, "Auto-advanced from expense-claim status", adminId, cancellationToken).ConfigureAwait(false);
+            await AutoAdvanceAsync(connection, caseId, goal, "Auto-advanced from expense-claim status", adminId, fallbackUserId, cancellationToken).ConfigureAwait(false);
             return caseId;
         }
         catch (Exception)
@@ -934,7 +985,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
     /* ---------- auto-advance (PHP epc_pf_auto_advance_case / inline loops) ---------- */
 
     private async Task AutoAdvanceAsync(
-        DbConnection connection, long caseId, long goal, string comment, int adminId, CancellationToken cancellationToken)
+        DbConnection connection, long caseId, long goal, string comment, int adminId, long fallbackUserId, CancellationToken cancellationToken)
     {
         var guard = 0;
         while (guard++ < 12)
@@ -947,7 +998,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
 
             var actor = await ActiveStepAssigneeAsync(connection, caseId, cur.Value, cancellationToken).ConfigureAwait(false);
             var res = await _caseAct.ActAsync(
-                new ErpPfCaseActWriteRequest(caseId, "approve", comment, actor > 0 ? actor : adminId),
+                new ErpPfCaseActWriteRequest(caseId, "approve", comment, actor > 0 ? actor : adminId, fallbackUserId),
                 cancellationToken).ConfigureAwait(false);
             if (!res.Succeeded || res.CaseStatus != "open")
             {
@@ -966,7 +1017,8 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
         try
         {
             await using var cmd = connection.CreateCommand();
-            cmd.CommandText = ErpDb.Positional("SELECT `name`, `surname`, `email` FROM `shop_orders` WHERE `id` = ? AND `successfully_created` = 1 LIMIT 1");
+            // PHP SELECT * with `?? ''`: the stock shop_orders table has no name/surname/email columns.
+            cmd.CommandText = ErpDb.Positional("SELECT * FROM `shop_orders` WHERE `id` = ? AND `successfully_created` = 1 LIMIT 1");
             AddParam(cmd, orderId);
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -974,10 +1026,23 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
                 return null;
             }
 
-            var cust = ((reader.IsDBNull(0) ? string.Empty : reader.GetString(0)) + " " + (reader.IsDBNull(1) ? string.Empty : reader.GetString(1))).Trim();
+            string Column(string name)
+            {
+                for (var i = 0; i < reader.FieldCount; i++)
+                {
+                    if (string.Equals(reader.GetName(i), name, StringComparison.Ordinal))
+                    {
+                        return reader.IsDBNull(i) ? string.Empty : Convert.ToString(reader.GetValue(i), CultureInfo.InvariantCulture) ?? string.Empty;
+                    }
+                }
+
+                return string.Empty;
+            }
+
+            var cust = (Column("name") + " " + Column("surname")).Trim();
             if (cust.Length == 0)
             {
-                cust = reader.IsDBNull(2) ? string.Empty : reader.GetString(2).Trim();
+                cust = Column("email").Trim();
             }
 
             customer = cust;
@@ -996,7 +1061,7 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService
         try
         {
             await using var cmd = connection.CreateCommand();
-            cmd.CommandText = ErpDb.Positional("SELECT `id`, `status`, `sales_invoice_id`, `fulfillment_status` FROM `epc_erp_sales_orders` WHERE `shop_order_id` = ? LIMIT 1");
+            cmd.CommandText = ErpDb.Positional("SELECT `id`, `status`, `sales_invoice_id`, `fulfillment_status` FROM `epc_erp_sales_orders` WHERE `shop_order_id` = ? ORDER BY `id` DESC LIMIT 1");
             AddParam(cmd, orderId);
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))

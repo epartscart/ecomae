@@ -1,0 +1,25 @@
+<div class="epc-pay-method-picker" style="margin:12px 0 16px;padding:12px 14px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;">
+	<label for="epc_pay_handler" style="display:block;font-weight:700;font-size:13px;color:#0f172a;margin:0 0 8px;">Pay with</label>
+	<select id="epc_pay_handler" class="form-control" style="max-width:420px;">
+				<option value="stripe" selected>
+			Stripe &amp; &quot;Card&quot; &lt;Pay&gt; &#039;Now&#039; (International)		</option>
+				<option value="robokassa" >
+			Robokassa (Legacy (CIS))		</option>
+				<option value="nowpayments" >
+			NOWPayments/Crypto · Crypto (Cryptocurrency)		</option>
+				<option value="jazzcash" >
+			جاز كاش JazzCash (Pakistan)		</option>
+				<option value="paypal" >
+			 (International)		</option>
+				<option value="tamara" >
+			تمارا (GCC &amp; MENA)		</option>
+			</select>
+	<p style="margin:8px 0 0;font-size:12px;color:#64748b;">Cards, BNPL, wallets, Pakistan methods, and cryptocurrency when enabled in CP.</p>
+</div>
+<script>
+window.EPC_PAY_HANDLERS = [{"handler":"stripe","name":"Stripe & \"Card\" <Pay> 'Now'","region":"international","active":1},{"handler":"robokassa","name":"Robokassa","region":"legacy","active":0},{"handler":"nowpayments","name":"NOWPayments\/Crypto","region":"crypto","active":0},{"handler":"jazzcash","name":"\u062c\u0627\u0632 \u0643\u0627\u0634 JazzCash","region":"pakistan","active":0},{"handler":"paypal","name":null,"region":"international","active":0},{"handler":"tamara","name":"\u062a\u0645\u0627\u0631\u0627","region":"gcc","active":0}];
+window.epcSelectedPayHandler = function () {
+	var el = document.getElementById('epc_pay_handler');
+	return el ? String(el.value || '') : '';
+};
+</script>

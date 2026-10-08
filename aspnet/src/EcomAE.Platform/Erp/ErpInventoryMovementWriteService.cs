@@ -1036,7 +1036,7 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         return movementId;
     }
 
-    private static async Task UpsertStockAsync(
+    internal static async Task UpsertStockAsync(
         DbConnection connection,
         long warehouseId,
         long itemId,
@@ -1165,7 +1165,7 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         return newQty > 0 ? Math.Round(totalValue / newQty, 4, MidpointRounding.AwayFromZero) : inCost;
     }
 
-    private static async Task<StockRow?> GetStockRowAsync(
+    internal static async Task<StockRow?> GetStockRowAsync(
         DbConnection connection,
         long warehouseId,
         long itemId,
@@ -1297,5 +1297,5 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         return DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 
-    private sealed record StockRow(long Id, decimal QtyOnHand, decimal AvgUnitCost);
+    internal sealed record StockRow(long Id, decimal QtyOnHand, decimal AvgUnitCost);
 }

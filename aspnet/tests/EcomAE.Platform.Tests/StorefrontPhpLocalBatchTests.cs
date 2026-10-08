@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Services;
@@ -19,6 +20,18 @@ namespace EcomAE.Platform.Tests;
 
 public sealed class StorefrontPhpLocalBatchTests
 {
+    [Theory]
+    [InlineData("[a-z]+@[a-z.]+", "a@b.c", true)]
+    [InlineData("[a-z]+@[a-z.]+", "x a@b.c", false)]
+    [InlineData("([a-z]+)@[a-z.]+", "a@b.c", false)]
+    [InlineData("[a-z]+(x)?@[a-z.]+", "a@b.c", true)]
+    [InlineData("^\\+?[0-9]{7,15}$", "+971501112233", true)]
+    [InlineData("a/b", "a/b", false)]
+    [InlineData("a\\/b", "a/b", true)]
+    [InlineData("[", "[", false)]
+    public void PregWholeMatch_FollowsThePhpCountAndWholeValueRule(string pattern, string value, bool expected)
+        => Assert.Equal(expected, StorefrontPhpAjax.PregWholeMatch(pattern, value));
+
     [Fact]
     public async Task LocalBatch_OnThrowawayDatabase_ThenDropped()
     {
@@ -43,7 +56,8 @@ public sealed class StorefrontPhpLocalBatchTests
         var day = DateTime.Now.ToString("yyMMdd", CultureInfo.InvariantCulture);
         try
         {
-            await using var host = await StartAsync(connectionString);
+            var mailer = new RecordingMailer();
+            await using var host = await StartAsync(connectionString, mailer);
             using var client = new HttpClient { BaseAddress = host.BaseAddress };
             var signed = "session=user-token; u_id=7";
             var adminCookie = "admin_session=admin-token; admin_u_id=9";
@@ -221,6 +235,86 @@ public sealed class StorefrontPhpLocalBatchTests
             Assert.False(notify.Json.RootElement.GetProperty("status").GetBoolean());
             Assert.Equal(StorefrontPhpAjax.ContactsNotifyFailed, notify.Json.RootElement.GetProperty("message").GetString());
             Assert.Equal(string.Empty, await ScalarAsync(connectionString, "SELECT email FROM users WHERE user_id = 7"));
+            Assert.Empty(mailer.Sent);
+
+            await ExecuteAsync(connectionString, "CREATE TABLE lang_text_strings (str_key VARCHAR(32) NOT NULL, is_error INT NOT NULL DEFAULT 0, same VARCHAR(8) NULL)");
+            await ExecuteAsync(connectionString, "CREATE TABLE lang_text_strings_translation (str_key VARCHAR(32) NOT NULL, lang_code VARCHAR(8) NOT NULL, value TEXT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO lang_text_strings (str_key) VALUES ('77'), ('4696'), ('4698'), ('4692')");
+            await ExecuteAsync(connectionString, """
+                INSERT INTO lang_text_strings_translation (str_key, lang_code, value) VALUES
+                ('77', 'en', 'EPartsCart'), ('4696', 'en', 'Confirm e-mail'), ('4698', 'en', 'Code not sent'), ('4692', 'en', 'Bad contact'),
+                ('4696', 'ar', 'Confirm (ar)')
+                """);
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE notifications_settings (
+                  name VARCHAR(64) NOT NULL,
+                  email_on INT NOT NULL DEFAULT 0,
+                  sms_on INT NOT NULL DEFAULT 0,
+                  send_for_not_confirmed INT NOT NULL DEFAULT 0,
+                  email_subject VARCHAR(255) NOT NULL DEFAULT '',
+                  email_body TEXT NULL,
+                  sms_body TEXT NULL,
+                  vars TEXT NULL
+                )
+                """);
+            await ExecuteAsync(connectionString, """
+                INSERT INTO notifications_settings (name, email_on, send_for_not_confirmed, email_subject, email_body, vars) VALUES
+                ('email_confirm_other', 1, 0, 'Confirm on %site_name%', '<p>%email_confirm_href%</p>', '[{"type":"text","name":"site_name"},{"type":"text","name":"email_confirm_href"}]'),
+                ('verification_code', 1, 1, 'Code', '<p>Code %verification_code%</p>', '[{"type":"text","name":"verification_code"}]')
+                """);
+            var notQualified = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.ContactsPath, Form(("type", "email"), ("action", "set"), ("csrf_guard_key", "csrf-1"), ("contact", "new@example.com")), signed);
+            Assert.False(notQualified.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal("Code not sent", notQualified.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal(string.Empty, await ScalarAsync(connectionString, "SELECT email FROM users WHERE user_id = 7"));
+            Assert.Empty(mailer.Sent);
+
+            await ExecuteAsync(connectionString, "UPDATE notifications_settings SET send_for_not_confirmed = 1 WHERE name = 'email_confirm_other'");
+            await ExecuteAsync(connectionString, "INSERT INTO reg_fields (name, `regexp`) VALUES ('email', '[a-z0-9.]+@[a-z0-9.]+')");
+            var badEmail = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.ContactsPath, Form(("type", "email"), ("action", "set"), ("csrf_guard_key", "csrf-1"), ("contact", "x new@example.com")), signed);
+            Assert.Equal("Bad contact", badEmail.Json.RootElement.GetProperty("message").GetString());
+            var set = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.ContactsPath, Form(("type", "email"), ("action", "set"), ("csrf_guard_key", "csrf-1"), ("contact", "new@example.com")), signed);
+            Assert.Equal("{\"status\":true,\"message\":\"\",\"type\":\"email\",\"action\":\"set\",\"contact\":\"new@example.com\"}", set.Body);
+            Assert.Equal("new@example.com", await ScalarAsync(connectionString, "SELECT email FROM users WHERE user_id = 7"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT email_confirmed FROM users WHERE user_id = 7"));
+            var setCode = await ScalarAsync(connectionString, "SELECT email_code FROM users WHERE user_id = 7");
+            Assert.Matches("^[0-9a-f]{32}$", setCode);
+            var unixNow = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            Assert.InRange(long.Parse(await ScalarAsync(connectionString, "SELECT email_code_expired FROM users WHERE user_id = 7"), CultureInfo.InvariantCulture), unixNow + 1790, unixNow + 1810);
+            Assert.InRange(long.Parse(await ScalarAsync(connectionString, "SELECT email_code_send_lock_expired FROM users WHERE user_id = 7"), CultureInfo.InvariantCulture), unixNow + 290, unixNow + 310);
+            var first = Assert.Single(mailer.Sent);
+            Assert.Equal("new@example.com", first.To);
+            Assert.Equal("Confirm on EPartsCart", first.Subject);
+            Assert.Contains("<a target='_blank' href='https://shop.test//users/confirm_contact?code=" + setCode + "&u_id=7&type=email'>Confirm e-mail</a>", first.Body, StringComparison.Ordinal);
+
+            var locked = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.ContactsPath, Form(("type", "email"), ("action", "change"), ("csrf_guard_key", "csrf-1"), ("contact", "other@example.com")), signed);
+            Assert.Equal(StorefrontPhpAjax.ContactsLock, locked.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "UPDATE users SET email_code_send_lock_expired = 0 WHERE user_id = 7");
+            var changed = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.ContactsPath, Form(("type", "email"), ("action", "change"), ("csrf_guard_key", "csrf-1"), ("contact", "other@example.com")), signed, "https://shop.test/ar/users/profile");
+            Assert.True(changed.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal("new@example.com", changed.Json.RootElement.GetProperty("contact").GetString());
+            Assert.Equal("new@example.com", await ScalarAsync(connectionString, "SELECT email FROM users WHERE user_id = 7"));
+            Assert.Equal("other@example.com", await ScalarAsync(connectionString, "SELECT email_new FROM users WHERE user_id = 7"));
+            var changeCode = await ScalarAsync(connectionString, "SELECT email_code FROM users WHERE user_id = 7");
+            Assert.NotEqual(setCode, changeCode);
+            Assert.Equal(2, mailer.Sent.Count);
+            Assert.Equal("other@example.com", mailer.Sent[1].To);
+            Assert.Contains("href='https://shop.test/ar/users/confirm_contact?code=" + changeCode + "&u_id=7&type=email'>Confirm (ar)</a>", mailer.Sent[1].Body, StringComparison.Ordinal);
+
+            await ExecuteAsync(connectionString, "UPDATE users SET email_code_send_lock_expired = 0 WHERE user_id = 7");
+            mailer.Fail = true;
+            var bounced = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.ContactsPath, Form(("type", "email"), ("action", "confirm"), ("csrf_guard_key", "csrf-1")), signed);
+            Assert.Equal("Code not sent", bounced.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal(changeCode, await ScalarAsync(connectionString, "SELECT email_code FROM users WHERE user_id = 7"));
+            Assert.Equal("other@example.com", await ScalarAsync(connectionString, "SELECT email_new FROM users WHERE user_id = 7"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT email_code_send_lock_expired FROM users WHERE user_id = 7"));
+            Assert.Equal(3, mailer.Sent.Count);
+            mailer.Fail = false;
+            var confirmed = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.ContactsPath, Form(("type", "email"), ("action", "confirm"), ("csrf_guard_key", "csrf-1")), signed);
+            Assert.Equal("confirm", confirmed.Json.RootElement.GetProperty("action").GetString());
+            Assert.Equal(string.Empty, await ScalarAsync(connectionString, "SELECT email_new FROM users WHERE user_id = 7"));
+            Assert.Equal("new@example.com", mailer.Sent[3].To);
+            await ExecuteAsync(connectionString, "DELETE FROM reg_fields");
+            await ExecuteAsync(connectionString, "UPDATE notifications_settings SET name = 'verification_code_off' WHERE name = 'verification_code'");
 
             var loginNoCsrf = await SendJsonAsync(client, StorefrontPhpAjax.LoginSendCodePath, "{\"method\":\"fax\"}", signed);
             Assert.Equal("Error! CSRF 1", loginNoCsrf.Json.RootElement.GetProperty("message").GetString());
@@ -232,6 +326,24 @@ public sealed class StorefrontPhpLocalBatchTests
             Assert.Equal(501, smtp.Json.RootElement.GetProperty("status").GetInt32());
             Assert.Equal(StorefrontPhpAjax.LoginNotifyFailed, smtp.Json.RootElement.GetProperty("message").GetString());
             Assert.Equal("123456", await ScalarAsync(connectionString, "SELECT `2fa_code` FROM sessions WHERE id = 12"));
+            await ExecuteAsync(connectionString, "UPDATE notifications_settings SET name = 'verification_code' WHERE name = 'verification_code_off'");
+            var sentBefore = mailer.Sent.Count;
+            var codeSent = await SendJsonAsync(client, StorefrontPhpAjax.LoginSendCodePath, "{\"csrf_guard_key\":\"csrf-1\",\"method\":\"smtp\",\"type\":\"login\",\"contact_string\":\"a/b\",\"contact\":\"code@example.com\"}", signed);
+            Assert.Equal("{\"status\":200}", codeSent.Body);
+            var loginCode = await ScalarAsync(connectionString, "SELECT `2fa_code` FROM sessions WHERE id = 12");
+            Assert.Matches("^[1-9][0-9]{5}$", loginCode);
+            Assert.Equal("3", await ScalarAsync(connectionString, "SELECT `2fa_attempts` FROM sessions WHERE id = 12"));
+            var sessionData = await ScalarAsync(connectionString, "SELECT data FROM sessions WHERE id = 12");
+            Assert.Contains(",\"type\":\"login\",\"method\":\"smtp\",\"contact_string\":\"a\\/b\",\"contact\":\"code@example.com\"}", sessionData, StringComparison.Ordinal);
+            using (var parsed = JsonDocument.Parse(sessionData))
+            {
+                Assert.Equal(300, parsed.RootElement.GetProperty("expireFaCode").GetInt64() - parsed.RootElement.GetProperty("timeSendFaCode").GetInt64());
+            }
+
+            Assert.Equal(sentBefore + 1, mailer.Sent.Count);
+            Assert.Equal("code@example.com", mailer.Sent[^1].To);
+            Assert.Contains("Code " + loginCode, mailer.Sent[^1].Body, StringComparison.Ordinal);
+            await ExecuteAsync(connectionString, "UPDATE sessions SET `2fa_code` = '123456', data = '{}' WHERE id = 12");
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture);
             await ExecuteAsync(connectionString, "UPDATE sessions SET data = '{\"timeSendFaCode\":" + now + "}' WHERE id = 12");
             var limited = await SendJsonAsync(client, StorefrontPhpAjax.LoginSendCodePath, "{\"csrf_guard_key\":\"csrf-1\",\"method\":\"smtp\",\"contact\":\"new@example.com\"}", signed);
@@ -444,8 +556,8 @@ public sealed class StorefrontPhpLocalBatchTests
         return form;
     }
 
-    private static Task<Sent> SendAsync(HttpClient client, HttpMethod method, string path, Dictionary<string, string>? form, string cookie)
-        => SendContentAsync(client, method, path, form is null ? null : new FormUrlEncodedContent(form), cookie);
+    private static Task<Sent> SendAsync(HttpClient client, HttpMethod method, string path, Dictionary<string, string>? form, string cookie, string? referer = null)
+        => SendContentAsync(client, method, path, form is null ? null : new FormUrlEncodedContent(form), cookie, referer);
 
     private static Task<Sent> SendJsonAsync(HttpClient client, string path, string json, string cookie)
         => SendContentAsync(client, HttpMethod.Post, path, new StringContent(json, Encoding.UTF8, "application/json"), cookie);
@@ -464,9 +576,14 @@ public sealed class StorefrontPhpLocalBatchTests
         return SendContentAsync(client, HttpMethod.Post, path, content, cookie);
     }
 
-    private static async Task<Sent> SendContentAsync(HttpClient client, HttpMethod method, string path, HttpContent? content, string cookie)
+    private static async Task<Sent> SendContentAsync(HttpClient client, HttpMethod method, string path, HttpContent? content, string cookie, string? referer = null)
     {
         using var request = new HttpRequestMessage(method, path);
+        if (referer is not null)
+        {
+            request.Headers.Referrer = new Uri(referer);
+        }
+
         if (cookie.Length > 0)
         {
             request.Headers.TryAddWithoutValidation("Cookie", cookie);
@@ -507,7 +624,7 @@ public sealed class StorefrontPhpLocalBatchTests
         await command.ExecuteNonQueryAsync();
     }
 
-    private static async Task<ProbeHost> StartAsync(string connectionString)
+    private static async Task<ProbeHost> StartAsync(string connectionString, RecordingMailer mailer)
     {
         using var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
@@ -518,6 +635,8 @@ public sealed class StorefrontPhpLocalBatchTests
         builder.Services.AddSingleton<ITenantDbConnectionFactory>(new FixedConnections(connectionString));
         builder.Services.AddSingleton<IStorefrontPriceAccess>(new GuestPrices());
         builder.Services.AddSingleton(ReporterStub.Create());
+        builder.Services.AddSingleton<ICpPlatformMailer>(mailer);
+        builder.Services.AddSingleton<IStorefrontNotifyDispatcher>(new StorefrontNotifyDispatcher(mailer));
         var app = builder.Build();
         StorefrontPhpAjaxEndpoints.Map(app);
         await app.StartAsync();
@@ -525,6 +644,29 @@ public sealed class StorefrontPhpLocalBatchTests
     }
 
     private sealed record Sent(string Body, string ContentType, JsonDocument Json);
+
+    private sealed record Mail(string To, string Subject, string Body);
+
+    private sealed class RecordingMailer : ICpPlatformMailer
+    {
+        public List<Mail> Sent { get; } = [];
+
+        public bool Fail { get; set; }
+
+        public IReadOnlyDictionary<string, string> ReadConfig()
+            => new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["domain_path"] = "https://shop.test/",
+                ["secret_succession"] = "succession",
+                ["site_name"] = "77",
+            };
+
+        public Task<CpSmsSendOutcome> SendHtmlAsync(string to, string subject, string htmlBody, CancellationToken cancellationToken = default)
+        {
+            Sent.Add(new Mail(to, subject, htmlBody));
+            return Task.FromResult(Fail ? CpSmsSendOutcome.Fail("SMTP refused") : new CpSmsSendOutcome(true, "Sent"));
+        }
+    }
 
     private sealed class ProbeHost : IAsyncDisposable
     {

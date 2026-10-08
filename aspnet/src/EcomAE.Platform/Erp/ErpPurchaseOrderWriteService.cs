@@ -82,17 +82,29 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
     private readonly IErpVoucherNumberService _vouchers;
     private readonly IErpTaxAmountCalculator _tax;
     private readonly IErpAuditLogWriter _audit;
+    private readonly IErpProcessFlowSyncService? _processFlow;
 
     public ErpPurchaseOrderWriteService(
         IErpWriteConnectionFactory connections,
         IErpVoucherNumberService vouchers,
         IErpTaxAmountCalculator tax,
-        IErpAuditLogWriter audit)
+        IErpAuditLogWriter audit,
+        IErpProcessFlowSyncService? processFlow = null)
     {
         _connections = connections;
         _vouchers = vouchers;
         _tax = tax;
         _audit = audit;
+        _processFlow = processFlow;
+    }
+
+    /// <summary>PHP <c>epc_erp_po_pf_sync</c>: best-effort procurement case sync after a PO save or status change.</summary>
+    private async Task SyncPoCaseAsync(long purchaseOrderId, int adminId, CancellationToken cancellationToken)
+    {
+        if (_processFlow is not null)
+        {
+            await _processFlow.SyncPoCaseAsync(purchaseOrderId, adminId, adminId, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     public async Task<ErpPurchaseOrderSaveResult> SaveAsync(ErpPurchaseOrderInput input, int adminId, CancellationToken cancellationToken = default)
@@ -205,6 +217,7 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
                 created ? "Purchase order created" : "Purchase order updated",
                 new Dictionary<string, string?> { ["po_no"] = poNo },
                 cancellationToken).ConfigureAwait(false);
+            await SyncPoCaseAsync(purchaseOrderId, adminId, cancellationToken).ConfigureAwait(false);
 
             return new ErpPurchaseOrderSaveResult(
                 purchaseOrderId,
@@ -361,6 +374,7 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
             "PO status updated",
             new Dictionary<string, string?> { ["status"] = status },
             cancellationToken).ConfigureAwait(false);
+        await SyncPoCaseAsync(purchaseOrderId, adminId, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task DeleteAsync(long purchaseOrderId, int adminId, CancellationToken cancellationToken = default)

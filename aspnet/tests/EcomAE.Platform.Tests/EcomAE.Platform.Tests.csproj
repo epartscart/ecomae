@@ -16,4 +16,7 @@
     <ProjectReference Include="..\..\src\EcomAE.Platform\EcomAE.Platform.csproj" />
     <ProjectReference Include="..\..\src\EcomAE.Workers\EcomAE.Workers.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Fixtures\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

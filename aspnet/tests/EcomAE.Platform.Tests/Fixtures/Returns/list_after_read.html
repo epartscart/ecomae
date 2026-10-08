@@ -1,0 +1,41 @@
+<input class="form-control" type="text"
+       placeholder="Search "returns"" id="search-text"
+       onkeyup="tableSearch()">
+<div class="hr-line-dashed col-lg-12"></div>
+<table cellpadding="1" cellspacing="1" id="orders_returns_table" class="table table-condensed table-striped"
+       style="border-collapse: separate; border-spacing: 0 5px;">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Status</th>
+        <th>Order</th>
+        <th>Total</th>
+        <th class="hidden"></th>
+    </tr>
+    </thead>
+    <tbody>
+        </tbody>
+</table>
+
+<script>
+    function tableSearch() {
+        var phrase = document.getElementById('search-text');
+        var table = document.getElementById('orders_returns_table');
+        var regPhrase = new RegExp(phrase.value, 'i');
+        var flag = false;
+        for (var i = 1; i < table.rows.length; i++) {
+            flag = false;
+            for (var j = table.rows[i].cells.length - 1; j >= 0; j--) {
+                flag = regPhrase.test(table.rows[i].cells[j].innerHTML);
+                if (flag) break;
+            }
+            if (flag) {
+                table.rows[i].style.display = "";
+            } else {
+                table.rows[i].style.display = "none";
+            }
+
+        }
+    }
+</script>
+

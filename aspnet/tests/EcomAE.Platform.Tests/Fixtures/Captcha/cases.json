@@ -1,0 +1,12 @@
+[
+  { "name": "nothing_sent", "method": "GET" },
+  { "name": "get_correct", "method": "GET", "query": { "captcha_check": "k7n4" }, "cookie": "2d429bb3ea4f162977dcc27e380578f4" },
+  { "name": "post_correct", "method": "POST", "post": { "captcha_check": "k7n4" }, "cookie": "2d429bb3ea4f162977dcc27e380578f4" },
+  { "name": "post_wrong", "method": "POST", "post": { "captcha_check": "k7n5" }, "cookie": "2d429bb3ea4f162977dcc27e380578f4" },
+  { "name": "post_overrides_get", "method": "POST", "query": { "captcha_check": "k7n4" }, "post": { "captcha_check": "nope" }, "cookie": "2d429bb3ea4f162977dcc27e380578f4" },
+  { "name": "no_cookie", "method": "POST", "post": { "captcha_check": "k7n4" } },
+  { "name": "empty_value", "method": "POST", "post": { "captcha_check": "" }, "cookie": "d41d8cd98f00b204e9800998ecf8427e" },
+  { "name": "magic_hash_zero", "method": "POST", "post": { "captcha_check": "240610708" }, "cookie": "0" },
+  { "name": "magic_hash_exponent", "method": "POST", "post": { "captcha_check": "240610708" }, "cookie": "0e1" },
+  { "name": "uppercase_cookie", "method": "POST", "post": { "captcha_check": "k7n4" }, "cookie": "2D429BB3EA4F162977DCC27E380578F4" }
+]

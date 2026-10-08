@@ -1,0 +1,46 @@
+[
+  {"name": "sms_ru_ok", "handler": "sms_ru", "params": {"api_id": "abc 1/2", "translit": "1"}, "post": {"check": "sec-key", "body": "Order #5 ready & paid", "main_field": "+79161234567"}, "response": {"status": 200, "body": "{\"status\": \"OK\", \"status_code\": 100, \"sms\": {\"79161234567\": {\"status\": \"OK\", \"status_code\": 100}}}"}},
+  {"name": "sms_ru_sms_error", "handler": "sms_ru", "params": {"api_id": "k", "translit": "0"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 200, "body": "{\"status\": \"OK\", \"status_code\": 100, \"status_text\": \"partly done\", \"sms\": {\"79161234567\": {\"status\": \"ERROR\", \"status_code\": 207}}}"}},
+  {"name": "sms_ru_request_error", "handler": "sms_ru", "params": {"api_id": "k"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 200, "body": "{\"status\": \"ERROR\", \"status_code\": 200, \"status_text\": \"Wrong api_id\"}"}},
+  {"name": "sms_ru_not_json", "handler": "sms_ru", "params": {"api_id": "k"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 502, "body": "Bad gateway\n here"}},
+  {"name": "sms_ru_empty_sms", "handler": "sms_ru", "params": {"api_id": "k"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 200, "body": "{\"status\": \"OK\", \"sms\": {}}"}},
+  {"name": "sms_ru_no_row", "handler": "sms_ru", "params": null, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 200, "body": "nope"}},
+  {"name": "sms_ru_forbidden", "handler": "sms_ru", "params": {"api_id": "k"}, "post": {"check": "wrong", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 200, "body": "{}"}},
+  {"name": "sms_ru_unreachable", "handler": "sms_ru", "params": {"api_id": "k"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": null},
+
+  {"name": "iqsms_accepted", "handler": "iqsms", "params": {"login": "user@x", "password": "p&w"}, "post": {"check": "sec-key", "body": "Привет мир", "main_field": "9161234567"}, "response": {"status": 200, "body": "123;accepted"}},
+  {"name": "iqsms_credits", "handler": "iqsms", "params": {"login": "u", "password": "p"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "9161234567"}, "response": {"status": 200, "body": "1;not enough credits"}},
+  {"name": "iqsms_invalid_phone", "handler": "iqsms", "params": {"login": "u", "password": "p"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "9161234567"}, "response": {"status": 200, "body": "1;invalid mobile phone"}},
+  {"name": "iqsms_unknown_code", "handler": "iqsms", "params": {"login": "u", "password": "p"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "9161234567"}, "response": {"status": 200, "body": "1;queued later"}},
+  {"name": "iqsms_bad_answer", "handler": "iqsms", "params": {"login": "u", "password": "p"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "9161234567"}, "response": {"status": 200, "body": "error: auth"}},
+  {"name": "iqsms_unreachable", "handler": "iqsms", "params": {"login": "u", "password": "p"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "9161234567"}, "response": null},
+
+  {"name": "rocketsms_ok", "handler": "rocketsms_by", "params": {"login": "user", "pass": "p w"}, "post": {"check": "sec-key", "body": "Hello there", "main_field": "+375291234567"}, "response": {"status": 200, "body": "{\"id\": 991, \"status\": \"SENT\"}"}},
+  {"name": "rocketsms_error", "handler": "rocketsms_by", "params": {"login": "user", "pass": "p"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "375291234567"}, "response": {"status": 200, "body": "{\"error\": \"WRONG_AUTH\"}"}},
+  {"name": "rocketsms_service_error", "handler": "rocketsms_by", "params": {"login": "user", "pass": "p"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "375291234567"}, "response": {"status": 500, "body": "oops"}},
+
+  {"name": "semysms_ok", "handler": "semysms", "params": {"token": "t k", "device": 7}, "post": {"check": "sec-key", "body": "Hi there!", "main_field": "+9161234567"}, "response": {"status": 200, "body": "{\"code\": 0, \"id\": 1}"}},
+  {"name": "semysms_error", "handler": "semysms", "params": {"token": "t"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "89161234567"}, "response": {"status": 200, "body": "{\"code\": \"3\", \"error\": \"no device\"}"}},
+  {"name": "semysms_no_code", "handler": "semysms", "params": {"token": "t", "device": "d"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 200, "body": "{\"id\": 4}"}},
+  {"name": "semysms_not_json", "handler": "semysms", "params": {"token": "t", "device": "d"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 200, "body": "down"}},
+
+  {"name": "smsaero_ok", "handler": "smsaero", "params": {"login": "me@x.ru", "password": "secret", "from": "SMS Aero", "testsend": "0"}, "post": {"check": "sec-key", "body": "Code: 12 34~", "main_field": "+79161234567"}, "response": {"status": 200, "body": "{\"success\": true, \"data\": {\"id\": 1}}"}},
+  {"name": "smsaero_error", "handler": "smsaero", "params": {"login": "me", "password": "p", "from": "S"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 401, "body": "{\"success\": false, \"message\": \"Неверная подпись\"}"}},
+  {"name": "smsaero_garbage", "handler": "smsaero", "params": {"login": "me", "password": "p", "from": "S"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 200, "body": "<html>"}},
+
+  {"name": "smsgorod_char_domain", "handler": "smsgorod_ru", "params": {"api-key": " key-1 ", "channel": "char", "sender": "Shop/1", "domain": "1"}, "post": {"check": "sec-key", "body": " Заказ готов ", "main_field": "+7 (916) 123-45-67"}, "response": {"status": 200, "body": "{\"status\": \"success\", \"data\": [{\"status\": \"sent\"}]}"}},
+  {"name": "smsgorod_digit_rejected", "handler": "smsgorod_ru", "params": {"api-key": "k", "channel": "x", "sender": "S", "domain": "0"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "89161234567"}, "response": {"status": 200, "body": "{\"status\": \"success\", \"data\": [{\"status\": \"error\", \"errorDescription\": \"Bad number\"}]}"}},
+  {"name": "smsgorod_failed", "handler": "smsgorod_ru", "params": {"api-key": "k", "channel": "digit"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "9161234567"}, "response": {"status": 403, "body": "{\"status\": \"error\"}"}},
+
+  {"name": "smstraffic_ok", "handler": "smstraffic", "params": {"login": "lo gin", "password": "p+w"}, "post": {"check": "sec-key", "body": "Hi & bye", "main_field": "+79161234567"}, "response": {"status": 200, "body": "<?xml version=\"1.0\"?><reply><result>OK</result><code>0</code><message_infos><message_info><phone>79161234567</phone><sms_id>7701</sms_id></message_info></message_infos></reply>"}},
+  {"name": "smstraffic_ok_no_id", "handler": "smstraffic", "params": {"login": "l", "password": "p"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 200, "body": "<reply><result>OK</result></reply>"}},
+  {"name": "smstraffic_error", "handler": "smstraffic", "params": {"login": "l", "password": "p"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 200, "body": "<reply><result>ERROR</result><code>401</code><description>Bad\nlogin</description></reply>"}},
+  {"name": "smstraffic_http_error", "handler": "smstraffic", "params": {"login": "l", "password": "p"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 500, "body": "<reply><result>OK</result><sms_id>1</sms_id></reply>"}},
+
+  {"name": "smsvizitka_ok", "handler": "smsvizitka_com", "params": {"api_key": "a/b"}, "post": {"check": "sec-key", "body": "Hi you", "main_field": "+79161234567"}, "response": {"status": 200, "body": "{\"ok\":1}"}},
+  {"name": "smsvizitka_denied", "handler": "smsvizitka_com", "params": {"api_key": "a"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "79161234567"}, "response": {"status": 401, "reason": "Unauthorized", "body": "{\"error\":\"200 OK is not here\"}"}},
+
+  {"name": "terasms_ok", "handler": "terasms_ru", "params": {"login": " l ", "password": "p", "sender": "Shop"}, "post": {"check": "sec-key", "body": "Привет / hi", "main_field": "+7(916)1234567"}, "response": {"status": 200, "body": "{\"status\": 1, \"message_infos\": []}"}},
+  {"name": "terasms_error", "handler": "terasms_ru", "params": {"login": "l", "password": "p", "sender": "S"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "9161234567"}, "response": {"status": 200, "body": "{\"status\": -1, \"status_description\": \"auth failed\"}"}},
+  {"name": "terasms_not_json", "handler": "terasms_ru", "params": {"login": "l", "password": "p", "sender": "S"}, "post": {"check": "sec-key", "body": "Hi", "main_field": "9161234567"}, "response": {"status": 500, "body": "down"}}
+]

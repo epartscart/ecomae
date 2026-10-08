@@ -22,7 +22,8 @@ public sealed record ErpPfCaseStartWriteRequest(
     long InitiatorId = 0,
     string? SubjectType = null,
     long SubjectId = 0,
-    long ActorUserId = 0);
+    long ActorUserId = 0,
+    long? FallbackUserId = null);
 
 public sealed class ErpPfCaseStartWriteService : IErpPfCaseStartWriteService
 {
@@ -108,7 +109,7 @@ public sealed class ErpPfCaseStartWriteService : IErpPfCaseStartWriteService
                 var isFirst = i == 0;
                 var assignee = isFirst
                     ? await ErpPfRouting.ResolveAssigneeAsync(
-                        connection, tx, step, initiator, deptHeads, request.ActorUserId, cancellationToken).ConfigureAwait(false)
+                        connection, tx, step, initiator, deptHeads, request.FallbackUserId ?? request.ActorUserId, cancellationToken).ConfigureAwait(false)
                     : 0;
                 var loc = isFirst
                     ? await ErpPfRouting.UserLocationAsync(connection, tx, assignee, cancellationToken).ConfigureAwait(false)

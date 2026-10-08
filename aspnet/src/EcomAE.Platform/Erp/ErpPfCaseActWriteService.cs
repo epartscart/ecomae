@@ -18,7 +18,8 @@ public sealed record ErpPfCaseActWriteRequest(
     long CaseId = 0,
     string? Decision = null,
     string? Comment = null,
-    long ActorUserId = 0);
+    long ActorUserId = 0,
+    long? FallbackUserId = null);
 
 public sealed record ErpPfCaseActWriteResult(
     bool Succeeded,
@@ -60,7 +61,9 @@ public sealed class ErpPfCaseActWriteService : IErpPfCaseActWriteService
             return ErpPfCaseActWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
-        var actorId = request.ActorUserId;
+        // PHP falls back to the session user (epc_pf_user_id) for a missing actor and an unroutable step.
+        var actorId = request.ActorUserId > 0 ? request.ActorUserId : request.FallbackUserId ?? request.ActorUserId;
+        var fallbackUserId = request.FallbackUserId ?? actorId;
         var comment = request.Comment ?? string.Empty;
         var reject = string.Equals(request.Decision, "reject", StringComparison.Ordinal);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -245,7 +248,7 @@ public sealed class ErpPfCaseActWriteService : IErpPfCaseActWriteService
         var deptHeads = await ErpPfRouting.DeptHeadsAsync(connection, null, cancellationToken).ConfigureAwait(false);
         var stepDef = new ErpPfRouting.StepDef(nextStepNo, string.Empty, assignType, assignUserId, assignDepartment, slaHours);
         var assignee = await ErpPfRouting.ResolveAssigneeAsync(
-            connection, null, stepDef, initiatorId, deptHeads, actorId, cancellationToken).ConfigureAwait(false);
+            connection, null, stepDef, initiatorId, deptHeads, fallbackUserId, cancellationToken).ConfigureAwait(false);
         var assigneeLoc = await ErpPfRouting.UserLocationAsync(connection, null, assignee, cancellationToken).ConfigureAwait(false);
         var slaDue = slaHours > 0 ? now + (slaHours * 3600L) : 0;
 

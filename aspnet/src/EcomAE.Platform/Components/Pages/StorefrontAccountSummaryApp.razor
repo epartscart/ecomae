@@ -12,6 +12,7 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
 
 <PageTitle>Account · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -192,9 +193,9 @@
                         <div class="epc-pay-method-picker">
                             <label for="epc_pay_handler">Pay with</label>
                             <select id="epc_pay_handler" name="pay_handler" class="form-control">
-                                @foreach (var gate in PhpCustomerWrites.PayGateways)
+                                @foreach (var gate in _payMethods)
                                 {
-                                    <option value="@gate.Code">@gate.Label</option>
+                                    <option value="@gate.Code" selected="@gate.Selected">@gate.Label</option>
                                 }
                             </select>
                         </div>
@@ -226,6 +227,7 @@
     private IReadOnlyList<StorefrontAccountOperationDigest> _ops = [];
     private IReadOnlyList<StorefrontAccountOperationDigest> _shownOps = [];
     private AccountOpsFilter _opsFilter = AccountOpsFilter.Empty;
+    private IReadOnlyList<(string Code, string Label, bool Selected)> _payMethods = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -249,6 +251,7 @@
         var ledger = await Dashboards.ListStorefrontAccountOperationsAsync(session.UserId, 200, ctx.RequestAborted);
         _ops = ledger.Operations;
         _shownOps = _opsFilter.Apply(_ops);
+        _payMethods = await EcomAE.Platform.Storefront.StorefrontPaymentMethodPicker.OptionsAsync(Connections, "en", ctx.RequestAborted);
     }
 
     private static string FormatOpTime(long ts)

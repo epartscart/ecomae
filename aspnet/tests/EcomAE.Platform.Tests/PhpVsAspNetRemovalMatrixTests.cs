@@ -161,8 +161,6 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpOrdersApp.razor", "/cp/orders/set-items-status"),
             ("CpOrdersApp.razor", "/cp/orders/add-comment"),
             ("CpOrdersApp.razor", "/cp/orders/fulfillment-set-stage"),
-            ("StorefrontReturnsApp.razor", "ReturnsMessageHref"),
-            ("StorefrontReturnsApp.razor", "ReturnsCreateHref"),
             ("CpOrdersApp.razor", "/cp/orders/update-item"),
             ("CpUsersApp.razor", "/cp/users/set-comment"),
             ("CpUsersApp.razor", "/cp/users/set-unlocked"),

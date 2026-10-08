@@ -1,0 +1,60 @@
+<p>How to obtain - <b>Pickup <b>office</b></b></p>
+
+<table class="table">
+	<tr>
+		<th>Office info</th>
+	</tr>
+	<tr>
+		<td>
+			<span>Address: Dubai, Al Quoz 3, "Block" A</span> <a title="Show on map" style="cursor:pointer;" data-toggle="collapse" onClick="ymaps_init();" data-target="#collapse_office_map_container" aria-expanded="false" aria-controls="collapse_office_map_container"><i class="fa fa-map-o" aria-hidden="true"></i></a>
+			<div class="collapse" id="collapse_office_map_container">
+				<br/>
+				<div style="width: 100%;" id="map" class="office_map_container"></div>
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<td>Timetable: Mon-Fri 9-18<br>Sat 10-14</td>
+	</tr>
+	<tr>
+		<td>Phone: +971 4 <b>123</b></td>
+	</tr>
+</table>
+
+
+
+<!-- START БЛОК ДЛЯ ВЫВОДА СХЕМ РАСПОЛОЖЕНИЯ ОФИСОВ -->
+<script src="https://api-maps.yandex.ru/2.0-stable/?load=package.standard&lang=en_US" type="text/javascript"></script>
+<script type="text/javascript">
+	var myMap, myPlacemark;
+	var ymaps_init_flag = 0;
+	// --------------------------------------------------------------------------------------
+	function map_init()
+	{
+		myMap = new ymaps.Map ("map", {
+			center: [25.13, 55.22],
+			zoom: 16
+		}); 
+		
+		
+		myPlacemark = new ymaps.Placemark([25.13, 55.22], {balloonContent: "Main office"}, {
+        			iconImageHref: "/content/files/images/maps-marker.png",
+        			iconImageSize: [27, 44],
+        			iconImageOffset: [-13, -44]});
+		
+		myMap.geoObjects.add(myPlacemark);
+		
+		
+		myMap.controls.add(new ymaps.control.MapTools());
+		myMap.controls.add('typeSelector');
+		myMap.controls.add('zoomControl');
+	}
+	// --------------------------------------------------------------------------------------
+	function ymaps_init(){
+		if(ymaps_init_flag == 0){
+			ymaps.ready(map_init);
+			ymaps_init_flag = 1;
+		}
+	}
+</script>
+<!-- END БЛОК ДЛЯ ВЫВОДА СХЕМ РАСПОЛОЖЕНИЯ ОФИСОВ -->

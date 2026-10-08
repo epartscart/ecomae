@@ -57,10 +57,14 @@ public sealed record StorefrontCheckoutWriteResult(
 public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IStorefrontOrderCreatedPipeline? _orderCreated;
 
-    public StorefrontCheckoutWriteService(IErpWriteConnectionFactory connections)
+    public StorefrontCheckoutWriteService(
+        IErpWriteConnectionFactory connections,
+        IStorefrontOrderCreatedPipeline? orderCreated = null)
     {
         _connections = connections;
+        _orderCreated = orderCreated;
     }
 
     public async Task<StorefrontCheckoutWriteResult> CreateAsync(
@@ -114,16 +118,9 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
 
         if (userId > 0)
         {
-            var trade = await ErpDb.StringAsync(
-                connection,
-                null,
-                ErpDb.Positional("SELECT `data_value` FROM `users_profiles` WHERE `user_id` = ? AND `data_key` = 'epc_trade_approval_status' LIMIT 1"),
-                cancellationToken,
-                userId);
-            if (!string.IsNullOrWhiteSpace(trade)
-                && !string.Equals(trade, "approved", StringComparison.OrdinalIgnoreCase))
+            if (!await EpcCustomerTrade.CanPlaceOrderAsync(connection, null, userId, cancellationToken).ConfigureAwait(false))
             {
-                return Fail("trade_not_approved", "Checkout is available after a manager approves your trade profile.");
+                return Fail("trade_not_approved", await EpcCustomerTrade.CheckoutBlockMessageAsync(connection, null, userId, cancellationToken).ConfigureAwait(false));
             }
         }
         else if (!await GuestOrdersAllowedAsync(connection, cancellationToken).ConfigureAwait(false))
@@ -188,6 +185,8 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
             return Fail("status_missing", "Created-order status is not configured.");
         }
 
+        long committedOrderId;
+        int committedWrites;
         await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -323,14 +322,14 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
                              `t2_time_to_exe`, `t2_time_to_exe_guaranteed`, `t2_storage`, `t2_min_order`,
                              `t2_probability`, `t2_markup`, `t2_price_purchase`, `t2_office_id`, `t2_storage_id`,
                              `t2_product_json`, `sao_state`, `sao_robot`, `t2_json_params`)
-                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, '?', '?', ?)
+                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?)
                             """),
                         cancellationToken,
                         orderId, line.ProductType, line.Price, line.CountNeed, line.ProductId, itemStatus,
                         line.Manufacturer, line.Article, line.ArticleShow, line.Name, line.Exist,
                         line.TimeToExe, line.TimeToExeGuaranteed, line.Storage, line.MinOrder,
                         line.Probability, line.Markup, 0m, line.OfficeId, line.StorageId,
-                        productJson, line.JsonParams);
+                        productJson, line.StorageId, line.StorageId, line.JsonParams);
                 }
 
                 var itemId = await ErpDb.LastInsertIdAsync(connection, tx, cancellationToken).ConfigureAwait(false);
@@ -435,7 +434,7 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
                     orderId, time, userId, "Buyer PO: " + po);
             }
 
-            var note = (request.OrderMessage ?? string.Empty).Trim()
+            var note = StorefrontGuestSessionService.HtmlEntities((request.OrderMessage ?? string.Empty).Trim())
                 .Replace("\r", "", StringComparison.Ordinal)
                 .Replace("\t", "", StringComparison.Ordinal)
                 .Replace("\n", "<br/>", StringComparison.Ordinal);
@@ -476,19 +475,30 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
             }
 
             await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return new(
-                true,
-                "written",
-                "ok",
-                "Order #" + orderId.ToString(CultureInfo.InvariantCulture) + " created. Staff email notify remains PHP until the notify helper is ported.",
-                orderId,
-                writes);
+            committedOrderId = orderId;
+            committedWrites = writes;
         }
         catch (Exception ex) when (ex is ErpWriteException or DbException)
         {
             await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
             return Fail("checkout_failed", ex.Message);
         }
+
+        var message = "Order #" + committedOrderId.ToString(CultureInfo.InvariantCulture) + " created.";
+        if (_orderCreated is not null)
+        {
+            // The order is committed; the supplier LPO / PO tail must finish even if the shopper disconnects.
+            var outcome = await _orderCreated.RunAsync(committedOrderId, userId, CancellationToken.None).ConfigureAwait(false);
+            message += " " + StorefrontOrderCreatedPipeline.Summary(outcome);
+        }
+
+        return new(
+            true,
+            "written",
+            "ok",
+            message,
+            committedOrderId,
+            committedWrites);
     }
 
     private static async Task<bool> GuestOrdersAllowedAsync(

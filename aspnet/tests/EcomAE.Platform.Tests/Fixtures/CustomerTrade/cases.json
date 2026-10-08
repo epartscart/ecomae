@@ -1,0 +1,40 @@
+[
+  { "name": "retail_registration", "ops": [["save", 1, "retail"], ["status", 1], ["can_order", 1], ["block", 1], ["currency_iso", 1], ["locked", 1]] },
+  { "name": "retail_without_price_profile", "setup": ["DELETE FROM epc_price_profiles WHERE code = 'retail'"], "ops": [["save", 2, " Retail "], ["status", 2], ["currency_iso", 2]] },
+  { "name": "retail_without_currencies_table", "setup": ["DROP TABLE shop_currencies"], "ops": [["default_retail"], ["save", 2, "retail"], ["currency_iso", 2], ["locked", 2], ["records", "784"]] },
+  { "name": "wholesale_pending_then_approved", "ops": [
+    ["save", 3, "WHOLESALE"], ["status", 3], ["can_order", 3], ["block", 3], ["currency_iso", 3], ["pending"],
+    ["approve", 3, "USD-840", "Wholesale", 9], ["status", 3], ["block", 3], ["currency_iso", 3], ["locked", 3], ["pending"],
+    ["selected", "784", 3, "978", "DE"]
+  ] },
+  { "name": "rejected_with_and_without_note", "ops": [
+    ["save", 4, "wholesale"], ["reject", 4, "  Missing trade licence  ", 7], ["status", 4], ["can_order", 4], ["block", 4],
+    ["reject", 4, "", 8], ["block", 4], ["currency_iso", 4]
+  ] },
+  { "name": "unknown_type_becomes_retail", "ops": [["save", 5, "partner"], ["get", 5, "epc_customer_type", "-"], ["status", 5]] },
+  { "name": "labels_and_normalize", "ops": [
+    ["label", "wholesale"], ["label", " RETAIL "], ["label", "partner"], ["label", ""], ["label", "Ünicode"], ["label", "x"],
+    ["normalize", " Wholesale\n"], ["normalize", "partner"], ["normalize", ""], ["normalize", "RETAİL"]
+  ] },
+  { "name": "currency_change_request", "ops": [
+    ["save", 3, "wholesale"], ["request_change", 3, "978", "too early"],
+    ["approve", 3, "784", "wholesale", 2], ["request_change", 3, "EUR 978", " later please "], ["get", 3, "epc_currency_change_requested_iso", "-"],
+    ["request_change", 3, "", ""], ["approve", 3, "840", "wholesale", 2]
+  ] },
+  { "name": "assign_and_approve_profiles", "ops": [
+    ["group_id", " VIP "], ["group_id", "nope"], ["group_id", ""], ["group_id", "broken"],
+    ["assign", 1, "vip"], ["assign", 1, "nope"], ["assign", 0, "vip"],
+    ["approve", 1, "643", "VIP", 0], ["approve", 1, "abc", "retail", 0], ["approve", 0, "784", "retail", 0], ["approve", 1, "784", "", 0], ["approve", 1, "784", "nope", 0]
+  ] },
+  { "name": "profile_get", "ops": [["get", 6, "note", "dflt"], ["get", 6, "padded", "dflt"], ["get", 6, "missing", "dflt"], ["get", 0, "note", "dflt"], ["status", 6], ["can_order", 0], ["block", 0]] },
+  { "name": "currency_records", "setup": ["INSERT INTO shop_currencies (iso_code, iso_name, caption_short, sign, rate, available, `order`) VALUES ('840', 'USD2', 'US2', 'U2', 3.7, 1, 0)"], "ops": [["records", "784"], ["records", "356"], ["records", "586"]] },
+  { "name": "currency_selection", "ops": [
+    ["selected", "784", 0, "97 8", null], ["selected", "784", 0, "356", "AE"], ["selected", "784", 0, null, "xPKx"], ["selected", "784", 0, null, "pk"],
+    ["selected", "784", 0, null, "ZZ"], ["selected", "840", 0, null, null], ["selected", "999", 0, "", "BH"], ["selected", "784", 1, "840", null]
+  ] },
+  { "name": "currency_format", "ops": [
+    ["format", 100, "784", "840", "sign_before"], ["format", 100, "784", "840", "sign_after"], ["format", 100, "784", "978", "short_name_after"],
+    ["format", 100, "784", "978", "no"], ["format", 1234567.891, "784", "784", "sign_before"], ["format", 100, "784", "356", "sign_before"],
+    ["format", -0.001, "784", "784", "no"], ["format", 1.005, "784", "784", "no"], ["format", 50, "784", "643", "short_name_after"], ["format", 7, "999", "999", "sign_before"]
+  ] }
+]

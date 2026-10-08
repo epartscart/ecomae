@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Tripe 1 — Demo checkout</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<style>
+		body { background:#f1f5f9; padding:40px 15px; }
+		.demo-card { max-width:480px; margin:0 auto; background:#fff; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,.08); overflow:hidden; }
+		.demo-head { background:linear-gradient(135deg,#1e40af,#2563eb); color:#fff; padding:20px 24px; }
+		.demo-body { padding:24px; }
+		.demo-badge { display:inline-block; background:#fef3c7; color:#92400e; font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; text-transform:uppercase; }
+		.amount { font-size:28px; font-weight:700; color:#0f172a; }
+	</style>
+</head>
+<body>
+	<div class="demo-card">
+		<div class="demo-head">
+			<span class="demo-badge">Demo mode</span>
+			<h3 style="margin:12px 0 4px;">Tripe 1</h3>
+			<p style="margin:0;opacity:.9;font-size:13px;">No real charge — replace dummy API keys in CP when ready.</p>
+		</div>
+		<div class="demo-body">
+			<p class="text-muted">Payment</p>
+			<p class="amount">0.00 AED</p>
+			<p><small class="text-muted">Operation #0</small></p>
+			<hr>
+			<form method="post">
+				<input type="hidden" name="action" value="pay_execute">
+				<input type="hidden" name="operation_id" value="0">
+				<input type="hidden" name="sum" value="0">
+				<input type="hidden" name="user_id" value="0">
+				<div class="form-group">
+					<label>Simulate result</label>
+					<select class="form-control" name="need_result">
+						<option value="success">Successful payment</option>
+						<option value="error">Declined / failed</option>
+					</select>
+				</div>
+				<button type="submit" class="btn btn-success btn-block btn-lg">Complete demo payment</button>
+			</form>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,94 @@
+{
+  "check": {
+    "nothing_sent": {
+      "status": 200,
+      "body": "",
+      "type": "text/html; charset=UTF-8"
+    },
+    "get_correct": {
+      "status": 200,
+      "body": "true",
+      "type": "text/html; charset=UTF-8"
+    },
+    "post_correct": {
+      "status": 200,
+      "body": "true",
+      "type": "text/html; charset=UTF-8"
+    },
+    "post_wrong": {
+      "status": 200,
+      "body": "false",
+      "type": "text/html; charset=UTF-8"
+    },
+    "post_overrides_get": {
+      "status": 200,
+      "body": "false",
+      "type": "text/html; charset=UTF-8"
+    },
+    "no_cookie": {
+      "status": 200,
+      "body": "false",
+      "type": "text/html; charset=UTF-8"
+    },
+    "empty_value": {
+      "status": 200,
+      "body": "true",
+      "type": "text/html; charset=UTF-8"
+    },
+    "magic_hash_zero": {
+      "status": 200,
+      "body": "true",
+      "type": "text/html; charset=UTF-8"
+    },
+    "magic_hash_exponent": {
+      "status": 200,
+      "body": "true",
+      "type": "text/html; charset=UTF-8"
+    },
+    "uppercase_cookie": {
+      "status": 200,
+      "body": "false",
+      "type": "text/html; charset=UTF-8"
+    }
+  },
+  "image": {
+    "headers": [
+      [
+        "Expires",
+        "Mon, 26 Jul 1997 05:00:00 GMT"
+      ],
+      [
+        "Last-Modified",
+        "Thu, 01 Jan 1970 02:46:40 GMT"
+      ],
+      [
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate"
+      ],
+      [
+        "Cache-Control",
+        "post-check=0, pre-check=0"
+      ],
+      [
+        "Pragma",
+        "no-cache"
+      ]
+    ],
+    "shapes": [
+      [
+        "broken",
+        500
+      ],
+      [
+        "png",
+        200,
+        "image/png",
+        150,
+        70,
+        true,
+        "120",
+        "/"
+      ]
+    ]
+  }
+}

@@ -17,6 +17,8 @@ public interface IErpInvoiceFromOrderWriteService
 {
     Task<ErpInvoiceFromOrderResult> ConvertAsync(long orderId, int adminId, CancellationToken cancellationToken = default);
     Task<ErpEinvoiceCreateResult> CreateDocumentAsync(long orderId, IReadOnlyDictionary<string, bool>? transactionFlags, int adminId, CancellationToken cancellationToken = default);
+    Task<ErpOrderEinvoiceDraft> BuildDocumentDraftAsync(DbConnection connection, long orderId, IReadOnlyDictionary<string, bool>? transactionFlags, CancellationToken cancellationToken = default);
+    Task<ErpEinvoiceCreateResult> SaveDocumentDraftAsync(DbConnection connection, ErpOrderEinvoiceDraft draft, int adminId, CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpEinvoiceCreateResult(
@@ -25,6 +27,33 @@ public sealed record ErpEinvoiceCreateResult(
     string InvoiceNumber,
     bool ValidationOk,
     decimal AdvanceVatCredit);
+
+/// <summary>An order's PINT-AE tax invoice as built by PHP <c>epc_einvoice_build_from_order</c>, before it is saved.</summary>
+public sealed record ErpOrderEinvoiceDraft(
+    long OrderId,
+    int UserId,
+    string Uuid,
+    string InvoiceNumber,
+    long IssueDate,
+    long DueDate,
+    string TransactionTypeCode,
+    string PaymentMeans,
+    string PaymentTerms,
+    string BankAccount,
+    IReadOnlyDictionary<string, string> Seller,
+    IReadOnlyDictionary<string, string> Buyer,
+    IReadOnlyList<ErpInvoiceFromOrderLine> Lines,
+    decimal Subtotal,
+    decimal TotalVat,
+    decimal TotalIncl,
+    decimal Paid,
+    decimal AmountDue,
+    string TaxBreakdownJson,
+    string Xml,
+    IReadOnlyList<string> Errors,
+    ErpDashboardReadService.TenantVat Tax,
+    string SupplyCategory,
+    decimal SupplyRate);
 
 public sealed record ErpInvoiceFromOrderResult(
     long OrderId,
@@ -80,19 +109,31 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
     private readonly IErpGlPostingService _gl;
     private readonly IErpAdvanceVatService _advanceVat;
     private readonly IErpAuditLogWriter _audit;
+    private readonly IErpProcessFlowSyncService? _processFlow;
 
     public ErpInvoiceFromOrderWriteService(
         IErpWriteConnectionFactory connections,
         IErpCashWriteService cash,
         IErpGlPostingService gl,
         IErpAdvanceVatService advanceVat,
-        IErpAuditLogWriter audit)
+        IErpAuditLogWriter audit,
+        IErpProcessFlowSyncService? processFlow = null)
     {
         _connections = connections;
         _cash = cash;
         _gl = gl;
         _advanceVat = advanceVat;
         _audit = audit;
+        _processFlow = processFlow;
+    }
+
+    /// <summary>PHP <c>epc_einvoice_save_document</c>: advance the order's process-flow case once a tax invoice is saved (best-effort).</summary>
+    private async Task SyncOrderCaseAsync(long orderId, int adminId, CancellationToken cancellationToken)
+    {
+        if (_processFlow is not null && orderId > 0)
+        {
+            await _processFlow.SyncOrderCaseAsync(orderId, adminId, adminId, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private sealed record LegacyOrderRow(long Id, int UserId, long Time, string HowGetJson);
@@ -414,6 +455,8 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
             throw;
         }
 
+        await ErpSaleDemand.RecordForSavedInvoiceAsync(connection, invoiceId, adminId, cancellationToken).ConfigureAwait(false);
+        await SyncOrderCaseAsync(orderId, adminId, cancellationToken).ConfigureAwait(false);
         return new ErpInvoiceFromOrderResult(
             orderId,
             invoiceId,
@@ -447,6 +490,21 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var draft = await BuildDocumentDraftAsync(connection, orderId, transactionFlags, cancellationToken).ConfigureAwait(false);
+        if (draft.Errors.Count > 0)
+        {
+            throw new ErpWriteException("Tax invoice validation failed: " + string.Join("; ", draft.Errors));
+        }
+
+        return await SaveDocumentDraftAsync(connection, draft, adminId, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// PHP <c>epc_einvoice_build_from_order</c> on the caller's connection: the unsaved PINT-AE document with its
+    /// validation errors. Nothing is written apart from the schema ensure; the invoice number is the next free one.
+    /// </summary>
+    public async Task<ErpOrderEinvoiceDraft> BuildDocumentDraftAsync(DbConnection connection, long orderId, IReadOnlyDictionary<string, bool>? transactionFlags, CancellationToken cancellationToken = default)
+    {
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await _advanceVat.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
@@ -540,11 +598,6 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
         var bankAccount = await EinvoicingSettingAsync(connection, "seller_bank_account", string.Empty, cancellationToken).ConfigureAwait(false);
 
         var errors = ValidateTaxInvoice(seller, buyer, lines, subtotal, totalVat, tax.VatRegistered);
-        if (errors.Count > 0)
-        {
-            throw new ErpWriteException("Tax invoice validation failed: " + string.Join("; ", errors));
-        }
-
         var taxBreakdownJson = SerializeTaxBreakdown(supplyCategory, subtotal, supplyRate, totalVat);
         var uuid = Guid.NewGuid().ToString("D");
 
@@ -568,6 +621,64 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
             supplyCategory,
             supplyRate);
 
+        return new ErpOrderEinvoiceDraft(
+            orderId,
+            order.UserId,
+            uuid,
+            invoiceNumber,
+            issueDate,
+            dueDate,
+            transactionTypeCode,
+            paymentMeans,
+            paymentTerms,
+            bankAccount,
+            seller,
+            buyer,
+            lines,
+            subtotal,
+            totalVat,
+            totalIncl,
+            paid,
+            amountDue,
+            taxBreakdownJson,
+            xml,
+            errors,
+            tax,
+            supplyCategory,
+            supplyRate);
+    }
+
+    /// <summary>
+    /// PHP <c>$doc['buyer'] = …</c> before <c>epc_einvoice_validate_document</c> / <c>epc_einvoice_save_document</c>:
+    /// the draft with another buyer, validated and serialized again.
+    /// </summary>
+    public static ErpOrderEinvoiceDraft WithBuyer(ErpOrderEinvoiceDraft draft, IReadOnlyDictionary<string, string> buyer)
+        => draft with
+        {
+            Buyer = buyer,
+            Errors = ValidateTaxInvoice(draft.Seller, buyer, draft.Lines, draft.Subtotal, draft.TotalVat, draft.Tax.VatRegistered),
+            Xml = BuildInvoiceXml(
+                draft.Uuid,
+                draft.InvoiceNumber,
+                draft.IssueDate,
+                draft.DueDate,
+                draft.PaymentMeans,
+                draft.BankAccount,
+                draft.Seller,
+                buyer,
+                draft.Lines,
+                draft.Subtotal,
+                draft.TotalVat,
+                draft.TotalIncl,
+                draft.Paid,
+                draft.AmountDue,
+                draft.SupplyCategory,
+                draft.SupplyRate),
+        };
+
+    /// <summary>PHP <c>epc_einvoice_save_document</c> for a built draft: document, lines, 'created' event and advance-VAT adjustment in one transaction.</summary>
+    public async Task<ErpEinvoiceCreateResult> SaveDocumentDraftAsync(DbConnection connection, ErpOrderEinvoiceDraft draft, int adminId, CancellationToken cancellationToken = default)
+    {
         long documentId;
         decimal advanceVatCredit;
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -586,32 +697,32 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
                     + " `validation_errors_json`, `xml_content`, `time_created`, `time_updated`, `admin_id`)"
                     + " VALUES (?,?,?,?,'tax_invoice','380',?,?,?,'AED','AED',?,?,?,?,?,?,?,?,?,?,0,?,?,'validated',1,'[]',?,?,?,?)"),
                 cancellationToken,
-                uuid,
-                invoiceNumber,
-                orderId,
-                order.UserId,
-                issueDate,
-                dueDate,
-                issueDate,
-                transactionTypeCode,
-                paymentMeans,
-                paymentTerms,
-                bankAccount,
-                JsonSerializer.Serialize(seller),
-                JsonSerializer.Serialize(buyer),
-                subtotal,
-                totalVat,
-                totalIncl,
-                paid,
-                amountDue,
-                taxBreakdownJson,
-                xml,
+                draft.Uuid,
+                draft.InvoiceNumber,
+                draft.OrderId,
+                draft.UserId,
+                draft.IssueDate,
+                draft.DueDate,
+                draft.IssueDate,
+                draft.TransactionTypeCode,
+                draft.PaymentMeans,
+                draft.PaymentTerms,
+                draft.BankAccount,
+                JsonSerializer.Serialize(draft.Seller),
+                JsonSerializer.Serialize(draft.Buyer),
+                draft.Subtotal,
+                draft.TotalVat,
+                draft.TotalIncl,
+                draft.Paid,
+                draft.AmountDue,
+                draft.TaxBreakdownJson,
+                draft.Xml,
                 now,
                 now,
                 adminId).ConfigureAwait(false);
             documentId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
 
-            foreach (var line in lines)
+            foreach (var line in draft.Lines)
             {
                 await ErpDb.ExecuteAsync(
                     connection,
@@ -653,11 +764,11 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
                 connection,
                 transaction,
                 documentId,
-                orderId,
-                order.UserId,
-                totalVat,
-                issueDate,
-                tax,
+                draft.OrderId,
+                draft.UserId,
+                draft.TotalVat,
+                draft.IssueDate,
+                draft.Tax,
                 cancellationToken).ConfigureAwait(false);
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -673,7 +784,9 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
             throw;
         }
 
-        return new ErpEinvoiceCreateResult(orderId, documentId, invoiceNumber, true, advanceVatCredit);
+        await ErpSaleDemand.RecordForSavedInvoiceAsync(connection, documentId, adminId, cancellationToken).ConfigureAwait(false);
+        await SyncOrderCaseAsync(draft.OrderId, adminId, cancellationToken).ConfigureAwait(false);
+        return new ErpEinvoiceCreateResult(draft.OrderId, documentId, draft.InvoiceNumber, true, advanceVatCredit);
     }
 
     private static async Task<LegacyOrderRow?> LoadOrderAsync(

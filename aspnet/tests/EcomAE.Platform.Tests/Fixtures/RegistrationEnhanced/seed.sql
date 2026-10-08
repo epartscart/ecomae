@@ -1,0 +1,4 @@
+CREATE TABLE users (user_id INT NOT NULL PRIMARY KEY, email VARCHAR(255) NOT NULL DEFAULT '', phone VARCHAR(64) NOT NULL DEFAULT '');
+INSERT INTO users (user_id, email, phone) VALUES (11, 'retail@example.test', ''), (12, 'pk@example.test', '+92300'), (21, '', '+971500000021'), (22, 'sa@example.test', ''), (31, 'exempt@example.test', ''), (32, 'om@example.test', '+968111');
+CREATE TABLE users_profiles (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, data_key VARCHAR(64) NOT NULL, data_value TEXT NULL) DEFAULT CHARSET=utf8mb4;
+INSERT INTO users_profiles (user_id, data_key, data_value) VALUES (31, 'epc_customer_type', 'wholesale'), (31, 'epc_tax_exempt_cert_status', 'approved'), (31, 'epc_reg_country', 'AE'), (32, 'epc_reg_country', 'ae'), (32, 'company', 'Muscat Motors'), (32, 'epc_reg_trn', '1234-5678-9012'), (12, 'epc_customer_type', 'retail');

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Pay with crypto</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<style>
+		:root { --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --accent:#0f766e; --soft:#f8fafc; }
+		body { background: linear-gradient(180deg,#ecfeff 0%, #f8fafc 40%, #fff 100%); padding:36px 14px; font-family: Georgia, 'Times New Roman', serif; }
+		.card { max-width:520px; margin:0 auto; background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:0 10px 30px rgba(15,23,42,.08); overflow:hidden; }
+		.head { padding:20px 22px; background: radial-gradient(700px 160px at 0% 0%, rgba(15,118,110,.14), transparent 55%), linear-gradient(180deg,#fff,#f8fafc); border-bottom:1px solid var(--line); }
+		.head h1 { margin:8px 0 4px; font-size:26px; color:var(--ink); letter-spacing:-.02em; }
+		.head p { margin:0; color:var(--muted); font-size:13px; font-family: system-ui, sans-serif; }
+		.badge { display:inline-block; background:#ccfbf1; color:#115e59; font:700 11px/1 system-ui,sans-serif; padding:5px 9px; border-radius:8px; text-transform:uppercase; letter-spacing:.04em; }
+		.body { padding:22px; font-family: system-ui, -apple-system, sans-serif; }
+		.amount { font-size:30px; font-weight:750; color:var(--ink); letter-spacing:-.02em; }
+		.coins { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:14px 0; }
+		.coins label { display:block; border:1px solid var(--line); border-radius:10px; padding:10px 12px; cursor:pointer; background:var(--soft); }
+		.coins label:has(input:checked) { border-color:#5eead4; background:#f0fdfa; box-shadow:inset 0 0 0 1px #99f6e4; }
+		.coins strong { display:block; font-size:13px; color:var(--ink); }
+		.coins span { font-size:11px; color:var(--muted); }
+		.btn-pay { background:var(--accent); border-color:var(--accent); font-weight:700; }
+		.invoice { background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:14px; margin-top:12px; }
+		.addr { font-family: ui-monospace, Menlo, monospace; word-break:break-all; font-size:12px; background:#fff; border:1px dashed #99f6e4; padding:10px; border-radius:8px; }
+		@keyframes rise { from { opacity:0; transform:translateY(8px);} to { opacity:1; transform:none;} }
+		.card { animation: rise .4s ease both; }
+	</style>
+</head>
+<body>
+	<div class="card">
+		<div class="head">
+			<span class="badge">Demo crypto</span>
+			<h1>Pay with crypto</h1>
+			<p>USDT, Bitcoin, Ethereum and more — settle your order securely.</p>
+		</div>
+		<div class="body">
+			<p class="text-muted" style="margin-top:0;">Order 300</p>
+			<div class="amount">150.00 AED</div>
+			<p><small class="text-muted">Operation #40</small></p>
+
+			
+						<div class="invoice">
+				<p style="margin:0 0 8px;"><strong>Send exactly</strong></p>
+				<p class="amount" style="font-size:22px;margin:0 0 10px;">150 USDTTRC20</p>
+				<p style="margin:0 0 6px;color:#64748b;font-size:12px;">To address</p>
+				<div class="addr">TDemo02E8F748A59EFC21C74833455A3EAA</div>
+				<p style="margin:12px 0 0;font-size:12px;color:#64748b;">
+					Payment ID: demo_40_usdttrc20					 · Demo invoice (no chain broadcast)				</p>
+			</div>
+						<form method="post" style="margin-top:14px;">
+				<input type="hidden" name="action" value="confirm_demo">
+				<input type="hidden" name="EPC_PAY_HANDLER" value="nowpayments">
+				<input type="hidden" name="operation_id" value="40">
+				<input type="hidden" name="sum" value="150">
+				<input type="hidden" name="user_id" value="5">
+				<input type="hidden" name="pay_coin" value="usdttrc20">
+				<button type="submit" class="btn btn-success btn-block btn-lg btn-pay">I paid — confirm (demo)</button>
+			</form>
+								</div>
+	</div>
+</body>
+</html>

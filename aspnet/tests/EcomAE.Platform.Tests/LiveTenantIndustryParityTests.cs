@@ -451,7 +451,7 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Contains("total_value", LegacySurfaceDashboardSql.SelectCustomerReturns, StringComparison.Ordinal);
         Assert.Contains("user_id", LegacySurfaceDashboardSql.SelectCustomerVinRequests, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_garage_notepad", LegacySurfaceDashboardSql.SelectCustomerGarageNotepad, StringComparison.Ordinal);
-        Assert.Contains("ListStorefrontReturnsAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontReturnsApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("StorefrontReturnsPages.ListAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontReturnsApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ListStorefrontCustomerRequestsAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCustomerRequestsApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ListStorefrontGarageNotepadAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGarageApp.razor")), StringComparison.Ordinal);
         Assert.Contains("_lines", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCheckoutApp.razor")), StringComparison.Ordinal);

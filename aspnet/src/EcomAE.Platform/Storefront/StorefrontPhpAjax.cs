@@ -144,6 +144,9 @@ public static partial class StorefrontPhpAjax
     public const string ContactsLock = "4694";
     public const string ContactsMissingContact = "4695";
     public const string ContactsNotifyFailed = "4697";
+    public const string ContactsNotSent = "4698";
+    public const string ContactsConfirmLink = "4696";
+    public const string ContactsSaveFailed = "2429";
     public const string RegistrationFieldsMissing = "Registration fields are not in this database.";
     public const string UserAccountsMissing = "User accounts are not in this database.";
     public const string UserProfilesMissing = "User profiles are not in this database.";
@@ -151,6 +154,7 @@ public static partial class StorefrontPhpAjax
     public const string LoginUnknownMethod = "5648";
     public const string LoginNotifyFailed = "4697";
     public const string LoginBadContact = "5649";
+    public const string LoginSaveFailed = "5650";
     public const string LoginExpired = "5642";
     public const string LoginMismatch = "5643";
     public const string LoginNoAttempts = "4003";

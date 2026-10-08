@@ -12,6 +12,8 @@
 @inject ICpOrdersListService Orders
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
+@inject Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions> PhpReference
 
 <PageTitle>Orders · OMS · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
@@ -537,6 +539,11 @@
                         <p>User #@o.UserId</p>
                         <p>Email: @(string.IsNullOrWhiteSpace(d.CustomerEmail) ? "—" : d.CustomerEmail)</p>
                         <p>Phone: @(string.IsNullOrWhiteSpace(d.CustomerPhone) ? "—" : d.CustomerPhone)</p>
+                        @if (_obtainPanelHtml.Length > 0)
+                        {
+                            <div class="epc-od__edit-title">Delivery</div>
+                            <div class="epc-od__obtain-panel">@((MarkupString)_obtainPanelHtml)</div>
+                        }
                     </section>
 
                     <section class="epc-od__panel @(_detailTab == "payment" ? "is-active" : null)" data-epc-od-panel="payment" style="@(_detailTab == "payment" ? null : "display:none")">
@@ -656,6 +663,7 @@
     private CpOrdersList _list = new([], 0, 1, PageSize, new(0, 0, 0, 0), [], [], [], new Dictionary<long, IReadOnlyList<CpOrdersItemRow>>(), [], []);
     private long _selectedId;
     private CpOrderDetailDigest? _detail;
+    private string _obtainPanelHtml = "";
     private const int PageSize = 50;
     private string _detailTab = "manage";
     private string _flashOk = "";
@@ -749,6 +757,7 @@
         }
 
         _detail = await Dashboards.GetCpOrderDetailAsync(orderId, cancellationToken);
+        _obtainPanelHtml = await LoadObtainPanelAsync(orderId, cancellationToken);
         if (_detail is null)
         {
             var row = _list.Rows.FirstOrDefault(o => o.Id == orderId);
@@ -761,6 +770,57 @@
                     digest, row.PriceSum, row.PricePurchase, 0m, row.PriceSum, row.Profit,
                     row.Customer, row.Customer, "", [], [], [], "list", "Detail unavailable — showing list row.");
             }
+        }
+    }
+
+    /// <summary>PHP <c>order_card.php</c> delivery panel: the order's <c>obtaining_modes/{handler}/manager_interface.php</c>.</summary>
+    private async Task<string> LoadObtainPanelAsync(long orderId, CancellationToken cancellationToken)
+    {
+        if (!Connections.IsConfigured)
+        {
+            return "";
+        }
+
+        try
+        {
+            await using var connection = await Connections.OpenAsync(null, cancellationToken);
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `how_get_json`, (SELECT `caption` FROM `shop_obtaining_modes` WHERE `id` = `shop_orders`.`how_get`), (SELECT `handler` FROM `shop_obtaining_modes` WHERE `id` = `shop_orders`.`how_get`) FROM `shop_orders` WHERE `id` = @id";
+            var id = command.CreateParameter();
+            id.ParameterName = "@id";
+            id.Value = orderId;
+            command.Parameters.Add(id);
+            string howGet;
+            string caption;
+            string handler;
+            await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+            {
+                if (!await reader.ReadAsync(cancellationToken))
+                {
+                    return "";
+                }
+
+                howGet = reader.IsDBNull(0) ? "" : Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? "";
+                caption = reader.IsDBNull(1) ? "" : Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? "";
+                handler = reader.IsDBNull(2) ? "" : Convert.ToString(reader.GetValue(2), CultureInfo.InvariantCulture) ?? "";
+            }
+
+            var config = EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(PhpReference.Value);
+            var backend = config.TryGetValue("backend_dir", out var dir) && dir.Length > 0 ? dir : "cp";
+            return await EcomAE.Platform.Storefront.StorefrontObtainModeViews.ManagerInterfaceAsync(
+                connection,
+                new EcomAE.Platform.Storefront.StorefrontPhpTranslator(connection, "en"),
+                handler,
+                caption,
+                howGet,
+                orderId,
+                backend,
+                "en",
+                cancellationToken);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return "";
         }
     }
 

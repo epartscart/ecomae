@@ -25,6 +25,7 @@ public sealed class StorefrontModule : ISurfaceModule
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         StorefrontPhpAjaxEndpoints.Map(endpoints);
+        StorefrontPhpPaymentGatewayEndpoints.Map(endpoints);
         endpoints.MapMethods(
             EcomAeRoutes.WebTrackerCollectPhp,
             ["GET", "HEAD", "POST", "OPTIONS"],

@@ -19,8 +19,8 @@ public static partial class StorefrontPhpAjax
     public const string CheckoutNoMarginMessage = "Unable to place this order right now. Please refresh the page, remove any unavailable items, and try again. If the problem continues, contact support.";
     public const string CheckoutFailPrefix = "4492. ";
     public const string OrderItemDetailsMissing = "Order item details are not in this database.";
-    public const string TradePendingMessage = "Your account is registered. You can browse and add items to the cart, but checkout is available only after a manager approves your retail/wholesale profile and dealing currency.";
-    public const string TradeRejectedMessage = "Your trade account registration was not approved. Please contact us if you need assistance.";
+    public const string TradePendingMessage = EpcCustomerTrade.PendingCheckoutMessage;
+    public const string TradeRejectedMessage = EpcCustomerTrade.RejectedCheckoutMessage;
 
     public static async Task<object> AddToNotepadAsync(
         DbConnection connection,
@@ -591,23 +591,34 @@ public static partial class StorefrontPhpAjax
         }
     }
 
+    /// <summary>
+    /// PHP <c>content/shop/finance/ajax_create_operation.php</c>: a pending income operation for a balance top-up
+    /// (<c>3_income_by_customer</c>, signed-in users only) or an order payment (<c>4_income_for_direct_pay</c>, checked
+    /// against the order's user, debt, <c>partial_payment</c> and <c>partial_payment_min_percent</c>). The pay system is
+    /// the office's under <c>wholesaler</c>, else an enabled <c>pay_handler</c> the customer picked, else the active one;
+    /// the payment account from <c>epc_pay_accounts_resolve_for_order</c> brings its own handler and office.
+    /// </summary>
     public static async Task<object> CreateOperationAsync(
         DbConnection connection,
         int userId,
         string? requestObjectJson,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyDictionary<string, string>? config = null,
+        string? cityCookie = null)
     {
+        config ??= new Dictionary<string, string>(StringComparer.Ordinal);
         using var document = ParseObject(requestObjectJson);
-        if (document is null || !document.RootElement.TryGetProperty("amount", out _))
+        if (document is null || !PhpIsset(document.RootElement, "amount"))
         {
             return string.Empty;
         }
 
         var root = document.RootElement;
         var amount = JsonDecimal(root, "amount");
-        var hasOrder = root.TryGetProperty("order_id", out var orderNode) && orderNode.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined;
+        var hasOrder = PhpIsset(root, "order_id");
         var operationKey = "3_income_by_customer";
         var payOrder = string.Empty;
+        var orderId = hasOrder ? JsonText(root, "order_id") : string.Empty;
         if (!hasOrder)
         {
             if (userId == 0 || amount <= 0)
@@ -617,52 +628,50 @@ public static partial class StorefrontPhpAjax
         }
         else
         {
-            if (amount <= 0)
-            {
-                return new FinanceResult { Result = false, Message = "Forbidden" };
-            }
-
-            var orderId = JsonText(root, "order_id");
             try
             {
-                int orderUser;
-                int paid;
+                int? orderUser = null;
+                var paid = 0;
                 await using (var order = connection.CreateCommand())
                 {
                     order.CommandText = ErpDb.Positional("SELECT `user_id`, `paid` FROM `shop_orders` WHERE `id` = ?");
                     ErpDb.AddParameters(order, orderId);
                     await using var reader = await order.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                    if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        return new FinanceResult { Result = false, Message = "Forbidden" };
+                        orderUser = reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture);
+                        paid = reader.IsDBNull(1) ? 0 : Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture);
                     }
-
-                    orderUser = reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture);
-                    paid = reader.IsDBNull(1) ? 0 : Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture);
                 }
 
-                if (orderUser != userId)
+                if ((orderUser ?? 0) != userId)
                 {
                     return new FinanceResult { Result = false, User = false };
                 }
 
-                if (paid == 1)
+                if (amount <= 0 || orderUser is null || paid == 1)
                 {
                     return new FinanceResult { Result = false, Message = "Forbidden" };
                 }
 
                 var skipped = await StatusesNotCountedAsync(connection, cancellationToken).ConfigureAwait(false);
-                var sum = await OrderSumAsync(connection, orderId, skipped, cancellationToken).ConfigureAwait(false);
-                var paidSum = await PaidSumAsync(connection, orderId, cancellationToken).ConfigureAwait(false);
+                var sum = Math.Round(await OrderSumAsync(connection, orderId, skipped, cancellationToken).ConfigureAwait(false), 2, MidpointRounding.AwayFromZero);
+                var paidSum = Math.Round(await PaidSumAsync(connection, orderId, cancellationToken).ConfigureAwait(false), 2, MidpointRounding.AwayFromZero);
                 var left = sum - paidSum;
                 if (amount > left)
                 {
                     return new FinanceResult { Result = false, Message = "Forbidden" };
                 }
 
-                if (amount < left && !await PartialPaymentEnabledAsync(connection, cancellationToken).ConfigureAwait(false))
+                if (amount < left)
                 {
-                    return new FinanceResult { Result = false, Message = "Forbidden" };
+                    config.TryGetValue("partial_payment", out var partial);
+                    config.TryGetValue("partial_payment_min_percent", out var minPercent);
+                    if (!ShopPayForOrderService.PhpTruthy(partial)
+                        || amount < sum * ((ShopPayForOrderService.PhpNumber(minPercent) ?? 0m) / 100m))
+                    {
+                        return new FinanceResult { Result = false, Message = "Forbidden" };
+                    }
                 }
             }
             catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
@@ -676,29 +685,139 @@ public static partial class StorefrontPhpAjax
 
         try
         {
-            var paySystem = await ActivePaySystemAsync(connection, root, cancellationToken).ConfigureAwait(false);
+            long officeId = 0;
+            object? paySystem;
+            if (config.ContainsKey("wholesaler"))
+            {
+                if (hasOrder)
+                {
+                    officeId = await ErpDb.LongAsync(connection, null, ErpDb.Positional("SELECT `office_id` FROM `shop_orders` WHERE `id` = ?"), cancellationToken, orderId)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    officeId = ShopPayForOrderService.PhpIntCast(JsonText(root, "office_id"));
+                    if (!(await CustomerOfficesAsync(connection, cityCookie, cancellationToken).ConfigureAwait(false)).Contains((int)officeId))
+                    {
+                        return string.Empty;
+                    }
+                }
+
+                await using var office = connection.CreateCommand();
+                office.CommandText = ErpDb.Positional(
+                    "SELECT `handler` FROM `shop_payment_systems` WHERE `id` = (SELECT `pay_system_id` FROM `shop_offices` WHERE `id` = ?) LIMIT 1");
+                ErpDb.AddParameters(office, officeId);
+                var handler = await office.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                paySystem = handler is null or DBNull ? null : Convert.ToString(handler, CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                paySystem = (object?)await ActivePaySystemAsync(connection, root, cancellationToken).ConfigureAwait(false) ?? false;
+            }
+
+            IReadOnlyDictionary<string, string?>? account = null;
+            long accountId = 0;
+            try
+            {
+                account = await StorefrontPaymentAccounts.ResolveForOrderAsync(
+                    connection,
+                    hasOrder ? ShopPayForOrderService.PhpIntCast(orderId) : 0,
+                    cancellationToken).ConfigureAwait(false);
+                if (account is not null)
+                {
+                    accountId = ShopPayForOrderService.PhpIntCast(account.GetValueOrDefault("id"));
+                    var accountHandler = Regex.Replace(account.GetValueOrDefault("handler") ?? string.Empty, "[^a-z0-9_]", string.Empty);
+                    if (accountHandler.Length > 0 && PhpEmptyJson(root, "pay_handler"))
+                    {
+                        paySystem = accountHandler;
+                    }
+
+                    var ownerId = ShopPayForOrderService.PhpIntCast(account.GetValueOrDefault("owner_id"));
+                    if (account.GetValueOrDefault("owner_type") == "office" && ownerId > 0 && officeId == 0)
+                    {
+                        officeId = ownerId;
+                    }
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                accountId = 0;
+            }
+
             await using var insert = connection.CreateCommand();
             insert.CommandText = ErpDb.Positional(
                 "INSERT INTO `shop_users_accounting` (`user_id`, `time`, `income`, `amount`, `operation_code`, `active`, `pay_orders`, `office_id`) VALUES (?, ?, ?, ?, (SELECT `id` FROM `shop_accounting_codes` WHERE `key` = ? LIMIT 1), ?, ?, ?)");
-            ErpDb.AddParameters(insert, userId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), 1, amount, operationKey, 0, payOrder, 0);
+            ErpDb.AddParameters(insert, userId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), 1, amount, operationKey, 0, payOrder, officeId);
             if (await insert.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false) != 1)
             {
                 return new FinanceResult { Result = false };
             }
 
             var id = await ScalarLongAsync(connection, "SELECT LAST_INSERT_ID()", cancellationToken).ConfigureAwait(false);
-            return new FinanceResult
+            if (accountId > 0)
             {
-                Result = true,
-                Operation = (int)id,
-                PaySystem = (object?)paySystem ?? false,
-                PaymentAccountId = 0
+                try
+                {
+                    await using var link = connection.CreateCommand();
+                    link.CommandText = ErpDb.Positional("UPDATE `shop_users_accounting` SET `epc_payment_account_id` = ? WHERE `id` = ?");
+                    ErpDb.AddParameters(link, accountId, id);
+                    await link.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (DbException)
+                {
+                }
+            }
+
+            var answer = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["result"] = true,
+                ["operation"] = id,
+                ["pay_system"] = paySystem,
+                ["payment_account_id"] = accountId,
             };
+            if (account is not null)
+            {
+                answer["payment_account"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["id"] = accountId,
+                    ["title"] = account.GetValueOrDefault("title") ?? string.Empty,
+                    ["owner_type"] = account.GetValueOrDefault("owner_type") ?? string.Empty,
+                    ["owner_id"] = ShopPayForOrderService.PhpIntCast(account.GetValueOrDefault("owner_id")),
+                    ["handler"] = account.GetValueOrDefault("handler") ?? string.Empty,
+                };
+            }
+
+            return answer;
         }
         catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
         {
             return new FinanceResult { Result = false, Message = FinanceMissing(ex) };
         }
+    }
+
+    /// <summary>PHP <c>isset($a[$key])</c> on a decoded JSON object: present and not null.</summary>
+    private static bool PhpIsset(JsonElement root, string key)
+        => root.ValueKind == JsonValueKind.Object
+            && root.TryGetProperty(key, out var value)
+            && value.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined;
+
+    /// <summary>PHP <c>empty($a[$key])</c> on a decoded JSON object.</summary>
+    private static bool PhpEmptyJson(JsonElement root, string key)
+    {
+        if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty(key, out var value))
+        {
+            return true;
+        }
+
+        return value.ValueKind switch
+        {
+            JsonValueKind.Null or JsonValueKind.Undefined or JsonValueKind.False => true,
+            JsonValueKind.String => value.GetString() is "" or "0",
+            JsonValueKind.Number => value.GetDouble() == 0,
+            JsonValueKind.Array => value.GetArrayLength() == 0,
+            JsonValueKind.Object => !value.EnumerateObject().Any(),
+            _ => false,
+        };
     }
 
     public static async Task<object> CheckReturnsAsync(
@@ -1619,35 +1738,13 @@ public static partial class StorefrontPhpAjax
 
     private static async Task<ShopStatus?> TradeBlockAsync(DbConnection connection, int userId, CancellationToken cancellationToken)
     {
-        try
-        {
-            await using var command = connection.CreateCommand();
-            command.CommandText = ErpDb.Positional(
-                "SELECT `data_value` FROM `users_profiles` WHERE `user_id` = ? AND `data_key` = 'epc_trade_approval_status' LIMIT 1");
-            ErpDb.AddParameters(command, userId);
-            var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            var status = scalar is null or DBNull ? string.Empty : Convert.ToString(scalar, CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
-            if (status.Length == 0 || string.Equals(status, "approved", StringComparison.Ordinal))
-            {
-                return null;
-            }
-
-            if (string.Equals(status, "pending", StringComparison.Ordinal))
-            {
-                return new ShopStatus(false, TradePendingMessage, "trade_not_approved", null);
-            }
-
-            if (string.Equals(status, "rejected", StringComparison.Ordinal))
-            {
-                return new ShopStatus(false, TradeRejectedMessage, "trade_not_approved", null);
-            }
-
-            return null;
-        }
-        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        if (await EpcCustomerTrade.CanPlaceOrderAsync(connection, null, userId, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
+
+        var message = await EpcCustomerTrade.CheckoutBlockMessageAsync(connection, null, userId, cancellationToken).ConfigureAwait(false);
+        return new ShopStatus(false, message, "trade_not_approved", null);
     }
 
     private static async Task<bool> GuestOrdersAllowedAsync(DbConnection connection, CancellationToken cancellationToken)
