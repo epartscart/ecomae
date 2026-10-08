@@ -1,0 +1,14 @@
+{
+  "default_95": {"service": 95, "daily": 4, "lead": 7, "alpha": 0.3, "series": [3, 5, 4, 6]},
+  "top_999": {"service": 99.95, "daily": 12.5, "lead": 14, "alpha": 0.5, "series": [10, 12, 14]},
+  "band_99": {"service": 99, "daily": 1, "lead": 1, "alpha": 0.1, "series": [1]},
+  "band_98": {"service": 98.5, "daily": 2.25, "lead": 10, "alpha": 0.2, "series": [2, 0, 4, 1, 3]},
+  "band_97": {"service": 97, "daily": 8, "lead": 3, "alpha": 0.9, "series": [8, 9, 7]},
+  "band_96": {"service": 96.2, "daily": 0.5, "lead": 30, "alpha": 0.3, "series": [0.5, 0.25]},
+  "band_90": {"service": 92, "daily": 20, "lead": 5, "alpha": 0.3, "series": [18, 22, 25, 19, 21, 20]},
+  "band_85": {"service": 85, "daily": 3, "lead": 2, "alpha": 0.7, "series": [5]},
+  "band_80": {"service": 80, "daily": 6, "lead": 4, "alpha": 0.3, "series": [6, 6, 6]},
+  "below_80": {"service": 70, "daily": 9, "lead": 9, "alpha": 0.4, "series": [12, 3, 9, 15, 6]},
+  "zero_lead_no_series": {"service": 95, "daily": 5, "lead": 0, "alpha": 0.3, "series": []},
+  "zero_demand": {"service": 99.9, "daily": 0, "lead": 7, "alpha": 1, "series": [0, 0]}
+}
