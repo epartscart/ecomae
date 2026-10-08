@@ -1,0 +1,59 @@
+@page "/en/users/editform"
+@page "/users/editform"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
+@inject IHttpContextAccessor Http
+@inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
+@*
+  PHP twin: content/users/editform.php. The form posts back here (StorefrontEditFormPostMiddleware).
+*@
+
+<PageTitle>Edit my data · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container">
+            @((MarkupString)_html)
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private string _html = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
+        var request = new StorefrontProfileForm.Request(
+            ctx.Request.Cookies["session"],
+            ctx.Request.Cookies["u_id"],
+            StorefrontProfilePostMiddleware.LangHref(ctx.Request.Path.Value ?? string.Empty),
+            StorefrontEditFormPostMiddleware.ReadConfig(ctx));
+
+        try
+        {
+            await using var connection = await Connections.OpenForTenantAsync(tenant, ctx.RequestAborted);
+            var translator = new StorefrontPhpTranslator(connection, request.LangHref.TrimStart('/'));
+            _html = await StorefrontEditForm.RenderAsync(connection, request, key => translator.TextAsync(key, ctx.RequestAborted), ctx.RequestAborted);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            _html = "<p>The profile editor is unavailable right now.</p>";
+        }
+        catch (InvalidOperationException)
+        {
+            _html = "<p>The profile editor is unavailable right now.</p>";
+        }
+    }
+}

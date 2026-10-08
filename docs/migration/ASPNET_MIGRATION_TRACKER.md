@@ -260,6 +260,22 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — the storefront profile edit page and its save like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 74 of 75, broader `cp/content` 108 of 110. Weighted headline stays about 20.4%. Ratchet stays 812: `content/users/editform.php` was already named by the old Blazor profile app, so the inventory counted it before it was ported. Unnamed PHP functions: 7,925 (main was already at 7,925 after an unrelated merge).
+- `StorefrontEditForm` renders `/users/editform` and `/en/users/editform` byte for byte. Its literal HTML comes from PHP's own tokenizer over the source (`short_open_tag=1`, as on the server). It is checked against a `php -S` golden of the real page on a throwaway database (15 cases, with the profile and user rows left behind).
+  - The page: the registration fields as a JavaScript list, the variant selector (hidden for one variant, a panel for none or several, in `order`), the password block, the form checks with `min_password_len`, and the current profile values and variant.
+- `StorefrontEditFormPostMiddleware` handles the `edit_user` POST in one transaction and writes PHP's redirect script back to the edit page (success text 4715, or the error of the failed step).
+  - The steps: CSRF key of the customer session, the new password when one is given, the registration fields of the posted variant (stored htmlentities-escaped, a key with two rows gets a third like PHP), removal of emptied fields, then the variant itself.
+  - The variant match and change use PHP 8's loose comparison (`" 2"` and `"2.0"` match 2, a missing variant stores NULL).
+- Intended deviations:
+  - PHP deletes every profile row whose key is not in the POST. That lets a pending or rejected trade customer delete `epc_trade_approval_status` (which then reads as approved) and wipes the VAT, tax-exempt and dealing currency keys on every save. ASP.NET only deletes registration fields.
+  - A new password is stored as bcrypt (cost 12, which both logins verify) instead of `md5(password + secret_succession)`.
+  - The CSRF key is compared strictly (PHP's `!=` treats two numeric-looking keys as equal), and a database error redirects with the step's translated error instead of the SQL message.
+- Still open: other language prefixes (`/ar/users/editform`) are not routed to the page yet (the POST handler accepts them). The old Blazor profile app stays at `/storefront/profile-app`.
+
 ### Checkpoint 2026-10-08 — the storefront profile page and its currency change request like PHP
 
 Not complete.

@@ -1,0 +1,76 @@
+[
+  {"name": "guest", "cookie": ""},
+  {"name": "wrong_session_is_guest", "cookie": "session=sess41; u_id=42"},
+  {"name": "single_variant_hidden_selector"},
+  {
+    "name": "many_variants_ordered_with_values",
+    "lang": "/ar",
+    "config": {"min_password_len": 8},
+    "setup": [
+      "INSERT INTO reg_variants (id, caption, `order`) VALUES (3, 'rv_dealer', 0), (2, 'rv_company', 2)",
+      "UPDATE users SET reg_variant = 2 WHERE user_id = 41",
+      "INSERT INTO users_profiles (user_id, data_key, data_value) VALUES (41, 'company', 'Haddad &quot;Parts&quot;'), (41, 'misc', NULL)"
+    ]
+  },
+  {
+    "name": "no_variants_null_reg_variant",
+    "setup": ["DELETE FROM reg_variants", "UPDATE users SET reg_variant = NULL WHERE user_id = 41", "DELETE FROM users_profiles WHERE user_id = 41"]
+  },
+  {
+    "name": "post_update_insert_delete_password",
+    "method": "POST",
+    "form": {"edit_user": "edit_user", "csrf_guard_key": "ck41", "reg_variant": "1", "password": "n3w-Pass", "password_repeat": "n3w-Pass", "name": "Amal <b>\"O'Neil\"</b> é", "surname": "0", "inn": "1234567890"},
+    "setup": ["INSERT INTO users_profiles (user_id, data_key, data_value) VALUES (41, 'inn', '9999999999')"]
+  },
+  {
+    "name": "post_change_variant_loose_match",
+    "lang": "/ar",
+    "method": "POST",
+    "form": {"edit_user": "1", "csrf_guard_key": "ck41", "reg_variant": " 2", "name": "Amal", "surname": "", "company": "Acme & Sons", "inn": "0123456789"},
+    "setup": ["INSERT INTO reg_variants (id, caption, `order`) VALUES (2, 'rv_company', 2)"]
+  },
+  {
+    "name": "post_same_variant_numeric_text",
+    "method": "POST",
+    "form": {"edit_user": "1", "csrf_guard_key": "ck41", "reg_variant": "1.0", "name": "Amal", "surname": "Haddad"}
+  },
+  {
+    "name": "post_missing_variant",
+    "method": "POST",
+    "form": {"edit_user": "1", "csrf_guard_key": "ck41", "name": "Kept?"}
+  },
+  {
+    "name": "post_duplicate_rows_insert_again",
+    "method": "POST",
+    "form": {"edit_user": "1", "csrf_guard_key": "ck41", "reg_variant": "1", "name": "Twice", "surname": "S"},
+    "setup": ["INSERT INTO users_profiles (user_id, data_key, data_value) VALUES (41, 'name', 'Dup')"]
+  },
+  {
+    "name": "post_csrf_mismatch",
+    "method": "POST",
+    "form": {"edit_user": "1", "csrf_guard_key": "nope", "reg_variant": "1", "password": "x", "name": "Changed"}
+  },
+  {
+    "name": "post_csrf_missing",
+    "method": "POST",
+    "form": {"edit_user": "1", "reg_variant": "1", "name": "Changed"}
+  },
+  {
+    "name": "post_without_flag_renders",
+    "method": "POST",
+    "form": {"csrf_guard_key": "ck41", "name": "Changed"}
+  },
+  {
+    "name": "post_guest_renders_login_text",
+    "cookie": "",
+    "method": "POST",
+    "form": {"edit_user": "1", "csrf_guard_key": "ck41", "name": "Changed"}
+  },
+  {
+    "name": "post_keeps_system_keys",
+    "method": "POST",
+    "form": {"edit_user": "1", "csrf_guard_key": "ck41", "reg_variant": "1", "name": "Amal", "surname": "Haddad"},
+    "setup": ["INSERT INTO users_profiles (user_id, data_key, data_value) VALUES (41, 'epc_trade_approval_status', 'pending'), (41, 'customer_vat_type', 'local_b2b')"],
+    "kept": ["epc_trade_approval_status", "customer_vat_type"]
+  }
+]

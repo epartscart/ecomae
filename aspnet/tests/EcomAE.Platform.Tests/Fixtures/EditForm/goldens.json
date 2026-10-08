@@ -1,0 +1,507 @@
+{
+  "guest": {
+    "status": 200,
+    "body": "T4709",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal"
+      ],
+      [
+        "41",
+        "surname",
+        "Haddad &amp; Co"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "1",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "wrong_session_is_guest": {
+    "status": 200,
+    "body": "T4709",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal"
+      ],
+      [
+        "41",
+        "surname",
+        "Haddad &amp; Co"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "1",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "single_variant_hidden_selector": {
+    "status": 200,
+    "body": "\t\t<script>\n\t\tvar reg_fields = new Array();//Массив с объектами всех полей\n\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"name\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"Trf_name\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [1,2];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [1];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = 64;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"^[A-Za-z ]+$\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = {\"a\":1};\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"surname\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"Trf_surname\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [1,2];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = 64;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = {};\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"company\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"T\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [\"2\"];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [2];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = ;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = ;\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"inn\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"Trf_inn\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [2];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [2];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = 12;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"^[0-9]{10,12}$\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = [];\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t</script>\n\t\t\n\n\t\t<!-- САМА ФОРМА -->\n\t\t<form id=\"regform\" onsubmit=\"return onSubmitCheck();\" method=\"post\">\n\t\t\t<input type=\"hidden\" name=\"edit_user\" value=\"edit_user\" />\n\t\t\t\n\t\t\t\t\t\t<input type=\"hidden\" name=\"csrf_guard_key\" value=\"ck41\" />\n\t\t\t\n\t\t\t<!--Блок для выбора Регистрационного Варианта-->\n\t\t\t<div id=\"RegVariantsSelector\">\n\t\t\t\t\t\t\t\t\t<select id=\"reg_variant_selector\" name=\"reg_variant\" style=\"display:none\" onchange=\"regenerateFields();\">\n\t\t\t\t\t\t<option value=\"1\">Trv_person</option>\n\t\t\t\t\t</select>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t<!-- БЛОК ДОПОЛНИТЕЛЬНЫХ ПОЛЕЙ -->\n\t\t\t<div id=\"additional_fields_div\">\n\t\t\t</div>\n\t\t\t\n\t\t\t\n\t\t\t<!-- Блок для пароля -->\n\t\t\t<div class=\"panel panel-primary\">\n\t\t\t\t<!--<div class=\"panel-heading\">Пароль</div>-->\n\t\t\t\t<div class=\"panel-body\">\n\n\t\t\t\t\t<div class=\"form-group col-md-6\">\n\t\t\t\t\t\t<label for=\"password\" class=\"col-sm-4 control-label\">T4717</label>\n\t\t\t\t\t\t<div class=\"col-sm-8\" style=\"padding:5px;\">\n\t\t\t\t\t\t\t<input type=\"password\" name=\"password\" class=\"form-control\" id=\"password\" placeholder=\"T4717\" />\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<div class=\"form-group col-md-6\">\n\t\t\t\t\t\t<label for=\"password_repeat\" class=\"col-sm-4 control-label\">T3927</label>\n\t\t\t\t\t\t<div class=\"col-sm-8\" style=\"padding:5px;\">\n\t\t\t\t\t\t\t<input type=\"password\" class=\"form-control\" name=\"password_repeat\" id=\"password_repeat\" value=\"\" placeholder=\"T3927\">\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t\n\t\t\t\t\t<div class=\"text-center\">T4718.</div>\n\t\t\t\t\t\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t\n\t\t\t\n\t\t\t<script>\n\t\t\t//Перегенировать поля\n\t\t\tfunction regenerateFields()\n\t\t\t{\n\t\t\t\tvar current_reg_variant = document.getElementById(\"reg_variant_selector\").value;\n\t\t\t\t\n\t\t\t\tvar additional_html = \"\";//HTML для дополнительных полей регистрации\n\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t\t{\n\t\t\t\t\t//Обработка show_for:\n\t\t\t\t\tif(reg_fields[i].show_for.indexOf(parseInt(current_reg_variant)) < 0)\n\t\t\t\t\t{\n\t\t\t\t\t\tcontinue;//Это поле не показываем\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\t//Обработка required_for\n\t\t\t\t\tvar required_for = \"\";//Для звездочки\n\t\t\t\t\tif(reg_fields[i].required_for.indexOf(parseInt(current_reg_variant)) >= 0)\n\t\t\t\t\t{\n\t\t\t\t\t\trequired_for = \"*\";//Это поле не показываем\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\tadditional_html += \"<div class=\\\"form-group\\\"><label for=\\\"\"+reg_fields[i].name+\"\\\" class=\\\"col-sm-2 control-label\\\">\"+reg_fields[i].caption+required_for+\"</label><div class=\\\"col-sm-10\\\" style=\\\"padding:5px;\\\">\";\n\t\t\t\t\t\n\t\t\t\t\t//Виджет:\n\t\t\t\t\tswitch(reg_fields[i].widget_type)\n\t\t\t\t\t{\n\t\t\t\t\t\tcase \"text\":\n\t\t\t\t\t\t\tadditional_html += \"<input onKeyUp=\\\"dynamicApplying('\"+reg_fields[i].name+\"');\\\" type=\\\"text\\\" name=\\\"\"+reg_fields[i].name+\"\\\" id=\\\"\"+reg_fields[i].name+\"\\\" value='\"+reg_fields[i].value_buffer.replace('/([\"\\'\\])/g', \"\\\\$1\")+\"' class=\\\"form-control\\\" placeholder=\\\"\"+reg_fields[i].caption+\"\\\" />\";\n\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\tadditional_html += \"</div></div>\";\n\t\t\t\t}\n\t\t\t\t\n\t\t\t\tadditional_html = \"<div class=\\\"panel panel-primary\\\"><div class=\\\"panel-heading\\\">T3928</div><div class=\\\"panel-body\\\">\" + additional_html + \"</div></div>\";\n\t\t\t\t\n\t\t\t\tdocument.getElementById(\"additional_fields_div\").innerHTML = \"\";\n\t\t\t\tdocument.getElementById(\"additional_fields_div\").innerHTML = additional_html;\n\t\t\t}//~function regenerateFields()\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t// --------------------------------------------------------------------------\n\t\t\t//Функция динамическиго применния значений для текстовых строк\n\t\t\tfunction dynamicApplying(attribute)\n\t\t\t{\n\t\t\t\tvar str_value = document.getElementById(attribute).value;//Текущее значение\n\t\t\t\t//Ищем поле\n\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t\t{\n\t\t\t\t\tif(reg_fields[i].name == attribute)\n\t\t\t\t\t{\n\t\t\t\t\t\treg_fields[i].value_buffer = str_value;\n\t\t\t\t\t\tconsole.log(reg_fields[i].value_buffer);\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t\tregenerateFields();//Генерируем после загрузки страницы\n\t\t\t</script>\n\t\t\t\n\t\t\t\n\t\t\t<button class=\"btn btn-ar btn-primary\" type=\"submit\">T2114</button>\n\t\t</form>\n\t\t\n\t\t\n\n\n\n\n\n\t\t\t\t<script>\n\t\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].name == 'name')\n\t\t\t\t{\n\t\t\t\t\treg_fields[i].value_buffer = 'Amal';\n\t\t\t\t}\n\t\t\t}\n\t\t\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].name == 'surname')\n\t\t\t\t{\n\t\t\t\t\treg_fields[i].value_buffer = 'Haddad &amp; Co';\n\t\t\t\t}\n\t\t\t}\n\t\t\t\t\t</script>\n\t\t\t\t<script>\n\t\t//1. Текущий регистрационный вариант:\n\t\tdocument.getElementById(\"reg_variant_selector\").value = 1;\n\t\tregenerateFields();//Генерируем после загрузки страницы\n\t\t</script>\n\t\t\n\n\t\t\n\t\t\n\t\t\n\t\t<script>\n\t\t// ---------------------------------------------------------------------------------------------\n\t\t//ПРОВЕРКА КОРРЕКСТНОСТИ ЗАПОЛНЕНИЯ ФОРМЫ:\n\t\t//Капча здесь больше не используется, т.к. при сохранении этой формы нет отправки ссылок и кодов подтверждения контактов\n\t\tfunction onSubmitCheck()\n\t\t{\n\t\t\t//Получаем текущий выбранный Регистрационный Вариант:\n\t\t\tvar currentRegVariant = document.getElementById(\"reg_variant_selector\").value;\n\t\t\t\n\t\t\t//Проверка факта заполнения полей какими-либо значениями\n\t\t\tfor(var i=0; i<reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].required_for.indexOf(parseInt(currentRegVariant)) != -1)//Заполнение требуется для данного Регистрационного Варианта\n\t\t\t\t{\n\t\t\t\t\tif(document.getElementById(reg_fields[i].name).value == \"\")//Но поле не заполнено\n\t\t\t\t\t{\n\t\t\t\t\t\talert(\"Заполните поле \"+reg_fields[i].caption);\n\t\t\t\t\t\treturn false;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}//for(i)\n\t\t\t\n\t\t\t//Обработка заполнения пароля:\n\t\t\tif(document.getElementById(\"password\").value != document.getElementById(\"password_repeat\").value)//Пароли должны совпадать\n\t\t\t{\n\t\t\t\talert(\"T3933\");\n\t\t\t\treturn false;\n\t\t\t}\n\t\t\telse if(document.getElementById(\"password\").value.length < 6 && document.getElementById(\"password\").value.length !=0)//Совпадает. Теперь проверям минимально допустимую длину\n\t\t\t{\n\t\t\t\talert(\"T3934 6 T3935\");\n\t\t\t\treturn false;\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t//Проверка соответствия заполненных значений регулярным выражениям\n\t\t\t//Если поле пустое - значит его можно было не заполнять (проверка на факт заполнения следует раньше). Но есть там есть значение, то оно обязательно должно соответствовать RegExp, даже если оно не обязательно к заполнению\n\t\t\tfor(var i=0; i<reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].show_for.indexOf(parseInt(currentRegVariant)) == -1)//У этого поля не указан текущий Регистрационный Вариант - его нет в форме\n\t\t\t\t{\n\t\t\t\t\tcontinue;\n\t\t\t\t}\n\t\t\t\t\n\t\t\t\t//Если регулярное выражение пустое - значит пропускаем, т.к. требований к содержимому нет\n\t\t\t\tif(reg_fields[i].regexp == \"\")\n\t\t\t\t{\n\t\t\t\t\tcontinue;\n\t\t\t\t}\n\t\t\t\t\n\t\t\t\tif(String(document.getElementById(reg_fields[i].name).value) != \"\")\n\t\t\t\t{\n\t\t\t\t\tvar current_value = String(document.getElementById(reg_fields[i].name).value);//Заполненное значение\n\t\t\t\t\tvar regex = new RegExp(reg_fields[i].regexp);//Регулярное выражение для поля\n\t\t\t\t\t//Далее ищем подстроку по регулярному выражению\n\t\t\t\t\tvar match = regex.exec(String(current_value));\n\t\t\t\t\tif(match == null)\n\t\t\t\t\t{\n\t\t\t\t\t\talert(\"T3885 \"+reg_fields[i].caption+\" T3930\");\n\t\t\t\t\t\treturn false;\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t\tvar match_value = String(match[0]);//Подходящая подстрока\n\t\t\t\t\t\tif(match_value != current_value)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\talert(\"T3893 \"+reg_fields[i].caption+\" T3931\");\n\t\t\t\t\t\t\treturn false;\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\t//Заполнено правильно, если: есть подстрока по регулярному выражению и она полностью равна самой строке\n\t\t\t\t}\n\t\t\t}\n\n\t\t\treturn true;\n\t\t}//~function onSubmitCheck()\n\t\t// ---------------------------------------------------------------------------------------------\n\t\t</script>\n\t\t",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal"
+      ],
+      [
+        "41",
+        "surname",
+        "Haddad &amp; Co"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "1",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "many_variants_ordered_with_values": {
+    "status": 200,
+    "body": "\t\t<script>\n\t\tvar reg_fields = new Array();//Массив с объектами всех полей\n\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"name\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"Trf_name\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [1,2];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [1];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = 64;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"^[A-Za-z ]+$\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = {\"a\":1};\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"surname\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"Trf_surname\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [1,2];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = 64;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = {};\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"company\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"T\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [\"2\"];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [2];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = ;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = ;\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"inn\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"Trf_inn\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [2];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [2];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = 12;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"^[0-9]{10,12}$\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = [];\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t</script>\n\t\t\n\n\t\t<!-- САМА ФОРМА -->\n\t\t<form id=\"regform\" onsubmit=\"return onSubmitCheck();\" method=\"post\">\n\t\t\t<input type=\"hidden\" name=\"edit_user\" value=\"edit_user\" />\n\t\t\t\n\t\t\t\t\t\t<input type=\"hidden\" name=\"csrf_guard_key\" value=\"ck41\" />\n\t\t\t\n\t\t\t<!--Блок для выбора Регистрационного Варианта-->\n\t\t\t<div id=\"RegVariantsSelector\">\n\t\t\t\t\t\t\t\t\t<div class=\"panel panel-primary\">\n\t\t\t\t\t\t<div class=\"panel-heading\">T4716</div>\n\t\t\t\t\t\t<div class=\"panel-body\">\n\t\t\t\t\t\t\t  <div class=\"form-group\">\n\t\t\t\t\t\t\t\t<select id=\"reg_variant_selector\" name=\"reg_variant\" onchange=\"regenerateFields();\" class=\"form-control\" />\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<option value=\"3\">Trv_dealer</option>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<option value=\"1\">Trv_person</option>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<option value=\"2\">Trv_company</option>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t</select>\n\t\t\t\t\t\t\t  </div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t<!-- БЛОК ДОПОЛНИТЕЛЬНЫХ ПОЛЕЙ -->\n\t\t\t<div id=\"additional_fields_div\">\n\t\t\t</div>\n\t\t\t\n\t\t\t\n\t\t\t<!-- Блок для пароля -->\n\t\t\t<div class=\"panel panel-primary\">\n\t\t\t\t<!--<div class=\"panel-heading\">Пароль</div>-->\n\t\t\t\t<div class=\"panel-body\">\n\n\t\t\t\t\t<div class=\"form-group col-md-6\">\n\t\t\t\t\t\t<label for=\"password\" class=\"col-sm-4 control-label\">T4717</label>\n\t\t\t\t\t\t<div class=\"col-sm-8\" style=\"padding:5px;\">\n\t\t\t\t\t\t\t<input type=\"password\" name=\"password\" class=\"form-control\" id=\"password\" placeholder=\"T4717\" />\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<div class=\"form-group col-md-6\">\n\t\t\t\t\t\t<label for=\"password_repeat\" class=\"col-sm-4 control-label\">T3927</label>\n\t\t\t\t\t\t<div class=\"col-sm-8\" style=\"padding:5px;\">\n\t\t\t\t\t\t\t<input type=\"password\" class=\"form-control\" name=\"password_repeat\" id=\"password_repeat\" value=\"\" placeholder=\"T3927\">\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t\n\t\t\t\t\t<div class=\"text-center\">T4718.</div>\n\t\t\t\t\t\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t\n\t\t\t\n\t\t\t<script>\n\t\t\t//Перегенировать поля\n\t\t\tfunction regenerateFields()\n\t\t\t{\n\t\t\t\tvar current_reg_variant = document.getElementById(\"reg_variant_selector\").value;\n\t\t\t\t\n\t\t\t\tvar additional_html = \"\";//HTML для дополнительных полей регистрации\n\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t\t{\n\t\t\t\t\t//Обработка show_for:\n\t\t\t\t\tif(reg_fields[i].show_for.indexOf(parseInt(current_reg_variant)) < 0)\n\t\t\t\t\t{\n\t\t\t\t\t\tcontinue;//Это поле не показываем\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\t//Обработка required_for\n\t\t\t\t\tvar required_for = \"\";//Для звездочки\n\t\t\t\t\tif(reg_fields[i].required_for.indexOf(parseInt(current_reg_variant)) >= 0)\n\t\t\t\t\t{\n\t\t\t\t\t\trequired_for = \"*\";//Это поле не показываем\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\tadditional_html += \"<div class=\\\"form-group\\\"><label for=\\\"\"+reg_fields[i].name+\"\\\" class=\\\"col-sm-2 control-label\\\">\"+reg_fields[i].caption+required_for+\"</label><div class=\\\"col-sm-10\\\" style=\\\"padding:5px;\\\">\";\n\t\t\t\t\t\n\t\t\t\t\t//Виджет:\n\t\t\t\t\tswitch(reg_fields[i].widget_type)\n\t\t\t\t\t{\n\t\t\t\t\t\tcase \"text\":\n\t\t\t\t\t\t\tadditional_html += \"<input onKeyUp=\\\"dynamicApplying('\"+reg_fields[i].name+\"');\\\" type=\\\"text\\\" name=\\\"\"+reg_fields[i].name+\"\\\" id=\\\"\"+reg_fields[i].name+\"\\\" value='\"+reg_fields[i].value_buffer.replace('/([\"\\'\\])/g', \"\\\\$1\")+\"' class=\\\"form-control\\\" placeholder=\\\"\"+reg_fields[i].caption+\"\\\" />\";\n\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\tadditional_html += \"</div></div>\";\n\t\t\t\t}\n\t\t\t\t\n\t\t\t\tadditional_html = \"<div class=\\\"panel panel-primary\\\"><div class=\\\"panel-heading\\\">T3928</div><div class=\\\"panel-body\\\">\" + additional_html + \"</div></div>\";\n\t\t\t\t\n\t\t\t\tdocument.getElementById(\"additional_fields_div\").innerHTML = \"\";\n\t\t\t\tdocument.getElementById(\"additional_fields_div\").innerHTML = additional_html;\n\t\t\t}//~function regenerateFields()\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t// --------------------------------------------------------------------------\n\t\t\t//Функция динамическиго применния значений для текстовых строк\n\t\t\tfunction dynamicApplying(attribute)\n\t\t\t{\n\t\t\t\tvar str_value = document.getElementById(attribute).value;//Текущее значение\n\t\t\t\t//Ищем поле\n\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t\t{\n\t\t\t\t\tif(reg_fields[i].name == attribute)\n\t\t\t\t\t{\n\t\t\t\t\t\treg_fields[i].value_buffer = str_value;\n\t\t\t\t\t\tconsole.log(reg_fields[i].value_buffer);\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t\tregenerateFields();//Генерируем после загрузки страницы\n\t\t\t</script>\n\t\t\t\n\t\t\t\n\t\t\t<button class=\"btn btn-ar btn-primary\" type=\"submit\">T2114</button>\n\t\t</form>\n\t\t\n\t\t\n\n\n\n\n\n\t\t\t\t<script>\n\t\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].name == 'name')\n\t\t\t\t{\n\t\t\t\t\treg_fields[i].value_buffer = 'Amal';\n\t\t\t\t}\n\t\t\t}\n\t\t\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].name == 'surname')\n\t\t\t\t{\n\t\t\t\t\treg_fields[i].value_buffer = 'Haddad &amp; Co';\n\t\t\t\t}\n\t\t\t}\n\t\t\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].name == 'company')\n\t\t\t\t{\n\t\t\t\t\treg_fields[i].value_buffer = 'Haddad &quot;Parts&quot;';\n\t\t\t\t}\n\t\t\t}\n\t\t\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].name == 'misc')\n\t\t\t\t{\n\t\t\t\t\treg_fields[i].value_buffer = '';\n\t\t\t\t}\n\t\t\t}\n\t\t\t\t\t</script>\n\t\t\t\t<script>\n\t\t//1. Текущий регистрационный вариант:\n\t\tdocument.getElementById(\"reg_variant_selector\").value = 2;\n\t\tregenerateFields();//Генерируем после загрузки страницы\n\t\t</script>\n\t\t\n\n\t\t\n\t\t\n\t\t\n\t\t<script>\n\t\t// ---------------------------------------------------------------------------------------------\n\t\t//ПРОВЕРКА КОРРЕКСТНОСТИ ЗАПОЛНЕНИЯ ФОРМЫ:\n\t\t//Капча здесь больше не используется, т.к. при сохранении этой формы нет отправки ссылок и кодов подтверждения контактов\n\t\tfunction onSubmitCheck()\n\t\t{\n\t\t\t//Получаем текущий выбранный Регистрационный Вариант:\n\t\t\tvar currentRegVariant = document.getElementById(\"reg_variant_selector\").value;\n\t\t\t\n\t\t\t//Проверка факта заполнения полей какими-либо значениями\n\t\t\tfor(var i=0; i<reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].required_for.indexOf(parseInt(currentRegVariant)) != -1)//Заполнение требуется для данного Регистрационного Варианта\n\t\t\t\t{\n\t\t\t\t\tif(document.getElementById(reg_fields[i].name).value == \"\")//Но поле не заполнено\n\t\t\t\t\t{\n\t\t\t\t\t\talert(\"Заполните поле \"+reg_fields[i].caption);\n\t\t\t\t\t\treturn false;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}//for(i)\n\t\t\t\n\t\t\t//Обработка заполнения пароля:\n\t\t\tif(document.getElementById(\"password\").value != document.getElementById(\"password_repeat\").value)//Пароли должны совпадать\n\t\t\t{\n\t\t\t\talert(\"T3933\");\n\t\t\t\treturn false;\n\t\t\t}\n\t\t\telse if(document.getElementById(\"password\").value.length < 8 && document.getElementById(\"password\").value.length !=0)//Совпадает. Теперь проверям минимально допустимую длину\n\t\t\t{\n\t\t\t\talert(\"T3934 8 T3935\");\n\t\t\t\treturn false;\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t//Проверка соответствия заполненных значений регулярным выражениям\n\t\t\t//Если поле пустое - значит его можно было не заполнять (проверка на факт заполнения следует раньше). Но есть там есть значение, то оно обязательно должно соответствовать RegExp, даже если оно не обязательно к заполнению\n\t\t\tfor(var i=0; i<reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].show_for.indexOf(parseInt(currentRegVariant)) == -1)//У этого поля не указан текущий Регистрационный Вариант - его нет в форме\n\t\t\t\t{\n\t\t\t\t\tcontinue;\n\t\t\t\t}\n\t\t\t\t\n\t\t\t\t//Если регулярное выражение пустое - значит пропускаем, т.к. требований к содержимому нет\n\t\t\t\tif(reg_fields[i].regexp == \"\")\n\t\t\t\t{\n\t\t\t\t\tcontinue;\n\t\t\t\t}\n\t\t\t\t\n\t\t\t\tif(String(document.getElementById(reg_fields[i].name).value) != \"\")\n\t\t\t\t{\n\t\t\t\t\tvar current_value = String(document.getElementById(reg_fields[i].name).value);//Заполненное значение\n\t\t\t\t\tvar regex = new RegExp(reg_fields[i].regexp);//Регулярное выражение для поля\n\t\t\t\t\t//Далее ищем подстроку по регулярному выражению\n\t\t\t\t\tvar match = regex.exec(String(current_value));\n\t\t\t\t\tif(match == null)\n\t\t\t\t\t{\n\t\t\t\t\t\talert(\"T3885 \"+reg_fields[i].caption+\" T3930\");\n\t\t\t\t\t\treturn false;\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t\tvar match_value = String(match[0]);//Подходящая подстрока\n\t\t\t\t\t\tif(match_value != current_value)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\talert(\"T3893 \"+reg_fields[i].caption+\" T3931\");\n\t\t\t\t\t\t\treturn false;\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\t//Заполнено правильно, если: есть подстрока по регулярному выражению и она полностью равна самой строке\n\t\t\t\t}\n\t\t\t}\n\n\t\t\treturn true;\n\t\t}//~function onSubmitCheck()\n\t\t// ---------------------------------------------------------------------------------------------\n\t\t</script>\n\t\t",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal"
+      ],
+      [
+        "41",
+        "surname",
+        "Haddad &amp; Co"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ],
+      [
+        "41",
+        "company",
+        "Haddad &quot;Parts&quot;"
+      ],
+      [
+        "41",
+        "misc",
+        "NULL"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "2",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "no_variants_null_reg_variant": {
+    "status": 200,
+    "body": "\t\t<script>\n\t\tvar reg_fields = new Array();//Массив с объектами всех полей\n\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"name\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"Trf_name\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [1,2];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [1];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = 64;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"^[A-Za-z ]+$\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = {\"a\":1};\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"surname\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"Trf_surname\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [1,2];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = 64;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = {};\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"company\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"T\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [\"2\"];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [2];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = ;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = ;\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"inn\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"Trf_inn\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [2];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [2];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = 12;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"^[0-9]{10,12}$\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = [];\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t</script>\n\t\t\n\n\t\t<!-- САМА ФОРМА -->\n\t\t<form id=\"regform\" onsubmit=\"return onSubmitCheck();\" method=\"post\">\n\t\t\t<input type=\"hidden\" name=\"edit_user\" value=\"edit_user\" />\n\t\t\t\n\t\t\t\t\t\t<input type=\"hidden\" name=\"csrf_guard_key\" value=\"ck41\" />\n\t\t\t\n\t\t\t<!--Блок для выбора Регистрационного Варианта-->\n\t\t\t<div id=\"RegVariantsSelector\">\n\t\t\t\t\t\t\t\t\t<div class=\"panel panel-primary\">\n\t\t\t\t\t\t<div class=\"panel-heading\">T4716</div>\n\t\t\t\t\t\t<div class=\"panel-body\">\n\t\t\t\t\t\t\t  <div class=\"form-group\">\n\t\t\t\t\t\t\t\t<select id=\"reg_variant_selector\" name=\"reg_variant\" onchange=\"regenerateFields();\" class=\"form-control\" />\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t</select>\n\t\t\t\t\t\t\t  </div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t<!-- БЛОК ДОПОЛНИТЕЛЬНЫХ ПОЛЕЙ -->\n\t\t\t<div id=\"additional_fields_div\">\n\t\t\t</div>\n\t\t\t\n\t\t\t\n\t\t\t<!-- Блок для пароля -->\n\t\t\t<div class=\"panel panel-primary\">\n\t\t\t\t<!--<div class=\"panel-heading\">Пароль</div>-->\n\t\t\t\t<div class=\"panel-body\">\n\n\t\t\t\t\t<div class=\"form-group col-md-6\">\n\t\t\t\t\t\t<label for=\"password\" class=\"col-sm-4 control-label\">T4717</label>\n\t\t\t\t\t\t<div class=\"col-sm-8\" style=\"padding:5px;\">\n\t\t\t\t\t\t\t<input type=\"password\" name=\"password\" class=\"form-control\" id=\"password\" placeholder=\"T4717\" />\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<div class=\"form-group col-md-6\">\n\t\t\t\t\t\t<label for=\"password_repeat\" class=\"col-sm-4 control-label\">T3927</label>\n\t\t\t\t\t\t<div class=\"col-sm-8\" style=\"padding:5px;\">\n\t\t\t\t\t\t\t<input type=\"password\" class=\"form-control\" name=\"password_repeat\" id=\"password_repeat\" value=\"\" placeholder=\"T3927\">\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t\n\t\t\t\t\t<div class=\"text-center\">T4718.</div>\n\t\t\t\t\t\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t\n\t\t\t\n\t\t\t<script>\n\t\t\t//Перегенировать поля\n\t\t\tfunction regenerateFields()\n\t\t\t{\n\t\t\t\tvar current_reg_variant = document.getElementById(\"reg_variant_selector\").value;\n\t\t\t\t\n\t\t\t\tvar additional_html = \"\";//HTML для дополнительных полей регистрации\n\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t\t{\n\t\t\t\t\t//Обработка show_for:\n\t\t\t\t\tif(reg_fields[i].show_for.indexOf(parseInt(current_reg_variant)) < 0)\n\t\t\t\t\t{\n\t\t\t\t\t\tcontinue;//Это поле не показываем\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\t//Обработка required_for\n\t\t\t\t\tvar required_for = \"\";//Для звездочки\n\t\t\t\t\tif(reg_fields[i].required_for.indexOf(parseInt(current_reg_variant)) >= 0)\n\t\t\t\t\t{\n\t\t\t\t\t\trequired_for = \"*\";//Это поле не показываем\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\tadditional_html += \"<div class=\\\"form-group\\\"><label for=\\\"\"+reg_fields[i].name+\"\\\" class=\\\"col-sm-2 control-label\\\">\"+reg_fields[i].caption+required_for+\"</label><div class=\\\"col-sm-10\\\" style=\\\"padding:5px;\\\">\";\n\t\t\t\t\t\n\t\t\t\t\t//Виджет:\n\t\t\t\t\tswitch(reg_fields[i].widget_type)\n\t\t\t\t\t{\n\t\t\t\t\t\tcase \"text\":\n\t\t\t\t\t\t\tadditional_html += \"<input onKeyUp=\\\"dynamicApplying('\"+reg_fields[i].name+\"');\\\" type=\\\"text\\\" name=\\\"\"+reg_fields[i].name+\"\\\" id=\\\"\"+reg_fields[i].name+\"\\\" value='\"+reg_fields[i].value_buffer.replace('/([\"\\'\\])/g', \"\\\\$1\")+\"' class=\\\"form-control\\\" placeholder=\\\"\"+reg_fields[i].caption+\"\\\" />\";\n\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\tadditional_html += \"</div></div>\";\n\t\t\t\t}\n\t\t\t\t\n\t\t\t\tadditional_html = \"<div class=\\\"panel panel-primary\\\"><div class=\\\"panel-heading\\\">T3928</div><div class=\\\"panel-body\\\">\" + additional_html + \"</div></div>\";\n\t\t\t\t\n\t\t\t\tdocument.getElementById(\"additional_fields_div\").innerHTML = \"\";\n\t\t\t\tdocument.getElementById(\"additional_fields_div\").innerHTML = additional_html;\n\t\t\t}//~function regenerateFields()\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t// --------------------------------------------------------------------------\n\t\t\t//Функция динамическиго применния значений для текстовых строк\n\t\t\tfunction dynamicApplying(attribute)\n\t\t\t{\n\t\t\t\tvar str_value = document.getElementById(attribute).value;//Текущее значение\n\t\t\t\t//Ищем поле\n\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t\t{\n\t\t\t\t\tif(reg_fields[i].name == attribute)\n\t\t\t\t\t{\n\t\t\t\t\t\treg_fields[i].value_buffer = str_value;\n\t\t\t\t\t\tconsole.log(reg_fields[i].value_buffer);\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t\tregenerateFields();//Генерируем после загрузки страницы\n\t\t\t</script>\n\t\t\t\n\t\t\t\n\t\t\t<button class=\"btn btn-ar btn-primary\" type=\"submit\">T2114</button>\n\t\t</form>\n\t\t\n\t\t\n\n\n\n\n\n\t\t\t\t<script>\n\t\t\t\t</script>\n\t\t\t\t<script>\n\t\t//1. Текущий регистрационный вариант:\n\t\tdocument.getElementById(\"reg_variant_selector\").value = ;\n\t\tregenerateFields();//Генерируем после загрузки страницы\n\t\t</script>\n\t\t\n\n\t\t\n\t\t\n\t\t\n\t\t<script>\n\t\t// ---------------------------------------------------------------------------------------------\n\t\t//ПРОВЕРКА КОРРЕКСТНОСТИ ЗАПОЛНЕНИЯ ФОРМЫ:\n\t\t//Капча здесь больше не используется, т.к. при сохранении этой формы нет отправки ссылок и кодов подтверждения контактов\n\t\tfunction onSubmitCheck()\n\t\t{\n\t\t\t//Получаем текущий выбранный Регистрационный Вариант:\n\t\t\tvar currentRegVariant = document.getElementById(\"reg_variant_selector\").value;\n\t\t\t\n\t\t\t//Проверка факта заполнения полей какими-либо значениями\n\t\t\tfor(var i=0; i<reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].required_for.indexOf(parseInt(currentRegVariant)) != -1)//Заполнение требуется для данного Регистрационного Варианта\n\t\t\t\t{\n\t\t\t\t\tif(document.getElementById(reg_fields[i].name).value == \"\")//Но поле не заполнено\n\t\t\t\t\t{\n\t\t\t\t\t\talert(\"Заполните поле \"+reg_fields[i].caption);\n\t\t\t\t\t\treturn false;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}//for(i)\n\t\t\t\n\t\t\t//Обработка заполнения пароля:\n\t\t\tif(document.getElementById(\"password\").value != document.getElementById(\"password_repeat\").value)//Пароли должны совпадать\n\t\t\t{\n\t\t\t\talert(\"T3933\");\n\t\t\t\treturn false;\n\t\t\t}\n\t\t\telse if(document.getElementById(\"password\").value.length < 6 && document.getElementById(\"password\").value.length !=0)//Совпадает. Теперь проверям минимально допустимую длину\n\t\t\t{\n\t\t\t\talert(\"T3934 6 T3935\");\n\t\t\t\treturn false;\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t//Проверка соответствия заполненных значений регулярным выражениям\n\t\t\t//Если поле пустое - значит его можно было не заполнять (проверка на факт заполнения следует раньше). Но есть там есть значение, то оно обязательно должно соответствовать RegExp, даже если оно не обязательно к заполнению\n\t\t\tfor(var i=0; i<reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].show_for.indexOf(parseInt(currentRegVariant)) == -1)//У этого поля не указан текущий Регистрационный Вариант - его нет в форме\n\t\t\t\t{\n\t\t\t\t\tcontinue;\n\t\t\t\t}\n\t\t\t\t\n\t\t\t\t//Если регулярное выражение пустое - значит пропускаем, т.к. требований к содержимому нет\n\t\t\t\tif(reg_fields[i].regexp == \"\")\n\t\t\t\t{\n\t\t\t\t\tcontinue;\n\t\t\t\t}\n\t\t\t\t\n\t\t\t\tif(String(document.getElementById(reg_fields[i].name).value) != \"\")\n\t\t\t\t{\n\t\t\t\t\tvar current_value = String(document.getElementById(reg_fields[i].name).value);//Заполненное значение\n\t\t\t\t\tvar regex = new RegExp(reg_fields[i].regexp);//Регулярное выражение для поля\n\t\t\t\t\t//Далее ищем подстроку по регулярному выражению\n\t\t\t\t\tvar match = regex.exec(String(current_value));\n\t\t\t\t\tif(match == null)\n\t\t\t\t\t{\n\t\t\t\t\t\talert(\"T3885 \"+reg_fields[i].caption+\" T3930\");\n\t\t\t\t\t\treturn false;\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t\tvar match_value = String(match[0]);//Подходящая подстрока\n\t\t\t\t\t\tif(match_value != current_value)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\talert(\"T3893 \"+reg_fields[i].caption+\" T3931\");\n\t\t\t\t\t\t\treturn false;\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\t//Заполнено правильно, если: есть подстрока по регулярному выражению и она полностью равна самой строке\n\t\t\t\t}\n\t\t\t}\n\n\t\t\treturn true;\n\t\t}//~function onSubmitCheck()\n\t\t// ---------------------------------------------------------------------------------------------\n\t\t</script>\n\t\t",
+    "profiles": [
+      [
+        "42",
+        "name",
+        "Other"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "NULL",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "post_update_insert_delete_password": {
+    "status": 200,
+    "body": "\t\t<script>\n\t\t\tlocation=\"/en/users/editform?success_message=T4715\";\n\t\t</script>\n\t\t",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal &lt;b&gt;&quot;O&#039;Neil&quot;&lt;/b&gt; &eacute;"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ],
+      [
+        "41",
+        "inn",
+        "9999999999"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "1",
+        "a30319bc40b4fec6d2fab3cf487bd187"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "post_change_variant_loose_match": {
+    "status": 200,
+    "body": "\t\t<script>\n\t\t\tlocation=\"/ar/users/editform?success_message=T4715\";\n\t\t</script>\n\t\t",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ],
+      [
+        "41",
+        "company",
+        "Acme &amp; Sons"
+      ],
+      [
+        "41",
+        "inn",
+        "0123456789"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "2",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "post_same_variant_numeric_text": {
+    "status": 200,
+    "body": "\t\t<script>\n\t\t\tlocation=\"/en/users/editform?success_message=T4715\";\n\t\t</script>\n\t\t",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal"
+      ],
+      [
+        "41",
+        "surname",
+        "Haddad"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "1",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "post_missing_variant": {
+    "status": 200,
+    "body": "\t\t<script>\n\t\t\tlocation=\"/en/users/editform?success_message=T4715\";\n\t\t</script>\n\t\t",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "NULL",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "post_duplicate_rows_insert_again": {
+    "status": 200,
+    "body": "\t\t<script>\n\t\t\tlocation=\"/en/users/editform?success_message=T4715\";\n\t\t</script>\n\t\t",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal"
+      ],
+      [
+        "41",
+        "surname",
+        "S"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ],
+      [
+        "41",
+        "name",
+        "Dup"
+      ],
+      [
+        "41",
+        "name",
+        "Twice"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "1",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "post_csrf_mismatch": {
+    "status": 200,
+    "body": "\t\t\t<script>\n\t\t\t\tlocation=\"/en/users/editform?error_message=T4691\";\n\t\t\t</script>\n\t\t\t",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal"
+      ],
+      [
+        "41",
+        "surname",
+        "Haddad &amp; Co"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "1",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "post_csrf_missing": {
+    "status": 200,
+    "body": "\t\t\t<script>\n\t\t\t\tlocation=\"/en/users/editform?error_message=T4691\";\n\t\t\t</script>\n\t\t\t",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal"
+      ],
+      [
+        "41",
+        "surname",
+        "Haddad &amp; Co"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "1",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "post_without_flag_renders": {
+    "status": 200,
+    "body": "\t\t<script>\n\t\tvar reg_fields = new Array();//Массив с объектами всех полей\n\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"name\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"Trf_name\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [1,2];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [1];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = 64;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"^[A-Za-z ]+$\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = {\"a\":1};\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"surname\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"Trf_surname\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [1,2];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = 64;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = {};\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"company\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"T\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [\"2\"];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [2];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = ;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = ;\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t\treg_fields[reg_fields.length] = new Object();//Создаем новый объект поля. И инициализируем его поля:\n\t\t\treg_fields[reg_fields.length - 1].main_flag = 0;\n\t\t\treg_fields[reg_fields.length - 1].name = \"inn\";\n\t\t\treg_fields[reg_fields.length - 1].caption = \"Trf_inn\";\n\t\t\treg_fields[reg_fields.length - 1].show_for = [2];\n\t\t\treg_fields[reg_fields.length - 1].required_for = [2];\n\t\t\treg_fields[reg_fields.length - 1].maxlen = 12;\n\t\t\treg_fields[reg_fields.length - 1].regexp = \"^[0-9]{10,12}$\";\n\t\t\treg_fields[reg_fields.length - 1].widget_type = \"text\";\n\t\t\treg_fields[reg_fields.length - 1].widget_options = [];\n\t\t\treg_fields[reg_fields.length - 1].value_buffer = \"\";//Текущее значения - для сохранения при переключении регистрационных вариантов\n\t\t\t\t\t</script>\n\t\t\n\n\t\t<!-- САМА ФОРМА -->\n\t\t<form id=\"regform\" onsubmit=\"return onSubmitCheck();\" method=\"post\">\n\t\t\t<input type=\"hidden\" name=\"edit_user\" value=\"edit_user\" />\n\t\t\t\n\t\t\t\t\t\t<input type=\"hidden\" name=\"csrf_guard_key\" value=\"ck41\" />\n\t\t\t\n\t\t\t<!--Блок для выбора Регистрационного Варианта-->\n\t\t\t<div id=\"RegVariantsSelector\">\n\t\t\t\t\t\t\t\t\t<select id=\"reg_variant_selector\" name=\"reg_variant\" style=\"display:none\" onchange=\"regenerateFields();\">\n\t\t\t\t\t\t<option value=\"1\">Trv_person</option>\n\t\t\t\t\t</select>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t<!-- БЛОК ДОПОЛНИТЕЛЬНЫХ ПОЛЕЙ -->\n\t\t\t<div id=\"additional_fields_div\">\n\t\t\t</div>\n\t\t\t\n\t\t\t\n\t\t\t<!-- Блок для пароля -->\n\t\t\t<div class=\"panel panel-primary\">\n\t\t\t\t<!--<div class=\"panel-heading\">Пароль</div>-->\n\t\t\t\t<div class=\"panel-body\">\n\n\t\t\t\t\t<div class=\"form-group col-md-6\">\n\t\t\t\t\t\t<label for=\"password\" class=\"col-sm-4 control-label\">T4717</label>\n\t\t\t\t\t\t<div class=\"col-sm-8\" style=\"padding:5px;\">\n\t\t\t\t\t\t\t<input type=\"password\" name=\"password\" class=\"form-control\" id=\"password\" placeholder=\"T4717\" />\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<div class=\"form-group col-md-6\">\n\t\t\t\t\t\t<label for=\"password_repeat\" class=\"col-sm-4 control-label\">T3927</label>\n\t\t\t\t\t\t<div class=\"col-sm-8\" style=\"padding:5px;\">\n\t\t\t\t\t\t\t<input type=\"password\" class=\"form-control\" name=\"password_repeat\" id=\"password_repeat\" value=\"\" placeholder=\"T3927\">\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t\n\t\t\t\t\t<div class=\"text-center\">T4718.</div>\n\t\t\t\t\t\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t\n\t\t\t\n\t\t\t<script>\n\t\t\t//Перегенировать поля\n\t\t\tfunction regenerateFields()\n\t\t\t{\n\t\t\t\tvar current_reg_variant = document.getElementById(\"reg_variant_selector\").value;\n\t\t\t\t\n\t\t\t\tvar additional_html = \"\";//HTML для дополнительных полей регистрации\n\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t\t{\n\t\t\t\t\t//Обработка show_for:\n\t\t\t\t\tif(reg_fields[i].show_for.indexOf(parseInt(current_reg_variant)) < 0)\n\t\t\t\t\t{\n\t\t\t\t\t\tcontinue;//Это поле не показываем\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\t//Обработка required_for\n\t\t\t\t\tvar required_for = \"\";//Для звездочки\n\t\t\t\t\tif(reg_fields[i].required_for.indexOf(parseInt(current_reg_variant)) >= 0)\n\t\t\t\t\t{\n\t\t\t\t\t\trequired_for = \"*\";//Это поле не показываем\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\tadditional_html += \"<div class=\\\"form-group\\\"><label for=\\\"\"+reg_fields[i].name+\"\\\" class=\\\"col-sm-2 control-label\\\">\"+reg_fields[i].caption+required_for+\"</label><div class=\\\"col-sm-10\\\" style=\\\"padding:5px;\\\">\";\n\t\t\t\t\t\n\t\t\t\t\t//Виджет:\n\t\t\t\t\tswitch(reg_fields[i].widget_type)\n\t\t\t\t\t{\n\t\t\t\t\t\tcase \"text\":\n\t\t\t\t\t\t\tadditional_html += \"<input onKeyUp=\\\"dynamicApplying('\"+reg_fields[i].name+\"');\\\" type=\\\"text\\\" name=\\\"\"+reg_fields[i].name+\"\\\" id=\\\"\"+reg_fields[i].name+\"\\\" value='\"+reg_fields[i].value_buffer.replace('/([\"\\'\\])/g', \"\\\\$1\")+\"' class=\\\"form-control\\\" placeholder=\\\"\"+reg_fields[i].caption+\"\\\" />\";\n\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\tadditional_html += \"</div></div>\";\n\t\t\t\t}\n\t\t\t\t\n\t\t\t\tadditional_html = \"<div class=\\\"panel panel-primary\\\"><div class=\\\"panel-heading\\\">T3928</div><div class=\\\"panel-body\\\">\" + additional_html + \"</div></div>\";\n\t\t\t\t\n\t\t\t\tdocument.getElementById(\"additional_fields_div\").innerHTML = \"\";\n\t\t\t\tdocument.getElementById(\"additional_fields_div\").innerHTML = additional_html;\n\t\t\t}//~function regenerateFields()\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t// --------------------------------------------------------------------------\n\t\t\t//Функция динамическиго применния значений для текстовых строк\n\t\t\tfunction dynamicApplying(attribute)\n\t\t\t{\n\t\t\t\tvar str_value = document.getElementById(attribute).value;//Текущее значение\n\t\t\t\t//Ищем поле\n\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t\t{\n\t\t\t\t\tif(reg_fields[i].name == attribute)\n\t\t\t\t\t{\n\t\t\t\t\t\treg_fields[i].value_buffer = str_value;\n\t\t\t\t\t\tconsole.log(reg_fields[i].value_buffer);\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t\tregenerateFields();//Генерируем после загрузки страницы\n\t\t\t</script>\n\t\t\t\n\t\t\t\n\t\t\t<button class=\"btn btn-ar btn-primary\" type=\"submit\">T2114</button>\n\t\t</form>\n\t\t\n\t\t\n\n\n\n\n\n\t\t\t\t<script>\n\t\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].name == 'name')\n\t\t\t\t{\n\t\t\t\t\treg_fields[i].value_buffer = 'Amal';\n\t\t\t\t}\n\t\t\t}\n\t\t\t\t\t\tfor(var i=0; i < reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].name == 'surname')\n\t\t\t\t{\n\t\t\t\t\treg_fields[i].value_buffer = 'Haddad &amp; Co';\n\t\t\t\t}\n\t\t\t}\n\t\t\t\t\t</script>\n\t\t\t\t<script>\n\t\t//1. Текущий регистрационный вариант:\n\t\tdocument.getElementById(\"reg_variant_selector\").value = 1;\n\t\tregenerateFields();//Генерируем после загрузки страницы\n\t\t</script>\n\t\t\n\n\t\t\n\t\t\n\t\t\n\t\t<script>\n\t\t// ---------------------------------------------------------------------------------------------\n\t\t//ПРОВЕРКА КОРРЕКСТНОСТИ ЗАПОЛНЕНИЯ ФОРМЫ:\n\t\t//Капча здесь больше не используется, т.к. при сохранении этой формы нет отправки ссылок и кодов подтверждения контактов\n\t\tfunction onSubmitCheck()\n\t\t{\n\t\t\t//Получаем текущий выбранный Регистрационный Вариант:\n\t\t\tvar currentRegVariant = document.getElementById(\"reg_variant_selector\").value;\n\t\t\t\n\t\t\t//Проверка факта заполнения полей какими-либо значениями\n\t\t\tfor(var i=0; i<reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].required_for.indexOf(parseInt(currentRegVariant)) != -1)//Заполнение требуется для данного Регистрационного Варианта\n\t\t\t\t{\n\t\t\t\t\tif(document.getElementById(reg_fields[i].name).value == \"\")//Но поле не заполнено\n\t\t\t\t\t{\n\t\t\t\t\t\talert(\"Заполните поле \"+reg_fields[i].caption);\n\t\t\t\t\t\treturn false;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}//for(i)\n\t\t\t\n\t\t\t//Обработка заполнения пароля:\n\t\t\tif(document.getElementById(\"password\").value != document.getElementById(\"password_repeat\").value)//Пароли должны совпадать\n\t\t\t{\n\t\t\t\talert(\"T3933\");\n\t\t\t\treturn false;\n\t\t\t}\n\t\t\telse if(document.getElementById(\"password\").value.length < 6 && document.getElementById(\"password\").value.length !=0)//Совпадает. Теперь проверям минимально допустимую длину\n\t\t\t{\n\t\t\t\talert(\"T3934 6 T3935\");\n\t\t\t\treturn false;\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t//Проверка соответствия заполненных значений регулярным выражениям\n\t\t\t//Если поле пустое - значит его можно было не заполнять (проверка на факт заполнения следует раньше). Но есть там есть значение, то оно обязательно должно соответствовать RegExp, даже если оно не обязательно к заполнению\n\t\t\tfor(var i=0; i<reg_fields.length; i++)\n\t\t\t{\n\t\t\t\tif(reg_fields[i].show_for.indexOf(parseInt(currentRegVariant)) == -1)//У этого поля не указан текущий Регистрационный Вариант - его нет в форме\n\t\t\t\t{\n\t\t\t\t\tcontinue;\n\t\t\t\t}\n\t\t\t\t\n\t\t\t\t//Если регулярное выражение пустое - значит пропускаем, т.к. требований к содержимому нет\n\t\t\t\tif(reg_fields[i].regexp == \"\")\n\t\t\t\t{\n\t\t\t\t\tcontinue;\n\t\t\t\t}\n\t\t\t\t\n\t\t\t\tif(String(document.getElementById(reg_fields[i].name).value) != \"\")\n\t\t\t\t{\n\t\t\t\t\tvar current_value = String(document.getElementById(reg_fields[i].name).value);//Заполненное значение\n\t\t\t\t\tvar regex = new RegExp(reg_fields[i].regexp);//Регулярное выражение для поля\n\t\t\t\t\t//Далее ищем подстроку по регулярному выражению\n\t\t\t\t\tvar match = regex.exec(String(current_value));\n\t\t\t\t\tif(match == null)\n\t\t\t\t\t{\n\t\t\t\t\t\talert(\"T3885 \"+reg_fields[i].caption+\" T3930\");\n\t\t\t\t\t\treturn false;\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t\tvar match_value = String(match[0]);//Подходящая подстрока\n\t\t\t\t\t\tif(match_value != current_value)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\talert(\"T3893 \"+reg_fields[i].caption+\" T3931\");\n\t\t\t\t\t\t\treturn false;\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\t//Заполнено правильно, если: есть подстрока по регулярному выражению и она полностью равна самой строке\n\t\t\t\t}\n\t\t\t}\n\n\t\t\treturn true;\n\t\t}//~function onSubmitCheck()\n\t\t// ---------------------------------------------------------------------------------------------\n\t\t</script>\n\t\t",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal"
+      ],
+      [
+        "41",
+        "surname",
+        "Haddad &amp; Co"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "1",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "post_guest_renders_login_text": {
+    "status": 200,
+    "body": "T4709",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal"
+      ],
+      [
+        "41",
+        "surname",
+        "Haddad &amp; Co"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "1",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  },
+  "post_keeps_system_keys": {
+    "status": 200,
+    "body": "\t\t<script>\n\t\t\tlocation=\"/en/users/editform?success_message=T4715\";\n\t\t</script>\n\t\t",
+    "profiles": [
+      [
+        "41",
+        "name",
+        "Amal"
+      ],
+      [
+        "41",
+        "surname",
+        "Haddad"
+      ],
+      [
+        "42",
+        "name",
+        "Other"
+      ]
+    ],
+    "users": [
+      [
+        "41",
+        "1",
+        "old-hash"
+      ],
+      [
+        "42",
+        "1",
+        "other-hash"
+      ]
+    ]
+  }
+}
