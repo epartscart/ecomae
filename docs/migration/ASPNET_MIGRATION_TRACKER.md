@@ -260,6 +260,38 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — the registration page and the social sign-in buttons like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 74 of 75, broader `cp/content` 108 of 110. Weighted headline stays about 20.4%. Ratchet stays 818 (inventory prints 817): `regform.php` was already counted through the old page's comment. Unnamed PHP functions go from 7,963 to 7,958, all of them the page's own scripts.
+- `StorefrontOAuthButtons` ports the social sign-in buttons:
+  - one "Continue with X" button per configured provider, in the PHP provider order, with the `only` filter;
+  - the divider, heading and Terms / Privacy checkbox that unlocks the buttons;
+  - the last Google e-mail hint from its cookie, and the start links built like `http_build_query`;
+  - the stylesheet printed once per page.
+- `StorefrontRegForm` ports `content/users/regform.php`:
+  - the already-signed-in text;
+  - the CMS additional-fields script, and the variant selector (hidden with the raw caption for one variant, translated otherwise);
+  - the contact selector following the available channels, and the password fields;
+  - the social panel and the Retail / Wholesale tabs from the render half;
+  - the captcha, the user agreement, the e-mail code modal (verify-only, then submit) and the submit checks.
+
+  The form posts to `{lang}/users/register`, the ported register engine.
+- `StorefrontRegFormLoader` reads the page's inputs:
+  - the `reg_fields` and `reg_variants` rows with their translations;
+  - the contact channels, and the `csrf_guard_key` of the session row;
+  - the storefront login context, the site trade name (site settings contact, hub name, then the host) and the configured providers.
+- `/storefront/register-app`, `/{en}/users/registration` and `/users/regform` now render this page inside the storefront chrome, with jQuery. The page creates the guest session when missing, so the form carries a real `csrf_guard_key`. The old simplified form, which posted to `StorefrontRegisterWriteService` with `confirmWrites`, is gone from the page. The service and its `/storefront/register` route still exist and are retired next.
+- Tests, with goldens from the real PHP (php-cli, temp docroots, no database):
+  - `StorefrontOAuthButtonsTests`: 11 cases.
+  - `StorefrontRegFormTests`: 12 cases, using a fake `$db_link`, stubbed `DP_User` and translations, and the real render half, auth layout, user agreement and modal.
+  - `StorefrontRegFormLoaderTests`: on a throwaway schema, the loaded page equals the render of the rows, translations, session and Google provider it should have read.
+
+  A corrupted golden makes exactly one case fail in each golden set. Two source-grep tests pinned to the old page now check the loader call and the rendered form.
+- Full suite: 5588 of 5588. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+- Next: retire `StorefrontRegisterWriteService`, then the login code verify with provisioning and the session, then `loginform.php` and `profileform.php`.
+
 ### Checkpoint 2026-10-08 — the registration form render half like PHP
 
 Not complete.

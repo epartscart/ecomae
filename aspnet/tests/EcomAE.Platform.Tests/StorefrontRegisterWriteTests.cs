@@ -30,21 +30,26 @@ public sealed class StorefrontRegisterWriteTests
     }
 
     [Fact]
-    public void Page_posts_native_register_form()
+    public void Page_renders_the_php_form_posting_to_the_register_engine()
     {
         var razor = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontRegisterApp.razor"));
-        Assert.Contains("method=\"post\"", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpCustomerWrites.RegisterHref", razor, StringComparison.Ordinal);
-        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
-        Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
-        Assert.Contains("name=\"reg_contact\"", razor, StringComparison.Ordinal);
-        Assert.Contains("name=\"reg_contact_type\"", razor, StringComparison.Ordinal);
-        Assert.Contains("name=\"users_agreement\"", razor, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
+        Assert.Contains("StorefrontRegFormLoader.RenderAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("createIfMissing: true", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("enctype=\"multipart/form-data\"", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpCustomerWrites.RegisterHref", razor, StringComparison.Ordinal);
+
+        var html = StorefrontRegForm.Render(
+            new StorefrontRegForm.Input { LangHref = "/en", CsrfGuardKey = "ck", Variants = [new("1", "Retail")] },
+            id => "T" + id);
+        Assert.Contains("<form action=\"/en" + StorefrontPhpAjax.UsersRegisterPath + "\" id=\"regform\"", html, StringComparison.Ordinal);
+        Assert.Contains("method=\"post\" enctype=\"multipart/form-data\"", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"csrf_guard_key\" value=\"ck\"", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"reg_contact\"", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"reg_contact_type\"", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"password_repeat\"", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"epc_email_otp_verified\"", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("confirmWrites", html, StringComparison.Ordinal);
     }
 
     [Fact]
