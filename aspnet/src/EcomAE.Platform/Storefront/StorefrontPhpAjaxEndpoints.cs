@@ -3017,6 +3017,7 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             async (connection, token) => await StorefrontPhpAjax.StringTranslationAsync(
                 connection,
+                CpLang(context),
                 context.Request.Cookies["admin_session"],
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
@@ -3035,6 +3036,7 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             async (connection, token) => await StorefrontPhpAjax.StringInfoAsync(
                 connection,
+                CpLang(context),
                 context.Request.Cookies["admin_session"],
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
@@ -3071,6 +3073,7 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             async (connection, token) => await StorefrontPhpAjax.SetStringFlagAsync(
                 connection,
+                CpLang(context),
                 context.Request.Cookies["admin_session"],
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
@@ -3099,6 +3102,7 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             async (connection, token) => await StorefrontPhpAjax.SetStringSameAsync(
                 connection,
+                CpLang(context),
                 context.Request.Cookies["admin_session"],
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
@@ -3179,6 +3183,7 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             async (connection, token) => await StorefrontPhpAjax.SaveStringDescriptionAsync(
                 connection,
+                CpLang(context),
                 context.Request.Cookies["admin_session"],
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
@@ -3206,6 +3211,7 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             async (connection, token) => await StorefrontPhpAjax.SetUsedFoundAsync(
                 connection,
+                CpLang(context),
                 context.Request.Cookies["admin_session"],
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
@@ -3233,6 +3239,7 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             async (connection, token) => await StorefrontPhpAjax.DeleteUnusedStringsAsync(
                 connection,
+                CpLang(context),
                 context.Request.Cookies["admin_session"],
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
@@ -3257,6 +3264,7 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             async (connection, token) => await StorefrontPhpAjax.CreateStringAsync(
                 connection,
+                CpLang(context),
                 context.Request.Cookies["admin_session"],
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
@@ -3285,6 +3293,7 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             async (connection, token) => await StorefrontPhpAjax.SaveTranslationAsync(
                 connection,
+                CpLang(context),
                 context.Request.Cookies["admin_session"],
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
@@ -3314,6 +3323,7 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             async (connection, token) => await StorefrontPhpAjax.SearchUsedFoundAsync(
                 connection,
+                CpLang(context),
                 context.Request.Cookies["admin_session"],
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
@@ -3416,6 +3426,7 @@ public static class StorefrontPhpAjaxEndpoints
                 var enabled = !string.IsNullOrEmpty(enabledRaw) && !string.Equals(enabledRaw, "0", StringComparison.Ordinal);
                 return await StorefrontPhpAjax.StorageToggleAsync(
                     connection,
+                    CpLang(context),
                     context.Request.Cookies["admin_session"],
                     context.Request.Cookies["admin_u_id"],
                     await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
@@ -4878,6 +4889,9 @@ public static class StorefrontPhpAjaxEndpoints
                     token).ConfigureAwait(false);
             },
             new StorefrontPhpAjax.FlagBody(false, "Database connection failed"));
+
+    private static StorefrontPhpAjax.CpLangRequest CpLang(HttpContext context)
+        => StorefrontPhpAjax.CpLangRequest.FromConfig(PhpConfig(context), context.Request.Cookies["lang_cp"]);
 
     private static IReadOnlyDictionary<string, string> PhpConfig(HttpContext context)
     {

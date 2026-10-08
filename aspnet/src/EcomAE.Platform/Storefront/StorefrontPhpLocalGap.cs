@@ -1021,6 +1021,7 @@ public static partial class StorefrontPhpAjax
 
     public static async Task<object> StringTranslationAsync(
         DbConnection connection,
+        CpLangRequest cpLang,
         string? adminSession,
         string? adminUser,
         string? postedCsrf,
@@ -1029,6 +1030,7 @@ public static partial class StorefrontPhpAjax
         CancellationToken cancellationToken)
         => await LangAdminAsync(
             connection,
+            cpLang,
             adminSession,
             adminUser,
             postedCsrf,
@@ -1054,6 +1056,7 @@ public static partial class StorefrontPhpAjax
 
     public static async Task<object> StringInfoAsync(
         DbConnection connection,
+        CpLangRequest cpLang,
         string? adminSession,
         string? adminUser,
         string? postedCsrf,
@@ -1061,6 +1064,7 @@ public static partial class StorefrontPhpAjax
         CancellationToken cancellationToken)
         => await LangAdminAsync(
             connection,
+            cpLang,
             adminSession,
             adminUser,
             postedCsrf,
@@ -1111,6 +1115,7 @@ public static partial class StorefrontPhpAjax
 
     public static async Task<object> SetStringFlagAsync(
         DbConnection connection,
+        CpLangRequest cpLang,
         string? adminSession,
         string? adminUser,
         string? postedCsrf,
@@ -1122,6 +1127,7 @@ public static partial class StorefrontPhpAjax
         CancellationToken cancellationToken)
         => await LangAdminAsync(
             connection,
+            cpLang,
             adminSession,
             adminUser,
             postedCsrf,
@@ -1183,6 +1189,7 @@ public static partial class StorefrontPhpAjax
 
     public static async Task<object> SetStringSameAsync(
         DbConnection connection,
+        CpLangRequest cpLang,
         string? adminSession,
         string? adminUser,
         string? postedCsrf,
@@ -1193,6 +1200,7 @@ public static partial class StorefrontPhpAjax
         CancellationToken cancellationToken)
         => await LangAdminAsync(
             connection,
+            cpLang,
             adminSession,
             adminUser,
             postedCsrf,
@@ -1418,6 +1426,7 @@ public static partial class StorefrontPhpAjax
 
     private static async Task<object> LangAdminAsync(
         DbConnection connection,
+        CpLangRequest cpLang,
         string? adminSession,
         string? adminUser,
         string? postedCsrf,
@@ -1431,50 +1440,26 @@ public static partial class StorefrontPhpAjax
             () => new FlagBody(false, "Forbidden"),
             async adminId =>
             {
-                var gate = await LangAccessAsync(connection, adminId, cancellationToken).ConfigureAwait(false);
+                var gate = await CpPageAccessAsync(connection, cpLang, adminId, "lang/editor", LangEditorMissing, cancellationToken).ConfigureAwait(false);
                 return gate ?? await body().ConfigureAwait(false);
             },
             cancellationToken).ConfigureAwait(false);
 
-    private static async Task<object?> LangAccessAsync(DbConnection connection, int adminId, CancellationToken cancellationToken)
+    private static async Task<object?> CpPageAccessAsync(DbConnection connection, CpLangRequest cpLang, int adminId, string url, string missing, CancellationToken cancellationToken)
     {
         try
         {
-            var allowed = new List<int>();
-            await using (var command = connection.CreateCommand())
-            {
-                command.CommandText = ErpDb.Positional(
-                    "SELECT `group_id` FROM `content_access` WHERE `content_id` = (SELECT `id` FROM `content` WHERE `url` = ? AND `is_frontend` = 0 LIMIT 1)");
-                ErpDb.AddParameters(command, "lang/editor");
-                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    allowed.Add(reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture));
-                }
-            }
-
-            if (allowed.Count == 0)
-            {
-                return new LangAccessBody(false, LangDenied, LangDenied);
-            }
-
-            var groups = new List<int>();
-            await using (var command = connection.CreateCommand())
-            {
-                command.CommandText = ErpDb.Positional("SELECT `group_id` FROM `users_groups_bind` WHERE `user_id` = ?");
-                ErpDb.AddParameters(command, adminId);
-                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    groups.Add(reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture));
-                }
-            }
-
-            return groups.Any(allowed.Contains) ? null : new LangAccessBody(false, LangDenied, LangDenied);
+            return await CheckUserAccessAsync(
+                connection,
+                [new PhpPageToCheck(url, 0)],
+                adminId,
+                0,
+                () => PhpBackendLangAsync(connection, cpLang, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
         }
         catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
         {
-            return new FlagBody(false, LangEditorMissing);
+            return new FlagBody(false, missing);
         }
     }
 
@@ -2364,8 +2349,8 @@ public static partial class StorefrontPhpAjax
 
     public sealed record LangAccessBody(
         [property: JsonPropertyName("status")] bool Status,
-        [property: JsonPropertyName("error")] string Error,
-        [property: JsonPropertyName("message")] string Message);
+        [property: JsonPropertyName("error")] string? Error,
+        [property: JsonPropertyName("message")] string? Message);
 
     public sealed record LangSameBody(
         [property: JsonPropertyName("status")] bool Status,

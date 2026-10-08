@@ -140,6 +140,7 @@ public static partial class StorefrontPhpAjax
 
     public static Task<object> SaveStringDescriptionAsync(
         DbConnection connection,
+        CpLangRequest cpLang,
         string? adminSession,
         string? adminUser,
         string? csrf,
@@ -150,6 +151,7 @@ public static partial class StorefrontPhpAjax
         CancellationToken cancellationToken)
         => LangAdminAsync(
             connection,
+            cpLang,
             adminSession,
             adminUser,
             csrf,
@@ -196,6 +198,7 @@ public static partial class StorefrontPhpAjax
 
     public static Task<object> SetUsedFoundAsync(
         DbConnection connection,
+        CpLangRequest cpLang,
         string? adminSession,
         string? adminUser,
         string? csrf,
@@ -206,6 +209,7 @@ public static partial class StorefrontPhpAjax
         CancellationToken cancellationToken)
         => LangAdminAsync(
             connection,
+            cpLang,
             adminSession,
             adminUser,
             csrf,
@@ -253,12 +257,14 @@ public static partial class StorefrontPhpAjax
 
     public static Task<object> DeleteUnusedStringsAsync(
         DbConnection connection,
+        CpLangRequest cpLang,
         string? adminSession,
         string? adminUser,
         string? csrf,
         CancellationToken cancellationToken)
         => LangAdminAsync(
             connection,
+            cpLang,
             adminSession,
             adminUser,
             csrf,
@@ -297,6 +303,7 @@ public static partial class StorefrontPhpAjax
 
     public static Task<object> CreateStringAsync(
         DbConnection connection,
+        CpLangRequest cpLang,
         string? adminSession,
         string? adminUser,
         string? csrf,
@@ -314,6 +321,7 @@ public static partial class StorefrontPhpAjax
         CancellationToken cancellationToken)
         => LangAdminAsync(
             connection,
+            cpLang,
             adminSession,
             adminUser,
             csrf,
@@ -426,6 +434,7 @@ public static partial class StorefrontPhpAjax
 
     public static Task<object> SaveTranslationAsync(
         DbConnection connection,
+        CpLangRequest cpLang,
         string? adminSession,
         string? adminUser,
         string? csrf,
@@ -439,6 +448,7 @@ public static partial class StorefrontPhpAjax
         CancellationToken cancellationToken)
         => LangAdminAsync(
             connection,
+            cpLang,
             adminSession,
             adminUser,
             csrf,
@@ -544,12 +554,14 @@ public static partial class StorefrontPhpAjax
 
     public static Task<object> SearchUsedFoundAsync(
         DbConnection connection,
+        CpLangRequest cpLang,
         string? adminSession,
         string? adminUser,
         string? csrf,
         CancellationToken cancellationToken)
         => LangAdminAsync(
             connection,
+            cpLang,
             adminSession,
             adminUser,
             csrf,
@@ -1088,6 +1100,7 @@ public static partial class StorefrontPhpAjax
 
     public static async Task<object> StorageToggleAsync(
         DbConnection connection,
+        CpLangRequest cpLang,
         string? adminSession,
         string? adminUser,
         string? csrf,
@@ -1104,7 +1117,7 @@ public static partial class StorefrontPhpAjax
             () => new LangAccessBody(false, LangDenied, LangDenied),
             async adminId =>
             {
-                var gate = await PageAccessAsync(connection, adminId, "shop/prices", PricePagesMissing, cancellationToken).ConfigureAwait(false);
+                var gate = await CpPageAccessAsync(connection, cpLang, adminId, "shop/prices", PricePagesMissing, cancellationToken).ConfigureAwait(false);
                 if (gate is not null)
                 {
                     return gate;

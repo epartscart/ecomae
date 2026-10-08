@@ -73,6 +73,7 @@ public sealed class StorefrontPhpCpNextAjaxTests
                 """);
             await ExecuteAsync(connectionString, "CREATE TABLE content_access (id INT NOT NULL PRIMARY KEY, content_id INT NOT NULL, group_id INT NOT NULL)");
             await ExecuteAsync(connectionString, "CREATE TABLE users_groups_bind (id INT NOT NULL PRIMARY KEY, user_id INT NOT NULL, group_id INT NOT NULL)");
+            await ExecuteAsync(connectionString, "CREATE TABLE `groups` (id INT NOT NULL PRIMARY KEY, parent INT NOT NULL DEFAULT 0, `count` INT NOT NULL DEFAULT 0, `value` VARCHAR(64) NOT NULL DEFAULT '', `description` VARCHAR(64) NOT NULL DEFAULT '')");
             await ExecuteAsync(connectionString, "INSERT INTO content (id, url, is_frontend) VALUES (11, 'lang/editor', 0)");
             await ExecuteAsync(connectionString, "INSERT INTO content_access (id, content_id, group_id) VALUES (1, 11, 3)");
             await ExecuteAsync(connectionString, "INSERT INTO users_groups_bind (id, user_id, group_id) VALUES (1, 9, 3)");
@@ -80,10 +81,10 @@ public sealed class StorefrontPhpCpNextAjaxTests
             var stringsMissing = await SendAsync(client, StorefrontPhpAjax.CpSaveStringDescriptionPath, Form(("csrf_guard_key", "admin-csrf"), ("str_key", "hello"), ("value", "Hi")), staff);
             Assert.Equal(StorefrontPhpAjax.LangStringsMissing, stringsMissing.Json.RootElement.GetProperty("message").GetString());
             Assert.DoesNotContain("doesn't exist", stringsMissing.Body, StringComparison.OrdinalIgnoreCase);
-            await ExecuteAsync(connectionString, "CREATE TABLE lang_languages (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, lang_code VARCHAR(16) NOT NULL, restrict_edit INT NOT NULL DEFAULT 0)");
+            await ExecuteAsync(connectionString, "CREATE TABLE lang_languages (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, lang_code VARCHAR(16) NOT NULL, active INT NOT NULL DEFAULT 1, is_default INT NOT NULL DEFAULT 0, restrict_edit INT NOT NULL DEFAULT 0)");
             await ExecuteAsync(connectionString, "CREATE TABLE lang_text_strings (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, str_key VARCHAR(64) NOT NULL, description VARCHAR(255) NOT NULL DEFAULT '', `same` VARCHAR(16) NULL, is_error INT NOT NULL DEFAULT 0, is_custom INT NOT NULL DEFAULT 0, used_found INT NOT NULL DEFAULT 0)");
             await ExecuteAsync(connectionString, "CREATE TABLE lang_text_strings_translation (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, str_key VARCHAR(64) NOT NULL, lang_code VARCHAR(16) NOT NULL, value VARCHAR(255) NOT NULL)");
-            await ExecuteAsync(connectionString, "INSERT INTO lang_languages (lang_code) VALUES ('en')");
+            await ExecuteAsync(connectionString, "INSERT INTO lang_languages (lang_code, is_default) VALUES ('en', 1)");
             await ExecuteAsync(connectionString, "INSERT INTO lang_text_strings (str_key, description, used_found) VALUES ('hello', 'Greeting', 1)");
 
             var described = await SendAsync(client, StorefrontPhpAjax.CpSaveStringDescriptionPath, Form(("csrf_guard_key", "admin-csrf"), ("str_key", "hello"), ("value", "a <b> &")), staff);
@@ -198,7 +199,11 @@ public sealed class StorefrontPhpCpNextAjaxTests
             Assert.Contains("20.00", await ScalarAsync(connectionString, "SELECT text FROM shop_orders_logs WHERE text LIKE 'Return #4%'"), StringComparison.Ordinal);
 
             var toggleDenied = await SendAsync(client, StorefrontPhpAjax.CpStorageTogglePath, Form(("csrf_guard_key", "admin-csrf"), ("action", "toggle"), ("entity_type", "storage"), ("entity_id", "6"), ("storefront_enabled", "0")), staff);
-            Assert.Equal("2388", toggleDenied.Json.RootElement.GetProperty("message").GetString());
+            Assert.False(toggleDenied.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal(JsonValueKind.Null, toggleDenied.Json.RootElement.GetProperty("message").ValueKind);
+            await ExecuteAsync(connectionString, "INSERT INTO lang_text_strings_translation (str_key, lang_code, value) VALUES ('2388', 'en', 'Access denied')");
+            var toggleDeniedText = await SendAsync(client, StorefrontPhpAjax.CpStorageTogglePath, Form(("csrf_guard_key", "admin-csrf"), ("action", "toggle"), ("entity_type", "storage"), ("entity_id", "6"), ("storefront_enabled", "0")), staff);
+            Assert.Equal("Access denied", toggleDeniedText.Json.RootElement.GetProperty("error").GetString());
             await ExecuteAsync(connectionString, "INSERT INTO content (id, url, is_frontend) VALUES (12, 'shop/prices', 0)");
             await ExecuteAsync(connectionString, "INSERT INTO content_access (id, content_id, group_id) VALUES (2, 12, 3)");
             var toggled = await SendAsync(client, StorefrontPhpAjax.CpStorageTogglePath, Form(("csrf_guard_key", "admin-csrf"), ("action", "toggle"), ("entity_type", "storage"), ("entity_id", "6"), ("storefront_enabled", "0")), staff);
@@ -286,7 +291,7 @@ public sealed class StorefrontPhpCpNextAjaxTests
                 columns = "`name` VARCHAR(64) NOT NULL DEFAULT '', `complete_return` INT NOT NULL DEFAULT 0, `reject_return` INT NOT NULL DEFAULT 0";
             }
 
-            await ExecuteAsync(connectionString, "CREATE TABLE `" + table.Key + "` (id INT NOT NULL PRIMARY KEY, " + columns + ")");
+            await ExecuteAsync(connectionString, "CREATE TABLE IF NOT EXISTS `" + table.Key + "` (id INT NOT NULL PRIMARY KEY, " + columns + ")");
         }
     }
 

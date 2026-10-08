@@ -317,7 +317,8 @@ public sealed class StorefrontPhpLocalGapTests
             await ExecuteAsync(connectionString, "INSERT INTO content (id, url, is_frontend) VALUES (11, 'lang/editor', 0)");
             await ExecuteAsync(connectionString, "INSERT INTO content_access (id, content_id, group_id) VALUES (1, 11, 3)");
             await ExecuteAsync(connectionString, "INSERT INTO users_groups_bind (id, user_id, group_id) VALUES (1, 9, 3)");
-            await ExecuteAsync(connectionString, "CREATE TABLE lang_languages (id INT NOT NULL PRIMARY KEY, lang_code VARCHAR(8) NOT NULL)");
+            await ExecuteAsync(connectionString, "CREATE TABLE `groups` (id INT NOT NULL PRIMARY KEY, parent INT NOT NULL DEFAULT 0, `count` INT NOT NULL DEFAULT 0)");
+            await ExecuteAsync(connectionString, "CREATE TABLE lang_languages (id INT NOT NULL PRIMARY KEY, lang_code VARCHAR(8) NOT NULL, active INT NOT NULL DEFAULT 1, is_default INT NOT NULL DEFAULT 0)");
             await ExecuteAsync(connectionString, "CREATE TABLE lang_text_strings (id INT NOT NULL PRIMARY KEY, str_key VARCHAR(64) NOT NULL, description VARCHAR(255) NOT NULL DEFAULT '', `same` VARCHAR(16) NULL, is_error INT NOT NULL DEFAULT 0, is_custom INT NOT NULL DEFAULT 0)");
             await ExecuteAsync(connectionString, "CREATE TABLE lang_text_strings_translation (id INT NOT NULL PRIMARY KEY, str_key VARCHAR(64) NOT NULL, lang_code VARCHAR(8) NOT NULL, value VARCHAR(255) NOT NULL)");
             await ExecuteAsync(connectionString, "INSERT INTO lang_languages (id, lang_code) VALUES (1, 'en')");

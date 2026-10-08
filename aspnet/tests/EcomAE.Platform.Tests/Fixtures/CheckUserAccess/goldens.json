@@ -1,0 +1,94 @@
+{
+  "no_pages": {
+    "body": "{\"status\":false,\"error\":\"No pages to check\",\"message\":\"No pages to check\"}",
+    "fatal": false
+  },
+  "backend_direct": {
+    "body": "ALLOWED",
+    "fatal": false
+  },
+  "backend_child_group": {
+    "body": "ALLOWED",
+    "fatal": false
+  },
+  "backend_grandchild_group": {
+    "body": "ALLOWED",
+    "fatal": false
+  },
+  "backend_parent_count_zero": {
+    "body": "{\"status\":false,\"error\":\"Access denied\",\"message\":\"Access denied\"}",
+    "fatal": false
+  },
+  "backend_no_admin": {
+    "body": "{\"status\":false,\"error\":\"Access denied\",\"message\":\"Access denied\"}",
+    "fatal": false
+  },
+  "backend_admin_without_groups": {
+    "body": "{\"status\":false,\"error\":\"Access denied\",\"message\":\"Access denied\"}",
+    "fatal": false
+  },
+  "backend_empty_acl": {
+    "body": "{\"status\":false,\"error\":\"Access denied\",\"message\":\"Access denied\"}",
+    "fatal": false
+  },
+  "backend_unknown_page": {
+    "body": "{\"status\":false,\"error\":\"Access denied\",\"message\":\"Access denied\"}",
+    "fatal": false
+  },
+  "frontend_empty_acl_guest": {
+    "body": "ALLOWED",
+    "fatal": false
+  },
+  "frontend_guest_group": {
+    "body": "ALLOWED",
+    "fatal": false
+  },
+  "frontend_registered_fallback": {
+    "body": "ALLOWED",
+    "fatal": false
+  },
+  "frontend_bound_user_denied": {
+    "body": "{\"status\":false,\"error\":\"Access denied\",\"message\":\"Access denied\"}",
+    "fatal": false
+  },
+  "frontend_uses_customer_profile": {
+    "body": "{\"status\":false,\"error\":\"Access denied\",\"message\":\"Access denied\"}",
+    "fatal": false
+  },
+  "frontend_bound_to_guest_group": {
+    "body": "ALLOWED",
+    "fatal": false
+  },
+  "all_pages_needed": {
+    "body": "{\"status\":false,\"error\":\"Access denied\",\"message\":\"Access denied\"}",
+    "fatal": false
+  },
+  "mixed_pages_allowed": {
+    "body": "ALLOWED",
+    "fatal": false
+  },
+  "lang_cp_cookie": {
+    "body": "{\"status\":false,\"error\":\"\\u062a\\u0645 \\u0631\\u0641\\u0636 \\u0627\\u0644\\u0648\\u0635\\u0648\\u0644\",\"message\":\"\\u062a\\u0645 \\u0631\\u0641\\u0636 \\u0627\\u0644\\u0648\\u0635\\u0648\\u0644\"}",
+    "fatal": false
+  },
+  "lang_cp_inactive": {
+    "body": "{\"status\":false,\"error\":\"Access denied\",\"message\":\"Access denied\"}",
+    "fatal": false
+  },
+  "backend_ui_lang_wins": {
+    "body": "{\"status\":false,\"error\":\"\\u062a\\u0645 \\u0631\\u0641\\u0636 \\u0627\\u0644\\u0648\\u0635\\u0648\\u0644\",\"message\":\"\\u062a\\u0645 \\u0631\\u0641\\u0636 \\u0627\\u0644\\u0648\\u0635\\u0648\\u0644\"}",
+    "fatal": false
+  },
+  "backend_ui_lang_inactive": {
+    "body": "{\"status\":false,\"error\":\"\\u062a\\u0645 \\u0631\\u0641\\u0636 \\u0627\\u0644\\u0648\\u0635\\u0648\\u0644\",\"message\":\"\\u062a\\u0645 \\u0631\\u0641\\u0636 \\u0627\\u0644\\u0648\\u0635\\u0648\\u0644\"}",
+    "fatal": false
+  },
+  "multilang_off_ignores_cookie": {
+    "body": "{\"status\":false,\"error\":\"Access denied\",\"message\":\"Access denied\"}",
+    "fatal": false
+  },
+  "untranslated": {
+    "body": "{\"status\":false,\"error\":null,\"message\":null}",
+    "fatal": false
+  }
+}
