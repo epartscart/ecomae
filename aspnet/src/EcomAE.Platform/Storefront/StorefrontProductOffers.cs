@@ -8,7 +8,7 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Storefront;
 
 /// <summary>
-/// The offers block of PHP <c>content/shop/catalogue/product_page_for_customer.php</c>: for every office of the
+/// The offers block of the PHP customer product page (<c>content/shop/catalogue/</c>): for every office of the
 /// shopper's <c>my_city</c> geo node, the in-stock warehouse rows priced by the office/storage/group markup, then the
 /// CP sell-from-purchase stack, delivery days, <c>price_rounding</c> and the <c>check_hash</c> that
 /// <c>ajax_add_to_basket.php</c> verifies. Byte-for-byte the PHP output (golden <c>Fixtures/ProductOffers</c>).
@@ -24,6 +24,60 @@ public static class StorefrontProductOffers
         long Now,
         string PriceRounding,
         string TechKey);
+
+    /// <summary>
+    /// The product page's offers block followed by the <c>common_add_to_basket.php</c> script, translated for the
+    /// page language, with the visitor session's <c>csrf_guard_key</c> (PHP <c>DP_User::getUserSession()</c>).
+    /// </summary>
+    public static async Task<string> RenderPageAsync(
+        DbConnection connection,
+        long productId,
+        long userId,
+        string? cityCookie,
+        string langHref,
+        string? sessionToken,
+        string? sessionUserId,
+        IReadOnlyDictionary<string, string> config,
+        CancellationToken cancellationToken)
+    {
+        var translator = new StorefrontPhpTranslator(connection, StorefrontRegFormLoader.LangCode(langHref.TrimEnd('/')));
+        var request = new Request(
+            productId,
+            userId,
+            cityCookie,
+            "1",
+            langHref.TrimEnd('/'),
+            DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            config.TryGetValue("price_rounding", out var rounding) ? rounding : string.Empty,
+            config.TryGetValue("tech_key", out var techKey) ? techKey : string.Empty);
+        var offers = await RenderAsync(connection, request, (key, ct) => translator.TextAsync(key, ct), cancellationToken).ConfigureAwait(false);
+
+        var csrf = string.Empty;
+        if (!string.IsNullOrEmpty(sessionToken) && sessionUserId is not null)
+        {
+            try
+            {
+                csrf = await ErpDb.StringAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("SELECT IFNULL(`csrf_guard_key`, '') FROM `sessions` WHERE `session` = ? AND `user_id` = ? LIMIT 1"),
+                    cancellationToken,
+                    sessionToken,
+                    sessionUserId).ConfigureAwait(false) ?? string.Empty;
+            }
+            catch (DbException)
+            {
+            }
+        }
+
+        var strings = new Dictionary<int, string>();
+        foreach (var id in StorefrontCommonAddToBasket.StringIds)
+        {
+            strings[id] = await translator.TextAsync(id, cancellationToken).ConfigureAwait(false);
+        }
+
+        return offers + StorefrontCommonAddToBasket.Script(csrf, id => strings.TryGetValue(id, out var text) ? text : string.Empty);
+    }
 
     private const string CurrencyRate = "(SELECT `rate` FROM `shop_currencies` WHERE `iso_code` = (SELECT `currency` FROM `shop_storages` WHERE `id` = `shop_storages_data`.`storage_id`) )";
 

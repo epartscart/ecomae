@@ -6,7 +6,7 @@ using Xunit;
 namespace EcomAE.Platform.Tests;
 
 /// <summary>
-/// <c>Fixtures/ProductOffers/harness.php</c> ran the offers block of PHP <c>product_page_for_customer.php</c> (real
+/// <c>Fixtures/ProductOffers/harness.php</c> ran the offers block of the PHP customer product page (real
 /// <c>get_customer_offices.php</c> and <c>epc_pricing.php</c>) per case on throwaway MariaDB databases, and echoed
 /// <c>common_add_to_basket.php</c>; ASP.NET must render the same bytes.
 /// </summary>
