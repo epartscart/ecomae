@@ -11,6 +11,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IStorefrontGuestSessionService Guests
 @inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
+@inject ILogger<StorefrontGuestOrderApp> Log
 @inject Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions> PhpReference
 @*
   PHP twin: content/shop/order_process/my_order_not_authorized.php (StorefrontOrderNotAuthorized). Its pay_on_place
@@ -89,12 +90,14 @@
                 StorefrontActionsAlert.Render(key => StorefrontActionsAlert.Last(ctx.Request.Query, key), id => alertStrings[id]));
             _html = await StorefrontOrderNotAuthorized.RenderAsync(connection, input, t, StorefrontOrderNotAuthorized.PhpDate, ctx.RequestAborted);
         }
-        catch (System.Data.Common.DbException)
+        catch (System.Data.Common.DbException ex)
         {
+            Log.LogWarning(ex, "Guest order page query failed");
             _html = "<p>Order lookup is unavailable right now.</p>";
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException ex)
         {
+            Log.LogWarning(ex, "Guest order page render failed");
             _html = "<p>Order lookup is unavailable right now.</p>";
         }
     }
