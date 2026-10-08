@@ -1,0 +1,13 @@
+{
+  "social_no_auth": { "fn": "social", "auth_available": false, "params": { "lang_href": "/en/" }, "ui": { "tenant_key": "x" } },
+  "social_defaults": { "fn": "social", "params": {}, "ui": {} },
+  "social_full": { "fn": "social", "params": { "lang_href": "/ar//" }, "trade_name": "  Gulf <Parts> & \"Co\"  ", "ui": { "tenant_key": "epart's<cart>", "login_label": "Shop", "send_code_url": "/a/send.php?x=1&y=</script>", "verify_code_url": "/b/verify.php" }, "buttons": "<div class=\"epc-oauth\">G</div>" },
+  "social_blank_trade_name": { "fn": "social", "params": { "lang_href": "/de" }, "trade_name": "   ", "ui": { "tenant_key": "t1", "login_label": "Läden ü" }, "buttons": "" },
+  "social_no_trade_fn_unicode": { "fn": "social", "params": { "lang_href": "" }, "ui": { "tenant_key": "ключ", "send_code_url": "/ünï/send" }, "buttons": "<b>btn</b>" },
+  "country_default": { "fn": "country", "args": [] },
+  "country_selected": { "fn": "country", "args": ["epc_ws_country", "AE"] },
+  "country_named": { "fn": "country", "args": ["id\"<x>", "GB", "name&'y"] },
+  "country_unknown_selected": { "fn": "country", "args": ["c", "ZZ", ""] },
+  "tabs": { "fn": "tabs" },
+  "uae": { "fn": "uae" }
+}
