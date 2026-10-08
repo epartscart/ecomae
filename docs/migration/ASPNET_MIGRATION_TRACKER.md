@@ -203,7 +203,7 @@ The ajax ratios count only ajax scripts. To make sure nothing in the PHP referen
 Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
 
 1. **Storefront customer pages (epartscart.com).**
-   - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`, `my_quotes.php`, `common_add_to_basket.php`. Done: `get_customer_offices.php`, `checkout_login_offer.php` (see the checkpoints below).
+   - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`, `my_quotes.php`. Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php` (see the checkpoints below).
    - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
    - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
    - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
@@ -321,6 +321,31 @@ Evidence per page, recorded in its checkpoint:
 Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
+
+### Checkpoint 2026-10-08 — the product page offers and the add-to-cart script (`common_add_to_basket.php`) like PHP
+
+Not complete.
+
+- Ratchet 757 to 756. Inventory content 385 to 386 of 952. Unnamed PHP functions 7,907 to 7,900. The weighted headline (about 20.4%) is unchanged.
+- The product page (`/en/shop/product?id=`) now prints PHP's offers block through `StorefrontProductOffers`, followed by `StorefrontCommonAddToBasket` (PHP's `purchase_action` and quantity script, with the session's `csrf_guard_key` and strings 4336, 4524 and 4313). The block shows one section per office of the `my_city` geo node; offices with no stock show "request from seller" (strings 4165 and 4115).
+- Each row is priced like PHP:
+  - The warehouse price is converted with the storage currency rate.
+  - The office/storage/group markup from `shop_offices_storages_map` is applied.
+  - The CP sell-from-purchase stack (`epc_pricing.php`) then replaces that price when the offer is visible.
+  - Delivery days come from `arrival_time`, `time_to_exe` and the office's `additional_time`, then `price_rounding` 1, 2 or 3 is applied.
+- `check_hash` is made from the shown price, so "Add to cart" posts rows that the ported `ajax_add_to_basket.php` accepts. `EpcPricing.SellFromPurchaseAsync` now returns PHP's `visible` flag and the unrounded price; `ApplySellFromPurchaseAsync` still rounds as before.
+- Removed: the page's "Add to cart" form, which did a GET to the cart page and added nothing.
+- Still a gap: the rest of the PHP customer product page (the main offer box from `printProduct_Info.php`, related products and the tabs). The basename is kept out of code comments so the inventory does not count it as ported.
+- Next: the bottom panel's `updateCartInfo()` and `showAdded()` (`bottom_panel.php`). PHP's script calls them after a successful add. The ASP.NET chrome does not define them yet, so the cart count and the "added" label do not refresh until the next page load.
+- Evidence: `Fixtures/ProductOffers/harness.php` ran the real PHP 8.3 code (`get_customer_offices.php`, `epc_pricing.php` and the page's offers snippet) for 13 cases, each in its own process on a throwaway database:
+  - two offices and one office with no stock;
+  - the guest-margin setting;
+  - rounding modes 1, 2 and 3;
+  - the retail floor and a wholesale profile;
+  - a hidden storage and a stacked storage margin;
+  - an empty `min_order`, no city cookie, and a product with no stock.
+
+  `StorefrontProductOffersTests` matches every case byte for byte, plus the script. Full suite 5,849 passed. A Kestrel GET of `/en/shop/product?id=1` returns 200. The local database has no catalogue products and no `shop_storages_data` table, so the live page cannot show offers on this VM.
 
 ### Checkpoint 2026-10-08 — the checkout login offer (`checkout_login_offer.php`) like PHP
 
