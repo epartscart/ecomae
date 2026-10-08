@@ -203,7 +203,7 @@ The ajax ratios count only ajax scripts. To make sure nothing in the PHP referen
 Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
 
 1. **Storefront customer pages (epartscart.com).**
-   - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`. Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php`, `my_quotes.php` (see the checkpoints below).
+   - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`. Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php`, `my_quotes.php`, `my_order_not_authorized.php` (see the checkpoints below).
    - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
    - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
    - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
@@ -321,6 +321,20 @@ Evidence per page, recorded in its checkpoint:
 Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
+
+### Checkpoint 2026-10-08 — the guest order page (`my_order_not_authorized.php`) like PHP
+
+Not complete.
+
+- Ratchet 755 to 754. Inventory content 387 to 388 of 952. Unnamed PHP functions 7,896 to 7,890. The weighted headline (about 20.4%) is unchanged.
+- `/en/shop/orders/zakaz-bez-registracii` (also without the language prefix, plus `/shop/orders/guest` and `/storefront/guest-order-app`) now prints PHP's page through `StorefrontOrderNotAuthorized`:
+  - PHP's alert block (`actions_alert.php`, CRLF, `StorefrontActionsAlert`) for `success_message`, `error_message`, `warning_message` and `info_message`;
+  - with `order_id`: the order summary with PHP's status, line status and office lookups, the paid badge and the sums, then the payment block (the payment method picker, partial payment with `min_pay`, and "pay on place" for unpaid orders with no paid type). A missing order prints PHP's redirect script with string 4525;
+  - the order lookup panel.
+- The "pay on place" POST is handled by `StorefrontOrderNotAuthorizedPostMiddleware`. It checks the CSRF key, accepts only guest orders (`user_id=0`, `paid_type=0`, existing office), sets `paid_type=1`, writes PHP's log line and moves the order to the `for_paid` status through the order protocol. Then it redirects like PHP.
+- Intended deviation: PHP prints the raw `order_id` into the page and the script. The port escapes it in HTML and gives the script the matched order id.
+- Evidence: `Fixtures/OrderNotAuthorized/harness.php` ran the real PHP 8.3 page for 10 cases on throwaway databases. `StorefrontOrderNotAuthorizedTests` matches all 10 byte for byte. It also covers the hostile `order_id`, the pay-on-place write and log, the protocol failure warning, and six POSTs that must not write anything. Full suite 5,863 of 5,863 passed. Kestrel GETs with fake cookies print the alerts and the lookup panel. No session rows were created.
+- Local data limit: no local database has `shop_orders_statuses_ref`, so `?order_id=` there shows "Order lookup is unavailable right now." The page now logs that failure as a warning.
 
 ### Checkpoint 2026-10-08 — the customer quotes page (`my_quotes.php`) like PHP
 
