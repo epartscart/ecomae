@@ -447,7 +447,7 @@ public static partial class StorefrontProfileForm
     }
 
     /// <summary>PHP <c>DP_User::getUserSession()</c>'s <c>csrf_guard_key</c>; null without the session row.</summary>
-    private static async Task<string?> SessionCsrfAsync(DbConnection connection, Request request, CancellationToken cancellationToken)
+    internal static async Task<string?> SessionCsrfAsync(DbConnection connection, Request request, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional("SELECT `csrf_guard_key` FROM `sessions` WHERE `session` = ? AND `user_id` = ? LIMIT 1");
@@ -543,7 +543,7 @@ public static partial class StorefrontProfileForm
     }
 
     /// <summary>A column as PDO returns it: null for NULL, <c>1</c>/<c>0</c> for a <c>TINYINT(1)</c> the driver reads as a bool.</summary>
-    private static string? PdoText(DbDataReader reader, int ordinal)
+    internal static string? PdoText(DbDataReader reader, int ordinal)
         => reader.IsDBNull(ordinal) ? null : reader.GetValue(ordinal) is bool flag ? (flag ? "1" : "0") : Convert.ToString(reader.GetValue(ordinal), CultureInfo.InvariantCulture);
 
     private sealed class UserProfile
