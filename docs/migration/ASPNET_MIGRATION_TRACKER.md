@@ -260,6 +260,16 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — eight PHP CP redirect pages
+
+Not complete.
+
+- Ratchet 768 to 760. The weighted headline (about 20.4%) and unnamed PHP functions (7,925) are unchanged.
+- The PHP CP pages that only redirect now land where their PHP target lands, pinned per page by `CpPhpRedirectPageMapTests`: the customer management, Document Control, POS and tenant hub folder pages, the legacy `users/customer_mgmt` route, the old Russian print module (`shop/modul-pechati-dokumentov`, which had fallen to the CP login), `shop/finance/payment_systems`, and `shop/crm/crm`.
+- `shop/crm/crm` opens the CRM board (the ERP CRM tab includes `crm_main.php`, which the board ports). It now keeps PHP's query: `tab` reduced to `[a-z_]` (last value wins), and `from` and `to` unless PHP-empty. Before, the query was dropped and the board always opened its default tab.
+- Intended deviation: `users/customer_mgmt` answers 302 (the redirect middleware's status) where PHP sends 301; the landing page is the same.
+- Still a gap: `erp/erp_launcher.php`, whose query forwarding into the ERP shell is not verified yet.
+
 ### Checkpoint 2026-10-08 — forty PHP CSS and JS wrapper files
 
 Not complete.
