@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace EcomAE.Platform.Erp;
@@ -32,6 +33,10 @@ public sealed record EpcEinvoiceBuyerInput
 public static class EpcEinvoiceBuyer
 {
     public const string ElectronicScheme = "0235";
+
+    private static readonly ConditionalWeakTable<DbConnection, SchemaMark> SchemaReady = new();
+
+    private sealed record SchemaMark(string Database);
 
     private static readonly (string Key, string Value)[] DefaultSettings =
     [
@@ -172,12 +177,22 @@ public static class EpcEinvoiceBuyer
         }
     });
 
-    /// <summary>PHP <c>epc_einvoice_ensure_schema()</c> with <c>epc_einvoice_seed_defaults()</c>. Errors propagate, as in PHP.</summary>
+    /// <summary>
+    /// PHP <c>epc_einvoice_ensure_schema()</c> with <c>epc_einvoice_seed_defaults()</c>. Errors propagate, as in PHP.
+    /// The DDL runs once per connection and database: MySQL commits implicitly on <c>CREATE TABLE</c>, so a caller that
+    /// ensures the schema before its transaction keeps the later calls inside the transaction atomic.
+    /// </summary>
     public static async Task EnsureSchemaAsync(DbConnection connection, DbTransaction? transaction, CancellationToken cancellationToken)
     {
-        foreach (var statement in SchemaStatements)
+        var database = connection.Database ?? string.Empty;
+        if (!SchemaReady.TryGetValue(connection, out var ready) || ready.Database != database)
         {
-            await ErpDb.ExecuteAsync(connection, transaction, statement, cancellationToken).ConfigureAwait(false);
+            foreach (var statement in SchemaStatements)
+            {
+                await ErpDb.ExecuteAsync(connection, transaction, statement, cancellationToken).ConfigureAwait(false);
+            }
+
+            SchemaReady.AddOrUpdate(connection, new SchemaMark(database));
         }
 
         var now = Now();
