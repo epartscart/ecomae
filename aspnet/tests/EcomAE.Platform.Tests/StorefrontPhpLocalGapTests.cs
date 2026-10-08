@@ -345,6 +345,68 @@ public sealed class StorefrontPhpLocalGapTests
             Assert.Equal("1", await ScalarAsync(connectionString, "SELECT is_error FROM lang_text_strings WHERE str_key = 'hello'"));
             WriteConfig(configRoot, false, false, false);
 
+            await ExecuteAsync(connectionString, "ALTER TABLE lang_languages ADD active INT NOT NULL DEFAULT 1, ADD is_default INT NOT NULL DEFAULT 0");
+            await ExecuteAsync(connectionString, "UPDATE lang_languages SET is_default = 1 WHERE lang_code = 'en'");
+            await ExecuteAsync(connectionString, "INSERT INTO lang_languages (id, lang_code) VALUES (2, 'ar')");
+            await ExecuteAsync(connectionString, "ALTER TABLE lang_text_strings ADD used_found INT NOT NULL DEFAULT 0");
+            await ExecuteAsync(connectionString, "INSERT INTO lang_text_strings (id, str_key, description) VALUES (2, 'bye', '<b>Bye</b>'), (3, 'cart', 'Cart')");
+            await ExecuteAsync(connectionString, "INSERT INTO lang_text_strings_translation (id, str_key, lang_code, value) VALUES (2, 'cart', 'en', 'Cart'), (3, 'cart', 'ar', 'سلة')");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_currencies (id INT NOT NULL PRIMARY KEY, caption_short VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_currencies (id, caption_short) VALUES (1, 'cart')");
+            async Task<Sent> Strings(string filter, string limitCount = "10", string sortField = "str_key", string itemsNew = "[]", string left = "", string right = "", string cookie = "")
+                => await SendAsync(
+                    client,
+                    HttpMethod.Post,
+                    StorefrontPhpAjax.CpTextStringsPath,
+                    Form(
+                        ("csrf_guard_key", "admin-csrf"),
+                        ("items_filter", filter),
+                        ("items_sort", "{\"field\":\"" + sortField + "\",\"asc_desc\":\"asc\"}"),
+                        ("limit_from", "0"),
+                        ("limit_count", limitCount),
+                        ("items_new", itemsNew),
+                        ("left_lang", left),
+                        ("right_lang", right)),
+                    cookie.Length > 0 ? cookie : staff);
+            static string[] Keys(Sent sent)
+                => sent.Json.RootElement.GetProperty("items").EnumerateArray().Select(i => i.GetProperty("str_key").GetString()!).ToArray();
+
+            var stringsGuest = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CpTextStringsPath, Form(("csrf_guard_key", "admin-csrf")), string.Empty);
+            Assert.False(stringsGuest.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.StartsWith("Error! CSRF", stringsGuest.Json.RootElement.GetProperty("message").GetString(), StringComparison.Ordinal);
+            var allStrings = await Strings("{}");
+            Assert.True(allStrings.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.False(allStrings.Json.RootElement.TryGetProperty("SQL", out _));
+            Assert.Equal(["bye", "cart", "hello"], Keys(allStrings));
+            var bye = allStrings.Json.RootElement.GetProperty("items")[0];
+            Assert.Equal("&lt;b&gt;Bye&lt;/b&gt;", bye.GetProperty("description").GetString());
+            Assert.Equal("0", bye.GetProperty("has_en").ToString());
+            Assert.Equal("1", allStrings.Json.RootElement.GetProperty("items")[1].GetProperty("has_ar").ToString());
+            Assert.Equal("Hello", allStrings.Json.RootElement.GetProperty("items")[2].GetProperty("current_lang_translation").GetString());
+            Assert.Equal(["bye"], Keys(await Strings("{\"translation_progress\":3}")));
+            Assert.Equal(["cart"], Keys(await Strings("{\"translation_progress\":1}")));
+            Assert.Equal(["hello"], Keys(await Strings("{\"translation_progress\":2}")));
+            Assert.Equal(["cart"], Keys(await Strings("{\"translation\":\"سل\",\"translation_like\":1}")));
+            Assert.Equal(["hello"], Keys(await Strings("{\"no_translation_in\":\"ar\",\"has_translation_in\":\"en\"}")));
+            Assert.Equal(["hello"], Keys(await Strings("{\"is_error\":1,\"is_custom\":\"1\"}")));
+            Assert.Equal(["bye", "cart"], Keys(await Strings("{\"is_error\":2}")));
+            Assert.Equal(["cart", "hello"], Keys(await Strings("{}", itemsNew: "[\"bye\"]")));
+            Assert.Equal(["cart"], Keys(await Strings("{\"table\":\"shop_currencies\"}")));
+            var twoColumns = await Strings("{\"str_key\":\"cart\"}", left: "en", right: "ar");
+            Assert.Equal("سلة", twoColumns.Json.RootElement.GetProperty("items")[0].GetProperty("right_lang_translation").GetString());
+            Assert.Equal(string.Empty, (await Strings("{\"table\":\"users\"}")).Body);
+            Assert.Equal(string.Empty, (await Strings("{\"table\":\"shop_currencies\",\"column\":\"id\"}")).Body);
+            Assert.Equal(string.Empty, (await Strings("{}", limitCount: "0")).Body);
+            Assert.Equal(string.Empty, (await Strings("{}", limitCount: "5001")).Body);
+            Assert.Equal(string.Empty, (await Strings("{}", sortField: "id`; DROP TABLE x; --")).Body);
+            Assert.Equal(["bye"], Keys(await Strings("{}", limitCount: "1")));
+            WriteConfig(configRoot, true, false, false);
+            var arabic = await Strings("{\"str_key\":\"cart\"}", cookie: staff + "; lang_cp=ar");
+            Assert.Equal("سلة", arabic.Json.RootElement.GetProperty("items")[0].GetProperty("current_lang_translation").GetString());
+            WriteConfig(configRoot, false, true, false);
+            Assert.Equal(["bye", "cart"], Keys(await Strings("{}")));
+            WriteConfig(configRoot, false, false, false);
+
             var templatesMissing = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CpCategoryTemplatesPath, Form(("csrf_guard_key", "admin-csrf"), ("action", "get_all")), staff);
             Assert.Equal(StorefrontPhpAjax.TemplatesMissing, templatesMissing.Json.RootElement.GetProperty("message").GetString());
             await ExecuteAsync(connectionString, """

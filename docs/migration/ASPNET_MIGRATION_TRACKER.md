@@ -196,6 +196,40 @@ Not complete.
 - GL journals are balanced on their stored two-decimal values. Cash transfers post through `1090 Cash in transit` and no longer raise revenue and expense. Findings and order of work are in `docs/migration/ERP_OWNERSHIP_AUDIT_2026-10-07.md`.
 - Full suite 5139 of 5139. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
+### Checkpoint 2026-10-07 — every cp/content ajax endpoint has an ASP.NET route
+
+Not complete. The ajax layer is done, but pages, storefront surfaces, and ERP are not. ERP work waits until this plan is finished.
+
+- Broader `cp/content` ajax is 108 of 110. All 108 `ajax_*.php` endpoints are mapped. The two left are not endpoints, so they stay unmapped on purpose. `shop/prices_upload/epc_prices_ajax_init.php` is a bootstrap that the price-upload scripts include. `control/portal/epc-apai-ajax-probe.php` is a deploy probe that echoes server paths and error file and line numbers.
+- Control Panel shop, users, and requests ajax is 74 of 75; the one left is that same include. Storefront and API ajax stays 109 of 112: two includes, plus the ERP modules ajax, which waits for the ERP phase. Weighted headline stays about 20.4%, because that figure weights pages and workflows as well as ajax.
+- `ajax_visual_page_editor.php` `load_layout` ports `epc_vpe_layout_load`:
+  - default brand, saved brand merge, and the brand/homepage fallback for other levels;
+  - the six frontend levels;
+  - allowed site keys (the request tenant, or on Super CP the platform, ePartsCart, and `epc_portal_tenants`);
+  - preview URLs. Demo and ERP-only tenants preview on `www.ecomae.com`, as in PHP.
+
+  `save_layout` checks `blocks_json` as PHP does, then stays Classic. Info blocks, cross-tenant brand settings, and the cache clear have no ASP.NET writer. A missing table reads as no saved layout, and nothing is created.
+- The three `version_control/ajax` scripts and the five `packs_control` scripts keep the PHP `stop_csrf` and session gates and reply in their PHP shapes. They then refuse: no tmp clear, no call to the update server, no unzip or file copy. ASP.NET code ships through the deploy pipeline. Clear-tmp, delete-pack, and insert-extensions answer `Session duplication` to a signed-in admin, because PHP calls `fetchColumn()` twice on a one-row `COUNT(*)`. The eight paths stay on ajax; before this, the link map redirected them to `/cp/packs-app` and `/cp/ops-guides-app`.
+- `price_review/ajax_price_review.php` runs dry. It keeps the CSRF, admin, and argument gates, then evaluates the batch with the PHP MIN/MAX/AVG, manufacturer-synonym, and plus/minus percent rules. It reports `items` and `would_review` and does not write `price` or `reviewed`. `ajax_create_csv.php` counts rows for type 1, 2, or 3 and writes no file. Both answer `status: false`, so the Control Panel page stops on the dry-run message.
+- Full suite 5146 of 5146. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — auto-price discovery sources
+
+Not complete. ERP work waits until this plan is finished.
+
+- Broader `cp/content` ajax is 97 of 110. Of the 108 `ajax_*.php` files in `cp/content`, 11 are unmapped: the visual page editor, three version-control scripts, five packs scripts, and the two price-review scripts. Storefront and API ajax stays 109 of 112. Control Panel shop, users, and requests stays 72 of 75. Weighted headline stays about 20.4%.
+- `ajax_auto_price.php` add, toggle, skip, and delete of discovery sources go through the existing `ICpAutoPriceWriteService`. They return the PHP JSON shapes, and add and toggle include the `epc_disc_source_format_row` source object. A guest gets 403 `Admin login required`, and an unknown action gets 400 `Unknown action: X`, as in PHP. The site key follows the PHP rule: the posted key, then the five known hosts, then the hostname, then `platform`.
+- These requests return an explicit stays-Classic message: sources with a login or a product-line scope (the service does not store those fields), Super CP writes to another tenant's database, and the 24 search, crawl, fetch, job, approve, and warehouse actions. Schema-ensure stays Classic, so a missing table returns the service message and nothing is created.
+- Full suite 5143 of 5143. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — translation editor string list
+
+Not complete. ERP work waits until this plan is finished.
+
+- Broader `cp/content` ajax is 96 of 110. `cp/content` holds 108 `ajax_*.php` files today, and 12 are unmapped: auto price, the visual page editor, three version-control scripts, five packs scripts, and the two price-review scripts. Storefront and API ajax stays 109 of 112. Control Panel shop, users, and requests stays 72 of 75. Weighted headline stays about 20.4%.
+- `ajax_get_text_strings.php` returns the editor's paged list with the PHP filters, `has_<lang>` columns, and the current-language translation. A guest gets the CSRF refusal before the admin check, as in PHP. An unknown table or column, a sort field outside `str_key`/`description`/`current_lang_translation`, or a limit outside 1 to 5000 returns an empty body, as PHP `exit` does. The PHP `SQL` echo is not returned. The work language follows the PHP backend rule: `backend_ui_lang`, then the `lang_cp` cookie, then the active default.
+- Full suite 5137 of 5137. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
 ### Checkpoint 2026-10-07 — storefront ajax writers resolve from services; merge with main is green
 
 Not complete.
