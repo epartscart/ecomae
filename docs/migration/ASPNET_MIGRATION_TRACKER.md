@@ -260,6 +260,19 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — the public free-tools API (`ajax_epc_free_tools.php`) like PHP
+
+Not complete.
+
+- Ratchet 760 to 759. Inventory ajax 88 to 89 of 91. Root 491 PHP files (the new generator `scripts/gen_free_tools_tables.php`), mentioned 66 to 67. Unnamed PHP functions 7,925 to 7,908 of 9,870. The weighted headline (about 20.4%) is unchanged: the free tools are a marketing utility, not a storefront or CP workflow.
+- `FreeToolsAjaxEndpoint` serves `content/general_pages/ajax_epc_free_tools.php` (GET, POST, HEAD; JSON or form body, like PHP). Actions: compute, register, login, reset request and confirm, account, save, saves, delete request and confirm, with PHP's messages, statuses, `no-store` and `application/json; charset=utf-8`.
+- `FreeToolsCompute` ports `epc_free_tools_compute` and its 14 calculators (VAT, corporate tax, gratuity, payroll, labour law, customs, document expiry, insurance, e-invoice, HR compliance, CSV and the rest). The country tables in `FreeToolsTables.g.cs` are generated from the PHP source by `scripts/gen_free_tools_tables.php`.
+- `FreeToolsPhp` reproduces the PHP semantics the outputs depend on: `json_encode` floats and `\uXXXX` escapes, `(string)` float precision 14, `round` half away from zero (keeping `-0`), `mktime`, `date` and the `strtotime` forms the tools accept.
+- `FreeToolsAccounts` ports the accounts, saves and deletion flows on the registry database (config.php's DB), with bcrypt `$2y$` cost 10 and the mail through `AuthEmailOtpEndpoints.SendHtmlMailAsync` (`epc_auth_smtp_send_html`).
+- Evidence: `FreeToolsComputeParityTests` compares every tool against goldens from real PHP 8.3 (`Fixtures/FreeTools/harness.php`). `FreeToolsAjaxParityTests` replays 55 account steps on a throwaway database and compares the bodies, a mid-run dump and the final `epc_free_tool_%` tables with PHP's run (`accounts_driver.py`); the deletion mail and bcrypt are checked too.
+- Intended deviations: a database error is a 500 JSON reply ("Service unavailable, please try again.") where PHP dies with a fatal error; `substr` cuts never leave half a UTF-8 character; `strtotime` forms outside the supported set show "no date"; the schema is ensured once per process, not per request; the time zone is the server's local zone.
+- Still a gap: `epc_ecomae_free_tools.php`, whose page renderers are served as marketing snapshots, not ported.
+
 ### Checkpoint 2026-10-08 — CP, ERP and BOC top menus
 
 Not complete. The ratchet stays 760 and the weighted headline (about 20.4%) is unchanged: this is menu correctness, not new PHP behaviour.
@@ -306,7 +319,7 @@ Not complete.
 - `api/umapi_image.php` was already served, but from `HomeCatalogWidgets.cs`, a file name the inventory skips. It now lives in `UmapiImageProxy` and matches PHP's parsing: `kind` is lower-cased but not trimmed (`" supplier"` is a 400) and `id` is PHP 8's `(int)` (`12abc` is 12, `1e3` is 1000, `7.9` is 7), pinned by a theory checked against real PHP.
 - `content/general_pages/ajax_epc_social_media.php` and `ajax_epc_marketing_broadcast.php` are nginx-safe proxies that only run the CP handler (both handlers define `_ASTEXE_` themselves). They are routed to the ported handlers, so a guest gets PHP's refusals: `{"ok":false,"message":"Admin required"}` with 200, and `{"ok":false,"message":"Forbidden"}` with 403.
 - Retired `cp/content/control/portal/epc-apai-ajax-probe.php`, a deploy probe of the PHP include chain that also discloses server paths (reason in `PHP_RETIRED.tsv`).
-- Still open in these categories: `ajax_epc_free_tools.php`, `epc_bos_ajax_login.php`, `epc_erp_modules_ajax.php`. Also `epc_prices_ajax_init.php`, the bootstrap of the price upload endpoints, which closes with them, and `api/UCatalog/ucatalog_index.php`, which only the unported modex template includes.
+- Still open in these categories: `ajax_epc_free_tools.php` (since ported, see the free-tools checkpoint), `epc_bos_ajax_login.php`, `epc_erp_modules_ajax.php`. Also `epc_prices_ajax_init.php`, the bootstrap of the price upload endpoints, which closes with them, and `api/UCatalog/ucatalog_index.php`, which only the unported modex template includes.
 
 ### Checkpoint 2026-10-08 — the ported users pages keep the visitor's language prefix
 
