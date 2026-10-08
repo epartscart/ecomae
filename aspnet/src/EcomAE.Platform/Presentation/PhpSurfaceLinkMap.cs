@@ -6,7 +6,15 @@ namespace EcomAE.Platform.Presentation;
 /// </summary>
 public static class PhpSurfaceLinkMap
 {
-    /// <summary>Longest-first CP path fragments (under /CP/) → ASP.NET apps.</summary>
+    /// <summary>
+    /// Longest-first CP path fragments (under /CP/) → ASP.NET apps.
+    /// The PHP CP pages that only redirect land where their PHP target lands:
+    /// <c>cp/content/shop/customer_mgmt/customer_mgmt_hub_page.php</c>, <c>cp/content/users/customer_mgmt_page.php</c>,
+    /// <c>cp/content/shop/document_control/document_control_hub_page.php</c>,
+    /// <c>cp/content/shop/print_docs/print_docs_redirect_page.php</c>, <c>cp/content/shop/pos/epc_pos_hub_page.php</c>,
+    /// <c>cp/content/shop/tenant_hub/tenant_hub_hub_page.php</c>, <c>cp/content/shop/finance/payment_systems.php</c>
+    /// and <c>cp/content/shop/crm/crm_main_page.php</c> (<see cref="MapCpLegacyCrmHref"/>).
+    /// </summary>
     private static readonly (string Marker, string AspNet)[] CpPathMap =
     [
         ("shop/logistics/stock", "/erp/inventory-stock-app"),
@@ -53,6 +61,8 @@ public static class PhpSurfaceLinkMap
         ("shop/catalogue", "/cp/product-catalogue-app"),
         ("shop/payments", "/cp/payment-gateways-app"),
         ("shop/document_control", "/cp/document-control-app"),
+        // PHP print_docs_redirect_page.php: the retired Russian print module now opens Document Control.
+        ("shop/modul-pechati-dokumentov", "/cp/document-control-app"),
         ("shop/customer_mgmt", "/cp/users-app"),
         ("shop/quote_requests", "/cp/quote-requests-app"),
         ("shop/statistics/web_tracker", "/cp/web-tracker-app"),
@@ -1627,6 +1637,11 @@ public static class PhpSurfaceLinkMap
 
         // Top-level PHP CP areas (exact rest) — too short for safe Contains markers.
         var topLevel = rest.TrimEnd('/');
+        if (topLevel.Equals("shop/crm/crm", StringComparison.OrdinalIgnoreCase))
+        {
+            return MapCpLegacyCrmHref(value);
+        }
+
         if (topLevel.Equals("lang", StringComparison.OrdinalIgnoreCase))
         {
             return "/cp/languages-app";
@@ -2024,6 +2039,37 @@ public static class PhpSurfaceLinkMap
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// PHP <c>cp/content/shop/crm/crm_main_page.php</c> sends <c>shop/crm/crm</c> to the ERP CRM tab (which includes
+    /// <c>crm_main.php</c>, the CRM board) with <c>tab</c> kept to <c>[a-z_]</c>, and <c>from</c> and <c>to</c> when
+    /// they are not PHP-empty.
+    /// </summary>
+    public static string MapCpLegacyCrmHref(string pathAndQuery)
+    {
+        var qIndex = pathAndQuery.IndexOf('?', StringComparison.Ordinal);
+        var query = qIndex < 0 ? new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>()
+            : Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(pathAndQuery[qIndex..]);
+        string Last(string key) => query.TryGetValue(key, out var values) && values.Count > 0 ? values[^1] ?? string.Empty : string.Empty;
+
+        var parts = new List<string>();
+        var tab = new string(Last("tab").Where(c => c is >= 'a' and <= 'z' or '_').ToArray());
+        if (tab.Length > 0)
+        {
+            parts.Add("tab=" + Uri.EscapeDataString(tab));
+        }
+
+        foreach (var key in new[] { "from", "to" })
+        {
+            var value = Last(key);
+            if (value.Length > 0 && value != "0")
+            {
+                parts.Add(key + "=" + Uri.EscapeDataString(value));
+            }
+        }
+
+        return parts.Count == 0 ? "/cp/crm-board-app" : "/cp/crm-board-app?" + string.Join('&', parts);
     }
 
     private static string? ExtractQuery(string href, string key)
