@@ -19,6 +19,7 @@ public static class AuthEmailOtp
     public const int MaxPerEmail = 5;
     public const int MaxPerIp = 20;
 
+    /// <summary>PHP <c>epc_auth_otp_ensure_schema</c>.</summary>
     public const string OtpTableDdl =
         "CREATE TABLE IF NOT EXISTS `epc_auth_otp_requests` (\n"
         + "\t\t\t`id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,\n"

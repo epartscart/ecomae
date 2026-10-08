@@ -260,6 +260,29 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — the e-mail code sign-in verify with provisioning and the session like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 74 of 75, broader `cp/content` 108 of 110. Weighted headline stays about 20.4%. Ratchet 818 to 817 (inventory 817 to 816): `epc_auth_email_otp.php` closes, all seven functions ported. Unnamed PHP functions: 7,958 to 7,937.
+- `AuthOtpVerifyLogin` serves `/epc-auth-verify-code.php` and `/content/general_pages/epc_auth_api_verify_code.php`. These are the sign-in that the e-mail code modal, the storefront widget and the CP modern login call.
+  - The context is resolved like the send endpoint. It now also carries the return host and path, the tenant database and the ERP-only demo flag.
+  - The checks run in PHP order: the e-mail and 6-digit code, then HTTPS. The matching unexpired code row for the tenant is deleted.
+  - Storefront: an existing unlocked customer is confirmed. A new e-mail becomes a customer with the default registration variant, the registered group and the retail trade registration. The session row is written, `time_last_visit` is set, and the guest session's carts move to the customer. The redirect is the safe `return_url` on the tenant host, else `/en/`.
+  - CP: an existing unlocked user needs backend access. The session row is type 1 with contact type `email`, the admin cookies are set and the platform ERP cookie is cleared. The redirect is `/cp/control` on the tenant or Super CP host, or the demo CP orders page (the ERP shell for ERP-only demos).
+  - When the tenant host is not the request host, the answer is the signed `/epc-auth-handoff.php` link instead of cookies.
+- Intended deviations (security):
+  - CP sign-in does not add every backend group to an existing user. PHP's self-heal does, which turns any shop customer, or a manager, into a full CP admin.
+  - A new e-mail gets a CP account only on a demo sandbox. PHP creates a full admin on live tenants too.
+  - The OAuth callback had the same open CP sign-up. It now also creates CP accounts only on demo tenants.
+  - The handoff link is signed with the ASP.NET session secret, which the ASP.NET handoff endpoint checks.
+- Fixes found on the way:
+  - Registry `TINYINT` flags were read as `True`/`False`, so every tenant looked like a demo to the e-mail code context.
+  - New OAuth storefront customers now get the retail trade registration, as in PHP.
+- `AuthOtpVerifyLoginTests` compares 19 cases with **goldens from the real PHP endpoint** (`Fixtures/AuthOtpVerifyLogin/harness.py`, `php -S`, throwaway schema). Each case checks the status, headers, body, the unpacked handoff, cookies, and the user, profile, group, session and cart rows. The two refused cases and three group-bind differences are pinned as deviations. Super CP is tested in ASP.NET only, because PHP's config resolution reads the platform database for that host. A corrupted golden makes exactly one case fail.
+- Full suite: 5653 of 5653. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+- Next: `loginform.php` and `profileform.php`.
+
 ### Checkpoint 2026-10-08 — PIM custom attributes and the Syncron inventory policy (owner-accepted enhancements)
 
 Not complete. These two modules come from the unmerged Devin PR #8 and never shipped in PHP, so they do not move the parity ratios.

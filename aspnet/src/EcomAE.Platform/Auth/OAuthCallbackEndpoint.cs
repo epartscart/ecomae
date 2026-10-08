@@ -149,7 +149,7 @@ public static class OAuthCallbackEndpoint
                 profile.Email,
                 profile.Name,
                 state.AuthMode == "storefront",
-                OAuthAccountProvision.AllowNewAccount(state.AuthMode, state.ReturnHost),
+                OAuthAccountProvision.AllowNewAccount(state.AuthMode, state.ReturnHost, target.IsDemo),
                 secret,
                 cancellationToken).ConfigureAwait(false);
             userId = account.UserId;
@@ -233,7 +233,8 @@ public static class OAuthCallbackEndpoint
             return new TenantDbTarget(
                 database,
                 reader.IsDBNull(3) ? "" : reader.GetString(3),
-                reader.IsDBNull(4) ? "" : reader.GetString(4));
+                reader.IsDBNull(4) ? "" : reader.GetString(4),
+                IsDemo(reader));
         }
         catch (DbException)
         {
@@ -258,7 +259,8 @@ public static class OAuthCallbackEndpoint
                 return new TenantDbTarget(
                     database,
                     reader.IsDBNull(3) ? "" : reader.GetString(3),
-                    reader.IsDBNull(4) ? "" : reader.GetString(4));
+                    reader.IsDBNull(4) ? "" : reader.GetString(4),
+                    IsDemo(reader));
             }
             catch (DbException)
             {
@@ -344,7 +346,10 @@ public static class OAuthCallbackEndpoint
     private static IResult Redirect(string location)
         => new OAuthCallbackResult(StatusCodes.Status302Found, string.Empty, location);
 
-    private sealed record TenantDbTarget(string Database, string User, string Password);
+    private sealed record TenantDbTarget(string Database, string User, string Password, bool IsDemo = false);
+
+    private static bool IsDemo(DbDataReader reader)
+        => !reader.IsDBNull(6) && Convert.ToInt64(reader.GetValue(6), System.Globalization.CultureInfo.InvariantCulture) != 0;
 
     private sealed class OAuthCallbackResult : IResult
     {

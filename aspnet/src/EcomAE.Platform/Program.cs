@@ -1905,6 +1905,7 @@ app.MapEcomAeSurfaceModules();
 PhpLegacyAssetBridge.Map(app, app.Environment);
 OAuthStartEndpoint.Map(app);
 AuthEmailOtpEndpoints.Map(app);
+AuthOtpVerifyLogin.Map(app);
 OAuthCallbackEndpoint.Map(app);
 HomeCatalogWidgets.Map(app);
 AccessoriesMarketplaceSearch.Map(app);

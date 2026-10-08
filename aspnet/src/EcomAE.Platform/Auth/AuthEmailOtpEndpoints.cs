@@ -39,10 +39,22 @@ public static class AuthEmailOtpEndpoints
         }
     }
 
-    internal sealed record OtpContext(bool Ok, string Message, string Kind, string TenantKey, string LoginLabel)
+    internal sealed record OtpContext(
+        bool Ok,
+        string Message,
+        string Kind,
+        string TenantKey,
+        string LoginLabel,
+        string ReturnHost = "",
+        string ReturnPath = "",
+        TenantDb? Db = null,
+        bool ErpOnly = false)
     {
         public static OtpContext Failed(string message) => new(false, message, string.Empty, string.Empty, string.Empty);
     }
+
+    /// <summary>The tenant database of a registry row; <c>null</c> on the context means the platform or local site database.</summary>
+    internal sealed record TenantDb(string Database, string User, string Password);
 
     private static async Task SendAsync(
         HttpContext context,
@@ -115,6 +127,7 @@ public static class AuthEmailOtpEndpoints
         await WriteAsync(context, status, body).ConfigureAwait(false);
     }
 
+    /// <summary>PHP <c>epc_auth_otp_send</c> with <c>epc_auth_otp_rate_limited</c> and <c>epc_auth_otp_purge_expired</c>.</summary>
     internal static async Task<(int Status, string Body)> SendCodeAsync(
         HttpContext http,
         ITenantDbConnectionFactory connections,
@@ -217,6 +230,7 @@ public static class AuthEmailOtpEndpoints
         return (400, AuthEmailOtp.SendFail(send.Value.Message, send.Value.Detail));
     }
 
+    /// <summary>PHP <c>epc_auth_otp_verify_email_only</c>.</summary>
     internal static async Task<(int Status, string Body)> VerifyEmailOnlyAsync(
         HttpContext http,
         DbConnection registry,
@@ -276,7 +290,7 @@ public static class AuthEmailOtpEndpoints
             var byKey = await TenantRowAsync(registry, "`site_key` = @p0", cancellationToken, tenantKey).ConfigureAwait(false);
             if (byKey is not null)
             {
-                var fromKey = await FromRowAsync(connections, byKey, mode, cancellationToken).ConfigureAwait(false);
+                var fromKey = await FromRowAsync(http, connections, byKey, mode, cancellationToken).ConfigureAwait(false);
                 if (fromKey.Ok)
                 {
                     return fromKey;
@@ -286,7 +300,7 @@ public static class AuthEmailOtpEndpoints
 
         if (mode != "storefront" && host == SuperCpHost)
         {
-            return new OtpContext(true, string.Empty, "super", string.Empty, "ECOM AE Super CP");
+            return new OtpContext(true, string.Empty, "super", string.Empty, "ECOM AE Super CP", AuthEmailOtp.PhpLower(http.Request.Headers.Host.ToString()), "/cp/control");
         }
 
         if (host.Length > 0)
@@ -295,7 +309,7 @@ public static class AuthEmailOtpEndpoints
             var byHost = await TenantRowAsync(registry, "`hostname` = @p0 OR `hostname` = @p1", cancellationToken, host, bare).ConfigureAwait(false);
             if (byHost is not null)
             {
-                return await FromRowAsync(connections, byHost, mode, cancellationToken).ConfigureAwait(false);
+                return await FromRowAsync(http, connections, byHost, mode, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -306,11 +320,12 @@ public static class AuthEmailOtpEndpoints
         }
 
         return mode == "storefront"
-            ? new OtpContext(true, string.Empty, "storefront_local", key, "Shop")
-            : new OtpContext(true, string.Empty, "tenant_local", key, "Control Panel");
+            ? new OtpContext(true, string.Empty, "storefront_local", key, "Shop", host, "/en/")
+            : new OtpContext(true, string.Empty, "tenant_local", key, "Control Panel", host, "/cp/control");
     }
 
     private static async Task<OtpContext> FromRowAsync(
+        HttpContext http,
         ITenantDbConnectionFactory connections,
         IReadOnlyDictionary<string, string?> row,
         string mode,
@@ -340,9 +355,32 @@ public static class AuthEmailOtpEndpoints
         var key = AuthEmailOtp.SanitizeKey(row.GetValueOrDefault("site_key"));
         var trade = AuthEmailOtp.PhpTrim(row.GetValueOrDefault("trade_name") ?? key);
         var demo = !AuthEmailOtp.PhpEmpty(row.GetValueOrDefault("is_demo"));
-        return mode == "storefront"
-            ? new OtpContext(true, string.Empty, demo ? "storefront_demo" : "storefront_tenant", key, trade.Length > 0 ? trade : "Shop")
-            : new OtpContext(true, string.Empty, demo ? "demo" : "tenant", key, trade.Length > 0 ? trade + " CP" : "Control Panel");
+        var target = new TenantDb(db, user, pass);
+        var hostname = AuthEmailOtp.PhpLower(AuthEmailOtp.PhpTrim(row.GetValueOrDefault("hostname")));
+        if (mode == "storefront")
+        {
+            return new OtpContext(
+                true,
+                string.Empty,
+                demo ? "storefront_demo" : "storefront_tenant",
+                key,
+                trade.Length > 0 ? trade : "Shop",
+                hostname.Length > 0 ? hostname : PortalHost(http),
+                "/en/",
+                target);
+        }
+
+        var erpOnly = demo && AuthOtpVerifyLogin.DemoRowIsErpOnly(row.GetValueOrDefault("intro_json"), row.GetValueOrDefault("industry_code"));
+        return new OtpContext(
+            true,
+            string.Empty,
+            demo ? "demo" : "tenant",
+            key,
+            trade.Length > 0 ? trade + " CP" : "Control Panel",
+            row.TryGetValue("hostname", out var rawHost) && rawHost is not null ? hostname : "www.ecomae.com",
+            demo ? AuthOtpVerifyLogin.DemoCpReturnPath(key, erpOnly) : "/cp/control",
+            target,
+            erpOnly);
     }
 
     private static async Task<(string Message, string Detail)?> SendMailAsync(
@@ -480,7 +518,11 @@ public static class AuthEmailOtpEndpoints
             var row = new Dictionary<string, string?>(StringComparer.Ordinal);
             for (var i = 0; i < reader.FieldCount; i++)
             {
-                row[reader.GetName(i)] = reader.IsDBNull(i) ? null : Convert.ToString(reader.GetValue(i), CultureInfo.InvariantCulture);
+                row[reader.GetName(i)] = reader.IsDBNull(i)
+                    ? null
+                    : reader.GetValue(i) is bool flag
+                        ? (flag ? "1" : "0")
+                        : Convert.ToString(reader.GetValue(i), CultureInfo.InvariantCulture);
             }
 
             return row;

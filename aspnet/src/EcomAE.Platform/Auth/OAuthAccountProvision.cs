@@ -18,7 +18,11 @@ public static class OAuthAccountProvision
 {
     public sealed record Result(int UserId, bool Created, string? Message);
 
-    public static bool AllowNewAccount(string? authMode, string? returnHost)
+    /// <summary>
+    /// Storefront sign-in may always create a customer. A CP account is created only on a demo sandbox: PHP also creates
+    /// one with every backend group on live tenants, which would let any e-mail owner into that tenant's CP.
+    /// </summary>
+    public static bool AllowNewAccount(string? authMode, string? returnHost, bool demoTenant = false)
     {
         if (OAuthStart.NormalizeMode(authMode) == "storefront")
         {
@@ -33,7 +37,7 @@ public static class OAuthAccountProvision
             return false;
         }
 
-        return true;
+        return demoTenant;
     }
 
     public static async Task<Result> FindOrProvisionAsync(
@@ -106,6 +110,14 @@ public static class OAuthAccountProvision
             if (storefront)
             {
                 await TryStorefrontGroupAsync(connection, userId, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    await EcomAE.Platform.Storefront.EpcCustomerTrade.SaveRegistrationAsync(connection, null, userId, "retail", cancellationToken).ConfigureAwait(false);
+                }
+                catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+                {
+                }
+
                 return new Result(userId, true, null);
             }
 

@@ -13,17 +13,18 @@ namespace EcomAE.Platform.Tests;
 public sealed class OAuthAccountProvisionTests
 {
     [Theory]
-    [InlineData("storefront", "www.ecomae.com", true)]
-    [InlineData("storefront", "www.electronicae.com", true)]
-    [InlineData("cp", "www.ecomae.com", false)]
-    [InlineData("cp", "cp.ecomae.com", false)]
-    [InlineData("cp", "industries.ecomae.com", false)]
-    [InlineData("cp", "agriculture.ecomae.com", false)]
-    [InlineData("cp", "www.electronicae.com", true)]
-    [InlineData("cp", "www.epartscart.com", true)]
-    public void AllowNewAccount_MatchesPhpSignupRules(string mode, string host, bool expected)
+    [InlineData("storefront", "www.ecomae.com", false, true)]
+    [InlineData("storefront", "www.electronicae.com", false, true)]
+    [InlineData("cp", "www.ecomae.com", false, false)]
+    [InlineData("cp", "cp.ecomae.com", true, false)]
+    [InlineData("cp", "industries.ecomae.com", true, false)]
+    [InlineData("cp", "agriculture.ecomae.com", true, false)]
+    [InlineData("cp", "www.electronicae.com", false, false)]
+    [InlineData("cp", "www.epartscart.com", false, false)]
+    [InlineData("cp", "demo-acme.example", true, true)]
+    public void AllowNewAccount_creates_cp_accounts_only_on_demo_sandboxes(string mode, string host, bool demo, bool expected)
     {
-        Assert.Equal(expected, OAuthAccountProvision.AllowNewAccount(mode, host));
+        Assert.Equal(expected, OAuthAccountProvision.AllowNewAccount(mode, host, demo));
     }
 
     [Fact]
