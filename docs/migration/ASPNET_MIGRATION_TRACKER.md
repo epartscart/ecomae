@@ -203,7 +203,7 @@ The ajax ratios count only ajax scripts. To make sure nothing in the PHP referen
 Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
 
 1. **Storefront customer pages (epartscart.com).**
-   - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`, `my_quotes.php`, `common_add_to_basket.php`, `checkout_login_offer.php`, `get_customer_offices.php`.
+   - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`, `my_quotes.php`, `common_add_to_basket.php`, `checkout_login_offer.php`. Done: `get_customer_offices.php` (see the checkpoint below).
    - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
    - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
    - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
@@ -247,7 +247,7 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The ecomae.com platform pages, router, data, capability guides, FAQ and legal content; the brochures; the free tools; the portal demo; the web tracker.
    - The auth common, MFA, SMTP and OAuth providers; the API v1 and webhooks; Power BI.
    - Commerce isolation, tenant data protection, and the portal tenant pages and intro.
-   - The BOS unified and blockchain BOS pages, and the BOC console.
+   - The BOS unified and blockchain BOS pages, and the BOC console, with the BOS operator login `epc_bos_ajax_login.php` (it fills the PHP BOS session these pages read).
    - The industry consolidation and the industry templates (`_base_template.php`, the sub-industry page and 28 industries).
    - `epc_cloudpanel_helpers.php` is moved to ops workers, not ported as a page.
 6. **Price engine.** `content/shop/price_engine` (23 files, including the 6,768-line `epc_auto_price_engine.php` and the discovery adapters) plus the CP auto-price shell. This must stay on the existing importer.
@@ -321,6 +321,24 @@ Evidence per page, recorded in its checkpoint:
 Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
+
+### Checkpoint 2026-10-08 — the customer's offices (`get_customer_offices.php`) like PHP
+
+Not complete.
+
+- Ratchet 759 to 758. Inventory content 383 to 384 of 952. Unnamed PHP functions 7,908 to 7,907. The weighted headline (about 20.4%) is unchanged.
+- `StorefrontCustomerOffices` is now the one port of the include. It replaces three private copies in the cart, bulk upload and catalogue code. The cart quantity change, the pay-on-place office check, bulk upload (`epc_bulk_helpers.php`) and the catalogue count, list and page now all use it.
+- It follows PHP exactly:
+  - The `my_city` cookie is bound as the raw string, so MySQL compares it as a number: `5abc` and ` 5` are geo 5, and `abc` is geo 0.
+  - An empty cookie counts as unset, so the first `shop_geo` node is used.
+  - With no mapped office, the first `shop_offices` row is used.
+  - The office order is the map's row order.
+- Fixed:
+  - Bulk upload and the catalogue price filter ignored the cookie and always used the first geo node.
+  - The cart parsed the cookie as an integer, so `5abc` fell back to the first geo node.
+- Evidence: `Fixtures/CustomerOffices/harness.php` ran the real PHP file (8.3) for 18 cookie and database cases on throwaway databases. `StorefrontCustomerOfficesTests` matches all 18 on throwaway databases, which are then dropped.
+- Kept deviation: the catalogue still treats missing `shop_geo` or map tables as "no mapped office", where PHP stops with a fatal error. Elsewhere a missing table stays an error, as before.
+- Moved to step 5: `epc_bos_ajax_login.php`. It sets the PHP BOS session (`epc_bos_set_context`), which only the PHP BOS unified shell reads. `/bos/login` already signs in through ASP.NET for `/bos/app`, as recorded in `LegacySessionParityReporter`. So the BOS login closes together with the BOS unified pages.
 
 ### Checkpoint 2026-10-08 — the public free-tools API (`ajax_epc_free_tools.php`) like PHP
 

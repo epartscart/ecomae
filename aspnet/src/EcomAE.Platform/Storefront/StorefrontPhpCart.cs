@@ -959,7 +959,7 @@ public static partial class StorefrontPhpAjax
         string? cityCookie,
         CancellationToken cancellationToken)
     {
-        var offices = await CustomerOfficesAsync(connection, cityCookie, cancellationToken).ConfigureAwait(false);
+        var offices = await StorefrontCustomerOffices.LoadAsync(connection, cityCookie, cancellationToken).ConfigureAwait(false);
         var groupId = await FirstGroupAsync(connection, userId, cancellationToken).ConfigureAwait(false);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         left = await ReserveOfficeSuppliesAsync(connection, cartId, productId, price, left, offices, groupId, now, inStock: true, cancellationToken).ConfigureAwait(false);
@@ -1039,53 +1039,6 @@ public static partial class StorefrontPhpAjax
         }
 
         return left;
-    }
-
-    private static async Task<List<int>> CustomerOfficesAsync(DbConnection connection, string? cityCookie, CancellationToken cancellationToken)
-    {
-        object? geoId = null;
-        if (!string.IsNullOrWhiteSpace(cityCookie) && int.TryParse(cityCookie, NumberStyles.Integer, CultureInfo.InvariantCulture, out var cookieGeo))
-        {
-            geoId = cookieGeo;
-        }
-        else
-        {
-            await using var min = connection.CreateCommand();
-            min.CommandText = "SELECT MIN(`id`) FROM `shop_geo`";
-            var scalar = await min.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            if (scalar is not null and not DBNull)
-            {
-                geoId = Convert.ToInt32(scalar, CultureInfo.InvariantCulture);
-            }
-        }
-
-        var offices = new List<int>();
-        if (geoId is not null)
-        {
-            await using var mapped = connection.CreateCommand();
-            mapped.CommandText = ErpDb.Positional("SELECT `office_id` FROM `shop_offices_geo_map` WHERE `geo_id` = ?");
-            ErpDb.AddParameters(mapped, geoId);
-            await using var reader = await mapped.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-            {
-                offices.Add(Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture));
-            }
-        }
-
-        if (offices.Count > 0)
-        {
-            return offices;
-        }
-
-        await using var first = connection.CreateCommand();
-        first.CommandText = "SELECT `id` FROM `shop_offices` ORDER BY `id` LIMIT 1";
-        var office = await first.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-        if (office is not null and not DBNull)
-        {
-            offices.Add(Convert.ToInt32(office, CultureInfo.InvariantCulture));
-        }
-
-        return offices;
     }
 
     private static async Task<int> FirstGroupAsync(DbConnection connection, int userId, CancellationToken cancellationToken)

@@ -697,7 +697,7 @@ public static partial class StorefrontPhpAjax
                 else
                 {
                     officeId = ShopPayForOrderService.PhpIntCast(JsonText(root, "office_id"));
-                    if (!(await CustomerOfficesAsync(connection, cityCookie, cancellationToken).ConfigureAwait(false)).Contains((int)officeId))
+                    if (!(await StorefrontCustomerOffices.LoadAsync(connection, cityCookie, cancellationToken).ConfigureAwait(false)).Contains((int)officeId))
                     {
                         return string.Empty;
                     }

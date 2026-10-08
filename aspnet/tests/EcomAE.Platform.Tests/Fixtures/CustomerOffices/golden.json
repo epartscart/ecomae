@@ -1,0 +1,130 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "scenario": "mapped",
+            "cookie": null,
+            "offices": [
+                4,
+                2
+            ]
+        },
+        {
+            "scenario": "mapped",
+            "cookie": "",
+            "offices": [
+                4,
+                2
+            ]
+        },
+        {
+            "scenario": "mapped",
+            "cookie": "3",
+            "offices": [
+                4,
+                2
+            ]
+        },
+        {
+            "scenario": "mapped",
+            "cookie": "5",
+            "offices": [
+                9
+            ]
+        },
+        {
+            "scenario": "mapped",
+            "cookie": "5abc",
+            "offices": [
+                9
+            ]
+        },
+        {
+            "scenario": "mapped",
+            "cookie": " 5",
+            "offices": [
+                9
+            ]
+        },
+        {
+            "scenario": "mapped",
+            "cookie": "5.0",
+            "offices": [
+                9
+            ]
+        },
+        {
+            "scenario": "mapped",
+            "cookie": "7",
+            "offices": [
+                1
+            ]
+        },
+        {
+            "scenario": "mapped",
+            "cookie": "abc",
+            "offices": [
+                1
+            ]
+        },
+        {
+            "scenario": "mapped",
+            "cookie": "0",
+            "offices": [
+                1
+            ]
+        },
+        {
+            "scenario": "mapped",
+            "cookie": "99",
+            "offices": [
+                1
+            ]
+        },
+        {
+            "scenario": "mapped",
+            "cookie": "-3",
+            "offices": [
+                1
+            ]
+        },
+        {
+            "scenario": "no_geo_nodes",
+            "cookie": null,
+            "offices": [
+                6
+            ]
+        },
+        {
+            "scenario": "no_geo_nodes",
+            "cookie": "",
+            "offices": [
+                6
+            ]
+        },
+        {
+            "scenario": "no_geo_nodes",
+            "cookie": "1",
+            "offices": [
+                8
+            ]
+        },
+        {
+            "scenario": "no_geo_nodes",
+            "cookie": "2",
+            "offices": [
+                6
+            ]
+        },
+        {
+            "scenario": "empty",
+            "cookie": null,
+            "offices": []
+        },
+        {
+            "scenario": "empty",
+            "cookie": "1",
+            "offices": []
+        }
+    ]
+}
