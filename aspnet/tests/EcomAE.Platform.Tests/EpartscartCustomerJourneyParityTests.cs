@@ -59,7 +59,7 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("StorefrontSurfaceLinks.CheckoutHowGet", checkout, StringComparison.Ordinal);
         Assert.Contains("panel panel-primary", checkout, StringComparison.Ordinal);
         Assert.Contains("login_offer", checkout, StringComparison.Ordinal);
-        Assert.Contains("Continue as guest", checkout, StringComparison.Ordinal);
+        Assert.Contains("StorefrontLoginFormLoader.RenderCheckoutLoginOfferAsync", checkout, StringComparison.Ordinal);
         Assert.Contains("class=\"lead\"", checkout, StringComparison.Ordinal);
         Assert.Contains("how_get_radio_", checkout, StringComparison.Ordinal);
         Assert.Contains("radio_how_get", checkout, StringComparison.Ordinal);

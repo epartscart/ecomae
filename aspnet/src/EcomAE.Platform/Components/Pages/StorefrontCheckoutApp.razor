@@ -21,6 +21,8 @@
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 @inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
+@inject Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions> PhpReference
+@inject IWebHostEnvironment Env
 
 <PageTitle>Checkout · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -266,12 +268,8 @@
             }
             else if (_step is "login_offer")
             {
-                <div class="panel panel-primary">
-                    <LegacyAdminLoginForm Surface="LegacyLoginSurface.Storefront" SurfaceLabel="storefront" PhpLoginHref="/php-reference/en/shop/checkout/how_get" SubmitLabel="Log in" Accent="red" />
-                    <div class="panel-body" style="color:#777;">
-                        <a class="btn btn-ar btn-default" href="@StorefrontSurfaceLinks.CheckoutHowGet">Continue as guest</a>
-                    </div>
-                </div>
+                <script src="/lib/jQuery/jQuery.js"></script>
+                @((MarkupString)_loginOfferHtml)
             }
             else if (_step is "confirm")
             {
@@ -420,6 +418,7 @@
     }
 
 </StorefrontTenantChrome>
+@((MarkupString)_loginAlert)
 
 @code {
     private string _brand = "eParts Cart";
@@ -447,6 +446,8 @@
     private string _flashOk = "";
     private string _flashErr = "";
     private string _obtainDetailsHtml = "";
+    private string _loginOfferHtml = "";
+    private string _loginAlert = "";
     protected override async Task OnInitializedAsync()
     {
         ResolveStep();
@@ -468,6 +469,11 @@
             Guests.ApplyGuestCookies(ctx.Response, shopper);
         }
 
+        if (_step is "login_offer")
+        {
+            await LoadLoginOfferAsync(ctx, shopper);
+        }
+
         if (!shopper.CanShop)
         {
             _isCustomer = false;
@@ -485,6 +491,47 @@
         _readiness = result.Summary.Count > 0
             ? (result.Lines.Any(l => l.CheckedForOrder) ? "ready for delivery" : "cart has lines")
             : "empty cart";
+    }
+
+    /// <summary>PHP <c>content/shop/order_process/checkout_login_offer.php</c>.</summary>
+    private async Task LoadLoginOfferAsync(HttpContext ctx, StorefrontShopper shopper)
+    {
+        _loginAlert = ctx.Items[StorefrontLoginPost.AlertItemKey] as string ?? string.Empty;
+        var sessionCookie = ctx.Request.Cookies["session"];
+        var userCookie = ctx.Request.Cookies["u_id"];
+        if (!shopper.IsSignedIn && shopper.SessionToken.Length > 0)
+        {
+            sessionCookie = shopper.SessionToken;
+            userCookie = "0";
+        }
+
+        var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
+        try
+        {
+            await using var connection = await Connections.OpenForTenantAsync(tenant, ctx.RequestAborted);
+            _loginOfferHtml = await StorefrontLoginFormLoader.RenderCheckoutLoginOfferAsync(
+                ctx,
+                connection,
+                Connections,
+                PhpReference.Value,
+                Env,
+                new StorefrontLoginFormLoader.Request(
+                    shopper.IsSignedIn ? shopper.UserId : 0,
+                    StorefrontPhpHomeLinks.LangHref(ctx),
+                    sessionCookie,
+                    userCookie,
+                    ctx.Request.Cookies["epc_oauth_last_google_email"],
+                    EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(PhpReference.Value)),
+                ctx.RequestAborted);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            _loginOfferHtml = "<p>Sign-in is unavailable right now.</p>";
+        }
+        catch (InvalidOperationException)
+        {
+            _loginOfferHtml = "<p>Sign-in is unavailable right now.</p>";
+        }
     }
 
     private async Task LoadOfficesAndModesAsync(HttpContext ctx)

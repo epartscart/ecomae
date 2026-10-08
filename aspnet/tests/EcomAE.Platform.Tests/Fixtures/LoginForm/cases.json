@@ -1,82 +1,406 @@
 {
   "email_only": {
     "user_id": 0,
-    "session": {"csrf_guard_key": "ck_123"},
-    "communications": {"all": false, "sms": false},
+    "session": {
+      "csrf_guard_key": "ck_123"
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
     "template_id": 0,
-    "multilang_params": {"lang_href": "/en"},
+    "multilang_params": {
+      "lang_href": "/en"
+    },
     "buttons": "",
-    "ui": {"tenant_key": "shop1", "login_label": "Shop & Co", "send_code_url": "/content/general_pages/epc_auth_api_send_code.php", "verify_code_url": "/content/general_pages/epc_auth_api_verify_code.php"}
+    "ui": {
+      "tenant_key": "shop1",
+      "login_label": "Shop & Co",
+      "send_code_url": "/content/general_pages/epc_auth_api_send_code.php",
+      "verify_code_url": "/content/general_pages/epc_auth_api_verify_code.php"
+    }
   },
   "sms_and_buttons_expan": {
     "user_id": 0,
-    "session": {"csrf_guard_key": "ck_<9>"},
-    "communications": {"all": true, "sms": true},
+    "session": {
+      "csrf_guard_key": "ck_<9>"
+    },
+    "communications": {
+      "all": true,
+      "sms": true
+    },
     "template_id": 59,
-    "multilang_params": {"lang_href": "/ar"},
+    "multilang_params": {
+      "lang_href": "/ar"
+    },
     "buttons": "<div class=\"epc-social\">BTN</div>",
-    "site_profile": {"logo_url": "https://cdn.example.com/logo.png?a=1&b=2"},
-    "strings": {"4008": "Sign <b>in</b>", "5659": "Password \"tab\"", "4017": "E-mail & co", "1311": "Pass'word"},
-    "ui": {"tenant_key": "ar_shop", "login_label": "Arabic \"Shop\"", "send_code_url": "/send.php", "verify_code_url": "/verify.php"}
+    "site_profile": {
+      "logo_url": "https://cdn.example.com/logo.png?a=1&b=2"
+    },
+    "strings": {
+      "4008": "Sign <b>in</b>",
+      "5659": "Password \"tab\"",
+      "4017": "E-mail & co",
+      "1311": "Pass'word"
+    },
+    "ui": {
+      "tenant_key": "ar_shop",
+      "login_label": "Arabic \"Shop\"",
+      "send_code_url": "/send.php",
+      "verify_code_url": "/verify.php"
+    }
   },
   "limo_no_buttons_file_empty_heading": {
     "user_id": 0,
-    "session": {"csrf_guard_key": ""},
-    "communications": {"all": false, "sms": false},
+    "session": {
+      "csrf_guard_key": ""
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
     "template_id": 61,
-    "multilang_params": {"lang_href": "/en"},
+    "multilang_params": {
+      "lang_href": "/en"
+    },
     "buttons": null,
-    "strings": {"4008": ""},
+    "strings": {
+      "4008": ""
+    },
     "ui": {}
   },
   "limo62_trailing_slash_lang": {
     "user_id": 0,
-    "session": {"csrf_guard_key": "ck_62"},
-    "communications": {"all": false, "sms": true},
+    "session": {
+      "csrf_guard_key": "ck_62"
+    },
+    "communications": {
+      "all": false,
+      "sms": true
+    },
     "template_id": 62,
-    "multilang_params": {"lang_href": "/en/"},
+    "multilang_params": {
+      "lang_href": "/en/"
+    },
     "buttons": "<a>G</a>",
-    "ui": {"tenant_key": "", "login_label": "Shop"}
+    "ui": {
+      "tenant_key": "",
+      "login_label": "Shop"
+    }
   },
   "general_header_guest": {
-    "general": {"postfix": "header"},
+    "general": {
+      "postfix": "header"
+    },
     "user_id": 0,
-    "session": {"csrf_guard_key": "ck_h"},
-    "communications": {"all": false, "sms": true},
+    "session": {
+      "csrf_guard_key": "ck_h"
+    },
+    "communications": {
+      "all": false,
+      "sms": true
+    },
     "template_id": 0,
-    "multilang_params": {"lang_href": "/en"},
+    "multilang_params": {
+      "lang_href": "/en"
+    },
     "buttons": "",
-    "strings": {"5651": "Sign <i>in</i>"},
-    "ui": {"tenant_key": "shop1", "login_label": "Shop"}
+    "strings": {
+      "5651": "Sign <i>in</i>"
+    },
+    "ui": {
+      "tenant_key": "shop1",
+      "login_label": "Shop"
+    }
   },
   "general_no_postfix_twice": {
-    "general": {"times": 2},
+    "general": {
+      "times": 2
+    },
     "user_id": 0,
-    "session": {"csrf_guard_key": "ck_t"},
-    "communications": {"all": false, "sms": false},
+    "session": {
+      "csrf_guard_key": "ck_t"
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
     "template_id": 61,
-    "multilang_params": {"lang_href": "/en"},
+    "multilang_params": {
+      "lang_href": "/en"
+    },
     "buttons": "<a>G</a>",
-    "ui": {"tenant_key": "shop1", "login_label": "Shop"}
+    "ui": {
+      "tenant_key": "shop1",
+      "login_label": "Shop"
+    }
   },
   "general_signed_in": {
-    "general": {"postfix": "header", "target": "/en/"},
+    "general": {
+      "postfix": "header",
+      "target": "/en/"
+    },
     "user_id": 9,
-    "session": {"csrf_guard_key": "ck_<s>"},
-    "communications": {"all": false, "sms": false},
+    "session": {
+      "csrf_guard_key": "ck_<s>"
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
     "template_id": 62,
-    "multilang_params": {"lang_href": "/ar"},
+    "multilang_params": {
+      "lang_href": "/ar"
+    },
     "buttons": "",
-    "strings": {"3996": "Log \"out\""},
+    "strings": {
+      "3996": "Log \"out\""
+    },
     "ui": {}
   },
   "logged_in": {
     "user_id": 7,
-    "session": {"csrf_guard_key": "ck_7"},
-    "communications": {"all": false, "sms": false},
+    "session": {
+      "csrf_guard_key": "ck_7"
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
     "template_id": 0,
-    "multilang_params": {"lang_href": "/e\"n"},
+    "multilang_params": {
+      "lang_href": "/e\"n"
+    },
     "buttons": "",
     "ui": {}
+  },
+  "offer_guest_unset": {
+    "user_id": 0,
+    "session": {
+      "csrf_guard_key": "ck_123"
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
+    "template_id": 0,
+    "multilang_params": {
+      "lang_href": "/en"
+    },
+    "buttons": "",
+    "ui": {
+      "tenant_key": "shop1",
+      "login_label": "Shop & Co",
+      "send_code_url": "/content/general_pages/epc_auth_api_send_code.php",
+      "verify_code_url": "/content/general_pages/epc_auth_api_verify_code.php"
+    },
+    "strings": {
+      "4523": "Order without registration"
+    },
+    "offer": {}
+  },
+  "offer_guest_on": {
+    "user_id": 0,
+    "session": {
+      "csrf_guard_key": "ck_123"
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
+    "template_id": 0,
+    "multilang_params": {
+      "lang_href": "/en"
+    },
+    "buttons": "",
+    "ui": {
+      "tenant_key": "shop1",
+      "login_label": "Shop & Co",
+      "send_code_url": "/content/general_pages/epc_auth_api_send_code.php",
+      "verify_code_url": "/content/general_pages/epc_auth_api_verify_code.php"
+    },
+    "strings": {
+      "4523": "Order without registration"
+    },
+    "offer": {
+      "order_without_auth": "1"
+    }
+  },
+  "offer_guest_off": {
+    "user_id": 0,
+    "session": {
+      "csrf_guard_key": "ck_123"
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
+    "template_id": 0,
+    "multilang_params": {
+      "lang_href": "/en"
+    },
+    "buttons": "",
+    "ui": {
+      "tenant_key": "shop1",
+      "login_label": "Shop & Co",
+      "send_code_url": "/content/general_pages/epc_auth_api_send_code.php",
+      "verify_code_url": "/content/general_pages/epc_auth_api_verify_code.php"
+    },
+    "strings": {
+      "4523": "Order without registration"
+    },
+    "offer": {
+      "order_without_auth": "0"
+    }
+  },
+  "offer_guest_space_one": {
+    "user_id": 0,
+    "session": {
+      "csrf_guard_key": "ck_123"
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
+    "template_id": 0,
+    "multilang_params": {
+      "lang_href": "/en"
+    },
+    "buttons": "",
+    "ui": {
+      "tenant_key": "shop1",
+      "login_label": "Shop & Co",
+      "send_code_url": "/content/general_pages/epc_auth_api_send_code.php",
+      "verify_code_url": "/content/general_pages/epc_auth_api_verify_code.php"
+    },
+    "strings": {
+      "4523": "Order without registration"
+    },
+    "offer": {
+      "order_without_auth": " 1"
+    }
+  },
+  "offer_guest_one_point_zero": {
+    "user_id": 0,
+    "session": {
+      "csrf_guard_key": "ck_123"
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
+    "template_id": 0,
+    "multilang_params": {
+      "lang_href": "/en"
+    },
+    "buttons": "",
+    "ui": {
+      "tenant_key": "shop1",
+      "login_label": "Shop & Co",
+      "send_code_url": "/content/general_pages/epc_auth_api_send_code.php",
+      "verify_code_url": "/content/general_pages/epc_auth_api_verify_code.php"
+    },
+    "strings": {
+      "4523": "Order without registration"
+    },
+    "offer": {
+      "order_without_auth": "1.0"
+    }
+  },
+  "offer_guest_yes": {
+    "user_id": 0,
+    "session": {
+      "csrf_guard_key": "ck_123"
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
+    "template_id": 0,
+    "multilang_params": {
+      "lang_href": "/en"
+    },
+    "buttons": "",
+    "ui": {
+      "tenant_key": "shop1",
+      "login_label": "Shop & Co",
+      "send_code_url": "/content/general_pages/epc_auth_api_send_code.php",
+      "verify_code_url": "/content/general_pages/epc_auth_api_verify_code.php"
+    },
+    "strings": {
+      "4523": "Order without registration"
+    },
+    "offer": {
+      "order_without_auth": "yes"
+    }
+  },
+  "offer_guest_empty": {
+    "user_id": 0,
+    "session": {
+      "csrf_guard_key": "ck_123"
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
+    "template_id": 0,
+    "multilang_params": {
+      "lang_href": "/en"
+    },
+    "buttons": "",
+    "ui": {
+      "tenant_key": "shop1",
+      "login_label": "Shop & Co",
+      "send_code_url": "/content/general_pages/epc_auth_api_send_code.php",
+      "verify_code_url": "/content/general_pages/epc_auth_api_verify_code.php"
+    },
+    "strings": {
+      "4523": "Order without registration"
+    },
+    "offer": {
+      "order_without_auth": ""
+    }
+  },
+  "offer_signed_in_on": {
+    "user_id": 7,
+    "session": {
+      "csrf_guard_key": "ck_7"
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
+    "template_id": 0,
+    "multilang_params": {
+      "lang_href": "/e\"n"
+    },
+    "buttons": "",
+    "ui": {},
+    "strings": {
+      "4523": "Order without registration"
+    },
+    "offer": {
+      "order_without_auth": "1"
+    }
+  },
+  "offer_signed_in_unset": {
+    "user_id": 7,
+    "session": {
+      "csrf_guard_key": "ck_7"
+    },
+    "communications": {
+      "all": false,
+      "sms": false
+    },
+    "template_id": 0,
+    "multilang_params": {
+      "lang_href": "/e\"n"
+    },
+    "buttons": "",
+    "ui": {},
+    "strings": {
+      "4523": "Order without registration"
+    },
+    "offer": {}
   }
 }

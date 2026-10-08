@@ -58,13 +58,16 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
 {
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IStorefrontOrderCreatedPipeline? _orderCreated;
+    private readonly Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions>? _php;
 
     public StorefrontCheckoutWriteService(
         IErpWriteConnectionFactory connections,
-        IStorefrontOrderCreatedPipeline? orderCreated = null)
+        IStorefrontOrderCreatedPipeline? orderCreated = null,
+        Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions>? php = null)
     {
         _connections = connections;
         _orderCreated = orderCreated;
+        _php = php;
     }
 
     public async Task<StorefrontCheckoutWriteResult> CreateAsync(
@@ -123,7 +126,7 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
                 return Fail("trade_not_approved", await EpcCustomerTrade.CheckoutBlockMessageAsync(connection, null, userId, cancellationToken).ConfigureAwait(false));
             }
         }
-        else if (!await GuestOrdersAllowedAsync(connection, cancellationToken).ConfigureAwait(false))
+        else if (_php is not null && !StorefrontCheckoutLoginOffer.GuestOrdersAllowed(EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(_php.Value)))
         {
             return Fail("guest_disabled", "Guest checkout is turned off. Please log in or register.");
         }
@@ -499,31 +502,6 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
             message,
             committedOrderId,
             committedWrites);
-    }
-
-    private static async Task<bool> GuestOrdersAllowedAsync(
-        DbConnection connection,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            var raw = await ErpDb.StringAsync(
-                connection,
-                null,
-                "SELECT `value` FROM `config_items` WHERE `name` = 'order_without_auth' LIMIT 1",
-                cancellationToken);
-            if (string.IsNullOrWhiteSpace(raw))
-            {
-                return true;
-            }
-
-            raw = raw.Trim();
-            return raw is not "0" and not "false" and not "no" and not "off";
-        }
-        catch (DbException)
-        {
-            return true;
-        }
     }
 
     private static async Task<string?> TryRegFieldAsync(

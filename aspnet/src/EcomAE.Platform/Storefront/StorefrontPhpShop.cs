@@ -183,7 +183,8 @@ public static partial class StorefrontPhpAjax
         string? phone,
         string? email,
         CancellationToken cancellationToken,
-        string? requestHost = null)
+        string? requestHost = null,
+        IReadOnlyDictionary<string, string>? config = null)
     {
         if (userId > 0)
         {
@@ -193,7 +194,7 @@ public static partial class StorefrontPhpAjax
                 return trade;
             }
         }
-        else if (!await GuestOrdersAllowedAsync(connection, cancellationToken).ConfigureAwait(false))
+        else if (config is not null && !StorefrontCheckoutLoginOffer.GuestOrdersAllowed(config))
         {
             return new ShopStatus(false, "4470", null, null);
         }
@@ -1745,27 +1746,6 @@ public static partial class StorefrontPhpAjax
 
         var message = await EpcCustomerTrade.CheckoutBlockMessageAsync(connection, null, userId, cancellationToken).ConfigureAwait(false);
         return new ShopStatus(false, message, "trade_not_approved", null);
-    }
-
-    private static async Task<bool> GuestOrdersAllowedAsync(DbConnection connection, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await using var command = connection.CreateCommand();
-            command.CommandText = ErpDb.Positional("SELECT `value` FROM `config_items` WHERE `name` = 'order_without_auth' LIMIT 1");
-            var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            var raw = Convert.ToString(scalar, CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
-            if (raw.Length == 0)
-            {
-                return true;
-            }
-
-            return raw is not "0" and not "false" and not "no" and not "off";
-        }
-        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
-        {
-            return true;
-        }
     }
 
     private static async Task<bool> ContactMatchesAsync(

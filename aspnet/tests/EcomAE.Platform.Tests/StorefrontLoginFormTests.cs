@@ -52,7 +52,17 @@ public sealed class StorefrontLoginFormTests
         };
 
         string html;
-        if (c.TryGetProperty("general", out var general))
+        if (c.TryGetProperty("offer", out var offer))
+        {
+            var config = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (offer.TryGetProperty("order_without_auth", out var setting))
+            {
+                config["order_without_auth"] = setting.GetString()!;
+            }
+
+            html = StorefrontCheckoutLoginOffer.Render(input, T, config);
+        }
+        else if (c.TryGetProperty("general", out var general))
         {
             var postfix = Text(general, "postfix");
             var target = Text(general, "target");
@@ -81,6 +91,85 @@ public sealed class StorefrontLoginFormTests
 
             Assert.Fail(name + " differs at " + i + ": got " + JsonSerializer.Serialize(html.Substring(Math.Max(0, i - 60), Math.Min(140, html.Length - Math.Max(0, i - 60))))
                 + " want " + JsonSerializer.Serialize(golden!.Substring(Math.Max(0, i - 60), Math.Min(140, golden.Length - Math.Max(0, i - 60)))));
+        }
+    }
+
+    [Theory]
+    [InlineData("1", true)]
+    [InlineData(" 1", true)]
+    [InlineData("1 ", true)]
+    [InlineData("1.0", true)]
+    [InlineData("01", true)]
+    [InlineData("+1", true)]
+    [InlineData("1e0", true)]
+    [InlineData("10e-1", true)]
+    [InlineData(".1e1", true)]
+    [InlineData("1.", true)]
+    [InlineData("\t1\n", true)]
+    [InlineData("1.00000000000000001", true)]
+    [InlineData("+.1E+1", true)]
+    [InlineData("0", false)]
+    [InlineData("", false)]
+    [InlineData("yes", false)]
+    [InlineData("1abc", false)]
+    [InlineData("0x1", false)]
+    [InlineData(" ", false)]
+    [InlineData("1 1", false)]
+    [InlineData("-1", false)]
+    [InlineData("1e", false)]
+    [InlineData("e1", false)]
+    [InlineData("--1", false)]
+    public void Order_without_auth_compares_like_php_loose_equals_one(string raw, bool expected)
+    {
+        Assert.Equal(expected, StorefrontCheckoutLoginOffer.LooseEqualsOne(raw));
+        var config = new Dictionary<string, string>(StringComparer.Ordinal) { ["order_without_auth"] = raw };
+        Assert.Equal(expected, StorefrontCheckoutLoginOffer.GuestButtonShown(config));
+        Assert.Equal(expected, StorefrontCheckoutLoginOffer.GuestOrdersAllowed(config));
+    }
+
+    [Fact]
+    public void Unset_order_without_auth_hides_the_button_but_still_allows_guest_orders()
+    {
+        var empty = new Dictionary<string, string>(StringComparer.Ordinal);
+        Assert.False(StorefrontCheckoutLoginOffer.GuestButtonShown(empty));
+        Assert.True(StorefrontCheckoutLoginOffer.GuestOrdersAllowed(empty));
+    }
+
+    [Theory]
+    [InlineData("/shop/checkout/login_offer", true)]
+    [InlineData("/en/shop/checkout/login_offer", true)]
+    [InlineData("/ar/shop/checkout/login_offer/", true)]
+    [InlineData("/EN/shop/checkout/login_offer", false)]
+    [InlineData("/eng/shop/checkout/login_offer", false)]
+    [InlineData("/en/shop/checkout/how_get", false)]
+    [InlineData("/en/users/login", false)]
+    public void Login_offer_posts_are_handled_on_the_offer_page(string path, bool expected)
+        => Assert.Equal(expected, StorefrontLoginPostMiddleware.IsLoginOfferPath(new Microsoft.AspNetCore.Http.PathString(path)));
+
+    [Fact]
+    public void Login_offer_target_continues_to_the_delivery_step()
+    {
+        Assert.Equal("/", StorefrontLoginPost.SafeTarget(StorefrontCheckoutLoginOffer.Target));
+        Assert.Equal("/en/shop/checkout/how_get", StorefrontLoginPost.SafeTarget(StorefrontLoginPostMiddleware.LoginOfferTarget("en", true)));
+        Assert.Equal("/shop/checkout/how_get", StorefrontLoginPost.SafeTarget(StorefrontLoginPostMiddleware.LoginOfferTarget("en", false)));
+    }
+
+    [Theory]
+    [InlineData("0", true)]
+    [InlineData("1", false)]
+    [InlineData("yes", true)]
+    public async Task Guest_checkout_create_follows_config_php_order_without_auth(string value, bool refused)
+    {
+        var config = new Dictionary<string, string>(StringComparer.Ordinal) { ["order_without_auth"] = value };
+        if (refused)
+        {
+            var result = await StorefrontPhpAjax.CheckoutCreateAsync(null!, 0, 0, null, null, null, null, CancellationToken.None, null, config);
+            var status = Assert.IsType<StorefrontPhpAjax.ShopStatus>(result);
+            Assert.Equal("4470", status.Message);
+        }
+        else
+        {
+            Assert.True(StorefrontCheckoutLoginOffer.GuestOrdersAllowed(config));
         }
     }
 
