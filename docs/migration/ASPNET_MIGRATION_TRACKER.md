@@ -210,6 +210,7 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: the page access include `content/users/check_user_access.php`, used by the CP lang editor ajax and the storefront storage toggle. See the checkpoint below.
    - Done: the trade account library `content/shop/pricing/epc_customer_trade.php` and the currency library `epc_currency.php` (except `epc_currency_js_config`), with the checkout and price gates switched to them. See the checkpoint below.
    - Done: the country list `content/users/epc_countries.php`. Retired: `content/users/epc_reg_fields_compliance.php`, which nothing includes or calls.
+   - Done: the e-invoice schema `content/shop/finance/epc_einvoice_schema.php`. Partly done: the validation and save half of `epc_registration_enhanced.php` (the render half remains) and the `customer_vat_type` sync of `epc_uae_customer_vat.php`. See the checkpoint below.
    - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `epc_session_security.php`, the agreement module.
    - `content/shop/catalogue` (41 files): `printProducts.php`, `printProducts_2.php`, `printProduct_Info.php`, the product pages, compare, bookmarks, SKU media, the text search algorithm, the tree lists.
    - `content/shop/docpart` (44 files): `part_search_page.php` and `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest.
@@ -258,6 +259,24 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-08 — registration fields, KYC documents and e-invoice buyer profiles like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap ratchet: 829 to 828 (`epc_einvoice_schema.php`); unnamed PHP functions 8,017.
+- `EpcRegistrationEnhanced` ports the validation and save half of the enhanced registration form:
+  - The retail and wholesale required fields, the country check, the UAE 15-digit TRN, and the TRN status abroad.
+  - The PEP declaration and the two required wholesale documents.
+  - The UAE company fields.
+  - The `users_profiles` keys (contact, address, trade, KYC text and the legacy `name`, `surname`, `company_name`).
+  - The KYC documents: 8 MB at most; PDF, JPG, JPEG, PNG or WEBP; stored under `content/files/kyc/{user}/` and marked `pending_review`.
+  - The UAE buyer profile and the `epc_uae_company` flag.
+  - The form's render half stays a gap until the registration page is ported.
+- `EpcEinvoiceBuyer` is the twin of `epc_einvoice_schema.php` (the five tables and default settings) and the buyer half of `epc_einvoice.php`: the stored or user-built buyer profile, the TIN from the TRN, the Peppol endpoint, the country normalisation and the save.
+- `EpcUaeCustomerVat` ports the `customer_vat_type` sync: tax exempt, GCC, export, local B2B or local B2C, with the buyer profile country winning over `epc_reg_country`. The display-price, label and order-total functions of that library stay a gap.
+- `StorefrontRegistrationEnhancedTests` compares 19 cases with **goldens from the real PHP** (`Fixtures/RegistrationEnhanced/harness.py`). It runs the PHP behind `php -S` so the documents are genuine multipart uploads. The checks cover every validation and save result, the VAT types, the buyer profiles, and the rows left in `users_profiles`, `epc_einvoice_buyer_profiles` and `epc_einvoice_settings`. They also cover the KYC files written (name and size).
+- Full suite: 5462 of 5462. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-08 — trade accounts and storefront currencies like PHP
 
