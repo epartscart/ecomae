@@ -118,16 +118,9 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
 
         if (userId > 0)
         {
-            var trade = await ErpDb.StringAsync(
-                connection,
-                null,
-                ErpDb.Positional("SELECT `data_value` FROM `users_profiles` WHERE `user_id` = ? AND `data_key` = 'epc_trade_approval_status' LIMIT 1"),
-                cancellationToken,
-                userId);
-            if (!string.IsNullOrWhiteSpace(trade)
-                && !string.Equals(trade, "approved", StringComparison.OrdinalIgnoreCase))
+            if (!await EpcCustomerTrade.CanPlaceOrderAsync(connection, null, userId, cancellationToken).ConfigureAwait(false))
             {
-                return Fail("trade_not_approved", "Checkout is available after a manager approves your trade profile.");
+                return Fail("trade_not_approved", await EpcCustomerTrade.CheckoutBlockMessageAsync(connection, null, userId, cancellationToken).ConfigureAwait(false));
             }
         }
         else if (!await GuestOrdersAllowedAsync(connection, cancellationToken).ConfigureAwait(false))

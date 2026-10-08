@@ -19,8 +19,8 @@ public static partial class StorefrontPhpAjax
     public const string CheckoutNoMarginMessage = "Unable to place this order right now. Please refresh the page, remove any unavailable items, and try again. If the problem continues, contact support.";
     public const string CheckoutFailPrefix = "4492. ";
     public const string OrderItemDetailsMissing = "Order item details are not in this database.";
-    public const string TradePendingMessage = "Your account is registered. You can browse and add items to the cart, but checkout is available only after a manager approves your retail/wholesale profile and dealing currency.";
-    public const string TradeRejectedMessage = "Your trade account registration was not approved. Please contact us if you need assistance.";
+    public const string TradePendingMessage = EpcCustomerTrade.PendingCheckoutMessage;
+    public const string TradeRejectedMessage = EpcCustomerTrade.RejectedCheckoutMessage;
 
     public static async Task<object> AddToNotepadAsync(
         DbConnection connection,
@@ -1738,35 +1738,13 @@ public static partial class StorefrontPhpAjax
 
     private static async Task<ShopStatus?> TradeBlockAsync(DbConnection connection, int userId, CancellationToken cancellationToken)
     {
-        try
-        {
-            await using var command = connection.CreateCommand();
-            command.CommandText = ErpDb.Positional(
-                "SELECT `data_value` FROM `users_profiles` WHERE `user_id` = ? AND `data_key` = 'epc_trade_approval_status' LIMIT 1");
-            ErpDb.AddParameters(command, userId);
-            var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            var status = scalar is null or DBNull ? string.Empty : Convert.ToString(scalar, CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
-            if (status.Length == 0 || string.Equals(status, "approved", StringComparison.Ordinal))
-            {
-                return null;
-            }
-
-            if (string.Equals(status, "pending", StringComparison.Ordinal))
-            {
-                return new ShopStatus(false, TradePendingMessage, "trade_not_approved", null);
-            }
-
-            if (string.Equals(status, "rejected", StringComparison.Ordinal))
-            {
-                return new ShopStatus(false, TradeRejectedMessage, "trade_not_approved", null);
-            }
-
-            return null;
-        }
-        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        if (await EpcCustomerTrade.CanPlaceOrderAsync(connection, null, userId, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
+
+        var message = await EpcCustomerTrade.CheckoutBlockMessageAsync(connection, null, userId, cancellationToken).ConfigureAwait(false);
+        return new ShopStatus(false, message, "trade_not_approved", null);
     }
 
     private static async Task<bool> GuestOrdersAllowedAsync(DbConnection connection, CancellationToken cancellationToken)
