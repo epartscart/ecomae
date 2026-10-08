@@ -1,0 +1,37 @@
+{
+  "agreement_en": {
+    "case": "agreement",
+    "lang": "/en",
+    "html": "<div id=\"users_agreement_div\" style=\"padding: 0px 15px; border: 1px solid #ddd; background: #f7f7f7; margin:20px 0px;\">\r\n\t<table>\r\n\t\t<tr>\r\n\t\t\t<td><input style=\"width:25px; height:25px; cursor:pointer;\" type=\"checkbox\" id=\"users_agreement\" onchange=\"on_agreement_changed();\"/></td>\r\n\t\t\t<td style=\"line-height: 1.2em; padding: 15px 5px;\"><label style=\"cursor:pointer;\" for=\"users_agreement\">T4751<b>\"'&amp; <a style=\"text-decoration:underline;\" target=\"_blank\" href=\"/en/polzovatelskoe-soglashenie\">T4752<b>\"'&amp;</a> T4753<b>\"'&amp;</label></td>\r\n\t\t</tr>\r\n\t</table>\r\n</div>\r\n<script>\r\n\tdocument.cookie = \"users_agreement=no; path=/;\";//Предвартельно снимаем согласие\r\n\t//Обработка галочки \"Согласие с пользовательским соглашением\"\r\n\tfunction on_agreement_changed()\r\n\t{\r\n\t\tif( document.getElementById(\"users_agreement\").checked )\r\n\t\t{\r\n\t\t\tdocument.cookie = \"users_agreement=yes; path=/;\";\r\n\t\t}\r\n\t\telse\r\n\t\t{\r\n\t\t\tdocument.cookie = \"users_agreement=no; path=/;\";\r\n\t\t}\r\n\t}\r\n\t//Проверка согласия с обработкой персональных данных\r\n\tfunction check_user_agreement()\r\n\t{\r\n\t\t//Проверка согласия с пользовательским соглашением\r\n\t\tif(!document.getElementById(\"users_agreement\").checked)\r\n\t\t{\r\n\t\t\talert(\"T4754<b>\"'&amp;\");\r\n\t\t\treturn false;\r\n\t\t}\r\n\t\treturn true;\r\n\t}\r\n</script>"
+  },
+  "agreement_root": {
+    "case": "agreement",
+    "lang": "",
+    "html": "<div id=\"users_agreement_div\" style=\"padding: 0px 15px; border: 1px solid #ddd; background: #f7f7f7; margin:20px 0px;\">\r\n\t<table>\r\n\t\t<tr>\r\n\t\t\t<td><input style=\"width:25px; height:25px; cursor:pointer;\" type=\"checkbox\" id=\"users_agreement\" onchange=\"on_agreement_changed();\"/></td>\r\n\t\t\t<td style=\"line-height: 1.2em; padding: 15px 5px;\"><label style=\"cursor:pointer;\" for=\"users_agreement\">T4751<b>\"'&amp; <a style=\"text-decoration:underline;\" target=\"_blank\" href=\"/polzovatelskoe-soglashenie\">T4752<b>\"'&amp;</a> T4753<b>\"'&amp;</label></td>\r\n\t\t</tr>\r\n\t</table>\r\n</div>\r\n<script>\r\n\tdocument.cookie = \"users_agreement=no; path=/;\";//Предвартельно снимаем согласие\r\n\t//Обработка галочки \"Согласие с пользовательским соглашением\"\r\n\tfunction on_agreement_changed()\r\n\t{\r\n\t\tif( document.getElementById(\"users_agreement\").checked )\r\n\t\t{\r\n\t\t\tdocument.cookie = \"users_agreement=yes; path=/;\";\r\n\t\t}\r\n\t\telse\r\n\t\t{\r\n\t\t\tdocument.cookie = \"users_agreement=no; path=/;\";\r\n\t\t}\r\n\t}\r\n\t//Проверка согласия с обработкой персональных данных\r\n\tfunction check_user_agreement()\r\n\t{\r\n\t\t//Проверка согласия с пользовательским соглашением\r\n\t\tif(!document.getElementById(\"users_agreement\").checked)\r\n\t\t{\r\n\t\t\talert(\"T4754<b>\"'&amp;\");\r\n\t\t\treturn false;\r\n\t\t}\r\n\t\treturn true;\r\n\t}\r\n</script>"
+  },
+  "agreement_ar": {
+    "case": "agreement",
+    "lang": "/ar",
+    "html": "<div id=\"users_agreement_div\" style=\"padding: 0px 15px; border: 1px solid #ddd; background: #f7f7f7; margin:20px 0px;\">\r\n\t<table>\r\n\t\t<tr>\r\n\t\t\t<td><input style=\"width:25px; height:25px; cursor:pointer;\" type=\"checkbox\" id=\"users_agreement\" onchange=\"on_agreement_changed();\"/></td>\r\n\t\t\t<td style=\"line-height: 1.2em; padding: 15px 5px;\"><label style=\"cursor:pointer;\" for=\"users_agreement\">T4751<b>\"'&amp; <a style=\"text-decoration:underline;\" target=\"_blank\" href=\"/ar/polzovatelskoe-soglashenie\">T4752<b>\"'&amp;</a> T4753<b>\"'&amp;</label></td>\r\n\t\t</tr>\r\n\t</table>\r\n</div>\r\n<script>\r\n\tdocument.cookie = \"users_agreement=no; path=/;\";//Предвартельно снимаем согласие\r\n\t//Обработка галочки \"Согласие с пользовательским соглашением\"\r\n\tfunction on_agreement_changed()\r\n\t{\r\n\t\tif( document.getElementById(\"users_agreement\").checked )\r\n\t\t{\r\n\t\t\tdocument.cookie = \"users_agreement=yes; path=/;\";\r\n\t\t}\r\n\t\telse\r\n\t\t{\r\n\t\t\tdocument.cookie = \"users_agreement=no; path=/;\";\r\n\t\t}\r\n\t}\r\n\t//Проверка согласия с обработкой персональных данных\r\n\tfunction check_user_agreement()\r\n\t{\r\n\t\t//Проверка согласия с пользовательским соглашением\r\n\t\tif(!document.getElementById(\"users_agreement\").checked)\r\n\t\t{\r\n\t\t\talert(\"T4754<b>\"'&amp;\");\r\n\t\t\treturn false;\r\n\t\t}\r\n\t\treturn true;\r\n\t}\r\n</script>"
+  },
+  "layout_default_then_close": {
+    "case": "layout",
+    "steps": "open,close",
+    "html": "<link rel=\"stylesheet\" href=\"/content/users/epc_storefront_auth.css?v=20260606b\" /><div class=\"epc-auth-page\">|</div>|"
+  },
+  "layout_wide_twice": {
+    "case": "layout",
+    "steps": "open:wide,close,open:wide,close",
+    "html": "<link rel=\"stylesheet\" href=\"/content/users/epc_storefront_auth.css?v=20260606b\" /><div class=\"epc-auth-page epc-auth-page--wide\">|</div>|<div class=\"epc-auth-page epc-auth-page--wide\">|</div>|"
+  },
+  "layout_css_first": {
+    "case": "layout",
+    "steps": "css,css,open,close",
+    "html": "<link rel=\"stylesheet\" href=\"/content/users/epc_storefront_auth.css?v=20260606b\" />||<div class=\"epc-auth-page\">|</div>|"
+  },
+  "layout_other_variant": {
+    "case": "layout",
+    "steps": "open:narrow,open:,close",
+    "html": "<link rel=\"stylesheet\" href=\"/content/users/epc_storefront_auth.css?v=20260606b\" /><div class=\"epc-auth-page\">|<div class=\"epc-auth-page\">|</div>|"
+  }
+}

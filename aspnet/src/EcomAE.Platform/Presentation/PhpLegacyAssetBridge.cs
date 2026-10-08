@@ -192,6 +192,8 @@ public static class PhpLegacyAssetBridge
                          "lib/jQuery/jQuery.js"),
                      ("/content/shop/returns/assets/return.css",
                          "content/shop/returns/assets/return.css"),
+                     ("/content/users/epc_storefront_auth.css",
+                         "content/users/epc_storefront_auth.css"),
                      ("/platform-assets/epc_sku_media.css",
                          "content/shop/catalogue/epc_sku_media.css"),
                      ("/platform-assets/epc_pos.css",
