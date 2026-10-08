@@ -95,7 +95,7 @@ public sealed class CpTopMenuPhpParityTests
         AssertContainsAspNet(commerce, "/cp/offices-app");
         AssertContainsAspNet(commerce, "/cp/storages-app");
         AssertContainsAspNet(commerce, "/cp/geo-regions-app");
-        AssertContainsAspNet(commerce, "/cp/price-lists-app");
+        AssertContainsAspNet(commerce, "/cp/price-management-app");
         AssertContainsAspNet(commerce, "/cp/crosses-app");
         AssertContainsAspNet(commerce, "/cp/returns-app");
         AssertContainsAspNet(commerce, "/cp/quote-requests-app");

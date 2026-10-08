@@ -188,15 +188,6 @@ public static class PhpSuperCpBocNav
         new("workshop_guide", "Autoworkshop guide", "knowledge", "fa-wrench", "control/portal/epc_autoworkshop_guide", "Workshop vertical"),
     ];
 
-    public static IEnumerable<(BocGroup Group, IReadOnlyList<BocArea> Areas)> Nav()
-    {
-        foreach (var group in Groups)
-        {
-            var areas = Areas.Where(a => a.Group == group.Key).ToList();
-            if (areas.Count > 0)
-            {
-                yield return (group, areas);
-            }
-        }
-    }
+    public static IEnumerable<(BocGroup Group, IReadOnlyList<BocArea> Areas)> Nav() =>
+        TopMenuLinks.DedupeBoc(Groups.Select(group => (group, (IReadOnlyList<BocArea>)Areas.Where(a => a.Group == group.Key).ToList())));
 }

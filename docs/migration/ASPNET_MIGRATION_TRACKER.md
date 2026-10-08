@@ -260,6 +260,24 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — CP, ERP and BOC top menus
+
+Not complete. The ratchet stays 760 and the weighted headline (about 20.4%) is unchanged: this is menu correctness, not new PHP behaviour.
+
+- Before: menu entries sharing one destination per view were 6 to 10 in the CP menu, 12 in the ERP menu and 17 in the BOC menu. After: 0 in every view, pinned by `TopMenuIntegrityTests` (Phase D rule).
+- `TopMenuLinks` drops later entries whose destination is already in the menu (first entry wins, empty groups go). It runs on the CP menu (`CpNavMenuService`), the ERP menu (`ErpIndustryNav.FilterTopnav`) and the BOC menu (`PhpSuperCpBocNav.Nav`). PHP's `epc_cp_nav_tree` dedupes only per group by PHP URL, so the same page could appear in two groups.
+- Entries that opened a neighbour's module now open their own: the payments guide (`/cp/guides-app?g=payments`), payroll (`/erp/payroll-app`, was HR), people and leave (`/erp/hr-overview-app`), and `shop/price-management` (`/cp/price-management-app`, was price lists; `shop/pricing` stays on price lists).
+- ERP pages that were ported but missing from the ERP menu now have entries: favourites, chart of accounts, report scheduler, cash entries, customer groups, stock movements, inventory report, warehouses, RFID, document attachments, on-premises, multi-currency GL, order pipeline, inventory forecast.
+- The desktop `LegacyDesktopChromeCatalog.ControlPanelTopnav` is not rendered by any page (the CP chrome uses `CpNavMenuService`); it still lists repeats and is not counted here.
+- Open port items, where the dedupe now hides an entry because ASP.NET has no page of its own yet:
+  - CP: POS terminal, order items, catalogue line lists and tree lists, customer reviews (`otzyvy-pokupatelej`), related products (`soputstvuyushhie-tovary`), special searches, homepage products (`tovary-na-glavnoj`), registration fields (`polya-registracii`) and variants, customer approvals, downloadable price lists (`prajs-listy-dlya-skachivaniya`), pickup methods (opens the logistics hub).
+  - ERP: P&L and balance sheet (both open the report centre, which has no tabs), budget planning (opens budgeting), procurement (opens purchase requisitions), document expiry (opens document control), HR operations (leave), fixed assets (asset management), contracts (organisation admin), WMS (MHEI), blockchain proofs (tax), financial depth (cost accounting), accounting automation (setup), and the multi-entity tab, removed because `/erp/multi-entity-app` is remapped to a consolidations tab that does not exist.
+  - BOC: industry consolidation and licence trends (industry packs), dealer portal (tenants), data policy, imports, channels, API v2, SKU photos, webhooks, MFA, AI classify, document vault, insights hub.
+- Pages outside every menu (22, grouped by reason in `NotInTopMenu`):
+  - Not menu destinations: the CP and ERP login pages and the ERP module host.
+  - Linked from other pages: the CP and ERP dashboard summaries, navigation coverage, price lists, price edit, PO approvals, CRM activities, admin sessions, print documents, bulk upload, finance close.
+  - Open placement items (no row in the production CP menu snapshots): the integrations, Life OS and operations guides, Life OS clients, VIN fields, workshop, ERP multi-entity, ERP user control.
+
 ### Checkpoint 2026-10-08 — eight PHP CP redirect pages
 
 Not complete.
@@ -2072,6 +2090,11 @@ Standing rules that apply to every item below:
 - [ ] On-premises installation package + multi-version compatibility (1000 tenants, multi-industry, multi-country)
 - [ ] Versioning, licensing/rights, compliance & policy documentation
 - [ ] VPS: prune 15 parallel PHP-FPM versions (after test round 1)
+- [~] Top menu integrity for the CP, ERP and Super CP BOC menus. The rules, enforced by `TopMenuIntegrityTests` for every CP snapshot (tenant and super view), the ERP menu per industry (generic, auto parts, jewellery, fit-out; tenant and super) and the BOC menu:
+  - Every entry opens a different page: no two entries in one menu share a destination (path plus query, without `company=` and `#fragment`).
+  - Every destination is a routed ASP.NET page.
+  - Every CP and ERP page is in a menu, or listed in `TopMenuIntegrityTests.NotInTopMenu` with its reason.
+  - Every entry opens its own module, not a neighbour's. Open items: see the checkpoint "CP, ERP and BOC top menus".
 
 ---
 

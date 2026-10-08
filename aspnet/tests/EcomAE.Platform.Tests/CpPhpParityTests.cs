@@ -34,7 +34,7 @@ public sealed class CpPhpParityTests
     [InlineData("/CP/control/portal/epc_boc_command_center", "/cp/control")]
     [InlineData("/CP/shop/procurement/procurement", "/cp/procurement-app")]
     [InlineData("/CP/shop/logistics/stock", "/erp/inventory-stock-app")]
-    [InlineData("/CP/shop/price-management", "/cp/price-lists-app")]
+    [InlineData("/CP/shop/price-management", "/cp/price-management-app")]
     [InlineData("/CP/shop/statistics/statistics", "/cp/statistics-app")]
     [InlineData("/CP/shop/statistics", "/cp/statistics-app")]
     [InlineData("/CP/shop/accessories", "/cp/accessories-app")]
@@ -154,7 +154,7 @@ public sealed class CpPhpParityTests
         Assert.Equal("/cp/prices-upload-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/prices"));
         Assert.Equal("/cp/guides-app?g=prices-upload", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/prices/guide"));
         Assert.Equal("/cp/shop/prices/price?price_id=4", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/prices/price?price_id=4"));
-        Assert.Equal("/cp/price-lists-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/price-management"));
+        Assert.Equal("/cp/price-management-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/price-management"));
         Assert.Equal("/cp/price-lists-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/pricing"));
     }
 
