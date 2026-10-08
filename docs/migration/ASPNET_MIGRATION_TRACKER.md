@@ -260,6 +260,68 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### CP and ERP UI/UX — better than the PHP reference (owner requirement, 2026-10-08)
+
+Steps 3, 4 and 7 (CP shop, CP control and portal, ERP) close only when the page has PHP's functions and also passes the UX bar below. The storefront keeps PHP's look and flow, because customers know it. CP and ERP are operator tools and must be better than PHP. This is how the "UI/UX %" bands in the benchmark matrix go up.
+
+Rules:
+- Function parity comes first. Every PHP field, action, filter, column, message and permission stays. A design change must never drop a PHP action or hide data the operator used.
+- "Better" is measured per page against the PHP page for the same URL, with before and after screenshots in the checkpoint. A page's UI/UX is not counted as better while any bar item below fails.
+
+The UX bar for every CP and ERP page:
+1. **Navigation.**
+   - One top menu with no repeats and no two entries for the same data (`TopMenuIntegrityTests`).
+   - Each page opens its own module and shows breadcrumbs.
+   - The page title matches its menu label.
+   - Every menu page is reachable in two clicks.
+   - After session expiry and login, the operator returns to the same page.
+2. **Speed.**
+   - First paint under 1 second on the local build.
+   - Filter, sort and paging work without a full page reload.
+   - Long lists are paged on the server, not drawn as thousands of DOM rows.
+3. **Lists.**
+   - Search, sort, filters with visible chips, and a column chooser.
+   - Saved views per user, CSV or Excel export of the filtered rows, and a sticky header.
+   - Row actions that respect the user's rights.
+   - An empty state that says what to do next.
+4. **Forms.**
+   - PHP's validation rules and messages, shown inline next to the field.
+   - Values are kept after an error, and required fields are marked.
+   - An unsaved-changes guard, and confirmation before delete, post or cancel.
+   - Enter saves and Esc closes modals.
+   - A success notice links to the saved record.
+5. **ERP documents** (order, PO, invoice, receipt, journal and the rest) use one workspace layout, to the Dynamics 365, SAP Fiori and Oracle Fusion bar:
+   - header, lines and totals;
+   - a status timeline and an action bar that changes with status;
+   - related documents, attachments and the audit log.
+6. **Dashboards.**
+   - KPI cards per role that drill down to the filtered list behind the number.
+   - No number without a source.
+7. **Mobile and RTL.**
+   - Usable at 375 px width: tables scroll, menus collapse, buttons stay tappable.
+   - Arabic pages render right to left.
+8. **Accessibility.**
+   - WCAG 2.1 AA: labels, contrast, focus order, keyboard menus and ARIA.
+   - Checked with an automated axe scan, which must show 0 serious or critical issues.
+9. **One design system for CP and ERP.**
+   - Shared design tokens, buttons, tables, modals and notices.
+   - No script code shown as text (rule from the CP inline-script fix).
+   - No browser `alert()` for operator errors; messages appear inline.
+10. **Errors.**
+    - A clear message with the next step.
+    - Never a stack trace, a blank page or an empty 500.
+
+Evidence per page, recorded in its checkpoint:
+- the PHP and ASP.NET screenshots;
+- the axe result;
+- the load timing;
+- a short recording of the main task;
+- tests for the parity half.
+
+Order:
+- New CP and ERP ports meet the bar when they are built.
+- Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
+
 ### Checkpoint 2026-10-08 — the public free-tools API (`ajax_epc_free_tools.php`) like PHP
 
 Not complete.
