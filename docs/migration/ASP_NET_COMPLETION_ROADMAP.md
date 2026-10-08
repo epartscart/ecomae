@@ -1,6 +1,6 @@
 # ASP.NET Core completion roadmap
 
-**Status:** ERP acceptance remains open (0/15). Devin owns ERP. Cursor owns BOS, Control Panel, CRM, storefront/frontend, marketing, and tenants. The product objective is enterprise ERP + BOS + CRM, benchmarked against Dynamics 365, SAP, and Oracle Fusion. PHP parity is the minimum. See `ASPNET_MIGRATION_TRACKER.md`.
+**Status:** ERP acceptance remains open (0/15). Since the 2026-10-07 handover (`NOTE_FOR_DEVIN_2026-10-07.md`) Cursor owns ERP as well as BOS, Control Panel, CRM, storefront/frontend, marketing, and tenants. Cursor finishes the non-ERP surfaces first, then takes ERP over from Devin's plan (Step 7). The product objective is enterprise ERP + BOS + CRM, benchmarked against Dynamics 365, SAP, and Oracle Fusion. PHP parity is the minimum. See `ASPNET_MIGRATION_TRACKER.md`.
 **Authoritative reference:** the PHP/PHP-FPM application remains the behavioural,
 visual, security, deployment, and rollback reference until every exit gate passes. It is not the final enterprise standard.
 
@@ -280,6 +280,47 @@ Audited against the code on 2026-10-08. "Exists" means working code; a document 
   After the customer confirms receipt: account read-only, then deletion after the contractual period (30 days in the policy), with a deletion certificate. On-prem customers already hold their data, and the same exporter runs locally.
 
 Ordering: 6.5 (credential encryption) and 6.6 (exit package) are compliance promises already published, so they come first after the ERP exit gate. 6.4 and 6.1/6.3 follow, then 6.2 hybrid. None of this changes the 20.4% parity headline: these are platform capabilities beyond PHP parity.
+
+### Step 7 — ERP intake: study Devin's ERP plan before any ERP code (owner request 2026-10-08)
+
+When the non-ERP surfaces are done and ERP work starts, the first session reads Devin's plan and its later updates in full and reconciles them with this roadmap. No ERP code is written until that reconciliation is committed. Devin's ERP PRs are merged on `main` through #2026. Cursor's ERP fixes (#2030) are merged on top.
+
+Read, in this order:
+
+1. `ERP_COMPLETION_DIRECTIVE.md`. It sets:
+   * the wave order: foundation, Order-to-Cash, Procure-to-Pay, Inventory/WMS, Finance, then the rest with Jewellery and Fit-Out;
+   * the per-process definition of done, then LOCK;
+   * the completion board of 15 processes, 0 accepted;
+   * the scope freeze, the session output format and the owner blockers.
+2. `ERP_OWNERSHIP_AUDIT_2026-10-07.md` and `NOTE_FOR_DEVIN_2026-10-07.md`, which hold the open accounting findings:
+   1. Cash entries without a journal.
+   2. An integrity scan without unbalanced-journal or sub-ledger-to-control-account checks.
+   3. POS sales outside the ledger and stock.
+   4. Voucher gaps after failed writes.
+   5. Eight untested write services.
+   6. Floating-point money in four services.
+3. `TENANT_BY_TENANT_ERP_MIGRATION_GATE.md` and `evidence/tenant-by-tenant-erp-migration-gate.json`: every tenant needs its own evidence bundle.
+4. The rehearsal evidence: 25 `*-cycle-*.md` notes in `evidence/write-dryruns/`, 3 more in `aspnet/docs/migration/evidence/write-dryruns/`, `erp-ajax-case-coverage-2026-10-05.md` (all 321 `ajax_erp.php` cases), and the B1–B8 recovery, rollback, UAT and tax runbooks in `evidence/decommission/`.
+5. The "Enterprise platform benchmark" matrix in `ASPNET_MIGRATION_TRACKER.md` (Dynamics 365, SAP, Oracle; every row not accepted).
+
+Devin work that never reached `main` (checked 2026-10-08 against 603 `devin/*` branches: 93 of the 119 with commits beyond `main` are squash-merged under the same title, and the other 26 were read):
+
+* `devin/1790743008-tenant-install-control-plane`, commit `4139c40c4`, added after #1733 merged. It changes `TenantInstallationControlPlane` in three ways:
+  * the server generates the enrollment request id, instead of accepting one from the caller;
+  * tenant keys are restricted to ASCII `a-z 0-9 - _ .`, because `char.IsLetterOrDigit` lets any Unicode letter through today;
+  * cloud tenants get a direct `ProvisioningCloudTenant` to `Synchronizing` step.
+
+  This is security hardening. Port it with tests at the start of 6.4, or earlier if a security fix is needed.
+* `devin/1790970551-b8-acceptance-audit`, which has evidence edits after #1923 merged (B8 physical tenant isolation rehearsal). Compare them with the merged B8 evidence and keep only what is still true.
+* Open PR #8 (`devin/1782038638-missing-pr4-modules`, June). It holds four PHP modules that are not on `main`: bank reconciliation, intercompany, Syncron policy, and PIM custom fields, plus a `epc-erp-d365-modules-setup.php` installer. Bank reconciliation and intercompany exist on `main` in other forms; Syncron policy and PIM custom fields do not. They are not PHP reference behaviour, because they never shipped. Record them as `POST-MIGRATION ENHANCEMENT` candidates for the owner to accept or drop, and do not port them as parity.
+* The other 23 are June–July PHP-era fixes, skill-file updates, or merge commits that later `main` work replaced. No action.
+
+The reconciliation commit then:
+
+* re-derives the ERP percentages from the artifacts;
+* updates the board's owner from Devin to Cursor;
+* orders the audit findings into the Wave 1 and Wave 5 work;
+* lists the owner blockers that are still open: a second legitimate tenant DB for isolation, a production backup and restore window, human visual acceptance, and country compliance data.
 
 ## What can delay the bands
 
