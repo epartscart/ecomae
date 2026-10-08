@@ -260,6 +260,21 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — the six-box e-mail code modal like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 74 of 75, broader `cp/content` 108 of 110. Weighted headline stays about 20.4%. Ratchet 819 to 818: only `epc_otp_modal.php` closes. The inventory prints 817 because the modal's default verify URL names `content/general_pages/epc_auth_api_verify_code.php`. That endpoint (login verify with user provisioning and the session) is **not ported** and still counts as a gap. Unnamed PHP functions: 7,990 to 7,979.
+- `StorefrontOtpModal` ports `epc_otp_modal_render()`, used by the registration form, the storefront e-mail sign-in widget and the CP modern login:
+  - The stylesheet is printed once per page (one instance per page).
+  - The overlay, card, six digit boxes, Continue button, message line and resend button with its 60-second timer.
+  - The script with the context, tenant key, send, verify and return URLs as PHP `json_encode` strings, and the success code: the caller's, else `epcOtpOnSuccess(data)` for verify-only, else the redirect.
+  - Defaults: the modal id is lower-cased and every other byte becomes `_`; the verify URL follows `verify_only`; the label defaults to `epartscart`; the logo shows only with a URL. Text is escaped like `htmlspecialchars`.
+- The markup segments were generated from the PHP file, so the output is PHP's byte for byte.
+- `StorefrontOtpModalTests` compares 7 cases with **goldens from the real PHP function** (`Fixtures/OtpModal/harness.py`, php-cli). The cases cover the defaults; the registration, CP login and storefront widget configs; Unicode, emoji, quotes and `</script>` in values; a multibyte modal id; two modals on one page; and empty strings. A corrupted golden makes exactly one case fail.
+- Full suite: 5546 of 5546. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+- Next for `regform.php`: the render half of `epc_registration_enhanced.php`, then the page itself.
+
 ### Checkpoint 2026-10-08 — the e-mail sign-in code send and registration verify-only like PHP
 
 Not complete.
