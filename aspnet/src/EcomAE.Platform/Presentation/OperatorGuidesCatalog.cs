@@ -62,6 +62,7 @@ public static class OperatorGuidesCatalog
         new("shop/orders/guide", "/cp/guides-app?g=fulfilment"),
         new("shop/logistics/guide", "/cp/guides-app?g=logistics"),
         new("shop/payments/guide", "/cp/guides-app?g=payments"),
+        new("shop/payments/payments/guide", "/cp/guides-app?g=payments"),
         new("shop/channels/guide", "/cp/guides-app?g=channels"),
         new("shop/procurement/procurement_guide", "/cp/guides-app?g=procurement"),
         new("shop/prices/guide", "/cp/guides-app?g=prices-upload"),
