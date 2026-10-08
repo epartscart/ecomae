@@ -1,0 +1,350 @@
+@page "/erp/syncron-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Routing
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+@inject IErpWriteConnectionFactory TenantDb
+
+<PageTitle>Inventory policy · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Inventory policy" BreadcrumbArea="Inventory management" BreadcrumbTab="Inventory policy (Syncron)">
+    <PhpErpModulePageHeader Title="Inventory policy (Syncron)" Subtitle="Safety stock, reorder points and order suggestions per item and warehouse, from global, item-type and item policies and the stock movements of the demand window. Run the 30-day forecast and track monthly service levels." />
+    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Inventory policy KPIs">
+        <div class="kpi"><div class="lbl">Policies</div><div class="val">@_policies.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Stockout</div><div class="val">@Count("stockout")</div></div>
+        <div class="kpi"><div class="lbl">Reorder</div><div class="val">@Count("reorder")</div></div>
+        <div class="kpi"><div class="lbl">Overstock</div><div class="val">@Count("overstock")</div></div>
+    </div>
+
+    <ErpPhpViewTabs QueryName="sv" Active="@_view" BaseHref="@EcomAeRoutes.ErpSyncronApp" Tabs="@Views" />
+
+    @if (!_isAdmin)
+    {
+        <p class="text-muted">Sign in with ERP capability for live data.</p>
+    }
+    else if (_view == "policies")
+    {
+        <ErpPhpCreateWell Title="@(_editing is null ? "New policy" : "Edit policy · " + _editing.PolicyName)">
+            <form method="post" action="@EcomAeRoutes.ErpSyncronAction" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="syncron_action" value="policy_save" />
+                <input type="hidden" name="policy_id" value="@(_editing?.Id.ToString(CultureInfo.InvariantCulture) ?? "0")" />
+                <input type="hidden" name="returnUrl" value="@PoliciesHref" />
+                <label>Name <input class="form-control input-sm" name="policy_name" value="@(_editing?.PolicyName ?? "")" maxlength="180" required /></label>
+                <label>Scope
+                    <select class="form-control input-sm" name="scope">
+                        @foreach (var scope in ErpSyncronPolicy.Scopes)
+                        {
+                            <option value="@scope" selected="@(scope == (_editing?.Scope ?? "global"))">@ScopeLabel(scope)</option>
+                        }
+                    </select>
+                </label>
+                <label>Item SKU or item type <input class="form-control input-sm" name="scope_ref" value="@(_editing?.ScopeRef ?? "")" maxlength="120" placeholder="blank for global" list="syncron-item-types" /></label>
+                <datalist id="syncron-item-types">
+                    @foreach (var type in ErpSyncronPolicy.ItemTypes)
+                    {
+                        <option value="@type"></option>
+                    }
+                </datalist>
+                <label>Service level % <input class="form-control input-sm" type="number" step="0.01" min="50" max="99.99" name="service_level_pct" value="@Num(_editing?.ServiceLevelPct ?? ErpSyncronPolicy.DefaultServiceLevel)" style="width:6rem" /></label>
+                <label>Lead days <input class="form-control input-sm" type="number" min="0" max="365" name="lead_time_days" value="@(_editing?.LeadTimeDays ?? ErpSyncronPolicy.DefaultLeadTimeDays)" style="width:5rem" /></label>
+                <label>Review days <input class="form-control input-sm" type="number" min="1" max="365" name="review_period_days" value="@(_editing?.ReviewPeriodDays ?? ErpSyncronPolicy.DefaultReviewDays)" style="width:5rem" /></label>
+                <label>Demand
+                    <select class="form-control input-sm" name="demand_method">
+                        @foreach (var (method, label) in ErpSyncronPolicy.DemandMethods)
+                        {
+                            <option value="@method" selected="@(method == (_editing?.DemandMethod ?? "moving_avg"))">@label</option>
+                        }
+                    </select>
+                </label>
+                <label>Window days <input class="form-control input-sm" type="number" min="7" max="730" name="demand_window_days" value="@(_editing?.DemandWindowDays ?? ErpSyncronPolicy.DefaultWindowDays)" style="width:5rem" /></label>
+                <label>Alpha <input class="form-control input-sm" type="number" step="0.001" min="0.001" max="1" name="demand_alpha" value="@Num(_editing?.DemandAlpha ?? ErpSyncronPolicy.DefaultAlpha)" style="width:5rem" /></label>
+                <label>Safety stock <input class="form-control input-sm" type="number" step="any" min="0" name="safety_stock_qty" value="@Num(_editing?.SafetyStockQty ?? 0m)" style="width:6rem" /></label>
+                <label>Reorder point <input class="form-control input-sm" type="number" step="any" min="0" name="reorder_point" value="@Num(_editing?.ReorderPoint ?? 0m)" style="width:6rem" /></label>
+                <label>Reorder qty <input class="form-control input-sm" type="number" step="any" min="0" name="reorder_qty" value="@Num(_editing?.ReorderQty ?? 0m)" style="width:6rem" /></label>
+                <label>Max stock <input class="form-control input-sm" type="number" step="any" min="0" name="max_stock_qty" value="@Num(_editing?.MaxStockQty ?? 0m)" style="width:6rem" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">@(_editing is null ? "Create policy" : "Save policy")</button>
+                @if (_editing is not null)
+                {
+                    <a class="btn btn-default btn-sm" href="@PoliciesHref">Cancel</a>
+                }
+            </form>
+            <p class="text-muted" style="margin:.6rem 0 0;font-size:12px;">A quantity of 0 means "calculate it": safety stock from the service level, reorder point from demand × lead time + safety stock, and the order quantity up to the reorder point plus the review period's demand (capped at max stock). Manual demand uses only the policy quantities.</p>
+        </ErpPhpCreateWell>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Name</th><th>Scope</th><th>Applies to</th><th class="text-right">Service %</th><th class="text-right">Lead</th><th>Demand</th><th class="text-right">Window</th><th class="text-right">Safety</th><th class="text-right">ROP</th><th class="text-right">Reorder qty</th><th class="text-right">Max</th><th></th></tr></thead>
+                <tbody>
+                    @if (_policies.Count == 0)
+                    {
+                        <tr><td colspan="12">No policies yet. Items use the defaults: 95 % service level, 7 lead days, 90-day moving average.</td></tr>
+                    }
+                    @foreach (var p in _policies)
+                    {
+                        <tr>
+                            <td><strong>@p.PolicyName</strong></td>
+                            <td>@ScopeLabel(p.Scope)</td>
+                            <td>@(p.ScopeRef == "" ? "all items" : p.ScopeRef)</td>
+                            <td class="text-right">@Num(p.ServiceLevelPct)</td>
+                            <td class="text-right">@p.LeadTimeDays.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@MethodLabel(p.DemandMethod)@(p.DemandMethod == "exponential" ? " α " + Num(p.DemandAlpha) : "")</td>
+                            <td class="text-right">@p.DemandWindowDays.ToString(CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@Qty(p.SafetyStockQty)</td>
+                            <td class="text-right">@Qty(p.ReorderPoint)</td>
+                            <td class="text-right">@Qty(p.ReorderQty)</td>
+                            <td class="text-right">@Qty(p.MaxStockQty)</td>
+                            <td style="white-space:nowrap;">
+                                <a class="btn btn-xs btn-primary" href="@(PoliciesHref + "&policy_id=" + p.Id.ToString(CultureInfo.InvariantCulture))">Edit</a>
+                                <form method="post" action="@EcomAeRoutes.ErpSyncronAction" style="display:inline;">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="syncron_action" value="policy_deactivate" />
+                                    <input type="hidden" name="policy_id" value="@p.Id.ToString(CultureInfo.InvariantCulture)" />
+                                    <input type="hidden" name="returnUrl" value="@PoliciesHref" />
+                                    <button type="submit" class="btn btn-xs btn-danger" onclick="return confirm('Deactivate this policy?');">Deactivate</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (_view == "forecast")
+    {
+        <ErpPhpCreateWell Title="Run 30-day forecast">
+            <form method="post" action="@EcomAeRoutes.ErpSyncronAction" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="syncron_action" value="run_forecast" />
+                <input type="hidden" name="returnUrl" value="@ForecastHref" />
+                <label>Warehouse @WarehouseSelect("warehouse_id", 0)</label>
+                <button type="submit" class="btn btn-primary btn-sm">Run forecast</button>
+            </form>
+            <p class="text-muted" style="margin:.6rem 0 0;font-size:12px;">Writes daily demand × 30 per item and warehouse, using each item's policy method. Running again on the same day replaces that day's forecast.</p>
+        </ErpPhpCreateWell>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>SKU</th><th>Warehouse</th><th>From</th><th>To</th><th class="text-right">Forecast qty</th><th>Method</th></tr></thead>
+                <tbody>
+                    @if (_forecast.Count == 0)
+                    {
+                        <tr><td colspan="6">No forecast yet. Run one above.</td></tr>
+                    }
+                    @foreach (var f in _forecast)
+                    {
+                        <tr>
+                            <td>@(f.Sku == "" ? "#" + f.ItemId.ToString(CultureInfo.InvariantCulture) : f.Sku)</td>
+                            <td>@(f.WarehouseName == "" ? "#" + f.WarehouseId.ToString(CultureInfo.InvariantCulture) : f.WarehouseName)</td>
+                            <td>@f.PeriodStart</td>
+                            <td>@f.PeriodEnd</td>
+                            <td class="text-right">@Qty(f.ForecastQty)</td>
+                            <td>@MethodLabel(f.Method)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (_view == "service")
+    {
+        <ErpPhpCreateWell Title="Record service level">
+            <form method="post" action="@EcomAeRoutes.ErpSyncronAction" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="syncron_action" value="record_service_level" />
+                <input type="hidden" name="returnUrl" value="@ServiceHref" />
+                <label>Item id <input class="form-control input-sm" type="number" min="1" name="item_id" required style="width:6rem" /></label>
+                <label>Warehouse @WarehouseSelect("warehouse_id", -1)</label>
+                <label>Month <input class="form-control input-sm" type="month" name="period_month" value="@_thisMonth" required /></label>
+                <label>Demand <input class="form-control input-sm" type="number" step="any" min="0" name="demand_qty" required style="width:6rem" /></label>
+                <label>Fulfilled <input class="form-control input-sm" type="number" step="any" min="0" name="fulfilled_qty" required style="width:6rem" /></label>
+                <label>Stockouts <input class="form-control input-sm" type="number" min="0" name="stockout_events" value="0" style="width:5rem" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Record</button>
+            </form>
+            <p class="text-muted" style="margin:.6rem 0 0;font-size:12px;">Figures add to the month already recorded; the fill rate is fulfilled ÷ demand.</p>
+        </ErpPhpCreateWell>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Month</th><th>SKU</th><th>Warehouse</th><th class="text-right">Demand</th><th class="text-right">Fulfilled</th><th class="text-right">Stockouts</th><th class="text-right">Service %</th></tr></thead>
+                <tbody>
+                    @if (_service.Count == 0)
+                    {
+                        <tr><td colspan="7">No service levels recorded in the last 12 months.</td></tr>
+                    }
+                    @foreach (var s in _service)
+                    {
+                        <tr>
+                            <td>@s.PeriodMonth</td>
+                            <td>@(s.Sku == "" ? "#" + s.ItemId.ToString(CultureInfo.InvariantCulture) : s.Sku)</td>
+                            <td>@(s.WarehouseName == "" ? "#" + s.WarehouseId.ToString(CultureInfo.InvariantCulture) : s.WarehouseName)</td>
+                            <td class="text-right">@Qty(s.DemandQty)</td>
+                            <td class="text-right">@Qty(s.FulfilledQty)</td>
+                            <td class="text-right">@s.StockoutEvents.ToString(CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@Num(s.ServiceLevel)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <form method="get" action="@EcomAeRoutes.ErpSyncronApp" class="form-inline" style="margin:0 0 10px;">
+            <input type="hidden" name="sv" value="recommendations" />
+            <label>Warehouse @WarehouseSelect("wh", _warehouseId)</label>
+            <label style="margin-left:8px;"><input type="checkbox" name="all" value="1" checked="@_showAll" /> Show OK rows</label>
+            <button type="submit" class="btn btn-default btn-sm" style="margin-left:8px;">Filter</button>
+        </form>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>SKU</th><th>Item</th><th>Warehouse</th><th class="text-right">On hand</th><th class="text-right">Daily demand</th><th class="text-right">Safety</th><th class="text-right">ROP</th><th class="text-right">Suggested order</th><th class="text-right">Lead</th><th class="text-right">Service %</th><th>Policy</th><th>Action</th></tr></thead>
+                <tbody>
+                    @if (Shown.Count == 0)
+                    {
+                        <tr><td colspan="12">@(string.IsNullOrWhiteSpace(_message) ? (_recommendations.Count == 0 ? "No stocked or moving items yet." : "Every item is within policy.") : _message)</td></tr>
+                    }
+                    @foreach (var r in Shown)
+                    {
+                        <tr>
+                            <td>@r.Sku</td>
+                            <td>@r.ItemName</td>
+                            <td>@r.WarehouseName</td>
+                            <td class="text-right">@Qty(r.OnHand)</td>
+                            <td class="text-right">@Qty(r.DailyDemand)</td>
+                            <td class="text-right">@Qty(r.SafetyStock)</td>
+                            <td class="text-right">@Qty(r.ReorderPoint)</td>
+                            <td class="text-right">@(r.SuggestedOrderQty > 0 ? Qty(r.SuggestedOrderQty) : "—")</td>
+                            <td class="text-right">@r.LeadTimeDays.ToString(CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@Num(r.ServiceLevelTarget)</td>
+                            <td>@(r.PolicyName == "" ? "defaults" : r.PolicyName)</td>
+                            <td><span class="label @ActionClass(r.Action)">@r.Action</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</PhpErpDesktopChrome>
+
+@code {
+    private static readonly IReadOnlyList<(string Key, string Label)> Views =
+        [("recommendations", "Recommendations"), ("policies", "Policies"), ("forecast", "Demand forecast"), ("service", "Service levels")];
+    private const string PoliciesHref = "/erp/syncron-app?sv=policies";
+    private const string ForecastHref = "/erp/syncron-app?sv=forecast";
+    private const string ServiceHref = "/erp/syncron-app?sv=service";
+
+    private bool _isAdmin;
+    private bool _showAll;
+    private string _view = "recommendations";
+    private string _ok = "";
+    private string _err = "";
+    private string _message = "";
+    private string _thisMonth = "";
+    private long _warehouseId;
+    private ErpSyncronPolicy.Policy? _editing;
+    private IReadOnlyList<ErpSyncronPolicy.Policy> _policies = [];
+    private IReadOnlyList<ErpSyncronPolicy.Recommendation> _recommendations = [];
+    private IReadOnlyList<ErpSyncronPolicy.ForecastRow> _forecast = [];
+    private IReadOnlyList<ErpSyncronPolicy.ServiceLevelRow> _service = [];
+    private IReadOnlyList<(long Id, string Name)> _warehouses = [];
+
+    private IReadOnlyList<ErpSyncronPolicy.Recommendation> Shown
+        => _showAll ? _recommendations : _recommendations.Where(r => r.Action != "ok").ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var v = ctx.Request.Query["sv"].ToString();
+        _view = Views.Any(x => x.Key == v) ? v : "recommendations";
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
+        _showAll = ctx.Request.Query["all"].ToString() == "1";
+        long.TryParse(ctx.Request.Query["wh"].ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out _warehouseId);
+        long.TryParse(ctx.Request.Query["policy_id"].ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out var policyId);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        _thisMonth = today.ToString("yyyy-MM", CultureInfo.InvariantCulture);
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin || !TenantDb.IsConfigured) return;
+
+        var ct = ctx.RequestAborted;
+        await using var db = await TenantDb.OpenAsync(ct);
+        try
+        {
+            _policies = await ErpSyncronPolicy.ListPoliciesAsync(db, ct);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            // The policy tables are created by the first policy write.
+        }
+
+        _editing = policyId > 0 ? _policies.FirstOrDefault(p => p.Id == policyId) : null;
+        try
+        {
+            _warehouses = await ErpSyncronPolicy.WarehousesAsync(db, ct);
+            _recommendations = await ErpSyncronPolicy.RecommendAsync(db, _policies, _warehouseId, today, ct);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            _message = "Inventory tables are not set up yet. Create a warehouse and an item first.";
+        }
+
+        try
+        {
+            if (_view == "forecast") _forecast = await ErpSyncronPolicy.LatestForecastAsync(db, 300, ct);
+            if (_view == "service")
+            {
+                _service = await ErpSyncronPolicy.ServiceLevelReportAsync(db, today.AddMonths(-11).ToString("yyyy-MM", CultureInfo.InvariantCulture), _thisMonth, ct);
+            }
+        }
+        catch (System.Data.Common.DbException)
+        {
+            // Created by the first forecast run or service-level entry.
+        }
+    }
+
+    private RenderFragment WarehouseSelect(string name, long selected) => __builder =>
+    {
+        <select class="form-control input-sm" name="@name" required="@(selected < 0)">
+            @if (selected >= 0)
+            {
+                <option value="0">All warehouses</option>
+            }
+            @foreach (var (id, label) in _warehouses)
+            {
+                <option value="@id.ToString(CultureInfo.InvariantCulture)" selected="@(id == selected)">@label</option>
+            }
+        </select>
+    };
+
+    private string Count(string action) => _recommendations.Count(r => r.Action == action).ToString(CultureInfo.InvariantCulture);
+
+    private static string ScopeLabel(string scope) => scope switch
+    {
+        "item" => "Item (SKU)",
+        "category" => "Item type",
+        _ => "Global",
+    };
+
+    private static string MethodLabel(string method)
+        => ErpSyncronPolicy.DemandMethods.FirstOrDefault(m => m.Method == method).Label ?? method;
+
+    private static string ActionClass(string action) => action switch
+    {
+        "stockout" => "label-danger",
+        "reorder" => "label-warning",
+        "overstock" => "label-info",
+        _ => "label-success",
+    };
+
+    private static string Qty(decimal value) => value.ToString("#,0.####", CultureInfo.InvariantCulture);
+
+    private static string Num(decimal value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+}

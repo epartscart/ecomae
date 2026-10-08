@@ -13,6 +13,13 @@ public static partial class PhpModuleCatalog
             .Select(p => new ModuleLink(p.Id, p.Label, p.Href, null, p.Group))
             .ToList();
 
+    /// <summary>ERP tabs that exist only on ASP.NET (owner-accepted enhancements), shown in the top nav after the PHP tabs of their area.</summary>
+    public static readonly IReadOnlyList<ModuleLink> AspNetErpTabs =
+    [
+        new("inventory_mgmt/syncron", "Inventory policy (Syncron)", "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=syncron", "fa-sliders", "inventory_mgmt",
+            "Safety stock, reorder points, demand forecast and service levels", false, false, "Periodic"),
+    ];
+
     public static int TotalTrackedCount =>
         ErpCategoryCount
         + ErpAreaCount

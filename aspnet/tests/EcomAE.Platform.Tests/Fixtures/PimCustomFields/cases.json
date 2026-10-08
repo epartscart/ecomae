@@ -1,0 +1,133 @@
+{
+  "no_fields": {
+    "module": "inventory", "itemId": 0, "fields": [], "options": {}, "values": []
+  },
+  "every_type_new_item": {
+    "module": "inventory", "itemId": 0,
+    "fields": [
+      {"id": 1, "name": "Inventory Type", "code": "inventory_type", "field_type": "single_option", "description": "How stock is tracked", "required": 1, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 0},
+      {"id": 2, "name": "Origin", "code": "origin", "field_type": "text", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 1},
+      {"id": 3, "name": "Weight kg", "code": "weight_kg", "field_type": "number", "description": "Net weight", "required": 0, "show_inventory": 1, "show_sales": 0, "show_purchase": 1, "position": 2},
+      {"id": 4, "name": "Launch", "code": "launch", "field_type": "date", "description": "", "required": 1, "show_inventory": 1, "show_sales": 1, "show_purchase": 0, "position": 3},
+      {"id": 5, "name": "Hazardous", "code": "hazardous", "field_type": "boolean", "description": "Needs DG paperwork", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 4},
+      {"id": 6, "name": "Channels", "code": "channels", "field_type": "multi_option", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 5}
+    ],
+    "options": {
+      "1": [{"id": 11, "field_id": 1, "label": "Inventory", "value": "Inventory", "position": 0}, {"id": 12, "field_id": 1, "label": "Non-Inventory", "value": "Non-Inventory", "position": 1}, {"id": 13, "field_id": 1, "label": "Service", "value": "Service", "position": 2}],
+      "6": [{"id": 21, "field_id": 6, "label": "Web", "value": "Web", "position": 0}, {"id": 22, "field_id": 6, "label": "Counter", "value": "Counter", "position": 1}]
+    },
+    "values": []
+  },
+  "existing_values": {
+    "module": "inventory", "itemId": 7,
+    "fields": [
+      {"id": 1, "name": "Inventory Type", "code": "inventory_type", "field_type": "single_option", "description": "", "required": 1, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 0},
+      {"id": 2, "name": "Origin", "code": "origin", "field_type": "text", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 1},
+      {"id": 3, "name": "Weight kg", "code": "weight_kg", "field_type": "number", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 2},
+      {"id": 4, "name": "Launch", "code": "launch", "field_type": "date", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 3},
+      {"id": 5, "name": "Hazardous", "code": "hazardous", "field_type": "boolean", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 4},
+      {"id": 6, "name": "Channels", "code": "channels", "field_type": "multi_option", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 5}
+    ],
+    "options": {
+      "1": [{"id": 11, "field_id": 1, "label": "Inventory", "value": "Inventory", "position": 0}, {"id": 12, "field_id": 1, "label": "Non-Inventory", "value": "Non-Inventory", "position": 1}, {"id": 13, "field_id": 1, "label": "Service", "value": "Service", "position": 2}],
+      "6": [{"id": 21, "field_id": 6, "label": "Web", "value": "Web", "position": 0}, {"id": 22, "field_id": 6, "label": "Counter", "value": "Counter", "position": 1}, {"id": 23, "field_id": 6, "label": "Marketplace", "value": "Marketplace", "position": 2}]
+    },
+    "values": [
+      {"field_id": 1, "value_text": null, "value_number": null, "value_date": null, "value_bool": null, "value_option_ids": "13"},
+      {"field_id": 2, "value_text": "Japan", "value_number": null, "value_date": null, "value_bool": null, "value_option_ids": ""},
+      {"field_id": 3, "value_text": null, "value_number": "12.5000", "value_date": null, "value_bool": null, "value_option_ids": ""},
+      {"field_id": 4, "value_text": null, "value_number": null, "value_date": "2026-11-01", "value_bool": null, "value_option_ids": ""},
+      {"field_id": 5, "value_text": null, "value_number": null, "value_date": null, "value_bool": "1", "value_option_ids": ""},
+      {"field_id": 6, "value_text": null, "value_number": null, "value_date": null, "value_bool": null, "value_option_ids": "23,21"}
+    ]
+  },
+  "html_escaping": {
+    "module": "", "itemId": 9,
+    "fields": [
+      {"id": 31, "name": "Fit <EU> & \"UK\"", "code": "fit_eu_uk", "field_type": "text", "description": "Use 'quotes' & <tags>", "required": 1, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 0},
+      {"id": 32, "name": "Grade", "code": "grade", "field_type": "single_option", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 1}
+    ],
+    "options": {
+      "32": [{"id": 41, "field_id": 32, "label": "A&B <best>", "value": "A&B <best>", "position": 0}, {"id": 42, "field_id": 32, "label": "O'Neil \"C\"", "value": "O'Neil \"C\"", "position": 1}]
+    },
+    "values": [
+      {"field_id": 31, "value_text": "5\" <wide> & 'tall'", "value_number": null, "value_date": null, "value_bool": null, "value_option_ids": ""},
+      {"field_id": 32, "value_text": null, "value_number": null, "value_date": null, "value_bool": null, "value_option_ids": "42"}
+    ]
+  },
+  "sales_module_filter": {
+    "module": "sales", "itemId": 3,
+    "fields": [
+      {"id": 1, "name": "Brand line", "code": "brand_line", "field_type": "text", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 0, "position": 0},
+      {"id": 2, "name": "Bin weight", "code": "bin_weight", "field_type": "number", "description": "", "required": 0, "show_inventory": 1, "show_sales": 0, "show_purchase": 1, "position": 1},
+      {"id": 3, "name": "Promo", "code": "promo", "field_type": "boolean", "description": "", "required": 0, "show_inventory": 0, "show_sales": 1, "show_purchase": 0, "position": 2}
+    ],
+    "options": {},
+    "values": [
+      {"field_id": 1, "value_text": "Premium", "value_number": null, "value_date": null, "value_bool": null, "value_option_ids": ""},
+      {"field_id": 2, "value_text": null, "value_number": "3.0000", "value_date": null, "value_bool": null, "value_option_ids": ""},
+      {"field_id": 3, "value_text": null, "value_number": null, "value_date": null, "value_bool": "0", "value_option_ids": ""}
+    ]
+  },
+  "purchase_module_filter": {
+    "module": "purchase", "itemId": 3,
+    "fields": [
+      {"id": 1, "name": "Brand line", "code": "brand_line", "field_type": "text", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 0, "position": 0},
+      {"id": 2, "name": "Bin weight", "code": "bin_weight", "field_type": "number", "description": "kg", "required": 1, "show_inventory": 1, "show_sales": 0, "show_purchase": 1, "position": 1}
+    ],
+    "options": {},
+    "values": [
+      {"field_id": 1, "value_text": "Premium", "value_number": null, "value_date": null, "value_bool": null, "value_option_ids": ""},
+      {"field_id": 2, "value_text": null, "value_number": "1000000.0000", "value_date": null, "value_bool": null, "value_option_ids": ""}
+    ]
+  },
+  "option_fallbacks": {
+    "module": "inventory", "itemId": 4,
+    "fields": [
+      {"id": 1, "name": "Legacy type", "code": "legacy_type", "field_type": "single_option", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 0},
+      {"id": 2, "name": "Unselected", "code": "unselected", "field_type": "single_option", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 1},
+      {"id": 3, "name": "Empty multi", "code": "empty_multi", "field_type": "multi_option", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 2}
+    ],
+    "options": {
+      "1": [{"id": 5, "field_id": 1, "label": "New", "value": "New", "position": 0}],
+      "2": [{"id": 6, "field_id": 2, "label": "Yes", "value": "Yes", "position": 0}],
+      "3": []
+    },
+    "values": [
+      {"field_id": 1, "value_text": "Legacy", "value_number": null, "value_date": null, "value_bool": null, "value_option_ids": ""},
+      {"field_id": 2, "value_text": null, "value_number": null, "value_date": null, "value_bool": null, "value_option_ids": "0"},
+      {"field_id": 3, "value_text": null, "value_number": null, "value_date": null, "value_bool": null, "value_option_ids": ""}
+    ]
+  },
+  "number_and_bool_shapes": {
+    "module": "inventory", "itemId": 5,
+    "fields": [
+      {"id": 1, "name": "Zero", "code": "zero", "field_type": "number", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 0},
+      {"id": 2, "name": "Negative", "code": "negative", "field_type": "number", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 1},
+      {"id": 3, "name": "Unset number", "code": "unset_number", "field_type": "number", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 2},
+      {"id": 4, "name": "Unset flag", "code": "unset_flag", "field_type": "boolean", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 3},
+      {"id": 5, "name": "Precise", "code": "precise", "field_type": "number", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 4}
+    ],
+    "options": {},
+    "values": [
+      {"field_id": 1, "value_text": null, "value_number": "0.0000", "value_date": null, "value_bool": null, "value_option_ids": ""},
+      {"field_id": 2, "value_text": null, "value_number": "-3.2500", "value_date": null, "value_bool": null, "value_option_ids": ""},
+      {"field_id": 3, "value_text": null, "value_number": null, "value_date": null, "value_bool": null, "value_option_ids": ""},
+      {"field_id": 4, "value_text": null, "value_number": null, "value_date": null, "value_bool": null, "value_option_ids": ""},
+      {"field_id": 5, "value_text": null, "value_number": "0.0125", "value_date": null, "value_bool": null, "value_option_ids": ""}
+    ]
+  },
+  "item_without_values": {
+    "module": "inventory", "itemId": 12,
+    "fields": [
+      {"id": 1, "name": "Origin", "code": "origin", "field_type": "text", "description": "Country of origin", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 0},
+      {"id": 2, "name": "Hazardous", "code": "hazardous", "field_type": "boolean", "description": "", "required": 0, "show_inventory": 1, "show_sales": 1, "show_purchase": 1, "position": 1}
+    ],
+    "options": {},
+    "values": []
+  },
+  "field_codes": {
+    "module": "inventory", "itemId": 0, "fields": [], "options": {}, "values": [],
+    "names": ["Inventory Type", "  Colour / Finish  ", "Size (EU)!", "__x__", "123", "Item\tGroup-2", "\u00c4\u00d6 test"]
+  }
+}

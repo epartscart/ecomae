@@ -2,6 +2,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
@@ -9,6 +10,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpWriteConnectionFactory TenantDb
 
 <PageTitle>Product information · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -37,6 +39,13 @@
                 <input type="hidden" name="returnUrl" value="/erp/product-info-app?pm_view=@_view" />
                 <label>SKU <input class="form-control input-sm" name="sku" placeholder="SKU" required /></label>
                 <label>Name <input class="form-control input-sm" name="name" placeholder="Name" required /></label>
+                @if (_pimFormHtml.Length > 0)
+                {
+                    <div style="flex-basis:100%;max-width:640px;">
+                        <h5 style="margin:6px 0;"><i class="fa fa-tags"></i> PIM custom attributes</h5>
+                        @((MarkupString)_pimFormHtml)
+                    </div>
+                }
                 <button type="submit" class="btn btn-primary btn-sm">Create item</button>
                 <button type="submit" class="btn btn-default btn-sm" formaction="@EcomAeRoutes.ErpProductInfoCreateItemForm" formnovalidate>Check SKU (dry run)</button>
             </form>
@@ -63,6 +72,11 @@
                 <dt>Created</dt><dd>@FormatTime(_openedItem.TimeCreated)</dd>
             </dl>
             <p class="text-muted" style="margin:.85rem 0 0">Create item writes here. Dimension-link save stays Classic.</p>
+            @if (_openedItemPim.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">PIM attributes</p>
+                @((MarkupString)ErpPimCustomFields.RenderDisplayTable(_openedItemPim))
+            }
             @if (_openedItemSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-type siblings</p>
@@ -197,7 +211,116 @@
         </div>
     }
 
-    @if (_view == "fields")
+    @if (_view == "pim_attrs")
+    {
+        <div class="epc-erp-section">
+            <h4><i class="fa fa-tags"></i> PIM custom attributes <span class="badge">@_pimFields.Count.ToString(CultureInfo.InvariantCulture)</span></h4>
+            <p class="text-muted">Create unlimited custom product attributes with any field type. Each attribute can be shown on <strong>Inventory</strong>, <strong>Sales</strong>, and/or <strong>Purchase</strong> module forms. Options are managed per field for dropdown and checkbox types.</p>
+            @if (_isAdmin)
+            {
+                <div style="background:#f4f8fc;border:1px solid #dbe6f1;border-radius:8px;padding:14px;margin-bottom:16px;">
+                    <h5 style="margin-top:0;"><i class="fa fa-plus-circle"></i> Create new attribute</h5>
+                    <form method="post" action="@EcomAeRoutes.ErpProductInfoPimAction">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="pinfo_action" value="pim_create_field" />
+                        <input type="hidden" name="returnUrl" value="@PimHref" />
+                        <div class="row">
+                            <div class="form-group col-sm-4" style="padding:6px;"><label>Field name <span style="color:red">*</span></label><input type="text" name="pim_name" class="form-control input-sm" placeholder="e.g. Inventory Type" maxlength="200" required /></div>
+                            <div class="form-group col-sm-3" style="padding:6px;"><label>Type</label>
+                                <select name="pim_type" class="form-control input-sm" onchange="document.getElementById('pim_opts_row').style.display=(this.value==='single_option'||this.value==='multi_option')?'block':'none';">
+                                    @foreach (var (type, label) in ErpPimCustomFields.TypeLabels)
+                                    {
+                                        <option value="@type">@label</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group col-sm-5" style="padding:6px;"><label>Description</label><input type="text" name="pim_desc" class="form-control input-sm" placeholder="Optional help text" maxlength="500" /></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4" style="padding:6px;"><label>Show on modules</label><div>
+                                <label style="display:inline-block;margin-right:10px;font-weight:normal;"><input type="checkbox" name="pim_show_inventory" value="1" checked /> Inventory</label>
+                                <label style="display:inline-block;margin-right:10px;font-weight:normal;"><input type="checkbox" name="pim_show_sales" value="1" checked /> Sales</label>
+                                <label style="display:inline-block;font-weight:normal;"><input type="checkbox" name="pim_show_purchase" value="1" checked /> Purchase</label>
+                            </div></div>
+                            <div class="col-sm-2" style="padding:6px;"><label>&nbsp;</label><div><label style="font-weight:normal;"><input type="checkbox" name="pim_required" value="1" /> Required</label></div></div>
+                        </div>
+                        <div id="pim_opts_row" style="display:none;padding:6px;">
+                            <label>Options (comma-separated for dropdown/checkbox fields)</label>
+                            <textarea name="pim_options" class="form-control input-sm" rows="2" placeholder="e.g. Inventory, Non-Inventory, Service"></textarea>
+                        </div>
+                        <div style="padding:6px;"><button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Create attribute</button></div>
+                    </form>
+                </div>
+            }
+            <div class="table-responsive">
+                <table class="table table-bordered table-condensed table-striped" style="background:#fff;">
+                    <thead><tr><th>Name</th><th>Code</th><th>Type</th><th>Inventory</th><th>Sales</th><th>Purchase</th><th>Required</th><th>Options</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        @if (_pimFields.Count == 0)
+                        {
+                            <tr><td colspan="9" class="text-muted">No PIM attributes yet. Use the form above to create one.</td></tr>
+                        }
+                        @foreach (var pf in _pimFields)
+                        {
+                            var opts = _pimOptions.TryGetValue(pf.Id, out var list) ? list : [];
+                            <tr>
+                                <td><strong>@pf.Name</strong>@if (pf.Description != "") {<br /><small class="text-muted">@pf.Description</small>}</td>
+                                <td><code>@pf.Code</code></td>
+                                <td>@ErpPimCustomFields.TypeLabel(pf.FieldType)</td>
+                                <td style="text-align:center;">@Tick(pf.ShowInventory)</td>
+                                <td style="text-align:center;">@Tick(pf.ShowSales)</td>
+                                <td style="text-align:center;">@Tick(pf.ShowPurchase)</td>
+                                <td style="text-align:center;">@(pf.Required ? "Yes" : "No")</td>
+                                <td>
+                                    @foreach (var o in opts)
+                                    {
+                                        <form method="post" action="@EcomAeRoutes.ErpProductInfoPimAction" style="display:inline-block;margin:1px;">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="pinfo_action" value="pim_delete_option" />
+                                            <input type="hidden" name="opt_id" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
+                                            <input type="hidden" name="returnUrl" value="@PimHref" />
+                                            <span class="label label-info">@o.Label <button type="submit" title="Remove" style="background:none;border:0;color:#fff;opacity:.7;padding:0 0 0 2px;">&times;</button></span>
+                                        </form>
+                                    }
+                                    @if (pf.IsOptionType)
+                                    {
+                                        @if (_isAdmin)
+                                        {
+                                            <form method="post" action="@EcomAeRoutes.ErpProductInfoPimAction" class="form-inline" style="margin-top:4px;display:inline-flex;gap:2px;">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="pinfo_action" value="pim_add_option" />
+                                                <input type="hidden" name="pim_field_id" value="@pf.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                <input type="hidden" name="returnUrl" value="@PimHref" />
+                                                <input type="text" name="opt_label" class="form-control input-sm" placeholder="Add option" maxlength="200" style="width:100px;" required />
+                                                <button type="submit" class="btn btn-default btn-xs"><i class="fa fa-plus"></i></button>
+                                            </form>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (_isAdmin)
+                                    {
+                                        <form method="post" action="@EcomAeRoutes.ErpProductInfoPimAction" style="display:inline;">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="pinfo_action" value="pim_delete_field" />
+                                            <input type="hidden" name="pim_field_id" value="@pf.Id.ToString(CultureInfo.InvariantCulture)" />
+                                            <input type="hidden" name="returnUrl" value="@PimHref" />
+                                            <button type="submit" class="btn btn-danger btn-xs" title="Deactivate" onclick="return confirm('Deactivate this attribute?');"><i class="fa fa-trash"></i></button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else if (_view == "fields")
     {
         <h2 style="font-size:16px;">Field setup</h2>
         <div class="epc-erp-table-wrap">
@@ -290,7 +413,8 @@
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=pim&tab=product_info";
     private const string _listHref = "/erp/product-info-app";
     private static readonly IReadOnlyList<(string Key, string Label)> _views =
-        [("devkit", "Product dev kit"), ("all", "All products"), ("released", "Release product"), ("dimensions", "Dimensions & variants"), ("fields", "Field setup")];
+        [("devkit", "Product dev kit"), ("all", "All products"), ("released", "Release product"), ("dimensions", "Dimensions & variants"), ("fields", "Field setup"), ("pim_attrs", "PIM attributes")];
+    private const string PimHref = "/erp/product-info-app?pm_view=pim_attrs";
     private bool _isAdmin;
     private string _view = "all";
     private IReadOnlyList<ErpProductInfoItemDigest> _items = [];
@@ -311,6 +435,10 @@
     private IReadOnlyList<ErpProductInfoItemDigest> _openedItemSiblings = [];
     private IReadOnlyList<ErpProductInfoFieldDigest> _openedFieldSiblings = [];
     private IReadOnlyList<ErpProductInfoVariantDigest> _openedVariantSiblings = [];
+    private IReadOnlyList<ErpPimCustomFields.Field> _pimFields = [];
+    private IReadOnlyDictionary<long, IReadOnlyList<ErpPimCustomFields.Option>> _pimOptions = new Dictionary<long, IReadOnlyList<ErpPimCustomFields.Option>>();
+    private IReadOnlyList<ErpPimCustomFields.DisplayRow> _openedItemPim = [];
+    private string _pimFormHtml = "";
 
     private long _openedId => _openedItemId > 0 ? _openedItemId : (_openedFieldId > 0 ? _openedFieldId : _openedVariantId);
 
@@ -357,7 +485,7 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
         var v = ctx.Request.Query["pm_view"].ToString();
-        _view = v is "devkit" or "released" or "dimensions" or "fields" or "all" ? v : "all";
+        _view = v is "devkit" or "released" or "dimensions" or "fields" or "pim_attrs" or "all" ? v : "all";
         _ok = ctx.Request.Query["ok"].ToString();
         _err = ctx.Request.Query["err"].ToString();
         _openedItemId = ErpRecordOpen.ReadId(ctx.Request, "pm_item_id");
@@ -373,6 +501,7 @@
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin) { _message = "Sign in for live data."; return; }
 
+        await LoadPimAsync(ctx.RequestAborted);
         var result = await Dashboards.BuildErpProductInfoDigestAsync(200, ctx.RequestAborted);
         _items = result.Items;
         _fields = result.FieldDefs;
@@ -447,6 +576,35 @@
             }
         }
     }
+
+    private async Task LoadPimAsync(CancellationToken ct)
+    {
+        if (!TenantDb.IsConfigured) return;
+        try
+        {
+            await using var db = await TenantDb.OpenAsync(ct);
+            var all = await ErpPimCustomFields.ListFieldsAsync(db, "", ct);
+            _pimOptions = await ErpPimCustomFields.OptionsByFieldAsync(db, ct);
+            if (_view == "pim_attrs") _pimFields = all;
+            if (_view is "all" or "devkit" or "released")
+            {
+                _pimFormHtml = ErpPimCustomFields.RenderFormFields(all.Where(f => f.ShowInventory).ToList(), _pimOptions, new Dictionary<long, ErpPimCustomFields.ItemValue>());
+            }
+
+            if (_openedItemId > 0)
+            {
+                var values = await ErpPimCustomFields.ValuesForItemAsync(db, _openedItemId, ct);
+                _openedItemPim = ErpPimCustomFields.DisplayRows(all, _pimOptions, values, "");
+            }
+        }
+        catch (System.Data.Common.DbException)
+        {
+            // PIM tables are created by the first attribute write; until then there is nothing to show.
+        }
+    }
+
+    private static MarkupString Tick(bool on)
+        => new(on ? "<i class=\"fa fa-check text-success\"></i>" : "<i class=\"fa fa-minus text-muted\"></i>");
 
     private static string FormatTime(long unix)
     {

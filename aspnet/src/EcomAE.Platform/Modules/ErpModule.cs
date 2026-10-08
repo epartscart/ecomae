@@ -5315,6 +5315,7 @@ public sealed class ErpModule : ISurfaceModule
             IErpInvCreateItemDryRun dryRun,
             IErpInventoryMovementWriteService writes,
             IErpDimensionWriteService dimensions,
+            IErpPimWriteService pim,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -5324,6 +5325,7 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInvCreateItemBody>(context, cancellationToken) ?? new();
+            IReadOnlyDictionary<string, IReadOnlyList<string>> pimPost = new Dictionary<string, IReadOnlyList<string>>();
             var sku = body.Sku ?? body.Code;
             var name = body.Name;
             var itemType = body.ItemType;
@@ -5371,11 +5373,24 @@ public sealed class ErpModule : ISurfaceModule
                 }
 
                 dim = ErpDimensionWriteService.ParseDimMap(form);
+                pimPost = ErpPimWriteService.PostFrom(form);
             }
 
             if (!confirm)
             {
                 return Results.Ok(dryRun.Evaluate(new ErpInvCreateItemRequest(body.Id, sku, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var pimErrors = await pim.ValidateItemPostAsync(pimPost, "inventory", cancellationToken);
+            if (pimErrors.Count > 0)
+            {
+                var pimMessage = string.Join(" ", pimErrors);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/inventory-stock-app",
+                    false,
+                    pimMessage,
+                    new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid", message = pimMessage, session = SessionPayload(session) });
             }
 
             var written = await writes.CreateItemAsync(
@@ -5384,6 +5399,11 @@ public sealed class ErpModule : ISurfaceModule
             if (written.Succeeded && written.Id > 0 && dim is { Count: > 0 })
             {
                 await dimensions.SaveAsync("inventory_item", written.Id, dim, cancellationToken);
+            }
+
+            if (written.Succeeded && written.Id > 0)
+            {
+                await pim.SaveItemPostAsync(written.Id, pimPost, "inventory", cancellationToken);
             }
 
             return LiveWriteFormBinder.Complete(
@@ -6367,6 +6387,127 @@ public sealed class ErpModule : ISurfaceModule
             return LiveWriteFormBinder.Complete(context, "/erp/quality-app", result.Result.Succeeded, result.Result.Message, new { ok = result.Result.Succeeded, writes = result.Result.Writes, phpAuthoritative = false, validation_code = result.Result.Code, message = result.Result.Message, id = result.Result.Id, session = SessionPayload(session) });
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpQualityNcrCreateForm, HandleQmNcrCreateAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpSyncronAction, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpSyncronWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/syncron-app", "Admin ERP capability required.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, writes = 0, validation_code = "invalid", message = "Form post expected." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    EcomAeRoutes.ErpSyncronApp,
+                    false,
+                    "Set confirmWrites=true to change inventory policies.",
+                    new { ok = false, writes = 0, writesBlocked = true, validation_code = "dry_run", message = "Set confirmWrites=true to change inventory policies.", session = SessionPayload(session) });
+            }
+
+            var action = LiveWriteFormBinder.Text(form, "syncron_action");
+            ErpSyncronPolicy.Policy? policy = null;
+            if (action == "policy_save")
+            {
+                policy = new ErpSyncronPolicy.Policy(
+                    LiveWriteFormBinder.Long(form, "policy_id"),
+                    LiveWriteFormBinder.Text(form, "scope"),
+                    LiveWriteFormBinder.Text(form, "scope_ref"),
+                    LiveWriteFormBinder.Text(form, "policy_name"),
+                    LiveWriteFormBinder.Dec(form, "safety_stock_qty"),
+                    LiveWriteFormBinder.Dec(form, "reorder_point"),
+                    LiveWriteFormBinder.Dec(form, "reorder_qty"),
+                    LiveWriteFormBinder.Dec(form, "max_stock_qty"),
+                    LiveWriteFormBinder.DecOrNull(form, "service_level_pct") ?? ErpSyncronPolicy.DefaultServiceLevel,
+                    LiveWriteFormBinder.IntOrNull(form, "lead_time_days") ?? ErpSyncronPolicy.DefaultLeadTimeDays,
+                    LiveWriteFormBinder.IntOrNull(form, "review_period_days") ?? ErpSyncronPolicy.DefaultReviewDays,
+                    LiveWriteFormBinder.Text(form, "demand_method"),
+                    LiveWriteFormBinder.IntOrNull(form, "demand_window_days") ?? ErpSyncronPolicy.DefaultWindowDays,
+                    LiveWriteFormBinder.DecOrNull(form, "demand_alpha") ?? ErpSyncronPolicy.DefaultAlpha);
+            }
+
+            var written = await writes.ApplyAsync(
+                (int)session.UserId,
+                new ErpSyncronActionRequest(
+                    action,
+                    policy,
+                    LiveWriteFormBinder.Long(form, "policy_id"),
+                    LiveWriteFormBinder.Long(form, "warehouse_id"),
+                    LiveWriteFormBinder.Long(form, "item_id"),
+                    LiveWriteFormBinder.Text(form, "period_month"),
+                    LiveWriteFormBinder.Dec(form, "demand_qty"),
+                    LiveWriteFormBinder.Dec(form, "fulfilled_qty"),
+                    LiveWriteFormBinder.Int(form, "stockout_events")),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ErpSyncronApp,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpProductInfoPimAction, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpPimWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/product-info-app?pm_view=pim_attrs", "Admin ERP capability required.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, writes = 0, validation_code = "invalid", message = "Form post expected." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var action = LiveWriteFormBinder.Text(form, "pinfo_action");
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/product-info-app?pm_view=pim_attrs",
+                    false,
+                    "Set confirmWrites=true to change PIM attributes.",
+                    new { ok = false, writes = 0, writesBlocked = true, validation_code = "dry_run", message = "Set confirmWrites=true to change PIM attributes.", session = SessionPayload(session) });
+            }
+
+            var written = await writes.ApplyAsync(
+                (int)session.UserId,
+                new ErpPimActionRequest(
+                    action,
+                    LiveWriteFormBinder.Long(form, "pim_field_id"),
+                    LiveWriteFormBinder.Long(form, "opt_id"),
+                    LiveWriteFormBinder.Text(form, "pim_name"),
+                    LiveWriteFormBinder.Text(form, "pim_type"),
+                    LiveWriteFormBinder.Text(form, "pim_desc"),
+                    LiveWriteFormBinder.Flag(form, "pim_required"),
+                    LiveWriteFormBinder.Flag(form, "pim_show_inventory"),
+                    LiveWriteFormBinder.Flag(form, "pim_show_sales"),
+                    LiveWriteFormBinder.Flag(form, "pim_show_purchase"),
+                    LiveWriteFormBinder.Text(form, "pim_options"),
+                    LiveWriteFormBinder.Text(form, "opt_label")),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/product-info-app?pm_view=pim_attrs",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpProductInfoCreateItemForm, async (HttpContext context, ILegacySessionValidator validator, IErpInvCreateItemDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
