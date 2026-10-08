@@ -2,211 +2,34 @@
 @page "/en/shop/quotes"
 @page "/shop/quotes"
 @layout Layout.PhpChromeLayout
-@using System.Globalization
-@using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
-@inject ILegacySessionValidator Sessions
+@using EcomAE.Platform.Storefront
 @inject IHttpContextAccessor Http
+@inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
+@inject Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions> PhpReference
+@inject IWebHostEnvironment Env
+@*
+  PHP twin: content/shop/order_process/my_quotes.php (StorefrontMyQuotes). Submit and accept post to the ported
+  ajax_quote_submit.php / ajax_quote_accept.php endpoints.
+*@
 
 <PageTitle>My quotes · @_brand</PageTitle>
-<PhpChromeStyles Surface="storefront" />
-<HeadContent>
-<style>
-        
-        .epc-sf-q-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-sf-q-cta a {
-            display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#dc2626;
-        }
-        .epc-sf-q-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-sf-q-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-sf-q-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-sf-q-table th, .epc-sf-q-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; }
-        .epc-sf-q-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
-        .epc-sf-q-table a { color:#b91c1c; font-weight:700; text-decoration:none; }
-        .epc-sf-q-gate { padding:1.25rem; background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; }
-        .epc-sf-q-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
-    
-</style>
-</HeadContent>
-
-<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
 
 <StorefrontTenantChrome>
-
-    <PhpStorefrontPageHeader Title="My quotes"
-                            Subtitle="Request pricing, submit a draft, and accept a quoted offer on this storefront.">
-        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
-            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Search parts</a>
-    </PhpStorefrontPageHeader>
-
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
-    {
-        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
-    }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
-    {
-        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
-    }
-
-    @if (!_isCustomer)
-    {
-        <div class="epc-quotes-panel epc-quotes-panel--login">
-            <div class="epc-quotes-panel__icon"><i class="fa fa-file-text-o" aria-hidden="true"></i></div>
-            <div class="epc-quotes-panel__content">
-                <span class="epc-quotes-panel__eyebrow">Customer quotes</span>
-                <h2>Login required to view quotes</h2>
-                <p>Sign in with your customer account to view quote requests.</p>
-                <div class="epc-quotes-panel__chips">
-                    <span><i class="fa fa-lock" aria-hidden="true"></i> Private customer records</span>
-                    <span><i class="fa fa-shopping-cart" aria-hidden="true"></i> Add quoted items to cart</span>
-                </div>
-                <div class="epc-quotes-panel__actions">
-                    <a class="btn btn-ar btn-primary" href="/storefront/login">Sign in</a>
-                </div>
-            </div>
+    <section style="padding:2rem 0 3rem">
+        <div class="container">
+            <script>window.jQuery || document.write('<script src="/lib/jQuery/jQuery.js"><\/script>');</script>
+            @((MarkupString)_html)
         </div>
-        <div class="panel panel-primary epc-quotes-login-form">
-            <p class="epc-sf-q-gate" style="margin:0;padding:.75rem 1rem">
-                Please log in with the customer account that created the quote request.
-            </p>
-        </div>
-    }
-    else
-    {
-        <div class="epc-quotes-panel">
-            <div class="epc-quotes-panel__icon"><i class="fa fa-file-text-o" aria-hidden="true"></i></div>
-            <div class="epc-quotes-panel__content">
-                <span class="epc-quotes-panel__eyebrow">Customer quotes</span>
-                <h2>My quote requests</h2>
-            </div>
-        </div>
-        <div class="epc-sf-q-table-wrap epc-quotes-detail">
-            <table class="table epc-sf-q-table">
-                <thead>
-                    <tr>
-                        <th>Quote</th>
-                        <th>Status</th>
-                        <th>Created</th>
-                        <th>Updated</th>
-                        <th>Items</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (_rows.Count == 0)
-                    {
-                        <tr><td colspan="6">No quote requests yet. Add a brand/part below or from part search.</td></tr>
-                    }
-                    else
-                    {
-                        @foreach (var row in _rows)
-                        {
-                            <tr>
-                                <td><strong>#@row.Id</strong></td>
-                                <td>@(string.IsNullOrWhiteSpace(row.Status) ? "—" : row.Status)</td>
-                                <td>@FormatUnix(row.TimeCreated)</td>
-                                <td>@FormatUnix(row.TimeUpdated)</td>
-                                <td>@row.ItemCount</td>
-                                <td>
-                                    <a href="@StorefrontSurfaceLinks.ForQuote(row.Id)">Open</a>
-                                </td>
-                            </tr>
-                        }
-                    }
-                </tbody>
-            </table>
-        </div>
-
-        @if (_detail is not null)
-        {
-            <h2 style="margin:1.1rem 0 .55rem;font-size:1.05rem">Quote #@_detail.Id — lines</h2>
-            <div class="epc-sf-q-table-wrap">
-                <table class="epc-sf-q-table">
-                    <thead>
-                        <tr>
-                            <th>Brand</th>
-                            <th>Article</th>
-                            <th>Name</th>
-                            <th>Qty</th>
-                            <th>Price</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (_detail.Items.Count == 0)
-                        {
-                            <tr><td colspan="5">No lines on this quote.</td></tr>
-                        }
-                        else
-                        {
-                            @foreach (var item in _detail.Items)
-                            {
-                                <tr>
-                                    <td>@(string.IsNullOrWhiteSpace(item.Manufacturer) ? "—" : item.Manufacturer)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(item.Article) ? "—" : item.Article)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(item.Name) ? "—" : item.Name)</td>
-                                    <td>@item.CountNeed.ToString("0.###", CultureInfo.InvariantCulture)</td>
-                                    <td>@item.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                </tr>
-                            }
-                        }
-                    </tbody>
-                </table>
-            </div>
-            @if (string.Equals(_detail.Status, "draft", StringComparison.OrdinalIgnoreCase))
-            {
-                <form method="post" action="@PhpCustomerWrites.QuotesWriteHref" style="margin-top:.75rem">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="@("/storefront/quotes-app?id=" + _detail.Id.ToString(CultureInfo.InvariantCulture))" />
-                    <input type="hidden" name="quoteId" value="@_detail.Id.ToString(CultureInfo.InvariantCulture)" />
-                    <label style="display:block;margin:0 0 .45rem">Customer note</label>
-                    <textarea name="customerNote" rows="2" style="width:100%;margin:0 0 .65rem;padding:.45rem"></textarea>
-                    <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Submit quote</button>
-                </form>
-            }
-            @if (string.Equals(_detail.Status, "quoted", StringComparison.OrdinalIgnoreCase))
-            {
-                <form method="post" action="@PhpCustomerWrites.QuotesAcceptHref" style="margin-top:.75rem">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/storefront/cart-app" />
-                    <input type="hidden" name="quoteId" value="@_detail.Id.ToString(CultureInfo.InvariantCulture)" />
-                    <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Accept quote — add to cart</button>
-                </form>
-            }
-        }
-
-        <form method="post" action="@PhpCustomerWrites.QuotesAddManualHref" style="margin-top:1.1rem;background:#fff;border:1px solid #e5e7eb;border-radius:.55rem;padding:1.1rem 1.2rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/storefront/quotes-app" />
-            <p style="margin:0 0 .75rem;font-weight:700">Add a manual quote line</p>
-            <label>Brand</label>
-            <input name="manufacturer" required style="width:100%;margin:.25rem 0 .75rem;padding:.45rem" />
-            <label>Part number</label>
-            <input name="article" required style="width:100%;margin:.25rem 0 .75rem;padding:.45rem" />
-            <label>Qty</label>
-            <input type="number" name="countNeed" value="1" min="1" style="width:6rem;margin:.25rem 0 .75rem;padding:.45rem" />
-            <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Add to quote</button>
-        </form>
-
-        <p class="epc-sf-q-note">
-            Open a quote to review lines. Submit a draft, or accept a quoted offer to add priced lines to the cart.
-        </p>
-    }
+    </section>
 </StorefrontTenantChrome>
 
 @code {
     private string _brand = "eParts Cart";
-    private bool _isCustomer;
-    private IReadOnlyList<StorefrontQuoteDigest> _rows = [];
-    private StorefrontQuoteDetailDigest? _detail;
-    private string _source = "n/a";
-    private string _flashOk = "";
-    private string _flashErr = "";
-
-    [SupplyParameterFromQuery(Name = "id")]
-    public int? QuoteId { get; set; }
+    private string _html = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -217,34 +40,53 @@
         }
 
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
-        _flashOk = ctx.Request.Query["ok"].ToString();
-        _flashErr = ctx.Request.Query["err"].ToString();
-
-        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+        var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
+        var config = EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(PhpReference.Value);
+        var cookies = ctx.Request.Cookies;
+        var lang = StorefrontPhpHomeLinks.LangHref(ctx);
+        try
         {
-            _isCustomer = false;
-            return;
+            await using var connection = await Connections.OpenForTenantAsync(tenant, ctx.RequestAborted);
+            var access = new ErpUserAccess.Cookies(cookies["session"], cookies["u_id"], cookies["admin_session"], cookies["admin_u_id"]);
+            var userId = await ErpUserAccess.UserIdAsync(connection, access, ctx.RequestAborted);
+            var adminId = await ErpUserAccess.AdminIdAsync(connection, access, ctx.RequestAborted);
+            var loginForm = string.Empty;
+            Func<int, string> t = _ => string.Empty;
+            if (userId <= 0 && adminId <= 0)
+            {
+                (loginForm, t) = await StorefrontLoginFormLoader.RenderGeneralAsync(
+                    ctx,
+                    connection,
+                    Connections,
+                    PhpReference.Value,
+                    Env,
+                    new StorefrontLoginFormLoader.Request(0, lang, cookies["session"], cookies["u_id"], cookies["epc_oauth_last_google_email"], config),
+                    StorefrontMyQuotes.LoginFormPostfix,
+                    null,
+                    [StorefrontMyQuotes.LoginTextStringId],
+                    ctx.RequestAborted);
+            }
+
+            var input = new StorefrontMyQuotes.Input(
+                userId,
+                adminId,
+                ctx.Request.Query.TryGetValue("id", out var id) ? UmapiImageProxy.PhpIntCast(id.ToString()) : 0,
+                lang,
+                config.TryGetValue("backend_dir", out var backend) ? backend : "cp",
+                config.TryGetValue("currency_show_mode", out var mode) ? mode : "sign_before",
+                config.TryGetValue("shop_currency", out var shop) ? shop : null,
+                cookies["epc_currency"],
+                cookies["epc_country"],
+                loginForm);
+            _html = await StorefrontMyQuotes.RenderAsync(connection, input, t, StorefrontMyQuotes.PhpDate, ctx.RequestAborted);
         }
-
-        _isCustomer = true;
-        var list = await Dashboards.ListStorefrontQuotesAsync(session.UserId, 100, ctx.RequestAborted);
-        _rows = list.Rows;
-        _source = list.Source;
-
-        if (QuoteId is > 0)
+        catch (System.Data.Common.DbException)
         {
-            _detail = await Dashboards.GetStorefrontQuoteAsync(session.UserId, QuoteId.Value, ctx.RequestAborted);
+            _html = "<p>Quotes are unavailable right now.</p>";
         }
-    }
-
-    private static string FormatUnix(long unix)
-    {
-        if (unix <= 0)
+        catch (InvalidOperationException)
         {
-            return "—";
+            _html = "<p>Quotes are unavailable right now.</p>";
         }
-
-        return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) + " UTC";
     }
 }

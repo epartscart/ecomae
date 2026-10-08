@@ -51,8 +51,8 @@ public sealed class StorefrontFrontendParityWaveTests
         Assert.True(File.Exists(RepoPath("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVehicleCatalogApp.razor")));
         Assert.True(File.Exists(RepoPath("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontQuotesApp.razor")));
         var quotes = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontQuotesApp.razor");
-        Assert.Contains("epc-quotes-panel", quotes, StringComparison.Ordinal);
-        Assert.Contains("epc-quotes-panel--login", quotes, StringComparison.Ordinal);
+        Assert.Contains("StorefrontMyQuotes.RenderAsync(", quotes, StringComparison.Ordinal);
+        Assert.Contains("epc-quotes-panel--login", Read("aspnet/src/EcomAE.Platform/Storefront/StorefrontMyQuotes.cs"), StringComparison.Ordinal);
         Assert.True(File.Exists(RepoPath("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontWishlistApp.razor")));
         Assert.True(File.Exists(RepoPath("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCompareApp.razor")));
         Assert.True(File.Exists(RepoPath("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontProductApp.razor")));
