@@ -1348,6 +1348,7 @@ app.UseMiddleware<LifeOsPersonalAuthGateMiddleware>();
 app.UseMiddleware<LegacyLoginBridgeMiddleware>();
 // Storefront login page password POSTs (authentication=true): the PHP authentication plugin, before routing.
 app.UseMiddleware<EcomAE.Platform.Storefront.StorefrontLoginPostMiddleware>();
+app.UseMiddleware<EcomAE.Platform.Storefront.StorefrontProfilePostMiddleware>();
 // Exact /en/ /ar/ /me/ /ru/ homes → same storefront as / (browser URL stays /en/).
 app.UseMiddleware<LangHomeFallbackMiddleware>();
 // /ar|/ru|/me deep storefront URLs → the /en Blazor twins (browser URL stays).

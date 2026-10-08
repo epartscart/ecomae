@@ -1,0 +1,90 @@
+[
+  {"name": "guest", "cookie": ""},
+  {"name": "wrong_session_is_guest", "cookie": "session=sess41; u_id=42"},
+  {"name": "retail_email_only", "lang": "/en"},
+  {
+    "name": "wholesale_pending_all_contacts_ru_mask",
+    "lang": "/ar",
+    "config": {"show_phone_mask": 1, "country_phone_mask": "ru", "from_name": "Shop", "from_email": "shop@example.com", "smtp_mode": "1", "smtp_encryption": "ssl", "smtp_host": "smtp.example.com", "smtp_port": "465", "smtp_username": "u", "smtp_password": "p"},
+    "setup": [
+      "INSERT INTO sms_api (active) VALUES (1), (0)",
+      "INSERT INTO reg_variants (id, caption) VALUES (2, 'rv_company')",
+      "UPDATE users SET reg_variant = 2, phone_confirmed = 1 WHERE user_id = 41",
+      "INSERT INTO users_groups_bind (user_id, group_id) VALUES (41, 3), (41, 99)",
+      "INSERT INTO users_profiles (user_id, data_key, data_value) VALUES (41, 'epc_customer_type', 'wholesale'), (41, 'epc_trade_approval_status', 'pending'), (41, 'epc_tax_exempt_cert_path', '/uploads/cert?a=1&b=\"2\"'), (41, 'epc_tax_exempt_cert_status', 'pending_review'), (41, 'customer_vat_type', 'local_b2b'), (41, 'email', 'profile@example.com'), (41, 'name', 'Later')"
+    ]
+  },
+  {
+    "name": "approved_dealing_currency_form_vat_off",
+    "lang": "/en/",
+    "config": {"show_phone_mask": 1, "country_phone_mask": "xx"},
+    "setup": [
+      "INSERT INTO epc_price_settings (setting_key, setting_value) VALUES ('vat_uae_sales_only', '0')",
+      "INSERT INTO users_profiles (user_id, data_key, data_value) VALUES (41, 'epc_customer_type', 'retail'), (41, 'epc_trade_approval_status', 'approved'), (41, 'epc_dealing_currency', 'c840'), (41, 'epc_reg_country', 'SA'), (41, 'misc_note', NULL)"
+    ]
+  },
+  {
+    "name": "approved_change_pending_wholesale_no_cert",
+    "lang": "/en",
+    "config": {"shop_currency": "999"},
+    "setup": [
+      "INSERT INTO users_profiles (user_id, data_key, data_value) VALUES (41, 'epc_customer_type', 'wholesale'), (41, 'epc_trade_approval_status', 'approved'), (41, 'epc_dealing_currency', '840'), (41, 'epc_currency_change_requested', '1'), (41, 'epc_currency_change_requested_iso', '978'), (41, 'epc_tax_exempt_cert_status', 'approved'), (41, 'customer_vat_type', 'bogus')"
+    ]
+  },
+  {
+    "name": "sms_only_kz_mask_rejected",
+    "lang": "/en",
+    "config": {"show_phone_mask": 1, "country_phone_mask": "kz"},
+    "setup": [
+      "INSERT INTO sms_api (active) VALUES (1)",
+      "UPDATE users SET phone = '', email_confirmed = 0 WHERE user_id = 41",
+      "INSERT INTO users_profiles (user_id, data_key, data_value) VALUES (41, 'epc_customer_type', 'trader'), (41, 'epc_trade_approval_status', 'rejected')"
+    ]
+  },
+  {
+    "name": "post_currency_change",
+    "lang": "/en",
+    "method": "POST",
+    "form": {"epc_request_currency_change": "1", "csrf_guard_key": "ck41", "epc_requested_currency": "97x8", "epc_currency_change_note": "  Need <EUR> & more  "},
+    "setup": [
+      "INSERT INTO users_profiles (user_id, data_key, data_value) VALUES (41, 'epc_trade_approval_status', 'approved'), (41, 'epc_dealing_currency', '840')"
+    ]
+  },
+  {
+    "name": "post_currency_change_unknown_iso_no_note_pending",
+    "lang": "/en",
+    "method": "POST",
+    "form": {"epc_request_currency_change": "1", "csrf_guard_key": "ck41", "epc_requested_currency": "555", "epc_currency_change_note": "   "},
+    "setup": [
+      "INSERT INTO users_profiles (user_id, data_key, data_value) VALUES (41, 'epc_trade_approval_status', 'pending')"
+    ]
+  },
+  {
+    "name": "post_csrf_mismatch",
+    "method": "POST",
+    "form": {"epc_request_currency_change": "1", "csrf_guard_key": "nope", "epc_requested_currency": "978"},
+    "setup": ["INSERT INTO users_profiles (user_id, data_key, data_value) VALUES (41, 'epc_trade_approval_status', 'approved'), (41, 'epc_dealing_currency', '840')"]
+  },
+  {
+    "name": "post_csrf_missing",
+    "method": "POST",
+    "form": {"epc_request_currency_change": "1", "epc_requested_currency": "978"}
+  },
+  {
+    "name": "post_csrf_empty_query_wins",
+    "method": "POST",
+    "query": "?csrf_guard_key=",
+    "form": {"epc_request_currency_change": "1", "csrf_guard_key": "ck41"}
+  },
+  {
+    "name": "post_without_flag_renders",
+    "method": "POST",
+    "form": {"csrf_guard_key": "bad", "other": "1"}
+  },
+  {
+    "name": "post_guest_renders_login_text",
+    "cookie": "",
+    "method": "POST",
+    "form": {"epc_request_currency_change": "1", "csrf_guard_key": "ck41"}
+  }
+]
