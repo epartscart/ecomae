@@ -1,0 +1,645 @@
+{
+ "results": [
+  {
+   "status": 200,
+   "body": "{\"ok\":false}"
+  },
+  {
+   "status": 400,
+   "body": "{\"ok\":false,\"message\":\"Unknown action\"}"
+  },
+  {
+   "status": 400,
+   "body": "{\"ok\":false,\"message\":\"Unknown action\"}"
+  },
+  {
+   "status": 400,
+   "body": "{\"ok\":false,\"message\":\"Unknown action\"}"
+  },
+  {
+   "status": 400,
+   "body": "{\"ok\":false,\"message\":\"Unknown action\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Enter a valid email address.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Choose a password of at least 6 characters.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"token\":\"{T1}\",\"returning\":false,\"message\":\"Account created \\u2014 all free tools unlocked. A confirmation email is on its way.\",\"account\":{\"email\":\"owner@example.com\",\"company\":\"Acme <LLC> & Co\",\"country\":\"AE\"}}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"exists\":true,\"message\":\"This email is already registered \\u2014 please log in instead.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"account\":{\"email\":\"owner@example.com\",\"company\":\"Acme <LLC> & Co\",\"country\":\"AE\"}}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"account\":{\"email\":\"owner@example.com\",\"company\":\"Acme <LLC> & Co\",\"country\":\"AE\"}}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Incorrect password. Please try again.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Enter your password.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"No free account found for this email \\u2014 please register.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"token\":\"{T1}\",\"message\":\"Welcome back \\u2014 all your saved results are here.\",\"account\":{\"email\":\"owner@example.com\",\"company\":\"Acme <LLC> & Co\",\"country\":\"AE\"}}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Please register first.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"currency\":\"GBP\",\"label\":\"VAT\",\"rate\":20,\"rows\":[[\"Standard-rated sales\",10000],[\"Zero-rated sales\",0],[\"Exempt sales\",0],[\"Output VAT (20%)\",2000],[\"Standard-rated purchases\",2500],[\"Import VAT\",0],[\"Recoverable input VAT\",500]],\"net\":1500,\"net_label\":\"VAT payable\",\"scheme\":\"HMRC MTD\",\"compliance\":[{\"level\":\"pass\",\"message\":\"Output and input VAT computed at the 20% country rate.\"}]}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Unknown tool\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"currency\":\"AED\",\"rows_text\":[[\"Country\",\"United Arab Emirates (AE)\"],[\"Currency\",\"AED\"],[\"VAT standard rate\",\"5%\"],[\"Corporate tax rate\",\"9%\"],[\"Small-business / relief threshold\",\"AED 375,000.00\"],[\"E-invoice scheme\",\"FTA (PINT-AE)\"],[\"E-invoice network\",\"Peppol (PINT-AE)\"],[\"Filing authority\",\"Federal Tax Authority (FTA)\"],[\"VAT/GST return\",\"VAT 201\"],[\"Corporate tax return\",\"CT return\"],[\"Fiscal year starts\",\"January\"]],\"net\":5,\"net_label\":\"VAT rate (%)\",\"note\":\"0% on first AED 375,000; 9% above (UAE CT).\",\"compliance\":[{\"level\":\"pass\",\"message\":\"Tax profile resolved for United Arab Emirates from your registered country.\"},{\"level\":\"pass\",\"message\":\"VAT applies at 5%.\"}]}"
+  },
+  {
+   "sql": true
+  },
+  {
+   "sql": true
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"This tool is temporarily unavailable. Please check back soon.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Unknown tool\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Please register first.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"id\":1}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"id\":2}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"saves\":[{\"id\":2,\"tool\":\"ct\",\"country\":\"\",\"title\":\"Saved result\",\"time_created\":\"*\"},{\"id\":1,\"tool\":\"\",\"country\":\"AE\",\"title\":\"\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\",\"time_created\":\"*\"}]}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"account\":{\"email\":\"owner@example.com\",\"company\":\"Acme <LLC> & Co\",\"country\":\"AE\"}}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"id\":3}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"saves\":[{\"id\":3,\"tool\":\"ifrs\",\"country\":\"\",\"title\":\"Form save\",\"time_created\":\"*\"},{\"id\":2,\"tool\":\"ct\",\"country\":\"\",\"title\":\"Saved result\",\"time_created\":\"*\"},{\"id\":1,\"tool\":\"\",\"country\":\"AE\",\"title\":\"\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\",\"time_created\":\"*\"}]}"
+  },
+  {
+   "state": {
+    "accounts": [
+     [
+      "1",
+      "owner@example.com",
+      "Acme <LLC> & Co",
+      "AE",
+      "5",
+      "2",
+      "$2y$10$",
+      "1",
+      "1",
+      "1",
+      "1"
+     ]
+    ],
+    "saves": [
+     [
+      "1",
+      "1",
+      "",
+      "AE",
+      "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+      "{\"a\":\"x\\\\/y\",\"n\":1.5,\"i\":2,\"u\":\"\\\\u00e9\",\"l\":[1,null,true]}",
+      "1"
+     ],
+     [
+      "2",
+      "1",
+      "ct",
+      "",
+      "Saved result",
+      "[]",
+      "1"
+     ],
+     [
+      "3",
+      "1",
+      "ifrs",
+      "",
+      "Form save",
+      "{\"rows\":[\"1\",\"2\"],\"k\":\"v\"}",
+      "1"
+     ]
+    ],
+    "settings": [
+     [
+      "disabled_tools",
+      "[\"ct\",\"x\"]"
+     ]
+    ],
+    "columns": [
+     [
+      "epc_free_tool_accounts",
+      "id",
+      "int(11)",
+      "NO",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "token",
+      "varchar(64)",
+      "NO",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "email",
+      "varchar(190)",
+      "NO",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "company",
+      "varchar(190)",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "country",
+      "varchar(4)",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "time_created",
+      "int(11)",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "time_last_seen",
+      "int(11)",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "use_count",
+      "int(11)",
+      "YES",
+      "0"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "pass_hash",
+      "varchar(255)",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "time_last_login",
+      "int(11)",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "login_count",
+      "int(11)",
+      "YES",
+      "0"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "del_code_hash",
+      "varchar(255)",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "del_code_expires",
+      "int(11)",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "reset_code_hash",
+      "varchar(255)",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_accounts",
+      "reset_code_expires",
+      "int(11)",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_saves",
+      "id",
+      "int(11)",
+      "NO",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_saves",
+      "account_id",
+      "int(11)",
+      "NO",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_saves",
+      "tool",
+      "varchar(32)",
+      "NO",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_saves",
+      "country",
+      "varchar(4)",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_saves",
+      "title",
+      "varchar(190)",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_saves",
+      "payload",
+      "mediumtext",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_saves",
+      "time_created",
+      "int(11)",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_settings",
+      "name",
+      "varchar(64)",
+      "NO",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_settings",
+      "val",
+      "text",
+      "YES",
+      "NULL"
+     ],
+     [
+      "epc_free_tool_settings",
+      "time_updated",
+      "int(11)",
+      "YES",
+      "NULL"
+     ]
+    ]
+   }
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"message\":\"If that email has an account, we have sent a reset code to it.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Enter a valid email address.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"message\":\"If that email has an account, we have sent a reset code to it.\"}"
+  },
+  {
+   "sql": true
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Incorrect reset code. Please check the email and try again.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Choose a new password of at least 6 characters.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"token\":\"{T1}\",\"message\":\"Password updated \\u2014 you are now signed in.\",\"account\":{\"email\":\"owner@example.com\",\"company\":\"Acme <LLC> & Co\",\"country\":\"AE\"}}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"No active reset code \\u2014 request a new one.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Incorrect password. Please try again.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"token\":\"{T1}\",\"message\":\"Welcome back \\u2014 all your saved results are here.\",\"account\":{\"email\":\"owner@example.com\",\"company\":\"Acme <LLC> & Co\",\"country\":\"AE\"}}"
+  },
+  {
+   "sql": true
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"needs_register\":true,\"message\":\"This account has no password yet \\u2014 please use Register to set one.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"token\":\"abc123\",\"returning\":false,\"message\":\"Account created \\u2014 all free tools unlocked. A confirmation email is on its way.\",\"account\":{\"email\":\"legacy@example.com\",\"company\":\"Old Co\",\"country\":\"GB\"}}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"account\":{\"email\":\"legacy@example.com\",\"company\":\"Old Co\",\"country\":\"GB\"}}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Please sign in first.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"sent\":false,\"message\":\"Could not send the confirmation email. Please try again later.\"}"
+  },
+  {
+   "sql": true
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Incorrect code. Please check the email and try again.\"}"
+  },
+  {
+   "sql": true
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"No active code \\u2014 request a new confirmation code.\"}"
+  },
+  {
+   "sql": true
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":true,\"message\":\"Your account and all saved data have been permanently deleted.\"}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false}"
+  },
+  {
+   "status": 200,
+   "body": "{\"ok\":false,\"message\":\"Please register first.\"}"
+  }
+ ],
+ "state": {
+  "accounts": [
+   [
+    "2",
+    "legacy@example.com",
+    "Old Co",
+    "GB",
+    "4",
+    "1",
+    "$2y$10$",
+    "1",
+    "1",
+    "1",
+    "0"
+   ]
+  ],
+  "saves": [],
+  "settings": [
+   [
+    "disabled_tools",
+    "[\"ct\",\"x\"]"
+   ]
+  ],
+  "columns": [
+   [
+    "epc_free_tool_accounts",
+    "id",
+    "int(11)",
+    "NO",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "token",
+    "varchar(64)",
+    "NO",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "email",
+    "varchar(190)",
+    "NO",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "company",
+    "varchar(190)",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "country",
+    "varchar(4)",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "time_created",
+    "int(11)",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "time_last_seen",
+    "int(11)",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "use_count",
+    "int(11)",
+    "YES",
+    "0"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "pass_hash",
+    "varchar(255)",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "time_last_login",
+    "int(11)",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "login_count",
+    "int(11)",
+    "YES",
+    "0"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "del_code_hash",
+    "varchar(255)",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "del_code_expires",
+    "int(11)",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "reset_code_hash",
+    "varchar(255)",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_accounts",
+    "reset_code_expires",
+    "int(11)",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_saves",
+    "id",
+    "int(11)",
+    "NO",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_saves",
+    "account_id",
+    "int(11)",
+    "NO",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_saves",
+    "tool",
+    "varchar(32)",
+    "NO",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_saves",
+    "country",
+    "varchar(4)",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_saves",
+    "title",
+    "varchar(190)",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_saves",
+    "payload",
+    "mediumtext",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_saves",
+    "time_created",
+    "int(11)",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_settings",
+    "name",
+    "varchar(64)",
+    "NO",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_settings",
+    "val",
+    "text",
+    "YES",
+    "NULL"
+   ],
+   [
+    "epc_free_tool_settings",
+    "time_updated",
+    "int(11)",
+    "YES",
+    "NULL"
+   ]
+  ]
+ }
+}
