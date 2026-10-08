@@ -106,6 +106,14 @@ public static class OAuthAccountProvision
             if (storefront)
             {
                 await TryStorefrontGroupAsync(connection, userId, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    await EcomAE.Platform.Storefront.EpcCustomerTrade.SaveRegistrationAsync(connection, null, userId, "retail", cancellationToken).ConfigureAwait(false);
+                }
+                catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+                {
+                }
+
                 return new Result(userId, true, null);
             }
 

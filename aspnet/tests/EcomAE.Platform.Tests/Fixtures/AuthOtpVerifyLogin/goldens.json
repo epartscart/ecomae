@@ -1,0 +1,686 @@
+{
+  "sf_new_customer_handoff": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Signed in\",\"redirect\":\"https:\\/\\/acme.example\\/epc-auth-handoff.php?p=P&s=S\"}",
+    "handoff": [
+      {
+        "uid": 1,
+        "sess": "S32",
+        "host": "acme.example",
+        "path": "/en/",
+        "exp": "E120",
+        "tk": "acme",
+        "mode": "storefront"
+      }
+    ],
+    "cookies": [],
+    "otp_rows": 0,
+    "users": [
+      [
+        "1",
+        "new@example.com",
+        "1",
+        "1",
+        "7",
+        "1",
+        "1",
+        "0"
+      ]
+    ],
+    "profiles": [
+      [
+        "1",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "1",
+        "epc_trade_approval_status",
+        "approved"
+      ],
+      [
+        "1",
+        "epc_trade_approved_at",
+        "T"
+      ],
+      [
+        "1",
+        "epc_trade_registered_at",
+        "T"
+      ],
+      [
+        "1",
+        "name",
+        "new"
+      ]
+    ],
+    "binds": [
+      [
+        "1",
+        "2"
+      ]
+    ],
+    "sessions": [
+      [
+        "S32",
+        "1",
+        "1",
+        "0",
+        "",
+        "40",
+        "1"
+      ]
+    ],
+    "carts": []
+  },
+  "sf_existing_same_host_return_url_cart_merge": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Signed in\",\"redirect\":\"https:\\/\\/acme.example\\/en\\/cart?x=1\"}",
+    "handoff": [],
+    "cookies": [
+      "session=S32",
+      "u_id=41"
+    ],
+    "otp_rows": 0,
+    "users": [
+      [
+        "41",
+        "buyer@example.com",
+        "1",
+        "1",
+        "1",
+        "0",
+        "1",
+        "0"
+      ]
+    ],
+    "profiles": [],
+    "binds": [],
+    "sessions": [
+      [
+        "guestsess",
+        "0",
+        "0",
+        "0",
+        "",
+        "0",
+        "0"
+      ],
+      [
+        "S32",
+        "41",
+        "1",
+        "0",
+        "",
+        "40",
+        "1"
+      ]
+    ],
+    "carts": [
+      [
+        "1",
+        "41",
+        "0"
+      ],
+      [
+        "2",
+        "41",
+        "0"
+      ],
+      [
+        "3",
+        "0",
+        "8"
+      ]
+    ]
+  },
+  "sf_unsafe_return_url_ignored": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Signed in\",\"redirect\":\"https:\\/\\/acme.example\\/en\\/\"}",
+    "handoff": [],
+    "cookies": [
+      "session=S32",
+      "u_id=42"
+    ],
+    "otp_rows": 0,
+    "users": [
+      [
+        "42",
+        "buyer@example.com",
+        "1",
+        "1",
+        "1",
+        "0",
+        "1",
+        "0"
+      ]
+    ],
+    "profiles": [],
+    "binds": [],
+    "sessions": [
+      [
+        "S32",
+        "42",
+        "1",
+        "0",
+        "",
+        "40",
+        "1"
+      ]
+    ],
+    "carts": []
+  },
+  "sf_locked_customer": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Could not sign in \\u2014 account may be locked\"}",
+    "handoff": [],
+    "cookies": [],
+    "otp_rows": 0,
+    "users": [
+      [
+        "43",
+        "locked@example.com",
+        "1",
+        "0",
+        "1",
+        "0",
+        "0",
+        "0"
+      ]
+    ],
+    "profiles": [],
+    "binds": [],
+    "sessions": [],
+    "carts": []
+  },
+  "sf_form_body_by_host": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Signed in\",\"redirect\":\"https:\\/\\/acme.example\\/en\\/\"}",
+    "handoff": [],
+    "cookies": [
+      "session=S32",
+      "u_id=44"
+    ],
+    "otp_rows": 0,
+    "users": [
+      [
+        "44",
+        "buyer@example.com",
+        "1",
+        "1",
+        "1",
+        "0",
+        "1",
+        "0"
+      ]
+    ],
+    "profiles": [],
+    "binds": [],
+    "sessions": [
+      [
+        "S32",
+        "44",
+        "1",
+        "0",
+        "",
+        "40",
+        "1"
+      ]
+    ],
+    "carts": []
+  },
+  "cp_admin_same_host": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Signed in\",\"redirect\":\"https:\\/\\/acme.example\\/cp\\/control\"}",
+    "handoff": [],
+    "cookies": [
+      "admin_session=S32",
+      "admin_u_id=51",
+      "epc_platform_erp=deleted"
+    ],
+    "otp_rows": 0,
+    "users": [
+      [
+        "51",
+        "admin@example.com",
+        "1",
+        "1",
+        "1",
+        "0",
+        "0",
+        "0"
+      ]
+    ],
+    "profiles": [],
+    "binds": [
+      [
+        "51",
+        "3"
+      ],
+      [
+        "51",
+        "5"
+      ]
+    ],
+    "sessions": [
+      [
+        "S32",
+        "51",
+        "1",
+        "1",
+        "email",
+        "40",
+        "0"
+      ]
+    ],
+    "carts": []
+  },
+  "cp_admin_handoff": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Signed in\",\"redirect\":\"https:\\/\\/acme.example\\/epc-auth-handoff.php?p=P&s=S\"}",
+    "handoff": [
+      {
+        "uid": 52,
+        "sess": "S32",
+        "host": "acme.example",
+        "path": "/cp/control",
+        "exp": "E120",
+        "tk": "acme",
+        "mode": "cp"
+      }
+    ],
+    "cookies": [],
+    "otp_rows": 0,
+    "users": [
+      [
+        "52",
+        "admin@example.com",
+        "1",
+        "1",
+        "1",
+        "0",
+        "0",
+        "0"
+      ]
+    ],
+    "profiles": [],
+    "binds": [
+      [
+        "52",
+        "3"
+      ],
+      [
+        "52",
+        "5"
+      ]
+    ],
+    "sessions": [
+      [
+        "S32",
+        "52",
+        "1",
+        "1",
+        "email",
+        "40",
+        "0"
+      ]
+    ],
+    "carts": []
+  },
+  "cp_demo_new_user_handoff": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Signed in\",\"redirect\":\"https:\\/\\/demo-acme.example\\/epc-auth-handoff.php?p=P&s=S\"}",
+    "handoff": [
+      {
+        "uid": 1,
+        "sess": "S32",
+        "host": "demo-acme.example",
+        "path": "/cp/demo/demo_acme/shop/orders",
+        "exp": "E120",
+        "tk": "demo_acme",
+        "mode": "cp"
+      }
+    ],
+    "cookies": [],
+    "otp_rows": 0,
+    "users": [
+      [
+        "1",
+        "trial@example.com",
+        "1",
+        "1",
+        "1",
+        "1",
+        "0",
+        "1"
+      ]
+    ],
+    "profiles": [
+      [
+        "1",
+        "name",
+        "trial"
+      ]
+    ],
+    "binds": [
+      [
+        "1",
+        "3"
+      ],
+      [
+        "1",
+        "5"
+      ]
+    ],
+    "sessions": [
+      [
+        "S32",
+        "1",
+        "1",
+        "1",
+        "email",
+        "40",
+        "0"
+      ]
+    ],
+    "carts": []
+  },
+  "cp_demo_erp_only_same_host": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Signed in\",\"redirect\":\"\\/cp\\/demo\\/demo_acme\\/shop\\/finance\\/erp?epc_erp_shell=1\"}",
+    "handoff": [],
+    "cookies": [
+      "admin_session=S32",
+      "admin_u_id=53",
+      "epc_platform_erp=deleted"
+    ],
+    "otp_rows": 0,
+    "users": [
+      [
+        "53",
+        "admin@example.com",
+        "1",
+        "1",
+        "1",
+        "0",
+        "0",
+        "0"
+      ]
+    ],
+    "profiles": [],
+    "binds": [
+      [
+        "53",
+        "3"
+      ],
+      [
+        "53",
+        "5"
+      ]
+    ],
+    "sessions": [
+      [
+        "S32",
+        "53",
+        "1",
+        "1",
+        "email",
+        "40",
+        "0"
+      ]
+    ],
+    "carts": []
+  },
+  "cp_customer_without_backend_group": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Signed in\",\"redirect\":\"https:\\/\\/acme.example\\/cp\\/control\"}",
+    "handoff": [],
+    "cookies": [
+      "admin_session=S32",
+      "admin_u_id=56",
+      "epc_platform_erp=deleted"
+    ],
+    "otp_rows": 0,
+    "users": [
+      [
+        "56",
+        "buyer@example.com",
+        "1",
+        "1",
+        "1",
+        "0",
+        "0",
+        "0"
+      ]
+    ],
+    "profiles": [],
+    "binds": [
+      [
+        "56",
+        "2"
+      ],
+      [
+        "56",
+        "3"
+      ],
+      [
+        "56",
+        "5"
+      ]
+    ],
+    "sessions": [
+      [
+        "S32",
+        "56",
+        "1",
+        "1",
+        "email",
+        "40",
+        "0"
+      ]
+    ],
+    "carts": []
+  },
+  "cp_tenant_new_email": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Signed in\",\"redirect\":\"https:\\/\\/acme.example\\/cp\\/control\"}",
+    "handoff": [],
+    "cookies": [
+      "admin_session=S32",
+      "admin_u_id=1",
+      "epc_platform_erp=deleted"
+    ],
+    "otp_rows": 0,
+    "users": [
+      [
+        "1",
+        "stranger@example.com",
+        "1",
+        "1",
+        "1",
+        "1",
+        "0",
+        "1"
+      ]
+    ],
+    "profiles": [
+      [
+        "1",
+        "name",
+        "stranger"
+      ]
+    ],
+    "binds": [
+      [
+        "1",
+        "3"
+      ],
+      [
+        "1",
+        "5"
+      ]
+    ],
+    "sessions": [
+      [
+        "S32",
+        "1",
+        "1",
+        "1",
+        "email",
+        "40",
+        "0"
+      ]
+    ],
+    "carts": []
+  },
+  "cp_locked_admin": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"No CP access for this email on this workspace\"}",
+    "handoff": [],
+    "cookies": [],
+    "otp_rows": 0,
+    "users": [
+      [
+        "55",
+        "admin@example.com",
+        "1",
+        "0",
+        "1",
+        "0",
+        "0",
+        "0"
+      ]
+    ],
+    "profiles": [],
+    "binds": [
+      [
+        "55",
+        "3"
+      ]
+    ],
+    "sessions": [],
+    "carts": []
+  },
+  "wrong_code": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Invalid or expired code\"}",
+    "handoff": [],
+    "cookies": [],
+    "otp_rows": 1,
+    "users": [],
+    "profiles": [],
+    "binds": [],
+    "sessions": [],
+    "carts": []
+  },
+  "expired_code": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Invalid or expired code\"}",
+    "handoff": [],
+    "cookies": [],
+    "otp_rows": 1,
+    "users": [],
+    "profiles": [],
+    "binds": [],
+    "sessions": [],
+    "carts": []
+  },
+  "code_for_other_tenant": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Invalid or expired code\"}",
+    "handoff": [],
+    "cookies": [],
+    "otp_rows": 1,
+    "users": [],
+    "profiles": [],
+    "binds": [],
+    "sessions": [],
+    "carts": []
+  },
+  "short_code": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Email and 6-digit code are required\"}",
+    "handoff": [],
+    "cookies": [],
+    "otp_rows": 0,
+    "users": [],
+    "profiles": [],
+    "binds": [],
+    "sessions": [],
+    "carts": []
+  },
+  "missing_email": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Email and 6-digit code are required\"}",
+    "handoff": [],
+    "cookies": [],
+    "otp_rows": 0,
+    "users": [],
+    "profiles": [],
+    "binds": [],
+    "sessions": [],
+    "carts": []
+  },
+  "not_https": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"HTTPS is required for sign-in\"}",
+    "handoff": [],
+    "cookies": [],
+    "otp_rows": 0,
+    "users": [],
+    "profiles": [],
+    "binds": [],
+    "sessions": [],
+    "carts": []
+  },
+  "tenant_db_unavailable": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Tenant database unavailable\"}",
+    "handoff": [],
+    "cookies": [],
+    "otp_rows": 0,
+    "users": [],
+    "profiles": [],
+    "binds": [],
+    "sessions": [],
+    "carts": []
+  }
+}
