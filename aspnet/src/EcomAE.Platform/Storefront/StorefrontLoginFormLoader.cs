@@ -48,6 +48,26 @@ public static class StorefrontLoginFormLoader
         return StorefrontCheckoutLoginOffer.Render(input, t, request.Config);
     }
 
+    /// <summary>
+    /// A page that includes <c>login_form_general.php</c> once with its own <c>$login_form_postfix</c>: the form and the
+    /// translator, which also knows <paramref name="extraStrings"/>.
+    /// </summary>
+    public static async Task<(string Html, Func<int, string> T)> RenderGeneralAsync(
+        HttpContext http,
+        DbConnection connection,
+        ITenantDbConnectionFactory connections,
+        PhpReferenceOptions php,
+        IWebHostEnvironment env,
+        Request request,
+        string postfix,
+        string? target,
+        IReadOnlyList<int> extraStrings,
+        CancellationToken cancellationToken)
+    {
+        var (input, t) = await LoadAsync(http, connection, connections, php, env, request, extraStrings, cancellationToken).ConfigureAwait(false);
+        return (StorefrontLoginForm.General(input, t, StorefrontLoginForm.Postfix(postfix, 1), target), t);
+    }
+
     private static async Task<(StorefrontLoginForm.Input Input, Func<int, string> T)> LoadAsync(
         HttpContext http,
         DbConnection connection,

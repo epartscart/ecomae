@@ -1,0 +1,30 @@
+{
+  "schema": [
+    "CREATE TABLE `shop_currencies` (`id` int(11) NOT NULL AUTO_INCREMENT, `iso_code` int(11) NOT NULL DEFAULT 0, `iso_name` varchar(16) NOT NULL DEFAULT '', `caption_short` varchar(16) NOT NULL DEFAULT '', `sign` varchar(16) NOT NULL DEFAULT '', `rate` decimal(15,6) NOT NULL DEFAULT 1.000000, `available` tinyint(1) NOT NULL DEFAULT 1, `order` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_quote_requests` (`id` int(11) NOT NULL AUTO_INCREMENT, `user_id` int(11) NOT NULL DEFAULT 0, `session_id` int(11) NOT NULL DEFAULT 0, `status` varchar(32) NOT NULL DEFAULT 'draft', `time_created` int(11) DEFAULT NULL, `time_updated` int(11) DEFAULT NULL, `time_submitted` int(11) DEFAULT NULL, `admin_note` text, `customer_note` text, `accepted_order_id` int(11) DEFAULT NULL, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_quote_items` (`id` int(11) NOT NULL AUTO_INCREMENT, `quote_id` int(11) NOT NULL, `product_type` int(11) NOT NULL DEFAULT 2, `product_object_json` longtext NOT NULL, `count_need` int(11) NOT NULL DEFAULT 1, `quoted_price` decimal(12,2) DEFAULT NULL, `quoted_time_to_exe` int(11) DEFAULT NULL, `line_admin_note` varchar(512) DEFAULT NULL, `offer_alternative` tinyint(1) NOT NULL DEFAULT 0, `alt_manufacturer` varchar(128) DEFAULT NULL, `alt_article` varchar(128) DEFAULT NULL, `alt_article_show` varchar(128) DEFAULT NULL, `alt_name` varchar(512) DEFAULT NULL, `alt_count_need` int(11) DEFAULT NULL, `alt_quoted_price` decimal(12,2) DEFAULT NULL, `alt_storage_id` int(11) DEFAULT NULL, PRIMARY KEY (`id`))"
+  ],
+  "base": [
+    "INSERT INTO `shop_currencies` (`iso_code`, `iso_name`, `caption_short`, `sign`, `rate`, `available`, `order`) VALUES (784, 'AED', 'AED', 'AED', 1, 1, 1), (840, 'USD', 'USD', '$', 3.6725, 1, 2)",
+    "INSERT INTO `shop_quote_requests` (`id`, `user_id`, `status`, `time_created`, `time_updated`, `admin_note`, `customer_note`) VALUES (5, 41, 'draft', 1700000000, 1700003600, NULL, 'Need by <Friday>\nThanks & regards'), (6, 41, 'quoted', 1700000000, 1700090000, 'Brand swap on line 2\nCall us', ''), (7, 42, 'submitted', 1700000000, NULL, '', NULL), (8, 41, 'draft', 1700000000, 0, NULL, NULL), (9, 41, '<b>odd</b>', 1700000000, 1700100000, NULL, NULL)",
+    "INSERT INTO `shop_quote_items` (`quote_id`, `product_object_json`, `count_need`, `quoted_price`, `quoted_time_to_exe`, `line_admin_note`, `offer_alternative`, `alt_manufacturer`, `alt_article`, `alt_article_show`, `alt_name`, `alt_count_need`, `alt_quoted_price`) VALUES (5, '{\"manufacturer\":\"TOYOTA\",\"article_show\":\"04465-0K090\",\"name\":\"Brake pads <front>\"}', 2, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL), (5, 'not json', 1, NULL, NULL, '', 0, NULL, NULL, NULL, NULL, NULL, NULL), (6, '{\"manufacturer\":\"JS ASAKASHI\",\"article_show\":\"C110J\",\"name\":\"Oil filter\"}', 4, 12.5, 3, 'In stock & ready', 0, NULL, NULL, NULL, NULL, NULL, NULL), (6, '{\"manufacturer\":\"BOSCH\",\"article_show\":\"0 986 494 104\"}', 1, 1234567.891, 0, NULL, 1, 'TRW', 'GDB3425', '', 'Pads TRW', NULL, 99.99), (6, '{\"manufacturer\":\"DENSO\",\"article_show\":\"K16TT\"}', 3, 20, NULL, NULL, 1, 'NGK', 'BKR6E', 'BKR-6E', NULL, 6, NULL), (6, '{\"manufacturer\":\"MANN\",\"article_show\":\"W 712\"}', 2, 7, 5, NULL, 1, '', 'X1', NULL, NULL, 2, 3)"
+  ],
+  "cases": [
+    {"name": "guest_list", "user_id": 0, "admin_id": 0, "get_id": null},
+    {"name": "guest_detail_protected", "user_id": 0, "admin_id": 0, "get_id": "5"},
+    {"name": "customer_list", "user_id": 41, "admin_id": 0, "get_id": null},
+    {"name": "customer_list_empty", "user_id": 77, "admin_id": 0, "get_id": null},
+    {"name": "customer_detail_draft", "user_id": 41, "admin_id": 0, "get_id": "5"},
+    {"name": "customer_detail_quoted", "user_id": 41, "admin_id": 0, "get_id": "6"},
+    {"name": "customer_detail_other_customer", "user_id": 41, "admin_id": 0, "get_id": "7"},
+    {"name": "customer_detail_draft_without_lines", "user_id": 41, "admin_id": 0, "get_id": "8"},
+    {"name": "customer_detail_odd_status", "user_id": 41, "admin_id": 0, "get_id": "9abc"},
+    {"name": "admin_list", "user_id": 0, "admin_id": 1, "get_id": null},
+    {"name": "admin_detail_quoted", "user_id": 0, "admin_id": 1, "get_id": "6"},
+    {"name": "admin_detail_missing", "user_id": 41, "admin_id": 1, "get_id": "99"},
+    {"name": "usd_cookie_short_name_after", "user_id": 41, "admin_id": 0, "get_id": "6", "cookies": {"epc_currency": "840"}, "currency_show_mode": "short_name_after"},
+    {"name": "country_cookie_sign_after_no_lang", "user_id": 41, "admin_id": 0, "get_id": "6", "cookies": {"epc_country": "us"}, "currency_show_mode": "sign_after", "lang_href": ""},
+    {"name": "mode_no", "user_id": 41, "admin_id": 0, "get_id": "6", "currency_show_mode": "no", "lang_href": "/ar"},
+    {"name": "zero_id_is_list", "user_id": 41, "admin_id": 0, "get_id": "0"}
+  ]
+}
