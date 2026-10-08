@@ -209,6 +209,7 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
    - Done: the page access include `content/users/check_user_access.php`, used by the CP lang editor ajax and the storefront storage toggle. See the checkpoint below.
    - Done: the trade account library `content/shop/pricing/epc_customer_trade.php` and the currency library `epc_currency.php` (except `epc_currency_js_config`), with the checkout and price gates switched to them. See the checkpoint below.
+   - Done: the country list `content/users/epc_countries.php`. Retired: `content/users/epc_reg_fields_compliance.php`, which nothing includes or calls.
    - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `epc_session_security.php`, the agreement module.
    - `content/shop/catalogue` (41 files): `printProducts.php`, `printProducts_2.php`, `printProduct_Info.php`, the product pages, compare, bookmarks, SKU media, the text search algorithm, the tree lists.
    - `content/shop/docpart` (44 files): `part_search_page.php` and `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest.
@@ -262,7 +263,7 @@ Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway
 
 Not complete.
 
-- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap ratchet: 833 to 831 (`epc_customer_trade.php`, `epc_currency.php`); unnamed PHP functions 8,039.
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap ratchet: 833 to 829 (`epc_customer_trade.php`, `epc_currency.php`, `epc_countries.php`, and the retired `epc_reg_fields_compliance.php`); unnamed PHP functions 8,032.
 - `EpcCustomerTrade` is the twin of `epc_customer_trade.php`:
   - A retail registration is approved at once, with AED and the retail price profile group when they exist. Any other type becomes retail. A wholesale registration waits as pending.
   - Approve, reject (with the note) and the currency change request write the same `users_profiles` keys. Assigning a price profile leaves every other price profile group.
@@ -271,7 +272,9 @@ Not complete.
 - `EpcCurrency` is the twin of `epc_currency.php`: the ten supported currencies kept available, the records (a repeated ISO code replaced in place, the shop currency added when missing), the visitor's choice (the approved dealing currency, then the `epc_currency` cookie, then the `epc_country` map, then the shop currency) and the amount format.
 - The checkout ajax, the checkout write service and the price access state now use the shared library. Checkout returns PHP's block message, including the rejection note. Before this, the write service had its own message and compared case-insensitively, and the price state lowercased the status.
 - `StorefrontCustomerTradeTests` compares 13 cases with **goldens from the real PHP libraries** (`Fixtures/CustomerTrade/harness.py`): every operation result plus the rows left in `users_profiles`, `users_groups_bind` and `shop_currencies` match. A further test runs the checkout gate for pending, rejected-with-note and unknown statuses.
-- Full suite: 5441 of 5441. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+- `EpcCountries` is the twin of `epc_countries.php`: the 244 names in PHP order, the Gulf-first registration order, the dial codes, the address rules and the code normalisation (two letters, else a name matched like `strcasecmp()`). `StorefrontCountriesTests` compares them with goldens from the real PHP (`Fixtures/Countries/harness.py`).
+- `epc_reg_fields_compliance.php` is retired in `inventory/PHP_RETIRED.tsv`: no PHP file includes it or calls its functions, and nothing reads the `reg_fields` columns it would add.
+- Full suite: 5443 of 5443. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-08 — page access checks like PHP check_user_access.php
 
