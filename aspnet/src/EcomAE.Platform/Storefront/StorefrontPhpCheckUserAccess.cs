@@ -147,7 +147,7 @@ public static partial class StorefrontPhpAjax
     }
 
     /// <summary>The <c>groups</c> of PHP <c>DP_User::getUserProfile()</c>: the guest group, the bound groups, or else the first registered group.</summary>
-    private static async Task<List<long>> UserProfileGroupsAsync(DbConnection connection, long userId, CancellationToken cancellationToken)
+    internal static async Task<List<long>> UserProfileGroupsAsync(DbConnection connection, long userId, CancellationToken cancellationToken)
     {
         if (userId == 0)
         {

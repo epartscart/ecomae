@@ -5,11 +5,16 @@
 @page "/shop/catalogue/product"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Storefront
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
+@inject IStorefrontGuestSessionService Guests
+@inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
+@inject Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions> PhpReference
 
 <PageTitle>@(_product?.Caption ?? "Product") · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -129,32 +134,6 @@
                     <p style="margin:.75rem 0 0;color:#334155;font-size:.9rem;line-height:1.45">@_product.Description</p>
                 }
 
-                <div class="product_div_tile">
-                    <div class="btn_cart_div">
-                        <div class="btn_cart_div_text">
-                            <div class="btn-ar btn-primary cart_btn_purchase_action">
-                                <form method="get" action="@StorefrontSurfaceLinks.Cart" style="margin:0">
-                                    <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
-                                    <table>
-                                        <tr>
-                                            <td>
-                                                <div class="product_div_count_need">
-                                                    <a class="count_need_minus" href="javascript:void(0);" onclick="adjustCountNeed(-1);">-</a>
-                                                    <input class="count_need_input count_need_product" type="text" name="count_need" value="1" />
-                                                    <a class="count_need_plus" href="javascript:void(0);" onclick="adjustCountNeed(1);">+</a>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <button type="submit" style="border:0;background:transparent;color:#fff;font-weight:800;cursor:pointer">Add to cart</button>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="product_div_bookmark">
                     @if (_inWishlist)
                     {
@@ -239,6 +218,10 @@
                 </form>
             </div>
         </div>
+        <div class="product_page">
+            <script src="/lib/jQuery/jQuery.js"></script>
+            @((MarkupString)_offersHtml)
+        </div>
         <p class="lead" style="margin-top:1rem;padding:.75rem .9rem;background:#fff8e8;border:1px solid #f1d49a;border-radius:.45rem;color:#7a4e00;font-size:.86rem">
             Gallery and specs stay on this product card. Cart, bookmarks, and compare stay on this storefront.
         </p>
@@ -255,14 +238,6 @@
             var main = document.getElementById("main_image");
             if (main) { main.setAttribute("src", image_url); }
         }
-        function adjustCountNeed(delta) {
-            var input = document.querySelector(".count_need_input");
-            if (!input) { return; }
-            var n = parseInt(input.value || "1", 10);
-            if (isNaN(n)) { n = 1; }
-            n = Math.max(1, n + delta);
-            input.value = n;
-        }
         </script>
     }
 </StorefrontTenantChrome>
@@ -276,6 +251,7 @@
     private string _flashErr = "";
     private bool _inWishlist;
     private bool _inCompare;
+    private string _offersHtml = "";
 
     [SupplyParameterFromQuery(Name = "id")]
     public int? ProductId { get; set; }
@@ -350,5 +326,53 @@
         _source = result.Source;
         _message = result.Message;
         _reviews = PhpProductReviews.ForProduct(ProductId.Value);
+        if (ctx is not null && _product is not null)
+        {
+            await LoadOffersAsync(ctx, _product.Id);
+        }
+    }
+
+    /// <summary>The PHP customer product page offers block and <c>common_add_to_basket.php</c>.</summary>
+    private async Task LoadOffersAsync(HttpContext ctx, long productId)
+    {
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        var shopper = session.Kind == LegacySessionKind.Customer && session.UserId > 0
+            ? new StorefrontShopper(session.UserId, 0, session.SessionId ?? "", false)
+            : await Guests.ResolveAsync(ctx, createIfMissing: true, ctx.RequestAborted);
+        var sessionCookie = ctx.Request.Cookies["session"];
+        var userCookie = ctx.Request.Cookies["u_id"];
+        if (!shopper.IsSignedIn)
+        {
+            Guests.ApplyGuestCookies(ctx.Response, shopper);
+            if (shopper.SessionToken.Length > 0)
+            {
+                sessionCookie = shopper.SessionToken;
+                userCookie = "0";
+            }
+        }
+
+        var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
+        try
+        {
+            await using var connection = await Connections.OpenForTenantAsync(tenant, ctx.RequestAborted);
+            _offersHtml = await StorefrontProductOffers.RenderPageAsync(
+                connection,
+                productId,
+                shopper.IsSignedIn ? shopper.UserId : 0,
+                ctx.Request.Cookies[StorefrontCustomerOffices.CityCookie],
+                StorefrontPhpHomeLinks.LangHref(ctx),
+                sessionCookie,
+                userCookie,
+                EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(PhpReference.Value),
+                ctx.RequestAborted);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            _offersHtml = "<p>Offers are unavailable right now.</p>";
+        }
+        catch (InvalidOperationException)
+        {
+            _offersHtml = "<p>Offers are unavailable right now.</p>";
+        }
     }
 }
