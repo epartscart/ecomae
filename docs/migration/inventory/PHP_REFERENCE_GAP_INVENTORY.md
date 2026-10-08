@@ -31,15 +31,15 @@ Functions defined: 9867; not mentioned anywhere in ASP.NET: 8032.
 
 | Triage | Files |
 |---|---:|
-| gap | 830 |
+| gap | 829 |
 | mapped-tab | 118 |
 | mentioned | 816 |
 | ops-script | 416 |
-| retired | 2 |
+| retired | 3 |
 | sitemap-shard | 80 |
 | third-party | 316 |
 
-Gap files: 830 (284939 lines).
+Gap files: 829 (284562 lines).
 
 ## Gap areas (largest first)
 
@@ -57,7 +57,7 @@ Gap files: 830 (284939 lines).
 | `cp/content/shop/catalogue` | 8 | 5029 |
 | `cp/content/shop/prices_upload` | 23 | 4571 |
 | `content/shop/order_process` | 8 | 3351 |
-| `content/users` | 9 | 3189 |
+| `content/users` | 8 | 2812 |
 | `content` | 4 | 2338 |
 | `(root)` | 7 | 1962 |
 | `content/shop/tenant_hub` | 6 | 1926 |
@@ -820,12 +820,11 @@ Gap files: 830 (284939 lines).
 - `content/shop/order_process/get_customer_offices.php` (45 lines, 0/0 functions mentioned)
 - `content/shop/order_process/checkout_login_offer.php` (39 lines, 0/0 functions mentioned)
 
-### content/users (9)
+### content/users (8)
 
 - `content/users/dp_user.php` (1211 lines, 0/0 functions mentioned)
 - `content/users/epc_registration_enhanced.php` (873 lines, 2/33 functions mentioned)
 - `content/users/profileform.php` (454 lines, 0/4 functions mentioned)
-- `content/users/epc_reg_fields_compliance.php` (377 lines, 0/11 functions mentioned)
 - `content/users/epc_session_security.php` (128 lines, 0/5 functions mentioned)
 - `content/users/users_functions.php` (40 lines, 0/0 functions mentioned)
 - `content/users/users_agreement_module.php` (38 lines, 0/2 functions mentioned)
