@@ -206,7 +206,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`, `my_quotes.php`, `common_add_to_basket.php`, `checkout_login_offer.php`, `get_customer_offices.php`.
    - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
    - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
-   - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `check_user_access.php`, `check_reg_contact.php`, `epc_session_security.php`, the agreement module.
+   - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
+   - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `check_user_access.php`, `epc_session_security.php`, the agreement module.
    - `content/shop/catalogue` (41 files): `printProducts.php`, `printProducts_2.php`, `printProduct_Info.php`, the product pages, compare, bookmarks, SKU media, the text search algorithm, the tree lists.
    - `content/shop/docpart` (44 files): `part_search_page.php` and `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest.
    - `modules/*`: login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats).
@@ -254,6 +255,19 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-08 — the registration contact check like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap ratchet: 835 to 834 (`check_reg_contact.php`); unnamed PHP functions 8,063.
+- `content/users/check_reg_contact.php` answers on the same path (GET and POST) with PHP's content type:
+  - The `stop_csrf.php` check comes first (CSRF 1, 3, 3.1 and 4). The query key wins over the posted one, and a CP referer checks the admin session.
+  - A type other than `email` or `phone` gives an empty body. The developer domains `@intask.pro`, `@docpart.ru` and `@docpart.net` are refused for e-mail with string 5641 (`null` when untranslated).
+  - The `reg_fields` regexp must match the whole contact (4699 plus the caption). A missing row means no check.
+  - Another user with the contact, compared after `htmlentities()`, gives 4700, the caption and 4701. Otherwise `{"status":true,"message":"Ok"}`.
+- Verified against goldens from the real PHP script with the real `stop_csrf.php` and `dp_user.php` (php-cli with pdo_mysql on a throwaway schema; only the config and the translator are stubbed): 22 cases compare the exact body on Kestrel.
+- 5404 of 5404 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-07 — admin login rate limit and the bcrypt upgrade like PHP
 
