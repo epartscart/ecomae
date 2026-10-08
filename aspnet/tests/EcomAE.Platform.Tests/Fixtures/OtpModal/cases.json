@@ -1,0 +1,9 @@
+{
+  "defaults": [{}],
+  "regform": [{ "modal_id": "epc_reg_otp", "context": "storefront", "tenant_key": "epartscart", "send_url": "/content/general_pages/epc_auth_api_send_code.php", "verify_url": "/content/general_pages/epc_auth_api_verify_only.php", "logo_url": "/design/logo.png", "label": "epartscart", "verify_only": true, "on_success": "\n\t\t\twindow.epcRegOtpVerified = true;\n\t\t\twindow.epcRegOtpEmail = data.verified_email || currentEmail;\n\t\t\tvar hf = document.getElementById(\"epc_reg_otp_verified_field\");\n\t\t\tif (hf) hf.value = \"1\";\n\t\t\tvar rf = document.getElementById(\"regform\");\n\t\t\tif (rf) rf.submit();\n\t\t" }],
+  "cp_login": [{ "modal_id": "epc_cp_otp_modal", "context": "cp", "tenant_key": "acme", "send_url": "/epc-auth-send-code.php", "verify_url": "/epc-auth-verify-code.php", "label": "Acme \"Parts\" & Co's CP", "on_success": "if(data.redirect){location.href=data.redirect;}" }],
+  "storefront_widget_unicode": [{ "modal_id": "epc_sf_main_otpm", "context": "storefront", "tenant_key": "", "return_url": "/ar/", "logo_url": "/img/a&b \"q\" 'l'.png", "label": "Ünï <b>Shop</b> 😀" }],
+  "odd_values": [{ "modal_id": "Épc-Modal 1", "context": "cp\"x", "tenant_key": "k/é", "send_url": "</script><script>x()</script>", "return_url": "/en/?a=1&b=\u2028", "verify_only": false }],
+  "verify_only_default_url_twice": [{ "verify_only": true }, { "modal_id": "second", "verify_only": false }],
+  "empty_strings": [{ "modal_id": "", "on_success": "", "label": "", "logo_url": "", "send_url": "", "verify_url": "" }, { "modal_id": "x", "logo_url": "/l.png", "label": "" }]
+}
