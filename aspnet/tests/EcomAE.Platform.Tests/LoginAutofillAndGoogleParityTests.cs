@@ -64,11 +64,18 @@ public sealed class LoginAutofillAndGoogleParityTests
     }
 
     [Fact]
-    public void StorefrontLoginApp_UsesSharedFormWithGoogle()
+    public void StorefrontLoginApp_RendersPhpLoginFormWithProviderButtons()
     {
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontLoginApp.razor");
-        Assert.Contains("LegacyAdminLoginForm", text, StringComparison.Ordinal);
-        Assert.Contains("Surface=\"LegacyLoginSurface.Storefront\"", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontLoginFormLoader.RenderAsync", text, StringComparison.Ordinal);
+        var loader = Read("aspnet/src/EcomAE.Platform/Storefront/StorefrontLoginFormLoader.cs");
+        Assert.Contains("StorefrontOAuthButtons", loader, StringComparison.Ordinal);
+        var html = EcomAE.Platform.Storefront.StorefrontLoginForm.Render(
+            new EcomAE.Platform.Storefront.StorefrontLoginForm.Input { LangHref = "/en", SocialButtons = "<a class=\"epc-social-btn\">Google</a>" },
+            id => string.Empty);
+        Assert.Contains("epc-social-top", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"authentication\" value=\"true\"", html, StringComparison.Ordinal);
+        Assert.Contains("epc_sf_login_page_1_otpm", html, StringComparison.Ordinal);
     }
 
     [Fact]
