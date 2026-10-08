@@ -6387,6 +6387,75 @@ public sealed class ErpModule : ISurfaceModule
             return LiveWriteFormBinder.Complete(context, "/erp/quality-app", result.Result.Succeeded, result.Result.Message, new { ok = result.Result.Succeeded, writes = result.Result.Writes, phpAuthoritative = false, validation_code = result.Result.Code, message = result.Result.Message, id = result.Result.Id, session = SessionPayload(session) });
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpQualityNcrCreateForm, HandleQmNcrCreateAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpSyncronAction, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpSyncronWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/syncron-app", "Admin ERP capability required.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, writes = 0, validation_code = "invalid", message = "Form post expected." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    EcomAeRoutes.ErpSyncronApp,
+                    false,
+                    "Set confirmWrites=true to change inventory policies.",
+                    new { ok = false, writes = 0, writesBlocked = true, validation_code = "dry_run", message = "Set confirmWrites=true to change inventory policies.", session = SessionPayload(session) });
+            }
+
+            var action = LiveWriteFormBinder.Text(form, "syncron_action");
+            ErpSyncronPolicy.Policy? policy = null;
+            if (action == "policy_save")
+            {
+                policy = new ErpSyncronPolicy.Policy(
+                    LiveWriteFormBinder.Long(form, "policy_id"),
+                    LiveWriteFormBinder.Text(form, "scope"),
+                    LiveWriteFormBinder.Text(form, "scope_ref"),
+                    LiveWriteFormBinder.Text(form, "policy_name"),
+                    LiveWriteFormBinder.Dec(form, "safety_stock_qty"),
+                    LiveWriteFormBinder.Dec(form, "reorder_point"),
+                    LiveWriteFormBinder.Dec(form, "reorder_qty"),
+                    LiveWriteFormBinder.Dec(form, "max_stock_qty"),
+                    LiveWriteFormBinder.DecOrNull(form, "service_level_pct") ?? ErpSyncronPolicy.DefaultServiceLevel,
+                    LiveWriteFormBinder.IntOrNull(form, "lead_time_days") ?? ErpSyncronPolicy.DefaultLeadTimeDays,
+                    LiveWriteFormBinder.IntOrNull(form, "review_period_days") ?? ErpSyncronPolicy.DefaultReviewDays,
+                    LiveWriteFormBinder.Text(form, "demand_method"),
+                    LiveWriteFormBinder.IntOrNull(form, "demand_window_days") ?? ErpSyncronPolicy.DefaultWindowDays,
+                    LiveWriteFormBinder.DecOrNull(form, "demand_alpha") ?? ErpSyncronPolicy.DefaultAlpha);
+            }
+
+            var written = await writes.ApplyAsync(
+                (int)session.UserId,
+                new ErpSyncronActionRequest(
+                    action,
+                    policy,
+                    LiveWriteFormBinder.Long(form, "policy_id"),
+                    LiveWriteFormBinder.Long(form, "warehouse_id"),
+                    LiveWriteFormBinder.Long(form, "item_id"),
+                    LiveWriteFormBinder.Text(form, "period_month"),
+                    LiveWriteFormBinder.Dec(form, "demand_qty"),
+                    LiveWriteFormBinder.Dec(form, "fulfilled_qty"),
+                    LiveWriteFormBinder.Int(form, "stockout_events")),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ErpSyncronApp,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpProductInfoPimAction, async (
             HttpContext context,
             ILegacySessionValidator validator,

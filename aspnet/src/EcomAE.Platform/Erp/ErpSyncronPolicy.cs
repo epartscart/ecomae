@@ -455,19 +455,36 @@ public static class ErpSyncronPolicy
     }
 
     public static async Task<IReadOnlyList<Recommendation>> RecommendAsync(DbConnection connection, long warehouseId, DateOnly today, CancellationToken cancellationToken)
+        => await RecommendAsync(connection, await ListPoliciesAsync(connection, cancellationToken).ConfigureAwait(false), warehouseId, today, cancellationToken).ConfigureAwait(false);
+
+    public static async Task<IReadOnlyList<Recommendation>> RecommendAsync(DbConnection connection, IReadOnlyList<Policy> policies, long warehouseId, DateOnly today, CancellationToken cancellationToken)
     {
-        var policies = await ListPoliciesAsync(connection, cancellationToken).ConfigureAwait(false);
-        var window = policies.Count == 0 ? DefaultWindowDays : Math.Max(policies.Max(p => p.DemandWindowDays), DefaultWindowDays);
-        var rows = await LoadItemWarehousesAsync(connection, window, warehouseId, today, cancellationToken).ConfigureAwait(false);
+        var rows = await LoadItemWarehousesAsync(connection, WindowFor(policies), warehouseId, today, cancellationToken).ConfigureAwait(false);
         return rows.Select(r => Recommend(r, PolicyFor(policies, r.Sku, r.ItemType))).ToList();
     }
+
+    public static async Task<IReadOnlyList<(long Id, string Name)>> WarehousesAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var list = new List<(long, string)>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT `id`, `name` FROM `epc_erp_inv_warehouses` WHERE `active` = 1 ORDER BY `name`, `id`";
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            list.Add((Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture), reader.GetString(1)));
+        }
+
+        return list;
+    }
+
+    private static int WindowFor(IReadOnlyList<Policy> policies)
+        => policies.Count == 0 ? DefaultWindowDays : Math.Max(policies.Max(p => p.DemandWindowDays), DefaultWindowDays);
 
     /// <summary>Writes the next-30-day forecast per item × warehouse, replacing any forecast already written today.</summary>
     public static async Task<int> RunForecastAsync(DbConnection connection, long warehouseId, DateOnly today, CancellationToken cancellationToken)
     {
         var policies = await ListPoliciesAsync(connection, cancellationToken).ConfigureAwait(false);
-        var window = policies.Count == 0 ? DefaultWindowDays : Math.Max(policies.Max(p => p.DemandWindowDays), DefaultWindowDays);
-        var rows = await LoadItemWarehousesAsync(connection, window, warehouseId, today, cancellationToken).ConfigureAwait(false);
+        var rows = await LoadItemWarehousesAsync(connection, WindowFor(policies), warehouseId, today, cancellationToken).ConfigureAwait(false);
         var start = today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         var end = today.AddDays(ForecastDays).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();

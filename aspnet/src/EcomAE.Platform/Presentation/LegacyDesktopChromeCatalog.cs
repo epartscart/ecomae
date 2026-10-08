@@ -826,6 +826,7 @@ public static class LegacyDesktopChromeCatalog
             foreach (var areaId in areaIds)
             {
                 var tabs = PhpModuleCatalog.ErpTabs
+                    .Concat(PhpModuleCatalog.AspNetErpTabs)
                     .Where(t => string.Equals(t.Group, areaId, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 

@@ -178,6 +178,7 @@ public static class ErpPhpTabRouteMap
         ["quotations"] = "/erp/sales-quotations-app",
         ["revenue"] = "/erp/report-center-app?tab=revenue",
         ["rc_finance"] = "/erp/report-center-app",
+        ["syncron"] = "/erp/syncron-app",
         ["receivables"] = "/erp/receivables-app",
         ["reconciliation"] = "/erp/bank-reconciliation-app",
         ["recruitment"] = "/erp/recruitment-app",

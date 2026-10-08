@@ -1,6 +1,8 @@
+using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Presentation;
 using MySqlConnector;
 using Xunit;
 
@@ -218,6 +220,113 @@ public sealed class ErpSyncronPolicyTests
             MySqlConnection.ClearAllPools();
             await ExecAsync(admin, "DROP DATABASE IF EXISTS `" + name + "`");
         }
+    }
+
+    [Fact]
+    public void Page_endpoint_and_nav_are_wired()
+    {
+        var root = RepoRoot();
+        var page = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpSyncronApp.razor"));
+        Assert.StartsWith("@page \"/erp/syncron-app\"", page, StringComparison.Ordinal);
+        foreach (var action in ErpSyncronWriteService.Actions)
+        {
+            Assert.Contains("name=\"syncron_action\" value=\"" + action + "\"", page, StringComparison.Ordinal);
+        }
+
+        var module = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+        Assert.Contains("endpoints.MapPost(EcomAeRoutes.ErpSyncronAction", module, StringComparison.Ordinal);
+        Assert.Contains("IErpSyncronWriteService, EcomAE.Platform.Erp.ErpSyncronWriteService", File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Program.cs")), StringComparison.Ordinal);
+
+        Assert.True(ErpPhpTabRouteMap.TryMapTab("syncron", out var mapped));
+        Assert.Equal("/erp/syncron-app", mapped);
+        var tab = Assert.Single(LegacyDesktopChromeCatalog.ErpTopnav().SelectMany(g => g.Links), t => t.Id == "inventory_mgmt/syncron");
+        Assert.Equal("inventory_mgmt", tab.Group);
+        Assert.DoesNotContain(PhpModuleCatalog.ErpTabs, t => t.Id == "inventory_mgmt/syncron");
+    }
+
+    [Fact]
+    public async Task Write_service_applies_actions_with_audit_rows()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var name = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";";
+        var cs = "Server=127.0.0.1;Port=3306;Database=" + name + ";User ID=ecomae;Password=" + password + ";";
+        await ExecAsync(admin, "CREATE DATABASE `" + name + "`");
+        try
+        {
+            await ExecAsync(cs, """
+                CREATE TABLE `epc_erp_audit_log` (`id` INT AUTO_INCREMENT PRIMARY KEY, `time` INT, `admin_id` INT, `action` VARCHAR(64), `entity_type` VARCHAR(32), `entity_id` INT, `summary` VARCHAR(512), `detail_json` TEXT, `old_json` TEXT, `new_json` TEXT, `ip_address` VARCHAR(64), `user_agent` VARCHAR(255));
+                CREATE TABLE `epc_erp_inv_items` (`id` INT AUTO_INCREMENT PRIMARY KEY, `sku` VARCHAR(64), `name` VARCHAR(255), `item_type` VARCHAR(16), `active` TINYINT DEFAULT 1);
+                CREATE TABLE `epc_erp_inv_warehouses` (`id` INT AUTO_INCREMENT PRIMARY KEY, `name` VARCHAR(255), `active` TINYINT DEFAULT 1);
+                CREATE TABLE `epc_erp_inv_stock` (`id` INT AUTO_INCREMENT PRIMARY KEY, `warehouse_id` INT, `item_id` INT, `qty_on_hand` DECIMAL(14,3));
+                CREATE TABLE `epc_erp_inv_movements` (`id` INT AUTO_INCREMENT PRIMARY KEY, `movement_type` VARCHAR(16), `warehouse_id` INT, `item_id` INT, `qty` DECIMAL(14,3), `movement_date` INT, `active` TINYINT DEFAULT 1);
+                INSERT INTO `epc_erp_inv_items` VALUES (1, 'OIL', 'Engine oil', 'standard', 1);
+                INSERT INTO `epc_erp_inv_warehouses` VALUES (1, 'Main', 1);
+                INSERT INTO `epc_erp_inv_stock` (`warehouse_id`, `item_id`, `qty_on_hand`) VALUES (1, 1, 4);
+                """);
+            var clock = new FixedClock(new DateTimeOffset(2026, 10, 8, 9, 0, 0, TimeSpan.Zero));
+            var service = new ErpSyncronWriteService(new Connections(cs), new ErpAuditLogWriter(), clock);
+            var ct = CancellationToken.None;
+
+            Assert.Equal("invalid", (await service.ApplyAsync(2, new ErpSyncronActionRequest("drop"), ct)).Code);
+            Assert.Equal("Policy is required.", (await service.ApplyAsync(2, new ErpSyncronActionRequest("policy_save"), ct)).Message);
+            Assert.Equal("Item policies need the item SKU.", (await service.ApplyAsync(2, new ErpSyncronActionRequest("policy_save", Policy(0, "item", "", "x")), ct)).Message);
+            var created = await service.ApplyAsync(2, new ErpSyncronActionRequest("policy_save", Policy(0, "global", "", "Default")), ct);
+            Assert.Equal("Policy \"Default\" created.", created.Message);
+            Assert.Equal("Policy \"Default\" updated.", (await service.ApplyAsync(2, new ErpSyncronActionRequest("policy_save", Policy(created.Id, "global", "", "Default")), ct)).Message);
+            Assert.Equal("not_found", (await service.ApplyAsync(2, new ErpSyncronActionRequest("policy_save", Policy(999, "global", "", "Ghost")), ct)).Code);
+
+            var run = await service.ApplyAsync(2, new ErpSyncronActionRequest("run_forecast"), ct);
+            Assert.Equal(("Forecast written for 1 item × warehouse rows.", 1), (run.Message, run.Writes));
+            Assert.Equal("Month must be YYYY-MM.", (await service.ApplyAsync(2, new ErpSyncronActionRequest("record_service_level", ItemId: 1, WarehouseId: 1, PeriodMonth: "Sept"), ct)).Message);
+            Assert.True((await service.ApplyAsync(2, new ErpSyncronActionRequest("record_service_level", ItemId: 1, WarehouseId: 1, PeriodMonth: "2026-09", DemandQty: 10m, FulfilledQty: 8m), ct)).Succeeded);
+            Assert.True((await service.ApplyAsync(2, new ErpSyncronActionRequest("policy_deactivate", PolicyId: created.Id), ct)).Succeeded);
+            Assert.Equal("not_found", (await service.ApplyAsync(2, new ErpSyncronActionRequest("policy_deactivate", PolicyId: created.Id), ct)).Code);
+
+            await using var db = new MySqlConnection(cs);
+            await db.OpenAsync();
+            Assert.Equal("2026-10-08", Convert.ToString(await new MySqlCommand("SELECT DATE_FORMAT(`period_start`, '%Y-%m-%d') FROM `epc_erp_inv_demand_forecast`", db).ExecuteScalarAsync(), CultureInfo.InvariantCulture));
+            Assert.Equal(5L, await ScalarAsync(db, "SELECT COUNT(*) FROM `epc_erp_audit_log` WHERE `entity_type` = 'inv_policy' AND `admin_id` = 2"));
+            Assert.Equal(1L, await ScalarAsync(db, "SELECT COUNT(*) FROM `epc_erp_audit_log` WHERE `action` = 'syncron_run_forecast'"));
+        }
+        finally
+        {
+            MySqlConnection.ClearAllPools();
+            await ExecAsync(admin, "DROP DATABASE IF EXISTS `" + name + "`");
+        }
+    }
+
+    private sealed class FixedClock(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
+    }
+
+    private sealed class Connections(string cs) : IErpWriteConnectionFactory
+    {
+        public bool IsConfigured => true;
+
+        public async Task<DbConnection> OpenAsync(CancellationToken cancellationToken = default)
+        {
+            var connection = new MySqlConnection(cs);
+            await connection.OpenAsync(cancellationToken);
+            return connection;
+        }
+    }
+
+    private static string RepoRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "aspnet", "src", "EcomAE.Platform", "EcomAE.Platform.csproj")))
+        {
+            dir = dir.Parent;
+        }
+
+        return dir?.FullName ?? throw new DirectoryNotFoundException("Could not find repo root.");
     }
 
     private static ErpSyncronPolicy.Policy Policy(long id, string scope, string scopeRef, string name)

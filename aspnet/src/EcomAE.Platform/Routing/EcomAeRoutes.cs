@@ -1022,6 +1022,10 @@ public static class EcomAeRoutes
     public const string ErpProductInfoCreateItemForm = "/erp/product-info/create-item";
     /// <summary>PIM attributes tab form POST (<c>pinfo_action</c> = create/deactivate field, add/remove option). Needs <c>confirmWrites=true</c>.</summary>
     public const string ErpProductInfoPimAction = "/erp/product-info/pim";
+    /// <summary>Syncron inventory policy page: recommendations, policies, forecast and service levels.</summary>
+    public const string ErpSyncronApp = "/erp/syncron-app";
+    /// <summary>Syncron form POST (<c>syncron_action</c> = policy_save, policy_deactivate, run_forecast, record_service_level). Needs <c>confirmWrites=true</c>.</summary>
+    public const string ErpSyncronAction = "/erp/syncron/action";
     /// <summary>HTML form POST for PHP <c>jw_repair_create</c>. <c>confirmWrites=true</c> inserts <c>epc_erp_jw_repairs</c>.</summary>
     public const string ErpJewelleryRepairCreateForm = "/erp/jewellery/repair-create";
     /// <summary>PHP design/diamond list helpers. Read-only company-scoped master projection.</summary>
