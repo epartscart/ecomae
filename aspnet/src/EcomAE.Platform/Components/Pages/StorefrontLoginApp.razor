@@ -44,10 +44,7 @@
 
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
         _alert = ctx.Items[StorefrontLoginPost.AlertItemKey] as string ?? string.Empty;
-        var path = ctx.Request.Path.Value ?? string.Empty;
-        var langHref = path.Length > 3 && path[0] == '/' && path[3] == '/' && char.IsAsciiLetterLower(path[1]) && char.IsAsciiLetterLower(path[2])
-            ? path[..3]
-            : "/en";
+        var langHref = StorefrontPhpHomeLinks.LangHref(ctx);
         var config = EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(PhpReference.Value);
         var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
 

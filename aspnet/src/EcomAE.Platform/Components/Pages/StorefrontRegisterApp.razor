@@ -43,10 +43,7 @@
         }
 
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
-        var path = ctx.Request.Path.Value ?? string.Empty;
-        var langHref = path.Length > 3 && path[0] == '/' && path[3] == '/' && char.IsAsciiLetterLower(path[1]) && char.IsAsciiLetterLower(path[2])
-            ? path[..3]
-            : "/en";
+        var langHref = StorefrontPhpHomeLinks.LangHref(ctx);
         var config = new Dictionary<string, string>(EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(PhpReference.Value), StringComparer.Ordinal)
         {
             ["domain_path"] = ctx.Request.Scheme + "://" + ctx.Request.Host.Value + "/",

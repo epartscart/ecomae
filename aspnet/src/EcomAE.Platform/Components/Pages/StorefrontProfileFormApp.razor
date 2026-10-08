@@ -43,7 +43,7 @@
         var request = new StorefrontProfileForm.Request(
             ctx.Request.Cookies["session"],
             ctx.Request.Cookies["u_id"],
-            StorefrontProfilePostMiddleware.LangHref(ctx.Request.Path.Value ?? string.Empty),
+            StorefrontPhpHomeLinks.LangHref(ctx),
             config);
 
         try

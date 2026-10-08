@@ -260,6 +260,13 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — the ported users pages keep the visitor's language prefix
+
+Not complete.
+
+- Ratios, ratchet (812) and unnamed functions (7,925) unchanged.
+- `/ar`, `/ru` and `/me` users pages already reached the ported pages through `StorefrontLangAliasMiddleware`, which rewrites them onto `/en/…`. The login, register, profile and edit pages then read their `lang_href` from the rewritten path, so Arabic, Russian and Montenegrin visitors got `/en` links, form actions and redirects. They now use `StorefrontPhpHomeLinks.LangHref`, which reads the prefix the alias middleware records (the POST handlers run before the rewrite and see the real path). This closes the language prefix item of the two checkpoints that follow.
+
 ### Checkpoint 2026-10-08 — the storefront profile edit page and its save like PHP
 
 Not complete.

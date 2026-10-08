@@ -64,7 +64,7 @@ public sealed class StorefrontEditFormPostMiddleware
             var request = new StorefrontProfileForm.Request(
                 context.Request.Cookies["session"],
                 context.Request.Cookies["u_id"],
-                StorefrontProfilePostMiddleware.LangHref(context.Request.Path.Value ?? string.Empty),
+                EcomAE.Platform.Presentation.StorefrontPhpHomeLinks.LangHref(context),
                 ReadConfig(context));
             var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
             try
