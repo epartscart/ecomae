@@ -111,15 +111,38 @@ public sealed class HomeCatalogWidgetParityTests
         Assert.Equal("from-url", HomeCatalogWidgets.ResolveUmapiKey(new Dictionary<string, string> { ["umapi_api_url"] = "https://api.umapi.ru/from-url/" }));
     }
 
+    [Theory]
+    [InlineData(" 12abc", 12L)]
+    [InlineData("1e3", 1000L)]
+    [InlineData("7.9", 7L)]
+    [InlineData("abc", 0L)]
+    [InlineData("-3", -3L)]
+    [InlineData("0x1A", 0L)]
+    [InlineData("1e", 1L)]
+    [InlineData("+5", 5L)]
+    [InlineData("9999999999999999999", long.MaxValue)]
+    [InlineData(null, 0L)]
+    public void UmapiImageId_IsPhpIntCast(string? raw, long expected)
+        => Assert.Equal(expected, UmapiImageProxy.PhpIntCast(raw));
+
     [Fact]
     public void UmapiImageUrl_MatchesPhp()
     {
-        Assert.False(HomeCatalogWidgets.TryUmapiImageUrl("", "1", out _));
-        Assert.False(HomeCatalogWidgets.TryUmapiImageUrl("supplier", "0", out _));
-        Assert.True(HomeCatalogWidgets.TryUmapiImageUrl("Supplier", "12", out var supplier));
+        Assert.False(UmapiImageProxy.TryImageUrl("", "1", out _));
+        Assert.False(UmapiImageProxy.TryImageUrl("supplier", "0", out _));
+        Assert.False(UmapiImageProxy.TryImageUrl(" supplier", "1", out _));
+        Assert.False(UmapiImageProxy.TryImageUrl("supplier", "abc", out _));
+        Assert.False(UmapiImageProxy.TryImageUrl("supplier", "-3", out _));
+        Assert.True(UmapiImageProxy.TryImageUrl("Supplier", "12", out var supplier));
         Assert.Equal("https://image.umapi.ru/SUPPLIERS/12.png", supplier);
-        Assert.True(HomeCatalogWidgets.TryUmapiImageUrl("manufacturer", "4", out var make));
+        Assert.True(UmapiImageProxy.TryImageUrl("manufacturer", "4", out var make));
         Assert.Equal("https://image.umapi.ru/MANUFACTURERS/4.png", make);
+        Assert.True(UmapiImageProxy.TryImageUrl("SUPPLIER", " 12abc", out var cast));
+        Assert.Equal("https://image.umapi.ru/SUPPLIERS/12.png", cast);
+        Assert.True(UmapiImageProxy.TryImageUrl("supplier", "1e3", out var exponent));
+        Assert.Equal("https://image.umapi.ru/SUPPLIERS/1000.png", exponent);
+        Assert.True(UmapiImageProxy.TryImageUrl("supplier", "7.9", out var truncated));
+        Assert.Equal("https://image.umapi.ru/SUPPLIERS/7.png", truncated);
     }
 
     [Fact]
