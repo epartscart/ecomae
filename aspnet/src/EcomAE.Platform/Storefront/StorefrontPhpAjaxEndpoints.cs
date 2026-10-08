@@ -864,7 +864,8 @@ public static class StorefrontPhpAjaxEndpoints
                     phone,
                     email,
                     ct,
-                    context.Request.Host.Host).ConfigureAwait(false);
+                    context.Request.Host.Host,
+                    PhpConfig(context)).ConfigureAwait(false);
             });
 
     private static async Task<IResult> OrderMessagesAsync(

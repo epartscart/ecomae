@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Regenerates goldens.json by running the real content/users/loginform.php with php-cli for each case of cases.json.
+"""Regenerates goldens.json by running the real content/users/loginform.php (or, for "offer" cases,
+content/shop/order_process/checkout_login_offer.php with the case's DP_Config order_without_auth) with php-cli for each case of cases.json.
 Each case gets a temp docroot with copies of the page and its real includes (auth links, auth layout,
 modules/login/login_form_general.php, the pass and epc_code tabs, the e-mail code modal) and stubs for DP_User, the
 auth core, the login context and the provider buttons. $DP_Template->id is the case's template id. Translations are
@@ -26,6 +27,7 @@ class DP_User {
     static function getUserId() { global $case; return $case['user_id']; }
     static function available_communications() { global $case; return $case['communications']; }
 }
+#[AllowDynamicProperties]
 class DP_Config_H { public $simple_register_available = false; }
 class DP_Template_H { public $id; }
 $DP_Config = new DP_Config_H();
@@ -33,7 +35,10 @@ $DP_Template = new DP_Template_H();
 $DP_Template->id = $case['template_id'];
 $multilang_params = $case['multilang_params'];
 ob_start();
-if (isset($case['general'])) {
+if (isset($case['offer'])) {
+    if (array_key_exists('order_without_auth', $case['offer'])) { $DP_Config->order_without_auth = $case['offer']['order_without_auth']; }
+    require $_SERVER['DOCUMENT_ROOT'] . '/content/shop/order_process/checkout_login_offer.php';
+} elseif (isset($case['general'])) {
     if (array_key_exists('postfix', $case['general'])) { $login_form_postfix = $case['general']['postfix']; }
     if (array_key_exists('target', $case['general'])) { $login_form_target = $case['general']['target']; }
     foreach (range(1, $case['general']['times'] ?? 1) as $i) {
@@ -67,6 +72,8 @@ def docroot(case):
     if case.get("buttons") is not None:
         open(os.path.join(gp, "epc_oauth_buttons.php"), "w").write(BUTTONS)
     shutil.copy(os.path.join(root, "modules/login/login_form_general.php"), login)
+    os.makedirs(os.path.join(work, "content/shop/order_process"))
+    shutil.copy(os.path.join(root, "content/shop/order_process/checkout_login_offer.php"), os.path.join(work, "content/shop/order_process"))
     for tab in ("pass", "epc_code"):
         shutil.copy(os.path.join(root, "modules/login", tab, "app.php"), os.path.join(login, tab))
     return work

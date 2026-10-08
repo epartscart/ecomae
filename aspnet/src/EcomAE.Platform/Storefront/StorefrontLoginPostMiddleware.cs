@@ -34,9 +34,32 @@ public sealed class StorefrontLoginPostMiddleware
             || (value.Length == 15 && value[0] == '/' && char.IsAsciiLetterLower(value[1]) && char.IsAsciiLetterLower(value[2]) && value.EndsWith("/users/login", StringComparison.Ordinal));
     }
 
+    /// <summary><c>/shop/checkout/login_offer</c> or <c>/{lang}/shop/checkout/login_offer</c>.</summary>
+    public static bool IsLoginOfferPath(PathString path)
+    {
+        const string Offer = "/shop/checkout/login_offer";
+        var value = path.Value ?? string.Empty;
+        if (value.EndsWith('/'))
+        {
+            value = value[..^1];
+        }
+
+        return value == Offer
+            || (value.Length == Offer.Length + 3 && value[0] == '/' && char.IsAsciiLetterLower(value[1]) && char.IsAsciiLetterLower(value[2]) && value.EndsWith(Offer, StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// The login offer posts PHP's relative <c>target</c> (<see cref="StorefrontCheckoutLoginOffer.Target"/>), which
+    /// <see cref="StorefrontLoginPost.SafeTarget"/> turns into <c>/</c> as PHP does, sending a customer who signs in mid-checkout
+    /// to the home page. Here that exact value continues to the delivery step instead (an intended deviation).
+    /// </summary>
+    public static string LoginOfferTarget(string lang, bool langInPath)
+        => (langInPath ? "/" + lang : string.Empty) + "/" + StorefrontCheckoutLoginOffer.Target;
+
     public async Task InvokeAsync(HttpContext context, ITenantDbConnectionFactory connections)
     {
-        if (!HttpMethods.IsPost(context.Request.Method) || !IsLoginPagePath(context.Request.Path) || !context.Request.HasFormContentType)
+        var offer = IsLoginOfferPath(context.Request.Path);
+        if (!HttpMethods.IsPost(context.Request.Method) || !(offer || IsLoginPagePath(context.Request.Path)) || !context.Request.HasFormContentType)
         {
             await _next(context).ConfigureAwait(false);
             return;
@@ -60,9 +83,17 @@ public sealed class StorefrontLoginPostMiddleware
 
         var config = context.RequestServices.GetService<ICpPlatformMailer>()?.ReadConfig() ?? PhpConfig(context);
         var path = context.Request.Path.Value ?? string.Empty;
-        var lang = path.Length >= 15 && path[3] == '/' && path.AsSpan(3).StartsWith("/users/login", StringComparison.Ordinal) ? path.Substring(1, 2) : "en";
+        var langInPath = path.Length >= 15 && path[3] == '/'
+            && (path.AsSpan(3).StartsWith("/users/login", StringComparison.Ordinal) || (offer && path.AsSpan(3).StartsWith("/shop/", StringComparison.Ordinal)));
+        var lang = langInPath ? path.Substring(1, 2) : "en";
+        var post = form.ToDictionary(p => p.Key, p => p.Value.Count > 0 ? p.Value[^1] ?? string.Empty : string.Empty, StringComparer.Ordinal);
+        if (offer && post.TryGetValue("target", out var target) && target == StorefrontCheckoutLoginOffer.Target)
+        {
+            post["target"] = LoginOfferTarget(lang, langInPath);
+        }
+
         var request = new StorefrontLoginPost.Request(
-            form.ToDictionary(p => p.Key, p => p.Value.Count > 0 ? p.Value[^1] ?? string.Empty : string.Empty, StringComparer.Ordinal),
+            post,
             context.Request.Query.ToDictionary(p => p.Key, p => p.Value.Count > 0 ? p.Value[^1] ?? string.Empty : string.Empty, StringComparer.Ordinal),
             context.Request.Cookies["session"],
             context.Request.Cookies["u_id"],
