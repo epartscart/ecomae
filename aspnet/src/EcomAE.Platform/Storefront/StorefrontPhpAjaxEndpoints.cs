@@ -199,6 +199,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapPost(StorefrontPhpAjax.ForgotPasswordSendPath, ForgotPasswordSendAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CheckRegContactPath, ["GET", "POST"], CheckRegContactAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.PayForOrderPath, ["GET", "POST"], PayForOrderAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.SetOrderItemStatusPath, ["GET", "POST"], SetOrderItemStatusAsync)
@@ -1762,6 +1764,35 @@ public static class StorefrontPhpAjaxEndpoints
                 ExpectedTechKey(context),
                 token).ConfigureAwait(false),
             new StorefrontPhpAjax.RawHttp(JsonSerializer.Serialize(new { status = false, message = "No DB connect" }), "application/json;charset=utf-8;")).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CheckRegContactAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var query = context.Request.Query;
+        var form = HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType
+            ? await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false)
+            : null;
+        string? Post(string key) => form is not null && form.TryGetValue(key, out var value) ? value.ToString() : null;
+        var referer = context.Request.Headers.Referer.ToString();
+        var request = new StorefrontPhpAjax.CheckRegContactRequest(
+            Post("reg_contact"),
+            Post("reg_contact_type"),
+            query.TryGetValue("csrf_guard_key", out var fromQuery) ? fromQuery.ToString() : Post("csrf_guard_key"),
+            context.Request.Cookies["session"],
+            context.Request.Cookies["u_id"],
+            context.Request.Cookies["admin_session"],
+            context.Request.Cookies["admin_u_id"],
+            referer,
+            StorefrontReturnsPages.LangHrefSlashAfter(referer).TrimEnd('/'));
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.CheckRegContactAsync(connection, request, token).ConfigureAwait(false),
+            new StorefrontPhpAjax.RawHttp("{\"status\":false,\"result\":\"undefined\",\"message\":\"No DB connect\"}", StorefrontPhpAjax.CheckRegContactJsonType)).ConfigureAwait(false);
     }
 
     private static async Task<IResult> OrderPrintAsync(
