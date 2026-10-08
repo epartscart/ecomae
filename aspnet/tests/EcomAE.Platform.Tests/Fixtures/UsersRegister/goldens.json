@@ -1,0 +1,2043 @@
+{
+  "email_retail_ok": {
+    "location": null,
+    "html": "<p>Registered. Check your e-mail.</p><div class=\"alert alert-success\" style=\"margin:15px 0;\">You registered as <strong>Retail</strong>. Your account is approved — confirm your e-mail, then sign in to browse and checkout. Contact us if you need a wholesale upgrade.</div>",
+    "fatal": null,
+    "users": [
+      [
+        "8",
+        "new@example.test",
+        "",
+        "1",
+        "bc696281b8f94506ba5c6f718af8e4ab",
+        "a2889f28f71ef09a783d77571bb9d0c4",
+        "",
+        "T",
+        "0",
+        "T",
+        "1",
+        "0",
+        "0",
+        ""
+      ]
+    ],
+    "profiles": [
+      [
+        "8",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "8",
+        "epc_trade_registered_at",
+        "T"
+      ],
+      [
+        "8",
+        "epc_trade_approval_status",
+        "approved"
+      ],
+      [
+        "8",
+        "epc_dealing_currency",
+        "784"
+      ],
+      [
+        "8",
+        "epc_trade_approved_at",
+        "T"
+      ],
+      [
+        "8",
+        "epc_trade_approved_by",
+        "0"
+      ],
+      [
+        "8",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "8",
+        "phone",
+        "+971 50 111 2222"
+      ],
+      [
+        "8",
+        "epc_reg_city",
+        "Dubai"
+      ],
+      [
+        "8",
+        "epc_reg_address",
+        "Villa 4"
+      ],
+      [
+        "8",
+        "epc_reg_sms_notify",
+        "0"
+      ],
+      [
+        "8",
+        "epc_reg_emirate",
+        "Dubai"
+      ],
+      [
+        "8",
+        "epc_reg_state",
+        "Dubai"
+      ],
+      [
+        "8",
+        "name",
+        "Émile"
+      ],
+      [
+        "8",
+        "surname",
+        "O'Neil"
+      ],
+      [
+        "8",
+        "customer_vat_type",
+        "local_b2c"
+      ]
+    ],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ],
+      [
+        "8",
+        "3"
+      ],
+      [
+        "8",
+        "21"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": [
+      [
+        "8",
+        "Émile O'Neil",
+        "",
+        "",
+        "",
+        "AE",
+        "Dubai",
+        "Dubai",
+        "new@example.test",
+        "+971 50 111 2222",
+        "",
+        "0"
+      ]
+    ],
+    "notify": [
+      {
+        "name": "reg_email_confirm",
+        "vars": {
+          "email_confirm_href": "<a style='text-decoration: underline; color: #0000ee;' target='_blank' href='http://shop.test/en/users/confirm_contact?code=a2889f28f71ef09a783d77571bb9d0c4&u_id=8&type=email'>Confirm e-mail</a>",
+          "site_name": "Parts"
+        },
+        "persons": [
+          [
+            "direct",
+            "new@example.test",
+            ""
+          ]
+        ],
+        "wait": true
+      },
+      {
+        "name": "reg_notify_admin",
+        "vars": {
+          "event_html": "<div style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;\"><p><strong>New customer registration</strong></p><p>Contact: new@example.test</p><p>User ID: 8</p><p>Time: T (server)</p><p>IP: 127.0.0.1</p><p style=\"font-size:12px;color:#666;\">Browser: EpcHarness/1.0</p><h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>Émile</td></tr><tr><td>Surname</td><td>O'Neil</td></tr><tr><td>E-mail</td><td>new@example.test</td></tr><tr><td>Phone</td><td>+971 50 111 2222</td></tr><tr><td>Group</td><td>Customers</td></tr></table><h4 style=\"font-family:Calibri,Arial,sans-serif;margin:18px 0 8px;\">Information on the client who placed the order:</h4><table style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;border-collapse:collapse;width:100%;max-width:640px;\"><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Name:</td><td style=\"padding:4px 0;\">Émile O'Neil</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Email:</td><td style=\"padding:4px 0;\"><a href=\"mailto:new@example.test\">new@example.test</a></td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Phone:</td><td style=\"padding:4px 0;\">+971 50 111 2222</td></tr><tr><td colspan=\"2\" style=\"padding-top:10px;\"><a style=\"background:#2b78d6;color:#fff;text-decoration:none;padding:6px 12px;border-radius:4px;display:inline-block;\" href=\"http://shop.test/cp/users/usermanager/user?user_id=8\">Open customer in Control Panel</a></td></tr></table></div>",
+          "user_id": "8",
+          "user_link": "<a style=\"background: #c00; color: #fff; text-decoration: none; padding: 7px 13px; font-size: 16px; border-radius: 5px; display: inline-block;\" href='http://shop.test/cp/users/usermanager/user?user_id=8'>Open profile</a>",
+          "user_profile": "<h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>Émile</td></tr><tr><td>Surname</td><td>O'Neil</td></tr><tr><td>E-mail</td><td>new@example.test</td></tr><tr><td>Phone</td><td>+971 50 111 2222</td></tr><tr><td>Group</td><td>Customers</td></tr></table><div style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;\"><p><strong>New customer registration</strong></p><p>Contact: new@example.test</p><p>User ID: 8</p><p>Time: T (server)</p><p>IP: 127.0.0.1</p><p style=\"font-size:12px;color:#666;\">Browser: EpcHarness/1.0</p><h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>Émile</td></tr><tr><td>Surname</td><td>O'Neil</td></tr><tr><td>E-mail</td><td>new@example.test</td></tr><tr><td>Phone</td><td>+971 50 111 2222</td></tr><tr><td>Group</td><td>Customers</td></tr></table><h4 style=\"font-family:Calibri,Arial,sans-serif;margin:18px 0 8px;\">Information on the client who placed the order:</h4><table style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;border-collapse:collapse;width:100%;max-width:640px;\"><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Name:</td><td style=\"padding:4px 0;\">Émile O'Neil</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Email:</td><td style=\"padding:4px 0;\"><a href=\"mailto:new@example.test\">new@example.test</a></td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Phone:</td><td style=\"padding:4px 0;\">+971 50 111 2222</td></tr><tr><td colspan=\"2\" style=\"padding-top:10px;\"><a style=\"background:#2b78d6;color:#fff;text-decoration:none;padding:6px 12px;border-radius:4px;display:inline-block;\" href=\"http://shop.test/cp/users/usermanager/user?user_id=8\">Open customer in Control Panel</a></td></tr></table></div><p><strong>Requested account type:</strong> Retail</p><p><strong>Trade approval:</strong> Auto-approved (retail).</p>"
+        },
+        "persons": [
+          [
+            "direct",
+            "noreply@shop.test",
+            ""
+          ],
+          [
+            "user_id",
+            "1"
+          ],
+          [
+            "user_id",
+            "5"
+          ]
+        ],
+        "wait": false
+      }
+    ],
+    "files": []
+  },
+  "phone_wholesale_pending": {
+    "location": null,
+    "html": "        Enter the code from SMS:\n        <form method=\"GET\" action=\"/users/confirm_contact\">\n            <input type=\"hidden\" name=\"u_id\" value=\"8\" />\n            <input type=\"hidden\" name=\"type\" value=\"phone\" />\n            <div class=\"form-group\">\n                <label for=\"\" class=\"col-sm-2 control-label\">Code</label>\n                <div class=\"col-sm-6\" style=\"padding:5px;\">\n                  <input type=\"text\" class=\"form-control\" name=\"code\" id=\"code\" value=\"\" placeholder=\"Code\">\n                </div>\n                <div class=\"col-sm-4\" style=\"padding:5px;\">\n                    <button type=\"submit\">Send</button>\n                </div>\n            </div>\n        </form>\n        ",
+    "fatal": null,
+    "users": [
+      [
+        "8",
+        "",
+        "+971 50 123 4567",
+        "2",
+        "0d22eb5f4d54a6249d1834ea4070d262",
+        "",
+        "R",
+        "0",
+        "T",
+        "T",
+        "1",
+        "0",
+        "0",
+        ""
+      ]
+    ],
+    "profiles": [
+      [
+        "8",
+        "city",
+        "Riyadh"
+      ],
+      [
+        "8",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "8",
+        "epc_trade_registered_at",
+        "T"
+      ],
+      [
+        "8",
+        "epc_trade_approval_status",
+        "pending"
+      ],
+      [
+        "8",
+        "epc_reg_country",
+        "SA"
+      ],
+      [
+        "8",
+        "surname",
+        "Saleh"
+      ],
+      [
+        "8",
+        "phone",
+        "+966 55"
+      ],
+      [
+        "8",
+        "epc_reg_city",
+        "Riyadh"
+      ],
+      [
+        "8",
+        "epc_reg_address",
+        "King Fahd Rd"
+      ],
+      [
+        "8",
+        "epc_reg_sms_notify",
+        "0"
+      ],
+      [
+        "8",
+        "epc_reg_legal_name",
+        "Riyadh Spares Co"
+      ],
+      [
+        "8",
+        "epc_reg_job_title",
+        "Owner"
+      ],
+      [
+        "8",
+        "epc_reg_business_type",
+        "Dealer"
+      ],
+      [
+        "8",
+        "epc_reg_trade_licence",
+        "CR-1"
+      ],
+      [
+        "8",
+        "epc_reg_trn_mode",
+        "not_available"
+      ],
+      [
+        "8",
+        "epc_legal_reg_type",
+        "TL"
+      ],
+      [
+        "8",
+        "epc_pep_declaration",
+        "No"
+      ],
+      [
+        "8",
+        "epc_doc_trade_licence",
+        "/content/files/kyc/8/epc_doc_trade_licence_D.pdf"
+      ],
+      [
+        "8",
+        "epc_doc_trade_licence_status",
+        "pending_review"
+      ],
+      [
+        "8",
+        "epc_doc_emirates_id",
+        "/content/files/kyc/8/epc_doc_emirates_id_D.png"
+      ],
+      [
+        "8",
+        "epc_doc_emirates_id_status",
+        "pending_review"
+      ],
+      [
+        "8",
+        "name",
+        "Omar"
+      ],
+      [
+        "8",
+        "company_name",
+        "Riyadh Spares"
+      ],
+      [
+        "8",
+        "customer_vat_type",
+        "gcc"
+      ]
+    ],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ],
+      [
+        "8",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": [
+      [
+        "8",
+        "Riyadh Spares Co",
+        "",
+        "",
+        "CR-1",
+        "SA",
+        "Dubai",
+        "Riyadh",
+        "",
+        "+966 55",
+        "",
+        "0"
+      ]
+    ],
+    "notify": [
+      {
+        "name": "reg_phone_confirm",
+        "vars": {
+          "phone_confirm_code": "R"
+        },
+        "persons": [
+          [
+            "direct",
+            "",
+            "+971 50 123 4567"
+          ]
+        ],
+        "wait": true
+      },
+      {
+        "name": "reg_notify_admin",
+        "vars": {
+          "event_html": "<div style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;\"><p><strong>New customer registration</strong></p><p>Contact: +971 50 123 4567</p><p>User ID: 8</p><p>Time: T (server)</p><p>IP: 127.0.0.1</p><p style=\"font-size:12px;color:#666;\">Browser: EpcHarness/1.0</p><h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>Omar</td></tr><tr><td>Surname</td><td>Saleh</td></tr><tr><td>cap_company</td><td>Riyadh Spares</td></tr><tr><td>City</td><td>Riyadh</td></tr><tr><td>Phone</td><td>+966 55</td></tr><tr><td>Group</td><td>Customers</td></tr></table><h4 style=\"font-family:Calibri,Arial,sans-serif;margin:18px 0 8px;\">Information on the client who placed the order:</h4><table style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;border-collapse:collapse;width:100%;max-width:640px;\"><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Name:</td><td style=\"padding:4px 0;\">Omar Saleh</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Client city:</td><td style=\"padding:4px 0;\">Riyadh</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Company:</td><td style=\"padding:4px 0;\">Riyadh Spares</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Phone:</td><td style=\"padding:4px 0;\">+966 55</td></tr><tr><td colspan=\"2\" style=\"padding-top:10px;\"><a style=\"background:#2b78d6;color:#fff;text-decoration:none;padding:6px 12px;border-radius:4px;display:inline-block;\" href=\"http://shop.test/cp/users/usermanager/user?user_id=8\">Open customer in Control Panel</a></td></tr></table></div>",
+          "user_id": "8",
+          "user_link": "<a style=\"background: #c00; color: #fff; text-decoration: none; padding: 7px 13px; font-size: 16px; border-radius: 5px; display: inline-block;\" href='http://shop.test/cp/users/usermanager/user?user_id=8'>Open profile</a>",
+          "user_profile": "<h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>Omar</td></tr><tr><td>Surname</td><td>Saleh</td></tr><tr><td>cap_company</td><td>Riyadh Spares</td></tr><tr><td>City</td><td>Riyadh</td></tr><tr><td>Phone</td><td>+966 55</td></tr><tr><td>Group</td><td>Customers</td></tr></table><div style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;\"><p><strong>New customer registration</strong></p><p>Contact: +971 50 123 4567</p><p>User ID: 8</p><p>Time: T (server)</p><p>IP: 127.0.0.1</p><p style=\"font-size:12px;color:#666;\">Browser: EpcHarness/1.0</p><h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>Omar</td></tr><tr><td>Surname</td><td>Saleh</td></tr><tr><td>cap_company</td><td>Riyadh Spares</td></tr><tr><td>City</td><td>Riyadh</td></tr><tr><td>Phone</td><td>+966 55</td></tr><tr><td>Group</td><td>Customers</td></tr></table><h4 style=\"font-family:Calibri,Arial,sans-serif;margin:18px 0 8px;\">Information on the client who placed the order:</h4><table style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;border-collapse:collapse;width:100%;max-width:640px;\"><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Name:</td><td style=\"padding:4px 0;\">Omar Saleh</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Client city:</td><td style=\"padding:4px 0;\">Riyadh</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Company:</td><td style=\"padding:4px 0;\">Riyadh Spares</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Phone:</td><td style=\"padding:4px 0;\">+966 55</td></tr><tr><td colspan=\"2\" style=\"padding-top:10px;\"><a style=\"background:#2b78d6;color:#fff;text-decoration:none;padding:6px 12px;border-radius:4px;display:inline-block;\" href=\"http://shop.test/cp/users/usermanager/user?user_id=8\">Open customer in Control Panel</a></td></tr></table></div><p><strong>Requested account type:</strong> Wholesale</p><p><strong>Trade approval:</strong> Pending — review in Control Panel → Users → Customer approvals.</p><p><strong>UAE e-invoice:</strong> Buyer TRN/profile captured at registration.</p>"
+        },
+        "persons": [
+          [
+            "direct",
+            "noreply@shop.test",
+            ""
+          ],
+          [
+            "user_id",
+            "1"
+          ],
+          [
+            "user_id",
+            "5"
+          ]
+        ],
+        "wait": false
+      }
+    ],
+    "files": [
+      [
+        "/content/files/kyc/8/epc_doc_emirates_id_D.png",
+        3
+      ],
+      [
+        "/content/files/kyc/8/epc_doc_trade_licence_D.pdf",
+        4
+      ]
+    ]
+  },
+  "email_wholesale_uae": {
+    "location": null,
+    "html": "<p>Registered. Check your e-mail.</p><div class=\"alert alert-info\" style=\"margin:15px 0;\">You chose <strong>Wholesale</strong> — subject to approval only. You can sign in and browse after confirming your contact. Checkout unlocks once a manager approves your wholesale account and assigns your dealing currency.</div>",
+    "fatal": null,
+    "users": [
+      [
+        "8",
+        "uae@example.test",
+        "",
+        "2",
+        "0d22eb5f4d54a6249d1834ea4070d262",
+        "cb638732ffe6b0b82327d26b3d11581c",
+        "",
+        "T",
+        "0",
+        "T",
+        "1",
+        "0",
+        "0",
+        ""
+      ]
+    ],
+    "profiles": [
+      [
+        "8",
+        "city",
+        ""
+      ],
+      [
+        "8",
+        "epc_customer_type",
+        "wholesale"
+      ],
+      [
+        "8",
+        "epc_trade_registered_at",
+        "T"
+      ],
+      [
+        "8",
+        "epc_trade_approval_status",
+        "pending"
+      ],
+      [
+        "8",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "8",
+        "name",
+        "Sara"
+      ],
+      [
+        "8",
+        "surname",
+        "Ali"
+      ],
+      [
+        "8",
+        "phone",
+        "+971 50 999 0000"
+      ],
+      [
+        "8",
+        "epc_reg_city",
+        "Sharjah"
+      ],
+      [
+        "8",
+        "epc_reg_address",
+        "Area 6"
+      ],
+      [
+        "8",
+        "epc_reg_sms_notify",
+        "0"
+      ],
+      [
+        "8",
+        "company_name",
+        "Gulf Parts"
+      ],
+      [
+        "8",
+        "epc_reg_legal_name",
+        "Gulf Parts LLC"
+      ],
+      [
+        "8",
+        "epc_reg_job_title",
+        "Buyer"
+      ],
+      [
+        "8",
+        "epc_reg_business_type",
+        "Garage"
+      ],
+      [
+        "8",
+        "epc_reg_trade_licence",
+        "TL-1"
+      ],
+      [
+        "8",
+        "epc_reg_trn_mode",
+        "has_trn"
+      ],
+      [
+        "8",
+        "epc_reg_trn",
+        "100123456700003"
+      ],
+      [
+        "8",
+        "epc_reg_emirate",
+        "Sharjah"
+      ],
+      [
+        "8",
+        "epc_legal_reg_type",
+        "TL"
+      ],
+      [
+        "8",
+        "epc_pep_declaration",
+        "No"
+      ],
+      [
+        "8",
+        "epc_doc_trade_licence",
+        "/content/files/kyc/8/epc_doc_trade_licence_D.pdf"
+      ],
+      [
+        "8",
+        "epc_doc_trade_licence_status",
+        "pending_review"
+      ],
+      [
+        "8",
+        "epc_doc_emirates_id",
+        "/content/files/kyc/8/epc_doc_emirates_id_D.jpg"
+      ],
+      [
+        "8",
+        "epc_doc_emirates_id_status",
+        "pending_review"
+      ],
+      [
+        "8",
+        "customer_vat_type",
+        "local_b2b"
+      ],
+      [
+        "8",
+        "epc_uae_company",
+        "1"
+      ]
+    ],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ],
+      [
+        "8",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": [
+      [
+        "8",
+        "Gulf Parts LLC",
+        "100123456700003",
+        "1001234567",
+        "TL-1",
+        "AE",
+        "Sharjah",
+        "Sharjah",
+        "uae@example.test",
+        "+971 50 999 0000",
+        "0235:1001234567",
+        "1"
+      ]
+    ],
+    "notify": [
+      {
+        "name": "reg_email_confirm",
+        "vars": {
+          "email_confirm_href": "<a style='text-decoration: underline; color: #0000ee;' target='_blank' href='http://shop.test/en/users/confirm_contact?code=cb638732ffe6b0b82327d26b3d11581c&u_id=8&type=email'>Confirm e-mail</a>",
+          "site_name": "Parts"
+        },
+        "persons": [
+          [
+            "direct",
+            "uae@example.test",
+            ""
+          ]
+        ],
+        "wait": true
+      },
+      {
+        "name": "reg_notify_admin",
+        "vars": {
+          "event_html": "<div style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;\"><p><strong>New customer registration</strong></p><p>Contact: uae@example.test</p><p>User ID: 8</p><p>Time: T (server)</p><p>IP: 127.0.0.1</p><p style=\"font-size:12px;color:#666;\">Browser: EpcHarness/1.0</p><h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>Sara</td></tr><tr><td>Surname</td><td>Ali</td></tr><tr><td>cap_company</td><td>Gulf Parts</td></tr><tr><td>City</td><td></td></tr><tr><td>E-mail</td><td>uae@example.test</td></tr><tr><td>Phone</td><td>+971 50 999 0000</td></tr><tr><td>Group</td><td>Customers</td></tr></table><h4 style=\"font-family:Calibri,Arial,sans-serif;margin:18px 0 8px;\">Information on the client who placed the order:</h4><table style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;border-collapse:collapse;width:100%;max-width:640px;\"><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Name:</td><td style=\"padding:4px 0;\">Sara Ali</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Email:</td><td style=\"padding:4px 0;\"><a href=\"mailto:uae@example.test\">uae@example.test</a></td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Company:</td><td style=\"padding:4px 0;\">Gulf Parts</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Phone:</td><td style=\"padding:4px 0;\">+971 50 999 0000</td></tr><tr><td colspan=\"2\" style=\"padding-top:10px;\"><a style=\"background:#2b78d6;color:#fff;text-decoration:none;padding:6px 12px;border-radius:4px;display:inline-block;\" href=\"http://shop.test/cp/users/usermanager/user?user_id=8\">Open customer in Control Panel</a></td></tr></table></div>",
+          "user_id": "8",
+          "user_link": "<a style=\"background: #c00; color: #fff; text-decoration: none; padding: 7px 13px; font-size: 16px; border-radius: 5px; display: inline-block;\" href='http://shop.test/cp/users/usermanager/user?user_id=8'>Open profile</a>",
+          "user_profile": "<h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>Sara</td></tr><tr><td>Surname</td><td>Ali</td></tr><tr><td>cap_company</td><td>Gulf Parts</td></tr><tr><td>City</td><td></td></tr><tr><td>E-mail</td><td>uae@example.test</td></tr><tr><td>Phone</td><td>+971 50 999 0000</td></tr><tr><td>Group</td><td>Customers</td></tr></table><div style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;\"><p><strong>New customer registration</strong></p><p>Contact: uae@example.test</p><p>User ID: 8</p><p>Time: T (server)</p><p>IP: 127.0.0.1</p><p style=\"font-size:12px;color:#666;\">Browser: EpcHarness/1.0</p><h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>Sara</td></tr><tr><td>Surname</td><td>Ali</td></tr><tr><td>cap_company</td><td>Gulf Parts</td></tr><tr><td>City</td><td></td></tr><tr><td>E-mail</td><td>uae@example.test</td></tr><tr><td>Phone</td><td>+971 50 999 0000</td></tr><tr><td>Group</td><td>Customers</td></tr></table><h4 style=\"font-family:Calibri,Arial,sans-serif;margin:18px 0 8px;\">Information on the client who placed the order:</h4><table style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;border-collapse:collapse;width:100%;max-width:640px;\"><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Name:</td><td style=\"padding:4px 0;\">Sara Ali</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Email:</td><td style=\"padding:4px 0;\"><a href=\"mailto:uae@example.test\">uae@example.test</a></td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Company:</td><td style=\"padding:4px 0;\">Gulf Parts</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Phone:</td><td style=\"padding:4px 0;\">+971 50 999 0000</td></tr><tr><td colspan=\"2\" style=\"padding-top:10px;\"><a style=\"background:#2b78d6;color:#fff;text-decoration:none;padding:6px 12px;border-radius:4px;display:inline-block;\" href=\"http://shop.test/cp/users/usermanager/user?user_id=8\">Open customer in Control Panel</a></td></tr></table></div><p><strong>Requested account type:</strong> Wholesale</p><p><strong>Trade approval:</strong> Pending — review in Control Panel → Users → Customer approvals.</p>"
+        },
+        "persons": [
+          [
+            "direct",
+            "noreply@shop.test",
+            ""
+          ],
+          [
+            "user_id",
+            "1"
+          ],
+          [
+            "user_id",
+            "5"
+          ]
+        ],
+        "wait": false
+      }
+    ],
+    "files": [
+      [
+        "/content/files/kyc/8/epc_doc_emirates_id_D.jpg",
+        6
+      ],
+      [
+        "/content/files/kyc/8/epc_doc_trade_licence_D.pdf",
+        5
+      ]
+    ]
+  },
+  "bad_captcha": {
+    "location": "/en/?error_message=Wrong+captcha",
+    "html": "",
+    "fatal": null,
+    "users": [],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  },
+  "no_captcha_cookie": {
+    "location": "/en/?error_message=Wrong+captcha",
+    "html": "",
+    "fatal": null,
+    "users": [],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  },
+  "no_agreement": {
+    "location": "/en/?error_message=Accept+the+user+agreement",
+    "html": "",
+    "fatal": null,
+    "users": [],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  },
+  "bad_contact_type": {
+    "location": "/en/?error_message=Registration+error+1.1",
+    "html": "",
+    "fatal": null,
+    "users": [],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  },
+  "regexp_refused": {
+    "location": "/en/?error_message=Registration+error+1.2",
+    "html": "",
+    "fatal": null,
+    "users": [],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  },
+  "contact_taken": {
+    "location": "/en/?error_message=Registration+error+1.3",
+    "html": "",
+    "fatal": null,
+    "users": [],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  },
+  "ip_blocked": {
+    "location": "/en/?error_message=Too+many+registrations+from+your+address",
+    "html": "",
+    "fatal": null,
+    "users": [
+      [
+        "8",
+        "fresh@example.test",
+        "",
+        "0",
+        "",
+        "",
+        "",
+        "0",
+        "0",
+        "T",
+        "0",
+        "0",
+        "0",
+        "127.0.0.1"
+      ]
+    ],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  },
+  "enhanced_refused": {
+    "location": "/en/?error_message=Please+fill+in%3A+Mobile+phone",
+    "html": "",
+    "fatal": null,
+    "users": [],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  },
+  "bad_variant": {
+    "location": "/en/?error_message=Registration+error+5.1",
+    "html": "",
+    "fatal": null,
+    "users": [],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  },
+  "kyc_bad_document": {
+    "location": "/en/?error_message=Allowed+document+formats%3A+PDF%2C+JPG%2C+PNG%2C+WEBP.",
+    "html": "",
+    "fatal": null,
+    "users": [],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  },
+  "confirm_not_found": {
+    "location": "/en/?error_message=Notification+error",
+    "html": "",
+    "fatal": null,
+    "users": [
+      [
+        "8",
+        "nf@example.test",
+        "",
+        "1",
+        "0d22eb5f4d54a6249d1834ea4070d262",
+        "6b1ff33b691e2c905f8a45098e638e84",
+        "",
+        "T",
+        "0",
+        "T",
+        "1",
+        "0",
+        "0",
+        ""
+      ]
+    ],
+    "profiles": [
+      [
+        "8",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "8",
+        "epc_trade_registered_at",
+        "T"
+      ],
+      [
+        "8",
+        "epc_trade_approval_status",
+        "approved"
+      ],
+      [
+        "8",
+        "epc_dealing_currency",
+        "784"
+      ],
+      [
+        "8",
+        "epc_trade_approved_at",
+        "T"
+      ],
+      [
+        "8",
+        "epc_trade_approved_by",
+        "0"
+      ],
+      [
+        "8",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "8",
+        "name",
+        "A"
+      ],
+      [
+        "8",
+        "surname",
+        "B"
+      ],
+      [
+        "8",
+        "phone",
+        "1"
+      ],
+      [
+        "8",
+        "epc_reg_city",
+        "C"
+      ],
+      [
+        "8",
+        "epc_reg_address",
+        "D"
+      ],
+      [
+        "8",
+        "epc_reg_sms_notify",
+        "0"
+      ],
+      [
+        "8",
+        "customer_vat_type",
+        "local_b2c"
+      ]
+    ],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ],
+      [
+        "8",
+        "3"
+      ],
+      [
+        "8",
+        "21"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": [
+      [
+        "8",
+        "A B",
+        "",
+        "",
+        "",
+        "AE",
+        "Dubai",
+        "C",
+        "nf@example.test",
+        "1",
+        "",
+        "0"
+      ]
+    ],
+    "notify": [
+      {
+        "name": "reg_email_confirm",
+        "vars": {
+          "email_confirm_href": "<a style='text-decoration: underline; color: #0000ee;' target='_blank' href='http://shop.test/en/users/confirm_contact?code=6b1ff33b691e2c905f8a45098e638e84&u_id=8&type=email'>Confirm e-mail</a>",
+          "site_name": "Parts"
+        },
+        "persons": [
+          [
+            "direct",
+            "nf@example.test",
+            ""
+          ]
+        ],
+        "wait": true
+      }
+    ],
+    "files": []
+  },
+  "confirm_phone_not_sent": {
+    "location": "/en/?error_message=Could+not+send+the+confirmation",
+    "html": "",
+    "fatal": null,
+    "users": [
+      [
+        "8",
+        "",
+        "+971 55 000 0000",
+        "1",
+        "0d22eb5f4d54a6249d1834ea4070d262",
+        "",
+        "R",
+        "0",
+        "T",
+        "T",
+        "1",
+        "0",
+        "0",
+        ""
+      ]
+    ],
+    "profiles": [
+      [
+        "8",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "8",
+        "epc_trade_registered_at",
+        "T"
+      ],
+      [
+        "8",
+        "epc_trade_approval_status",
+        "approved"
+      ],
+      [
+        "8",
+        "epc_dealing_currency",
+        "784"
+      ],
+      [
+        "8",
+        "epc_trade_approved_at",
+        "T"
+      ],
+      [
+        "8",
+        "epc_trade_approved_by",
+        "0"
+      ],
+      [
+        "8",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "8",
+        "name",
+        "A"
+      ],
+      [
+        "8",
+        "surname",
+        "B"
+      ],
+      [
+        "8",
+        "phone",
+        "1"
+      ],
+      [
+        "8",
+        "epc_reg_city",
+        "C"
+      ],
+      [
+        "8",
+        "epc_reg_address",
+        "D"
+      ],
+      [
+        "8",
+        "epc_reg_sms_notify",
+        "0"
+      ],
+      [
+        "8",
+        "customer_vat_type",
+        "local_b2c"
+      ]
+    ],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ],
+      [
+        "8",
+        "3"
+      ],
+      [
+        "8",
+        "21"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": [
+      [
+        "8",
+        "A B",
+        "",
+        "",
+        "",
+        "AE",
+        "Dubai",
+        "C",
+        "",
+        "1",
+        "",
+        "0"
+      ]
+    ],
+    "notify": [
+      {
+        "name": "reg_phone_confirm",
+        "vars": {
+          "phone_confirm_code": "R"
+        },
+        "persons": [
+          [
+            "direct",
+            "",
+            "+971 55 000 0000"
+          ]
+        ],
+        "wait": true
+      }
+    ],
+    "files": []
+  },
+  "confirm_email_failed_continue": {
+    "location": null,
+    "html": "<div class=\"alert alert-warning\" style=\"margin:15px 0;\">Account created, but the confirmation e-mail could not be sent (configure SMTP). Use this link to confirm your e-mail:</div><p style=\"margin:15px 0; word-break:break-all;\"><a href=\"http://shop.test/en/users/confirm_contact?code=419b32d7ade65423cebeacb60d5638b1&amp;u_id=8&amp;type=email\">http://shop.test/en/users/confirm_contact?code=419b32d7ade65423cebeacb60d5638b1&amp;u_id=8&amp;type=email</a></p>",
+    "fatal": null,
+    "users": [
+      [
+        "8",
+        "smtp@example.test",
+        "",
+        "1",
+        "0d22eb5f4d54a6249d1834ea4070d262",
+        "419b32d7ade65423cebeacb60d5638b1",
+        "",
+        "T",
+        "0",
+        "T",
+        "1",
+        "0",
+        "0",
+        ""
+      ]
+    ],
+    "profiles": [
+      [
+        "8",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "8",
+        "epc_trade_registered_at",
+        "T"
+      ],
+      [
+        "8",
+        "epc_trade_approval_status",
+        "approved"
+      ],
+      [
+        "8",
+        "epc_dealing_currency",
+        "784"
+      ],
+      [
+        "8",
+        "epc_trade_approved_at",
+        "T"
+      ],
+      [
+        "8",
+        "epc_trade_approved_by",
+        "0"
+      ],
+      [
+        "8",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "8",
+        "name",
+        "A"
+      ],
+      [
+        "8",
+        "surname",
+        "B"
+      ],
+      [
+        "8",
+        "phone",
+        "1"
+      ],
+      [
+        "8",
+        "epc_reg_city",
+        "C"
+      ],
+      [
+        "8",
+        "epc_reg_address",
+        "D"
+      ],
+      [
+        "8",
+        "epc_reg_sms_notify",
+        "0"
+      ],
+      [
+        "8",
+        "customer_vat_type",
+        "local_b2c"
+      ]
+    ],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ],
+      [
+        "8",
+        "3"
+      ],
+      [
+        "8",
+        "21"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": [
+      [
+        "8",
+        "A B",
+        "",
+        "",
+        "",
+        "AE",
+        "Dubai",
+        "C",
+        "smtp@example.test",
+        "1",
+        "",
+        "0"
+      ]
+    ],
+    "notify": [
+      {
+        "name": "reg_email_confirm",
+        "vars": {
+          "email_confirm_href": "<a style='text-decoration: underline; color: #0000ee;' target='_blank' href='http://shop.test/en/users/confirm_contact?code=419b32d7ade65423cebeacb60d5638b1&u_id=8&type=email'>Confirm e-mail</a>",
+          "site_name": "Parts"
+        },
+        "persons": [
+          [
+            "direct",
+            "smtp@example.test",
+            ""
+          ]
+        ],
+        "wait": true
+      },
+      {
+        "name": "reg_notify_admin",
+        "vars": {
+          "event_html": "<div style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;\"><p><strong>New customer registration</strong></p><p>Contact: smtp@example.test</p><p>User ID: 8</p><p>Time: T (server)</p><p>IP: 127.0.0.1</p><p style=\"font-size:12px;color:#666;\">Browser: EpcHarness/1.0</p><h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>A</td></tr><tr><td>Surname</td><td>B</td></tr><tr><td>E-mail</td><td>smtp@example.test</td></tr><tr><td>Phone</td><td>1</td></tr><tr><td>Group</td><td>Customers</td></tr></table><h4 style=\"font-family:Calibri,Arial,sans-serif;margin:18px 0 8px;\">Information on the client who placed the order:</h4><table style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;border-collapse:collapse;width:100%;max-width:640px;\"><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Name:</td><td style=\"padding:4px 0;\">A B</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Email:</td><td style=\"padding:4px 0;\"><a href=\"mailto:smtp@example.test\">smtp@example.test</a></td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Phone:</td><td style=\"padding:4px 0;\">1</td></tr><tr><td colspan=\"2\" style=\"padding-top:10px;\"><a style=\"background:#2b78d6;color:#fff;text-decoration:none;padding:6px 12px;border-radius:4px;display:inline-block;\" href=\"http://shop.test/cp/users/usermanager/user?user_id=8\">Open customer in Control Panel</a></td></tr></table></div>",
+          "user_id": "8",
+          "user_link": "<a style=\"background: #c00; color: #fff; text-decoration: none; padding: 7px 13px; font-size: 16px; border-radius: 5px; display: inline-block;\" href='http://shop.test/cp/users/usermanager/user?user_id=8'>Open profile</a>",
+          "user_profile": "<h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>A</td></tr><tr><td>Surname</td><td>B</td></tr><tr><td>E-mail</td><td>smtp@example.test</td></tr><tr><td>Phone</td><td>1</td></tr><tr><td>Group</td><td>Customers</td></tr></table><div style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;\"><p><strong>New customer registration</strong></p><p>Contact: smtp@example.test</p><p>User ID: 8</p><p>Time: T (server)</p><p>IP: 127.0.0.1</p><p style=\"font-size:12px;color:#666;\">Browser: EpcHarness/1.0</p><h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>A</td></tr><tr><td>Surname</td><td>B</td></tr><tr><td>E-mail</td><td>smtp@example.test</td></tr><tr><td>Phone</td><td>1</td></tr><tr><td>Group</td><td>Customers</td></tr></table><h4 style=\"font-family:Calibri,Arial,sans-serif;margin:18px 0 8px;\">Information on the client who placed the order:</h4><table style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;border-collapse:collapse;width:100%;max-width:640px;\"><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Name:</td><td style=\"padding:4px 0;\">A B</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Email:</td><td style=\"padding:4px 0;\"><a href=\"mailto:smtp@example.test\">smtp@example.test</a></td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Phone:</td><td style=\"padding:4px 0;\">1</td></tr><tr><td colspan=\"2\" style=\"padding-top:10px;\"><a style=\"background:#2b78d6;color:#fff;text-decoration:none;padding:6px 12px;border-radius:4px;display:inline-block;\" href=\"http://shop.test/cp/users/usermanager/user?user_id=8\">Open customer in Control Panel</a></td></tr></table></div><p><strong>Requested account type:</strong> Retail</p><p><strong>Trade approval:</strong> Auto-approved (retail).</p>"
+        },
+        "persons": [
+          [
+            "direct",
+            "noreply@shop.test",
+            ""
+          ],
+          [
+            "user_id",
+            "1"
+          ],
+          [
+            "user_id",
+            "5"
+          ]
+        ],
+        "wait": false
+      }
+    ],
+    "files": []
+  },
+  "simple_ok": {
+    "location": null,
+    "html": "    <form id=\"formAuthenticate\" action=\"/\" method=\"post\">\n        <input type=\"hidden\" name=\"authentication\" value=\"true\">\n        <input type=\"hidden\" name=\"auth_contact\" value=\"+971 52 000 1111\">\n        <input type=\"hidden\" name=\"auth_contact_type\" value=\"phone\">\n        <input type=\"hidden\" name=\"code\" value=\"4321\">\n        <input type=\"hidden\" name=\"csrf_guard_key\" value=\"k\"ey\">\n    </form>\n    <script>\n        document.querySelector('#formAuthenticate').submit();\n    </script>\n    ",
+    "fatal": null,
+    "users": [
+      [
+        "8",
+        "",
+        "+971 52 000 1111",
+        "1",
+        "R",
+        "",
+        "",
+        "0",
+        "0",
+        "T",
+        "1",
+        "0",
+        "1",
+        ""
+      ]
+    ],
+    "profiles": [
+      [
+        "8",
+        "epc_reg_note",
+        null
+      ],
+      [
+        "8",
+        "licence_scan",
+        null
+      ],
+      [
+        "8",
+        "epc_customer_type",
+        "retail"
+      ],
+      [
+        "8",
+        "epc_trade_registered_at",
+        "T"
+      ],
+      [
+        "8",
+        "epc_trade_approval_status",
+        "approved"
+      ],
+      [
+        "8",
+        "epc_dealing_currency",
+        "784"
+      ],
+      [
+        "8",
+        "epc_trade_approved_at",
+        "T"
+      ],
+      [
+        "8",
+        "epc_trade_approved_by",
+        "0"
+      ],
+      [
+        "8",
+        "epc_reg_country",
+        "AE"
+      ],
+      [
+        "8",
+        "surname",
+        "B"
+      ],
+      [
+        "8",
+        "phone",
+        "1"
+      ],
+      [
+        "8",
+        "epc_reg_city",
+        "C"
+      ],
+      [
+        "8",
+        "epc_reg_address",
+        "D"
+      ],
+      [
+        "8",
+        "epc_reg_sms_notify",
+        "0"
+      ],
+      [
+        "8",
+        "name",
+        "A"
+      ],
+      [
+        "8",
+        "customer_vat_type",
+        "local_b2c"
+      ]
+    ],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ],
+      [
+        "8",
+        "3"
+      ],
+      [
+        "8",
+        "21"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": [
+      [
+        "8",
+        "A B",
+        "",
+        "",
+        "",
+        "AE",
+        "Dubai",
+        "C",
+        "",
+        "1",
+        "",
+        "0"
+      ]
+    ],
+    "notify": [
+      {
+        "name": "reg_notify_admin",
+        "vars": {
+          "event_html": "<div style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;\"><p><strong>New customer registration</strong></p><p>Contact: +971 52 000 1111</p><p>User ID: 8</p><p>Time: T (server)</p><p>IP: 127.0.0.1</p><p style=\"font-size:12px;color:#666;\">Browser: EpcHarness/1.0</p><h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>A</td></tr><tr><td>Surname</td><td>B</td></tr><tr><td>Phone</td><td>1</td></tr><tr><td>Group</td><td>Customers</td></tr></table><h4 style=\"font-family:Calibri,Arial,sans-serif;margin:18px 0 8px;\">Information on the client who placed the order:</h4><table style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;border-collapse:collapse;width:100%;max-width:640px;\"><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Name:</td><td style=\"padding:4px 0;\">A B</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Phone:</td><td style=\"padding:4px 0;\">1</td></tr><tr><td colspan=\"2\" style=\"padding-top:10px;\"><a style=\"background:#2b78d6;color:#fff;text-decoration:none;padding:6px 12px;border-radius:4px;display:inline-block;\" href=\"http://shop.test/cp/users/usermanager/user?user_id=8\">Open customer in Control Panel</a></td></tr></table></div>",
+          "user_id": "8",
+          "user_link": "<a style=\"background: #c00; color: #fff; text-decoration: none; padding: 7px 13px; font-size: 16px; border-radius: 5px; display: inline-block;\" href='http://shop.test/cp/users/usermanager/user?user_id=8'>Open profile</a>",
+          "user_profile": "<h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>A</td></tr><tr><td>Surname</td><td>B</td></tr><tr><td>Phone</td><td>1</td></tr><tr><td>Group</td><td>Customers</td></tr></table><div style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;\"><p><strong>New customer registration</strong></p><p>Contact: +971 52 000 1111</p><p>User ID: 8</p><p>Time: T (server)</p><p>IP: 127.0.0.1</p><p style=\"font-size:12px;color:#666;\">Browser: EpcHarness/1.0</p><h4>New user</h4><table cellspacing='0' style='border-collapse: collapse; margin-top: 15px;'><tr><td>cap_name</td><td>A</td></tr><tr><td>Surname</td><td>B</td></tr><tr><td>Phone</td><td>1</td></tr><tr><td>Group</td><td>Customers</td></tr></table><h4 style=\"font-family:Calibri,Arial,sans-serif;margin:18px 0 8px;\">Information on the client who placed the order:</h4><table style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;border-collapse:collapse;width:100%;max-width:640px;\"><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Name:</td><td style=\"padding:4px 0;\">A B</td></tr><tr><td style=\"padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;width:180px;\">Phone:</td><td style=\"padding:4px 0;\">1</td></tr><tr><td colspan=\"2\" style=\"padding-top:10px;\"><a style=\"background:#2b78d6;color:#fff;text-decoration:none;padding:6px 12px;border-radius:4px;display:inline-block;\" href=\"http://shop.test/cp/users/usermanager/user?user_id=8\">Open customer in Control Panel</a></td></tr></table></div><p><strong>Requested account type:</strong> Retail</p><p><strong>Trade approval:</strong> Auto-approved (retail).</p>"
+        },
+        "persons": [
+          [
+            "direct",
+            "noreply@shop.test",
+            ""
+          ],
+          [
+            "user_id",
+            "1"
+          ],
+          [
+            "user_id",
+            "5"
+          ]
+        ],
+        "wait": false
+      }
+    ],
+    "files": []
+  },
+  "simple_wrong_code": {
+    "location": "/en/?error_message=Wrong+code%2C+attempts+left%3A+2.",
+    "html": "",
+    "fatal": null,
+    "users": [],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  },
+  "simple_late_code": {
+    "location": "/en/?error_message=The+code+has+expired",
+    "html": "",
+    "fatal": null,
+    "users": [],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  },
+  "simple_no_attempts": {
+    "location": "/en/?error_message=No+attempts+left",
+    "html": "",
+    "fatal": null,
+    "users": [],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  },
+  "simple_taken": {
+    "location": null,
+    "html": "            <form id=\"formAuthenticate\" action=\"/\" method=\"post\">\n                <input type=\"hidden\" name=\"authentication\" value=\"true\">\n                <input type=\"hidden\" name=\"auth_contact\" value=\"+971500000007\">\n                <input type=\"hidden\" name=\"auth_contact_type\" value=\"phone\">\n                <input type=\"hidden\" name=\"code\" value=\"4321\">\n                <input type=\"hidden\" name=\"csrf_guard_key\" value=\"abc\">\n            </form>\n            <script>\n                document.querySelector('#formAuthenticate').submit();\n            </script>\n            ",
+    "fatal": null,
+    "users": [],
+    "profiles": [],
+    "binds": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "5",
+        "4"
+      ],
+      [
+        "7",
+        "3"
+      ]
+    ],
+    "sessions": [
+      [
+        "sg-ok",
+        "3"
+      ],
+      [
+        "sg-late",
+        "3"
+      ],
+      [
+        "sg-none",
+        "0"
+      ],
+      [
+        "s7",
+        "0"
+      ]
+    ],
+    "buyers": null,
+    "notify": [],
+    "files": []
+  }
+}
