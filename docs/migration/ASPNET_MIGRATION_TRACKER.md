@@ -260,6 +260,25 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — the e-mail sign-in code send and registration verify-only like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 74 of 75, broader `cp/content` 108 of 110. Weighted headline stays about 20.4%. Inventory gap 821 to 819 (the two `content/general_pages` endpoint shims). The OTP and SMTP libraries stay counted as gaps: login verify with session and provisioning, the operator code lookup and the Super CP SMTP settings writer are not ported yet. Unnamed PHP functions: 8,003 to 7,990.
+- `AuthEmailOtpEndpoints` serves `/epc-auth-send-code.php`, `/epc-auth-otp-verify-only.php` and their `content/general_pages` aliases, which the `regform.php` e-mail verification modal calls:
+  - Input is a JSON body, otherwise the form fields. The context is resolved like PHP: the posted tenant key in `epc_portal_tenants` (it needs working tenant DB credentials), the Super CP host (CP mode), the row for the host or bare host, then the local site.
+  - Send: e-mail check, the HTTPS gate (HTTPS, `X-Forwarded-Proto`, port 443, or a localhost host), 5 codes per e-mail and 20 per IP per hour, the purge of rows expired a day ago, a hashed 6-digit code for 10 minutes, then the mail.
+  - SMTP settings merge `config.php`, `config.local.php`, the non-empty `config.epc-smtp.php` values and the site's `integrations.smtp` when `use_tenant_smtp` is on (never on the Super CP host). The PHP precheck messages, the error classification, and the subject and HTML of the mail are kept. Mail goes out through MailKit.
+  - When mail fails for a `demo_` tenant (unless `disable_demo_otp_fallback`), the code is kept for Super CP operators and the answer is the PHP "code ready" one.
+  - Verify-only: digits-only code, the tenant key from `tenant_key` or `site_key`, the matching unexpired row is deleted, `verified_email` is returned.
+- Intended deviations:
+  - `context_json` keeps the kind, tenant key, label, mode and return URL. PHP also wrote the whole tenant row, including the tenant DB password.
+  - The verify-only session flag is not set: nothing reads it.
+  - There is no PHP `mail()` fallback.
+- `AuthEmailOtpTests` compares 20 cases with **goldens from the real PHP endpoints** (`Fixtures/AuthEmailOtp/harness.py`, `php -S`, throwaway schema). Each case checks the status, content type, cache header, body and the rows left in `epc_auth_otp_requests`. Further tests cover a successful send whose mailed code verify-only accepts once, an SMTP authentication failure, the demo operator-code fallback, and the config merge rules. A corrupted golden makes exactly one case fail.
+- Full suite: 5539 of 5539. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+- Next for `regform.php`: the OTP modal, the render half of `epc_registration_enhanced.php`, then the page itself on the `/users/register` engine.
+
 ### Checkpoint 2026-10-08 — the user agreement module and the auth card layout like PHP
 
 Not complete.
