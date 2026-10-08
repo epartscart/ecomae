@@ -100,6 +100,12 @@ public static class CpLegacyPhpAjaxLinks
     public const string Integrations = "/cp/content/control/portal/ajax_integrations.php";
     public const string Portal = "/cp/content/control/portal/ajax_portal.php";
     public const string MarketingBroadcast = "/cp/content/control/portal/ajax_marketing_broadcast.php";
+
+    /// <summary>PHP <c>content/general_pages/ajax_epc_social_media.php</c>: the nginx-safe proxy that runs <see cref="SocialMedia"/>.</summary>
+    public const string SocialMediaContentProxy = "/content/general_pages/ajax_epc_social_media.php";
+
+    /// <summary>PHP <c>content/general_pages/ajax_epc_marketing_broadcast.php</c>: the nginx-safe proxy that runs <see cref="MarketingBroadcast"/>.</summary>
+    public const string MarketingBroadcastContentProxy = "/content/general_pages/ajax_epc_marketing_broadcast.php";
     public const string WebTracker = "/cp/content/control/portal/ajax_epc_web_tracker.php";
     public const string PlatformGovernance = "/cp/content/control/portal/ajax_platform_governance.php";
     public const string FreeToolsAdmin = "/cp/content/control/portal/ajax_epc_free_tools_admin.php";

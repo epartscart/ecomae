@@ -423,6 +423,10 @@ public static class StorefrontPhpAjaxEndpoints
         }
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.MarketingBroadcast, ["GET", "POST"], CpMarketingBroadcastAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.MarketingBroadcastContentProxy, ["GET", "POST"], CpMarketingBroadcastAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.SocialMediaContentProxy, ["GET", "POST"], CpSocialMediaAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.WebTracker, ["GET", "POST"], CpWebTrackerAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.PlatformGovernance, ["GET", "POST"], CpPlatformGovernanceAsync)
