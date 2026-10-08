@@ -28,7 +28,10 @@ public sealed class EpartscartCustomerJourneyParityTests
 
         var login = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontLoginApp.razor"));
         Assert.Contains("@page \"/en/users/login\"", login, StringComparison.Ordinal);
-        Assert.Contains("StorefrontSurfaceLinks.Registration", login, StringComparison.Ordinal);
+        Assert.Contains("StorefrontLoginFormLoader.RenderAsync", login, StringComparison.Ordinal);
+        var loginHtml = EcomAE.Platform.Storefront.StorefrontLoginForm.Render(new EcomAE.Platform.Storefront.StorefrontLoginForm.Input { LangHref = "/en" }, id => string.Empty);
+        Assert.Contains("href=\"/en/users/registration\"", loginHtml, StringComparison.Ordinal);
+        Assert.Contains("href=\"/en/users/forgot_password\"", loginHtml, StringComparison.Ordinal);
 
         var forgot = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontForgotPasswordApp.razor"));
         Assert.Contains("id=\"forgot_password_contact_select\"", forgot, StringComparison.Ordinal);

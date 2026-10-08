@@ -163,22 +163,40 @@ public static class StorefrontRegFormLoader
         Request request,
         CancellationToken cancellationToken)
     {
-        var tenantKey = string.Empty;
-        var loginLabel = "Shop";
+        var (tenantKey, loginLabel) = await LoginContextAsync(http, connections, cancellationToken).ConfigureAwait(false);
+        var enabled = await EnabledProvidersAsync(connections, php, env, cancellationToken).ConfigureAwait(false);
+        var returnUrl = request.LangHref.TrimEnd('/') + "/";
+        var buttons = new StorefrontOAuthButtons().Render(
+            enabled,
+            new StorefrontOAuthButtons.Options { Context = "storefront", ReturnUrl = returnUrl, RequireTerms = true, Divider = false },
+            request.LastGoogleEmailCookie,
+            StorefrontOAuthButtons.NewUidSuffix());
+        var tradeName = await SiteTradeNameAsync(connection, http.Request.Host.Host.ToLowerInvariant(), cancellationToken).ConfigureAwait(false);
+        return EpcRegistrationEnhancedRender.SocialBlock(true, request.LangHref, tenantKey, tradeName, loginLabel, buttons, null, null);
+    }
+
+    /// <summary>The storefront login context's <c>tenant_key</c> and <c>login_label</c> for the sign-in widgets.</summary>
+    public static async Task<(string TenantKey, string LoginLabel)> LoginContextAsync(HttpContext http, ITenantDbConnectionFactory connections, CancellationToken cancellationToken)
+    {
         try
         {
             await using var registry = await AuthEmailOtpEndpoints.OpenRegistryAsync(connections, cancellationToken).ConfigureAwait(false);
             var context = await AuthEmailOtpEndpoints.ResolveAsync(http, connections, registry, "storefront", string.Empty, cancellationToken).ConfigureAwait(false);
             if (context.Ok)
             {
-                tenantKey = context.TenantKey;
-                loginLabel = context.LoginLabel;
+                return (context.TenantKey, context.LoginLabel);
             }
         }
         catch (Exception ex) when (ex is DbException or InvalidOperationException)
         {
         }
 
+        return (string.Empty, "Shop");
+    }
+
+    /// <summary>The sign-in providers with credentials, in <see cref="StorefrontOAuthButtons.ProviderIds"/> order.</summary>
+    public static async Task<IReadOnlyList<string>> EnabledProvidersAsync(ITenantDbConnectionFactory connections, PhpReferenceOptions php, IWebHostEnvironment env, CancellationToken cancellationToken)
+    {
         var enabled = new List<string>();
         foreach (var provider in StorefrontOAuthButtons.ProviderIds)
         {
@@ -194,14 +212,7 @@ public static class StorefrontRegFormLoader
             }
         }
 
-        var returnUrl = request.LangHref.TrimEnd('/') + "/";
-        var buttons = new StorefrontOAuthButtons().Render(
-            enabled,
-            new StorefrontOAuthButtons.Options { Context = "storefront", ReturnUrl = returnUrl, RequireTerms = true, Divider = false },
-            request.LastGoogleEmailCookie,
-            StorefrontOAuthButtons.NewUidSuffix());
-        var tradeName = await SiteTradeNameAsync(connection, http.Request.Host.Host.ToLowerInvariant(), cancellationToken).ConfigureAwait(false);
-        return EpcRegistrationEnhancedRender.SocialBlock(true, request.LangHref, tenantKey, tradeName, loginLabel, buttons, null, null);
+        return enabled;
     }
 
     private static async Task<List<Dictionary<string, string>>> RowsAsync(DbConnection connection, string sql, CancellationToken cancellationToken, params object[] args)

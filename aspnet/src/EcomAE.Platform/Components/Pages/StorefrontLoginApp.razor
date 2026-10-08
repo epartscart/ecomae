@@ -4,63 +4,87 @@
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
-@inject NavigationManager Nav
+@using EcomAE.Platform.Storefront
+@inject ILegacySessionValidator Sessions
+@inject IStorefrontGuestSessionService Guests
 @inject IHttpContextAccessor Http
+@inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
+@inject Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions> PhpReference
+@inject IWebHostEnvironment Env
+@*
+  PHP twin: content/users/loginform.php. The password form posts back here (StorefrontLoginPostMiddleware).
+*@
 
 <PageTitle>Customer login · @_brand</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
 <PhpChromeBodyClass Surface="storefront" LoginChrome="true" />
 
-@* StorefrontTenantChrome renders PhpStorefrontDesktopChrome when no tenant snapshot overrides it. *@
-
-<HeadContent>
-<style>
-    .epc-login-sf .login_form--page h1 { margin:.2rem 0 .35rem; font-size:1.45rem; }
-    .epc-login-sf .login_form--page .lead { color:#64748b; font-size:.92rem; margin-bottom:1rem; }
-    .epc-login-sf .epc-login-field { margin:0 0 .75rem; }
-    .epc-login-sf .epc-login-field label { display:block; font-size:.82rem; font-weight:600; margin-bottom:.25rem; }
-    .epc-login-sf .epc-login-field input, .epc-login-sf .epc-login-field select { width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; }
-    .epc-login-sf .epc-login-submit { width:100%; margin-top:.35rem; padding:.7rem 1rem; border:0; border-radius:.45rem; background:#dc2626; color:#fff; font-weight:700; cursor:pointer; }
-    .epc-login-sf .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
-    .epc-login-sf .epc-login-bridge-note { color:#64748b; font-size:.78rem; line-height:1.4; margin:.85rem 0 .35rem; }
-    .epc-login-sf .epc-login-shell { color:#dc2626; font-weight:700; }
-    .epc-login-sf .epc-login-register { margin-top:1rem; font-size:.9rem; }
-    .epc-login-sf .epc-login-register a { color:#dc2626; font-weight:700; }
-</style>
-</HeadContent>
-
-
-<div class="epc-login-sf">
-    <StorefrontTenantChrome>
-        <div class="row login_form login_form--page">
-            <div class="col-md-8 col-md-offset-2">
-                <h1>Customer login</h1>
-                <p class="lead">@_lead</p>
-                <LegacyAdminLoginForm Surface="LegacyLoginSurface.Storefront" SurfaceLabel="storefront" PhpLoginHref="/" ErrorMessage="@_error" SubmitLabel="Log in" Accent="red" />
-                <p class="epc-login-register">New customer? <a href="@StorefrontSurfaceLinks.Registration">Create an account</a></p>
-                <p class="epc-login-register"><a href="@StorefrontAspNetCanonical.ForgotPassword">Forgot password</a></p>
-            </div>
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container">
+            <script src="/lib/jQuery/jQuery.js"></script>
+            @((MarkupString)_html)
         </div>
-    </StorefrontTenantChrome>
-</div>
+    </section>
+</StorefrontTenantChrome>
+@((MarkupString)_alert)
 
 @code {
-    private string? _error;
     private string _brand = "eParts Cart";
-    private string _lead = "Sign in to view orders, saved items, and your account.";
+    private string _html = "";
+    private string _alert = "";
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        var host = Http.HttpContext?.Request.Host.Host ?? string.Empty;
-        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(host);
-        _lead = StorefrontIndustryHostResolver.ResolveIndustryCode(host) switch
+        var ctx = Http.HttpContext;
+        if (ctx is null)
         {
-            "electronics" => "Sign in to track orders, wishlist, and your Electronicae account.",
-            "fashion" => "Sign in to track orders, wishlist, and your Style N Look account.",
-            "jewellery" => "Sign in to track orders, wishlist, and your jewellery account.",
-            "tax_advisory" => "Sign in to your client portal for filings, invoices, and messages.",
-            _ => "Sign in to your parts account to view orders, garage, and saved carts.",
-        };
-        _error = LoginErrorHelper.FromUri(Nav.Uri);
+            return;
+        }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        _alert = ctx.Items[StorefrontLoginPost.AlertItemKey] as string ?? string.Empty;
+        var path = ctx.Request.Path.Value ?? string.Empty;
+        var langHref = path.Length > 3 && path[0] == '/' && path[3] == '/' && char.IsAsciiLetterLower(path[1]) && char.IsAsciiLetterLower(path[2])
+            ? path[..3]
+            : "/en";
+        var config = EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(PhpReference.Value);
+        var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
+
+        try
+        {
+            var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
+            var userId = session.Kind == LegacySessionKind.Customer ? session.UserId : 0;
+            string? sessionCookie = ctx.Request.Cookies["session"];
+            string? userCookie = ctx.Request.Cookies["u_id"];
+            if (userId <= 0)
+            {
+                var shopper = await Guests.ResolveAsync(ctx, createIfMissing: true, ctx.RequestAborted);
+                Guests.ApplyGuestCookies(ctx.Response, shopper);
+                if (shopper.SessionToken.Length > 0)
+                {
+                    sessionCookie = shopper.SessionToken;
+                    userCookie = "0";
+                }
+            }
+
+            await using var connection = await Connections.OpenForTenantAsync(tenant, ctx.RequestAborted);
+            _html = await StorefrontLoginFormLoader.RenderAsync(
+                ctx,
+                connection,
+                Connections,
+                PhpReference.Value,
+                Env,
+                new StorefrontLoginFormLoader.Request(userId, langHref, sessionCookie, userCookie, ctx.Request.Cookies["epc_oauth_last_google_email"], config),
+                ctx.RequestAborted);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            _html = "<p>Sign-in is unavailable right now.</p>";
+        }
+        catch (InvalidOperationException)
+        {
+            _html = "<p>Sign-in is unavailable right now.</p>";
+        }
     }
 }

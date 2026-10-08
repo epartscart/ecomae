@@ -260,6 +260,25 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — the storefront login page and its password sign-in like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 74 of 75, broader `cp/content` 108 of 110. Weighted headline stays about 20.4%. Ratchet 817 to 813 (inventory 816 to 813): `content/users/loginform.php`, `modules/login/login_form_general.php` and `modules/login/pass/app.php` close. Unnamed PHP functions: 7,937 to 7,930.
+- `StorefrontLoginForm` renders `/users/login`, `/{lang}/users/login` and `/storefront/login` byte for byte against goldens from the real PHP files, CRLF included:
+  - the auth card, the password tab (phone selector when SMS is on), the e-mail code tab with its modal, the provider buttons, and the template 59, 61 and 62 styles;
+  - the whole `login_form_general.php`: the page variant, the header variant with its own heading and no register button, the postfix that grows with each form on a page, and the signed-in account links with the logout form.
+- `StorefrontLoginFormLoader` loads the translations, the session CSRF key, the front template, the tenant login context, the enabled providers and the SMS flag.
+- `StorefrontLoginPostMiddleware` with `StorefrontLoginPost` handles the login page POST like the storefront half of `plugins/authentication/plugin.php`. This is checked against a `php -S` golden on a throwaway database (20 cases).
+  - The steps: the guest session prelude and stale purge, then the CSRF checks. Password sign-in uses bcrypt, or strict md5 with an upgrade to bcrypt. Code sign-in decrements the attempts and checks expiry.
+  - On success it writes the session row and the cookies (remember me or a session cookie), moves the guest cart, syncs the UAE VAT customer and sends the customer sign-in notice. It then redirects to the safe target, else back to the page.
+  - Bots and an unconfigured database render the page as a GET.
+- Intended deviations (security):
+  - `wrong_authentication_tag` is JSON-quoted into the alert script. PHP pastes it raw, which is a reflected XSS.
+  - Password sign-in is rate-limited through `epc_login_attempts` (10 in 15 minutes). PHP has no brute-force limit there.
+  - The new session's `last_activiti_time` is set at insert, because the ASP.NET session check never refreshes it.
+- Still open: the logout POST of the same plugin, and the modal logo (the site profile is not ported).
+
 ### Checkpoint 2026-10-08 — the e-mail code sign-in verify with provisioning and the session like PHP
 
 Not complete.
