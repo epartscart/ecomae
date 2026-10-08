@@ -260,6 +260,16 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — four small ajax and API gaps
+
+Not complete.
+
+- Ratchet 812 to 808. Inventory categories: ajax 86 to 88 of 91, API 27 to 28 of 29, retired 3 to 4. The tracker's ajax ratios (storefront and API 109 of 112, Control Panel shop 74 of 75, `cp/content` 108 of 110) and the weighted headline (about 20.4%) are unchanged. Unnamed PHP functions stay 7,925.
+- `api/umapi_image.php` was already served, but from `HomeCatalogWidgets.cs`, a file name the inventory skips. It now lives in `UmapiImageProxy` and matches PHP's parsing: `kind` is lower-cased but not trimmed (`" supplier"` is a 400) and `id` is PHP 8's `(int)` (`12abc` is 12, `1e3` is 1000, `7.9` is 7), pinned by a theory checked against real PHP.
+- `content/general_pages/ajax_epc_social_media.php` and `ajax_epc_marketing_broadcast.php` are nginx-safe proxies that only run the CP handler (both handlers define `_ASTEXE_` themselves). They are routed to the ported handlers, so a guest gets PHP's refusals: `{"ok":false,"message":"Admin required"}` with 200, and `{"ok":false,"message":"Forbidden"}` with 403.
+- Retired `cp/content/control/portal/epc-apai-ajax-probe.php`, a deploy probe of the PHP include chain that also discloses server paths (reason in `PHP_RETIRED.tsv`).
+- Still open in these categories: `ajax_epc_free_tools.php`, `epc_bos_ajax_login.php`, `epc_erp_modules_ajax.php`. Also `epc_prices_ajax_init.php`, the bootstrap of the price upload endpoints, which closes with them, and `api/UCatalog/ucatalog_index.php`, which only the unported modex template includes.
+
 ### Checkpoint 2026-10-08 — the ported users pages keep the visitor's language prefix
 
 Not complete.
