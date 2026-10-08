@@ -260,6 +260,17 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — PIM custom attributes and the Syncron inventory policy (owner-accepted enhancements)
+
+Not complete. These two modules come from the unmerged Devin PR #8 and never shipped in PHP, so they do not move the parity ratios.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 74 of 75, broader `cp/content` 108 of 110. Weighted headline stays about 20.4%. Ratchet stays 818 (inventory prints 817), unnamed PHP functions stay 7,958.
+- `ErpPimCustomFields` and `ErpPimWriteService` cover the field types, codes, options, per-module visibility, value validation and save, and the item display table. A "PIM attributes" tab on `/erp/product-info-app` manages them through `/erp/product-info/pim`. The inventory create-item forms render the fields and validate them before the item is created.
+- `ErpSyncronPolicy` and `ErpSyncronWriteService` cover global, category (item type) and item policies, moving-average or exponential demand, safety stock, reorder point, the stockout/reorder/overstock recommendation, the 30-day forecast run and the monthly service levels. The page is `/erp/syncron-app`, posting to `/erp/syncron/action`. The ERP top nav shows it under inventory management, and `?tab=syncron` maps to it.
+- Writes are admin-only with the ERP capability, need `confirmWrites`, and write an ERP audit row.
+- Tests: PHP goldens from the PR #8 code (10 PIM cases, 12 Syncron cases; a corrupted golden fails exactly one case), plus write-service tests on throwaway schemas. Full suite: 5631 of 5631. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+- Next: the login code verify with provisioning and the session, then `loginform.php` and `profileform.php`.
+
 ### Checkpoint 2026-10-08 — the registration page and the social sign-in buttons like PHP
 
 Not complete.
