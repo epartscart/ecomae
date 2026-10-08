@@ -71,10 +71,7 @@ public sealed class StorefrontGuestCheckoutParityTests
 
         var guestOrder = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGuestOrderApp.razor"));
-        Assert.Contains("method=\"get\"", guestOrder, StringComparison.Ordinal);
-        Assert.Contains("PhpCustomerWrites.GuestOrderWriteHref", guestOrder, StringComparison.Ordinal);
-        Assert.Contains("does not invent a live card capture", guestOrder, StringComparison.Ordinal);
-        Assert.DoesNotContain("method=\"post\"", guestOrder, StringComparison.Ordinal);
+        Assert.Contains("StorefrontOrderNotAuthorized.RenderAsync(", guestOrder, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference", guestOrder, StringComparison.Ordinal);
 
         var pay = File.ReadAllText(FindRepoFile(

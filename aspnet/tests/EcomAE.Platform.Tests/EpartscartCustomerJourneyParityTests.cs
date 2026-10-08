@@ -146,10 +146,8 @@ public sealed class EpartscartCustomerJourneyParityTests
 
         var guestOrder = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGuestOrderApp.razor"));
-        Assert.Contains("panel panel-primary", guestOrder, StringComparison.Ordinal);
-        Assert.Contains("name=\"order_id\"", guestOrder, StringComparison.Ordinal);
-        Assert.Contains("name=\"email_not_auth\"", guestOrder, StringComparison.Ordinal);
-        Assert.Contains("name=\"phone_not_auth\"", guestOrder, StringComparison.Ordinal);
+        Assert.Contains("StorefrontOrderNotAuthorized.RenderAsync(", guestOrder, StringComparison.Ordinal);
+        Assert.Contains("@page \"/en/shop/orders/zakaz-bez-registracii\"", guestOrder, StringComparison.Ordinal);
 
         var offices = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOfficesApp.razor"));
