@@ -208,6 +208,79 @@ these routes remain ASP.NET previews/shadows and PHP remains authoritative.
 * Remove PHP/PHP-FPM only after `PhpSourceDeletionAllowed` is explicitly
   approved; otherwise retain the fallback.
 
+### Step 6 — Platform lifecycle: versions, deployment models, setup, security, exit (owner questions 2026-10-08)
+
+Audited against the code on 2026-10-08. "Exists" means working code; a document describing something does not count.
+
+#### 6.1 Versioned releases applied per tenant
+
+* Exists: one fleet release (`scripts/deploy_aspnet_foundation.sh` builds `/var/www/ecomae-aspnet/releases/<stamp>` and repoints `current`), automatic rollback when health fails, `scripts/rollback_aspnet_foundation.sh`, and per-tenant feature flags (`epc_tenant_feature_flags`, `CpTenantFeaturesWriteService`).
+* Missing: every tenant runs the same build. There are no channels and no pinning, so a working tenant cannot stay on version N while others take N+1.
+* Build:
+  1. A release manifest per build: semantic version, git SHA, schema version, changelog and the minimum and maximum compatible schema.
+  2. `epc_tenant_release` in the registry: tenant, channel (`stable` / `early` / `pinned`), pinned version, the applied schema version, the last upgrade and its result.
+  3. Several releases side by side under `releases/`, each its own Kestrel instance on its own port. Nginx (or a YARP front) routes each host to its tenant's release. `current` remains the default for `stable`.
+  4. Rollout: internal demo tenants, then `early`, then `stable` in batches, with a health and error budget check between batches and a rollback per tenant.
+  5. Schema changes become versioned, additive-first migrations recorded per tenant (`epc_migrations` exists in PHP and is extended to every tenant DB). A release refuses to serve a tenant whose schema is outside its range.
+  6. Feature flags stay the switch for behaviour inside one version.
+
+#### 6.2 ERP deployment models (cloud, on-premises, hybrid)
+
+* Cloud, active: hosted commerce plus ERP, and ERP-only on the platform host (`hosted_on=platform`, `erp_only_shared=1`, `docs/ECOM-ERP-SHARED-ACCESS.md`).
+* On-premises: the PHP pack exists (`deploy/on-premises/`: `install.sh`, Docker compose, `setup-wizard.php`, signed licence activation, `backup.php`, `health-check.php`; tables `epc_onprem_licenses`, `epc_onprem_health_log`). The ASP.NET pack is scaffolds only (`deploy/on-premises-aspnet/`), and `TenantInstallationControlPlane` builds manifests without persisting them.
+* Hybrid: **not implemented**. `TenantDeploymentKind` is only `Cloud | OnPremises`, and there is no sync agent and no conflict handling.
+* Build:
+  1. Add `Hybrid` to the deployment kind and store it per tenant.
+  2. The ASP.NET on-prem installer: container images per release, an install wizard, licence activation and health reporting reusing the PHP tables.
+  3. A hybrid sync agent: outbound-only HTTPS from the site to the cloud; a change log per table with a cursor and idempotent replay; declared ownership per entity (for example, masters in the cloud and transactions on site); conflicts queued for review, never silently overwritten; works offline and catches up.
+  4. A deployment model column and a matrix of features per model in Super CP.
+
+#### 6.3 ERP version and update applicability
+
+* Exists: shared ERP code for all cloud tenants, additive lazy schema (`ErpLazySchema`, PHP `*_ensure_schema`), and row-level optimistic locking (`epc_erp_concurrency.php`). That locking is not a product version.
+* Missing: a per-tenant ERP version, release notes shown to tenants, opt-in windows, and update control on premises.
+* Build: this follows 6.1. Each tenant shows its "ERP version x.y.z" and "update available" with notes in its CP. Admins choose the window (now / tonight / pinned until a date, capped by the security support policy). On-prem sites pull signed packages from the licence server and apply them with backup first and automatic rollback. Security fixes are mandatory within N days.
+
+#### 6.4 Guided setup with progress and no errors
+
+* Exists: the Super CP onboarding panel and launch checklist (`epc_tenant_onboard_panel.php`, `epc_portal_onboard_client()`, `epc_portal_tenant_launch_checklist()`), demo provisioning that creates a DB user per demo (`epc_portal_demo.php`), the ERP guide (`erp_guide.php`), the on-prem `setup-wizard.php`, and progress stages in `TenantInstallationControlPlane` (in memory only).
+* Missing: a durable, resumable ASP.NET provisioning job with preflight checks and rollback on failure.
+* Build:
+  1. `epc_provision_jobs` and `epc_provision_steps`: each step with status, percentage, log line and an undo action.
+  2. Preflight before any write: DNS, free DB name and user, disk, SMTP, licence, industry pack and admin e-mail. The job does not start unless every check is green.
+  3. Steps are idempotent and resumable. A failure stops the job, runs the undo of completed steps and shows the reason in plain language.
+  4. One progress-bar UI in Super CP (cloud) and in the on-prem wizard, fed by the same job API. The tenant's first-login checklist (company, tax, chart of accounts, users, opening balances) also shows a progress bar.
+
+#### 6.5 Database security controls
+
+* Exists:
+  - a dedicated database and DB user per tenant, and the shared-`docpart` fail-closed guard (`epc_tenant_data_guard.php`, `TenantDataGuard.cs`);
+  - the protection audit tables (`epc_tdp_audit_log`, `epc_tdp_violations`) and ERP RBAC;
+  - session hardening (`epc_session_security.php`);
+  - login and OTP rate limits, OTP codes stored hashed, and an operator backup script (`tools/backup/epc_backup.sh`).
+* **Gap to fix first**: `epc_portal_tenants.db_password` is stored in plain text. `epc_tenant_data_policy.php` tells customers that these credentials "are stored encrypted in the platform registry". Either the encryption is built (preferred) or the statement is corrected. The owner decides; the legal text is not edited without approval.
+* Build:
+  1. Encrypt registry DB credentials with a key outside the database (environment or KMS), with key rotation. Dual-read during the switch so PHP and ASP.NET keep working.
+  2. Least-privilege DB grants per tenant user; no `GRANT`/`DROP` for application users.
+  3. TLS for any non-loopback DB link, and encrypted off-host backups with a tested restore drill and recorded restore times.
+  4. A wired global API rate limit.
+  5. Audit logging on every privileged CP/BOS action, with a retention period.
+  6. Secrets out of `config.php` into the secret store.
+  7. A periodic access review report.
+
+#### 6.6 Customer exit: their database, history and files
+
+* Exists: policy and legal text promising export (`epc_tenant_data_policy.php` §9), per-module exports (prices, catalogue/YML, web tracker, parts agent CSV, BOS tenant config export), the document vault (with a `portability` request type that no flow fulfils), operator `mysqldump` and file backups, and ERP data **import** (`epc_erp_data_migration.php`).
+* Missing: a complete exit package and its workflow.
+* Build: an "Export my data" request in the tenant CP (owner role, re-authentication with an e-mail code), fulfilled by a worker job that produces:
+  1. a full SQL dump of the tenant database (tables, data, history);
+  2. CSV or Excel per business entity (customers, suppliers, items, orders, invoices, GL journals, payments, stock movements) with a data dictionary;
+  3. all uploaded files and the document vault with every version, plus a `manifest.json` with checksums;
+  4. an encrypted ZIP, shared through an expiring signed link, with an audit record of who downloaded it and when.
+  After the customer confirms receipt: account read-only, then deletion after the contractual period (30 days in the policy), with a deletion certificate. On-prem customers already hold their data, and the same exporter runs locally.
+
+Ordering: 6.5 (credential encryption) and 6.6 (exit package) are compliance promises already published, so they come first after the ERP exit gate. 6.4 and 6.1/6.3 follow, then 6.2 hybrid. None of this changes the 20.4% parity headline: these are platform capabilities beyond PHP parity.
+
 ## What can delay the bands
 
 The session bands measure implementation throughput, not external waiting time.
