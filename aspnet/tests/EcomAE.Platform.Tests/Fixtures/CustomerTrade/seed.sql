@@ -1,0 +1,10 @@
+CREATE TABLE users (user_id INT NOT NULL PRIMARY KEY, email VARCHAR(255) NOT NULL DEFAULT '', phone VARCHAR(64) NOT NULL DEFAULT '', time_registered INT NOT NULL DEFAULT 0, email_confirmed INT NOT NULL DEFAULT 0);
+INSERT INTO users (user_id, email, phone, time_registered, email_confirmed) VALUES (1, 'one@example.test', '+971500000001', 1767225601, 1), (2, 'two@example.test', '', 1767225602, 0), (3, 'three@example.test', '+971500000003', 1767225603, 1), (4, 'four@example.test', '', 1767225604, 0), (5, 'five@example.test', '', 1767225605, 1), (6, 'six@example.test', '', 1767225606, 0);
+CREATE TABLE users_profiles (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, data_key VARCHAR(64) NOT NULL, data_value TEXT NULL) DEFAULT CHARSET=utf8mb4;
+INSERT INTO users_profiles (user_id, data_key, data_value) VALUES (3, 'name', 'Sara'), (3, 'surname', 'Ali'), (3, 'company', 'Gulf Parts LLC'), (4, 'name', 'Omar'), (6, 'note', NULL), (6, 'padded', '  spaced value  ');
+CREATE TABLE users_groups_bind (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, group_id INT NOT NULL);
+INSERT INTO users_groups_bind (user_id, group_id) VALUES (1, 21), (1, 5), (3, 22);
+CREATE TABLE epc_price_profiles (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, code VARCHAR(32) NOT NULL, group_id INT NULL);
+INSERT INTO epc_price_profiles (code, group_id) VALUES ('retail', 21), ('wholesale', 22), ('vip', 23), ('broken', NULL);
+CREATE TABLE shop_currencies (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, iso_code VARCHAR(8) NOT NULL, iso_name VARCHAR(16) NOT NULL DEFAULT '', caption_short VARCHAR(16) NOT NULL DEFAULT '', sign VARCHAR(16) NOT NULL DEFAULT '', rate DECIMAL(14,6) NOT NULL DEFAULT 1, available TINYINT NOT NULL DEFAULT 0, `order` INT NOT NULL DEFAULT 0) DEFAULT CHARSET=utf8mb4;
+INSERT INTO shop_currencies (iso_code, iso_name, caption_short, sign, rate, available, `order`) VALUES ('784', 'AED', 'Dh', 'x', 1, 0, 1), ('840', 'USD', 'US$', 'USD', 3.6725, 1, 2), ('643', 'RUB', 'rub', 'r', 0, 0, 5), ('356', 'INR', 'INR', 'Rs', 0.044, 1, 11);
