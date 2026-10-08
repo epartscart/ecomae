@@ -486,9 +486,7 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Contains("shop_orders_messages", LegacySurfaceDashboardSql.SelectCustomerOrderMessages, StringComparison.Ordinal);
         Assert.Contains("users_groups_bind", LegacySurfaceDashboardSql.SelectCustomerPriceGroup, StringComparison.Ordinal);
         Assert.Contains("`user_id` = 0", LegacySurfaceDashboardSql.SelectGuestOrder, StringComparison.Ordinal);
-        Assert.Contains("GetStorefrontGuestOrderAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGuestOrderApp.razor")), StringComparison.Ordinal);
-        Assert.Contains("PhpCustomerWrites.GuestOrderWriteHref", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGuestOrderApp.razor")), StringComparison.Ordinal);
-        Assert.Contains("method=\"get\"", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGuestOrderApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("StorefrontOrderNotAuthorized.RenderAsync(", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGuestOrderApp.razor")), StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGuestOrderApp.razor")), StringComparison.Ordinal);
         Assert.Contains("BuildCpOfficesDigestAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOfficesApp.razor")), StringComparison.Ordinal);
         Assert.Contains("LookupVinAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVinApp.razor")), StringComparison.Ordinal);
