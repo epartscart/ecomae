@@ -37,6 +37,26 @@ public sealed class StorefrontC110JCrossParityTests
     }
 
     [Fact]
+    public void ChpuPage_PaintsEveryCrossAsTableRowWithAddToQuote()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
+        Assert.Contains("paintCrossRefRows(refs, stock, total);", text, StringComparison.Ordinal);
+        Assert.Contains("epc-cross-not-found-caption", text, StringComparison.Ordinal);
+        Assert.Contains("' — not in stock on UAE warehouses ('", text, StringComparison.Ordinal);
+        Assert.Contains("' — additional numbers not in warehouse stock ('", text, StringComparison.Ordinal);
+        Assert.Contains("unique crosses loaded", text, StringComparison.Ordinal);
+        Assert.Contains("data-epc-manual-quote=\"1\"", text, StringComparison.Ordinal);
+        Assert.Contains("fetch('/storefront/quotes/add-manual'", text, StringComparison.Ordinal);
+        Assert.Contains("if (inStock && offered[key]) continue;", text, StringComparison.Ordinal);
+        Assert.Contains("epc-avail-badge epc-avail-badge--no\">Not in stock", text, StringComparison.Ordinal);
+
+        var php = File.ReadAllText(FindRepoFile("content/shop/docpart/part_search_page_1.php"));
+        Assert.Contains("var quoteBtn = epcManualQuoteButtonHTML(brandLabel, row.article, partName || row.article, partName);", php, StringComparison.Ordinal);
+        Assert.Contains("if(inStock && epcCrossRefIsInProductsTable(refBrand, articleValue))", php, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void WarehouseParityJs_RequestsFullPhpCap()
     {
         var js = File.ReadAllText(FindRepoFile("content/general_pages/epc_warehouse_search_parity.js"));

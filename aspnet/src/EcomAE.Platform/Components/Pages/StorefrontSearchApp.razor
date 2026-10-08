@@ -707,9 +707,161 @@
       '<div class="epc-part-type-split__inner"><div class="epc-part-type-split__head">' + badge +
       '<strong class="epc-part-type-split__title">' + title + ' <span class="epc-part-type-count">(0)</span></strong></div></div></td>';
     if (kind === 'genuine') body.insertBefore(tr, body.firstChild);
-    else body.appendChild(tr);
+    else {
+      var crossStart = body.querySelector('tr[data-cross-ref-row]');
+      if (crossStart) body.insertBefore(tr, crossStart);
+      else body.appendChild(tr);
+    }
     return tr;
   }
+  // PHP epcCrossRefsNotInStockRowsHTML: every cross not already offered above gets a row
+  // in the offers table with Add to Quote (stocked offers keep Add to Cart).
+  function crossRefRowsHtml(refs, stockQty, total) {
+    var offered = Object.create(null);
+    body.querySelectorAll('tr[data-offer-key]').forEach(function (tr) {
+      var ex = Number(tr.getAttribute('data-exist') || 0);
+      if (ex > 0) offered[brandArticleGroupKey(tr.getAttribute('data-manufacturer'), tr.getAttribute('data-article-show') || tr.getAttribute('data-article'))] = 1;
+    });
+    var selfKey = brandArticleGroupKey(brand, article);
+    var seenKeys = Object.create(null);
+    var split = { genuine: [], aftermarket: [] };
+    var inStockListed = 0, notInStockListed = 0, loaded = 0;
+    for (var i = 0; i < refs.length; i++) {
+      var ref = refs[i];
+      var rb = String(ref.brand || '').trim();
+      var ra = String(ref.article || ref.article_norm || '').trim();
+      var key = brandArticleGroupKey(rb, ref.article_norm || ra);
+      if (!rb || !ra || key === selfKey || seenKeys[key]) continue;
+      seenKeys[key] = 1;
+      loaded++;
+      var qty = stockQty[key];
+      var inStock = qty != null;
+      if (inStock && offered[key]) continue;
+      if (inStock) inStockListed++; else notInStockListed++;
+      var kind = isGenuine(rb) ? 'genuine' : 'aftermarket';
+      split[kind].push({ html: crossRefRowHtml(ref, rb, ra, kind, inStock, qty), price: inStock ? 1 : 0 });
+    }
+    if (!split.genuine.length && !split.aftermarket.length) return '';
+    var totalReported = total || loaded;
+    var hasWarehouseOeStock = !!body.querySelector('tr[data-offer-key]');
+    var caption = 'Cross references';
+    if (notInStockListed > 0 && inStockListed > 0) {
+      caption += ' (' + inStockListed + ' in stock · ' + notInStockListed + ' not in stock on this page';
+    } else if (notInStockListed > 0) {
+      caption += hasWarehouseOeStock
+        ? ' — additional numbers not in warehouse stock (' + notInStockListed + ' on this page'
+        : ' — not in stock on UAE warehouses (' + notInStockListed + ' on this page';
+    } else {
+      caption += ' — in stock (' + inStockListed + ' on this page';
+    }
+    if (totalReported > loaded) caption += '; ' + loaded + ' of ' + totalReported.toLocaleString() + ' unique crosses loaded';
+    caption += ')';
+    var html = '<tr data-cross-ref-row="caption"><td colspan="10" class="products_table_block_caption epc-cross-not-found-caption">' + esc(caption) + '</td></tr>';
+    ['genuine', 'aftermarket'].forEach(function (kind) {
+      var rows = split[kind];
+      if (!rows.length) return;
+      rows.sort(function (l, r) { return l.price - r.price; });
+      var title = kind === 'genuine' ? 'Genuine (OE)' : 'Aftermarket';
+      var badge = kind === 'genuine'
+        ? '<span class="epc-part-type-badge epc-part-type-badge--genuine">OE</span>'
+        : '<span class="epc-part-type-badge epc-part-type-badge--am">AM</span>';
+      html += '<tr data-cross-ref-row="heading"><td colspan="10" class="epc-part-type-split epc-part-type-split--' + kind + '">' +
+        '<div class="epc-part-type-split__inner"><div class="epc-part-type-split__head">' + badge +
+        '<strong class="epc-part-type-split__title">' + title + ' <span class="epc-part-type-count">(' + rows.length + ')</span></strong></div></div></td></tr>';
+      html += rows.map(function (r) { return r.html; }).join('');
+    });
+    return html;
+  }
+  function crossRefRowHtml(ref, rb, ra, kind, inStock, qty) {
+    var href = partHref(rb, ra);
+    var name = String(ref.name || '').trim();
+    var mask = '**';
+    var dash = pricesVisible ? '&mdash;' : mask;
+    var avail;
+    if (!pricesVisible) avail = mask;
+    else if (inStock) {
+      var q = parseFloat(qty);
+      avail = '<span class="epc-avail-badge epc-avail-badge--yes">' + esc(!isNaN(q) && q > 0 ? ('In stock · ' + q) : 'In stock') + '</span>';
+    } else avail = '<span class="epc-avail-badge epc-avail-badge--no">Not in stock</span>';
+    var fit = '<button type="button" class="btn btn-sm epc-btn-fitment epc-fitment-check-btn epc-fitment-check-btn--row"' +
+      ' data-epc-fitment-article="' + esc(ra) + '" data-epc-fitment-brand="' + esc(rb) + '"' +
+      ' title="Add to Fitment / fitment check"><i class="fa fa-car" aria-hidden="true"></i> Fitment</button>';
+    var actions;
+    if (!pricesVisible) {
+      actions = '<div class="epc-product-actions epc-product-actions--guest"><div class="epc-product-actions__tools epc-product-actions__tools--guest">' +
+        fit + ' <a href="/storefront/login">Log in</a> or <a href="/storefront/register-app">register</a></div></div>';
+    } else {
+      var wa = 'https://wa.me/?text=' + encodeURIComponent(rb + ' ' + ra + ' ' + name);
+      actions = '<div class="epc-product-actions epc-product-actions--quote-only"><div class="epc-product-actions__tools">' + fit +
+        ' <a class="epc-wa-share-btn" href="' + wa + '" target="_blank" rel="noopener" title="WhatsApp"><i class="fa fa-whatsapp"></i></a></div>' +
+        '<button type="button" class="btn btn-sm btn-primary epc-btn-quote" data-epc-manual-quote="1"' +
+        ' data-epc-brand="' + esc(rb) + '" data-epc-article="' + esc(ra) + '" data-epc-name="' + esc(name) + '">Add to Quote</button></div>';
+    }
+    var pk = photoKey(rb, ra);
+    return '<tr class="epc-cross-ref-row epc-cross-ref-row--' + kind + '" data-cross-ref-row="row" data-cross-key="' + esc(rb + '|' + ra) + '">' +
+      '<td class="td_photo" data-epc-row-photo="' + esc(pk) + '"><button type="button" class="epc-search-row-photo__btn epc-search-row-photo__btn--load" ' +
+      'data-epc-photo-brand="' + esc(rb) + '" data-epc-photo-article="' + esc(ra) + '" title="Click to load product photo" aria-label="Load product photo"><i class="fa fa-image"></i></button></td>' +
+      '<td class="td_manufacturer"><span title="' + esc(rb) + '">' + esc(rb) + '</span></td>' +
+      '<td class="td_article"><a class="bread_crumbs_a" style="text-decoration:underline; color:#000; font-weight:700;" href="' + href + '" data-enhance-nav="false" title="' + esc(ra) + '"><strong>' + esc(ra) + '</strong></a></td>' +
+      '<td class="td_name">' + (name ? '<span title="' + esc(name) + '">' + esc(name) + '</span>' : '&mdash;') + '</td>' +
+      '<td class="td_exist">' + avail + '</td>' +
+      '<td class="td_time_to_exe">' + dash + '</td>' +
+      '<td class="td_info"><a title="Search availability and price" href="' + href + '" data-enhance-nav="false"><span><i class="fa fa-search"></i></span></a></td>' +
+      '<td class="td_price">' + dash + '</td>' +
+      '<td class="td_add_to_cart">' + actions + '</td>' +
+      '<td class="td_color"></td></tr>';
+  }
+  function paintCrossRefRows(refs, stock, total) {
+    if (!body) return;
+    var stockQty = Object.create(null);
+    (stock || []).forEach(function (s) {
+      var q = s.qty != null ? s.qty : (s.exist != null ? s.exist : 0);
+      stockQty[brandArticleGroupKey(s.brand || s.manufacturer, s.article_norm || s.article)] = q;
+    });
+    body.querySelectorAll('tr[data-cross-ref-row]').forEach(function (tr) { tr.remove(); });
+    var html = crossRefRowsHtml(refs || [], stockQty, total);
+    if (!html) return;
+    body.insertAdjacentHTML('beforeend', html);
+    if (typeof window.epcBindSearchRowPhotoLoaders === 'function') window.epcBindSearchRowPhotoLoaders(body);
+  }
+  function addManualQuote(btn) {
+    if (btn.getAttribute('data-busy') === '1') return;
+    btn.setAttribute('data-busy', '1');
+    fetch('/storefront/quotes/add-manual', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        manufacturer: btn.getAttribute('data-epc-brand') || '',
+        article: btn.getAttribute('data-epc-article') || '',
+        countNeed: 1,
+        confirmWrites: true
+      })
+    }).then(function (r) {
+      return r.json().catch(function () { return { ok: false, status_code: r.status }; })
+        .then(function (d) { d = d || {}; d.__status = r.status; return d; });
+    }).then(function (data) {
+      btn.removeAttribute('data-busy');
+      if (data.ok === true && !data.writesBlocked) {
+        alert('Added to your quote (#' + data.quote_id + ').');
+        return;
+      }
+      if (data.__status === 401 || data.validation_code === 'auth' || data.login_url) {
+        window.location.href = data.login_url || ('/storefront/login?returnUrl=' + encodeURIComponent(window.location.pathname + window.location.search));
+        return;
+      }
+      alert(data.message || data.detail || 'Error');
+    }).catch(function () {
+      btn.removeAttribute('data-busy');
+      alert('Could not add to quote.');
+    });
+  }
+  body.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('button[data-epc-manual-quote]') : null;
+    if (!btn || !body.contains(btn)) return;
+    e.preventDefault();
+    addManualQuote(btn);
+  });
   function bumpCaption(kind) {
     var cell = body.querySelector('td.epc-part-type-split[data-section="' + kind + '"]');
     if (!cell) return;
@@ -1258,6 +1410,7 @@
         }
       }
     }
+    paintCrossRefRows(refs, stock, total);
     if (loading) loading.style.display = 'none';
     return true;
   }
