@@ -322,6 +322,24 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-08 — the bottom panel cart refresh (`bottom_panel.php` cart block) like PHP
+
+Not complete.
+
+- Ratchet stays at 756, because `modules/` is not in the gap inventory. Unnamed PHP functions 7,900 to 7,896 (PHP files that also define `updateCartInfo`, `showAdded` or `hideAdded`, such as the expan, modex and limo desktop templates). The weighted headline (about 20.4%) is unchanged.
+- The storefront desktop chrome now prints the cart part of PHP's bottom panel through `StorefrontBottomPanelCart`:
+  - the "added" label text (string 4225) in `#mark_popup_added`;
+  - `updateCartInfo()`, which posts the session's `csrf_guard_key` to the ported `ajax_get_cart_info.php` and fills `#cart_items_count`;
+  - `showAdded()` and `hideAdded()`;
+  - the on-load `updateCartInfo()` when the `session` cookie is set;
+  - the `header_cart_items_count` class switch, only for front template 63.
+
+  The key comes from the `sessions` row for the `session` and `u_id` cookies (PHP `DP_User::getUserSession()`). The add-to-cart scripts on the product and search pages now refresh the cart count and show the label after a successful add.
+- jQuery is loaded from `/lib/jQuery/jQuery.js` only when the page has not already loaded it, because PHP's template always has jQuery and many ASP.NET storefront pages do not.
+- Known limit: PHP's authentication plugin creates a guest session at the start of every page, so the bottom panel always has a key. ASP.NET creates guest sessions only on the cart, checkout, login, register and product pages, after the chrome has rendered. On a visitor's very first page, the first add therefore refreshes the count only on the next page load. A stale `session` cookie with no row prints an empty key, as PHP would. Porting the plugin's guest-session step for every storefront page is a separate item.
+- Still a gap: the rest of the bottom panel. That covers the seller-request and admin "edit text" buttons, the compare and bookmarks scripts (the chrome already counts those from cookies), and the template-63 brand quick-pick.
+- Evidence: `Fixtures/BottomPanelCart/harness.php` ran the real PHP 8.3 snippet for 4 cases: with and without a session cookie, template 63 and another template. The PHP file uses CRLF line endings, which the port keeps. `StorefrontBottomPanelCartTests` matches all 4 byte for byte. Full suite 5,851 passed. Kestrel GETs of `/en/shop/product?id=1` and `/en/` print the script; the on-load call appears only with a `session` cookie, and `/lib/jQuery/jQuery.js` returns 200. No session rows were created during testing.
+
 ### Checkpoint 2026-10-08 — the product page offers and the add-to-cart script (`common_add_to_basket.php`) like PHP
 
 Not complete.
