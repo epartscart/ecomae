@@ -9,24 +9,13 @@ namespace EcomAE.Platform.Tests;
 public sealed class StorefrontRegisterWriteTests
 {
     [Fact]
-    public void Routes_expose_register()
+    public void Register_page_route_stays_and_the_native_write_route_is_gone()
     {
-        Assert.Equal("/storefront/register", EcomAeRoutes.StorefrontRegister);
         Assert.Equal("/storefront/register-app", EcomAeRoutes.StorefrontRegisterApp);
-        Assert.Equal("/storefront/register", PhpCustomerWrites.RegisterHref);
-    }
-
-    [Fact]
-    public void Normalize_contact_type_and_shape()
-    {
-        Assert.Equal("email", StorefrontRegisterWriteService.NormalizeContactType("EMAIL"));
-        Assert.Equal("phone", StorefrontRegisterWriteService.NormalizeContactType("phone"));
-        Assert.Null(StorefrontRegisterWriteService.NormalizeContactType("fax"));
-        Assert.Equal("a@b.com", StorefrontRegisterWriteService.NormalizeContact("  a@b.com  "));
-        Assert.True(StorefrontRegisterWriteService.LooksLikeEmail("buyer@example.com"));
-        Assert.False(StorefrontRegisterWriteService.LooksLikeEmail("not-an-email"));
-        Assert.True(StorefrontRegisterWriteService.LooksLikePhone("+971567607011"));
-        Assert.False(StorefrontRegisterWriteService.LooksLikePhone("12"));
+        Assert.Null(typeof(EcomAeRoutes).GetField("StorefrontRegister"));
+        Assert.Null(typeof(PhpCustomerWrites).GetProperty("RegisterHref"));
+        Assert.Null(typeof(EcomAeRoutes).Assembly.GetType("EcomAE.Platform.Storefront.StorefrontRegisterWriteService"));
+        Assert.DoesNotContain(SurfacePayloadContractCatalog.Functions, item => item.AspNetRouteOrCapability == "/storefront/register");
     }
 
     [Fact]
@@ -53,28 +42,13 @@ public sealed class StorefrontRegisterWriteTests
     }
 
     [Fact]
-    public void Catalog_marks_register_write_live_gated()
-    {
-        var row = SurfacePayloadContractCatalog.Functions.First(item =>
-            item.AspNetRouteOrCapability == "/storefront/register");
-        Assert.Equal("write-live-gated", row.Status);
-        Assert.Contains("register.php", row.Notes, StringComparison.Ordinal);
-        Assert.Contains("stay Classic", row.Notes, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void Program_and_module_register_write()
+    public void Program_and_module_no_longer_wire_the_native_write()
     {
         var program = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Program.cs"));
-        Assert.Contains("IStorefrontRegisterWriteService", program, StringComparison.Ordinal);
+        Assert.DoesNotContain("IStorefrontRegisterWriteService", program, StringComparison.Ordinal);
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/StorefrontModule.cs"));
-        Assert.Contains("StorefrontRegister", module, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Storefront/StorefrontRegisterWriteService.cs")), StringComparison.Ordinal);
-        var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Storefront/StorefrontRegisterWriteService.cs"));
-        Assert.Contains("INSERT INTO `users`", service, StringComparison.Ordinal);
-        Assert.Contains("users_groups_bind", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("send_notify", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("EcomAeRoutes.StorefrontRegister,", module, StringComparison.Ordinal);
+        Assert.DoesNotContain("StorefrontRegisterBody", module, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

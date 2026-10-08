@@ -282,7 +282,7 @@ Not complete.
   - the `reg_fields` and `reg_variants` rows with their translations;
   - the contact channels, and the `csrf_guard_key` of the session row;
   - the storefront login context, the site trade name (site settings contact, hub name, then the host) and the configured providers.
-- `/storefront/register-app`, `/{en}/users/registration` and `/users/regform` now render this page inside the storefront chrome, with jQuery. The page creates the guest session when missing, so the form carries a real `csrf_guard_key`. The old simplified form, which posted to `StorefrontRegisterWriteService` with `confirmWrites`, is gone from the page. The service and its `/storefront/register` route still exist and are retired next.
+- `/storefront/register-app`, `/{en}/users/registration` and `/users/regform` now render this page inside the storefront chrome, with jQuery. The page creates the guest session when missing, so the form carries a real `csrf_guard_key`. The old simplified form, which posted to `StorefrontRegisterWriteService` with `confirmWrites`, is gone from the page. The service and its `/storefront/register` route are now retired too: the route, the service, its DI registration, `PhpCustomerWrites.RegisterHref` and the catalog row are removed, and a test pins that they stay gone. Registration writes go only through `/{lang}/users/register`.
 - Tests, with goldens from the real PHP (php-cli, temp docroots, no database):
   - `StorefrontOAuthButtonsTests`: 11 cases.
   - `StorefrontRegFormTests`: 12 cases, using a fake `$db_link`, stubbed `DP_User` and translations, and the real render half, auth layout, user agreement and modal.
