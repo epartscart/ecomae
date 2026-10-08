@@ -1,0 +1,13 @@
+{
+  "none_enabled": { "enabled": [], "configs": [{ "context": "storefront" }] },
+  "only_filters_all": { "enabled": ["google"], "configs": [{ "only": ["apple"] }] },
+  "defaults_google": { "enabled": ["google"], "configs": [{}] },
+  "all_providers_cp": { "enabled": ["google", "microsoft", "facebook", "github", "apple"], "configs": [{ "context": " CP ", "tenant_key": "acme", "return_url": "/en/a b?x=1&y=ü" }] },
+  "regform_terms": { "enabled": ["google", "apple"], "configs": [{ "context": "storefront", "return_url": "/en/", "require_terms": true, "divider": false }] },
+  "terms_privacy_heading": { "enabled": ["microsoft"], "configs": [{ "context": "STOREFRONT", "tenant_key": "t<1>\"", "require_terms": true, "terms_url": "/t?a=1&b=\"2\"", "privacy_url": "/p'x", "heading": "Sign <in> & go", "divider": true }] },
+  "only_keeps_enabled_order": { "enabled": ["google", "github", "apple"], "configs": [{ "only": ["apple", "google"], "divider": 0 }] },
+  "google_hint_cookie": { "enabled": ["google", "facebook"], "cookies": { "epc_oauth_last_google_email": "  Me.User@Example.COM " }, "configs": [{}] },
+  "google_hint_bad_cookie": { "enabled": ["google"], "cookies": { "epc_oauth_last_google_email": "not an email" }, "configs": [{}] },
+  "hint_cookie_without_google": { "enabled": ["facebook"], "cookies": { "epc_oauth_last_google_email": "a@b.co" }, "configs": [{}] },
+  "two_on_one_page": { "enabled": ["google"], "configs": [{ "context": "cp" }, { "context": "storefront", "require_terms": true }] }
+}

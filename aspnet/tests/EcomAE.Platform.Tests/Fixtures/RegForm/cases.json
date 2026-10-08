@@ -1,0 +1,1092 @@
+{
+ "logged_in": {
+  "user_id": 5,
+  "session": {
+   "csrf_guard_key": "ck_123"
+  },
+  "communications": {
+   "all": false,
+   "sms": false
+  },
+  "min_password_len": "6",
+  "domain_path": "https://shop.example.com/",
+  "multilang_params": {
+   "lang_href": "/en"
+  },
+  "fields": [
+   {
+    "main_flag": "1",
+    "name": "phone",
+    "caption": "10",
+    "show_for": "[1,2]",
+    "required_for": "[1]",
+    "maxlen": "20",
+    "regexp": "",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "",
+    "order": "1"
+   },
+   {
+    "main_flag": "0",
+    "name": "name",
+    "caption": "3901",
+    "show_for": "[1,2]",
+    "required_for": "[1,2]",
+    "maxlen": "64",
+    "regexp": "^[A-Za-z ]+$",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "ex_name",
+    "order": "2"
+   },
+   {
+    "main_flag": "0",
+    "name": "company",
+    "caption": "3902",
+    "show_for": "[2]",
+    "required_for": "[2]",
+    "maxlen": "128",
+    "regexp": "",
+    "widget_type": "select",
+    "widget_options": "{\"a\":1}",
+    "example": "",
+    "order": "3"
+   },
+   {
+    "main_flag": "0",
+    "name": "trade_license",
+    "caption": "3903",
+    "show_for": "[2]",
+    "required_for": "[]",
+    "maxlen": "0",
+    "regexp": "",
+    "widget_type": "file",
+    "widget_options": "null",
+    "example": "ex_doc",
+    "order": "4"
+   }
+  ],
+  "variants": [
+   {
+    "id": "1",
+    "caption": "4101",
+    "order": "1"
+   },
+   {
+    "id": "2",
+    "caption": "4102",
+    "order": "2"
+   }
+  ],
+  "ui": {
+   "tenant_key": "shop1",
+   "login_label": "Shop"
+  },
+  "strings": {
+   "4740": "You are already registered"
+  }
+ },
+ "two_variants_email_only": {
+  "user_id": 0,
+  "session": {
+   "csrf_guard_key": "ck_123"
+  },
+  "communications": {
+   "all": false,
+   "sms": false
+  },
+  "min_password_len": "6",
+  "domain_path": "https://shop.example.com/",
+  "multilang_params": {
+   "lang_href": "/en"
+  },
+  "fields": [
+   {
+    "main_flag": "1",
+    "name": "phone",
+    "caption": "10",
+    "show_for": "[1,2]",
+    "required_for": "[1]",
+    "maxlen": "20",
+    "regexp": "",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "",
+    "order": "1"
+   },
+   {
+    "main_flag": "0",
+    "name": "name",
+    "caption": "3901",
+    "show_for": "[1,2]",
+    "required_for": "[1,2]",
+    "maxlen": "64",
+    "regexp": "^[A-Za-z ]+$",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "ex_name",
+    "order": "2"
+   },
+   {
+    "main_flag": "0",
+    "name": "company",
+    "caption": "3902",
+    "show_for": "[2]",
+    "required_for": "[2]",
+    "maxlen": "128",
+    "regexp": "",
+    "widget_type": "select",
+    "widget_options": "{\"a\":1}",
+    "example": "",
+    "order": "3"
+   },
+   {
+    "main_flag": "0",
+    "name": "trade_license",
+    "caption": "3903",
+    "show_for": "[2]",
+    "required_for": "[]",
+    "maxlen": "0",
+    "regexp": "",
+    "widget_type": "file",
+    "widget_options": "null",
+    "example": "ex_doc",
+    "order": "4"
+   }
+  ],
+  "variants": [
+   {
+    "id": "1",
+    "caption": "4101",
+    "order": "1"
+   },
+   {
+    "id": "2",
+    "caption": "4102",
+    "order": "2"
+   }
+  ],
+  "ui": {
+   "tenant_key": "shop1",
+   "login_label": "Shop"
+  },
+  "strings": {
+   "3901": "Name",
+   "3902": "Company",
+   "3903": "Trade licence",
+   "ex_name": "John Smith",
+   "ex_doc": "PDF up to 8 MB",
+   "4101": "Retail",
+   "4102": "Wholesale",
+   "4743": "Register"
+  }
+ },
+ "one_variant_raw_caption": {
+  "user_id": 0,
+  "session": {
+   "csrf_guard_key": "ck_123"
+  },
+  "communications": {
+   "all": false,
+   "sms": false
+  },
+  "min_password_len": "6",
+  "domain_path": "https://shop.example.com/",
+  "multilang_params": {
+   "lang_href": "/en"
+  },
+  "fields": [
+   {
+    "main_flag": "1",
+    "name": "phone",
+    "caption": "10",
+    "show_for": "[1,2]",
+    "required_for": "[1]",
+    "maxlen": "20",
+    "regexp": "",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "",
+    "order": "1"
+   },
+   {
+    "main_flag": "0",
+    "name": "name",
+    "caption": "3901",
+    "show_for": "[1,2]",
+    "required_for": "[1,2]",
+    "maxlen": "64",
+    "regexp": "^[A-Za-z ]+$",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "ex_name",
+    "order": "2"
+   },
+   {
+    "main_flag": "0",
+    "name": "company",
+    "caption": "3902",
+    "show_for": "[2]",
+    "required_for": "[2]",
+    "maxlen": "128",
+    "regexp": "",
+    "widget_type": "select",
+    "widget_options": "{\"a\":1}",
+    "example": "",
+    "order": "3"
+   },
+   {
+    "main_flag": "0",
+    "name": "trade_license",
+    "caption": "3903",
+    "show_for": "[2]",
+    "required_for": "[]",
+    "maxlen": "0",
+    "regexp": "",
+    "widget_type": "file",
+    "widget_options": "null",
+    "example": "ex_doc",
+    "order": "4"
+   }
+  ],
+  "variants": [
+   {
+    "id": "7",
+    "caption": "Raw caption <b>",
+    "order": "1"
+   }
+  ],
+  "ui": {
+   "tenant_key": "shop1",
+   "login_label": "Shop"
+  },
+  "strings": {
+   "3901": "Name",
+   "3902": "Company",
+   "3903": "Trade licence",
+   "ex_name": "John Smith",
+   "ex_doc": "PDF up to 8 MB",
+   "4101": "Retail",
+   "4102": "Wholesale",
+   "4743": "Register"
+  }
+ },
+ "no_variants": {
+  "user_id": 0,
+  "session": {
+   "csrf_guard_key": "ck_123"
+  },
+  "communications": {
+   "all": false,
+   "sms": false
+  },
+  "min_password_len": "6",
+  "domain_path": "https://shop.example.com/",
+  "multilang_params": {
+   "lang_href": "/en"
+  },
+  "fields": [
+   {
+    "main_flag": "1",
+    "name": "phone",
+    "caption": "10",
+    "show_for": "[1,2]",
+    "required_for": "[1]",
+    "maxlen": "20",
+    "regexp": "",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "",
+    "order": "1"
+   },
+   {
+    "main_flag": "0",
+    "name": "name",
+    "caption": "3901",
+    "show_for": "[1,2]",
+    "required_for": "[1,2]",
+    "maxlen": "64",
+    "regexp": "^[A-Za-z ]+$",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "ex_name",
+    "order": "2"
+   },
+   {
+    "main_flag": "0",
+    "name": "company",
+    "caption": "3902",
+    "show_for": "[2]",
+    "required_for": "[2]",
+    "maxlen": "128",
+    "regexp": "",
+    "widget_type": "select",
+    "widget_options": "{\"a\":1}",
+    "example": "",
+    "order": "3"
+   },
+   {
+    "main_flag": "0",
+    "name": "trade_license",
+    "caption": "3903",
+    "show_for": "[2]",
+    "required_for": "[]",
+    "maxlen": "0",
+    "regexp": "",
+    "widget_type": "file",
+    "widget_options": "null",
+    "example": "ex_doc",
+    "order": "4"
+   }
+  ],
+  "variants": [],
+  "ui": {
+   "tenant_key": "shop1",
+   "login_label": "Shop"
+  },
+  "strings": {
+   "3901": "Name",
+   "3902": "Company",
+   "3903": "Trade licence",
+   "ex_name": "John Smith",
+   "ex_doc": "PDF up to 8 MB",
+   "4101": "Retail",
+   "4102": "Wholesale",
+   "4743": "Register"
+  }
+ },
+ "all_communications": {
+  "user_id": 0,
+  "session": {
+   "csrf_guard_key": "ck_123"
+  },
+  "communications": {
+   "all": true,
+   "sms": true
+  },
+  "min_password_len": "6",
+  "domain_path": "https://shop.example.com/",
+  "multilang_params": {
+   "lang_href": "/en"
+  },
+  "fields": [
+   {
+    "main_flag": "1",
+    "name": "phone",
+    "caption": "10",
+    "show_for": "[1,2]",
+    "required_for": "[1]",
+    "maxlen": "20",
+    "regexp": "",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "",
+    "order": "1"
+   },
+   {
+    "main_flag": "0",
+    "name": "name",
+    "caption": "3901",
+    "show_for": "[1,2]",
+    "required_for": "[1,2]",
+    "maxlen": "64",
+    "regexp": "^[A-Za-z ]+$",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "ex_name",
+    "order": "2"
+   },
+   {
+    "main_flag": "0",
+    "name": "company",
+    "caption": "3902",
+    "show_for": "[2]",
+    "required_for": "[2]",
+    "maxlen": "128",
+    "regexp": "",
+    "widget_type": "select",
+    "widget_options": "{\"a\":1}",
+    "example": "",
+    "order": "3"
+   },
+   {
+    "main_flag": "0",
+    "name": "trade_license",
+    "caption": "3903",
+    "show_for": "[2]",
+    "required_for": "[]",
+    "maxlen": "0",
+    "regexp": "",
+    "widget_type": "file",
+    "widget_options": "null",
+    "example": "ex_doc",
+    "order": "4"
+   }
+  ],
+  "variants": [
+   {
+    "id": "1",
+    "caption": "4101",
+    "order": "1"
+   },
+   {
+    "id": "2",
+    "caption": "4102",
+    "order": "2"
+   }
+  ],
+  "ui": {
+   "tenant_key": "shop1",
+   "login_label": "Shop"
+  },
+  "strings": {
+   "3901": "Name",
+   "3902": "Company",
+   "3903": "Trade licence",
+   "ex_name": "John Smith",
+   "ex_doc": "PDF up to 8 MB",
+   "4101": "Retail",
+   "4102": "Wholesale",
+   "4743": "Register"
+  }
+ },
+ "sms_only": {
+  "user_id": 0,
+  "session": {
+   "csrf_guard_key": "ck_123"
+  },
+  "communications": {
+   "all": false,
+   "sms": true
+  },
+  "min_password_len": "6",
+  "domain_path": "https://shop.example.com/",
+  "multilang_params": {
+   "lang_href": "/en"
+  },
+  "fields": [
+   {
+    "main_flag": "1",
+    "name": "phone",
+    "caption": "10",
+    "show_for": "[1,2]",
+    "required_for": "[1]",
+    "maxlen": "20",
+    "regexp": "",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "",
+    "order": "1"
+   },
+   {
+    "main_flag": "0",
+    "name": "name",
+    "caption": "3901",
+    "show_for": "[1,2]",
+    "required_for": "[1,2]",
+    "maxlen": "64",
+    "regexp": "^[A-Za-z ]+$",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "ex_name",
+    "order": "2"
+   },
+   {
+    "main_flag": "0",
+    "name": "company",
+    "caption": "3902",
+    "show_for": "[2]",
+    "required_for": "[2]",
+    "maxlen": "128",
+    "regexp": "",
+    "widget_type": "select",
+    "widget_options": "{\"a\":1}",
+    "example": "",
+    "order": "3"
+   },
+   {
+    "main_flag": "0",
+    "name": "trade_license",
+    "caption": "3903",
+    "show_for": "[2]",
+    "required_for": "[]",
+    "maxlen": "0",
+    "regexp": "",
+    "widget_type": "file",
+    "widget_options": "null",
+    "example": "ex_doc",
+    "order": "4"
+   }
+  ],
+  "variants": [
+   {
+    "id": "1",
+    "caption": "4101",
+    "order": "1"
+   },
+   {
+    "id": "2",
+    "caption": "4102",
+    "order": "2"
+   }
+  ],
+  "ui": {
+   "tenant_key": "shop1",
+   "login_label": "Shop"
+  },
+  "strings": {
+   "3901": "Name",
+   "3902": "Company",
+   "3903": "Trade licence",
+   "ex_name": "John Smith",
+   "ex_doc": "PDF up to 8 MB",
+   "4101": "Retail",
+   "4102": "Wholesale",
+   "4743": "Register"
+  }
+ },
+ "not_enhanced": {
+  "user_id": 0,
+  "session": {
+   "csrf_guard_key": "ck_123"
+  },
+  "communications": {
+   "all": false,
+   "sms": false
+  },
+  "min_password_len": "6",
+  "domain_path": "https://shop.example.com/",
+  "multilang_params": {
+   "lang_href": "/en"
+  },
+  "fields": [
+   {
+    "main_flag": "1",
+    "name": "phone",
+    "caption": "10",
+    "show_for": "[1,2]",
+    "required_for": "[1]",
+    "maxlen": "20",
+    "regexp": "",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "",
+    "order": "1"
+   },
+   {
+    "main_flag": "0",
+    "name": "name",
+    "caption": "3901",
+    "show_for": "[1,2]",
+    "required_for": "[1,2]",
+    "maxlen": "64",
+    "regexp": "^[A-Za-z ]+$",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "ex_name",
+    "order": "2"
+   },
+   {
+    "main_flag": "0",
+    "name": "company",
+    "caption": "3902",
+    "show_for": "[2]",
+    "required_for": "[2]",
+    "maxlen": "128",
+    "regexp": "",
+    "widget_type": "select",
+    "widget_options": "{\"a\":1}",
+    "example": "",
+    "order": "3"
+   },
+   {
+    "main_flag": "0",
+    "name": "trade_license",
+    "caption": "3903",
+    "show_for": "[2]",
+    "required_for": "[]",
+    "maxlen": "0",
+    "regexp": "",
+    "widget_type": "file",
+    "widget_options": "null",
+    "example": "ex_doc",
+    "order": "4"
+   }
+  ],
+  "variants": [
+   {
+    "id": "1",
+    "caption": "4101",
+    "order": "1"
+   },
+   {
+    "id": "2",
+    "caption": "4102",
+    "order": "2"
+   }
+  ],
+  "ui": {
+   "tenant_key": "shop1",
+   "login_label": "Shop"
+  },
+  "strings": {
+   "3901": "Name",
+   "3902": "Company",
+   "3903": "Trade licence",
+   "ex_name": "John Smith",
+   "ex_doc": "PDF up to 8 MB",
+   "4101": "Retail",
+   "4102": "Wholesale",
+   "4743": "Register"
+  },
+  "enhanced": false
+ },
+ "no_additional_fields": {
+  "user_id": 0,
+  "session": {
+   "csrf_guard_key": "ck_123"
+  },
+  "communications": {
+   "all": false,
+   "sms": false
+  },
+  "min_password_len": "6",
+  "domain_path": "https://shop.example.com/",
+  "multilang_params": {
+   "lang_href": "/en"
+  },
+  "fields": [
+   {
+    "main_flag": "1",
+    "name": "phone",
+    "caption": "10",
+    "show_for": "[1,2]",
+    "required_for": "[1]",
+    "maxlen": "20",
+    "regexp": "",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "",
+    "order": "1"
+   }
+  ],
+  "variants": [
+   {
+    "id": "1",
+    "caption": "4101",
+    "order": "1"
+   },
+   {
+    "id": "2",
+    "caption": "4102",
+    "order": "2"
+   }
+  ],
+  "ui": {
+   "tenant_key": "shop1",
+   "login_label": "Shop"
+  },
+  "strings": {
+   "3901": "Name",
+   "3902": "Company",
+   "3903": "Trade licence",
+   "ex_name": "John Smith",
+   "ex_doc": "PDF up to 8 MB",
+   "4101": "Retail",
+   "4102": "Wholesale",
+   "4743": "Register"
+  }
+ },
+ "missing_strings_and_session": {
+  "user_id": 0,
+  "session": false,
+  "communications": {
+   "all": false,
+   "sms": false
+  },
+  "min_password_len": "6",
+  "domain_path": "https://shop.example.com/",
+  "multilang_params": {
+   "lang_href": "/en"
+  },
+  "fields": [
+   {
+    "main_flag": "1",
+    "name": "phone",
+    "caption": "10",
+    "show_for": "[1,2]",
+    "required_for": "[1]",
+    "maxlen": "20",
+    "regexp": "",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "",
+    "order": "1"
+   },
+   {
+    "main_flag": "0",
+    "name": "name",
+    "caption": "3901",
+    "show_for": "[1,2]",
+    "required_for": "[1,2]",
+    "maxlen": "64",
+    "regexp": "^[A-Za-z ]+$",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "ex_name",
+    "order": "2"
+   },
+   {
+    "main_flag": "0",
+    "name": "company",
+    "caption": "3902",
+    "show_for": "[2]",
+    "required_for": "[2]",
+    "maxlen": "128",
+    "regexp": "",
+    "widget_type": "select",
+    "widget_options": "{\"a\":1}",
+    "example": "",
+    "order": "3"
+   },
+   {
+    "main_flag": "0",
+    "name": "trade_license",
+    "caption": "3903",
+    "show_for": "[2]",
+    "required_for": "[]",
+    "maxlen": "0",
+    "regexp": "",
+    "widget_type": "file",
+    "widget_options": "null",
+    "example": "ex_doc",
+    "order": "4"
+   }
+  ],
+  "variants": [
+   {
+    "id": "1",
+    "caption": "4101",
+    "order": "1"
+   },
+   {
+    "id": "2",
+    "caption": "4102",
+    "order": "2"
+   }
+  ],
+  "ui": {
+   "tenant_key": "shop1",
+   "login_label": "Shop"
+  },
+  "strings": {
+   "3901": "Name",
+   "3902": "Company",
+   "3903": "Trade licence",
+   "ex_name": "John Smith",
+   "ex_doc": "PDF up to 8 MB",
+   "4101": "Retail",
+   "4102": "Wholesale",
+   "4743": "Register"
+  },
+  "quiet": true,
+  "missing": [
+   "4716",
+   "3925",
+   "3934",
+   "4743"
+  ]
+ },
+ "site_profile_and_trade_name": {
+  "user_id": 0,
+  "session": {
+   "csrf_guard_key": "ck_123"
+  },
+  "communications": {
+   "all": false,
+   "sms": false
+  },
+  "min_password_len": "6",
+  "domain_path": "https://shop.example.com/",
+  "multilang_params": {
+   "lang_href": "/ar"
+  },
+  "fields": [
+   {
+    "main_flag": "1",
+    "name": "phone",
+    "caption": "10",
+    "show_for": "[1,2]",
+    "required_for": "[1]",
+    "maxlen": "20",
+    "regexp": "",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "",
+    "order": "1"
+   },
+   {
+    "main_flag": "0",
+    "name": "name",
+    "caption": "3901",
+    "show_for": "[1,2]",
+    "required_for": "[1,2]",
+    "maxlen": "64",
+    "regexp": "^[A-Za-z ]+$",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "ex_name",
+    "order": "2"
+   },
+   {
+    "main_flag": "0",
+    "name": "company",
+    "caption": "3902",
+    "show_for": "[2]",
+    "required_for": "[2]",
+    "maxlen": "128",
+    "regexp": "",
+    "widget_type": "select",
+    "widget_options": "{\"a\":1}",
+    "example": "",
+    "order": "3"
+   },
+   {
+    "main_flag": "0",
+    "name": "trade_license",
+    "caption": "3903",
+    "show_for": "[2]",
+    "required_for": "[]",
+    "maxlen": "0",
+    "regexp": "",
+    "widget_type": "file",
+    "widget_options": "null",
+    "example": "ex_doc",
+    "order": "4"
+   }
+  ],
+  "variants": [
+   {
+    "id": "1",
+    "caption": "4101",
+    "order": "1"
+   },
+   {
+    "id": "2",
+    "caption": "4102",
+    "order": "2"
+   }
+  ],
+  "ui": {
+   "tenant_key": "k'1",
+   "login_label": "L",
+   "send_code_url": "/s?a=1&b=2"
+  },
+  "strings": {
+   "3901": "Name",
+   "3902": "Company",
+   "3903": "Trade licence",
+   "ex_name": "John Smith",
+   "ex_doc": "PDF up to 8 MB",
+   "4101": "Retail",
+   "4102": "Wholesale",
+   "4743": "Register"
+  },
+  "site_profile": {
+   "site_key": "Shop-One_2!",
+   "logo_url": "/logo.png"
+  },
+  "trade_name": "Gulf & Co",
+  "buttons": "<div class=\"epc-oauth\">G</div>"
+ },
+ "site_profile_without_logo": {
+  "user_id": 0,
+  "session": {
+   "csrf_guard_key": "ck_123"
+  },
+  "communications": {
+   "all": false,
+   "sms": false
+  },
+  "min_password_len": "6",
+  "domain_path": "https://shop.example.com/",
+  "multilang_params": {
+   "lang_href": "/en"
+  },
+  "fields": [
+   {
+    "main_flag": "1",
+    "name": "phone",
+    "caption": "10",
+    "show_for": "[1,2]",
+    "required_for": "[1]",
+    "maxlen": "20",
+    "regexp": "",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "",
+    "order": "1"
+   },
+   {
+    "main_flag": "0",
+    "name": "name",
+    "caption": "3901",
+    "show_for": "[1,2]",
+    "required_for": "[1,2]",
+    "maxlen": "64",
+    "regexp": "^[A-Za-z ]+$",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "ex_name",
+    "order": "2"
+   },
+   {
+    "main_flag": "0",
+    "name": "company",
+    "caption": "3902",
+    "show_for": "[2]",
+    "required_for": "[2]",
+    "maxlen": "128",
+    "regexp": "",
+    "widget_type": "select",
+    "widget_options": "{\"a\":1}",
+    "example": "",
+    "order": "3"
+   },
+   {
+    "main_flag": "0",
+    "name": "trade_license",
+    "caption": "3903",
+    "show_for": "[2]",
+    "required_for": "[]",
+    "maxlen": "0",
+    "regexp": "",
+    "widget_type": "file",
+    "widget_options": "null",
+    "example": "ex_doc",
+    "order": "4"
+   }
+  ],
+  "variants": [
+   {
+    "id": "1",
+    "caption": "4101",
+    "order": "1"
+   },
+   {
+    "id": "2",
+    "caption": "4102",
+    "order": "2"
+   }
+  ],
+  "ui": {
+   "tenant_key": "shop1",
+   "login_label": "Shop"
+  },
+  "strings": {
+   "3901": "Name",
+   "3902": "Company",
+   "3903": "Trade licence",
+   "ex_name": "John Smith",
+   "ex_doc": "PDF up to 8 MB",
+   "4101": "Retail",
+   "4102": "Wholesale",
+   "4743": "Register"
+  },
+  "site_profile": {
+   "site_key": "abc"
+  },
+  "buttons": ""
+ },
+ "unicode_values": {
+  "user_id": 0,
+  "session": {
+   "csrf_guard_key": "ck_123"
+  },
+  "communications": {
+   "all": false,
+   "sms": false
+  },
+  "min_password_len": "8",
+  "domain_path": "/",
+  "multilang_params": {
+   "lang_href": "/en"
+  },
+  "fields": [
+   {
+    "main_flag": "1",
+    "name": "phone",
+    "caption": "10",
+    "show_for": "[1,2]",
+    "required_for": "[1]",
+    "maxlen": "20",
+    "regexp": "",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "",
+    "order": "1"
+   },
+   {
+    "main_flag": "0",
+    "name": "name",
+    "caption": "3901",
+    "show_for": "[1,2]",
+    "required_for": "[1,2]",
+    "maxlen": "64",
+    "regexp": "^[A-Za-z ]+$",
+    "widget_type": "text",
+    "widget_options": "{}",
+    "example": "ex_name",
+    "order": "2"
+   },
+   {
+    "main_flag": "0",
+    "name": "company",
+    "caption": "3902",
+    "show_for": "[2]",
+    "required_for": "[2]",
+    "maxlen": "128",
+    "regexp": "",
+    "widget_type": "select",
+    "widget_options": "{\"a\":1}",
+    "example": "",
+    "order": "3"
+   },
+   {
+    "main_flag": "0",
+    "name": "trade_license",
+    "caption": "3903",
+    "show_for": "[2]",
+    "required_for": "[]",
+    "maxlen": "0",
+    "regexp": "",
+    "widget_type": "file",
+    "widget_options": "null",
+    "example": "ex_doc",
+    "order": "4"
+   }
+  ],
+  "variants": [
+   {
+    "id": "1",
+    "caption": "4101",
+    "order": "1"
+   },
+   {
+    "id": "2",
+    "caption": "4102",
+    "order": "2"
+   }
+  ],
+  "ui": {
+   "tenant_key": "shop1",
+   "login_label": "Shop"
+  },
+  "strings": {
+   "3901": "Имя «полное»",
+   "4743": "Зарегистрироваться",
+   "4740": "x"
+  }
+ }
+}

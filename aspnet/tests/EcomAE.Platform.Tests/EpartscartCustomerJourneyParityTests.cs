@@ -17,15 +17,14 @@ public sealed class EpartscartCustomerJourneyParityTests
         var reg = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontRegisterApp.razor"));
         Assert.Contains("@page \"/storefront/register-app\"", reg, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/users/registration\"", reg, StringComparison.Ordinal);
-        Assert.Contains("PhpCustomerWrites.RegisterHref", reg, StringComparison.Ordinal);
-        Assert.Contains("name=\"confirmWrites\"", reg, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", reg, StringComparison.Ordinal);
+        Assert.Contains("StorefrontRegFormLoader.RenderAsync", reg, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference", reg, StringComparison.Ordinal);
-        Assert.Contains("id=\"regform\"", reg, StringComparison.Ordinal);
-        Assert.Contains("name=\"reg_contact\"", reg, StringComparison.Ordinal);
-        Assert.Contains("name=\"reg_contact_type\"", reg, StringComparison.Ordinal);
-        Assert.Contains("name=\"password_repeat\"", reg, StringComparison.Ordinal);
-        Assert.Contains("epc-auth-page", reg, StringComparison.Ordinal);
+        var html = EcomAE.Platform.Storefront.StorefrontRegForm.Render(new EcomAE.Platform.Storefront.StorefrontRegForm.Input { LangHref = "/en" }, id => string.Empty);
+        Assert.Contains("id=\"regform\"", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"reg_contact\"", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"reg_contact_type\"", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"password_repeat\"", html, StringComparison.Ordinal);
+        Assert.Contains("epc-auth-page", html, StringComparison.Ordinal);
 
         var login = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontLoginApp.razor"));
         Assert.Contains("@page \"/en/users/login\"", login, StringComparison.Ordinal);

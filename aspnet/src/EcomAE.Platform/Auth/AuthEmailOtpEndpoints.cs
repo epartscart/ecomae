@@ -578,7 +578,7 @@ public static class AuthEmailOtpEndpoints
     private static string JsonObject(IEnumerable<KeyValuePair<string, string>> members)
         => "{" + string.Join(",", members.Select(m => OAuthStart.PhpJsonString(m.Key) + ":" + m.Value)) + "}";
 
-    private static async Task<DbConnection> OpenRegistryAsync(ITenantDbConnectionFactory connections, CancellationToken cancellationToken)
+    internal static async Task<DbConnection> OpenRegistryAsync(ITenantDbConnectionFactory connections, CancellationToken cancellationToken)
     {
         if (!connections.IsConfigured)
         {
