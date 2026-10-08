@@ -81,18 +81,19 @@ public static partial class StorefrontPhpAjax
         }
     }
 
-    public static Task<object> CatalogueCountAsync(DbConnection connection, string? requestJson, CancellationToken cancellationToken)
-        => CatalogueAsync(connection, requestJson, render: false, pricesVisible: false, cancellationToken);
+    public static Task<object> CatalogueCountAsync(DbConnection connection, string? requestJson, CancellationToken cancellationToken, string? cityCookie = null)
+        => CatalogueAsync(connection, requestJson, render: false, pricesVisible: false, cancellationToken, cityCookie: cityCookie);
 
-    public static Task<object> CatalogueListAsync(DbConnection connection, string? requestJson, CancellationToken cancellationToken)
-        => CatalogueAsync(connection, requestJson, render: false, pricesVisible: false, cancellationToken, listOnly: true);
+    public static Task<object> CatalogueListAsync(DbConnection connection, string? requestJson, CancellationToken cancellationToken, string? cityCookie = null)
+        => CatalogueAsync(connection, requestJson, render: false, pricesVisible: false, cancellationToken, listOnly: true, cityCookie: cityCookie);
 
     public static Task<object> CataloguePageAsync(
         DbConnection connection,
         string? requestJson,
         bool pricesVisible,
-        CancellationToken cancellationToken)
-        => CatalogueAsync(connection, requestJson, render: true, pricesVisible, cancellationToken);
+        CancellationToken cancellationToken,
+        string? cityCookie = null)
+        => CatalogueAsync(connection, requestJson, render: true, pricesVisible, cancellationToken, cityCookie: cityCookie);
 
     public static async Task<object> PickupTimingAsync(
         DbConnection connection,
@@ -744,7 +745,8 @@ public static partial class StorefrontPhpAjax
         bool render,
         bool pricesVisible,
         CancellationToken cancellationToken,
-        bool listOnly = false)
+        bool listOnly = false,
+        string? cityCookie = null)
     {
         CatalogueRequest? request;
         try
@@ -822,7 +824,7 @@ public static partial class StorefrontPhpAjax
         {
             try
             {
-                var count = await CountProductsAsync(connection, categoryId, publishedOnly, searchIds, filter, cancellationToken).ConfigureAwait(false);
+                var count = await CountProductsAsync(connection, categoryId, publishedOnly, searchIds, filter, cityCookie, cancellationToken).ConfigureAwait(false);
                 return new RawHttp(count.ToString(CultureInfo.InvariantCulture), "text/plain; charset=utf-8");
             }
             catch (CatalogueFail ex)
@@ -845,7 +847,7 @@ public static partial class StorefrontPhpAjax
         List<CatalogueRow> rows;
         try
         {
-            rows = await PageProductsAsync(connection, categoryId, publishedOnly, searchIds, filter, from, take, cancellationToken).ConfigureAwait(false);
+            rows = await PageProductsAsync(connection, categoryId, publishedOnly, searchIds, filter, from, take, cityCookie, cancellationToken).ConfigureAwait(false);
         }
         catch (CatalogueFail ex)
         {
@@ -939,13 +941,14 @@ public static partial class StorefrontPhpAjax
         bool publishedOnly,
         List<int>? searchIds,
         CatalogueFilter filter,
+        string? cityCookie,
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
         var where = ProductWhere(categoryId, publishedOnly, searchIds, filter, out var args);
         if (filter.Having.Length > 0)
         {
-            var priced = await PriceSelectAsync(connection, where, filter.Having, args, cancellationToken).ConfigureAwait(false);
+            var priced = await PriceSelectAsync(connection, where, filter.Having, args, cityCookie, cancellationToken).ConfigureAwait(false);
             command.CommandText = "SELECT COUNT(DISTINCT `id`) FROM (" + priced.Sql + ") AS `all`";
             args = priced.Args;
         }
@@ -971,6 +974,7 @@ public static partial class StorefrontPhpAjax
         CatalogueFilter filter,
         int from,
         int take,
+        string? cityCookie,
         CancellationToken cancellationToken)
     {
         var rows = new List<CatalogueRow>();
@@ -979,7 +983,7 @@ public static partial class StorefrontPhpAjax
         var limit = " ORDER BY `id` ASC LIMIT " + from.ToString(CultureInfo.InvariantCulture) + ", " + take.ToString(CultureInfo.InvariantCulture);
         if (filter.Having.Length > 0)
         {
-            var priced = await PriceSelectAsync(connection, where, filter.Having, args, cancellationToken).ConfigureAwait(false);
+            var priced = await PriceSelectAsync(connection, where, filter.Having, args, cityCookie, cancellationToken).ConfigureAwait(false);
             command.CommandText = "SELECT p.`id`, p.`caption`, p.`alias`, p.`category_id` FROM `shop_catalogue_products` p INNER JOIN (SELECT DISTINCT `id` FROM ("
                 + priced.Sql
                 + ") AS `priced`) keep ON keep.`id` = p.`id` ORDER BY p.`id` ASC LIMIT "
@@ -1237,9 +1241,10 @@ public static partial class StorefrontPhpAjax
         string where,
         string having,
         List<object> whereArgs,
+        string? cityCookie,
         CancellationToken cancellationToken)
     {
-        var offices = await PriceOfficesAsync(connection, cancellationToken).ConfigureAwait(false);
+        var offices = await StorefrontCustomerOffices.LoadAsync(connection, cityCookie, cancellationToken, missingGeoTablesAsEmpty: true).ConfigureAwait(false);
         if (offices.Count == 0)
         {
             throw new CatalogueFail(CataloguePropertyFiltersMissing);
@@ -1273,50 +1278,6 @@ public static partial class StorefrontPhpAjax
         }
 
         return (string.Join(" UNION ", arms), args);
-    }
-
-    private static async Task<List<int>> PriceOfficesAsync(DbConnection connection, CancellationToken cancellationToken)
-    {
-        var offices = new List<int>();
-        if (await TableExistsAsync(connection, "shop_geo", cancellationToken).ConfigureAwait(false)
-            && await TableExistsAsync(connection, "shop_offices_geo_map", cancellationToken).ConfigureAwait(false))
-        {
-            long geoId = 0;
-            await using (var geo = connection.CreateCommand())
-            {
-                geo.CommandText = "SELECT MIN(`id`) FROM `shop_geo`";
-                var value = await geo.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-                if (value is not null and not DBNull)
-                {
-                    geoId = Convert.ToInt64(value, CultureInfo.InvariantCulture);
-                }
-            }
-
-            if (geoId > 0)
-            {
-                await using var map = connection.CreateCommand();
-                map.CommandText = ErpDb.Positional("SELECT `office_id` FROM `shop_offices_geo_map` WHERE `geo_id` = ?");
-                ErpDb.AddParameters(map, geoId);
-                await using var reader = await map.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    offices.Add(Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture));
-                }
-            }
-        }
-
-        if (offices.Count == 0)
-        {
-            await using var office = connection.CreateCommand();
-            office.CommandText = "SELECT `id` FROM `shop_offices` ORDER BY `id` LIMIT 1";
-            var value = await office.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            if (value is not null and not DBNull)
-            {
-                offices.Add(Convert.ToInt32(value, CultureInfo.InvariantCulture));
-            }
-        }
-
-        return offices;
     }
 
     private static async Task<List<int>> PriceStorageIdsAsync(DbConnection connection, int officeId, CancellationToken cancellationToken)

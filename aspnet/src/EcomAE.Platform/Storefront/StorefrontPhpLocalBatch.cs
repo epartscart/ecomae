@@ -907,7 +907,8 @@ public static partial class StorefrontPhpAjax
         string? rows,
         string? article,
         bool hasFile,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? cityCookie = null)
     {
         int userId;
         bool admin;
@@ -967,7 +968,7 @@ public static partial class StorefrontPhpAjax
         List<int> offices;
         try
         {
-            offices = await CustomerOfficesAsync(connection, cancellationToken).ConfigureAwait(false);
+            offices = await StorefrontCustomerOffices.LoadAsync(connection, cityCookie, cancellationToken).ConfigureAwait(false);
         }
         catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
         {
@@ -1711,33 +1712,6 @@ public static partial class StorefrontPhpAjax
         {
             return (0, CustomerGroupsMissing);
         }
-    }
-
-    private static async Task<List<int>> CustomerOfficesAsync(DbConnection connection, CancellationToken cancellationToken)
-    {
-        var geo = await ErpDb.LongAsync(connection, null, "SELECT MIN(`id`) FROM `shop_geo`", cancellationToken).ConfigureAwait(false);
-        var offices = new List<int>();
-        await using (var command = connection.CreateCommand())
-        {
-            command.CommandText = ErpDb.Positional("SELECT `office_id` FROM `shop_offices_geo_map` WHERE `geo_id` = ?");
-            ErpDb.AddParameters(command, geo);
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-            {
-                offices.Add(reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture));
-            }
-        }
-
-        if (offices.Count == 0)
-        {
-            var first = await ErpDb.LongAsync(connection, null, "SELECT `id` FROM `shop_offices` ORDER BY `id` LIMIT 1", cancellationToken).ConfigureAwait(false);
-            if (first > 0)
-            {
-                offices.Add((int)first);
-            }
-        }
-
-        return offices;
     }
 
     private static bool PhoneTail(string stored, string posted)

@@ -1106,7 +1106,8 @@ public static class StorefrontPhpAjaxEndpoints
             async (connection, ct) => await StorefrontPhpAjax.CatalogueCountAsync(
                 connection,
                 await FieldAsync(context, "propucts_request", ct).ConfigureAwait(false),
-                ct).ConfigureAwait(false),
+                ct,
+                context.Request.Cookies[StorefrontCustomerOffices.CityCookie]).ConfigureAwait(false),
             StorefrontPhpAjax.NoDbConnect);
 
     private static Task<IResult> CatalogueListAsync(
@@ -1120,7 +1121,8 @@ public static class StorefrontPhpAjaxEndpoints
             async (connection, ct) => await StorefrontPhpAjax.CatalogueListAsync(
                 connection,
                 await FieldAsync(context, "propucts_request", ct).ConfigureAwait(false),
-                ct).ConfigureAwait(false),
+                ct,
+                context.Request.Cookies[StorefrontCustomerOffices.CityCookie]).ConfigureAwait(false),
             StorefrontPhpAjax.NoDbConnect);
 
     private static Task<IResult> CataloguePageAsync(
@@ -1139,7 +1141,8 @@ public static class StorefrontPhpAjaxEndpoints
                     connection,
                     await FieldAsync(context, "propucts_request", ct).ConfigureAwait(false),
                     access.PricesVisible,
-                    ct).ConfigureAwait(false);
+                    ct,
+                    context.Request.Cookies[StorefrontCustomerOffices.CityCookie]).ConfigureAwait(false);
             },
             StorefrontPhpAjax.NoDbConnect);
 
@@ -1656,7 +1659,8 @@ public static class StorefrontPhpAjaxEndpoints
                     await FieldAsync(context, "rows", token).ConfigureAwait(false),
                     await FieldAsync(context, "article", token).ConfigureAwait(false),
                     file.HasFile,
-                    token).ConfigureAwait(false);
+                    token,
+                    context.Request.Cookies[StorefrontCustomerOffices.CityCookie]).ConfigureAwait(false);
             },
             new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
 
