@@ -1,12 +1,21 @@
 @page "/storefront/guest-order-app"
 @page "/en/shop/orders/guest"
 @page "/shop/orders/guest"
+@page "/en/shop/orders/zakaz-bez-registracii"
+@page "/shop/orders/zakaz-bez-registracii"
 @layout Layout.PhpChromeLayout
-@using System.Globalization
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@using EcomAE.Platform.Storefront
 @inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
+@inject IStorefrontGuestSessionService Guests
+@inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
+@inject Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions> PhpReference
+@*
+  PHP twin: content/shop/order_process/my_order_not_authorized.php (StorefrontOrderNotAuthorized). Its pay_on_place
+  POST is StorefrontOrderNotAuthorizedPostMiddleware.
+*@
 
 <PageTitle>Track order · @_brand</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
@@ -14,90 +23,79 @@
 
 <StorefrontTenantChrome>
     <section style="padding:2rem 0 3rem">
-        <div class="container" style="max-width:40rem">
-            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem">
-                <a href="@StorefrontSurfaceLinks.Orders">My orders</a>
-                · Guest order
-            </p>
-            <h1 style="margin:.1rem 0 .4rem">Track a guest order</h1>
-            <p style="color:#475569">Use the order number from checkout if you placed the order without signing in.</p>
-            <form method="get" class="panel panel-primary">
-                <div class="panel-body">
-                    <label for="order_id">Order number</label>
-                    <input id="order_id" class="form-control" type="number" name="order_id" min="1" required value="@OrderId" />
-                    <label for="email_not_auth">Email on the order</label>
-                    <input id="email_not_auth" class="form-control" type="email" name="email_not_auth" value="@EmailNotAuth" />
-                    <label for="phone_not_auth">Phone on the order</label>
-                    <input id="phone_not_auth" class="form-control" type="text" name="phone_not_auth" value="@PhoneNotAuth" />
-                    <button type="submit" class="btn btn-ar btn-primary" style="margin-top:.75rem">Look up order</button>
-                </div>
-            </form>
-            @if (_lookedUp)
-            {
-                @if (_order is not null)
-                {
-                    <article style="margin-top:1rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
-                        <h2 style="margin:0 0 .65rem;font-size:1.05rem">Order #@_order.Id.ToString(CultureInfo.InvariantCulture)</h2>
-                        <p style="margin:0 0 .35rem;color:#334155">Created @_created</p>
-                        <p style="margin:0 0 .35rem;color:#334155">Status @_order.Status.ToString(CultureInfo.InvariantCulture) · Paid @(_order.Paid != 0 ? "Yes" : "No")</p>
-                        @if (!string.IsNullOrWhiteSpace(_order.ObtainCaption))
-                        {
-                            <p style="margin:0 0 .35rem;color:#334155">Collection @_order.ObtainCaption</p>
-                        }
-                        <p style="margin:0;color:#334155;font-weight:700">Sum @_order.Sum.ToString("0.00", CultureInfo.InvariantCulture)</p>
-                    </article>
-                    <form method="get" action="@PhpCustomerWrites.GuestOrderWriteHref" style="margin-top:.85rem">
-                        <input type="hidden" name="order_id" value="@_order.Id.ToString(CultureInfo.InvariantCulture)" />
-                        <button type="submit" style="padding:.55rem 1rem;border:1px solid #0f766e;border-radius:.45rem;background:#fff;color:#0f766e;font-weight:700;cursor:pointer">Continue to pay</button>
-                    </form>
-                    <p style="margin:.65rem 0 0;color:#64748b;font-size:.85rem">Continue to pay opens the payment page. Sign in to create a payment operation. This page does not invent a live card capture.</p>
-                }
-                else
-                {
-                    <p style="margin-top:1rem;color:#b45309">@(_message.Length > 0 ? _message : "Guest order not found. Signed-in orders are on My orders.")</p>
-                }
-            }
-            <p style="margin-top:1rem"><a href="@StorefrontSurfaceLinks.Login">Sign in for a full order history</a></p>
+        <div class="container">
+            <script>window.jQuery || document.write('<script src="/lib/jQuery/jQuery.js"><\/script>');</script>
+            @((MarkupString)_html)
         </div>
     </section>
 </StorefrontTenantChrome>
 
 @code {
     private string _brand = "eParts Cart";
-    private bool _lookedUp;
-    private string _message = "";
-    private string _created = "";
-    private StorefrontGuestOrderDigest? _order;
-
-    [SupplyParameterFromQuery(Name = "order_id")]
-    public int? OrderId { get; set; }
-
-    [SupplyParameterFromQuery(Name = "email_not_auth")]
-    public string? EmailNotAuth { get; set; }
-
-    [SupplyParameterFromQuery(Name = "phone_not_auth")]
-    public string? PhoneNotAuth { get; set; }
+    private string _html = "";
 
     protected override async Task OnInitializedAsync()
     {
-        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
-        if (OrderId is not > 0)
+        var ctx = Http.HttpContext;
+        if (ctx is null)
         {
             return;
         }
 
-        _lookedUp = true;
-        var result = await Dashboards.GetStorefrontGuestOrderAsync(
-            OrderId.Value,
-            EmailNotAuth,
-            PhoneNotAuth,
-            Http.HttpContext?.RequestAborted ?? default);
-        _order = result.Order;
-        _message = result.Message ?? string.Empty;
-        if (_order is not null && _order.TimeUnix > 0)
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        var sessionCookie = ctx.Request.Cookies["session"];
+        var userCookie = ctx.Request.Cookies["u_id"];
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
         {
-            var created = DateTimeOffset.FromUnixTimeSeconds(_order.TimeUnix).ToLocalTime();
-            _created = created.ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture);
+            var shopper = await Guests.ResolveAsync(ctx, createIfMissing: true, ctx.RequestAborted);
+            if (!shopper.IsSignedIn)
+            {
+                Guests.ApplyGuestCookies(ctx.Response, shopper);
+                if (shopper.SessionToken.Length > 0)
+                {
+                    sessionCookie = shopper.SessionToken;
+                    userCookie = "0";
+                }
+            }
+        }
+
+        var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
+        var lang = StorefrontPhpHomeLinks.LangHref(ctx);
+        try
+        {
+            await using var connection = await Connections.OpenForTenantAsync(tenant, ctx.RequestAborted);
+            var translator = new StorefrontPhpTranslator(connection, lang.TrimStart('/'));
+            Func<string, Task<string>> t = key => translator.TextAsync(key, ctx.RequestAborted);
+            var alertStrings = new Dictionary<int, string>();
+            foreach (var id in StorefrontActionsAlert.StringIds)
+            {
+                alertStrings[id] = await t(id.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+
+            var orderId = StorefrontActionsAlert.Last(ctx.Request.Query, "order_id");
+            var picker = string.Empty;
+            if (orderId is not null)
+            {
+                picker = StorefrontPaymentMethodPicker.Render(await StorefrontPaymentMethodPicker.ListSelectableAsync(connection, translator, ctx.RequestAborted));
+            }
+
+            var input = new StorefrontOrderNotAuthorized.Input(
+                orderId,
+                lang,
+                await StorefrontBottomPanelCart.CsrfGuardKeyAsync(connection, sessionCookie, userCookie, ctx.RequestAborted),
+                EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(PhpReference.Value),
+                picker,
+                StorefrontActionsAlert.Render(key => StorefrontActionsAlert.Last(ctx.Request.Query, key), id => alertStrings[id]));
+            _html = await StorefrontOrderNotAuthorized.RenderAsync(connection, input, t, StorefrontOrderNotAuthorized.PhpDate, ctx.RequestAborted);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            _html = "<p>Order lookup is unavailable right now.</p>";
+        }
+        catch (InvalidOperationException)
+        {
+            _html = "<p>Order lookup is unavailable right now.</p>";
         }
     }
 }

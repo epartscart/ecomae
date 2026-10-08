@@ -642,7 +642,7 @@ public static partial class StorefrontPhpAjax
     /// PHP <c>stop_csrf.php</c>: <c>Error! CSRF 1</c> without a key, <c>3</c> for an empty key, <c>3.1</c> without the
     /// session (the admin one when the referer is the control panel) and <c>4</c> on a mismatch; null when it passes.
     /// </summary>
-    private static async Task<RawHttp?> StopCsrfAsync(
+    internal static async Task<RawHttp?> StopCsrfAsync(
         DbConnection connection,
         string? csrfKey,
         string? session,
