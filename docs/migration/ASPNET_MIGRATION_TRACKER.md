@@ -260,6 +260,21 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — the storefront profile page and its currency change request like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 74 of 75, broader `cp/content` 108 of 110. Weighted headline stays about 20.4%. Ratchet 813 to 812: `content/users/profileform.php` closes. Unnamed PHP functions: 7,930 to 7,924.
+- `StorefrontProfileForm` renders `/users/profile` and `/en/users/profile` byte for byte. It is checked against a `php -S` golden of the real page on a throwaway database (15 cases, with the profile, price setting, currency and table rows left behind).
+  - The rows: trade account (type, approval label, dealing currency, change pending), VAT treatment, the wholesale tax-exempt certificate with its upload form, and the registration variant when there is more than one.
+  - The contact widgets (phone when SMS is available, e-mail otherwise or when both are) with the phone mask script.
+  - The profile fields of `DP_User::getUserProfile()` that are not `users` columns, in PHP array order (a later profile row overwrites in place), and the group names.
+  - The edit link and the dealing currency panel (pending request, or the change form).
+  - Like PHP, a GET stores a missing `customer_vat_type`, adds the missing UAE VAT price settings and creates the e-invoice tables.
+- `StorefrontProfilePostMiddleware` handles the page's currency change POST: the CSRF check (stop_csrf's JSON on refusal), `epc_trade_request_currency_change()`, and the `reg_notify_admin` notice with the requested currency and the note. The page then renders with the success alert.
+- Intended deviation: the POST's CSRF check always uses the customer session. PHP's `stop_csrf.php` switches to the admin session when the referer is a CP page.
+- Still open: `/ar/users/profile` and other language prefixes are not routed to the page yet (the POST handler accepts them).
+
 ### Checkpoint 2026-10-08 — the storefront login page and its password sign-in like PHP
 
 Not complete.
