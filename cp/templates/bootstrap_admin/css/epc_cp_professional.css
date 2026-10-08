@@ -4156,7 +4156,7 @@ body.epc-cp-shell .content .epc-cp-content-inner {
 body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner,
 body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-portal-settings,
 body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner .row,
-body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner .row > *,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner .row > *:not(script):not(style):not(link):not(template),
 body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner [class*="col-"],
 body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-scp-dashboard,
 body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-th-hero {
@@ -4226,7 +4226,7 @@ body.epc-cp-shell .splash.show {
 
 body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content.epc-cp-main-pane > .epc-cp-content-inner,
 body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner > .row,
-body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner > .row > *,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner > .row > *:not(script):not(style):not(link):not(template),
 body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner .epc-portal-settings,
 body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner .epc-scp-dashboard,
 body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner .epc-th-hero {
