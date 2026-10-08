@@ -709,6 +709,7 @@ builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartAddService,
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartWriteService, EcomAE.Platform.Storefront.StorefrontCartWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCheckoutWriteService, EcomAE.Platform.Storefront.StorefrontCheckoutWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPlatformMailer, EcomAE.Platform.Cp.CpPlatformMailer>();
+builder.Services.AddSingleton<EcomAE.Platform.Auth.IAuthOtpMailer, EcomAE.Platform.Auth.AuthOtpMailer>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontNotifyDispatcher, EcomAE.Platform.Storefront.StorefrontNotifyDispatcher>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontWhatsappNotifier, EcomAE.Platform.Storefront.StorefrontWhatsappNotifier>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IShopOrderProtocolService, EcomAE.Platform.Storefront.ShopOrderProtocolService>();
@@ -1902,6 +1903,7 @@ app.MapEcomAeSurfaceModules();
 // even when PHP-FPM is not fronting Kestrel (local + loopback probes).
 PhpLegacyAssetBridge.Map(app, app.Environment);
 OAuthStartEndpoint.Map(app);
+AuthEmailOtpEndpoints.Map(app);
 OAuthCallbackEndpoint.Map(app);
 HomeCatalogWidgets.Map(app);
 AccessoriesMarketplaceSearch.Map(app);
