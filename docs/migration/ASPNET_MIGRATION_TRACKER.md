@@ -260,6 +260,16 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — forty PHP CSS and JS wrapper files
+
+Not complete.
+
+- Ratchet 808 to 768. Inventory content 347 to 383 of 952, cp-page 182 to 186 of 523. The weighted headline (about 20.4%) is unchanged: the wrappers are presentation plumbing, not storefront or CP workflows. Unnamed PHP functions stay 7,925.
+- `PhpAssetWrappers` serves the 40 PHP files that only send one repository CSS or JS file (`content/general_pages/epc_*_css.php` and `*_js.php`, `content/shop/pos/epc_pos_*`, `epc_erp_dashboard_premium_css.php`, the four portal `*_config.php` loaders). Each answers like its PHP file: the first source that exists, its content type and `Cache-Control`, and, where the PHP sends one, the ETag `"md5(mtime|size|version)"` with 304 when `If-None-Match` equals it. Without a source, the answer is PHP's 404 "… missing" text, or an empty 200 for the bare loaders.
+- The portal `*_config.php` loaders run outside `cp/index.php`, so they are exempt from the CP admin gate and from the PHP-path redirect, which mapped `epc_mobile_apps_config.php` to `/cp/mobile-apps-app` by prefix.
+- Live side by side (`php -S` over the repository against Kestrel): status, content type, cache header, ETag, body hash and the 304 answer are identical for 40 of 40.
+- Still a gap: `epc_static_serve.php`, the static-file fallback that `index.php` calls (different shape).
+
 ### Checkpoint 2026-10-08 — four small ajax and API gaps
 
 Not complete.

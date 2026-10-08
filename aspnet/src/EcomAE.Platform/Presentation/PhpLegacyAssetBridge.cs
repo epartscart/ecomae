@@ -46,6 +46,7 @@ public static class PhpLegacyAssetBridge
     public static void Map(IEndpointRouteBuilder endpoints, IWebHostEnvironment env)
     {
         var repoRoot = FindRepoRoot(env);
+        PhpAssetWrappers.Map(endpoints, repoRoot);
 
         endpoints.MapGet("/epc-static.php", async (HttpContext context) =>
         {
