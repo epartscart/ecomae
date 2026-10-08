@@ -1,0 +1,555 @@
+{
+  "send_bad_email": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Valid email is required\"}",
+    "rows": []
+  },
+  "send_not_https": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"HTTPS is required for sign-in\"}",
+    "rows": []
+  },
+  "send_smtp_off_tenant": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"SMTP mode is off in site config \\u2014 enable smtp_mode=1 or deploy config.epc-smtp.php. smtp_host is empty.\",\"smtp_detail\":\"precheck\"}",
+    "rows": [
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 64,
+        "ttl": 600,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "storefront",
+        "operator_otp": ""
+      }
+    ]
+  },
+  "send_smtp_off_demo": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Sign-in code ready \\u2014 email could not be sent (SMTP). Super CP operators can view the code under Modern auth settings.\",\"expires_in\":600,\"demo_otp_logged\":true,\"smtp_hint\":\"SMTP mode is off in site config \\u2014 enable smtp_mode=1 or deploy config.epc-smtp.php. smtp_host is empty.\"}",
+    "rows": [
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "demo_acme",
+        "hash_len": 64,
+        "ttl": 600,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "storefront",
+        "operator_otp": "D6"
+      }
+    ]
+  },
+  "send_demo_fallback_disabled": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"SMTP mode is off in site config \\u2014 enable smtp_mode=1 or deploy config.epc-smtp.php. smtp_host is empty.\",\"smtp_detail\":\"precheck\"}",
+    "rows": [
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "demo_acme",
+        "hash_len": 64,
+        "ttl": 600,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "storefront",
+        "operator_otp": ""
+      }
+    ]
+  },
+  "send_short_password": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"smtp_password is missing or too short (3 chars) \\u2014 use a Gmail App Password (16 chars) or Hostinger mailbox password. smtp_username and from_email differ \\u2014 Gmail often requires them to match.\",\"smtp_detail\":\"precheck\"}",
+    "rows": [
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 64,
+        "ttl": 600,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "storefront",
+        "operator_otp": ""
+      }
+    ]
+  },
+  "send_no_host_no_from": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"smtp_host is empty. from_email is empty.\",\"smtp_detail\":\"precheck\"}",
+    "rows": [
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 64,
+        "ttl": 600,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "cp",
+        "operator_otp": ""
+      }
+    ]
+  },
+  "send_smtp_file_overrides": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"smtp_password is missing or too short (0 chars) \\u2014 use a Gmail App Password (16 chars) or Hostinger mailbox password.\",\"smtp_detail\":\"precheck\"}",
+    "rows": [
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 64,
+        "ttl": 600,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "storefront",
+        "operator_otp": ""
+      }
+    ]
+  },
+  "send_rate_limited_email": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Too many sign-in attempts \\u2014 try again in an hour (max 5 codes per email, 20 per IP)\"}",
+    "rows": [
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 660,
+        "ip": "10.0.0.1",
+        "fresh": false,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 660,
+        "ip": "10.0.0.1",
+        "fresh": false,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 660,
+        "ip": "10.0.0.1",
+        "fresh": false,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 660,
+        "ip": "10.0.0.1",
+        "fresh": false,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 660,
+        "ip": "10.0.0.1",
+        "fresh": false,
+        "auth_mode": "",
+        "operator_otp": ""
+      }
+    ]
+  },
+  "send_rate_limit_old_rows_ignored": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Sign-in code ready \\u2014 email could not be sent (SMTP). Super CP operators can view the code under Modern auth settings.\",\"expires_in\":600,\"demo_otp_logged\":true,\"smtp_hint\":\"SMTP mode is off in site config \\u2014 enable smtp_mode=1 or deploy config.epc-smtp.php. smtp_host is empty.\"}",
+    "rows": [
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 7800,
+        "ip": "10.0.0.1",
+        "fresh": false,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 7800,
+        "ip": "10.0.0.1",
+        "fresh": false,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 7800,
+        "ip": "10.0.0.1",
+        "fresh": false,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 7800,
+        "ip": "10.0.0.1",
+        "fresh": false,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "demo_acme",
+        "hash_len": 64,
+        "ttl": 600,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "storefront",
+        "operator_otp": "D6"
+      }
+    ]
+  },
+  "send_rate_limited_ip": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Too many sign-in attempts \\u2014 try again in an hour (max 5 codes per email, 20 per IP)\"}",
+    "rows": [
+      {
+        "email": "ip0@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip1@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip2@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip3@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip4@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip5@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip6@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip7@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip8@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip9@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip10@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip11@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip12@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip13@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip14@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip15@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip16@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip17@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip18@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      },
+      {
+        "email": "ip19@example.com",
+        "tenant_key": "acme",
+        "hash_len": 1,
+        "ttl": 630,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      }
+    ]
+  },
+  "send_form_body": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Sign-in code ready \\u2014 email could not be sent (SMTP). Super CP operators can view the code under Modern auth settings.\",\"expires_in\":600,\"demo_otp_logged\":true,\"smtp_hint\":\"SMTP mode is off in site config \\u2014 enable smtp_mode=1 or deploy config.epc-smtp.php. smtp_host is empty.\"}",
+    "rows": [
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "demo_acme",
+        "hash_len": 64,
+        "ttl": 600,
+        "ip": "127.0.0.1",
+        "fresh": true,
+        "auth_mode": "storefront",
+        "operator_otp": "D6"
+      }
+    ]
+  },
+  "verify_ok": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Email verified\",\"verified_email\":\"buyer@example.com\"}",
+    "rows": []
+  },
+  "verify_ok_content_path": {
+    "status": 200,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":true,\"message\":\"Email verified\",\"verified_email\":\"buyer@example.com\"}",
+    "rows": []
+  },
+  "verify_wrong_code": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Invalid or expired code \\u2014 please try again\"}",
+    "rows": [
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 64,
+        "ttl": 310,
+        "ip": "10.0.0.9",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      }
+    ]
+  },
+  "verify_expired": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Invalid or expired code \\u2014 please try again\"}",
+    "rows": [
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 64,
+        "ttl": 5,
+        "ip": "10.0.0.9",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      }
+    ]
+  },
+  "verify_other_tenant": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Invalid or expired code \\u2014 please try again\"}",
+    "rows": [
+      {
+        "email": "buyer@example.com",
+        "tenant_key": "acme",
+        "hash_len": 64,
+        "ttl": 310,
+        "ip": "10.0.0.9",
+        "fresh": true,
+        "auth_mode": "",
+        "operator_otp": ""
+      }
+    ]
+  },
+  "verify_short_code": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Email and 6-digit code are required\"}",
+    "rows": []
+  },
+  "verify_invalid_email": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"Invalid email address\"}",
+    "rows": []
+  },
+  "verify_not_https": {
+    "status": 400,
+    "type": "application/json; charset=utf-8",
+    "cache": "no-store",
+    "body": "{\"ok\":false,\"message\":\"HTTPS is required\"}",
+    "rows": []
+  }
+}
