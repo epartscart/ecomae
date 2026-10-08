@@ -1909,6 +1909,7 @@ app.MapEcomAeSurfaceModules();
 PhpLegacyAssetBridge.Map(app, app.Environment);
 OAuthStartEndpoint.Map(app);
 AuthEmailOtpEndpoints.Map(app);
+EcomAE.Platform.Storefront.FreeToolsAjaxEndpoint.Map(app);
 AuthOtpVerifyLogin.Map(app);
 OAuthCallbackEndpoint.Map(app);
 HomeCatalogWidgets.Map(app);

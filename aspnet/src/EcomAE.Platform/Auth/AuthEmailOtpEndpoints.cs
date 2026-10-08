@@ -383,6 +383,34 @@ public static class AuthEmailOtpEndpoints
             erpOnly);
     }
 
+    /// <summary>
+    /// PHP <c>epc_auth_smtp_send_html($to, $subject, $html)</c> with the same effective SMTP settings as the sign-in codes;
+    /// the text part is <c>strip_tags($html)</c>. True when the mail was accepted.
+    /// </summary>
+    internal static async Task<bool> SendHtmlMailAsync(
+        HttpContext http,
+        ITenantDbConnectionFactory connections,
+        PhpReferenceOptions php,
+        string to,
+        string subject,
+        string html,
+        CancellationToken cancellationToken)
+    {
+        var smtpFile = ReadPhpArrayFile(php, "config.epc-smtp.php");
+        var configPhp = ReadConfigPhp(php);
+        var configLocal = ReadPhpArrayFile(php, "config.local.php");
+        var overlay = await TenantSmtpOverlayAsync(http, connections, cancellationToken).ConfigureAwait(false);
+        var cfg = AuthEmailOtp.EffectiveConfig(configPhp, configLocal, smtpFile.Count > 0 ? smtpFile : null, overlay);
+        if (AuthEmailOtp.Diagnose(cfg).Count > 0)
+        {
+            return false;
+        }
+
+        var mailer = http.RequestServices.GetService<IAuthOtpMailer>() ?? new AuthOtpMailer();
+        var text = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", string.Empty);
+        return await mailer.SendAsync(cfg, to, subject, html, text, cancellationToken).ConfigureAwait(false) is null;
+    }
+
     private static async Task<(string Message, string Detail)?> SendMailAsync(
         HttpContext http,
         ITenantDbConnectionFactory connections,
