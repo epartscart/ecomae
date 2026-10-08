@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Storefront
 @inject IHttpContextAccessor Http
 @inject ILegacySessionValidator Sessions
+@inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
 @*
   PHP nero storefront chrome on ASP.NET (same-to-same vs templates/nero/desktop.php).
   Interim: catalog/search/cart/login point at working PHP /en/… pages (tenant /storefront/*
@@ -759,13 +760,15 @@
                     </a>
                 </li>
                 <li>
-                    <span id="mark_popup_added" class="badge-primary badge-round panel-primary hidden"></span>
+                    <span id="mark_popup_added" class="badge-primary badge-round panel-primary hidden">@_addedLabel</span>
                     <a href="@StorefrontSurfaceLinks.Cart">
                         <i class="fa fa-shopping-cart bottom-icon" aria-hidden="true"></i>
                         <span class="bottom-label hidden-xs">Cart</span>
                         <span class="badge badge-primary badge-round" id="cart_items_count"></span>
                     </a>
                 </li>
+                <script>window.jQuery || document.write('<script src="/lib/jQuery/jQuery.js"><\/script>');</script>
+                @((MarkupString)_cartScript)
             </ul>
             <a href="@StorefrontSurfaceLinks.GarageLogin"><i class="fa fa-wrench" aria-hidden="true"></i><span>Garage</span></a>
             <a href="@(_signedIn ? StorefrontSurfaceLinks.Orders : StorefrontSurfaceLinks.Login)"><i class="fa fa-user" aria-hidden="true"></i><span>@_userLabel</span></a>
@@ -875,6 +878,8 @@
     private int _userId;
     private int _bookmarkCount;
     private int _compareCount;
+    private string _addedLabel = "";
+    private string _cartScript = StorefrontBottomPanelCart.Script(string.Empty, false, false);
 
     protected override async Task OnInitializedAsync()
     {
@@ -886,6 +891,7 @@
 
         _bookmarkCount = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.BookmarksName, StorefrontIntListCookie.BookmarksMax).Count;
         _compareCount = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.CompareName, StorefrontIntListCookie.CompareMax).Count;
+        await LoadCartPanelAsync(ctx);
 
         LegacySessionContext session;
         try
@@ -904,6 +910,38 @@
             _userLabel = string.IsNullOrWhiteSpace(session.Email)
                 ? (session.Kind == LegacySessionKind.Admin ? "Admin" : "Account")
                 : session.Email!;
+        }
+    }
+
+    /// <summary>PHP <c>bottom_panel.php</c> cart block: <c>DP_User::getUserSession()</c> key, current front template, string 4225.</summary>
+    private async Task LoadCartPanelAsync(HttpContext ctx)
+    {
+        var sessionCookie = ctx.Request.Cookies["session"];
+        var userCookie = ctx.Request.Cookies["u_id"];
+        if (!Connections.IsConfigured)
+        {
+            _cartScript = StorefrontBottomPanelCart.Script(string.Empty, sessionCookie is not null, false);
+            return;
+        }
+
+        try
+        {
+            var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
+            await using var connection = await Connections.OpenForTenantAsync(tenant, ctx.RequestAborted);
+            _cartScript = StorefrontBottomPanelCart.Script(
+                await StorefrontBottomPanelCart.CsrfGuardKeyAsync(connection, sessionCookie, userCookie, ctx.RequestAborted),
+                sessionCookie is not null,
+                await StorefrontBottomPanelCart.FrontTemplateIdAsync(connection, ctx.RequestAborted) == StorefrontBottomPanelCart.NewFrontTemplateId);
+            _addedLabel = await new StorefrontPhpTranslator(connection, StorefrontRegFormLoader.LangCode(StorefrontPhpHomeLinks.LangHref(ctx)))
+                .TextAsync(StorefrontBottomPanelCart.AddedStringId, ctx.RequestAborted);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            _cartScript = StorefrontBottomPanelCart.Script(string.Empty, sessionCookie is not null, false);
+        }
+        catch (InvalidOperationException)
+        {
+            _cartScript = StorefrontBottomPanelCart.Script(string.Empty, sessionCookie is not null, false);
         }
     }
 }
