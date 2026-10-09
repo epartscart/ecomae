@@ -1,0 +1,624 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "logo_setting",
+            "output": "",
+            "result": [
+                null,
+                true,
+                false,
+                false,
+                null
+            ]
+        },
+        {
+            "name": "logo_hub",
+            "output": "",
+            "result": [
+                false,
+                true,
+                true,
+                true,
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "name": "logo_trade",
+            "output": "",
+            "result": [
+                true,
+                false
+            ]
+        },
+        {
+            "name": "logo_enq",
+            "output": "",
+            "result": [
+                "TENANT_ENQ",
+                "HUB_ENQ",
+                ""
+            ]
+        },
+        {
+            "name": "logo_mark",
+            "output": "",
+            "result": [
+                "ANIM",
+                "<span class=\"epc-storefront-logo epc-storefront-logo--hub-only\">HUB</span>",
+                "<span class=\"epc-storefront-logo epc-storefront-logo--hub\"><span class=\"epc-storefront-logo__hub\">HUB</span><span class=\"epc-storefront-logo__label\">Acme &amp; Co</span></span>",
+                "TENANT",
+                "<span class=\"epc-animated-logo\" aria-label=\"EpartsCart\">\n\t<span class=\"epc-animated-logo__text\">eparts</span>\n\t<span class=\"epc-animated-logo__mark\" aria-hidden=\"true\">\n\t\t<svg viewBox=\"0 0 220 100\" xmlns=\"http://www.w3.org/2000/svg\" focusable=\"false\">\n\t\t\t<path class=\"epc-logo-speed epc-logo-speed--one\" d=\"M10 28 H72\" />\n\t\t\t<path class=\"epc-logo-speed epc-logo-speed--two\" d=\"M0 48 H68\" />\n\t\t\t<path class=\"epc-logo-speed epc-logo-speed--three\" d=\"M20 68 H76\" />\n\t\t\t<path class=\"epc-logo-road\" d=\"M70 96 H190\" />\n\t\t\t<g class=\"epc-logo-cart-motion\">\n\t\t\t\t<path class=\"epc-logo-cart\" d=\"M66 18 H178 C186 18 192 25 190 33 L177 70 H83 L66 18 Z\" />\n\t\t\t\t<path class=\"epc-logo-handle\" d=\"M64 18 L52 18 L43 10\" />\n\t\t\t\t<path class=\"epc-logo-basket\" d=\"M82 32 H172 L163 58 H92 Z\" />\n\t\t\t\t<g class=\"epc-logo-parts\">\n\t\t\t\t\t<g class=\"epc-logo-gear\" transform=\"translate(126 48)\">\n\t\t\t\t\t\t<path d=\"M0 -18 L4 -13 L10 -15 L12 -9 L18 -7 L15 -1 L18 5 L12 8 L10 15 L3 13 L-2 18 L-7 13 L-14 15 L-15 8 L-20 5 L-17 -1 L-20 -7 L-15 -9 L-14 -15 L-7 -13 Z\" />\n\t\t\t\t\t\t<circle r=\"12\" />\n\t\t\t\t\t\t<circle r=\"5\" class=\"epc-logo-gear-hole\" />\n\t\t\t\t\t</g>\n\t\t\t\t\t<g class=\"epc-logo-piston\" transform=\"translate(98 39)\">\n\t\t\t\t\t\t<rect x=\"0\" y=\"0\" width=\"24\" height=\"18\" rx=\"4\" />\n\t\t\t\t\t\t<path d=\"M3 5 H21 M3 10 H21\" />\n\t\t\t\t\t\t<path d=\"M12 18 V31\" />\n\t\t\t\t\t</g>\n\t\t\t\t\t<g class=\"epc-logo-ring\" transform=\"translate(152 48)\">\n\t\t\t\t\t\t<circle r=\"12\" />\n\t\t\t\t\t\t<path d=\"M8 -8 L16 -15\" />\n\t\t\t\t\t</g>\n\t\t\t\t\t<rect class=\"epc-logo-box\" x=\"137\" y=\"31\" width=\"24\" height=\"17\" rx=\"4\" />\n\t\t\t\t</g>\n\t\t\t\t<g class=\"epc-logo-wheel epc-logo-wheel--left\" transform=\"translate(86 88)\">\n\t\t\t\t\t<g class=\"epc-logo-wheel-spin\">\n\t\t\t\t\t\t<circle class=\"epc-logo-tyre\" r=\"16\" />\n\t\t\t\t\t\t<circle class=\"epc-logo-wheel-rim\" r=\"10\" />\n\t\t\t\t\t\t<circle class=\"epc-logo-wheel-hole\" r=\"4\" />\n\t\t\t\t\t\t<path class=\"epc-logo-wheel-spokes\" d=\"M0 -10 V10 M-10 0 H10 M-7 -7 L7 7 M7 -7 L-7 7\" />\n\t\t\t\t\t\t<path class=\"epc-logo-wheel-tread\" d=\"M-5 -15 L-2 -11 M5 -15 L2 -11 M15 -5 L11 -2 M15 5 L11 2 M5 15 L2 11 M-5 15 L-2 11 M-15 5 L-11 2 M-15 -5 L-11 -2\" />\n\t\t\t\t\t</g>\n\t\t\t\t</g>\n\t\t\t\t<g class=\"epc-logo-wheel epc-logo-wheel--right\" transform=\"translate(166 88)\">\n\t\t\t\t\t<g class=\"epc-logo-wheel-spin\">\n\t\t\t\t\t\t<circle class=\"epc-logo-tyre\" r=\"16\" />\n\t\t\t\t\t\t<circle class=\"epc-logo-wheel-rim\" r=\"10\" />\n\t\t\t\t\t\t<circle class=\"epc-logo-wheel-hole\" r=\"4\" />\n\t\t\t\t\t\t<path class=\"epc-logo-wheel-spokes\" d=\"M0 -10 V10 M-10 0 H10 M-7 -7 L7 7 M7 -7 L-7 7\" />\n\t\t\t\t\t\t<path class=\"epc-logo-wheel-tread\" d=\"M-5 -15 L-2 -11 M5 -15 L2 -11 M15 -5 L11 -2 M15 5 L11 2 M5 15 L2 11 M-5 15 L-2 11 M-15 5 L-11 2 M-15 -5 L-11 -2\" />\n\t\t\t\t\t</g>\n\t\t\t\t</g>\n\t\t\t</g>\n\t\t</svg>\n\t</span>\n</span>\n\t",
+                "<span class=\"epc-text-logo epc-text-logo--electronics\" aria-label=\"Electronicae\">Electronicae</span>",
+                "<span class=\"epc-text-logo\" aria-label=\"Plain &lt;Name&gt;\">Plain &lt;Name&gt;</span>"
+            ]
+        },
+        {
+            "name": "logo_svg",
+            "output": "",
+            "result": "<span class=\"epc-animated-logo\" aria-label=\"EpartsCart\">\n\t<span class=\"epc-animated-logo__text\">eparts</span>\n\t<span class=\"epc-animated-logo__mark\" aria-hidden=\"true\">\n\t\t<svg viewBox=\"0 0 220 100\" xmlns=\"http://www.w3.org/2000/svg\" focusable=\"false\">\n\t\t\t<path class=\"epc-logo-speed epc-logo-speed--one\" d=\"M10 28 H72\" />\n\t\t\t<path class=\"epc-logo-speed epc-logo-speed--two\" d=\"M0 48 H68\" />\n\t\t\t<path class=\"epc-logo-speed epc-logo-speed--three\" d=\"M20 68 H76\" />\n\t\t\t<path class=\"epc-logo-road\" d=\"M70 96 H190\" />\n\t\t\t<g class=\"epc-logo-cart-motion\">\n\t\t\t\t<path class=\"epc-logo-cart\" d=\"M66 18 H178 C186 18 192 25 190 33 L177 70 H83 L66 18 Z\" />\n\t\t\t\t<path class=\"epc-logo-handle\" d=\"M64 18 L52 18 L43 10\" />\n\t\t\t\t<path class=\"epc-logo-basket\" d=\"M82 32 H172 L163 58 H92 Z\" />\n\t\t\t\t<g class=\"epc-logo-parts\">\n\t\t\t\t\t<g class=\"epc-logo-gear\" transform=\"translate(126 48)\">\n\t\t\t\t\t\t<path d=\"M0 -18 L4 -13 L10 -15 L12 -9 L18 -7 L15 -1 L18 5 L12 8 L10 15 L3 13 L-2 18 L-7 13 L-14 15 L-15 8 L-20 5 L-17 -1 L-20 -7 L-15 -9 L-14 -15 L-7 -13 Z\" />\n\t\t\t\t\t\t<circle r=\"12\" />\n\t\t\t\t\t\t<circle r=\"5\" class=\"epc-logo-gear-hole\" />\n\t\t\t\t\t</g>\n\t\t\t\t\t<g class=\"epc-logo-piston\" transform=\"translate(98 39)\">\n\t\t\t\t\t\t<rect x=\"0\" y=\"0\" width=\"24\" height=\"18\" rx=\"4\" />\n\t\t\t\t\t\t<path d=\"M3 5 H21 M3 10 H21\" />\n\t\t\t\t\t\t<path d=\"M12 18 V31\" />\n\t\t\t\t\t</g>\n\t\t\t\t\t<g class=\"epc-logo-ring\" transform=\"translate(152 48)\">\n\t\t\t\t\t\t<circle r=\"12\" />\n\t\t\t\t\t\t<path d=\"M8 -8 L16 -15\" />\n\t\t\t\t\t</g>\n\t\t\t\t\t<rect class=\"epc-logo-box\" x=\"137\" y=\"31\" width=\"24\" height=\"17\" rx=\"4\" />\n\t\t\t\t</g>\n\t\t\t\t<g class=\"epc-logo-wheel epc-logo-wheel--left\" transform=\"translate(86 88)\">\n\t\t\t\t\t<g class=\"epc-logo-wheel-spin\">\n\t\t\t\t\t\t<circle class=\"epc-logo-tyre\" r=\"16\" />\n\t\t\t\t\t\t<circle class=\"epc-logo-wheel-rim\" r=\"10\" />\n\t\t\t\t\t\t<circle class=\"epc-logo-wheel-hole\" r=\"4\" />\n\t\t\t\t\t\t<path class=\"epc-logo-wheel-spokes\" d=\"M0 -10 V10 M-10 0 H10 M-7 -7 L7 7 M7 -7 L-7 7\" />\n\t\t\t\t\t\t<path class=\"epc-logo-wheel-tread\" d=\"M-5 -15 L-2 -11 M5 -15 L2 -11 M15 -5 L11 -2 M15 5 L11 2 M5 15 L2 11 M-5 15 L-2 11 M-15 5 L-11 2 M-15 -5 L-11 -2\" />\n\t\t\t\t\t</g>\n\t\t\t\t</g>\n\t\t\t\t<g class=\"epc-logo-wheel epc-logo-wheel--right\" transform=\"translate(166 88)\">\n\t\t\t\t\t<g class=\"epc-logo-wheel-spin\">\n\t\t\t\t\t\t<circle class=\"epc-logo-tyre\" r=\"16\" />\n\t\t\t\t\t\t<circle class=\"epc-logo-wheel-rim\" r=\"10\" />\n\t\t\t\t\t\t<circle class=\"epc-logo-wheel-hole\" r=\"4\" />\n\t\t\t\t\t\t<path class=\"epc-logo-wheel-spokes\" d=\"M0 -10 V10 M-10 0 H10 M-7 -7 L7 7 M7 -7 L-7 7\" />\n\t\t\t\t\t\t<path class=\"epc-logo-wheel-tread\" d=\"M-5 -15 L-2 -11 M5 -15 L2 -11 M15 -5 L11 -2 M15 5 L11 2 M5 15 L2 11 M-5 15 L-2 11 M-15 5 L-11 2 M-15 -5 L-11 -2\" />\n\t\t\t\t\t</g>\n\t\t\t\t</g>\n\t\t\t</g>\n\t\t</svg>\n\t</span>\n</span>\n\t"
+        },
+        {
+            "name": "pack_version",
+            "output": "",
+            "result": [
+                "1.0.0",
+                [
+                    "auto_parts",
+                    "fashion",
+                    "electronics",
+                    "jewellery"
+                ]
+            ]
+        },
+        {
+            "name": "pack_builtin",
+            "output": "",
+            "result": {
+                "auto_parts": {
+                    "name": "Auto Parts & Accessories",
+                    "icon": "fa-car",
+                    "description": "Full auto-parts vertical: OEM/aftermarket, VIN lookup, fitment data, core deposit tracking.",
+                    "modules": [
+                        "catalog",
+                        "inventory",
+                        "orders",
+                        "fulfillment",
+                        "warranty_rma",
+                        "dealer_portal",
+                        "credit_limit",
+                        "po_approval",
+                        "inventory_forecast"
+                    ],
+                    "gl_template": [
+                        {
+                            "code": "1000",
+                            "name": "Cash & Bank",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "1200",
+                            "name": "Accounts Receivable",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "1300",
+                            "name": "Inventory - Parts",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "1310",
+                            "name": "Inventory - Core Deposits",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "2000",
+                            "name": "Accounts Payable",
+                            "type": "liability"
+                        },
+                        {
+                            "code": "2100",
+                            "name": "Core Deposit Liability",
+                            "type": "liability"
+                        },
+                        {
+                            "code": "4000",
+                            "name": "Parts Revenue",
+                            "type": "revenue"
+                        },
+                        {
+                            "code": "5000",
+                            "name": "Cost of Goods - Parts",
+                            "type": "expense"
+                        },
+                        {
+                            "code": "5100",
+                            "name": "Freight & Shipping",
+                            "type": "expense"
+                        },
+                        {
+                            "code": "6000",
+                            "name": "Warranty Claims Expense",
+                            "type": "expense"
+                        }
+                    ],
+                    "product_attrs": [
+                        "oem_number",
+                        "brand",
+                        "fitment",
+                        "vehicle_make",
+                        "vehicle_model",
+                        "year_range",
+                        "core_charge",
+                        "weight_kg",
+                        "condition"
+                    ],
+                    "tax_rules": {
+                        "vat_rate": 5,
+                        "exempt_categories": []
+                    },
+                    "theme": {
+                        "primary": "#1565C0",
+                        "accent": "#FF6F00",
+                        "industry_badge": "Auto Parts"
+                    }
+                },
+                "fashion": {
+                    "name": "Fashion & Apparel",
+                    "icon": "fa-shopping-bag",
+                    "description": "Fashion vertical: size/color matrix, seasonal collections, lookbooks, returns management.",
+                    "modules": [
+                        "catalog",
+                        "inventory",
+                        "orders",
+                        "fulfillment",
+                        "warranty_rma",
+                        "promotions",
+                        "collections_dunning"
+                    ],
+                    "gl_template": [
+                        {
+                            "code": "1000",
+                            "name": "Cash & Bank",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "1200",
+                            "name": "Accounts Receivable",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "1300",
+                            "name": "Inventory - Apparel",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "2000",
+                            "name": "Accounts Payable",
+                            "type": "liability"
+                        },
+                        {
+                            "code": "4000",
+                            "name": "Apparel Revenue",
+                            "type": "revenue"
+                        },
+                        {
+                            "code": "4100",
+                            "name": "Returns & Allowances",
+                            "type": "revenue"
+                        },
+                        {
+                            "code": "5000",
+                            "name": "Cost of Goods - Apparel",
+                            "type": "expense"
+                        }
+                    ],
+                    "product_attrs": [
+                        "size",
+                        "color",
+                        "material",
+                        "collection",
+                        "season",
+                        "gender",
+                        "style_code",
+                        "care_instructions"
+                    ],
+                    "tax_rules": {
+                        "vat_rate": 5,
+                        "exempt_categories": [
+                            "children_clothing"
+                        ]
+                    },
+                    "theme": {
+                        "primary": "#AD1457",
+                        "accent": "#F06292",
+                        "industry_badge": "Fashion"
+                    }
+                },
+                "electronics": {
+                    "name": "Electronics & Technology",
+                    "icon": "fa-microchip",
+                    "description": "Electronics vertical: serial tracking, warranty registration, RMA, compatibility matrix.",
+                    "modules": [
+                        "catalog",
+                        "inventory",
+                        "orders",
+                        "fulfillment",
+                        "warranty_rma",
+                        "ai_classification",
+                        "credit_limit",
+                        "dealer_portal"
+                    ],
+                    "gl_template": [
+                        {
+                            "code": "1000",
+                            "name": "Cash & Bank",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "1200",
+                            "name": "Accounts Receivable",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "1300",
+                            "name": "Inventory - Electronics",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "2000",
+                            "name": "Accounts Payable",
+                            "type": "liability"
+                        },
+                        {
+                            "code": "4000",
+                            "name": "Electronics Revenue",
+                            "type": "revenue"
+                        },
+                        {
+                            "code": "5000",
+                            "name": "Cost of Goods - Electronics",
+                            "type": "expense"
+                        },
+                        {
+                            "code": "5200",
+                            "name": "Extended Warranty Revenue",
+                            "type": "revenue"
+                        }
+                    ],
+                    "product_attrs": [
+                        "model_number",
+                        "brand",
+                        "serial_number",
+                        "ean",
+                        "warranty_months",
+                        "voltage",
+                        "wattage",
+                        "connectivity",
+                        "compatibility"
+                    ],
+                    "tax_rules": {
+                        "vat_rate": 5,
+                        "exempt_categories": []
+                    },
+                    "theme": {
+                        "primary": "#0D47A1",
+                        "accent": "#00BCD4",
+                        "industry_badge": "Electronics"
+                    }
+                },
+                "jewellery": {
+                    "name": "Jewellery & Precious Metals",
+                    "icon": "fa-diamond",
+                    "description": "Jewellery vertical: karat/purity tracking, hallmark, stone certification, gold rate integration.",
+                    "modules": [
+                        "catalog",
+                        "inventory",
+                        "orders",
+                        "warranty_rma",
+                        "multi_currency_gl",
+                        "collections_dunning"
+                    ],
+                    "gl_template": [
+                        {
+                            "code": "1000",
+                            "name": "Cash & Bank",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "1200",
+                            "name": "Accounts Receivable",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "1300",
+                            "name": "Inventory - Gold",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "1310",
+                            "name": "Inventory - Diamonds",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "1320",
+                            "name": "Inventory - Silver",
+                            "type": "asset"
+                        },
+                        {
+                            "code": "2000",
+                            "name": "Accounts Payable",
+                            "type": "liability"
+                        },
+                        {
+                            "code": "4000",
+                            "name": "Jewellery Sales",
+                            "type": "revenue"
+                        },
+                        {
+                            "code": "5000",
+                            "name": "Cost of Gold",
+                            "type": "expense"
+                        },
+                        {
+                            "code": "5100",
+                            "name": "Cost of Stones",
+                            "type": "expense"
+                        },
+                        {
+                            "code": "5200",
+                            "name": "Making Charges",
+                            "type": "expense"
+                        }
+                    ],
+                    "product_attrs": [
+                        "karat",
+                        "purity",
+                        "weight_gm",
+                        "stone_type",
+                        "stone_carat",
+                        "hallmark_number",
+                        "certificate_number",
+                        "metal_type",
+                        "making_charge"
+                    ],
+                    "tax_rules": {
+                        "vat_rate": 5,
+                        "exempt_categories": [
+                            "investment_gold"
+                        ]
+                    },
+                    "theme": {
+                        "primary": "#BF360C",
+                        "accent": "#FFD600",
+                        "industry_badge": "Jewellery"
+                    }
+                }
+            }
+        },
+        {
+            "name": "pack_seed",
+            "output": "",
+            "result": [
+                4,
+                0
+            ]
+        },
+        {
+            "name": "pack_assign",
+            "output": "",
+            "result": [
+                {
+                    "ok": true,
+                    "site_key": "acme",
+                    "pack_key": "fashion"
+                },
+                {
+                    "ok": true,
+                    "site_key": "acme",
+                    "pack_key": "fashion"
+                },
+                {
+                    "ok": true,
+                    "site_key": "acme",
+                    "pack_key": "electronics"
+                },
+                {
+                    "ok": true,
+                    "site_key": "beta",
+                    "pack_key": "fashion"
+                },
+                [
+                    {
+                        "id": 3,
+                        "site_key": "acme",
+                        "pack_key": "electronics",
+                        "applied_by": 7,
+                        "name": "Electronics & Technology",
+                        "icon": "fa-microchip",
+                        "description": "Electronics vertical: serial tracking, warranty registration, RMA, compatibility matrix."
+                    },
+                    {
+                        "id": 1,
+                        "site_key": "acme",
+                        "pack_key": "fashion",
+                        "applied_by": 7,
+                        "name": "Fashion & Apparel",
+                        "icon": "fa-shopping-bag",
+                        "description": "Fashion vertical: size/color matrix, seasonal collections, lookbooks, returns management."
+                    }
+                ],
+                [
+                    {
+                        "pack_key": "fashion",
+                        "tenants": 2
+                    },
+                    {
+                        "pack_key": "electronics",
+                        "tenants": 1
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "promo_version",
+            "output": "",
+            "result": "1.0.0"
+        },
+        {
+            "name": "promo_flow",
+            "output": "",
+            "result": {
+                "creates": [
+                    {
+                        "ok": true,
+                        "promotion_id": 1
+                    },
+                    {
+                        "ok": true,
+                        "promotion_id": 2
+                    },
+                    {
+                        "ok": true,
+                        "promotion_id": 3
+                    },
+                    {
+                        "ok": true,
+                        "promotion_id": 4
+                    },
+                    {
+                        "ok": true,
+                        "promotion_id": 5
+                    },
+                    {
+                        "ok": true,
+                        "promotion_id": 6
+                    },
+                    {
+                        "ok": true,
+                        "promotion_id": 7
+                    }
+                ],
+                "codes": [
+                    "SAVE10",
+                    "FLAT",
+                    "SHIP",
+                    "BOGO",
+                    "OLD",
+                    "TIER"
+                ],
+                "active": [
+                    "SAVE10",
+                    "FLAT",
+                    "SHIP",
+                    "BOGO",
+                    "TIER"
+                ],
+                "apply": [
+                    {
+                        "ok": false,
+                        "error": "Invalid or expired promotion code"
+                    },
+                    {
+                        "ok": false,
+                        "error": "Minimum order 50.00 not met"
+                    },
+                    {
+                        "ok": true,
+                        "promotion_id": 1,
+                        "name": "Save10",
+                        "type": "percentage",
+                        "discount": 10,
+                        "new_total": 90,
+                        "free_shipping": false
+                    },
+                    {
+                        "ok": true,
+                        "promotion_id": 1,
+                        "name": "Save10",
+                        "type": "percentage",
+                        "discount": 20,
+                        "new_total": 980,
+                        "free_shipping": false
+                    },
+                    {
+                        "ok": true,
+                        "promotion_id": 2,
+                        "name": "Flat",
+                        "type": "fixed",
+                        "discount": 15,
+                        "new_total": 85,
+                        "free_shipping": false
+                    },
+                    {
+                        "ok": true,
+                        "promotion_id": 3,
+                        "name": "Ship",
+                        "type": "free_shipping",
+                        "discount": 0,
+                        "new_total": 100,
+                        "free_shipping": true
+                    },
+                    {
+                        "ok": true,
+                        "promotion_id": 4,
+                        "name": "Bogo",
+                        "type": "bogo",
+                        "discount": 40,
+                        "new_total": 60,
+                        "free_shipping": false
+                    },
+                    {
+                        "ok": true,
+                        "promotion_id": 7,
+                        "name": "Tier",
+                        "type": "tiered",
+                        "discount": 8,
+                        "new_total": 92,
+                        "free_shipping": false
+                    },
+                    {
+                        "ok": false,
+                        "error": "Invalid or expired promotion code"
+                    }
+                ],
+                "record": {
+                    "ok": true
+                },
+                "again": {
+                    "ok": false,
+                    "error": "Per-customer usage limit reached"
+                },
+                "other": {
+                    "ok": true,
+                    "promotion_id": 1,
+                    "name": "Save10",
+                    "type": "percentage",
+                    "discount": 10,
+                    "new_total": 90,
+                    "free_shipping": false
+                },
+                "limit": {
+                    "ok": false,
+                    "error": "Promotion usage limit reached"
+                },
+                "fleet": [
+                    {
+                        "site_key": "acme",
+                        "promotions": 6,
+                        "active": 5,
+                        "total_usage": 2
+                    },
+                    {
+                        "site_key": "other",
+                        "promotions": 1,
+                        "active": 1,
+                        "total_usage": 0
+                    }
+                ]
+            }
+        }
+    ]
+}
