@@ -1,0 +1,390 @@
+{
+  "php": "8.3.6",
+  "results": [
+    {
+      "name": "blocked_visitor_without_session",
+      "html_sha256": "9a9b29c717e8fd1d009e6e4481600657692d06fe3c7e6ff817d30ffc04a327b4",
+      "html_length": 507,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 1
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        },
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    },
+    {
+      "name": "blocked_guest_cart_is_cleared",
+      "html_sha256": "9a9b29c717e8fd1d009e6e4481600657692d06fe3c7e6ff817d30ffc04a327b4",
+      "html_length": 507,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 1
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        }
+      ]
+    },
+    {
+      "name": "visitor_without_session_empty",
+      "html_sha256": "f958780fd817d74be3f72f8ab8554befa7931d2445ebb374c72f43d68640cd5c",
+      "html_length": 4235,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 1
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        },
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    },
+    {
+      "name": "signed_in_empty",
+      "html_sha256": "54c10cdf5d2f278d6d0f62c98cdad1edd27fefd3ba4e1ae9804cf4ca5ee99005",
+      "html_length": 4346,
+      "cart_after": [
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    },
+    {
+      "name": "guest_empty_with_session",
+      "html_sha256": "133992cd387054ed80f81dabb908c32edd7fbaff16853775af17c3315dc00d37",
+      "html_length": 4244,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 1
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        },
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    },
+    {
+      "name": "guest_cart",
+      "html_sha256": "4f331755db93383db606b3f1584ad753b2af971d7a3ca821f51d7832ce2dcf3c",
+      "html_length": 29294,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 1
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        },
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    },
+    {
+      "name": "signed_cart_all_line_types_and_access_write",
+      "html_sha256": "9153f431b3a6df46ff37944d8b2bda390f08becc79622efa87ca22c5ebcfebf7",
+      "html_length": 30366,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 0
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        },
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    },
+    {
+      "name": "signed_cart_product_url_id",
+      "html_sha256": "7659d64898e766a5d56f871d5f2e17dde582ee98cbebc4d96880d8dd484945f6",
+      "html_length": 30355,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 0
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        },
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    },
+    {
+      "name": "currency_no_indicator",
+      "html_sha256": "9153f431b3a6df46ff37944d8b2bda390f08becc79622efa87ca22c5ebcfebf7",
+      "html_length": 30366,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 0
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        },
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    },
+    {
+      "name": "currency_short_name",
+      "html_sha256": "9153f431b3a6df46ff37944d8b2bda390f08becc79622efa87ca22c5ebcfebf7",
+      "html_length": 30366,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 0
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        },
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    },
+    {
+      "name": "trade_pending_blocks_checkout",
+      "html_sha256": "1cab629508c7c960b99d9222be467db4642e9ba3f6b6eaffff2bb96701f694bd",
+      "html_length": 30520,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 0
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        },
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    },
+    {
+      "name": "trade_rejected",
+      "html_sha256": "dd661fe0f93bf6a600a6d75aac630059eedae0bb1d21260903d3f3c178bdb671",
+      "html_length": 30517,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 0
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        },
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    },
+    {
+      "name": "signed_cart_no_vehicles",
+      "html_sha256": "69fb52bf5e4b3fddc266182ab226a3a3ba043c005bb897848c1b47f5ed20d5ef",
+      "html_length": 30237,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 0
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        },
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    },
+    {
+      "name": "arabic_language_prefix",
+      "html_sha256": "30f60ce4277de9f38c06f740941afe982aa64e414db3dfe78dd2f4fd60168771",
+      "html_length": 30366,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 0
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        },
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    },
+    {
+      "name": "hostile_db_and_js_values",
+      "html_sha256": "86262a2127774faaed068000ef080d68e3331144ba38548c47ae6a660c802d91",
+      "html_length": 30893,
+      "cart_after": [
+        {
+          "id": 101,
+          "checked_for_order": 1
+        },
+        {
+          "id": 102,
+          "checked_for_order": 0
+        },
+        {
+          "id": 103,
+          "checked_for_order": 1
+        },
+        {
+          "id": 104,
+          "checked_for_order": 0
+        },
+        {
+          "id": 201,
+          "checked_for_order": 1
+        }
+      ]
+    }
+  ]
+}

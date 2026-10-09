@@ -1,0 +1,143 @@
+{{PRICE_STYLES}}{{WA_STYLES}}{{WA_SCRIPT}}
+
+
+
+<div id="cart_area"></div>
+<style>
+#cart_area .table th,
+#cart_area .table td{
+	vertical-align: middle;
+    white-space: nowrap;
+}
+#cart_area .table input[type="checkbox"]{
+	width: 25px;
+    height: 25px;
+}
+</style>
+
+
+
+    <script>
+        document.getElementById("cart_area").innerHTML = "{4472}";
+    </script>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!---------------------------------------------- ГАРАЖ ---------------------------------------------->
+<style>
+#cart_area {
+	margin-bottom: 20px;
+}
+#my_modal_box_for_garage .modal {
+	z-index:99999999;
+	padding-right: 0px !important;
+}
+#my_modal_box_for_garage .modal-header {
+  text-align: center;
+  font-size: 14px;
+  background: #fff;
+  color:#000;
+  border-bottom: 1px solid #999;
+}
+#my_modal_box_for_garage .close{
+	color:#000;
+}
+#my_modal_box_for_garage .modal-footer {
+	border-top: 1px solid #999;
+	text-align: center;
+}
+#my_modal_box_for_garage .modal-dialog {
+    max-width: 601px;
+    margin: 30px auto;
+    width: 100%;
+}
+</style>
+<div id="my_modal_box_for_garage">
+  <div class="modal fade" id="modal_garage" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="padding:10px 15px;">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <b>{4320}</b>
+        </div>
+        <div class="modal-body" style="color:#000; padding:40px 50px;">
+			<div id="add_bloknot_content">
+				<select id="garage_auto" class="form-control"><option value="0">{2100}</option>{{GARAGE_OPTIONS}}</select>			</div>
+			<div id="add_bloknot_msg"></div>
+        </div>
+        <div id="add_bloknot_btn" class="modal-footer">
+			<a style="margin-bottom: 5px;" class="btn btn-ar btn-primary" onclick="add_bloknot();">{2101}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var id_in_bloknot = -1;// id позиции корзины которую будем добавлять в блокнот
+// Функция отображения блока добавления позиции в блокнот
+function show_add_bloknot(id){
+		id_in_bloknot = id;
+	$("#modal_garage").modal();
+}
+// Функция добавления позиции в блокнот гаража
+function add_bloknot(){
+	if(id_in_bloknot >= 0){
+		var n = document.getElementById("garage_auto").options.selectedIndex;
+		var garage_id = document.getElementById("garage_auto").options[n].value;
+		
+		var Products = cart_records[getElementIndex(id_in_bloknot)];
+		
+		var request_object = new Object;
+		request_object.manufacturer = encodeURIComponent(Products.manufacturer);
+		request_object.article = encodeURIComponent(Products.article);
+		request_object.name = encodeURIComponent(Products.name);
+		request_object.exist = encodeURIComponent(Products.count_need);
+		request_object.price = encodeURIComponent(Products.price);
+		
+		jQuery.ajax({
+			type: "POST",
+			async: true,
+			url: "/content/shop/docpart/garage/ajax_add_to_notepad.php",
+			dataType: "json",
+			data: "garage="+garage_id+"&product="+JSON.stringify(request_object)+"&csrf_guard_key={{CSRF}}",
+			success: function(answer)
+			{
+				var icon = '<i style="font-size: 30px; color: green;" class="fa fa-check"></i> ';
+				if(answer.status != true){
+					icon = '<i style="font-size: 30px; color: red;" class="fa fa-times"></i> ';
+				}
+				
+				document.getElementById('add_bloknot_content').style.display = "none";
+				document.getElementById('add_bloknot_btn').style.display = "none";
+				document.getElementById('add_bloknot_msg').innerHTML = '<table><tr><td style="padding-right:5px;">'+icon+'</td><td>'+answer.message+'</td></tr></table>';
+				
+				setTimeout(function(){
+					$("#modal_garage").modal('hide');
+					
+				}, 2000);
+				
+				setTimeout(function(){
+					document.getElementById('add_bloknot_content').style.display = "block";
+					document.getElementById('add_bloknot_btn').style.display = "block";
+					document.getElementById('add_bloknot_msg').innerHTML = '';
+				}, 2300);
+			},
+			error: function (e, ajaxOptions, thrownError){
+				alert('{2122}');
+			}
+		});
+	}
+}
+</script>
+<!-------------------------------------------- End ГАРАЖ -------------------------------------------->
