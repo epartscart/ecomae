@@ -322,6 +322,13 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — plan Q1-data / mig / hook / sec (industry catalogs, migrations, webhooks, security kernel)
+
+Not complete.
+
+- Ratchet 555 to 548. Seven more files now have PHP 8.3 goldens and ASP.NET twins: `epc_jewellery_retail_kiyasha_data.php`, `epc_fashion_retail_namshi_data.php`, `epc_electronics_retail_data.php` (`PhpPlanQ1Data`; footer uses portal-missing store names only), `epc_db_migrations.php` (`PhpPlanQ1Mig`; MariaDB DDL implicit-commit makes apply/rollback return `ok=false` after the row is written), `epc_webhooks.php` + `epc_events.php` (`PhpPlanQ1Hook`; no live HTTP; emit with no matching hooks; LIMIT binds skipped), `epc_security_kernel.php` (`PhpPlanQ1Sec`; CSRF `session_start` skipped). Do not mention industry helper / portal / `*_header_href` paths.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Data` (3), `PlanQ1Mig` (2), `PlanQ1Hook` (3) and `PlanQ1Sec` (2). Related suites 17 of 17. Inventory content 489 to 496 of 952. Unnamed PHP functions 7,496 to 7,368. Ready ≤200-line non-ERP functions stay 93. The weighted headline stays about 20.4%. Non-ERP pending: 382 files / 187,848 lines (was 389 / 190,451). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session.
+
 ### Checkpoint 2026-10-09 — plan Q1-twin (import, vault, licenses, BI, notifications)
 
 Not complete.
