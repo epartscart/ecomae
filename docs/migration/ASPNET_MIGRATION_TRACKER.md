@@ -329,6 +329,13 @@ Not complete.
 - Ratchet 517 to 514. Three files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Safe`): `epc_sitemap_warehouse.php` (SEO price-clause and part-loc injected; storage-flag and article-match parents omitted), `epc_tenant_data_protection.php` (portal tenant row/connect injected; `enforce_access` mentioned but not golden-run because it exits), `epc_customer_mgmt_helpers.php` (finance save/VAT injected). `empty('0')` is empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Safe` (6). PlanQ1 suites 97 of 97. Inventory content 524 to 527 of 952. Unnamed PHP functions 7,104 to 7,055. Ready ≤200-line non-ERP functions stay 74. The weighted headline stays about 20.4%. Non-ERP pending: 348 files / 175,651 lines (was 351 / 176,954). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-09 — plan Q1-talk (communication test, storefront anti-crawl)
+
+Not complete.
+
+- Ratchet 514 to 512. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Talk`): `epc_order_communication_test.php` (notify status and trade injected), `epc_storefront_anti_crawl.php` (prices-visible and session user injected; leftover user-include basename not written). `deny` is mentioned but not golden-run because it exits. Rate-limit blocks when `count > max`. `empty('0')` tech_key is empty.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Talk` (4). PlanQ1 suites 101 of 101. Inventory content 527 to 529 of 952. Unnamed PHP functions 7,055 to 7,037. Ready ≤200-line non-ERP functions stay 74. The weighted headline stays about 20.4%. Non-ERP pending: 346 files / 175,024 lines (was 348 / 175,651). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+
 ### Checkpoint 2026-10-09 — plan Q1-note (storefront seed data)
 
 Not complete.

@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Safe (`--max-gap 517` passed; current gap **514**).
+after PlanQ1Talk (`--max-gap 514` passed; current gap **512**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 514
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 512
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -19,8 +19,8 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 |---|---|---:|---:|
 | 1 | Storefront: catalogue | 35 | 10,764 |
 | 1 | Storefront: modules | 18 | 3,446 |
-| 1 | Storefront: other shop | 18 | 6,329 |
-| 1 | Storefront: parts/docpart | 30 | 34,919 |
+| 1 | Storefront: other shop | 17 | 6,022 |
+| 1 | Storefront: parts/docpart | 29 | 34,599 |
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 3 | 2,192 |
 | 3 | CP other | 12 | 3,578 |
@@ -31,11 +31,11 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **514** | **241,842** |
+| | **Total** | **512** | **241,215** |
 
-- Non-ERP (Cursor): **348 files / 175,651 lines**
+- Non-ERP (Cursor): **346 files / 175,024 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,055** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **74**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,037** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **74**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -136,6 +136,10 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Note`, 2 cases): storefront se
 ### Q1 safe — done (`PhpPlanQ1Safe`)
 
 Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Safe`, 6 cases): warehouse sitemap shard size / stale / meta / url xml / write / regenerate / serve / estimate (SEO price-clause and part-loc injected; storage-flag and article-match parents stay gaps), tenant data-protection access / redact / classify / retention / audit / isolation (portal tenant row/connect injected; `enforce_access` mentioned but not golden-run because it exits), customer-management h / money / dashboard / list / display / initials / orders / advances / documents / save / tab-url (finance save/VAT injected). `empty('0')` is empty. Same-second customer orders follow MySQL time DESC then id ASC; recent orders time DESC then id DESC.
+
+### Q1 talk — done (`PhpPlanQ1Talk`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Talk`, 4 cases): order communication-test definitions / last-json / load / save / notify-row / answer-summary / record-test / ensure-customer / create-order (notify status and trade injected), storefront anti-crawl client-ip / bot / tech-key / session-user / rate-limit / enforce / deny / redact / resolve-identity (prices-visible and session user injected; do not write the leftover user-include basename). `deny` is mentioned but not golden-run because it exits. Rate-limit `count > max` blocks; `empty('0')` tech_key is empty.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
