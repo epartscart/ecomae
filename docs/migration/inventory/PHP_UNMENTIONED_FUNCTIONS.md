@@ -4,13 +4,13 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 
 | Class | Count | What to do |
 |---|---:|---|
-| Real PHP (non-ERP), gap file ≤200 lines | 93 | Build next — listed below |
-| Real PHP (non-ERP), larger gap file | 2189 | Build with the parent kernel |
-| Real PHP already on a mentioned file | 862 | Finish leftover helpers on that twin |
+| Real PHP (non-ERP), gap file ≤200 lines | 85 | Build next — listed below |
+| Real PHP (non-ERP), larger gap file | 2163 | Build with the parent kernel |
+| Real PHP already on a mentioned file | 864 | Finish leftover helpers on that twin |
 | JS functions written inside PHP templates | 1387 | Port as browser JS, not C# methods |
 | Vendor (PHPExcel, PclZip, …) | 255 | Do not port |
 | ERP finance (Devin) | 2033 | Leave for Devin |
-| **Total unmentioned** | **7249** | |
+| **Total unmentioned** | **7215** | |
 
 ## Ready to build (non-ERP PHP, gap file ≤200 lines)
 
@@ -66,14 +66,6 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_sku_media_render_storefront` | `EpcSkuMediaRenderStorefront` | `content/shop/catalogue/epc_sku_media_storefront.php` | 165 |
 | `epc_sku_media_storefront_load` | `EpcSkuMediaStorefrontLoad` | `content/shop/catalogue/epc_sku_media_storefront.php` | 165 |
 | `epc_build_initial_price_bunch` | `EpcBuildInitialPriceBunch` | `content/shop/docpart/epc_build_initial_price_bunch.php` | 108 |
-| `epc_logistics_configure_urls` | `EpcLogisticsConfigureUrls` | `content/shop/logistics/epc_logistics_helpers.php` | 151 |
-| `epc_logistics_dashboard` | `EpcLogisticsDashboard` | `content/shop/logistics/epc_logistics_helpers.php` | 151 |
-| `epc_logistics_demo_report` | `EpcLogisticsDemoReport` | `content/shop/logistics/epc_logistics_helpers.php` | 151 |
-| `epc_logistics_guide_snapshot` | `EpcLogisticsGuideSnapshot` | `content/shop/logistics/epc_logistics_helpers.php` | 151 |
-| `epc_logistics_h` | `EpcLogisticsH` | `content/shop/logistics/epc_logistics_helpers.php` | 151 |
-| `epc_logistics_money` | `EpcLogisticsMoney` | `content/shop/logistics/epc_logistics_helpers.php` | 151 |
-| `epc_logistics_seed_defaults` | `EpcLogisticsSeedDefaults` | `content/shop/logistics/epc_logistics_helpers.php` | 151 |
-| `epc_logistics_seed_sample_data` | `EpcLogisticsSeedSampleData` | `content/shop/logistics/epc_logistics_helpers.php` | 151 |
 | `epc_apai_cp_catalogue_filter_close` | `EpcApaiCpCatalogueFilterClose` | `content/shop/price_engine/epc_apai_cp_catalogue_filter.php` | 195 |
 | `epc_apai_cp_catalogue_filter_ctx` | `EpcApaiCpCatalogueFilterCtx` | `content/shop/price_engine/epc_apai_cp_catalogue_filter.php` | 195 |
 | `epc_apai_cp_catalogue_filter_render` | `EpcApaiCpCatalogueFilterRender` | `content/shop/price_engine/epc_apai_cp_catalogue_filter.php` | 195 |
