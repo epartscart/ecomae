@@ -52,6 +52,11 @@ public sealed class StorefrontCartTests
                 }
 
                 var bytes = Encoding.UTF8.GetBytes(html);
+                if (Environment.GetEnvironmentVariable("ECOMAE_CART_GOLDEN_DUMP") is { Length: > 0 } dump)
+                {
+                    Directory.CreateDirectory(dump);
+                    await File.WriteAllTextAsync(Path.Combine(dump, name + ".html"), html);
+                }
                 Assert.True(
                     expected[i].GetProperty("html_length").GetInt32() == bytes.Length,
                     name + ": expected " + expected[i].GetProperty("html_length").GetInt32() + " bytes, got " + bytes.Length);
