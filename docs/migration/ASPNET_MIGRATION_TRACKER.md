@@ -330,6 +330,13 @@ Not complete.
 - The products-style cookie follows PHP 8.3 `(int)` (scientific-notation strings included), PHP request-key rewriting (`.`, space and `+` become `_`), and `(int)` of a non-empty array is 1. GET does not mint a guest session.
 - Evidence: PHP 8.3.6 produced `Fixtures/StorefrontFragments/golden.json` and `golden_http.json`. The fragment suite passed 5 of 5. The weighted headline stays about 20.4%.
 
+### Checkpoint 2026-10-09 — Levam, news, favicon, auth links and industry heroes
+
+Not complete.
+
+- Ratchet 629 to 617. Twelve more self-contained non-ERP files now have PHP 8.3 goldens and an ASP.NET twin (`PhpSmallMore`): `levam.php`, `printSpecialSearches.php`, `modules/news/module.php`, `epc_retail_taxonomy.php`, `epc_portal_favicon.php`, `epc_storefront_auth_links.php`, `garage_login.php`, the Namshi mega-menu, and the four industry hero banners (consulting, fashion, jewellery, electronics). The hero data libraries stay gaps; the twins take the already-resolved copy. Search tabs, `printProducts*`, `side_menu`, page-builder render, BOC consoles and `orders_background` stay skipped until their parents land.
+- Evidence: PHP 8.3.6 produced `Fixtures/SmallMore/golden.json` (26 cases). The SmallMore suite is 3 of 3. Inventory content 419 to 430 of 952, modules 6 to 7 of 31. Unnamed PHP functions 7,834 to 7,819. The weighted headline stays about 20.4%. Non-ERP pending: 451 files / 203,366 lines (was 463 / 204,226). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session.
+
 ### Checkpoint 2026-10-09 — next small storefront/CP includes after the eval-safe wrappers
 
 Not complete.
