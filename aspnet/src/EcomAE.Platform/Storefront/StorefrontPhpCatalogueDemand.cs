@@ -2478,11 +2478,11 @@ public static partial class StorefrontPhpAjax
     private sealed record CatalogueRequest(
         [property: JsonPropertyName("category_id"), JsonConverter(typeof(CategoryIdConverter))] int CategoryId,
         [property: JsonPropertyName("properties_list")] List<JsonElement>? Properties,
-        [property: JsonPropertyName("product_block_type"), JsonConverter(typeof(BlockTypeConverter))] int ProductBlockType,
-        [property: JsonPropertyName("productsPerPage")] int ProductsPerPage,
-        [property: JsonPropertyName("needPagesCount")] int NeedPagesCount,
-        [property: JsonPropertyName("startFrom")] int StartFrom,
-        [property: JsonPropertyName("page_style")] int PageStyle,
+        [property: JsonPropertyName("product_block_type"), JsonConverter(typeof(LooseIntConverter))] int ProductBlockType,
+        [property: JsonPropertyName("productsPerPage"), JsonConverter(typeof(LooseIntConverter))] int ProductsPerPage,
+        [property: JsonPropertyName("needPagesCount"), JsonConverter(typeof(LooseIntConverter))] int NeedPagesCount,
+        [property: JsonPropertyName("startFrom"), JsonConverter(typeof(LooseIntConverter))] int StartFrom,
+        [property: JsonPropertyName("page_style"), JsonConverter(typeof(LooseIntConverter))] int PageStyle,
         [property: JsonPropertyName("search_string"), JsonConverter(typeof(PhpStringConverter))] string? SearchString,
         [property: JsonPropertyName("products_ids_str")] JsonElement? ProductsIdsStr);
 
@@ -2499,8 +2499,8 @@ public static partial class StorefrontPhpAjax
             => writer.WriteNumberValue(value);
     }
 
-    /// <summary>PHP only compares <c>product_block_type == 1</c> etc., so any value that is not numeric simply matches no block type.</summary>
-    private sealed class BlockTypeConverter : JsonConverter<int>
+    /// <summary>PHP only compares <c>product_block_type == 1</c> etc. and never reads the paging fields in the count script, so a value that is not numeric simply matches nothing.</summary>
+    private sealed class LooseIntConverter : JsonConverter<int>
     {
         public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => PhpInt(ref reader, strict: false);

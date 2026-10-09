@@ -317,6 +317,23 @@
    "request": {}
   },
   {
+   "name": "paging_fields_non_numeric_are_ignored_by_count",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "productsPerPage": "abc",
+    "needPagesCount": [],
+    "startFrom": {
+     "a": 1
+    },
+    "page_style": "x"
+   }
+  },
+  {
    "name": "offices_cookie_missing_uses_min_geo",
    "cookie": null,
    "user_id": 0,

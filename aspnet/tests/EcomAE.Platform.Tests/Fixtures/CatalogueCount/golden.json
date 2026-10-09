@@ -103,6 +103,10 @@
             "output": "10"
         },
         {
+            "name": "paging_fields_non_numeric_are_ignored_by_count",
+            "output": "5"
+        },
+        {
             "name": "offices_cookie_missing_uses_min_geo",
             "output": "2"
         },
