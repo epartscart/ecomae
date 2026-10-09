@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Talk (`--max-gap 514` passed; current gap **512**).
+after PlanQ1Walk (`--max-gap 512` passed; current gap **511**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 512
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 511
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -20,7 +20,7 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 1 | Storefront: catalogue | 35 | 10,764 |
 | 1 | Storefront: modules | 18 | 3,446 |
 | 1 | Storefront: other shop | 17 | 6,022 |
-| 1 | Storefront: parts/docpart | 29 | 34,599 |
+| 1 | Storefront: parts/docpart | 28 | 34,315 |
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 3 | 2,192 |
 | 3 | CP other | 12 | 3,578 |
@@ -31,11 +31,11 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **512** | **241,215** |
+| | **Total** | **511** | **240,931** |
 
-- Non-ERP (Cursor): **346 files / 175,024 lines**
+- Non-ERP (Cursor): **345 files / 174,740 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,037** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **74**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,026** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **74**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -140,6 +140,10 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Safe`, 6 cases): warehouse sit
 ### Q1 talk — done (`PhpPlanQ1Talk`)
 
 Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Talk`, 4 cases): order communication-test definitions / last-json / load / save / notify-row / answer-summary / record-test / ensure-customer / create-order (notify status and trade injected), storefront anti-crawl client-ip / bot / tech-key / session-user / rate-limit / enforce / deny / redact / resolve-identity (prices-visible and session user injected; do not write the leftover user-include basename). `deny` is mentioned but not golden-run because it exits. Rate-limit `count > max` blocks; `empty('0')` tech_key is empty.
+
+### Q1 walk — done (`PhpPlanQ1Walk`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Walk`, 2 cases): multivendor min-price ACL ensure / defaults / get / save / admin-viewer / may-see / min-max row / display-storage / typed list / hide-row / customer groups. Session user stays injected. `empty('0')` restrict is open. Save keeps first-seen positive ids.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
