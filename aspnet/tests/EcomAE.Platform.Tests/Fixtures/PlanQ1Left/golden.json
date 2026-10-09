@@ -1,0 +1,183 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "cache_enabled",
+            "output": "",
+            "result": [
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+                "/cp/orders=0",
+                "/bos=0",
+                "/api/x=0",
+                "/epc-api/v1=0",
+                "/admin=0",
+                "/en/brochure=0",
+                "/brochure-cp=0",
+                "/ar/brochure/cp=0",
+                "/shop?nocache=1=0",
+                "/shop?epc_debug=1=0",
+                "/en/shop/search=1"
+            ]
+        },
+        {
+            "name": "cache_key",
+            "output": "",
+            "result": [
+                "page_uto.ecomae.com443_fecb2477d8f176e8530b78139b7cd4d0",
+                "page_badhost_fe857fd654d773b16dfb107b482d1159",
+                true
+            ]
+        },
+        {
+            "name": "cache_dir",
+            "output": "",
+            "result": true
+        },
+        {
+            "name": "cache_serve_flush",
+            "output": "<!doctype html><html><body>ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ</html>",
+            "result": [
+                false,
+                false,
+                false,
+                false,
+                false,
+                "",
+                false,
+                true,
+                true
+            ]
+        },
+        {
+            "name": "anom_empty",
+            "output": "",
+            "result": [
+                "1.0.0",
+                {
+                    "scanned": 4,
+                    "anomalies_found": 0,
+                    "details": {
+                        "violation_spikes": {
+                            "check": "violation_spikes",
+                            "anomalies": []
+                        },
+                        "multi_tenant_ip": {
+                            "check": "multi_tenant_ip",
+                            "anomalies": []
+                        },
+                        "after_hours": {
+                            "check": "after_hours",
+                            "anomalies": []
+                        },
+                        "mfa_bypass": {
+                            "check": "mfa_bypass",
+                            "anomalies": []
+                        }
+                    }
+                },
+                {
+                    "unresolved_total": 0,
+                    "by_severity": []
+                }
+            ]
+        },
+        {
+            "name": "anom_seed",
+            "output": "",
+            "result": [
+                4,
+                4,
+                "violation_spikes",
+                1,
+                "violation_spike",
+                "multi_tenant_ip",
+                "medium",
+                "mfa_brute_force",
+                1,
+                true,
+                {
+                    "ok": true
+                },
+                1
+            ]
+        },
+        {
+            "name": "css_inthub",
+            "output": "",
+            "result": [
+                11294,
+                ".epc-inthub {\n\t--inthub-",
+                "e-columns: 1fr; }\n}\n"
+            ]
+        },
+        {
+            "name": "css_inds",
+            "output": "",
+            "result": [
+                9507,
+                ".epc-inds {\n\t--inds-",
+                "margin-left: 0; }\n}\n"
+            ]
+        },
+        {
+            "name": "css_mb",
+            "output": "",
+            "result": [
+                12889,
+                "/* epc-mb 20260722mb2 */\n@im",
+                "form: scale(1); }\n}\n"
+            ]
+        },
+        {
+            "name": "brochure_inv",
+            "output": "",
+            "result": [
+                [
+                    "Super CP / Platform",
+                    "Super CP / Operator",
+                    "Super CP / BOC",
+                    "Portal",
+                    "Integrations",
+                    "Shop / OMS",
+                    "Prices & Catalogue",
+                    "Payments",
+                    "Logistics",
+                    "Channels / Marketplace",
+                    "Procurement",
+                    "ERP / Finance",
+                    "ERP / Modules",
+                    "ERP / Tax & VAT",
+                    "ERP / External Reporting",
+                    "Documents",
+                    "Customers / CRM",
+                    "AI",
+                    "Marketing",
+                    "Content / CMS",
+                    "System & Admin",
+                    "Industry Templates"
+                ],
+                405,
+                "Epc Api Documentation Guide",
+                "client",
+                "/cp/control/portal/epc_api_documentation_guide"
+            ]
+        },
+        {
+            "name": "cap_guides",
+            "output": "",
+            "result": [
+                111,
+                "super-cp-console",
+                "overview",
+                4,
+                "ext-offsystem-import",
+                "guide-super-cp"
+            ]
+        }
+    ]
+}
