@@ -1,0 +1,734 @@
+{
+    "php": "8.3.6",
+    "source": "content/shop/catalogue/ajax_get_products_count.php",
+    "results": [
+        {
+            "name": "block1_category10",
+            "output": "5"
+        },
+        {
+            "name": "block4_category10",
+            "output": "5"
+        },
+        {
+            "name": "block2_category10_unpublished_included",
+            "output": "6"
+        },
+        {
+            "name": "block3_category10_unpublished_included",
+            "output": "6"
+        },
+        {
+            "name": "block_type_missing_category10",
+            "output": "6"
+        },
+        {
+            "name": "block_type_string_1",
+            "output": "5"
+        },
+        {
+            "name": "block_type_string_4",
+            "output": "5"
+        },
+        {
+            "name": "category20_block1",
+            "output": "2"
+        },
+        {
+            "name": "category20_block3_unpublished_included",
+            "output": "3"
+        },
+        {
+            "name": "category_empty_99",
+            "output": "0"
+        },
+        {
+            "name": "category_zero_means_all_published",
+            "output": "8"
+        },
+        {
+            "name": "category_zero_string_means_all",
+            "output": "8"
+        },
+        {
+            "name": "category_null_means_all",
+            "output": "8"
+        },
+        {
+            "name": "category_missing_means_all",
+            "output": "8"
+        },
+        {
+            "name": "category_numeric_string",
+            "output": "5"
+        },
+        {
+            "name": "category30_product_without_priced_stock",
+            "output": "1"
+        },
+        {
+            "name": "category10_includes_zero_price_and_no_stock_products",
+            "output": "5"
+        },
+        {
+            "name": "all_categories_block3_all_products",
+            "output": "10"
+        },
+        {
+            "name": "properties_list_missing",
+            "output": "5"
+        },
+        {
+            "name": "properties_list_empty",
+            "output": "5"
+        },
+        {
+            "name": "properties_list_null",
+            "output": "5"
+        },
+        {
+            "name": "properties_list_empty_objects",
+            "output": "5"
+        },
+        {
+            "name": "properties_list_scalar_elements",
+            "output": "5"
+        },
+        {
+            "name": "properties_list_unknown_property_types",
+            "output": "5"
+        },
+        {
+            "name": "request_empty_object",
+            "output": "10"
+        },
+        {
+            "name": "offices_cookie_missing_uses_min_geo",
+            "output": "2"
+        },
+        {
+            "name": "offices_cookie_geo2_single_office",
+            "output": "1"
+        },
+        {
+            "name": "offices_cookie_unknown_geo_falls_back_to_first_office",
+            "output": "2"
+        },
+        {
+            "name": "offices_cookie_numeric_prefix_geo",
+            "output": "2"
+        },
+        {
+            "name": "offices_cookie_empty_string",
+            "output": "2"
+        },
+        {
+            "name": "offices_geo_without_offices_falls_back_to_first_office",
+            "output": "2"
+        },
+        {
+            "name": "offices_geo_map_empty_first_office_only",
+            "output": "2"
+        },
+        {
+            "name": "offices_none_at_all_php_pdo_error",
+            "php_error": "PDOException"
+        },
+        {
+            "name": "offices_one_office_no_storages_mapped_price_filter",
+            "output": "0"
+        },
+        {
+            "name": "price_two_offices_union_dedup_guest",
+            "output": "2"
+        },
+        {
+            "name": "price_two_offices_unpublished_included_block3",
+            "output": "3"
+        },
+        {
+            "name": "price_min_only_raised",
+            "output": "1"
+        },
+        {
+            "name": "price_max_only_lowered",
+            "output": "2"
+        },
+        {
+            "name": "price_equal_to_bounds_is_ignored",
+            "output": "5"
+        },
+        {
+            "name": "price_min_need_equals_min_value_max_lowered_by_one",
+            "output": "3"
+        },
+        {
+            "name": "price_min_need_below_min_value_max_above",
+            "output": "5"
+        },
+        {
+            "name": "price_inverted_range_matches_nothing",
+            "output": "0"
+        },
+        {
+            "name": "price_registered_group_markup",
+            "output": "1"
+        },
+        {
+            "name": "price_registered_group_user_with_binding_first_group_wins",
+            "output": "1"
+        },
+        {
+            "name": "price_group_without_markup_rows_uses_raw_price",
+            "output": "2"
+        },
+        {
+            "name": "price_guest_group_missing_no_group_null",
+            "output": "2"
+        },
+        {
+            "name": "price_currency_usd_conversion_exact_edge",
+            "output": "1"
+        },
+        {
+            "name": "price_currency_usd_conversion_just_above_edge",
+            "output": "0"
+        },
+        {
+            "name": "price_usd_office3_markup_100",
+            "output": "1"
+        },
+        {
+            "name": "price_markup_band_boundary_1000_uses_upper_band",
+            "output": "1"
+        },
+        {
+            "name": "price_markup_band_just_below_boundary_uses_lower_band",
+            "output": "1"
+        },
+        {
+            "name": "price_exact_value_office2_zero_markup",
+            "output": "1"
+        },
+        {
+            "name": "price_outside_every_band_falls_back_to_raw",
+            "output": "2"
+        },
+        {
+            "name": "price_storage_with_interface_type_2_not_priced",
+            "output": "0"
+        },
+        {
+            "name": "price_non_existing_stock_not_priced",
+            "output": "0"
+        },
+        {
+            "name": "price_zero_price_not_priced",
+            "output": "0"
+        },
+        {
+            "name": "price_string_values",
+            "output": "2"
+        },
+        {
+            "name": "price_float_values",
+            "output": "1"
+        },
+        {
+            "name": "price_missing_keys_php_null_semantics",
+            "output": "5"
+        },
+        {
+            "name": "price_missing_min_need_only",
+            "output": "5"
+        },
+        {
+            "name": "price_missing_max_need_only",
+            "output": "0"
+        },
+        {
+            "name": "price_two_price_objects_anded",
+            "output": "1"
+        },
+        {
+            "name": "price_with_category20",
+            "output": "1"
+        },
+        {
+            "name": "price_block2_raw_price_first_office_only",
+            "output": "2"
+        },
+        {
+            "name": "price_block2_raw_price_ignores_markup_currency",
+            "output": "1"
+        },
+        {
+            "name": "price_block2_sort_by_name_forced",
+            "output": "2"
+        },
+        {
+            "name": "price_sort_mode_name_block1",
+            "output": "2"
+        },
+        {
+            "name": "price_with_int_property_combined",
+            "output": "2"
+        },
+        {
+            "name": "price_property_id_price_with_type_1_ignored_type",
+            "output": "2"
+        },
+        {
+            "name": "int_range_inclusive",
+            "output": "2"
+        },
+        {
+            "name": "int_range_excludes_outside",
+            "output": "1"
+        },
+        {
+            "name": "int_range_equal_to_bounds_skipped",
+            "output": "5"
+        },
+        {
+            "name": "int_range_min_equal_max_lowered",
+            "output": "2"
+        },
+        {
+            "name": "int_range_max_equal_min_raised",
+            "output": "2"
+        },
+        {
+            "name": "int_range_string_numbers",
+            "output": "2"
+        },
+        {
+            "name": "int_range_products_without_value_excluded",
+            "output": "1"
+        },
+        {
+            "name": "int_range_property_type_as_string",
+            "output": "2"
+        },
+        {
+            "name": "int_range_missing_need_keys_null_args",
+            "output": "0"
+        },
+        {
+            "name": "int_range_missing_property_id_null",
+            "output": "0"
+        },
+        {
+            "name": "int_range_unpublished_excluded_for_block1",
+            "output": "4"
+        },
+        {
+            "name": "float_range_inclusive",
+            "output": "2"
+        },
+        {
+            "name": "float_range_fractional_edges",
+            "output": "1"
+        },
+        {
+            "name": "float_range_equal_to_bounds_skipped",
+            "output": "5"
+        },
+        {
+            "name": "float_range_one_side_changed",
+            "output": "2"
+        },
+        {
+            "name": "bool_true_only",
+            "output": "2"
+        },
+        {
+            "name": "bool_false_only",
+            "output": "1"
+        },
+        {
+            "name": "bool_both_checked_ignored",
+            "output": "5"
+        },
+        {
+            "name": "bool_neither_checked_ignored",
+            "output": "5"
+        },
+        {
+            "name": "bool_missing_flags_ignored",
+            "output": "5"
+        },
+        {
+            "name": "bool_true_string_one_false_string_zero",
+            "output": "2"
+        },
+        {
+            "name": "bool_false_checked_numeric_one_true_numeric_zero",
+            "output": "1"
+        },
+        {
+            "name": "bool_true_only_category20",
+            "output": "1"
+        },
+        {
+            "name": "list_or_two_options",
+            "output": "3"
+        },
+        {
+            "name": "list_and_two_options",
+            "output": "1"
+        },
+        {
+            "name": "list_and_single_option",
+            "output": "2"
+        },
+        {
+            "name": "list_no_option_checked_ignored",
+            "output": "5"
+        },
+        {
+            "name": "list_empty_options_ignored",
+            "output": "5"
+        },
+        {
+            "name": "list_option_flags_numeric_and_strings",
+            "output": "3"
+        },
+        {
+            "name": "list_unknown_list_type_single_option_applies",
+            "output": "1"
+        },
+        {
+            "name": "list_missing_list_type_single_option_applies",
+            "output": "2"
+        },
+        {
+            "name": "list_unknown_list_type_two_options_php_pdo_error",
+            "php_error": "PDOException"
+        },
+        {
+            "name": "list_unknown_list_type_inherits_previous_joiner",
+            "output": "1"
+        },
+        {
+            "name": "list_unknown_list_type_inherits_previous_or_joiner",
+            "output": "3"
+        },
+        {
+            "name": "list_option_without_id_null_arg",
+            "output": "0"
+        },
+        {
+            "name": "list_option_without_value_key_skipped",
+            "output": "5"
+        },
+        {
+            "name": "list_missing_list_options_php_type_error",
+            "php_error": "TypeError"
+        },
+        {
+            "name": "tree_level1_value0_all_skipped",
+            "output": "5"
+        },
+        {
+            "name": "tree_level1_value_selected",
+            "output": "1"
+        },
+        {
+            "name": "tree_level2_value_selected",
+            "output": "1"
+        },
+        {
+            "name": "tree_level2_value0_applies_but_zero_is_falsy",
+            "output": "0"
+        },
+        {
+            "name": "tree_level_string_values",
+            "output": "1"
+        },
+        {
+            "name": "tree_level1_value_string_zero_skipped",
+            "output": "5"
+        },
+        {
+            "name": "tree_missing_level_value0_applies",
+            "output": "0"
+        },
+        {
+            "name": "tree_missing_current_value_level2_null_arg",
+            "output": "0"
+        },
+        {
+            "name": "tree_missing_current_value_level1_skipped",
+            "output": "5"
+        },
+        {
+            "name": "tree_unknown_value_matches_nothing",
+            "output": "0"
+        },
+        {
+            "name": "combined_int_bool",
+            "output": "2"
+        },
+        {
+            "name": "combined_int_float_list_tree",
+            "output": "1"
+        },
+        {
+            "name": "combined_ignored_filters_do_not_change_count",
+            "output": "5"
+        },
+        {
+            "name": "combined_category_block3_list_and_price",
+            "output": "2"
+        },
+        {
+            "name": "combined_two_offices_filters_cloned_per_office",
+            "output": "1"
+        },
+        {
+            "name": "combined_filters_anded_to_zero",
+            "output": "0"
+        },
+        {
+            "name": "ids_direct_block1",
+            "output": "3"
+        },
+        {
+            "name": "ids_direct_ignores_category_when_search_empty_is_and_ed",
+            "output": "2"
+        },
+        {
+            "name": "ids_direct_category_zero",
+            "output": "3"
+        },
+        {
+            "name": "ids_direct_unpublished_block1_excluded",
+            "output": "0"
+        },
+        {
+            "name": "ids_direct_unpublished_block3_included",
+            "output": "1"
+        },
+        {
+            "name": "ids_direct_with_spaces",
+            "output": "3"
+        },
+        {
+            "name": "ids_direct_empty_string_ignored",
+            "output": "5"
+        },
+        {
+            "name": "ids_direct_zero_string_matches_nothing",
+            "output": "0"
+        },
+        {
+            "name": "ids_direct_number",
+            "output": "1"
+        },
+        {
+            "name": "ids_direct_unknown_ids",
+            "output": "0"
+        },
+        {
+            "name": "ids_direct_duplicates",
+            "output": "2"
+        },
+        {
+            "name": "ids_direct_with_price_filter",
+            "output": "2"
+        },
+        {
+            "name": "ids_direct_with_property_filter",
+            "output": "2"
+        },
+        {
+            "name": "ids_direct_null_ignored",
+            "output": "5"
+        },
+        {
+            "name": "search_name_single_token",
+            "output": "2"
+        },
+        {
+            "name": "search_name_two_tokens_and",
+            "output": "1"
+        },
+        {
+            "name": "search_ignores_category_when_results_found",
+            "output": "2"
+        },
+        {
+            "name": "search_no_results_with_category",
+            "output": "0"
+        },
+        {
+            "name": "search_description_match",
+            "output": "1"
+        },
+        {
+            "name": "search_description_and_name_union",
+            "output": "0"
+        },
+        {
+            "name": "search_unpublished_excluded_block1",
+            "output": "0"
+        },
+        {
+            "name": "search_unpublished_included_block3",
+            "output": "1"
+        },
+        {
+            "name": "search_block4_is_published_only",
+            "output": "1"
+        },
+        {
+            "name": "search_short_token_skipped",
+            "output": "2"
+        },
+        {
+            "name": "search_only_short_tokens_php_pdo_error",
+            "php_error": "PDOException"
+        },
+        {
+            "name": "search_whitespace_only_is_no_search",
+            "output": "5"
+        },
+        {
+            "name": "search_tags_only_is_no_search",
+            "output": "5"
+        },
+        {
+            "name": "search_strip_tags_and_trim",
+            "output": "1"
+        },
+        {
+            "name": "search_strip_tags_lone_less_than_with_space",
+            "output": "0"
+        },
+        {
+            "name": "search_apostrophe_is_html_escaped",
+            "output": "1"
+        },
+        {
+            "name": "search_ampersand_is_html_escaped",
+            "output": "0"
+        },
+        {
+            "name": "search_double_quote_is_html_escaped",
+            "output": "0"
+        },
+        {
+            "name": "search_cyrillic",
+            "output": "1"
+        },
+        {
+            "name": "search_cyrillic_single_char_token_php_pdo_error",
+            "php_error": "PDOException"
+        },
+        {
+            "name": "search_article_property_match",
+            "output": "1"
+        },
+        {
+            "name": "search_article_property_match_lowercase_with_symbols",
+            "output": "1"
+        },
+        {
+            "name": "search_article_property_other_language_not_matched",
+            "output": "0"
+        },
+        {
+            "name": "search_article_property_work_language_ru",
+            "output": "1"
+        },
+        {
+            "name": "search_alias_suffix_match",
+            "output": "1"
+        },
+        {
+            "name": "search_alias_prefix_match",
+            "output": "0"
+        },
+        {
+            "name": "search_alias_unpublished_not_matched_even_block3",
+            "output": "0"
+        },
+        {
+            "name": "search_alias_uppercase_exact_lowercased",
+            "output": "0"
+        },
+        {
+            "name": "search_discovery_queue_imported_match",
+            "output": "1"
+        },
+        {
+            "name": "search_discovery_queue_not_imported_ignored",
+            "output": "0"
+        },
+        {
+            "name": "search_discovery_queue_product_zero_ignored",
+            "output": "0"
+        },
+        {
+            "name": "search_discovery_queue_meta_json_match",
+            "output": "1"
+        },
+        {
+            "name": "search_discovery_table_missing_is_swallowed",
+            "output": "2"
+        },
+        {
+            "name": "search_plus_products_ids_str_overrides_search_ids",
+            "output": "2"
+        },
+        {
+            "name": "search_plus_products_ids_str_empty_keeps_search",
+            "output": "2"
+        },
+        {
+            "name": "search_with_price_filter",
+            "output": "2"
+        },
+        {
+            "name": "search_with_int_filter",
+            "output": "1"
+        },
+        {
+            "name": "search_with_price_filter_registered",
+            "output": "1"
+        },
+        {
+            "name": "search_string_number_is_coerced",
+            "output": "0"
+        },
+        {
+            "name": "search_string_null_is_no_search",
+            "output": "5"
+        },
+        {
+            "name": "search_wildcard_percent_is_literal_in_like_value",
+            "output": "2"
+        },
+        {
+            "name": "category_non_numeric_string_php_pdo_error",
+            "php_error": "PDOException"
+        },
+        {
+            "name": "properties_list_string_php_type_error",
+            "php_error": "TypeError"
+        },
+        {
+            "name": "request_json_invalid_counts_everything",
+            "output": "10"
+        },
+        {
+            "name": "request_json_empty_string_counts_everything",
+            "output": "10"
+        },
+        {
+            "name": "request_json_scalar_counts_everything",
+            "output": "10"
+        }
+    ]
+}
