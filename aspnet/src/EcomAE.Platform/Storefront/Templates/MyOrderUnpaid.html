@@ -1,0 +1,549 @@
+{{ALERTS}}    
+	
+	<div class="row">
+		<div class="col-md-6">
+			<table class="table">
+				<tr> <td>{{T:3244}}</td> <td style="position: relative;">{{ORDER_ID}}<a style="position: absolute; right: 8px; top: 6px;" class="btn btn-xs btn-default pull-right" onClick="cancel_order();" title="{{T:5619}}"><i style="margin-right:0px;" class="fa fa-ban" aria-hidden="true"></i></a></td> </tr>
+				<tr> <td>{{T:2242}}</td> <td>{{DATE}}</td> </tr>
+				<tr> <td>{{T:2081}}</td> <td>{{STATUS_NAME}}</td> </tr>
+				<tr> <td>{{T:4645}}</td> <td></td> </tr>
+			</table>
+		</div>
+		<div class="col-md-6">
+			<div style="overflow: auto; max-height: 180px;">
+			<table class="table">
+				<tr> <td colspan="2">{{T:5620}}:</td> </tr>
+				{{CARS}}			</table>
+			</div>
+			<script>
+			function check_car(el, car_id)
+			{
+				//Объект для запроса
+				var request_object = new Object;
+				request_object.action = 'check_car';
+				request_object.user_id = '{{USER_ID}}';
+				request_object.order_id = '{{ORDER_ID}}';
+				request_object.car_id = car_id;
+				
+				//Отправляем запрос
+				jQuery.ajax({
+					type: "POST",
+					async: true,
+					url: "/content/shop/docpart/garage/ajax_operations_cars.php",
+					dataType: "json",//Тип возвращаемого значения
+					data: "request_object="+encodeURI(JSON.stringify(request_object))+"&csrf_guard_key={{CSRF_JS}}",
+					success: function(answer)
+					{
+						if(answer.status == false){
+							alert('{{T:2122}}: '+answer.message);
+						}else{
+							if(answer.flag == 0){
+								el.style.color = '#f2f2f2';
+							}else{
+								el.style.color = '#66bf05';
+							}
+						}
+					}
+				});
+			}
+			function active_car(el, car_id)
+			{
+				//Объект для запроса
+				var request_object = new Object;
+				request_object.action = 'active_car';
+				request_object.user_id = '{{USER_ID}}';
+				request_object.car_id = car_id;
+				
+				//Отправляем запрос
+				jQuery.ajax({
+					type: "POST",
+					async: true,
+					url: "/content/shop/docpart/garage/ajax_operations_cars.php",
+					dataType: "json",//Тип возвращаемого значения
+					data: "request_object="+encodeURI(JSON.stringify(request_object))+"&csrf_guard_key={{CSRF_JS}}",
+					success: function(answer)
+					{
+						if(answer.status == false){
+							alert('{{T:2122}}: '+answer.message);
+						}else{
+							location = '/';
+						}
+					}
+				});
+			}
+			function delete_car(el, car_id)
+			{
+				if( !confirm("{{T:4263}}") )
+				{
+					return;
+				}
+				
+				//Объект для запроса
+				var request_object = new Object;
+				request_object.action = 'delete_car';
+				request_object.user_id = '{{USER_ID}}';
+				request_object.car_id = car_id;
+
+				// Отправляем запрос
+				jQuery.ajax({
+					type: "POST",
+					async: true,
+					url: "/content/shop/docpart/garage/ajax_operations_cars.php",
+					dataType: "text",//Тип возвращаемого значения
+					data: "request_object="+encodeURI(JSON.stringify(request_object))+"&csrf_guard_key={{CSRF_JS}}",
+					success: function(answer)
+					{
+						if(answer.status == false){
+							alert('{{T:2122}}: '+answer.message);
+						}else{
+							$('.car_tr_'+car_id).css('display', 'none');
+						}
+					}
+				});
+			}
+			</script>
+		</div>
+	</div>
+
+
+	<p class="lead">{{T:3498}}</p>
+	
+	<div style="overflow: hidden; overflow-x: auto;">
+    <table class="table">
+		<tr>
+			<th class="" style="vertical-align: middle; white-space: nowrap;"><input type="checkbox" id="check_uncheck_all" name="check_uncheck_all" onchange="on_check_uncheck_all();"/></th>
+			<th style="vertical-align: middle; white-space: nowrap;">ID</th>
+			<th style="vertical-align: middle; white-space: nowrap;">{{T:2070}}</th>
+			<th style="vertical-align: middle; white-space: nowrap;">{{T:2071}}</th>
+			<th style="vertical-align: middle;">{{T:2102}}</th>
+			<th style="vertical-align: middle; white-space: nowrap;">{{T:2751}}</th>
+			<th style="vertical-align: middle; white-space: nowrap; text-align:center;">{{T:4526}}</th>
+			<th style="vertical-align: middle; white-space: nowrap;">{{T:3251}}</th>
+			<th style="vertical-align: middle; white-space: nowrap;">{{T:3550}}</th>
+			<th style="vertical-align: middle; white-space: nowrap;">{{T:2081}}</th>
+		</tr>
+
+					
+{{ITEMS}}		<tr style="font-weight:bold;">
+			<td colspan="6" style="vertical-align: middle; white-space: nowrap; text-align:right;">{{T:3503}}:</td>
+			<td style="vertical-align: middle; white-space: nowrap; text-align:center;">{{COUNT_TOTAL}}</td>
+			<td style="vertical-align: middle; white-space: nowrap;">{{TOTAL_MONEY}}</td>
+			<td></td>
+			<td></td>
+		</tr>
+	</table>
+
+	</div>
+
+    <p class="lead">
+{{RETURN_BUTTON}}				
+		<button onclick="cancel_positions();" type="button" class="btn btn-xs btn-ar btn-default"><i class="fa fa-ban"></i> {{T:5623}}</button>
+    </p>
+	<script>
+	function confirm_return()
+	{
+		if (getCheckedElements().length < 1)
+		{
+			alert("{{T:4537}}.");
+			return false;
+		}
+		else
+		{
+			let obj = new URLSearchParams({
+				items_id: getCheckedElements(),
+				csrf_guard_key: '{{CSRF_JS}}'
+			});
+			
+			obj = obj.toString();
+			
+			jQuery.ajax({
+			 type: "POST",
+			 async: true, //Запрос синхронный
+			 url: "/content/shop/order_process/ajax_check_items_returns.php",
+			 dataType: "json",//Тип возвращаемого значения
+			 data: obj,
+			 success: function (answer) {
+					//console.log(answer);
+					if (answer.count_confirm > 0 || !answer.all_complete) {
+						alert("{{T:5683}}");
+					} else {
+					 location = "{{LANG_JS}}/shop/returns/add_return?items=" + JSON.stringify(getCheckedElements());
+					}
+				}
+			});
+		}
+	}
+	
+	//Отменить позиции
+	function cancel_positions()
+	{
+		if (getCheckedElements().length < 1)
+		{
+			alert("{{T:5625}}.");
+			return false;
+		}
+		else
+		{
+			document.getElementById("new_message_area").value = '{{T:5626}}: '+getCheckedElements();
+			sendMessage();
+			alert("{{T:5627}}.");
+		}
+	}
+	
+	//Отменить заказ
+	function cancel_order()
+	{
+		if( !confirm("{{T:5628}}") )
+		{
+			return;
+		}
+		
+		document.getElementById("new_message_area").value = '{{T:5629}}.';
+		sendMessage();
+		alert("{{T:5627}}.");
+	}
+	</script>
+	
+	<div id="">
+		<div class="panel panel-primary">
+			<!--<div class="panel-heading">Платежи по заказу</div>-->
+			<div class="panel-body">
+				<div style="overflow: hidden; overflow-x: auto;">
+					<p class="lead">{{T:4528}}</p>
+				
+				
+					<table class="table">
+						<tr>
+							<td>{{T:4529}}:</td>
+							<td>{{T:3516}}:</td>
+							<td>{{T:4379}}:</td>
+							<td>{{T:4530}}:</td>
+						</tr>
+						<tr>
+							<td>
+								<strong>
+									<div style="color:#FFF;background-color:#e74c3c;border-radius:3px;padding:6px 12px;font-weight:normal;">{{T:3513}}</div>								</strong>
+							</td>
+							<td>{{TOTAL_MONEY}}</td>
+							<td>{{PAID_MONEY}}</td>
+							<td>{{LEFT_MONEY}}</td>
+						</tr>
+					</table>
+				</div>
+				
+				
+				
+				
+									<div class="form-horizontal">
+						{{PICKER}}													<input type="hidden" value="{{LEFT}}" id="pay_value" />
+														<a class="btn btn-ar btn-primary" href="javascript:void(0);" onclick="add_payment_to_order(1);">{{T:4535}}</a>
+													
+													<a class="btn btn-xs btn-ar btn-default" href="javascript:void(0);" onclick="pay_on_place();">{{ON_PLACE_NAME}}</a>
+							<form id="pay_form" name="pay_form" method="POST" style="display:none;">
+								<input type="hidden" name="action" id="action" value="pay_on_place" />
+								<input type="hidden" name="order_id" value="{{ORDER_ID}}" />
+								<input type="hidden" name="csrf_guard_key" value="{{CSRF_HTML}}" />
+							</form>
+							<script>
+							function pay_on_place()
+							{
+								if( !confirm('{{T:4664}}') )
+								{
+									return;
+								}
+								document.forms["pay_form"].submit();
+							}
+							</script>
+												
+					</div>
+					
+					
+					
+					<script>
+					//Обработка кнопки оплаты. direct_pay == 0 (оплата с баланса), direct_pay == 1 (прямая оплата), direct_pay == 2 (определить из радиокнопок)
+					function add_payment_to_order(direct_pay)
+					{
+						//Сумма из поля ввода
+						var pay_value = document.getElementById('pay_value').value;						
+						pay_value = parseFloat(pay_value).toFixed(2);
+						
+						//Локальные проверки:
+						
+						//1. Должна быть указана сумма
+						if( pay_value == '' || pay_value == 'NaN' )
+						{
+							alert('{{T:3526}}');
+							return;
+						}
+						//2. Сумма не должна превышать остаток долга клиента по заказу, не должна быть отрицательной, не должна быть равна 0
+						if( pay_value > {{LEFT}} || pay_value <= 0 )
+						{
+							alert('{{T:4539}}');
+							return;
+						}
+						
+						
+												
+						
+						
+						
+						
+						//Если доступна частичная оплата и у клиента есть деньги на балансе - определяем способ оплаты из радиокнопок
+						if( direct_pay == 2 )
+						{
+							//Берем значение из радио-кнопок
+							direct_pay = $('input[name="pay_source"]:checked').val();
+						}
+						
+
+						
+						//Платеж с баланса
+						if( direct_pay == 0 )
+						{
+							if( pay_value > {{BALANCE_LIMIT}} )
+							{
+								alert('{{T:4542}}: {{BALANCE_LIMIT}}. {{T:4543}}');
+								return;
+							}
+							
+							
+															if( !confirm('{{T:4544}} {{BALANCE}}. {{T:4545}}') )
+								{
+									return;
+								}
+								
+							
+							jQuery.ajax({
+								type: "GET",
+								async: false, //Запрос синхронный
+								url: "/content/shop/protocol/pay_for_order.php",
+								dataType: "text",//Тип возвращаемого значения
+								data: "initiator=2&order_id={{ORDER_ID}}&direct_pay="+direct_pay+"&pay_sum="+pay_value+"&csrf_guard_key={{CSRF_JS}}",
+								success: function(answer)
+								{
+									console.log(answer);
+									var answer_ob = JSON.parse(answer);
+					
+									//Если некорректный парсинг ответа
+									if( typeof answer_ob.status === "undefined" )
+									{
+										alert("{{T:2429}}");
+									}
+									else
+									{
+										//Корректный парсинг ответа
+										if(answer_ob.status == true)
+										{
+											//Обновляем страницу
+											location='{{LANG_JS}}/shop/orders/order?order_id={{ORDER_ID}}&success_message='+encodeURI('{{T:3529}}');
+										}
+										else
+										{
+											alert(answer_ob.message);
+										}
+									}
+								}
+							});
+						}
+						else
+						{
+							var request_object = new Object;
+							request_object.order_id = {{ORDER_ID}};
+							request_object.amount = pay_value;
+							if (typeof window.epcSelectedPayHandler === 'function') {
+								request_object.pay_handler = window.epcSelectedPayHandler();
+							}
+							
+							jQuery.ajax({
+								type: "POST",
+								async: false, //Запрос синхронный
+								url: "/content/shop/finance/ajax_create_operation.php",
+								dataType: "text",//Тип возвращаемого значения
+								data: "request_object="+encodeURI(JSON.stringify(request_object))+"&csrf_guard_key={{CSRF_JS}}",
+								success: function(answer)
+								{
+									console.log(answer);
+				
+									var answer_ob = JSON.parse(answer);
+									
+									if( typeof answer_ob.result == 'undefined' )
+									{
+										alert("{{T:4343}}");
+									}
+									else
+									{
+										if(answer_ob.result == true)
+										{					
+											if( answer_ob.pay_system == 0 )
+											{
+												alert("{{T:4344}}");
+												return;
+											}
+											else
+											{
+												location = "/content/shop/finance/payment_systems/"+answer_ob.pay_system+"/go_to_pay.php?operation="+answer_ob.operation+"&csrf_guard_key={{CSRF_JS}}";
+											}
+										}
+										else
+										{
+											alert("{{T:4345}}");
+										}
+									}
+								}
+							});
+						}
+					}
+					</script>
+								</div>
+		</div>
+	</div>
+	
+	
+
+	
+	
+		<div class="panel panel-default" style="margin-top:30px;">
+		<div class="panel-heading"><strong>Invoice summary</strong> <small class="text-muted">({{VAT_LABEL}})</small></div>
+		<div class="panel-body">
+			<div class="table-responsive">
+				<table class="table table-bordered" style="max-width:520px;margin-bottom:0;">
+					<tr><td>Subtotal (excl. VAT)</td><td class="text-right">{{TOTAL_MONEY}}</td></tr>
+										<tr><th>Total (incl. VAT)</th><th class="text-right">{{TOTAL_MONEY}}</th></tr>
+				</table>
+			</div>
+		</div>
+	</div>
+{{PRINT_DOCS}}	
+	<div style="overflow-x:auto; margin-top:50px;">
+	{{OBTAIN_INFO}}	</div>
+	
+	
+	
+    <script>
+    // ----------------------------------------------------------------------------------------
+    {{ELEMENTS}}    //Обработка переключения Выделить все/Снять все
+    function on_check_uncheck_all()
+    {
+        var state = document.getElementById("check_uncheck_all").checked;
+        
+        for(var i=0; i<elements_array.length;i++)
+        {
+            document.getElementById(elements_array[i]).checked = state;
+        }
+    }//~function on_check_uncheck_all()
+    // ----------------------------------------------------------------------------------------
+    //Обработка переключения одного чекбокса
+    function on_one_check_changed(id)
+    {
+        //Если хотя бы один чекбокс снят - снимаем общий чекбокс
+        for(var i=0; i<elements_array.length;i++)
+        {
+            if(document.getElementById(elements_array[i]).checked == false)
+            {
+                document.getElementById("check_uncheck_all").checked = false;
+                break;
+            }
+        }
+    }//~function on_one_check_changed(id)
+    // ----------------------------------------------------------------------------------------
+    //Получение массива id отмеченых элементов
+    function getCheckedElements()
+    {
+        var checked_ids = new Array();
+        //По массиву чекбоксов
+        for(var i=0; i<elements_array.length;i++)
+        {
+            if(document.getElementById(elements_array[i]).checked == true)
+            {
+                checked_ids.push(elements_id_array[i]);
+            }
+        }
+        
+        return checked_ids;
+    }
+    // ----------------------------------------------------------------------------------------
+    </script>
+	
+	
+	
+	<!-- Переписка с покупателем -->
+	<p class="lead">{{T:4548}}</p>
+	<div>
+		<div class="chat_block" id="chat_block">
+		</div>
+		
+		<br>
+		{{T:4549}}:
+		<textarea id="new_message_area"></textarea>
+		<button class="btn btn-ar btn-primary" onclick="sendMessage();">{{T:3211}}</button>
+	</div>
+	<script>
+	// --------------------------------------------------------------------------
+	//Получить сообщения по заказу
+	function getOrderMessages()
+	{
+		jQuery.ajax({
+			type: "GET",
+			async: true,
+			url: "/content/shop/messager/ajax_get_order_messages.php",
+			dataType: "json",//Тип возвращаемого значения
+			data: "order_id={{ORDER_ID}}"+"&csrf_guard_key={{CSRF_JS}}",
+			success: function(answer)
+			{
+				var html = "";
+				for(var i=0; i < answer.length; i++)
+				{
+					var class_str = "bubble";
+					var sender = "{{T:4550}}";
+					if(answer[i].is_customer == false)
+					{
+						class_str += "2";
+						sender = "{{T:3565}}";
+					}
+					html += "<div class=\""+class_str+"\">"+sender+" "+answer[i].time+"<br>"+answer[i].text+"</div>";	
+				}
+				if(html == "") html = "<div align=\"center\">{{T:3566}}</div>";
+				document.getElementById("chat_block").innerHTML = html;
+				
+				document.getElementById("chat_block").scrollTop = document.getElementById("chat_block").scrollHeight;
+			}
+		});
+	}
+	// --------------------------------------------------------------------------
+	//Отправить сообщение
+	function sendMessage()
+	{
+		var text = document.getElementById("new_message_area").value;
+		if(text == "")
+		{
+			alert("{{T:3567}}");
+			return;
+		}
+		
+		jQuery.ajax({
+			type: "GET",
+			async: true,
+			url: "/content/shop/messager/ajax_send_message.php",
+			dataType: "json",//Тип возвращаемого значения
+			data: "order_id={{ORDER_ID}}&text="+encodeURI(text)+"&csrf_guard_key={{CSRF_JS}}",
+			success: function(answer)
+			{
+				if(answer == true)
+				{
+					document.getElementById("new_message_area").value = "";
+					getOrderMessages();
+				}
+				else
+				{
+					alert("{{T:3568}}");
+				}
+			}
+		});
+	}
+	// --------------------------------------------------------------------------
+	getOrderMessages();//Запрашиваем переписку по заказу
+	
+	setInterval(function(){
+			getOrderMessages();
+		}, 300000);
+	</script>
