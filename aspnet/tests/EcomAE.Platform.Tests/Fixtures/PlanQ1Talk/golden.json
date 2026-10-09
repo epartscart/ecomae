@@ -1,0 +1,326 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "comm_pure",
+            "output": "",
+            "result": [
+                13,
+                [
+                    "new_order_to_manager",
+                    "new_order_to_user",
+                    "lpo_to_supplier",
+                    "order_message_to_manager",
+                    "order_message_to_customer",
+                    "order_status_to_manager",
+                    "order_status_to_customer",
+                    "order_item_status_to_manager",
+                    "order_item_status_to_customer",
+                    "order_pay_to_manager",
+                    "order_pay_to_customer",
+                    "reg_notify_admin",
+                    "vin_zapros"
+                ],
+                "Control panel → Notifications",
+                "vin_zapros",
+                "epc_communication_test_last.json",
+                null,
+                {
+                    "ok": null,
+                    "detail": "epc_notify_email_status unavailable"
+                },
+                {
+                    "ok": true,
+                    "detail": "Ann@X.com=sent; user#9=FAILED;"
+                },
+                {
+                    "ok": false,
+                    "detail": "Ann@X.com=FAILED;"
+                },
+                {
+                    "ok": null,
+                    "detail": "{\"persons\":[{\"contacts\":{\"email\":{\"tried_to_send\":0,\"status\":1,\"value\":\"z@x.com\"}}}]}"
+                },
+                {
+                    "ok": null,
+                    "detail": "no persons"
+                },
+                {
+                    "ok": null,
+                    "detail": "{\"foo\":1}"
+                },
+                {
+                    "ok": null,
+                    "detail": ""
+                },
+                {
+                    "tests": [
+                        {
+                            "name": "a",
+                            "sent": true,
+                            "detail": "x",
+                            "log": "order 1: sent"
+                        },
+                        {
+                            "name": "b",
+                            "sent": false,
+                            "detail": "y",
+                            "log": "order 1: FAILED"
+                        },
+                        {
+                            "name": "c",
+                            "sent": null,
+                            "detail": "z",
+                            "log": "order 1: pending"
+                        },
+                        {
+                            "name": "d",
+                            "sent": null,
+                            "detail": "{\"ok\":true,\"detail\":\"Ann@X.com=sent; user#9=FAILED;\"}",
+                            "extra": 3
+                        }
+                    ]
+                },
+                {
+                    "ok": true,
+                    "n": 2,
+                    "note": "O'Reilly"
+                },
+                null
+            ]
+        },
+        {
+            "name": "comm_db",
+            "output": "",
+            "result": [
+                null,
+                {
+                    "id": 4,
+                    "name": "new_order_to_user",
+                    "caption": "New order",
+                    "email_on": 1,
+                    "sms_on": 0,
+                    "send_for_not_confirmed": 1
+                },
+                {
+                    "user_id": 1,
+                    "email": "ann@x.com",
+                    "phone": "97150",
+                    "password": "EpcCommTest2026!",
+                    "created": true,
+                    "trade_status": "approved"
+                },
+                {
+                    "user_id": 1,
+                    "email": "ann@x.com",
+                    "phone": "97151",
+                    "password": "EpcCommTest2026!",
+                    "created": false,
+                    "trade_status": "approved"
+                },
+                "2feab898af28edcd7a1e1cbc7680b769",
+                {
+                    "phone": "97151",
+                    "email_confirmed": 1,
+                    "unlocked": 1
+                },
+                [
+                    {
+                        "user_id": 1,
+                        "group_id": 3
+                    }
+                ],
+                {
+                    "order_id": 1,
+                    "lines": [
+                        {
+                            "item_id": 1,
+                            "storage_id": 1,
+                            "storage_name": "Main WH",
+                            "article": "EPCCOMM1"
+                        },
+                        {
+                            "item_id": 2,
+                            "storage_id": 2,
+                            "storage_name": "Supplier B",
+                            "article": "EPCCOMM2"
+                        }
+                    ],
+                    "office_id": 8
+                },
+                2,
+                2,
+                1,
+                [
+                    {
+                        "price": "100.50",
+                        "t2_article": "EPCCOMM1",
+                        "t2_price_purchase": "51.00",
+                        "t2_storage": "Main WH"
+                    },
+                    {
+                        "price": "101.50",
+                        "t2_article": "EPCCOMM2",
+                        "t2_price_purchase": "52.00",
+                        "t2_storage": "Supplier B"
+                    }
+                ],
+                "No for_created order status",
+                [
+                    [
+                        1,
+                        "epc_customer_type",
+                        "retail"
+                    ],
+                    [
+                        1,
+                        "epc_trade_approval_status",
+                        "approved"
+                    ],
+                    [
+                        1,
+                        "epc_dealing_currency",
+                        "AED"
+                    ],
+                    [
+                        1,
+                        "name",
+                        "EPC Comm Test Customer"
+                    ],
+                    [
+                        1,
+                        "surname",
+                        "Automated"
+                    ],
+                    [
+                        1,
+                        "epc_customer_type",
+                        "retail"
+                    ],
+                    [
+                        1,
+                        "epc_trade_approval_status",
+                        "approved"
+                    ],
+                    [
+                        1,
+                        "epc_dealing_currency",
+                        "AED"
+                    ],
+                    [
+                        1,
+                        "name",
+                        "EPC Comm Test Customer"
+                    ],
+                    [
+                        1,
+                        "surname",
+                        "Automated"
+                    ]
+                ]
+            ]
+        },
+        {
+            "name": "ac_pure",
+            "output": "",
+            "result": [
+                "8.8.8.8",
+                "1.1.1.1",
+                "203.0.113.10",
+                "9.9.9.9",
+                "0.0.0.0",
+                true,
+                false,
+                true,
+                false,
+                false,
+                true,
+                true,
+                false,
+                false,
+                true,
+                false,
+                true,
+                false,
+                12,
+                0,
+                [
+                    {
+                        "price": 0,
+                        "qty": null,
+                        "exist": null,
+                        "warehouse": "**",
+                        "storage_id": 0,
+                        "price_id": 0,
+                        "keep": "x",
+                        "prices_visible": false
+                    },
+                    "skip",
+                    {
+                        "purchase": 0,
+                        "delivery": 0,
+                        "time_to_exe": 0,
+                        "prices_visible": false
+                    }
+                ],
+                {
+                    "user_id": 12,
+                    "group_id": 5
+                },
+                {
+                    "user_id": 12,
+                    "group_id": 0
+                },
+                {
+                    "user_id": 0,
+                    "group_id": 0
+                },
+                {
+                    "ok": true,
+                    "session_user_id": 0,
+                    "is_bot": false,
+                    "prices_visible": true,
+                    "tech_key": true
+                },
+                {
+                    "ok": true,
+                    "session_user_id": 4,
+                    "is_bot": false,
+                    "prices_visible": true,
+                    "tech_key": false
+                },
+                {
+                    "ok": true,
+                    "session_user_id": 0,
+                    "is_bot": false,
+                    "prices_visible": false,
+                    "tech_key": false
+                }
+            ]
+        },
+        {
+            "name": "ac_rl",
+            "output": "",
+            "result": [
+                {
+                    "blocked": false,
+                    "remaining": 1,
+                    "retry_after": 0,
+                    "count": 1
+                },
+                {
+                    "blocked": false,
+                    "remaining": 0,
+                    "retry_after": 0,
+                    "count": 2
+                },
+                {
+                    "blocked": true,
+                    "remaining": 0,
+                    "retry_after": 60,
+                    "count": 3
+                }
+            ]
+        }
+    ]
+}
