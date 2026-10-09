@@ -17,6 +17,7 @@ public sealed class StorefrontCustomerPhpParityTests
     [InlineData("StorefrontOrdersApp.razor")]
     [InlineData("StorefrontAccountSummaryApp.razor")]
     [InlineData("StorefrontCartApp.razor")]
+    [InlineData("StorefrontCartPage.razor")]
     [InlineData("StorefrontWishlistApp.razor")]
     [InlineData("StorefrontVehicleCatalogApp.razor")]
     [InlineData("StorefrontIndustryProductApp.razor")]

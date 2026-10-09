@@ -89,7 +89,13 @@
                 StorefrontCartAssets.PriceStyles,
                 StorefrontCartAssets.WhatsAppStyles,
                 StorefrontCartAssets.WhatsAppScript(salesDigits, salesDisplay, C("from_name", _brand), C("domain_path", "")));
-            _html = await StorefrontCart.RenderAsync(connection, input, ImageExists, ctx.RequestAborted);
+            var translator = new StorefrontPhpTranslator(connection, lang.TrimStart('/'));
+            _html = await StorefrontCart.RenderAsync(
+                connection,
+                input,
+                key => translator.TextAsync(key, ctx.RequestAborted),
+                ImageExists,
+                ctx.RequestAborted);
         }
         catch (System.Data.Common.DbException ex)
         {

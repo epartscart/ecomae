@@ -41,7 +41,12 @@ public sealed class StorefrontCartTests
             Assert.Equal(name, expected[i].GetProperty("name").GetString());
             await WithDatabaseAsync(password, spec, c, async connection =>
             {
-                var html = await StorefrontCart.RenderAsync(connection, Input(c), file => file == "exists.jpg", CancellationToken.None);
+                var html = await StorefrontCart.RenderAsync(
+                    connection,
+                    Input(c),
+                    key => Task.FromResult("{" + key + "}"),
+                    file => file == "exists.jpg",
+                    CancellationToken.None);
                 if (name == "hostile_db_and_js_values")
                 {
                     Assert.DoesNotContain("</script><script>", html, StringComparison.OrdinalIgnoreCase);
@@ -76,6 +81,35 @@ public sealed class StorefrontCartTests
     }
 
     [Fact]
+    public async Task RuntimeTranslator_ReplacesTemplateAndDynamicTokens()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        using var specDoc = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Fixtures, "cases.json")));
+        var spec = specDoc.RootElement;
+        var c = spec.GetProperty("cases").EnumerateArray().First(x => x.GetProperty("name").GetString() == "signed_cart_all_line_types_and_access_write");
+        await WithDatabaseAsync(password, spec, c, async connection =>
+        {
+            var html = await StorefrontCart.RenderAsync(
+                connection,
+                Input(c),
+                key => Task.FromResult("[translated:" + key + "]"),
+                file => file == "exists.jpg",
+                CancellationToken.None);
+            Assert.DoesNotMatch(@"\{(?:4472|4500|4197|4097|4321)\}", html);
+            Assert.Contains("[translated:4472]", html, StringComparison.Ordinal);
+            Assert.Contains("[translated:4500]", html, StringComparison.Ordinal);
+            Assert.Contains("[translated:4197]", html, StringComparison.Ordinal);
+            Assert.Contains("[translated:4097]", html, StringComparison.Ordinal);
+            Assert.Contains("[translated:4321]", html, StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
     public async Task InaccessibleWrite_CannotUncheckAnotherShopperRow()
     {
         var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
@@ -90,7 +124,12 @@ public sealed class StorefrontCartTests
         await WithDatabaseAsync(password, spec, c, async connection =>
         {
             await ExecAsync(connection, "UPDATE shop_carts SET user_id=8 WHERE id=102");
-            _ = await StorefrontCart.RenderAsync(connection, Input(c), _ => false, CancellationToken.None);
+            _ = await StorefrontCart.RenderAsync(
+                connection,
+                Input(c),
+                key => Task.FromResult("{" + key + "}"),
+                _ => false,
+                CancellationToken.None);
             Assert.Equal(1L, await ScalarAsync(connection, "SELECT checked_for_order FROM shop_carts WHERE id=102"));
         });
     }

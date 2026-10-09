@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
+using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Storefront;
@@ -15,7 +16,7 @@ namespace EcomAE.Platform.Storefront;
 /// Both writes include the current shopper/session ownership predicate.
 /// </summary>
 /// <remarks>Intentional security deviation: database values rendered into HTML/JavaScript are escaped.</remarks>
-public static class StorefrontCart
+public static partial class StorefrontCart
 {
     private static readonly JsonSerializerOptions PhpJson = new()
     {
@@ -61,15 +62,17 @@ public static class StorefrontCart
     public static async Task<string> RenderAsync(
         DbConnection connection,
         Input input,
+        Func<string, Task<string>> translate,
         Func<string, bool> productImageExists,
         CancellationToken cancellationToken)
     {
         if (input.UserId <= 0 && input.GuestCommerceBlocked)
         {
             await ClearGuestCartAsync(connection, input.SessionId, cancellationToken).ConfigureAwait(false);
-            return Fill(BlockedTemplate.Value, input)
+            var blocked = Fill(BlockedTemplate.Value, input)
                 .Replace("{{LOGIN_HREF}}", H(input.LangHref + "/login"), StringComparison.Ordinal)
                 .Replace("{{SIGNUP_HREF}}", H(input.LangHref + "/reg"), StringComparison.Ordinal);
+            return await TranslateAsync(blocked, translate).ConfigureAwait(false);
         }
 
         var sessionId = input.UserId > 0 ? 0 : input.SessionId;
@@ -91,13 +94,31 @@ public static class StorefrontCart
         var html = Fill(template, input).Replace("{{GARAGE_OPTIONS}}", garage, StringComparison.Ordinal);
         if (rows.Count == 0)
         {
-            return html;
+            return await TranslateAsync(html, translate).ConfigureAwait(false);
         }
 
         var cartJson = JsonSerializer.Serialize(rows.Select(JsonRow), PhpJson).Replace("/", "\\/", StringComparison.Ordinal);
-        return html
+        html = html
             .Replace("{{CART_JSON}}", cartJson, StringComparison.Ordinal)
             .Replace("{{CHECKOUT_JS}}", CheckoutJs(input), StringComparison.Ordinal);
+        return await TranslateAsync(html, translate).ConfigureAwait(false);
+    }
+
+    internal static async Task<string> TranslateAsync(string html, Func<string, Task<string>> translate)
+    {
+        var output = new StringBuilder(html.Length);
+        var at = 0;
+        foreach (Match match in TranslationToken().Matches(html))
+        {
+            output.Append(html, at, match.Index - at);
+            var translated = await translate(match.Groups[1].Value).ConfigureAwait(false);
+            var openScript = html.LastIndexOf("<script", match.Index, StringComparison.OrdinalIgnoreCase);
+            var closeScript = html.LastIndexOf("</script", match.Index, StringComparison.OrdinalIgnoreCase);
+            output.Append(openScript > closeScript ? JsHtml(translated) : translated);
+            at = match.Index + match.Length;
+        }
+
+        return output.Append(html, at, html.Length - at).ToString();
     }
 
     private static object JsonRow(CartRow row) => new Dictionary<string, object?>(StringComparer.Ordinal)
@@ -378,4 +399,7 @@ public static class StorefrontCart
         }
         return rows;
     }
+
+    [GeneratedRegex(@"\{([A-Za-z0-9_.:-]+)\}")]
+    private static partial Regex TranslationToken();
 }

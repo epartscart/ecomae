@@ -157,14 +157,14 @@ public sealed class StorefrontFrontendParityWaveTests
     }
 
     [Fact]
-    public void CartApp_WiresNativeQtyCheckDeleteForms()
+    public void CartPage_PreservesLegacyAjaxClientCalls()
     {
-        var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartApp.razor");
-        Assert.Contains("/storefront/cart/change-count-need", text, StringComparison.Ordinal);
-        Assert.Contains("/storefront/cart/check-for-order", text, StringComparison.Ordinal);
-        Assert.Contains("/storefront/cart/delete", text, StringComparison.Ordinal);
-        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
-        Assert.Contains("method=\"post\"", text, StringComparison.Ordinal);
+        var text = Read("aspnet/src/EcomAE.Platform/Storefront/Templates/CartSigned.html");
+        Assert.Contains("/content/shop/order_process/ajax_change_count_need.php", text, StringComparison.Ordinal);
+        Assert.Contains("/content/shop/order_process/ajax_check_for_order.php", text, StringComparison.Ordinal);
+        Assert.Contains("/content/shop/order_process/ajax_delete_cart_record.php", text, StringComparison.Ordinal);
+        Assert.Contains("/content/shop/docpart/garage/ajax_add_to_notepad.php", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/storefront/cart/change-count-need", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onchange", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Compare PHP reference", text, StringComparison.Ordinal);
