@@ -1,0 +1,362 @@
+{
+  "cases": [
+    {
+      "name": "bulk_missing",
+      "file": "cp/content/shop/bulk_upload/bulk_upload_hub_page.php",
+      "config": { "backend_dir": "cp" }
+    },
+    {
+      "name": "bulk_ok",
+      "file": "cp/content/shop/bulk_upload/bulk_upload_hub_page.php",
+      "config": { "backend_dir": "cp" },
+      "stubs": { "cp/content/shop/bulk_upload/bulk_upload_hub.php": "<?php echo 'INCLUDED-bulk';" }
+    },
+    {
+      "name": "payments_guide_missing",
+      "file": "cp/content/shop/payments/payments_guide_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "payments_main_login",
+      "file": "cp/content/shop/payments/payments_main_page.php",
+      "config": { "backend_dir": "CP&x" },
+      "admin_session": false
+    },
+    {
+      "name": "payments_main_missing",
+      "file": "cp/content/shop/payments/payments_main_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "payments_main_ok",
+      "file": "cp/content/shop/payments/payments_main_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 },
+      "stubs": { "cp/content/shop/payments/payments_main.php": "<?php echo 'INCLUDED-pay';" }
+    },
+    {
+      "name": "pos_login",
+      "file": "cp/content/shop/pos/epc_pos_terminal_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": false
+    },
+    {
+      "name": "pos_missing",
+      "file": "cp/content/shop/pos/epc_pos_terminal_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "channels_main_login",
+      "file": "cp/content/shop/channels/channels_main_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": false
+    },
+    {
+      "name": "channels_main_missing",
+      "file": "cp/content/shop/channels/channels_main_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "marketing_main_missing",
+      "file": "cp/content/shop/marketing/marketing_main_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "tenant_hub_login",
+      "file": "cp/content/shop/tenant_hub/tenant_hub_main_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": false
+    },
+    {
+      "name": "tenant_hub_missing",
+      "file": "cp/content/shop/tenant_hub/tenant_hub_main_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "customer_main_missing",
+      "file": "cp/content/shop/customer_mgmt/customer_mgmt_main_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "procurement_main_missing",
+      "file": "cp/content/shop/procurement/procurement_main_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "multivendor_login",
+      "file": "cp/content/shop/prices_upload/multivendor_upload_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": false
+    },
+    {
+      "name": "multivendor_missing",
+      "file": "cp/content/shop/prices_upload/multivendor_upload_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "carriers_missing",
+      "file": "cp/content/shop/logistics/logistics_carriers_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "doc_control_login",
+      "file": "cp/content/shop/document_control/document_control_main_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": false
+    },
+    {
+      "name": "doc_control_missing",
+      "file": "cp/content/shop/document_control/document_control_main_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "guideline_missing",
+      "file": "cp/content/control/cp_guideline_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "channels_guide_missing",
+      "file": "cp/content/shop/channels/channels_guide_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "logistics_guide_missing",
+      "file": "cp/content/shop/logistics/logistics_guide_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "prices_guide_login",
+      "file": "cp/content/shop/prices_upload/prices_guide_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": false
+    },
+    {
+      "name": "prices_guide_missing",
+      "file": "cp/content/shop/prices_upload/prices_guide_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "oms_guide_missing",
+      "file": "cp/content/shop/order_process/oms_daily_guide_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "fulfilment_guide_missing",
+      "file": "cp/content/shop/order_process/order_fulfilment_guide_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "whatsapp_guide_missing",
+      "file": "cp/content/shop/order_process/whatsapp_guide_page.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "id": 1 }
+    },
+    {
+      "name": "web_tracker_ok",
+      "file": "cp/content/shop/statistics/web_tracker.php",
+      "stubs": { "cp/content/control/portal/epc_web_tracker.php": "<?php echo 'INCLUDED-tracker';" }
+    },
+    {
+      "name": "eparts_cata_missing",
+      "file": "content/eparts_cata.php"
+    },
+    {
+      "name": "eparts_cata_ok",
+      "file": "content/eparts_cata.php",
+      "stubs": { "content/eparts_mod_catalog.php": "<?php echo 'INCLUDED-cata';" }
+    },
+    {
+      "name": "related_products",
+      "file": "cp/content/shop/catalogue/related_products.php",
+      "config": { "backend_dir": "cp" },
+      "stubs": { "cp/content/shop/catalogue/products.php": "<?php echo 'INCLUDED-products';" }
+    },
+    {
+      "name": "prices_guide_wrap_ok",
+      "file": "cp/content/shop/prices_upload/guide.php",
+      "copy_file": true,
+      "admin_session": { "id": 1 },
+      "stubs": { "cp/content/shop/prices_upload/prices_upload_guide.php": "<?php echo 'INCLUDED-guide';" }
+    },
+    {
+      "name": "eparts_product_article",
+      "file": "content/eparts_product.php",
+      "get": { "article": "OC 90", "brand": "KNECHT" },
+      "vars": { "multilang_params": { "lang_href": "/en/" } }
+    },
+    {
+      "name": "eparts_product_empty",
+      "file": "content/eparts_product.php",
+      "vars": { "multilang_params": { "lang_href": "/ar" } }
+    },
+    {
+      "name": "eparts_product_category",
+      "file": "content/eparts_product.php",
+      "get": { "category": "filters & x" },
+      "vars": { "multilang_params": { "lang_href": "/en" } }
+    },
+    {
+      "name": "returns_hub_missing_router",
+      "file": "cp/content/shop/returns/returns.php",
+      "config": { "backend_dir": "cp" },
+      "template": "bootstrap_admin"
+    },
+    {
+      "name": "returns_router_fallback",
+      "file": "cp/content/shop/returns/router.php",
+      "copy_file": true,
+      "config": { "backend_dir": "CP&x" }
+    },
+    {
+      "name": "returns_router_detail",
+      "file": "cp/content/shop/returns/router.php",
+      "copy_file": true,
+      "get": { "return_id": "12" },
+      "config": { "backend_dir": "cp" },
+      "stubs": { "cp/content/shop/returns/return_detail.php": "<?php echo 'INCLUDED-detail';" }
+    },
+    {
+      "name": "returns_router_reasons",
+      "file": "cp/content/shop/returns/router.php",
+      "copy_file": true,
+      "get": { "page": "reasons_statuses" },
+      "config": { "backend_dir": "cp" },
+      "stubs": { "cp/content/shop/returns/reasons_statuses.php": "<?php echo 'INCLUDED-reasons';" }
+    },
+    {
+      "name": "page_guard_login",
+      "file": "cp/content/control/epc_cp_page_guard.php",
+      "config": { "backend_dir": "CP&x" },
+      "eval": "ob_start(); $ok = epc_cp_page_require_admin('Auth <b>'); $html = ob_get_clean(); return array('ok' => $ok, 'html' => $html, 'login' => epc_cp_page_login_url());"
+    },
+    {
+      "name": "page_guard_include_missing",
+      "file": "cp/content/control/epc_cp_page_guard.php",
+      "config": { "backend_dir": "cp" },
+      "is_admin": true,
+      "eval": "ob_start(); epc_cp_page_include('content/control/missing.php', 'Module <b> gone'); return ob_get_clean();"
+    },
+    {
+      "name": "fast_tenant_hosts",
+      "file": "cp/epc_cp_fast_tenant.php",
+      "eval": "return array(epc_cp_is_fast_tenant_host());",
+      "host": "www.epartscart.com:8080"
+    },
+    {
+      "name": "fast_tenant_skip",
+      "file": "cp/epc_cp_fast_tenant.php",
+      "host": "epartscart.com",
+      "eval": "function epc_cp_request_route() { return $GLOBALS['__route'] ?? ''; } $GLOBALS['__route'] = 'shop/orders'; return array('skip' => epc_cp_should_skip_erp_routers(), 'erp' => ($GLOBALS['__route'] = 'client-erp/x') && epc_cp_should_skip_erp_routers());"
+    },
+    {
+      "name": "tax_tree",
+      "file": "content/shop/price_engine/epc_tax_advisory_taxonomy.php",
+      "eval": "return epc_tax_advisory_seed_tree();"
+    },
+    {
+      "name": "marketing_schema",
+      "file": "content/shop/marketing/epc_marketing_schema.php",
+      "eval": "$rf = new ReflectionFunction('epc_marketing_ensure_schema'); $src = file($rf->getFileName()); return implode('', array_slice($src, $rf->getStartLine(), $rf->getEndLine() - $rf->getStartLine() - 1));"
+    },
+    {
+      "name": "health_guest",
+      "file": "cp/content/control/portal/epc_platform_health_checkup_config.php",
+      "is_admin": false
+    },
+    {
+      "name": "health_admin",
+      "file": "cp/content/control/portal/epc_platform_health_checkup_config.php",
+      "is_admin": true
+    },
+    {
+      "name": "governance_guest",
+      "file": "cp/content/control/portal/epc_platform_governance_config.php",
+      "is_admin": false,
+      "config": { "backend_dir": "cp" }
+    },
+    {
+      "name": "governance_admin",
+      "file": "cp/content/control/portal/epc_platform_governance_config.php",
+      "is_admin": true,
+      "config": { "backend_dir": "cp" }
+    },
+    {
+      "name": "web_tracker_config",
+      "file": "cp/content/control/portal/epc_web_tracker_config.php",
+      "config": { "backend_dir": "cp" },
+      "is_super": true
+    },
+    {
+      "name": "doc_control_config_guest",
+      "file": "cp/content/shop/document_control/epc_document_control_config.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": false
+    },
+    {
+      "name": "doc_control_config_admin",
+      "file": "cp/content/shop/document_control/epc_document_control_config.php",
+      "config": { "backend_dir": "cp" },
+      "admin_session": { "csrf_guard_key": "k\"&x" }
+    },
+    {
+      "name": "industry_switch_ok",
+      "file": "cp/epc_portal_industry_switch.php",
+      "get": { "industry": "Fashion!!", "back": "/cp/shop" },
+      "config": { "backend_dir": "cp" }
+    },
+    {
+      "name": "industry_switch_bad_back",
+      "file": "cp/epc_portal_industry_switch.php",
+      "get": { "industry": "nope", "back": "https://evil.test/\nX" },
+      "config": { "backend_dir": "cp" }
+    },
+    {
+      "name": "api_debug_off",
+      "file": "cp/content/shop/logistics/api_debug.php",
+      "get": { "storage_id": "1e1" },
+      "config": { "backend_dir": "cp", "suppliers_api_debug": 0 }
+    },
+    {
+      "name": "api_debug_missing_log",
+      "file": "cp/content/shop/logistics/api_debug.php",
+      "get": { "storage_id": "7" },
+      "config": { "backend_dir": "cp", "suppliers_api_debug": 1 }
+    },
+    {
+      "name": "api_debug_log",
+      "file": "cp/content/shop/logistics/api_debug.php",
+      "get": { "storage_id": "7" },
+      "config": { "backend_dir": "cp", "suppliers_api_debug": 1 },
+      "stubs": { "cp/tmp/suppliers_api_log/7.php": "<?php echo 'LOG7';" }
+    },
+    {
+      "name": "customer_guide_shop",
+      "file": "cp/content/shop/customer_mgmt/customer_mgmt_guide.php",
+      "vars": { "approvalsUrl": "/cp/a&x", "ordersUrl": "/cp/orders", "erpUrl": "/cp/erp" },
+      "prelude": "function epc_cm_h($v) { return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); }"
+    },
+    {
+      "name": "customer_guide_users",
+      "file": "cp/content/users/customer_mgmt_guide.php",
+      "vars": { "approvalsUrl": "/cp/a&x", "ordersUrl": "/cp/orders", "erpUrl": "/cp/erp" },
+      "prelude": "function epc_cm_h($v) { return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); }"
+    }
+  ]
+}

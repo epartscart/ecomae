@@ -330,6 +330,14 @@ Not complete.
 - The products-style cookie follows PHP 8.3 `(int)` (scientific-notation strings included), PHP request-key rewriting (`.`, space and `+` become `_`), and `(int)` of a non-empty array is 1. GET does not mint a guest session.
 - Evidence: PHP 8.3.6 produced `Fixtures/StorefrontFragments/golden.json` and `golden_http.json`. The fragment suite passed 5 of 5. The weighted headline stays about 20.4%.
 
+### Checkpoint 2026-10-09 — CP eval-safe wrappers and small storefront/CP scripts
+
+Not complete.
+
+- Ratchet 695 to 657. Thirty-eight small non-ERP files now have PHP 8.3 goldens and an ASP.NET twin: the eval-safe CP page wrappers (payments, POS, channels, marketing, tenant hub, customer management, procurement, multi-vendor upload, logistics carriers, Document Control, CP guideline, price/OMS/fulfilment/WhatsApp/channels/logistics guides, bulk-upload hub, web-tracker include), `related_products.php`, both `customer_mgmt_guide.php` copies, `returns.php` + `router.php`, `epc_cp_page_guard.php`, `epc_cp_fast_tenant.php`, `epc_portal_industry_switch.php`, the health/governance/web-tracker/document-control JS config scripts, `api_debug.php`, `eparts_cata.php`, `eparts_product.php`, `epc_tax_advisory_taxonomy.php`, `epc_marketing_schema.php`, and `prices_upload/guide.php`. Each wrapper is the session gate and include-or-alert only; the included module body stays its own gap.
+- Industry switch sanitizes `[^a-z0-9_]` and rejects `://` or newline in `back`. JS configs follow PHP `json_encode` flags (`JSON_HEX_TAG|JSON_HEX_AMP` vs `JSON_UNESCAPED_SLASHES`). `eparts_product` uses RFC3986 `http_build_query` and default `json_encode` (slashes escaped). GET does not mint a guest session. Industry switch stores the filter in a cookie (`epc_cp_industry_filter`) instead of PHP `$_SESSION`.
+- Evidence: PHP 8.3.6 produced `Fixtures/CpSmallPages/golden.json` (60 cases). The small-pages suite passed 4 of 4. Inventory content 405 to 409 of 952, cp-page 203 to 237 of 523. Unnamed PHP functions 7,860 to 7,851. The weighted headline stays about 20.4%. Non-ERP pending: 491 files / 205,621 lines (was 529 / 206,769). ERP finance (Devin) unchanged: 166 / 66,191.
+
 ### Checkpoint 2026-10-09 — next small storefront/CP includes and PHP-only CMS classes
 
 Not complete.

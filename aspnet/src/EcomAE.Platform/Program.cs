@@ -1912,6 +1912,7 @@ app.MapEcomAeSurfaceModules();
 PhpLegacyAssetBridge.Map(app, app.Environment);
 PhpCpConfigScripts.Map(app);
 PhpCpTinyPages.Map(app);
+PhpCpSmallScripts.Map(app);
 OAuthStartEndpoint.Map(app);
 AuthEmailOtpEndpoints.Map(app);
 EcomAE.Platform.Storefront.FreeToolsAjaxEndpoint.Map(app);
