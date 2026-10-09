@@ -1,0 +1,132 @@
+@page "/en/shop/cart"
+@page "/shop/cart"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
+@inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
+@inject IStorefrontGuestSessionService Guests
+@inject IStorefrontPriceAccess PriceAccess
+@inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
+@inject Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions> PhpReference
+@inject IWebHostEnvironment Env
+@inject ILogger<StorefrontCartPage> Log
+
+<PageTitle>Cart · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container">
+            <script>window.jQuery || document.write('<script src="/lib/jQuery/jQuery.js"><\/script>');</script>
+            @((MarkupString)_html)
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private string _html = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
+        var config = EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(PhpReference.Value);
+        var lang = StorefrontPhpHomeLinks.LangHref(ctx);
+        try
+        {
+            var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
+            var shopper = session.Kind == LegacySessionKind.Customer && session.UserId > 0
+                ? new StorefrontShopper(session.UserId, 0, session.SessionId ?? "", false)
+                : await Guests.ResolveAsync(ctx, createIfMissing: false, ctx.RequestAborted);
+            var access = await PriceAccess.ResolveAsync(ctx, ctx.RequestAborted);
+
+            await using var connection = await Connections.OpenForTenantAsync(tenant, ctx.RequestAborted);
+            var csrf = await CsrfAsync(connection, shopper.SessionToken, ctx.RequestAborted);
+            var tradeMessage = shopper.IsSignedIn
+                ? await EpcCustomerTrade.CheckoutBlockMessageAsync(connection, null, shopper.UserId, ctx.RequestAborted)
+                : string.Empty;
+            var root = PhpReference.Value.PhpDocRoot;
+            if (string.IsNullOrWhiteSpace(root))
+            {
+                root = Env.ContentRootPath;
+            }
+            bool ImageExists(string file)
+            {
+                if (Path.GetFileName(file) != file)
+                {
+                    return false;
+                }
+                return File.Exists(Path.Combine(root!, "content", "files", "images", "products_images", file));
+            }
+
+            string C(string key, string fallback) => config.TryGetValue(key, out var value) && !string.IsNullOrEmpty(value) ? value : fallback;
+            var salesDisplay = C("epc_whatsapp_number", "+971 56 760 7011");
+            var salesDigits = new string(salesDisplay.Where(char.IsDigit).ToArray());
+            if (salesDigits.Length == 0)
+            {
+                salesDigits = "971567607011";
+            }
+            var input = new StorefrontCart.Input(
+                shopper.UserId,
+                shopper.SessionRecordId,
+                csrf,
+                shopper.UserId <= 0 && access.State == StorefrontPriceAccessState.Guest,
+                tradeMessage.Length > 0,
+                tradeMessage,
+                lang,
+                C("product_url", "alias"),
+                StorefrontCartAssets.PriceStyles,
+                StorefrontCartAssets.WhatsAppStyles,
+                StorefrontCartAssets.WhatsAppScript(salesDigits, salesDisplay, C("from_name", _brand), C("domain_path", "")));
+            var translator = new StorefrontPhpTranslator(connection, lang.TrimStart('/'));
+            _html = await StorefrontCart.RenderAsync(
+                connection,
+                input,
+                key => translator.TextAsync(key, ctx.RequestAborted),
+                ImageExists,
+                ctx.RequestAborted);
+        }
+        catch (System.Data.Common.DbException ex)
+        {
+            Log.LogWarning(ex, "Cart page query failed");
+            _html = "<p>Cart is unavailable right now.</p>";
+        }
+        catch (InvalidOperationException ex)
+        {
+            Log.LogWarning(ex, "Cart page render failed");
+            _html = "<p>Cart is unavailable right now.</p>";
+        }
+    }
+
+    private static async Task<string> CsrfAsync(System.Data.Common.DbConnection connection, string token, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(token))
+        {
+            return string.Empty;
+        }
+        try
+        {
+            return await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT IFNULL(`csrf_guard_key`,'') FROM `sessions` WHERE `session` = ? LIMIT 1"),
+                cancellationToken,
+                token).ConfigureAwait(false) ?? string.Empty;
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return string.Empty;
+        }
+    }
+}

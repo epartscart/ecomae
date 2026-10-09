@@ -116,14 +116,18 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("#66bf05", orders, StringComparison.Ordinal);
         Assert.Contains("#f2f2f2", orders, StringComparison.Ordinal);
 
+        var cartPage = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartPage.razor"));
         var cart = File.ReadAllText(Find(
-            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartApp.razor"));
+            "aspnet/src/EcomAE.Platform/Storefront/Templates/CartSigned.html"));
+        Assert.Contains("@page \"/en/shop/cart\"", cartPage, StringComparison.Ordinal);
+        Assert.Contains("StorefrontCart.RenderAsync(", cartPage, StringComparison.Ordinal);
+        Assert.Contains("StorefrontPhpTranslator", cartPage, StringComparison.Ordinal);
         Assert.Contains("id=\"cart_area\"", cart, StringComparison.Ordinal);
         Assert.Contains("id=\"check_uncheck_all\"", cart, StringComparison.Ordinal);
         Assert.Contains("count_need_", cart, StringComparison.Ordinal);
         Assert.Contains("epc-wa-share-btn", cart, StringComparison.Ordinal);
         Assert.Contains("btn btn-ar btn-primary", cart, StringComparison.Ordinal);
-        Assert.Contains("CheckoutHowGet", cart, StringComparison.Ordinal);
 
         var profile = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontProfileApp.razor"));

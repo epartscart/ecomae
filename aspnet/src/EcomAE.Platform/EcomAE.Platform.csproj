@@ -23,5 +23,7 @@
     <EmbeddedResource Include="Storefront/Captcha/*" LogicalName="EcomAE.Platform.Captcha.%(Filename)%(Extension)" />
     <None Remove="Storefront/Templates/MyOrder*.html" />
     <EmbeddedResource Include="Storefront/Templates/MyOrder*.html" LogicalName="EcomAE.Platform.Storefront.Templates.%(Filename)%(Extension)" />
+    <None Remove="Storefront/Templates/Cart*.html" />
+    <EmbeddedResource Include="Storefront/Templates/Cart*.html" LogicalName="EcomAE.Platform.Storefront.Templates.%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

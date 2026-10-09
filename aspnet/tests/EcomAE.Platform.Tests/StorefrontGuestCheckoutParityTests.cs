@@ -63,11 +63,12 @@ public sealed class StorefrontGuestCheckoutParityTests
         Assert.Contains("phone_required", checkout, StringComparison.Ordinal);
         Assert.Contains("StorefrontHowGetCookie.BuildHowGetJson", checkout, StringComparison.Ordinal);
 
-        var cartApp = File.ReadAllText(FindRepoFile(
-            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartApp.razor"));
-        Assert.Contains("Please log in or register to continue.", cartApp, StringComparison.Ordinal);
-        Assert.Contains("ValidateCustomerAsync", cartApp, StringComparison.Ordinal);
-        Assert.Contains("IStorefrontGuestSessionService", cartApp, StringComparison.Ordinal);
+        var cartPage = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartPage.razor"));
+        Assert.Contains("ValidateCustomerAsync", cartPage, StringComparison.Ordinal);
+        Assert.Contains("IStorefrontGuestSessionService", cartPage, StringComparison.Ordinal);
+        Assert.Contains("createIfMissing: false", cartPage, StringComparison.Ordinal);
+        Assert.Contains("StorefrontPhpTranslator", cartPage, StringComparison.Ordinal);
 
         var guestOrder = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGuestOrderApp.razor"));

@@ -41,16 +41,22 @@ public sealed class StorefrontCartAddLoginParityTests
     }
 
     [Fact]
-    public void CartApp_UsesValidateCustomerAsyncAndPhpLoginMessage()
+    public void CartPage_UsesCustomerAndGuestSessionsWithPhpLoginGate()
     {
-        var text = File.ReadAllText(FindRepoFile(
-            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartApp.razor"));
-        Assert.Contains("ValidateCustomerAsync", text, StringComparison.Ordinal);
-        Assert.Contains("Please log in or register to continue.", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("Add to cart is live on ASP.NET", text, StringComparison.Ordinal);
-        Assert.Contains("id=\"cart_area\"", text, StringComparison.Ordinal);
-        Assert.Contains("epc-cart-login-gate", text, StringComparison.Ordinal);
-        Assert.Contains("table cart_table", text, StringComparison.Ordinal);
+        var page = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartPage.razor"));
+        var blocked = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Storefront/Templates/CartBlocked.html"));
+        var cart = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Storefront/Templates/CartSigned.html"));
+        Assert.Contains("ValidateCustomerAsync", page, StringComparison.Ordinal);
+        Assert.Contains("createIfMissing: false", page, StringComparison.Ordinal);
+        Assert.Contains("StorefrontPhpTranslator", page, StringComparison.Ordinal);
+        Assert.Contains("Sign in to use your cart", blocked, StringComparison.Ordinal);
+        Assert.DoesNotContain("Add to cart is live on ASP.NET", blocked, StringComparison.Ordinal);
+        Assert.Contains("id=\"cart_area\"", blocked, StringComparison.Ordinal);
+        Assert.Contains("epc-cart-login-gate", blocked, StringComparison.Ordinal);
+        Assert.Contains("table cart_table", cart, StringComparison.Ordinal);
     }
 
     [Fact]
