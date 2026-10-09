@@ -330,6 +330,14 @@ Not complete.
 - The products-style cookie follows PHP 8.3 `(int)` (scientific-notation strings included), PHP request-key rewriting (`.`, space and `+` become `_`), and `(int)` of a non-empty array is 1. GET does not mint a guest session.
 - Evidence: PHP 8.3.6 produced `Fixtures/StorefrontFragments/golden.json` and `golden_http.json`. The fragment suite passed 5 of 5. The weighted headline stays about 20.4%.
 
+### Checkpoint 2026-10-09 — industry footers, SEO helpers, logos and CP JS configs
+
+Not complete.
+
+- Ratchet 617 to 603. Fourteen more self-contained non-ERP files now have PHP 8.3 goldens and an ASP.NET twin (`PhpIndustryChrome`): the four industry footers (fashion, electronics, jewellery, consulting), the four SEO helper libraries (`store_name` / `tagline` / `apply_seo` / `patch_template` / scrub), `epc_storefront_animated_logos.php`, `epc_marketing_broadcast_templates.php` (`epc_mb_email_templates` / `epc_mb_whatsapp_templates` / `epc_mb_apply_template_vars`), `epc_channel_schema.php` (`epc_channel_ensure_schema` plus the six table names), `epc_cp_page_frame.php`, `epc_filemanager_config.php` (always emits `window.EPC_FILEMANAGER={…}` even without a session, like PHP), and `orders_items_config.php` (`window.EPC_OI={}` without an admin session). The industry data libraries stay gaps; the footer twins take the already-resolved columns/social/payments. Search tabs, `printProducts*`, `side_menu`, page-builder render, BOC consoles and `orders_background` stay skipped until their parents land.
+- Filemanager and orders-items JS configs stay outside the CP login wall like PHP. GET does not mint a guest session.
+- Evidence: PHP 8.3.6 produced `Fixtures/IndustryChrome/golden.json` (43 cases). The IndustryChrome suite is 4 of 4. Inventory content 430 to 442 of 952, cp-page 250 to 252 of 523. Unnamed PHP functions 7,819 to 7,779. The weighted headline stays about 20.4%. Non-ERP pending: 437 files / 201,982 lines (was 451 / 203,366). ERP finance (Devin) unchanged: 166 / 66,191.
+
 ### Checkpoint 2026-10-09 — Levam, news, favicon, auth links and industry heroes
 
 Not complete.

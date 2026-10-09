@@ -125,7 +125,8 @@ public sealed class AdminSurfaceAuthGateMiddleware
             || Presentation.PhpCpConfigScripts.IsScriptPath(value)
             || Presentation.PhpCpTinyPages.IsScriptPath(value)
             || Presentation.PhpCpSmallScripts.IsScriptPath(value)
-            || Presentation.PhpNextSmallBatch.IsScriptPath(value))
+            || Presentation.PhpNextSmallBatch.IsScriptPath(value)
+            || Presentation.PhpIndustryChrome.IsScriptPath(value))
         {
             return false;
         }

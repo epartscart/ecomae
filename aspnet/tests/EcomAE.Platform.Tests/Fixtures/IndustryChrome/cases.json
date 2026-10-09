@@ -1,0 +1,230 @@
+{
+  "cases": [
+    {
+      "name": "footer_frn",
+      "file": "content/general_pages/epc_portal_fashion_retail_namshi_footer.php",
+      "vars": { "multilang_params": { "lang_href": "/en/" } },
+      "trade": "Style&Co",
+      "hosted": " <em>hosted</em>",
+      "footer": {
+        "kind": "frn",
+        "columns": [{ "title": "Care", "links": [{ "label": "A&B", "href": "/help" }, { "label": "Ext", "href": "https://x.com" }] }],
+        "social": [{ "label": "IG", "href": "https://ig.com/?q=1", "icon": "fa-instagram" }],
+        "payments": ["visa"]
+      }
+    },
+    {
+      "name": "footer_er",
+      "file": "content/general_pages/epc_portal_electronics_retail_footer.php",
+      "vars": { "multilang_params": { "lang_href": "/ar" } },
+      "trade": "Electro",
+      "footer": {
+        "kind": "er",
+        "columns": [{ "title": "Shop", "links": [{ "label": "Phones", "href": "/phones" }] }],
+        "social": [],
+        "payments": ["mastercard"]
+      }
+    },
+    {
+      "name": "footer_jrk",
+      "file": "content/general_pages/epc_portal_jewellery_retail_kiyasha_footer.php",
+      "vars": { "multilang_params": { "lang_href": "/en" } },
+      "trade": "Gold",
+      "footer": {
+        "kind": "jrk",
+        "columns": [{ "title": "Bridal", "links": [{ "label": "Rings", "href": "/rings" }] }],
+        "social": [{ "label": "FB", "href": "https://fb.com/", "icon": "fa-facebook" }],
+        "payments": ["applepay"]
+      }
+    },
+    {
+      "name": "footer_cpi",
+      "file": "content/general_pages/epc_portal_consulting_primeinvest_footer.php",
+      "vars": { "multilang_params": { "lang_href": "/en/" } },
+      "trade": "Tax&Co",
+      "hosted": "host",
+      "brand": "<b>Brand</b>",
+      "social": [{ "url": "https://li.com/", "label": "LI", "icon": "fa-linkedin" }],
+      "footer": {
+        "kind": "cpi",
+        "columns": [{ "title": "Srv", "links": [{ "label": "VAT", "href": "/#vat" }] }],
+        "contact": { "email": "a@b.com", "phone": "+971" }
+      }
+    },
+    {
+      "name": "footer_frn_href",
+      "eval": "ob_start(); require $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_portal_fashion_retail_namshi_footer.php'; ob_end_clean(); return array(epc_frn_footer_href('/en/', '/help'), epc_frn_footer_href('/en', 'https://x.com'), epc_frn_footer_href('/ar', ''));",
+      "vars": { "multilang_params": { "lang_href": "/en" } },
+      "footer": { "kind": "frn", "columns": [], "social": [], "payments": [] }
+    },
+    {
+      "name": "seo_frn_defaults",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_fashion_retail_namshi_helpers.php'; return array(epc_fashion_retail_namshi_store_name(), epc_fashion_retail_namshi_tagline(), epc_fashion_retail_namshi_public_url());"
+    },
+    {
+      "name": "seo_frn_named",
+      "settings": { "system_name": "  MyShop  ", "tagline": "  Wear it  ", "domain_path": "https://shop.test" },
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_fashion_retail_namshi_helpers.php'; return array(epc_fashion_retail_namshi_store_name(), epc_fashion_retail_namshi_tagline(), epc_fashion_retail_namshi_public_url());"
+    },
+    {
+      "name": "seo_frn_apply_main",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_fashion_retail_namshi_helpers.php'; $c=new stdClass(); $c->main_flag=1; $c->value='x'; epc_fashion_retail_namshi_apply_seo($c); return array($c->title_tag,$c->description_tag,$c->keywords_tag);"
+    },
+    {
+      "name": "seo_frn_apply_page",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_fashion_retail_namshi_helpers.php'; $c=new stdClass(); $c->main_flag=0; $c->value=' <b>Dresses</b> '; epc_fashion_retail_namshi_apply_seo($c); return array($c->title_tag,$c->description_tag,$c->keywords_tag);"
+    },
+    {
+      "name": "seo_frn_apply_bad",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_fashion_retail_namshi_helpers.php'; $c=new stdClass(); $c->value='eParts Cart sale'; epc_fashion_retail_namshi_apply_seo($c); return array($c->title_tag,$c->description_tag,$c->keywords_tag);"
+    },
+    {
+      "name": "seo_frn_patch",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_fashion_retail_namshi_helpers.php'; return epc_fashion_retail_namshi_patch_template_html('<html><title>Old</title><meta name=\"keywords\" content=\"k\"><meta name=\"description\" content=\"d\"></html>');"
+    },
+    {
+      "name": "seo_frn_scrub",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_fashion_retail_namshi_helpers.php'; return epc_fashion_retail_namshi_scrub_legacy_strings('eParts Cart (Autoparts) sells auto parts and Autoparts spare parts');"
+    },
+    {
+      "name": "seo_er_defaults",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_electronics_retail_helpers.php'; return array(epc_electronics_retail_store_name(), epc_electronics_retail_tagline(), epc_electronics_retail_public_url());",
+      "host": "el.test"
+    },
+    {
+      "name": "seo_er_apply_main",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_electronics_retail_helpers.php'; $c=new stdClass(); $c->main_flag=true; epc_electronics_retail_apply_seo($c); return array($c->title_tag,$c->description_tag,$c->keywords_tag);"
+    },
+    {
+      "name": "seo_er_scrub",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_electronics_retail_helpers.php'; return epc_electronics_retail_scrub_autoparts_strings('Buy autoparts and spare parts at eParts Cart');"
+    },
+    {
+      "name": "seo_jrk_defaults",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_jewellery_retail_kiyasha_helpers.php'; return array(epc_jewellery_retail_kiyasha_store_name(), epc_jewellery_retail_kiyasha_tagline());"
+    },
+    {
+      "name": "seo_jrk_apply_main",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_jewellery_retail_kiyasha_helpers.php'; $c=new stdClass(); $c->main_flag=1; epc_jewellery_retail_kiyasha_apply_seo($c); return array($c->title_tag,$c->description_tag,$c->keywords_tag);"
+    },
+    {
+      "name": "seo_jrk_public",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_jewellery_retail_kiyasha_helpers.php'; return epc_jewellery_retail_kiyasha_public_url();",
+      "config": { "domain_path": "https://gold.test/" }
+    },
+    {
+      "name": "seo_cpi_defaults",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_consulting_primeinvest_helpers.php'; return array(epc_cpi_store_name(), epc_cpi_tagline());"
+    },
+    {
+      "name": "seo_cpi_trade",
+      "settings": { "contact": { "trade_name": "  Prime  " }, "tagline": "Advice" },
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_consulting_primeinvest_helpers.php'; return array(epc_cpi_store_name(), epc_cpi_tagline());"
+    },
+    {
+      "name": "seo_cpi_apply_main",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_consulting_primeinvest_helpers.php'; $c=new stdClass(); $c->main_flag=1; epc_cpi_apply_seo($c); return array($c->title_tag,$c->description_tag,$c->keywords_tag);"
+    },
+    {
+      "name": "seo_cpi_patch",
+      "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_consulting_primeinvest_helpers.php'; return epc_cpi_patch_template_html('<title>eParts Cart</title><meta name=\"keywords\" content=\"k\"><meta name=\"description\" content=\"d\"> Autoparts');"
+    },
+    {
+      "name": "logo_enqueue",
+      "eval": "require $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_storefront_animated_logos.php'; ob_start(); epc_storefront_animated_logo_enqueue(); epc_storefront_animated_logo_enqueue(); return ob_get_clean();"
+    },
+    {
+      "name": "logo_fashion",
+      "eval": "require $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_storefront_animated_logos.php'; return epc_storefront_animated_logo_fashion('A&B');"
+    },
+    {
+      "name": "logo_electronics",
+      "eval": "require $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_storefront_animated_logos.php'; return epc_storefront_animated_logo_electronics('El');"
+    },
+    {
+      "name": "logo_consulting",
+      "eval": "require $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_storefront_animated_logos.php'; return epc_storefront_animated_logo_consulting('Tax');"
+    },
+    {
+      "name": "logo_jewellery",
+      "eval": "require $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_storefront_animated_logos.php'; return epc_storefront_animated_logo_jewellery('Gold');"
+    },
+    {
+      "name": "logo_unknown",
+      "eval": "require $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_storefront_animated_logos.php'; return epc_storefront_animated_logo_markup('auto_parts');"
+    },
+    {
+      "name": "logo_sanitize",
+      "eval": "require $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_storefront_animated_logos.php'; return epc_storefront_animated_logo_markup('Fashion-Retail!');"
+    },
+    {
+      "name": "logo_epart_label",
+      "trade": "eParts Cart",
+      "eval": "require $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_storefront_animated_logos.php'; ob_start(); $m=epc_storefront_animated_logo_markup('fashion_retail_namshi'); $echo=ob_get_clean(); return array($echo,$m);"
+    },
+    {
+      "name": "mb_email",
+      "eval": "require $GLOBALS['__root'].'/content/shop/marketing/epc_marketing_broadcast_templates.php'; $t=epc_mb_email_templates(); return array_keys($t);"
+    },
+    {
+      "name": "mb_whatsapp",
+      "eval": "require $GLOBALS['__root'].'/content/shop/marketing/epc_marketing_broadcast_templates.php'; return epc_mb_whatsapp_templates();"
+    },
+    {
+      "name": "mb_apply",
+      "eval": "require $GLOBALS['__root'].'/content/shop/marketing/epc_marketing_broadcast_templates.php'; return epc_mb_apply_template_vars('Hi {{customer_name}} from {{shop_name}} {{missing}}', array('customer_name'=>'Ali','shop_name'=>'A&B'));"
+    },
+    {
+      "name": "channel_tables",
+      "eval": "require $GLOBALS['__root'].'/content/shop/channels/epc_channel_schema.php'; epc_channel_ensure_schema($GLOBALS['db_link']); $st=$GLOBALS['db_link']->query('SHOW TABLES'); $n=array(); while($r=$st->fetch(PDO::FETCH_NUM)){ $n[]=$r[0]; } sort($n); return $n;"
+    },
+    {
+      "name": "frame_assets",
+      "eval": "require $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_cp_page_frame.php'; epc_cp_register_page_assets([' /a.css ', '', '/b.css'], ['/x.js']); epc_cp_register_page_assets(['/a.css'], ['/y.js']); return $GLOBALS['epc_cp_page_assets'];"
+    },
+    {
+      "name": "frame_open",
+      "eval": "require $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_cp_page_frame.php'; ob_start(); epc_cp_page_frame_open(array('class'=>'extra')); return ob_get_clean();"
+    },
+    {
+      "name": "frame_hero",
+      "eval": "require $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_cp_page_frame.php'; ob_start(); epc_cp_page_frame_hero(array('badge'=>'Ops','title'=>'A&B','sub'=>'Go <b>now</b>','actions'=>array(array('label'=>'Open','url'=>'/cp','icon'=>'fa-cog','primary'=>true), array('label'=>'Help','url'=>'#','primary'=>false)))); return ob_get_clean();"
+    },
+    {
+      "name": "frame_close",
+      "eval": "require $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_cp_page_frame.php'; ob_start(); epc_cp_page_frame_close(); return ob_get_clean();"
+    },
+    {
+      "name": "fm_guest",
+      "file": "cp/content/filemanager/epc_filemanager_config.php",
+      "config": { "backend_dir": "cp" }
+    },
+    {
+      "name": "fm_zh",
+      "file": "cp/content/filemanager/epc_filemanager_config.php",
+      "config": { "backend_dir": "cp" },
+      "cookies": { "lang_cp": "zh" }
+    },
+    {
+      "name": "fm_fail",
+      "file": "cp/content/filemanager/epc_filemanager_config.php",
+      "omit_config": true
+    },
+    {
+      "name": "oi_guest",
+      "file": "cp/content/shop/order_process/orders_items_config.php",
+      "config": { "backend_dir": "cp" }
+    },
+    {
+      "name": "oi_admin",
+      "file": "cp/content/shop/order_process/orders_items_config.php",
+      "config": { "backend_dir": "cp" },
+      "admin": true,
+      "admin_id": 7,
+      "csrf": "tok&",
+      "vars": { "multilang_params": { "lang": "ar" } },
+      "cookies": { "orders_items_sort": "{\"field\":\"price\",\"asc_desc\":\"asc\"}", "orders_items_filter": "{\"time_from\":\"1\",\"time_to\":\"2\"}" },
+      "statuses": [3, 5]
+    }
+  ]
+}
