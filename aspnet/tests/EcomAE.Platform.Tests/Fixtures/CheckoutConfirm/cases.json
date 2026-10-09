@@ -1,0 +1,151 @@
+{
+  "schema": [
+    "CREATE TABLE shop_currencies (id INT PRIMARY KEY, iso_code VARCHAR(8), caption_short VARCHAR(32), sign VARCHAR(32))",
+    "CREATE TABLE shop_carts (id INT PRIMARY KEY, user_id INT, session_id INT, price DECIMAL(20,2), product_type INT, count_need DECIMAL(20,3), checked_for_order TINYINT, t2_time_to_exe INT, t2_time_to_exe_guaranteed INT, t2_name VARCHAR(255), t2_manufacturer VARCHAR(255), t2_article VARCHAR(255), product_id INT, image VARCHAR(255))",
+    "CREATE TABLE shop_obtaining_modes (id INT PRIMARY KEY, caption VARCHAR(255), handler VARCHAR(255), available TINYINT)",
+    "CREATE TABLE users_profiles (user_id INT, data_key VARCHAR(255), data_value TEXT)",
+    "CREATE TABLE reg_fields (id INT PRIMARY KEY, name VARCHAR(64), `regexp` TEXT)"
+  ],
+  "base": [
+    "INSERT INTO shop_currencies VALUES (1,'784','AED','د.إ'),(2,'840','USD','$')",
+    "INSERT INTO shop_carts VALUES (101,7,0,12.50,1,2,1,1,3,'Catalogue filter','MCo','A-1',501,'cat.jpg'),(102,7,0,9.00,2,1,1,0,0,'Docpart item','Bosch','D-1',0,'remote/path.webp'),(103,7,0,4.00,2,3,0,2,4,'Unchecked item','Valeo','D-2',0,'unchecked.jpg'),(201,0,9,7.25,2,2.5,1,5,5,'Guest item','GuestBrand','G-1',0,'guest.jpg'),(202,0,10,99.00,2,1,1,1,1,'Other guest','Other','NO',0,'other.jpg')",
+    "INSERT INTO shop_obtaining_modes VALUES (1,'om_office','fixture_handler',1),(2,'om_carrier','fixture_handler',1),(3,'disabled','fixture_handler',0),(4,'bad','missing_handler',1),(5,'dirty','fixture_handler/../../bad',1)",
+    "INSERT INTO users_profiles VALUES (7,'epc_customer_type','retail')",
+    "INSERT INTO reg_fields VALUES (1,'phone','^\\\\+[0-9]{7,15}$'),(2,'email','^[^@]+@[^@]+\\\\.[^@]+$')"
+  ],
+  "cases": [
+    {
+      "name": "guest_without_session_json",
+      "user_id": 0,
+      "session": false,
+      "how_get": "{\"mode\":1,\"office_id\":7}",
+      "lang_href": "/en",
+      "trade": "approved",
+      "config": {"shop_currency":"784","currency_show_mode":"sign_before"}
+    },
+    {
+      "name": "missing_how_get_redirect",
+      "user_id": 7,
+      "session": {"id":77,"csrf_guard_key":"signed-key"},
+      "how_get": "",
+      "lang_href": "/en",
+      "trade": "approved",
+      "config": {"shop_currency":"784","currency_show_mode":"sign_before"}
+    },
+    {
+      "name": "invalid_how_get_redirect",
+      "user_id": 7,
+      "session": {"id":77,"csrf_guard_key":"signed-key"},
+      "how_get": "{bad",
+      "lang_href": "/ar",
+      "trade": "approved",
+      "config": {"shop_currency":"784","currency_show_mode":"sign_before"}
+    },
+    {
+      "name": "unavailable_mode_redirect",
+      "user_id": 7,
+      "session": {"id":77,"csrf_guard_key":"signed-key"},
+      "how_get": "{\"mode\":3}",
+      "lang_href": "/en",
+      "trade": "approved",
+      "config": {"shop_currency":"784","currency_show_mode":"sign_before"}
+    },
+    {
+      "name": "missing_handler_redirect",
+      "user_id": 7,
+      "session": {"id":77,"csrf_guard_key":"signed-key"},
+      "how_get": "{\"mode\":4}",
+      "lang_href": "/en",
+      "trade": "approved",
+      "config": {"shop_currency":"784","currency_show_mode":"sign_before"}
+    },
+    {
+      "name": "signed_type1_type2_images_ignored",
+      "user_id": 7,
+      "session": {"id":77,"csrf_guard_key":"signed-key"},
+      "how_get": "{\"mode\":1,\"office_id\":7}",
+      "lang_href": "/en",
+      "trade": "approved",
+      "complementary_html": "<div class=\"related-fixture\">Related &amp; safe</div>",
+      "config": {"shop_currency":"784","currency_show_mode":"sign_before"}
+    },
+    {
+      "name": "guest_session_ownership_and_validations",
+      "user_id": 0,
+      "session": {"id":9,"csrf_guard_key":"guest-key"},
+      "how_get": "{\"mode\":2,\"city\":\"Dubai\",\"nested\":{\"unsafe\":\"<b>x</b>\"}}",
+      "lang_href": "/en",
+      "trade": "approved",
+      "config": {"shop_currency":"840","currency_show_mode":"sign_after"}
+    },
+    {
+      "name": "signed_empty_checked_cart",
+      "user_id": 7,
+      "session": {"id":77,"csrf_guard_key":"signed-key"},
+      "how_get": "{\"mode\":1,\"office_id\":7}",
+      "lang_href": "/en",
+      "trade": "approved",
+      "sql": ["UPDATE shop_carts SET checked_for_order=0 WHERE user_id=7"],
+      "config": {"shop_currency":"784","currency_show_mode":"no"}
+    },
+    {
+      "name": "currency_short_name_after",
+      "user_id": 7,
+      "session": {"id":77,"csrf_guard_key":"signed-key"},
+      "how_get": "{\"mode\":1,\"office_id\":7}",
+      "lang_href": "/en",
+      "trade": "approved",
+      "config": {"shop_currency":"840","currency_show_mode":"short_name_after"}
+    },
+    {
+      "name": "trade_pending_block",
+      "user_id": 7,
+      "session": {"id":77,"csrf_guard_key":"signed-key"},
+      "how_get": "{\"mode\":1,\"office_id\":7}",
+      "lang_href": "/en",
+      "trade": "pending",
+      "trade_message": "Awaiting manager approval.",
+      "config": {"shop_currency":"784","currency_show_mode":"sign_before"}
+    },
+    {
+      "name": "wholesale_po_required_label",
+      "user_id": 7,
+      "session": {"id":77,"csrf_guard_key":"signed-key"},
+      "how_get": "{\"mode\":1,\"office_id\":7}",
+      "lang_href": "/en",
+      "trade": "approved",
+      "sql": ["UPDATE users_profiles SET data_value='wholesale' WHERE user_id=7 AND data_key='epc_customer_type'"],
+      "config": {"shop_currency":"784","currency_show_mode":"sign_before"}
+    },
+    {
+      "name": "arabic_language_prefix",
+      "user_id": 7,
+      "session": {"id":77,"csrf_guard_key":"signed-key"},
+      "how_get": "{\"mode\":1,\"office_id\":7}",
+      "lang_href": "/ar",
+      "trade": "approved",
+      "config": {"shop_currency":"784","currency_show_mode":"sign_before"}
+    },
+    {
+      "name": "no_contact_regexps",
+      "user_id": 0,
+      "session": {"id":9,"csrf_guard_key":"guest-key"},
+      "how_get": "{\"mode\":1,\"office_id\":7}",
+      "lang_href": "",
+      "trade": "approved",
+      "sql": ["UPDATE reg_fields SET `regexp`=''"],
+      "config": {"shop_currency":"784","currency_show_mode":"sign_before"}
+    },
+    {
+      "name": "hostile_db_js_and_how_get_values",
+      "user_id": 7,
+      "session": {"id":77,"csrf_guard_key":"key'</script><script>alert(8)</script>"},
+      "how_get": "{\"mode\":1,\"office_id\":\"<img src=x onerror=alert(5)>\",\"note\":\"\\\"<&\"}",
+      "lang_href": "/en'</script>",
+      "trade": "rejected",
+      "trade_message": "Rejected <script>alert(1)</script>",
+      "sql": ["UPDATE shop_carts SET t2_manufacturer='<img src=x onerror=alert(2)>',t2_article='A&<',t2_name='</td><script>alert(3)</script>' WHERE id=102"],
+      "config": {"shop_currency":"784","currency_show_mode":"sign_before"}
+    }
+  ]
+}
