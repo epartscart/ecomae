@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Rest (`--max-gap 544` passed; current gap **539**).
+after PlanQ1Plus (`--max-gap 539` passed; current gap **534**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 539
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 534
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -19,23 +19,23 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 |---|---|---:|---:|
 | 1 | Storefront: catalogue | 35 | 10,764 |
 | 1 | Storefront: modules | 18 | 3,446 |
-| 1 | Storefront: other shop | 23 | 7,989 |
-| 1 | Storefront: parts/docpart | 31 | 35,605 |
+| 1 | Storefront: other shop | 22 | 7,310 |
+| 1 | Storefront: parts/docpart | 30 | 34,919 |
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 3 | 2,192 |
 | 3 | CP other | 12 | 3,578 |
 | 3 | CP shop core (orders, catalogue, price upload) | 31 | 13,857 |
-| 3 | CP shop smaller | 24 | 8,039 |
+| 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 41 | 10,505 |
-| 5 | Marketing/BOS/industries | 128 | 65,472 |
+| 5 | Marketing/BOS/industries | 126 | 64,842 |
 | 6 | Price engine | 19 | 16,422 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **539** | **249,732** |
+| | **Total** | **534** | **247,502** |
 
-- Non-ERP (Cursor): **373 files / 183,541 lines**
+- Non-ERP (Cursor): **368 files / 181,311 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,306** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **93**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,249** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **93**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -101,6 +101,10 @@ Closed against PHP 8.3.6 goldens: `printProductBlock` markup from `content/shop/
 
 Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Rest`, 9 cases): demand-country ISO maps / parse / preview / import (article-normalize and schema injected; CHAR(2) migrate INSERT fatals on this MariaDB STRICT — no-op ISO3 path only), industry theme registry / default / ERP kit / CP alignment, brochure topic catalog / resolve / unique photos / svg URL, theme-template slots / palettes / quartet / normalize (industry maps injected), storefront package registry / resolve / preset / apply. Package dump omits header/home/footer sibling paths. Do not mention the portal parent path.
 
+### Q1 plus — done (`PhpPlanQ1Plus`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Plus`, 8 cases): warehouse extra-field catalog / header map / extract / merge / encode / index search / lookup / json_params (in-memory store; lookup cache matches PHP), CP script/style relocate / main-pane splice / footer inject / BOC first-paint, POS terminal markup (`epc_pos_h` stubbed; helpers parent stays a gap), role-home catalogs / can / render / detect / assign / tile (action URLs concatenated so leftover unique basenames are not written as path strings), channel schema + helpers (catalogs, demo rate, seed/sync/import/dashboard/report). Shipment `random_int`/`date` is implemented with injectable clock/rng and not golden-run.
+
 ### Q1 next leftovers — honest schema/data twins still open
 
 The 93 leftover “ready” ≤200-line rows are still Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
@@ -124,7 +128,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_el_pl_href`, `epc_ep_pl_href`, industry `*_header.php` hrefs | Product-line / header pages `require` a parent and return. |
 | `epc_epartscart_storefront.php` | Storefront kernel + APAI aliases |
 | `epc_build_initial_price_bunch.php` | `prices_enclosure` |
-| `epc_logistics_helpers.php` | Channel helpers / schema |
+| `epc_logistics_helpers.php` | Channel helpers/schema now ported; still skip until a dedicated logistics golden |
 | `epc_auto_price_*`, `epc_apai_*`, `epc_auto_price_cp_shell.php` | Auto-price engine (6,768 lines) |
 | `epc_custom_shipping_guide.php`, `epc_erp_only_onboard_guide.php` | ERP include — Devin |
 | `epc_ai_copilot.php`, `epc_bos_ajax_login.php`, `epc_bos_health_check.php` | Tenant PDO / BOS session |
