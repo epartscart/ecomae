@@ -140,6 +140,108 @@ internal static partial class StorefrontPhpLoose
         }
     }
 
+    /// <summary>
+    /// A PHP 8 arithmetic operand: <c>int</c> (<see cref="IsFloat"/> false, <see cref="Whole"/>) or <c>float</c> (<see cref="Real"/>).
+    /// </summary>
+    public readonly record struct PhpNumber(bool IsFloat, long Whole, double Real)
+    {
+        public static PhpNumber FromInt(long whole) => new(false, whole, whole);
+
+        public static PhpNumber FromFloat(double real) => new(true, 0, real);
+
+        public bool IsZero => IsFloat ? Real == 0d : Whole == 0;
+    }
+
+    /// <summary>
+    /// A decoded JSON value used as an operand of <c>*</c> in PHP 8: <c>null</c>/<c>false</c> are 0, <c>true</c> is 1, numeric strings
+    /// (surrounding whitespace allowed) and leading-numeric strings ("4abc", with a warning) convert, every other string and every array
+    /// throws a <c>TypeError</c> (<see langword="false"/> here).
+    /// </summary>
+    public static bool TryArithmeticOperand(JsonElement? value, out PhpNumber number)
+    {
+        number = PhpNumber.FromInt(0);
+        if (IsNull(value))
+        {
+            return true;
+        }
+
+        var element = value!.Value;
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.True:
+                number = PhpNumber.FromInt(1);
+                return true;
+            case JsonValueKind.False:
+                return true;
+            case JsonValueKind.Number:
+                var raw = element.GetRawText();
+                if (raw.AsSpan().IndexOfAny('.', 'e', 'E') < 0 && long.TryParse(raw, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var whole))
+                {
+                    number = PhpNumber.FromInt(whole);
+                    return true;
+                }
+
+                number = PhpNumber.FromFloat(element.GetDouble());
+                return true;
+            case JsonValueKind.String:
+                var match = LeadingNumber().Match(element.GetString() ?? string.Empty);
+                if (!match.Success)
+                {
+                    return false;
+                }
+
+                var text = match.Value.Trim(' ', '\t', '\n', '\r', '\v', '\f');
+                if (text.AsSpan().IndexOfAny('.', 'e', 'E') < 0 && long.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var textWhole))
+                {
+                    number = PhpNumber.FromInt(textWhole);
+                    return true;
+                }
+
+                number = PhpNumber.FromFloat(double.Parse(text, NumberStyles.Float, CultureInfo.InvariantCulture));
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>PHP <c>int * int</c> overflows into a float; any float operand gives a float.</summary>
+    public static PhpNumber Multiply(PhpNumber left, PhpNumber right)
+    {
+        if (!left.IsFloat && !right.IsFloat)
+        {
+            try
+            {
+                return PhpNumber.FromInt(checked(left.Whole * right.Whole));
+            }
+            catch (OverflowException)
+            {
+                return PhpNumber.FromFloat((double)left.Whole * right.Whole);
+            }
+        }
+
+        return PhpNumber.FromFloat((left.IsFloat ? left.Real : left.Whole) * (right.IsFloat ? right.Real : right.Whole));
+    }
+
+    /// <summary>
+    /// The value PHP writes into <c>LIMIT $a, $b</c> when the number is a valid unsigned integer literal; <see langword="null"/> when the
+    /// interpolated text is not one (negative, fractional, <c>1.0E+25</c>, <c>-0</c>), which MariaDB rejects with a syntax error.
+    /// </summary>
+    public static long? LimitLiteral(PhpNumber number)
+    {
+        if (!number.IsFloat)
+        {
+            return number.Whole >= 0 ? number.Whole : null;
+        }
+
+        var real = number.Real;
+        if (double.IsNaN(real) || double.IsInfinity(real) || double.IsNegative(real) || Math.Abs(real) >= 1e15 || Math.Floor(real) != real)
+        {
+            return null;
+        }
+
+        return (long)real;
+    }
+
     /// <summary>A float interpolated into a SQL string by PHP (<c>precision=14</c>).</summary>
     public static string FloatSql(double value)
         => value.ToString("G14", CultureInfo.InvariantCulture);

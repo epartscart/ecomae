@@ -99,6 +99,33 @@ public static partial class StorefrontPhpAjax
         string? lang = null)
         => CatalogueAsync(connection, requestJson, render: false, pricesVisible: false, cancellationToken, listOnly: true, cityCookie: cityCookie, userId: userId, lang: lang);
 
+    /// <summary>
+    /// The ordered product ids PHP <c>ajax_get_products_list.php</c> leaves in <c>$products_objects</c> (the keys the page script renders,
+    /// in that order): sort mode, grouping across the visitor's offices and the <c>LIMIT</c> window of
+    /// <c>query_products_all.php</c> + <c>query_products_show.php</c>.
+    /// </summary>
+    public static async Task<CatalogueIds> CatalogueProductIdsAsync(
+        DbConnection connection,
+        string? requestJson,
+        CancellationToken cancellationToken,
+        string? cityCookie = null,
+        long userId = 0,
+        string? lang = null)
+    {
+        var result = await CatalogueAsync(connection, requestJson, render: false, pricesVisible: false, cancellationToken, idsOnly: true, cityCookie: cityCookie, userId: userId, lang: lang).ConfigureAwait(false);
+        return result switch
+        {
+            CatalogueIds ids => ids,
+            RawHttp http => new CatalogueIds([], false, http.Body),
+            _ => new CatalogueIds([], false, null)
+        };
+    }
+
+    /// <param name="Ids">Product ids in PHP render order.</param>
+    /// <param name="PhpFatal">PHP would have raised a TypeError or a PDOException (invalid LIMIT, non-numeric paging operand, ...); the ids are empty.</param>
+    /// <param name="Message">The plain-text answer when the request is rejected before any selection (missing schema, hardened input).</param>
+    public sealed record CatalogueIds(IReadOnlyList<int> Ids, bool PhpFatal, string? Message);
+
     public static Task<object> CataloguePageAsync(
         DbConnection connection,
         string? requestJson,
@@ -753,6 +780,9 @@ public static partial class StorefrontPhpAjax
         return new DemandMessageBody(false, "Unknown action");
     }
 
+    /// <summary>The exact output of <c>ajax_get_products_page.php</c> when no product matched (its template keeps the indentation around the block).</summary>
+    private const string CatalogueEmptyPage = "    <div style=\"text-center\">4078</div>\n    ";
+
     private static async Task<object> CatalogueAsync(
         DbConnection connection,
         string? requestJson,
@@ -760,18 +790,29 @@ public static partial class StorefrontPhpAjax
         bool pricesVisible,
         CancellationToken cancellationToken,
         bool listOnly = false,
+        bool idsOnly = false,
         string? cityCookie = null,
         long userId = 0,
         string? lang = null)
     {
         CatalogueRequest? request;
+        var stringScalar = false;
         try
         {
-            request = ParseCatalogueRequest(requestJson, countOnly: !render && !listOnly);
+            // PHP json_decode() turns bad JSON or a non-object into null and every `$propucts_request[...]` read into null, so the
+            // count, list and page scripts all work on the unfiltered catalogue; only a JSON string scalar is a TypeError on the first read.
+            request = ParseCatalogueRequest(requestJson, out stringScalar);
         }
         catch (JsonException)
         {
             request = null;
+        }
+
+        if (stringScalar && (render || idsOnly))
+        {
+            return render
+                ? new RawHttp(CatalogueEmptyPage, "text/html; charset=utf-8")
+                : new CatalogueIds([], true, null);
         }
 
         if (request is null)
@@ -838,7 +879,7 @@ public static partial class StorefrontPhpAjax
             return new RawHttp(string.Empty, "text/html; charset=utf-8");
         }
 
-        if (!render)
+        if (!render && !idsOnly)
         {
             try
             {
@@ -857,15 +898,32 @@ public static partial class StorefrontPhpAjax
             }
         }
 
-        var perPage = request.ProductsPerPage <= 0 ? 100 : request.ProductsPerPage;
-        var pages = request.NeedPagesCount <= 0 ? 1 : request.NeedPagesCount;
-        var start = Math.Max(0, request.StartFrom);
-        var from = start * perPage;
-        var take = pages * perPage;
+        CatalogueWindow window;
+        CatalogueSort sort;
+        if (!TryResolveWindow(request, out window) || !TryResolveSort(request, out sort))
+        {
+            return render
+                ? new RawHttp(CatalogueEmptyPage, "text/html; charset=utf-8")
+                : new CatalogueIds([], true, null);
+        }
+
+        List<int> ids;
         List<CatalogueRow> rows;
         try
         {
-            rows = await PageProductsAsync(connection, categoryId, publishedOnly, productIds, filter, from, take, cityCookie, userId, adminPrices, cancellationToken).ConfigureAwait(false);
+            ids = await OrderedProductIdsAsync(connection, categoryId, publishedOnly, productIds, filter, window, sort, adminPrices, cityCookie, userId, lang, cancellationToken).ConfigureAwait(false);
+            if (idsOnly)
+            {
+                return new CatalogueIds(ids, false, null);
+            }
+
+            rows = await PageProductsAsync(connection, ids, cancellationToken).ConfigureAwait(false);
+        }
+        catch (CataloguePhpFatal)
+        {
+            return render
+                ? new RawHttp(CatalogueEmptyPage, "text/html; charset=utf-8")
+                : new CatalogueIds([], true, null);
         }
         catch (CatalogueFail ex)
         {
@@ -880,7 +938,7 @@ public static partial class StorefrontPhpAjax
 
         if (rows.Count == 0)
         {
-            return new RawHttp("<div style=\"text-center\">4078</div>", "text/html; charset=utf-8");
+            return new RawHttp(CatalogueEmptyPage, "text/html; charset=utf-8");
         }
 
         var css = request.PageStyle switch
@@ -988,33 +1046,338 @@ public static partial class StorefrontPhpAjax
 
     private static async Task<List<CatalogueRow>> PageProductsAsync(
         DbConnection connection,
+        IReadOnlyList<int> ids,
+        CancellationToken cancellationToken)
+    {
+        var rows = new List<CatalogueRow>();
+        if (ids.Count == 0)
+        {
+            return rows;
+        }
+
+        var byId = new Dictionary<int, CatalogueRow>();
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = "SELECT `id`, `caption`, `alias`, `category_id` FROM `shop_catalogue_products` WHERE `id` IN ("
+                + string.Join(",", ids.Select(id => id.ToString(CultureInfo.InvariantCulture)))
+                + ")";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var id = Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture);
+                var captionKey = reader.IsDBNull(1) ? string.Empty : Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? string.Empty;
+                var alias = reader.IsDBNull(2) ? string.Empty : Convert.ToString(reader.GetValue(2), CultureInfo.InvariantCulture) ?? string.Empty;
+                var category = reader.IsDBNull(3) ? 0 : Convert.ToInt32(reader.GetValue(3), CultureInfo.InvariantCulture);
+                byId[id] = new CatalogueRow(id, captionKey, alias, category, string.Empty, string.Empty, string.Empty, 0, 0);
+            }
+        }
+
+        foreach (var id in ids)
+        {
+            if (!byId.TryGetValue(id, out var row))
+            {
+                continue;
+            }
+
+            var caption = await TranslateAsync(connection, row.Caption, cancellationToken).ConfigureAwait(false);
+            var categoryUrl = await CategoryUrlAsync(connection, row.CategoryId, cancellationToken).ConfigureAwait(false);
+            var article = await ArticleAsync(connection, row.Id, row.CategoryId, cancellationToken).ConfigureAwait(false);
+            rows.Add(row with { Caption = caption, CategoryUrl = categoryUrl, Article = article.Article, Manufacturer = article.Manufacturer });
+        }
+
+        return rows;
+    }
+
+    /// <summary>
+    /// PHP <c>ajax_get_products_list.php</c>: <c>$product_from = $startFrom * $productsPerPage</c> and
+    /// <c>$product_max_count = $needPagesCount * $productsPerPage</c> (PHP 8 arithmetic on the decoded JSON values), an empty maximum
+    /// becomes <c>0, 100</c>. A non-numeric string or array operand is a TypeError and a negative / fractional limit is a MariaDB syntax
+    /// error in PHP; both end the request there. ASP.NET answers with an empty selection instead of a 500 (hardening).
+    /// </summary>
+    private static bool TryResolveWindow(CatalogueRequest request, out CatalogueWindow window)
+    {
+        window = new CatalogueWindow(0, 100);
+        if (!StorefrontPhpLoose.TryArithmeticOperand(request.StartFrom, out var start)
+            || !StorefrontPhpLoose.TryArithmeticOperand(request.ProductsPerPage, out var perPage)
+            || !StorefrontPhpLoose.TryArithmeticOperand(request.NeedPagesCount, out var pages))
+        {
+            return false;
+        }
+
+        var from = StorefrontPhpLoose.Multiply(start, perPage);
+        var max = StorefrontPhpLoose.Multiply(pages, perPage);
+        if (max.IsZero)
+        {
+            window = new CatalogueWindow(0, 100);
+            return true;
+        }
+
+        var fromLiteral = StorefrontPhpLoose.LimitLiteral(from);
+        var maxLiteral = StorefrontPhpLoose.LimitLiteral(max);
+        if (fromLiteral is null || maxLiteral is null)
+        {
+            return false;
+        }
+
+        window = new CatalogueWindow(fromLiteral.Value, maxLiteral.Value);
+        return true;
+    }
+
+    /// <summary>
+    /// PHP <c>query_products_show.php</c> sort selection. <c>asc_desc</c> is <c>strtolower(..) == "desc"</c> (an array is a TypeError);
+    /// <c>field</c> is a loose <c>switch</c> (<c>true</c> matches the first case, "price"); <c>query_products_all.php</c> adds the
+    /// <c>caption_translation</c> column whenever <c>field == "name"</c> (loosely) and forces <c>name</c> for the catalogue
+    /// administrator view (block type 2).
+    /// </summary>
+    private static bool TryResolveSort(CatalogueRequest request, out CatalogueSort sort)
+    {
+        sort = new CatalogueSort(false, "price", false);
+        var mode = request.SortMode;
+        JsonElement? field = null;
+        JsonElement? direction = null;
+        if (mode is { ValueKind: JsonValueKind.Object } modeObject)
+        {
+            field = StorefrontPhpLoose.Get(modeObject, "field");
+            direction = StorefrontPhpLoose.Get(modeObject, "asc_desc");
+        }
+
+        var desc = false;
+        if (direction is { } directionValue)
+        {
+            switch (directionValue.ValueKind)
+            {
+                case JsonValueKind.Array:
+                case JsonValueKind.Object:
+                    return false;
+                case JsonValueKind.String:
+                    desc = string.Equals(AsciiLower(directionValue.GetString() ?? string.Empty), "desc", StringComparison.Ordinal);
+                    break;
+            }
+        }
+
+        var order = "price";
+        var captionColumn = false;
+        if (request.ProductBlockType == 2)
+        {
+            order = "name";
+            captionColumn = true;
+        }
+        else if (field is { } fieldValue)
+        {
+            if (fieldValue.ValueKind == JsonValueKind.True)
+            {
+                captionColumn = true;
+            }
+            else if (fieldValue.ValueKind == JsonValueKind.String)
+            {
+                order = fieldValue.GetString() switch
+                {
+                    "price" => "price",
+                    "name" => "name",
+                    "random" => "random",
+                    _ => "price"
+                };
+                captionColumn = order == "name";
+            }
+        }
+
+        sort = new CatalogueSort(desc, order, captionColumn);
+        return true;
+    }
+
+    /// <summary>
+    /// The product ids in the order PHP renders them. PHP builds two statements from the same office loop: the page window
+    /// (<c>SELECT id ... GROUP BY id ORDER BY CASE.. LIMIT from, max</c> over the per-office <c>UNION</c> of
+    /// <c>query_products_all.php</c>, one <c>MIN(IFNULL(customer_price, 1e10))</c> / <c>MAX(IFNULL(customer_price, 0))</c> per product) and the
+    /// final per-storage-row statement for those ids, whose first row per product decides the render order. Both are executed here;
+    /// the final statement keeps PHP's own <c>caption_translation</c> sub-select (more than one translation row for the language is a
+    /// MariaDB error exactly as in PHP) but omits the sub-selects that only fill product object fields. When the pricing schema is
+    /// absent (PHP cannot run at all) the catalogue is treated as unpriced and ordered by id.
+    /// </summary>
+    private static async Task<List<int>> OrderedProductIdsAsync(
+        DbConnection connection,
         int categoryId,
         bool publishedOnly,
         List<long>? productIds,
         CatalogueFilter filter,
-        int from,
-        int take,
+        CatalogueWindow window,
+        CatalogueSort sort,
+        bool adminPrices,
+        string? cityCookie,
+        long userId,
+        string? lang,
+        CancellationToken cancellationToken)
+    {
+        var where = ProductWhere(categoryId, publishedOnly, productIds, filter, out var whereArgs);
+        try
+        {
+            lang ??= await WorkLangAsync(connection, cancellationToken).ConfigureAwait(false);
+            var offices = await StorefrontCustomerOffices.LoadAsync(connection, cityCookie, cancellationToken, missingGeoTablesAsEmpty: true).ConfigureAwait(false);
+            if (offices.Count == 0)
+            {
+                throw new CataloguePhpFatal();
+            }
+
+            return await PricedOrderedIdsAsync(connection, where, whereArgs, filter.Having, window, sort, adminPrices, offices, userId, lang, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return await UnpricedIdsAsync(connection, where, whereArgs, filter.Having, window, cityCookie, userId, adminPrices, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task<List<int>> PricedOrderedIdsAsync(
+        DbConnection connection,
+        string where,
+        List<object> whereArgs,
+        string having,
+        CatalogueWindow window,
+        CatalogueSort sort,
+        bool adminPrices,
+        List<int> offices,
+        long userId,
+        string lang,
+        CancellationToken cancellationToken)
+    {
+        object groupId;
+        try
+        {
+            groupId = (object?)await CatalogueGroupIdAsync(connection, userId, cancellationToken).ConfigureAwait(false) ?? DBNull.Value;
+        }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            groupId = DBNull.Value;
+        }
+
+        const string captionSelect = "(SELECT `value` FROM `lang_text_strings_translation` WHERE `str_key` = `shop_catalogue_products`.`caption` AND `lang_code` = ?) AS `caption_translation`";
+        var havingSql = having.Length > 0 ? " HAVING " + having : string.Empty;
+        var inner = new List<string>();
+        var innerArgs = new List<object>();
+        var final = new List<string>();
+        var finalPrices = new List<(string InList, string CustomerPrice)>();
+        foreach (var officeId in offices)
+        {
+            var storages = await PriceStorageIdsAsync(connection, officeId, cancellationToken).ConfigureAwait(false);
+            var inList = storages.Count == 0
+                ? "0"
+                : string.Join(",", storages.Select(id => id.ToString(CultureInfo.InvariantCulture)));
+            var customerPrice = adminPrices
+                ? "`price` AS `customer_price`"
+                : await CustomerPriceSqlAsync(connection, officeId, groupId, inList, cancellationToken).ConfigureAwait(false);
+            finalPrices.Add((inList, customerPrice));
+            inner.Add(
+                "SELECT `shop_catalogue_products`.`id`, "
+                + (sort.CaptionColumn ? captionSelect + ", " : string.Empty)
+                + customerPrice
+                + " FROM `shop_catalogue_products` LEFT OUTER JOIN `shop_storages_data` ON `shop_catalogue_products`.`id` = `shop_storages_data`.`product_id` AND `shop_storages_data`.`storage_id` IN ("
+                + inList
+                + ") AND `exist` > 0 AND `price` > 0 "
+                + where
+                + havingSql);
+            if (sort.CaptionColumn)
+            {
+                innerArgs.Add(lang);
+            }
+
+            innerArgs.AddRange(whereArgs);
+            if (adminPrices)
+            {
+                break;
+            }
+        }
+
+        var minMax = sort.Desc ? "MAX(IFNULL(`customer_price`, 0))" : "MIN(IFNULL(`customer_price`, 10000000000))";
+        var field = sort.Order switch
+        {
+            "name" => "`caption_translation` " + (sort.Desc ? "DESC" : "ASC") + ", `customer_price` ASC",
+            "random" => "RAND(), `customer_price` ASC",
+            _ => "`customer_price` " + (sort.Desc ? "DESC" : "ASC")
+        };
+        var orderBy = " ORDER BY CASE WHEN (`customer_price` > 0) THEN 0 WHEN (`customer_price` IS NULL) THEN 2 ELSE 1 END, " + field + ", `id` ASC";
+        var limitSql = "SELECT `id` FROM (SELECT * FROM (SELECT `id`, "
+            + (sort.CaptionColumn ? "`caption_translation`, " : string.Empty)
+            + minMax
+            + " AS `customer_price` FROM ("
+            + string.Join(" UNION ", inner)
+            + ") AS `products_group` GROUP BY `id`) AS `products_id_sort`"
+            + orderBy
+            + " LIMIT " + window.From.ToString(CultureInfo.InvariantCulture) + ", " + window.Max.ToString(CultureInfo.InvariantCulture)
+            + ") AS `products_id_limit`";
+
+        var arms = new List<string>();
+        var args = new List<object>();
+        foreach (var (armStorages, armPrice) in finalPrices)
+        {
+            arms.Add(
+                "SELECT `shop_catalogue_products`.`id` AS `id`, "
+                + captionSelect
+                + ", "
+                + armPrice
+                + " FROM `shop_catalogue_products` LEFT OUTER JOIN `shop_storages_data` ON `shop_catalogue_products`.`id` = `shop_storages_data`.`product_id` AND `shop_storages_data`.`storage_id` IN ("
+                + armStorages
+                + ") AND `exist` > 0 WHERE `shop_catalogue_products`.`id` IN ("
+                + limitSql
+                + ")"
+                + havingSql);
+            args.Add(lang);
+            args.AddRange(innerArgs);
+        }
+
+        var sql = string.Join(" UNION ", arms);
+        if (offices.Count > 1)
+        {
+            sql = "SELECT * FROM (" + sql + ") AS `ALL_UNION`";
+        }
+
+        sql += orderBy;
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        if (args.Count > 0)
+        {
+            ErpDb.AddParameters(command, args.ToArray());
+        }
+
+        var ids = new List<int>();
+        var seen = new HashSet<int>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var id = Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture);
+            if (seen.Add(id))
+            {
+                ids.Add(id);
+            }
+        }
+
+        return ids;
+    }
+
+    private static async Task<List<int>> UnpricedIdsAsync(
+        DbConnection connection,
+        string where,
+        List<object> whereArgs,
+        string having,
+        CatalogueWindow window,
         string? cityCookie,
         long userId,
         bool adminPrices,
         CancellationToken cancellationToken)
     {
-        var rows = new List<CatalogueRow>();
         await using var command = connection.CreateCommand();
-        var where = ProductWhere(categoryId, publishedOnly, productIds, filter, out var args);
-        var limit = " ORDER BY `id` ASC LIMIT " + from.ToString(CultureInfo.InvariantCulture) + ", " + take.ToString(CultureInfo.InvariantCulture);
-        if (filter.Having.Length > 0)
+        var args = whereArgs;
+        var limit = " ORDER BY `id` ASC LIMIT " + window.From.ToString(CultureInfo.InvariantCulture) + ", " + window.Max.ToString(CultureInfo.InvariantCulture);
+        if (having.Length > 0)
         {
-            var priced = await PriceSelectAsync(connection, where, filter.Having, args, cityCookie, userId, adminPrices, cancellationToken).ConfigureAwait(false);
-            command.CommandText = "SELECT p.`id`, p.`caption`, p.`alias`, p.`category_id` FROM `shop_catalogue_products` p INNER JOIN (SELECT DISTINCT `id` FROM ("
+            var priced = await PriceSelectAsync(connection, where, having, whereArgs, cityCookie, userId, adminPrices, cancellationToken).ConfigureAwait(false);
+            command.CommandText = "SELECT p.`id` FROM `shop_catalogue_products` p INNER JOIN (SELECT DISTINCT `id` FROM ("
                 + priced.Sql
                 + ") AS `priced`) keep ON keep.`id` = p.`id` ORDER BY p.`id` ASC LIMIT "
-                + from.ToString(CultureInfo.InvariantCulture) + ", " + take.ToString(CultureInfo.InvariantCulture);
+                + window.From.ToString(CultureInfo.InvariantCulture) + ", " + window.Max.ToString(CultureInfo.InvariantCulture);
             args = priced.Args;
         }
         else
         {
-            command.CommandText = "SELECT `id`, `caption`, `alias`, `category_id` FROM `shop_catalogue_products` " + where + limit;
+            command.CommandText = "SELECT `id` FROM `shop_catalogue_products` " + where + limit;
         }
 
         if (args.Count > 0)
@@ -1022,47 +1385,42 @@ public static partial class StorefrontPhpAjax
             ErpDb.AddParameters(command, args.ToArray());
         }
 
+        var ids = new List<int>();
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
-            var id = Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture);
-            var captionKey = reader.IsDBNull(1) ? string.Empty : Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? string.Empty;
-            var alias = reader.IsDBNull(2) ? string.Empty : Convert.ToString(reader.GetValue(2), CultureInfo.InvariantCulture) ?? string.Empty;
-            var category = reader.IsDBNull(3) ? 0 : Convert.ToInt32(reader.GetValue(3), CultureInfo.InvariantCulture);
-            rows.Add(new CatalogueRow(id, captionKey, alias, category, string.Empty, string.Empty, string.Empty, 0, 0));
+            ids.Add(Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture));
         }
 
-        await reader.DisposeAsync().ConfigureAwait(false);
-        for (var i = 0; i < rows.Count; i++)
-        {
-            var row = rows[i];
-            var caption = await TranslateAsync(connection, row.Caption, cancellationToken).ConfigureAwait(false);
-            var categoryUrl = await CategoryUrlAsync(connection, row.CategoryId, cancellationToken).ConfigureAwait(false);
-            var article = await ArticleAsync(connection, row.Id, row.CategoryId, cancellationToken).ConfigureAwait(false);
-            rows[i] = row with { Caption = caption, CategoryUrl = categoryUrl, Article = article.Article, Manufacturer = article.Manufacturer };
-        }
-
-        return rows;
+        return ids;
     }
 
-    private static CatalogueRequest? ParseCatalogueRequest(string? requestJson, bool countOnly)
+    private readonly record struct CatalogueWindow(long From, long Max);
+
+    private readonly record struct CatalogueSort(bool Desc, string Order, bool CaptionColumn);
+
+    private sealed class CataloguePhpFatal : Exception
     {
-        // PHP json_decode() turns bad JSON or a non-object into null and every `$propucts_request[...]` read into null,
-        // so the count endpoint answers with the unfiltered total instead of an error.
+    }
+
+    private static CatalogueRequest? ParseCatalogueRequest(string? requestJson, out bool stringScalar)
+    {
+        stringScalar = false;
         JsonElement root;
         try
         {
             using var document = JsonDocument.Parse(string.IsNullOrWhiteSpace(requestJson) ? "null" : requestJson);
             root = document.RootElement.Clone();
         }
-        catch (JsonException) when (countOnly)
+        catch (JsonException)
         {
             root = default;
         }
 
         if (root.ValueKind != JsonValueKind.Object)
         {
-            return countOnly ? JsonSerializer.Deserialize<CatalogueRequest>("{}", CatalogueJson) : null;
+            stringScalar = root.ValueKind == JsonValueKind.String;
+            return JsonSerializer.Deserialize<CatalogueRequest>("{}", CatalogueJson);
         }
 
         return root.Deserialize<CatalogueRequest>(CatalogueJson);
@@ -2479,12 +2837,13 @@ public static partial class StorefrontPhpAjax
         [property: JsonPropertyName("category_id"), JsonConverter(typeof(CategoryIdConverter))] int CategoryId,
         [property: JsonPropertyName("properties_list")] List<JsonElement>? Properties,
         [property: JsonPropertyName("product_block_type"), JsonConverter(typeof(LooseIntConverter))] int ProductBlockType,
-        [property: JsonPropertyName("productsPerPage"), JsonConverter(typeof(LooseIntConverter))] int ProductsPerPage,
-        [property: JsonPropertyName("needPagesCount"), JsonConverter(typeof(LooseIntConverter))] int NeedPagesCount,
-        [property: JsonPropertyName("startFrom"), JsonConverter(typeof(LooseIntConverter))] int StartFrom,
+        [property: JsonPropertyName("productsPerPage")] JsonElement? ProductsPerPage,
+        [property: JsonPropertyName("needPagesCount")] JsonElement? NeedPagesCount,
+        [property: JsonPropertyName("startFrom")] JsonElement? StartFrom,
         [property: JsonPropertyName("page_style"), JsonConverter(typeof(LooseIntConverter))] int PageStyle,
         [property: JsonPropertyName("search_string"), JsonConverter(typeof(PhpStringConverter))] string? SearchString,
-        [property: JsonPropertyName("products_ids_str")] JsonElement? ProductsIdsStr);
+        [property: JsonPropertyName("products_ids_str")] JsonElement? ProductsIdsStr,
+        [property: JsonPropertyName("products_sort_mode")] JsonElement? SortMode);
 
     /// <summary>
     /// PHP interpolates <c>category_id</c> raw into SQL. JSON numbers, numeric strings, booleans and null behave like PHP;
