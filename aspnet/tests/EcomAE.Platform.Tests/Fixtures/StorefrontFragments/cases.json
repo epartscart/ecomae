@@ -1,0 +1,810 @@
+{
+ "cases": [
+  {
+   "name": "cat_lang_general",
+   "file": "content/shop/catalogue/cat_lang_general.php",
+   "vars_out": [
+    "manufacturer_lang",
+    "article_lang"
+   ]
+  },
+  {
+   "name": "inputs_empty",
+   "file": "content/shop/docpart/search_strs_for_inputs.php",
+   "vars_out": [
+    "value_for_input_search",
+    "value_for_input_search_string"
+   ]
+  },
+  {
+   "name": "inputs_article_get",
+   "file": "content/shop/docpart/search_strs_for_inputs.php",
+   "get": {
+    "article": "ab-12 Ж_я Ёё!<x>"
+   },
+   "vars_out": [
+    "value_for_input_search",
+    "value_for_input_search_string"
+   ]
+  },
+  {
+   "name": "inputs_article_service_data",
+   "file": "content/shop/docpart/search_strs_for_inputs.php",
+   "content_service_data": {
+    "article": "OC 90/1-Ж"
+   },
+   "vars_out": [
+    "value_for_input_search",
+    "value_for_input_search_string"
+   ]
+  },
+  {
+   "name": "inputs_article_get_beats_service_data",
+   "file": "content/shop/docpart/search_strs_for_inputs.php",
+   "get": {
+    "article": "A.1"
+   },
+   "content_service_data": {
+    "article": "B2"
+   },
+   "vars_out": [
+    "value_for_input_search",
+    "value_for_input_search_string"
+   ]
+  },
+  {
+   "name": "inputs_search_string",
+   "file": "content/shop/docpart/search_strs_for_inputs.php",
+   "get": {
+    "search_string": "<b>\"x\" & 'y' é Ж ©"
+   },
+   "vars_out": [
+    "value_for_input_search",
+    "value_for_input_search_string"
+   ]
+  },
+  {
+   "name": "inputs_both",
+   "file": "content/shop/docpart/search_strs_for_inputs.php",
+   "get": {
+    "article": "X9",
+    "search_string": "brake pad"
+   },
+   "vars_out": [
+    "value_for_input_search",
+    "value_for_input_search_string"
+   ]
+  },
+  {
+   "name": "tab_article_search_csrf",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/article_search/tab_content.php",
+   "lang_href": "/ru",
+   "csrf": "K<1>&\"'",
+   "vars": {
+    "value_for_input_search": "AB&12",
+    "value_for_input_search_string": "pad &amp; disc"
+   }
+  },
+  {
+   "name": "tab_article_search_guest",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/article_search/tab_content.php",
+   "lang_href": "/ru",
+   "csrf": null,
+   "vars": {
+    "value_for_input_search": "AB&12",
+    "value_for_input_search_string": "pad &amp; disc"
+   }
+  },
+  {
+   "name": "tab_name_search_csrf",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/name_search/tab_content.php",
+   "lang_href": "/ru",
+   "csrf": "K<1>&\"'",
+   "vars": {
+    "value_for_input_search": "AB&12",
+    "value_for_input_search_string": "pad &amp; disc"
+   }
+  },
+  {
+   "name": "tab_name_search_guest",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/name_search/tab_content.php",
+   "lang_href": "/ru",
+   "csrf": null,
+   "vars": {
+    "value_for_input_search": "AB&12",
+    "value_for_input_search_string": "pad &amp; disc"
+   }
+  },
+  {
+   "name": "tab_vin_search_neoriginal_csrf",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/vin_search_neoriginal/tab_content.php",
+   "lang_href": "/ru",
+   "csrf": "K<1>&\"'",
+   "vars": {
+    "value_for_input_search": "AB&12",
+    "value_for_input_search_string": "pad &amp; disc"
+   }
+  },
+  {
+   "name": "tab_vin_search_neoriginal_guest",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/vin_search_neoriginal/tab_content.php",
+   "lang_href": "/ru",
+   "csrf": null,
+   "vars": {
+    "value_for_input_search": "AB&12",
+    "value_for_input_search_string": "pad &amp; disc"
+   }
+  },
+  {
+   "name": "tab_vin_search_empty",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/vin_search/tab_content.php"
+  },
+  {
+   "name": "tab_vin_search_vin",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/vin_search/tab_content.php",
+   "get": {
+    "vin": "WVW\"<ZZZ>'&1"
+   }
+  },
+  {
+   "name": "tab_to_catalogue",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/to_catalogue/tab_content.php",
+   "csrf": "K<1>&\"'"
+  },
+  {
+   "name": "tab_to_catalogue_guest",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/to_catalogue/tab_content.php",
+   "csrf": null
+  },
+  {
+   "name": "tab_laximo_catalog",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/laximo_catalog/tab_content.php"
+  },
+  {
+   "name": "aftermarket_both_parts_first",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/aftermarket/tab_content.php",
+   "schema": [
+    "CREATE TABLE `shop_docpart_search_tabs` (`id` int AUTO_INCREMENT PRIMARY KEY, `name` varchar(64), `parameters_values` text)"
+   ],
+   "setup": [
+    "INSERT INTO `shop_docpart_search_tabs` (`name`,`parameters_values`) VALUES ('aftermarket', '{\"aftermarket_catalogs_parts_com_show\": \"on\", \"aftermarket_catalogs_parts_com_id\": \"hfiecq\", \"aftermarket_catalogs_parts_com_caption\": \"Catalogs <Parts>\", \"aftermarket_catalogs_parts_com_order\": 1, \"aftermarket_ilcats_show\": \"on\", \"aftermarket_ilcats_pid\": \"P1\", \"aftermarket_ilcats_clid\": \"C2\", \"aftermarket_ilcats_caption\": \"Ilcats\", \"aftermarket_ilcats_order\": 2}')"
+   ]
+  },
+  {
+   "name": "aftermarket_both_ilcats_first",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/aftermarket/tab_content.php",
+   "schema": [
+    "CREATE TABLE `shop_docpart_search_tabs` (`id` int AUTO_INCREMENT PRIMARY KEY, `name` varchar(64), `parameters_values` text)"
+   ],
+   "setup": [
+    "INSERT INTO `shop_docpart_search_tabs` (`name`,`parameters_values`) VALUES ('aftermarket', '{\"aftermarket_catalogs_parts_com_show\": \"on\", \"aftermarket_catalogs_parts_com_id\": \"hfiecq\", \"aftermarket_catalogs_parts_com_caption\": \"Catalogs <Parts>\", \"aftermarket_catalogs_parts_com_order\": 5, \"aftermarket_ilcats_show\": \"on\", \"aftermarket_ilcats_pid\": \"P1\", \"aftermarket_ilcats_clid\": \"C2\", \"aftermarket_ilcats_caption\": \"Ilcats\", \"aftermarket_ilcats_order\": 2}')"
+   ]
+  },
+  {
+   "name": "aftermarket_equal_order_parts_first",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/aftermarket/tab_content.php",
+   "schema": [
+    "CREATE TABLE `shop_docpart_search_tabs` (`id` int AUTO_INCREMENT PRIMARY KEY, `name` varchar(64), `parameters_values` text)"
+   ],
+   "setup": [
+    "INSERT INTO `shop_docpart_search_tabs` (`name`,`parameters_values`) VALUES ('aftermarket', '{\"aftermarket_catalogs_parts_com_show\": \"on\", \"aftermarket_catalogs_parts_com_id\": \"hfiecq\", \"aftermarket_catalogs_parts_com_caption\": \"Catalogs <Parts>\", \"aftermarket_catalogs_parts_com_order\": 3, \"aftermarket_ilcats_show\": \"on\", \"aftermarket_ilcats_pid\": \"P1\", \"aftermarket_ilcats_clid\": \"C2\", \"aftermarket_ilcats_caption\": \"Ilcats\", \"aftermarket_ilcats_order\": 3}')"
+   ]
+  },
+  {
+   "name": "aftermarket_only_ilcats",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/aftermarket/tab_content.php",
+   "schema": [
+    "CREATE TABLE `shop_docpart_search_tabs` (`id` int AUTO_INCREMENT PRIMARY KEY, `name` varchar(64), `parameters_values` text)"
+   ],
+   "setup": [
+    "INSERT INTO `shop_docpart_search_tabs` (`name`,`parameters_values`) VALUES ('aftermarket', '{\"aftermarket_catalogs_parts_com_show\": \"off\", \"aftermarket_catalogs_parts_com_id\": \"hfiecq\", \"aftermarket_catalogs_parts_com_caption\": \"Catalogs <Parts>\", \"aftermarket_catalogs_parts_com_order\": 1, \"aftermarket_ilcats_show\": \"on\", \"aftermarket_ilcats_pid\": \"P1\", \"aftermarket_ilcats_clid\": \"C2\", \"aftermarket_ilcats_caption\": \"Ilcats\", \"aftermarket_ilcats_order\": 2}')"
+   ]
+  },
+  {
+   "name": "aftermarket_none_on",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/aftermarket/tab_content.php",
+   "schema": [
+    "CREATE TABLE `shop_docpart_search_tabs` (`id` int AUTO_INCREMENT PRIMARY KEY, `name` varchar(64), `parameters_values` text)"
+   ],
+   "setup": [
+    "INSERT INTO `shop_docpart_search_tabs` (`name`,`parameters_values`) VALUES ('aftermarket', '{\"aftermarket_catalogs_parts_com_show\": \"off\", \"aftermarket_catalogs_parts_com_id\": \"hfiecq\", \"aftermarket_catalogs_parts_com_caption\": \"Catalogs <Parts>\", \"aftermarket_catalogs_parts_com_order\": 1, \"aftermarket_ilcats_show\": \"off\", \"aftermarket_ilcats_pid\": \"P1\", \"aftermarket_ilcats_clid\": \"C2\", \"aftermarket_ilcats_caption\": \"Ilcats\", \"aftermarket_ilcats_order\": 2}')"
+   ]
+  },
+  {
+   "name": "aftermarket_show_not_exactly_on",
+   "file": "content/shop/catalogue/search_tabs/tabs_content/aftermarket/tab_content.php",
+   "schema": [
+    "CREATE TABLE `shop_docpart_search_tabs` (`id` int AUTO_INCREMENT PRIMARY KEY, `name` varchar(64), `parameters_values` text)"
+   ],
+   "setup": [
+    "INSERT INTO `shop_docpart_search_tabs` (`name`,`parameters_values`) VALUES ('aftermarket', '{\"aftermarket_catalogs_parts_com_show\": true, \"aftermarket_catalogs_parts_com_id\": \"hfiecq\", \"aftermarket_catalogs_parts_com_caption\": \"Catalogs <Parts>\", \"aftermarket_catalogs_parts_com_order\": 1, \"aftermarket_ilcats_show\": \"ON\", \"aftermarket_ilcats_pid\": \"P1\", \"aftermarket_ilcats_clid\": \"C2\", \"aftermarket_ilcats_caption\": \"Ilcats\", \"aftermarket_ilcats_order\": 2}')"
+   ]
+  },
+  {
+   "name": "shop_button",
+   "file": "content/shop/general/shop_button.php",
+   "lang_href": "/en"
+  },
+  {
+   "name": "shop_button_no_lang",
+   "file": "content/shop/general/shop_button.php",
+   "lang_href": ""
+  },
+  {
+   "name": "ucatalog_index",
+   "file": "api/UCatalog/ucatalog_index.php"
+  },
+  {
+   "name": "ucatalog_index_garage",
+   "file": "api/UCatalog/ucatalog_index.php",
+   "get": {
+    "UCatalog_get_garage": "12"
+   }
+  },
+  {
+   "name": "ucatalog_index_garage_zero",
+   "file": "api/UCatalog/ucatalog_index.php",
+   "get": {
+    "UCatalog_get_garage": "0"
+   }
+  },
+  {
+   "name": "users_guest",
+   "file": "content/users/users_functions.php",
+   "user_id": 0,
+   "lang_href": "/en",
+   "lang": "/en"
+  },
+  {
+   "name": "users_logged_in",
+   "file": "content/users/users_functions.php",
+   "user_id": 7,
+   "lang_href": "/ru",
+   "lang": "/ru"
+  },
+  {
+   "name": "users_logged_in_no_lang",
+   "file": "content/users/users_functions.php",
+   "user_id": 7,
+   "lang_href": ""
+  },
+  {
+   "name": "eparts_product_article",
+   "file": "content/eparts_product.php",
+   "get": {
+    "article": " OC 90 "
+   },
+   "lang_href": "/en"
+  },
+  {
+   "name": "eparts_product_article_brand",
+   "file": "content/eparts_product.php",
+   "get": {
+    "article": "A&B/1",
+    "brand": "Bosch Ж"
+   },
+   "lang_href": "/ru/"
+  },
+  {
+   "name": "eparts_product_oem_manufacturer",
+   "file": "content/eparts_product.php",
+   "get": {
+    "oem": "OEM1",
+    "manufacturer": "MAN"
+   },
+   "lang_href": ""
+  },
+  {
+   "name": "eparts_product_article_wins_over_oem",
+   "file": "content/eparts_product.php",
+   "get": {
+    "article": "A1",
+    "oem": "O1"
+   },
+   "lang_href": "/en"
+  },
+  {
+   "name": "eparts_product_landing",
+   "file": "content/eparts_product.php",
+   "lang_href": "/en"
+  },
+  {
+   "name": "eparts_product_landing_category",
+   "file": "content/eparts_product.php",
+   "get": {
+    "category": "oil filters&x=1"
+   },
+   "lang_href": "/en/"
+  },
+  {
+   "name": "eparts_product_landing_blank_article",
+   "file": "content/eparts_product.php",
+   "get": {
+    "article": "   ",
+    "category": "c"
+   },
+   "lang_href": ""
+  },
+  {
+   "name": "eparts_product_landing_unsafe_lang",
+   "file": "content/eparts_product.php",
+   "lang_href": "/en\"><x"
+  },
+  {
+   "name": "chose_car_empty",
+   "file": "content/shop/docpart/car_catalogues/chose_car.php",
+   "schema": [
+    "CREATE TABLE `shop_docpart_cars` (`id` int PRIMARY KEY, `caption` varchar(32), `image` varchar(255))",
+    "CREATE TABLE `shop_docpart_cars_catalogue_links` (`id` int AUTO_INCREMENT PRIMARY KEY, `car_id` int)"
+   ]
+  },
+  {
+   "name": "chose_car_rows",
+   "file": "content/shop/docpart/car_catalogues/chose_car.php",
+   "schema": [
+    "CREATE TABLE `shop_docpart_cars` (`id` int PRIMARY KEY, `caption` varchar(32), `image` varchar(255))",
+    "CREATE TABLE `shop_docpart_cars_catalogue_links` (`id` int AUTO_INCREMENT PRIMARY KEY, `car_id` int)"
+   ],
+   "setup": [
+    "INSERT INTO `shop_docpart_cars` VALUES (1,'12','audi.png'),(2,'3','bmw.png'),(3,'7','no_links.png'),(4,'10','vw.png'),(5,'2','opel.png')",
+    "INSERT INTO `shop_docpart_cars_catalogue_links` (`car_id`) VALUES (1),(1),(2),(4),(5)"
+   ],
+   "lang_href": "/ru"
+  },
+  {
+   "name": "news_module_two",
+   "file": "modules/news/module.php",
+   "schema": [
+    "CREATE TABLE `modules` (`id` int PRIMARY KEY, `data` text)",
+    "CREATE TABLE `content` (`id` int PRIMARY KEY, `value` varchar(64), `time_created` int, `description_tag` varchar(64), `url` varchar(128), `parent` int)"
+   ],
+   "module_id": 5,
+   "setup": [
+    "INSERT INTO `content` VALUES (1,'100',0,'0','news',0),(2,'201',1700000000,'301','news/one',1),(3,'202',1700086400,'302','news/two',1),(4,'203',1700172800,'303','news/three',1),(5,'999',1700000000,'998','other/x',9)",
+    "INSERT INTO `modules` VALUES (5,'{\"root_content\":\"1\",\"news_count\":\"2\"}')"
+   ],
+   "lang_href": "/en"
+  },
+  {
+   "name": "news_module_all",
+   "file": "modules/news/module.php",
+   "schema": [
+    "CREATE TABLE `modules` (`id` int PRIMARY KEY, `data` text)",
+    "CREATE TABLE `content` (`id` int PRIMARY KEY, `value` varchar(64), `time_created` int, `description_tag` varchar(64), `url` varchar(128), `parent` int)"
+   ],
+   "module_id": 5,
+   "setup": [
+    "INSERT INTO `content` VALUES (1,'100',0,'0','news',0),(2,'201',1700000000,'301','news/one',1),(3,'202',1700086400,'302','news/two',1),(4,'203',1700172800,'303','news/three',1),(5,'999',1700000000,'998','other/x',9)",
+    "INSERT INTO `modules` VALUES (5,'{\"root_content\":1,\"news_count\":10}')"
+   ],
+   "lang_href": ""
+  },
+  {
+   "name": "news_module_zero_limit",
+   "file": "modules/news/module.php",
+   "schema": [
+    "CREATE TABLE `modules` (`id` int PRIMARY KEY, `data` text)",
+    "CREATE TABLE `content` (`id` int PRIMARY KEY, `value` varchar(64), `time_created` int, `description_tag` varchar(64), `url` varchar(128), `parent` int)"
+   ],
+   "module_id": 5,
+   "setup": [
+    "INSERT INTO `content` VALUES (1,'100',0,'0','news',0),(2,'201',1700000000,'301','news/one',1),(3,'202',1700086400,'302','news/two',1),(4,'203',1700172800,'303','news/three',1),(5,'999',1700000000,'998','other/x',9)",
+    "INSERT INTO `modules` VALUES (5,'{\"root_content\":1,\"news_count\":0}')"
+   ],
+   "lang_href": "/en"
+  },
+  {
+   "name": "news_module_missing_root",
+   "file": "modules/news/module.php",
+   "schema": [
+    "CREATE TABLE `modules` (`id` int PRIMARY KEY, `data` text)",
+    "CREATE TABLE `content` (`id` int PRIMARY KEY, `value` varchar(64), `time_created` int, `description_tag` varchar(64), `url` varchar(128), `parent` int)"
+   ],
+   "module_id": 5,
+   "setup": [
+    "INSERT INTO `content` VALUES (1,'100',0,'0','news',0),(2,'201',1700000000,'301','news/one',1),(3,'202',1700086400,'302','news/two',1),(4,'203',1700172800,'303','news/three',1),(5,'999',1700000000,'998','other/x',9)",
+    "INSERT INTO `modules` VALUES (5,'{\"root_content\":77,\"news_count\":3}')"
+   ],
+   "lang_href": "/en"
+  },
+  {
+   "name": "product_description_content",
+   "file": "content/shop/catalogue/product_description.php",
+   "schema": [
+    "CREATE TABLE `shop_products_text` (`product_id` int, `content` varchar(255))"
+   ],
+   "setup": [
+    "INSERT INTO `shop_products_text` VALUES (7,'BODY<b>'),(8,''),(9,'0')"
+   ],
+   "vars": {
+    "product_id": 7
+   }
+  },
+  {
+   "name": "product_description_empty_content",
+   "file": "content/shop/catalogue/product_description.php",
+   "schema": [
+    "CREATE TABLE `shop_products_text` (`product_id` int, `content` varchar(255))"
+   ],
+   "setup": [
+    "INSERT INTO `shop_products_text` VALUES (7,'BODY<b>'),(8,''),(9,'0')"
+   ],
+   "vars": {
+    "product_id": 8
+   }
+  },
+  {
+   "name": "product_description_zero_content",
+   "file": "content/shop/catalogue/product_description.php",
+   "schema": [
+    "CREATE TABLE `shop_products_text` (`product_id` int, `content` varchar(255))"
+   ],
+   "setup": [
+    "INSERT INTO `shop_products_text` VALUES (7,'BODY<b>'),(8,''),(9,'0')"
+   ],
+   "vars": {
+    "product_id": 9
+   }
+  },
+  {
+   "name": "product_description_no_row",
+   "file": "content/shop/catalogue/product_description.php",
+   "schema": [
+    "CREATE TABLE `shop_products_text` (`product_id` int, `content` varchar(255))"
+   ],
+   "setup": [
+    "INSERT INTO `shop_products_text` VALUES (7,'BODY<b>'),(8,''),(9,'0')"
+   ],
+   "vars": {
+    "product_id": 99
+   }
+  },
+  {
+   "name": "currency_no",
+   "file": "content/shop/general/get_currency_indicator.php",
+   "schema": [
+    "CREATE TABLE `shop_currencies` (`iso_code` varchar(8), `sign` varchar(16), `caption_short` varchar(16))"
+   ],
+   "setup": [
+    "INSERT INTO `shop_currencies` VALUES ('784','AED','AED2'),('840','$','USD')"
+   ],
+   "config": {
+    "shop_currency": "840",
+    "currency_show_mode": "no"
+   },
+   "vars_out": [
+    "currency_indicator",
+    "currency_sign"
+   ]
+  },
+  {
+   "name": "currency_sign_before",
+   "file": "content/shop/general/get_currency_indicator.php",
+   "schema": [
+    "CREATE TABLE `shop_currencies` (`iso_code` varchar(8), `sign` varchar(16), `caption_short` varchar(16))"
+   ],
+   "setup": [
+    "INSERT INTO `shop_currencies` VALUES ('784','AED','AED2'),('840','$','USD')"
+   ],
+   "config": {
+    "shop_currency": "840",
+    "currency_show_mode": "sign_before"
+   },
+   "vars_out": [
+    "currency_indicator",
+    "currency_sign"
+   ]
+  },
+  {
+   "name": "currency_sign_after",
+   "file": "content/shop/general/get_currency_indicator.php",
+   "schema": [
+    "CREATE TABLE `shop_currencies` (`iso_code` varchar(8), `sign` varchar(16), `caption_short` varchar(16))"
+   ],
+   "setup": [
+    "INSERT INTO `shop_currencies` VALUES ('784','AED','AED2'),('840','$','USD')"
+   ],
+   "config": {
+    "shop_currency": "840",
+    "currency_show_mode": "sign_after"
+   },
+   "vars_out": [
+    "currency_indicator",
+    "currency_sign"
+   ]
+  },
+  {
+   "name": "currency_short_name_after",
+   "file": "content/shop/general/get_currency_indicator.php",
+   "schema": [
+    "CREATE TABLE `shop_currencies` (`iso_code` varchar(8), `sign` varchar(16), `caption_short` varchar(16))"
+   ],
+   "setup": [
+    "INSERT INTO `shop_currencies` VALUES ('784','AED','AED2'),('840','$','USD')"
+   ],
+   "config": {
+    "shop_currency": "840",
+    "currency_show_mode": "short_name_after"
+   },
+   "vars_out": [
+    "currency_indicator",
+    "currency_sign"
+   ]
+  },
+  {
+   "name": "currency_short_name_before",
+   "file": "content/shop/general/get_currency_indicator.php",
+   "schema": [
+    "CREATE TABLE `shop_currencies` (`iso_code` varchar(8), `sign` varchar(16), `caption_short` varchar(16))"
+   ],
+   "setup": [
+    "INSERT INTO `shop_currencies` VALUES ('784','AED','AED2'),('840','$','USD')"
+   ],
+   "config": {
+    "shop_currency": "840",
+    "currency_show_mode": "short_name_before"
+   },
+   "vars_out": [
+    "currency_indicator",
+    "currency_sign"
+   ]
+  },
+  {
+   "name": "currency_anything",
+   "file": "content/shop/general/get_currency_indicator.php",
+   "schema": [
+    "CREATE TABLE `shop_currencies` (`iso_code` varchar(8), `sign` varchar(16), `caption_short` varchar(16))"
+   ],
+   "setup": [
+    "INSERT INTO `shop_currencies` VALUES ('784','AED','AED2'),('840','$','USD')"
+   ],
+   "config": {
+    "shop_currency": "840",
+    "currency_show_mode": "anything"
+   },
+   "vars_out": [
+    "currency_indicator",
+    "currency_sign"
+   ]
+  },
+  {
+   "name": "currency_missing_row_sign_before",
+   "file": "content/shop/general/get_currency_indicator.php",
+   "schema": [
+    "CREATE TABLE `shop_currencies` (`iso_code` varchar(8), `sign` varchar(16), `caption_short` varchar(16))"
+   ],
+   "setup": [
+    "INSERT INTO `shop_currencies` VALUES ('784','AED','AED2'),('840','$','USD')"
+   ],
+   "config": {
+    "shop_currency": "999",
+    "currency_show_mode": "sign_before"
+   },
+   "vars_out": [
+    "currency_indicator"
+   ]
+  },
+  {
+   "name": "currency_missing_row_short",
+   "file": "content/shop/general/get_currency_indicator.php",
+   "schema": [
+    "CREATE TABLE `shop_currencies` (`iso_code` varchar(8), `sign` varchar(16), `caption_short` varchar(16))"
+   ],
+   "setup": [
+    "INSERT INTO `shop_currencies` VALUES ('784','AED','AED2'),('840','$','USD')"
+   ],
+   "config": {
+    "shop_currency": "999",
+    "currency_show_mode": "short_name_after"
+   },
+   "vars_out": [
+    "currency_indicator"
+   ]
+  },
+  {
+   "name": "currency_null_sign",
+   "file": "content/shop/general/get_currency_indicator.php",
+   "schema": [
+    "CREATE TABLE `shop_currencies` (`iso_code` varchar(8), `sign` varchar(16), `caption_short` varchar(16))"
+   ],
+   "setup": [
+    "INSERT INTO `shop_currencies` VALUES ('1',NULL,NULL)"
+   ],
+   "config": {
+    "shop_currency": "1",
+    "currency_show_mode": "sign_after"
+   },
+   "vars_out": [
+    "currency_indicator"
+   ]
+  },
+  {
+   "name": "marketing_schema",
+   "file": "content/shop/marketing/epc_marketing_schema.php",
+   "schema": [
+    "DO 0"
+   ],
+   "eval": "epc_marketing_ensure_schema($GLOBALS['db_link']); epc_marketing_ensure_schema($GLOBALS['db_link']); return true;",
+   "show_create": [
+    "epc_marketing_task_progress",
+    "epc_marketing_kpi_log",
+    "epc_marketing_reviews"
+   ]
+  },
+  {
+   "name": "tax_advisory_seed_tree",
+   "file": "content/shop/price_engine/epc_tax_advisory_taxonomy.php",
+   "eval": "return epc_tax_advisory_seed_tree();"
+  },
+  {
+   "name": "docpart_manufacturer",
+   "file": "content/shop/docpart/DocpartManufacturer.php",
+   "vars": {
+    "cases": [
+     [
+      "  Bosch  ",
+      5,
+      "  Brake\npad\t\\x\r  ",
+      3,
+      9,
+      true,
+      {
+       "k": "v"
+      }
+     ],
+     [
+      "бош",
+      0,
+      "Колодки",
+      1,
+      1,
+      false,
+      null
+     ],
+     [
+      " Bosch ",
+      7,
+      " pad ",
+      1,
+      1,
+      true,
+      null
+     ],
+     [
+      "A",
+      1,
+      "x",
+      1,
+      1,
+      false,
+      null
+     ],
+     [
+      "",
+      1,
+      "x",
+      1,
+      1,
+      false,
+      null
+     ],
+     [
+      "ßa",
+      1,
+      "x",
+      1,
+      1,
+      false,
+      null
+     ],
+     [
+      "😀",
+      1,
+      "x",
+      1,
+      1,
+      false,
+      null
+     ],
+     [
+      "😀😀",
+      1,
+      "x",
+      1,
+      1,
+      false,
+      null
+     ],
+     [
+      " \u0000A\u000b",
+      1,
+      "\u0000 \\ x \u000b",
+      1,
+      1,
+      false,
+      null
+     ],
+     [
+      "MaHLe",
+      1,
+      " \\ a",
+      1,
+      1,
+      true,
+      null
+     ],
+     [
+      "Ab",
+      1,
+      "a \\ ",
+      1,
+      1,
+      true,
+      null
+     ],
+     [
+      "Ünal",
+      1,
+      null,
+      1,
+      1,
+      false,
+      null
+     ]
+    ]
+   },
+   "eval": "$out=array(); foreach($cases as $c){ $m=new DocpartManufacturer($c[0],$c[1],$c[2],$c[3],$c[4],$c[5],isset($c[6])?$c[6]:NULL); $out[]=get_object_vars($m);} return $out;"
+  },
+  {
+   "name": "tree_list_empty",
+   "file": "content/shop/catalogue/tree_lists/get_tree_list_items.php",
+   "schema": [
+    "CREATE TABLE `shop_tree_lists_items` (`id` int PRIMARY KEY, `tree_list_id` int, `count` int, `level` int, `value` varchar(64), `alias` varchar(64), `url` varchar(255), `parent` int, `image` varchar(64), `order` int, `open` tinyint, `ts` int)"
+   ],
+   "setup": [
+    "INSERT INTO `shop_tree_lists_items` VALUES (1,2,0,1,'10','a','/a',0,'',1,1,0)"
+   ],
+   "vars": {
+    "needed_tree_list_id": 1
+   },
+   "preload": "content/shop/catalogue/tree_lists/dp_tree_list_item.php",
+   "vars_out": [
+    "tree_list_dump_JSON"
+   ]
+  },
+  {
+   "name": "tree_list_nested",
+   "file": "content/shop/catalogue/tree_lists/get_tree_list_items.php",
+   "schema": [
+    "CREATE TABLE `shop_tree_lists_items` (`id` int PRIMARY KEY, `tree_list_id` int, `count` int, `level` int, `value` varchar(64), `alias` varchar(64), `url` varchar(255), `parent` int, `image` varchar(64), `order` int, `open` tinyint, `ts` int)"
+   ],
+   "preload": "content/shop/catalogue/tree_lists/dp_tree_list_item.php",
+   "vars": {
+    "needed_tree_list_id": 1
+   },
+   "vars_out": [
+    "tree_list_dump_JSON"
+   ],
+   "setup": [
+    "INSERT INTO `shop_tree_lists_items` VALUES (1,1,2,1,'10','engine','/engine',0,'e.png',2,1,0),(2,1,0,1,'11','body','/body/ü',0,'',1,0,0),(3,1,1,2,'12','filters','',1,'f.png',1,1,0),(4,1,0,2,'13','oil','/oil',1,'',2,0,0),(5,1,0,3,'14','level','count',3,'parent',1,1,0),(6,1,0,2,'15','orphan','',99,'',1,1,0),(7,1,0,2,'16','under-empty','',2,'',1,1,0),(8,2,0,1,'17','other-list','',0,'',1,1,0)"
+   ]
+  },
+  {
+   "name": "tree_list_unicode_nulls",
+   "file": "content/shop/catalogue/tree_lists/get_tree_list_items.php",
+   "schema": [
+    "CREATE TABLE `shop_tree_lists_items` (`id` int PRIMARY KEY, `tree_list_id` int, `count` int, `level` int, `value` varchar(64), `alias` varchar(64), `url` varchar(255), `parent` int, `image` varchar(64), `order` int, `open` tinyint, `ts` int)"
+   ],
+   "preload": "content/shop/catalogue/tree_lists/dp_tree_list_item.php",
+   "vars": {
+    "needed_tree_list_id": 3
+   },
+   "vars_out": [
+    "tree_list_dump_JSON"
+   ],
+   "setup": [
+    "INSERT INTO `shop_tree_lists_items` VALUES (21,3,0,1,'Ж\"</x>&''€😀','Ж','/ü/''',0,NULL,0,0,0)"
+   ]
+  }
+ ]
+}

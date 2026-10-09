@@ -322,6 +322,14 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — small storefront fragments and retired PHP-only CP bootstraps
+
+Not complete.
+
+- Ratchet 749 to 722. Seven storefront fragments now have PHP 8.3 goldens and an ASP.NET twin: `set_cookie_products_style.php`, `search_strs_for_inputs.php`, `get_currency_indicator.php`, `product_description.php`, `shop_button.php`, `users_functions.php`, `cat_lang_general.php`. Twenty PHP-only ops switches, CP CMS bootstrap scripts and `window.*` footer configs are retired in `inventory/PHP_RETIRED.tsv` (Kestrel has no PHP include chain, and the Blazor pages pass the same values in C#).
+- The products-style cookie follows PHP 8.3 `(int)` (scientific-notation strings included), PHP request-key rewriting (`.`, space and `+` become `_`), and `(int)` of a non-empty array is 1. GET does not mint a guest session.
+- Evidence: PHP 8.3.6 produced `Fixtures/StorefrontFragments/golden.json` and `golden_http.json`. The fragment suite passed 5 of 5. The weighted headline stays about 20.4%.
+
 ### Checkpoint 2026-10-09 — catalogue product count (`ajax_get_products_count.php`) like PHP
 
 Not complete. This is the first data-plane slice of `printProducts.php` and `printProducts_2.php`. Neither list shell is ported by it.
