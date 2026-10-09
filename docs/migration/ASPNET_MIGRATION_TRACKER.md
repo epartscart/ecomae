@@ -203,7 +203,7 @@ The ajax ratios count only ajax scripts. To make sure nothing in the PHP referen
 Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
 
 1. **Storefront customer pages (epartscart.com).**
-   - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`. Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php`, `my_quotes.php`, `my_order_not_authorized.php` (see the checkpoints below).
+   - `content/shop/order_process`: `cart.php`, `my_orders_items.php`, `checkout_confirm.php`. Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php`, `my_quotes.php`, `my_order_not_authorized.php`, `my_orders.php` (see the checkpoints below).
    - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
    - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
    - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
@@ -321,6 +321,22 @@ Evidence per page, recorded in its checkpoint:
 Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
+
+### Checkpoint 2026-10-09 — the customer orders list (`my_orders.php`) like PHP
+
+Not complete.
+
+- Ratchet 754 to 753. Inventory content 388 to 389 of 952. Unnamed PHP functions 7,890 to 7,876. The weighted headline (about 20.4%) is unchanged.
+- `/en/shop/orders` and `/shop/orders` now print PHP's page through `StorefrontMyOrders` (`StorefrontMyOrdersApp.razor`):
+  - a visitor gets the login panel (string 4559) with PHP's general login form, postfix `my_orders` and target `shop/orders`;
+  - a customer gets the filter bar (dates, order number, paid, payment type, garage, status), read from the `my_orders_filter` cookie the way PHP reads it: URL-decoded, first value wins, PHP 8 loose comparisons. An invalid cookie still filters on `paid = 0` and `paid_type = 0`, as in PHP. `?garage=` for one of the customer's cars resets the filter to that car and prints PHP's cookie script;
+  - the orders table sorted by the `my_orders_sort` cookie (PHP's column whitelist), with unread message badges, the garage icon, the hidden line rows and `?read=0`. The sums leave out line statuses that do not count;
+  - PHP's pagination, whose links have no language prefix, as in PHP;
+  - the guest order note at the end.
+- The order card (`/shop/orders/order`) and the line list (`/shop/orders/items`) still use the earlier ASP.NET page until they are ported.
+- Intended deviation: PHP prints the filter cookie values, garage captions and line texts without escaping. The port escapes them.
+- Evidence: `Fixtures/MyOrders/harness.php` ran the real PHP 8.3 page for 26 cases on throwaway databases, each in its own process: visitor, default list, every filter field, invalid and scalar cookies, loose cookie values, four sort cookies, `?garage=` matched and foreign, `?read=0`, six pagination positions, and a customer with no orders. `StorefrontMyOrdersTests` matches all 26 byte for byte, and it also covers escaping, cookie decoding and pagination. Full suite 5,873 of 5,873 passed. Kestrel GETs with fake cookies print the visitor panel and the login form. No session rows were created.
+- Local data limit: no local database has the order tables, so the signed-in list can only be checked by the golden test here.
 
 ### Checkpoint 2026-10-08 — the guest order page (`my_order_not_authorized.php`) like PHP
 
