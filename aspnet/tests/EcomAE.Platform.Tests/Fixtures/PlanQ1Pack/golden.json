@@ -1,0 +1,104 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "faq_data",
+            "output": "",
+            "result": [
+                7,
+                105,
+                "automotive",
+                1,
+                "Partial",
+                "logistics",
+                105,
+                {
+                    "Yes": 50,
+                    "Partial": 33,
+                    "Planned": 2,
+                    "No": 20
+                }
+            ]
+        },
+        {
+            "name": "legal_data",
+            "output": "",
+            "result": [
+                "16 July 2026",
+                13,
+                [
+                    "privacy",
+                    "terms",
+                    "cookie-policy",
+                    "security-policy",
+                    "right-to-use",
+                    "trademark",
+                    "copyright",
+                    "data-protection",
+                    "acceptable-use",
+                    "confidentiality",
+                    "intellectual-property",
+                    "blockchain-disclaimer",
+                    "dmca"
+                ],
+                "Privacy Policy",
+                "fa-user-secret",
+                11,
+                "IP Infringement & Notice Policy",
+                "privacy",
+                "terms",
+                15
+            ]
+        },
+        {
+            "name": "ded_data",
+            "output": "",
+            "result": [
+                17,
+                2987,
+                [
+                    "agriculture",
+                    "fishing",
+                    "mining_quarrying",
+                    "accommodation_food",
+                    "manufacturing",
+                    "contracting",
+                    "trading_services",
+                    "social_personal",
+                    "transport_storage",
+                    "extra_territorial",
+                    "real_estate",
+                    "education",
+                    "health_social",
+                    "electricity_gas_water",
+                    "construction",
+                    "financial_intermediation",
+                    "classification_service"
+                ],
+                34,
+                [
+                    "agriculture_farming"
+                ],
+                [
+                    "agriculture",
+                    "fishing"
+                ],
+                [],
+                2987,
+                "NAICS 2022",
+                [
+                    "missing_one"
+                ],
+                [
+                    "agri",
+                    "fish"
+                ],
+                [
+                    "agri",
+                    "fish"
+                ],
+                false
+            ]
+        }
+    ]
+}
