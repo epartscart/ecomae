@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Mark/Pack (`--max-gap 548` passed; current gap **544**).
+after PlanQ1Rest (`--max-gap 544` passed; current gap **539**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 544
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 539
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -20,22 +20,22 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 1 | Storefront: catalogue | 35 | 10,764 |
 | 1 | Storefront: modules | 18 | 3,446 |
 | 1 | Storefront: other shop | 23 | 7,989 |
-| 1 | Storefront: parts/docpart | 32 | 35,988 |
+| 1 | Storefront: parts/docpart | 31 | 35,605 |
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 3 | 2,192 |
 | 3 | CP other | 12 | 3,578 |
 | 3 | CP shop core (orders, catalogue, price upload) | 31 | 13,857 |
 | 3 | CP shop smaller | 24 | 8,039 |
 | 4 | CP control/portal | 41 | 10,505 |
-| 5 | Marketing/BOS/industries | 132 | 67,120 |
+| 5 | Marketing/BOS/industries | 128 | 65,472 |
 | 6 | Price engine | 19 | 16,422 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **544** | **251,763** |
+| | **Total** | **539** | **249,732** |
 
-- Non-ERP (Cursor): **378 files / 185,572 lines**
+- Non-ERP (Cursor): **373 files / 183,541 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,356** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **93**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,306** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **93**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -96,6 +96,10 @@ Closed against PHP 8.3.6 goldens: jewellery / fashion / electronics `*_data.php`
 ### Q1 mark / pack — done (`PhpPlanQ1Mark`, `PhpPlanQ1Pack`)
 
 Closed against PHP 8.3.6 goldens: `printProductBlock` markup from `content/shop/catalogue/helper.php` (CRLF tile/list/bookmarks/compare/admin/warehouse/cart-suggestion; 11 cases), `epc_ecomae_faq_data.php` (105 items / status counts), `epc_ecomae_legal_content.php` (effective date / catalog / top-level aliases), `epc_ded_activity_mapping.php` (divisions / registries / group filter / coverage audit / portal bridge). Audit and bridge take injectable maps; do not mention the industry-consolidation or portal parent paths.
+
+### Q1 rest — done (`PhpPlanQ1Rest`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Rest`, 9 cases): demand-country ISO maps / parse / preview / import (article-normalize and schema injected; CHAR(2) migrate INSERT fatals on this MariaDB STRICT — no-op ISO3 path only), industry theme registry / default / ERP kit / CP alignment, brochure topic catalog / resolve / unique photos / svg URL, theme-template slots / palettes / quartet / normalize (industry maps injected), storefront package registry / resolve / preset / apply. Package dump omits header/home/footer sibling paths. Do not mention the portal parent path.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
