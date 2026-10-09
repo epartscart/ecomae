@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1 (`--max-gap 590` passed; current gap **581**).
+after PlanQ1Next (`--max-gap 581` passed; current gap **578**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 581
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 578
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 31 | 13,857 |
 | 3 | CP shop smaller | 24 | 8,039 |
 | 4 | CP control/portal | 41 | 10,505 |
-| 5 | Marketing/BOS/industries | 168 | 79,838 |
+| 5 | Marketing/BOS/industries | 165 | 79,326 |
 | 6 | Price engine | 19 | 16,422 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **581** | **264,897** |
+| | **Total** | **578** | **264,385** |
 
-- Non-ERP (Cursor): **415 files / 198,706 lines**
+- Non-ERP (Cursor): **412 files / 198,194 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,676** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **112**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,660** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **97**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -54,19 +54,25 @@ Do not close both sides of a basename collision (`orders_background.php`, `show_
 
 ### Q1 — done (PlanQ1 / `PhpPlanQ1`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1`, 35 cases): bootstrap-light, deploy-auth, BOS security lists, PHP-reference router, CP common-parity, office/storage meta, perf-cache, tenant-brand stub, genuine-manufacturer index. SKU-media CP install stays in Q2 (`epc_sku_media.php` parent).
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1`, 35 cases): bootstrap-light, deploy-auth, BOS security lists, PHP-reference router, CP common-parity, office/storage meta, perf-cache, tenant-brand stub, genuine-manufacturer index.
 
-### Q1 next — remaining honest ≤200-line helpers
+### Q1 next — done (PlanQ1Next / `PhpPlanQ1Next`)
 
-Most leftover “ready” rows are Q2/Q3 (copilot, BOS login/health, breadcrumb DB, product-line hrefs, `*_h` pages, APE, logistics). Next honest ports:
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Next`, 12 cases): storefront logo markup/hub flags (stub site profile; hub and animated-logo parents stay their own gaps), industry-pack builtin catalog plus seed/assign/tenant/fleet, promotions create/list/apply/usage/fleet. Schema helpers are in-memory twins of the PHP PDO functions (throwaway MariaDB goldens).
+
+Skipped on purpose:
+
+- `epc_sku_media_storefront.php` / `epc_sku_media_cp_install.php` until `epc_sku_media.php`.
+- `cp/content/content/get_content_records.php` (`addContentToDump`): the walker is a pure tree walk, but mentioning it closes the include-time dump page, which needs `DP_ContentRecord` / `translate_str_by_id`. Leave unmentioned until that class is ported.
+
+### Q1 after — remaining honest ≤200-line helpers
+
+Most leftover “ready” rows are still Q2/Q3. Next honest ports:
 
 | Order | File | Why now |
 |---|---|---|
-| 1 | `content/shop/catalogue/epc_sku_media_storefront.php` (165) | Renderer only if install parent is still skipped — **skip** until `epc_sku_media.php`. |
-| 2 | `content/general_pages/epc_portal_storefront_logo.php` (191) | Logo markup/hub flags. Stub site profile like tenant-brand. |
-| 3 | `content/general_pages/epc_industry_packs.php` (168) | Builtin pack catalog only; schema/fleet stay stub-safe. |
-| 4 | `content/general_pages/epc_promotions_engine.php` (153) | List/apply against in-memory rows; schema optional. |
-| 5 | `cp/content/content/get_content_records.php` (`addContentToDump`, 138) | Dump walker if it is pure tree walk. |
+| 1 | `content/general_pages/epc_portal_industry_live_bridge.php` (199) | Builtin defs + merge are pure catalogs. URL/audit stub `epc_industry_seo` / `epc_portal_industries` like tenant-brand. |
+| 2 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip** (not a storefront/CP helper). |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
@@ -86,11 +92,11 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_custom_shipping_guide.php`, `epc_erp_only_onboard_guide.php` | ERP include — Devin |
 | `epc_ai_copilot.php`, `epc_bos_ajax_login.php`, `epc_bos_health_check.php` | Tenant PDO / BOS session |
 | `epc_cp_breadcrumb.php` | CP content-folder DB |
-| `epc_industry_packs.php`, `epc_promotions_engine.php` | Schema + fleet stats |
 | `epc_tenant_pdo.php` | Live tenant connections |
 | `get_alternative_bread_crumbs` | Breadcrumb module |
 | `clear_dir` (`del_tmp_folder.php`) | pyprices upload parent |
 | `epc_sku_media_cp_install.php`, `epc_sku_media_storefront.php` | `epc_sku_media.php` (1,311 lines) |
+| `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
 
@@ -107,7 +113,7 @@ Port the page, or leave the identifier unmentioned.
 1. Product-block markup (`printProductBlock`), then `printProducts.php` / `printProducts_2.php` shells.
 2. `part_search_page.php` and the parts agent.
 3. CP order card / order lines / price-upload page bodies (step 3 core).
-4. Marketing / industry page kernels in `content/general_pages` (largest remaining non-ERP block: 168 files / 79,838 lines).
+4. Marketing / industry page kernels in `content/general_pages` (largest remaining non-ERP block: 165 files / 79,326 lines).
 5. Price engine last among Cursor-owned libraries, on the existing importer.
 
 ## 5. Invariants every slice

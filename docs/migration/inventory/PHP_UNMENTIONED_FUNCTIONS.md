@@ -4,13 +4,13 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 
 | Class | Count | What to do |
 |---|---:|---|
-| Real PHP (non-ERP), gap file ≤200 lines | 112 | Build next — listed below |
+| Real PHP (non-ERP), gap file ≤200 lines | 97 | Build next — listed below |
 | Real PHP (non-ERP), larger gap file | 2587 | Build with the parent kernel |
 | Real PHP already on a mentioned file | 859 | Finish leftover helpers on that twin |
 | JS functions written inside PHP templates | 1390 | Port as browser JS, not C# methods |
 | Vendor (PHPExcel, PclZip, …) | 255 | Do not port |
-| ERP finance (Devin) | 2035 | Leave for Devin |
-| **Total unmentioned** | **7676** | |
+| ERP finance (Devin) | 2034 | Leave for Devin |
+| **Total unmentioned** | **7660** | |
 
 ## Ready to build (non-ERP PHP, gap file ≤200 lines)
 
@@ -43,11 +43,6 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_epartscart_storefront_active` | `EpcEpartscartStorefrontActive` | `content/general_pages/epc_epartscart_storefront.php` | 138 |
 | `epc_epartscart_use_neutral_product_image` | `EpcEpartscartUseNeutralProductImage` | `content/general_pages/epc_epartscart_storefront.php` | 138 |
 | `epc_storefront_catalog_placeholder_for_hint` | `EpcStorefrontCatalogPlaceholderForHint` | `content/general_pages/epc_epartscart_storefront.php` | 138 |
-| `epc_industry_builtin_packs` | `EpcIndustryBuiltinPacks` | `content/general_pages/epc_industry_packs.php` | 168 |
-| `epc_industry_ensure_schema` | `EpcIndustryEnsureSchema` | `content/general_pages/epc_industry_packs.php` | 168 |
-| `epc_industry_fleet_stats` | `EpcIndustryFleetStats` | `content/general_pages/epc_industry_packs.php` | 168 |
-| `epc_industry_seed_packs` | `EpcIndustrySeedPacks` | `content/general_pages/epc_industry_packs.php` | 168 |
-| `epc_industry_tenant_packs` | `EpcIndustryTenantPacks` | `content/general_pages/epc_industry_packs.php` | 168 |
 | `epc_cpi_header_href` | `EpcCpiHeaderHref` | `content/general_pages/epc_portal_consulting_primeinvest_header.php` | 113 |
 | `epc_er_header_href` | `EpcErHeaderHref` | `content/general_pages/epc_portal_electronics_retail_header.php` | 162 |
 | `epc_frn_header_href` | `EpcFrnHeaderHref` | `content/general_pages/epc_portal_fashion_retail_namshi_header.php` | 196 |
@@ -56,16 +51,6 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_portal_industry_live_storefront_url` | `EpcPortalIndustryLiveStorefrontUrl` | `content/general_pages/epc_portal_industry_live_bridge.php` | 199 |
 | `epc_portal_merge_live_subs_into_industry` | `EpcPortalMergeLiveSubsIntoIndustry` | `content/general_pages/epc_portal_industry_live_bridge.php` | 199 |
 | `epc_jrk_header_href` | `EpcJrkHeaderHref` | `content/general_pages/epc_portal_jewellery_retail_kiyasha_header.php` | 199 |
-| `epc_portal_storefront_epartscart_svg_markup` | `EpcPortalStorefrontEpartscartSvgMarkup` | `content/general_pages/epc_portal_storefront_logo.php` | 191 |
-| `epc_portal_storefront_hub_enabled` | `EpcPortalStorefrontHubEnabled` | `content/general_pages/epc_portal_storefront_logo.php` | 191 |
-| `epc_portal_storefront_hub_logo_enqueue` | `EpcPortalStorefrontHubLogoEnqueue` | `content/general_pages/epc_portal_storefront_logo.php` | 191 |
-| `epc_portal_storefront_hub_logo_setting` | `EpcPortalStorefrontHubLogoSetting` | `content/general_pages/epc_portal_storefront_logo.php` | 191 |
-| `epc_portal_storefront_logo_markup` | `EpcPortalStorefrontLogoMarkup` | `content/general_pages/epc_portal_storefront_logo.php` | 191 |
-| `epc_portal_storefront_logo_show_trade_label` | `EpcPortalStorefrontLogoShowTradeLabel` | `content/general_pages/epc_portal_storefront_logo.php` | 191 |
-| `epc_promo_apply` | `EpcPromoApply` | `content/general_pages/epc_promotions_engine.php` | 153 |
-| `epc_promo_ensure_schema` | `EpcPromoEnsureSchema` | `content/general_pages/epc_promotions_engine.php` | 153 |
-| `epc_promo_fleet_stats` | `EpcPromoFleetStats` | `content/general_pages/epc_promotions_engine.php` | 153 |
-| `epc_promo_list` | `EpcPromoList` | `content/general_pages/epc_promotions_engine.php` | 153 |
 | `epc_tenant_pdo` | `EpcTenantPdo` | `content/general_pages/epc_tenant_pdo.php` | 153 |
 | `epc_tenant_pdo_from_row` | `EpcTenantPdoFromRow` | `content/general_pages/epc_tenant_pdo.php` | 153 |
 | `epc_tenant_pdo_pool_stats` | `EpcTenantPdoPoolStats` | `content/general_pages/epc_tenant_pdo.php` | 153 |

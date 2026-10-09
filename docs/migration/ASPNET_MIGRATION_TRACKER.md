@@ -322,6 +322,13 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — plan Q1-next (storefront logo, industry packs, promotions)
+
+Not complete.
+
+- Ratchet 581 to 578. Three more Q1-next files now have PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Next`): `epc_portal_storefront_logo.php` (hub setting / enabled / enqueue / trade label / markup / epartscart SVG; stub site profile, does not load `epc_portal.php`; hub and animated-logo parents stay gaps), `epc_industry_packs.php` (version / builtin catalog / seed / assign / tenant packs / fleet; in-memory twin of the PDO helpers, MariaDB goldens), `epc_promotions_engine.php` (create / list / apply / record usage / fleet; percentage, fixed, BOGO, free-shipping, min-order, max-discount, per-customer and usage-limit). `addContentToDump` stays unmentioned (`DP_ContentRecord` dump page). SKU-media stays skipped until `epc_sku_media.php`.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Next/golden.json` (12 cases). The PlanQ1Next suite is 4 of 4; PlanQ1 + ReadyNamed + NamedBatch still 12 of 12 (16 of 16 together). Inventory content 461 to 464 of 952. Unnamed PHP functions 7,676 to 7,660. Ready ≤200-line non-ERP functions 112 to 97. The weighted headline stays about 20.4%. Non-ERP pending: 412 files / 198,194 lines (was 415 / 198,706). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session.
+
 ### Checkpoint 2026-10-09 — plan Q1 named helpers (bootstrap, deploy-auth, BOS lists, parity, cache, brand, genuine)
 
 Not complete.
