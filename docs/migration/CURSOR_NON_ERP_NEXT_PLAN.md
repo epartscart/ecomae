@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Data/Mig/Hook/Sec (`--max-gap 555` passed; current gap **548**).
+after PlanQ1Mark/Pack (`--max-gap 548` passed; current gap **544**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 548
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 544
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -17,7 +17,7 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 
 | Plan step | Area | Gap files | Lines |
 |---|---|---:|---:|
-| 1 | Storefront: catalogue | 36 | 11,180 |
+| 1 | Storefront: catalogue | 35 | 10,764 |
 | 1 | Storefront: modules | 18 | 3,446 |
 | 1 | Storefront: other shop | 23 | 7,989 |
 | 1 | Storefront: parts/docpart | 32 | 35,988 |
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 31 | 13,857 |
 | 3 | CP shop smaller | 24 | 8,039 |
 | 4 | CP control/portal | 41 | 10,505 |
-| 5 | Marketing/BOS/industries | 135 | 68,980 |
+| 5 | Marketing/BOS/industries | 132 | 67,120 |
 | 6 | Price engine | 19 | 16,422 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **548** | **254,039** |
+| | **Total** | **544** | **251,763** |
 
-- Non-ERP (Cursor): **382 files / 187,848 lines**
+- Non-ERP (Cursor): **378 files / 185,572 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,368** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **93**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,356** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **93**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -93,6 +93,10 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Twin`, 8 cases): import orches
 
 Closed against PHP 8.3.6 goldens: jewellery / fashion / electronics `*_data.php` catalogs (footer uses portal-missing store names only; do not mention helper / portal / `*_header_href` paths), `epc_db_migrations.php` (MariaDB DDL implicit-commit makes apply/rollback return `ok=false` after the row is written), `epc_webhooks.php` + `epc_events.php` (no live HTTP; emit with no matching hooks so dispatch returns 0; `process_retries` / `dlq_list` LIMIT binds skipped), `epc_security_kernel.php` (headers / lockdown / risk / allowlist / backend group / BOS role; CSRF `session_start` skipped; `require_ops_access` mentioned but not golden-run).
 
+### Q1 mark / pack — done (`PhpPlanQ1Mark`, `PhpPlanQ1Pack`)
+
+Closed against PHP 8.3.6 goldens: `printProductBlock` markup from `content/shop/catalogue/helper.php` (CRLF tile/list/bookmarks/compare/admin/warehouse/cart-suggestion; 11 cases), `epc_ecomae_faq_data.php` (105 items / status counts), `epc_ecomae_legal_content.php` (effective date / catalog / top-level aliases), `epc_ded_activity_mapping.php` (divisions / registries / group filter / coverage audit / portal bridge). Audit and bridge take injectable maps; do not mention the industry-consolidation or portal parent paths.
+
 ### Q1 next leftovers — honest schema/data twins still open
 
 The 93 leftover “ready” ≤200-line rows are still Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
@@ -101,7 +105,7 @@ The 93 leftover “ready” ≤200-line rows are still Q2/Q3. Next honest ports 
 |---|---|---|
 | 1 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
 | 2 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
-| 3 | `printProductBlock` then `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — start only if a helper can close without the kernel. |
+| 3 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
@@ -139,7 +143,7 @@ Port the page, or leave the identifier unmentioned.
 
 ## 4. After the small helpers
 
-1. Product-block markup (`printProductBlock`), then `printProducts.php` / `printProducts_2.php` shells.
+1. `printProducts.php` / `printProducts_2.php` shells after the catalogue list kernel.
 2. `part_search_page.php` and the parts agent.
 3. CP order card / order lines / price-upload page bodies (step 3 core).
 4. Marketing / industry page kernels in `content/general_pages` (largest remaining non-ERP block: 103 files / 58,788 lines).

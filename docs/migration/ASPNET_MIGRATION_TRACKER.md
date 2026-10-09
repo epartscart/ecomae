@@ -322,6 +322,13 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — plan Q1-mark / pack (printProductBlock, FAQ, legal, DED mapping)
+
+Not complete.
+
+- Ratchet 548 to 544. Four more files now have PHP 8.3 goldens and ASP.NET twins: `content/shop/catalogue/helper.php` (`PhpPlanQ1Mark`; `printProductBlock` CRLF markup — tile/list, bookmarks, compare, admin, warehouse quick-edit, cart suggestion), `epc_ecomae_faq_data.php`, `epc_ecomae_legal_content.php`, `epc_ded_activity_mapping.php` (`PhpPlanQ1Pack`; DED audit/bridge take injectable maps so the industry-consolidation and portal parents stay unmentioned).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Mark` (11) and `PlanQ1Pack` (3). All PlanQ1 suites 57 of 57. Inventory content 496 to 500 of 952. Unnamed PHP functions 7,368 to 7,356. Ready ≤200-line non-ERP functions stay 93. The weighted headline stays about 20.4%. Non-ERP pending: 378 files / 185,572 lines (was 382 / 187,848). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+
 ### Checkpoint 2026-10-09 — plan Q1-data / mig / hook / sec (industry catalogs, migrations, webhooks, security kernel)
 
 Not complete.
