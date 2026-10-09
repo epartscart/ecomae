@@ -30,11 +30,12 @@ def garage(html: str) -> str:
 def nonempty(name: str, csrf: str) -> str:
     html = garage(common(rows[name]["html"], csrf))
     html = re.sub(r"(\n\s*)cart_records = \[.*?\];\n", r"\1cart_records = {{CART_JSON}};\n", html, count=1, flags=re.S)
-    start = html.index("\t\tif( sum_total_num > 0 )\n\t\t{")
-    body_start = html.index("\n", start) + 1
-    end_marker = "\t\t}\n\t\t\n\t\t\n        document.getElementById"
-    end = html.index(end_marker, body_start)
-    html = html[:body_start] + "{{CHECKOUT_JS}}\n" + html[end:]
+    html = re.sub(
+        r"(\t\tif\( sum_total_num > 0 \)\n).*?(\t\t\n\t\t\n        document\.getElementById)",
+        r"\1{{CHECKOUT_JS}}\n\2",
+        html,
+        count=1,
+        flags=re.S)
     return html
 
 

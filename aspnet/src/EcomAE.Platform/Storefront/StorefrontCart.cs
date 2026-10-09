@@ -247,14 +247,14 @@ public static class StorefrontCart
         if (!input.TradeCheckoutBlocked)
         {
             var href = input.LangHref + (input.UserId > 0 ? "/shop/checkout/how_get" : "/shop/checkout/login_offer");
-            return "\t\t\tcart_html += '<div style=\"text-align: right;\"><a class=\"btn btn-ar btn-primary\" href=\""
-                + JsHtml(href) + "\">{4500}</a></div>';\n\t\t\t";
+            return "\t\t{\n\t\t\t\t\t\tcart_html += '<div style=\"text-align: right;\"><a class=\"btn btn-ar btn-primary\" href=\""
+                + JsHtml(href) + "\">{4500}</a></div>';\n\t\t\t\t\t}";
         }
 
         var message = "<div class=\"alert alert-warning\" style=\"margin-top:12px;text-align:left;\">"
             + H(input.TradeCheckoutMessage)
             + "</div><div style=\"text-align: right;\"><span class=\"btn btn-default disabled\" style=\"opacity:.65;cursor:not-allowed;\">{4500} (awaiting approval)</span></div>";
-        return "\t\t\tcart_html += " + PhpJsonString(message) + ";\n\t\t\t";
+        return "\t\t{\n\t\t\t\t\t\tcart_html += " + PhpJsonString(message) + ";\n\t\t\t\t\t}";
     }
 
     private static async Task<string> GarageOptionsAsync(DbConnection connection, int userId, CancellationToken cancellationToken)
@@ -319,7 +319,7 @@ public static class StorefrontCart
 
     private static string PhpJsonString(string value)
     {
-        var json = JsonSerializer.Serialize(value, new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) });
+        var json = JsonSerializer.Serialize(value, new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
         return json.Replace("/", "\\/", StringComparison.Ordinal);
     }
 
