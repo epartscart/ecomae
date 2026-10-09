@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1View (`--max-gap 503` passed; current gap **501**).
+after PlanQ1Form (`--max-gap 501` passed; current gap **499**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 501
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 499
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -24,18 +24,18 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 3 | 2,192 |
 | 3 | CP other | 12 | 3,578 |
-| 3 | CP shop core (orders, catalogue, price upload) | 30 | 13,605 |
+| 3 | CP shop core (orders, catalogue, price upload) | 28 | 13,248 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
 | 5 | Marketing/BOS/industries | 107 | 58,387 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **501** | **236,361** |
+| | **Total** | **499** | **236,004** |
 
-- Non-ERP (Cursor): **335 files / 170,170 lines**
+- Non-ERP (Cursor): **333 files / 169,813 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,916** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,915** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -165,16 +165,19 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Open`, 4 cases): storefront st
 
 Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1View`, 4 cases): SKU-media CP install (lang upsert / content route / ACL copy; menu apply injected so the mainstream-menu parent stays a gap) and storefront load / spec HTML / CSS emit / gallery render. `empty('0')` hides photos. Rich spec cells stay unescaped. CSS `?v=` stamps are normalized to `MTIME`. Manager basename is concatenated.
 
+### Q1 form — done (`PhpPlanQ1Form`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Form`, 4 cases): SKU-media manager page (session/csrf injected so the user kernel stays a gap; page-frame register stubbed) and the storefront warehouse/price toggle panel (rows from the Open twin; `empty()` disabled; `stripos` probe labels). CSS `?v=` digits are normalized to `MTIME`. Config basename is concatenated.
+
 ### Q1 next leftovers — honest schema/data twins still open
 
 The 65 leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
 
 | Order | File | Why now |
 |---|---|---|
-| 1 | `cp/content/shop/catalogue/epc_sku_media_manager.php` | Install + storefront parents now ported. Stub `dp_user`; page-frame is already mentioned. |
-| 2 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
-| 3 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
-| 4 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
+| 1 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
+| 2 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
+| 3 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
@@ -197,6 +200,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `get_alternative_bread_crumbs` | Breadcrumb module |
 | `clear_dir` (`del_tmp_folder.php`) | pyprices upload parent |
 | `epc_sku_media_cp_install.php`, `epc_sku_media_storefront.php` | Closed in View |
+| `epc_sku_media_manager.php`, `epc_storefront_storage_panel.php` | Closed in Form |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)

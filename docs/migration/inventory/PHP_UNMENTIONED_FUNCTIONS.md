@@ -7,10 +7,10 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | Real PHP (non-ERP), gap file ≤200 lines | 65 | Build next — listed below |
 | Real PHP (non-ERP), larger gap file | 1901 | Build with the parent kernel |
 | Real PHP already on a mentioned file | 863 | Finish leftover helpers on that twin |
-| JS functions written inside PHP templates | 1371 | Port as browser JS, not C# methods |
+| JS functions written inside PHP templates | 1370 | Port as browser JS, not C# methods |
 | Vendor (PHPExcel, PclZip, …) | 255 | Do not port |
 | ERP finance (Devin) | 2033 | Leave for Devin |
-| **Total unmentioned** | **6916** | |
+| **Total unmentioned** | **6915** | |
 
 ## Ready to build (non-ERP PHP, gap file ≤200 lines)
 

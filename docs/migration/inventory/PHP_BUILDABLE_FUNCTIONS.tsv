@@ -5935,7 +5935,6 @@ epc_prices_persist_records_counts	EpcPricesPersistRecordsCounts	cp/content/shop/
 epc_prices_should_run_tables_cleaner	EpcPricesShouldRunTablesCleaner	cp/content/shop/prices_upload/epc_prices_manager_perf.php	php	351	gap	later
 epc_prices_table_has_column	EpcPricesTableHasColumn	cp/content/shop/prices_upload/epc_prices_manager_perf.php	php	351	gap	later
 epc_pyprices_health_check	EpcPypricesHealthCheck	cp/content/shop/prices_upload/epc_prices_manager_perf.php	php	351	gap	later
-bindSsfFilter	BindSsfFilter	cp/content/shop/prices_upload/epc_storefront_storage_panel.php	js	159	gap	browser-js
 clear_dir	ClearDir	cp/content/shop/prices_upload/for_pyprices/del_tmp_folder.php	php	102	gap	ready
 str_contains	StrContains	cp/content/shop/prices_upload/for_pyprices/for_cron/crontab_writer.php	php	56	mentioned	partial-file
 on_load_mode_changed	OnLoadModeChanged	cp/content/shop/prices_upload/price.php	js	741	mentioned	browser-js
