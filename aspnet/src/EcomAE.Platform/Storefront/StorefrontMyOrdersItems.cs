@@ -64,12 +64,17 @@ public static class StorefrontMyOrdersItems
         Func<long, string> date,
         CancellationToken cancellationToken)
     {
-        var orderStatuses = await RefsAsync(connection, "SELECT `id`,`name`,`color` FROM `shop_orders_statuses_ref` ORDER BY `order` ASC;", cancellationToken).ConfigureAwait(false);
-        var itemStatuses = await RefsAsync(connection, "SELECT `id`,`name`,`color` FROM `shop_orders_items_statuses_ref` ORDER BY `order` ASC;", cancellationToken).ConfigureAwait(false);
+        var background = await StorefrontOrdersBackground.LoadAsync(connection, cancellationToken).ConfigureAwait(false);
+        var orderStatuses = background.OrderStatuses
+            .Select(row => new RefRow(row.Key.ToString(CultureInfo.InvariantCulture), row.Value["name"], row.Value["color"]))
+            .ToList();
+        var itemStatuses = background.ItemStatuses
+            .Select(row => new RefRow(row.Key.ToString(CultureInfo.InvariantCulture), row.Value["name"], row.Value["color"]))
+            .ToList();
         var offices = new Dictionary<string, string?>(StringComparer.Ordinal);
-        foreach (var row in await RowsAsync(connection, "SELECT `id`,`caption` FROM `shop_offices`;", [], cancellationToken).ConfigureAwait(false))
+        foreach (var (id, row) in background.Offices)
         {
-            offices[row[0] ?? string.Empty] = row[1];
+            offices[id.ToString(CultureInfo.InvariantCulture)] = row["caption"];
         }
 
         var decoded = StorefrontMyOrders.PhpValue.JsonDecode(input.FilterCookieValue);
@@ -458,10 +463,6 @@ public static class StorefrontMyOrdersItems
             : "0.00";
 
     private static string H(string? value) => WebUtility.HtmlEncode(value ?? string.Empty);
-
-    private static async Task<List<RefRow>> RefsAsync(DbConnection connection, string sql, CancellationToken cancellationToken)
-        => (await RowsAsync(connection, sql, [], cancellationToken).ConfigureAwait(false))
-            .Select(row => new RefRow(row[0] ?? "", row[1], row[2])).ToList();
 
     private static async Task<List<string?[]>> RowsAsync(DbConnection connection, string sql, object?[] args, CancellationToken cancellationToken)
     {

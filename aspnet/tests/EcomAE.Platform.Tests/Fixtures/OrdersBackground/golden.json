@@ -1,0 +1,100 @@
+{
+    "php": "8.3.6",
+    "source": "content\/shop\/order_process\/orders_background.php",
+    "results": [
+        {
+            "name": "empty",
+            "orders_statuses": [],
+            "orders_items_statuses": [],
+            "orders_items_statuses_not_count": [],
+            "offices_list": [],
+            "counts_before": {
+                "shop_orders_statuses_ref": 0,
+                "shop_orders_items_statuses_ref": 0,
+                "shop_offices": 0
+            },
+            "counts_after": {
+                "shop_orders_statuses_ref": 0,
+                "shop_orders_items_statuses_ref": 0,
+                "shop_offices": 0
+            }
+        },
+        {
+            "name": "ordered_full_rows_null_and_duplicate",
+            "orders_statuses": {
+                "3": {
+                    "id": 3,
+                    "name": "First",
+                    "color": "#333",
+                    "order": 1,
+                    "for_paid": 1
+                },
+                "9": {
+                    "id": 9,
+                    "name": "Latest",
+                    "color": "#new",
+                    "order": 3,
+                    "for_paid": null
+                }
+            },
+            "orders_items_statuses": {
+                "4": {
+                    "id": 4,
+                    "name": "Null count",
+                    "color": "#444",
+                    "order": 1,
+                    "count_flag": null,
+                    "for_finish": 1
+                },
+                "5": {
+                    "id": 5,
+                    "name": "Zero count",
+                    "color": "#555",
+                    "order": 2,
+                    "count_flag": " 0 ",
+                    "for_finish": 0
+                },
+                "6": {
+                    "id": 6,
+                    "name": "Empty count",
+                    "color": "#666",
+                    "order": 3,
+                    "count_flag": "",
+                    "for_finish": 0
+                },
+                "8": {
+                    "id": 8,
+                    "name": "Ignored",
+                    "color": "#888",
+                    "order": 4,
+                    "count_flag": "1",
+                    "for_finish": 0
+                }
+            },
+            "orders_items_statuses_not_count": [
+                4,
+                5
+            ],
+            "offices_list": {
+                "2": {
+                    "id": 2,
+                    "caption": "Branch"
+                },
+                "1": {
+                    "id": 1,
+                    "caption": "Main"
+                }
+            },
+            "counts_before": {
+                "shop_orders_statuses_ref": 3,
+                "shop_orders_items_statuses_ref": 4,
+                "shop_offices": 2
+            },
+            "counts_after": {
+                "shop_orders_statuses_ref": 3,
+                "shop_orders_items_statuses_ref": 4,
+                "shop_offices": 2
+            }
+        }
+    ]
+}

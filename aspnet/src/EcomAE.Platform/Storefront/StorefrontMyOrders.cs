@@ -11,7 +11,7 @@ namespace EcomAE.Platform.Storefront;
 /// PHP <c>content/shop/order_process/my_orders.php</c> (<c>/shop/orders</c>): for a customer the order filter (kept in the
 /// <c>my_orders_filter</c> cookie, or set from <c>?garage=</c>), the orders table sorted by the <c>my_orders_sort</c>
 /// cookie with the hidden line rows, and PHP's pagination; for a visitor the login panel. Both end with the guest order
-/// note. The order data comes from PHP <c>orders_background.php</c>.
+/// note. Shared references come from the port of PHP's <c>orders_background.php</c> include.
 /// </summary>
 /// <remarks>
 /// Intended deviation: PHP prints the filter cookie values, garage captions and order line texts without escaping. The
@@ -86,27 +86,24 @@ public static partial class StorefrontMyOrders
         Func<long, string> date,
         CancellationToken cancellationToken)
     {
+        var background = await StorefrontOrdersBackground.LoadAsync(connection, cancellationToken).ConfigureAwait(false);
         var statuses = new Dictionary<string, (string? Name, string? Color)>(StringComparer.Ordinal);
-        foreach (var row in await RowsAsync(connection, "SELECT `id`, `name`, `color` FROM `shop_orders_statuses_ref` ORDER BY `order` ASC;", [], cancellationToken).ConfigureAwait(false))
+        foreach (var (id, row) in background.OrderStatuses)
         {
-            statuses[row[0] ?? string.Empty] = (row[1], row[2]);
+            statuses[id.ToString(CultureInfo.InvariantCulture)] = (row["name"], row["color"]);
         }
 
         var itemStatuses = new Dictionary<string, (string? Name, string? Color)>(StringComparer.Ordinal);
-        var notCount = new List<object?>();
-        foreach (var row in await RowsAsync(connection, "SELECT `id`, `name`, `color`, `count_flag` FROM `shop_orders_items_statuses_ref` ORDER BY `order` ASC;", [], cancellationToken).ConfigureAwait(false))
+        foreach (var (id, row) in background.ItemStatuses)
         {
-            itemStatuses[row[0] ?? string.Empty] = (row[1], row[2]);
-            if (row[3] is null || PhpValue.NumericEquals(row[3]!, 0))
-            {
-                notCount.Add(row[0]);
-            }
+            itemStatuses[id.ToString(CultureInfo.InvariantCulture)] = (row["name"], row["color"]);
         }
 
+        var notCount = background.ItemStatusesNotCount.Select(id => (object?)id).ToList();
         var offices = new Dictionary<string, string?>(StringComparer.Ordinal);
-        foreach (var row in await RowsAsync(connection, "SELECT `id`,`caption` FROM `shop_offices`;", [], cancellationToken).ConfigureAwait(false))
+        foreach (var (id, row) in background.Offices)
         {
-            offices[row[0] ?? string.Empty] = row[1];
+            offices[id.ToString(CultureInfo.InvariantCulture)] = row["caption"];
         }
 
         var paidTypes = new List<(string Id, string? Name)>();

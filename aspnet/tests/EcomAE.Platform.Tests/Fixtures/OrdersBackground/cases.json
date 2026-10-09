@@ -1,0 +1,21 @@
+{
+  "schema": [
+    "CREATE TABLE `shop_orders_statuses_ref` (`id` int NULL, `name` varchar(64) NULL, `color` varchar(32) NULL, `order` int NOT NULL, `for_paid` tinyint NULL)",
+    "CREATE TABLE `shop_orders_items_statuses_ref` (`id` int NULL, `name` varchar(64) NULL, `color` varchar(32) NULL, `order` int NOT NULL, `count_flag` varchar(16) NULL, `for_finish` tinyint NULL)",
+    "CREATE TABLE `shop_offices` (`id` int NULL, `caption` varchar(128) NULL, `ignored` varchar(32) NULL)"
+  ],
+  "cases": [
+    {
+      "name": "empty",
+      "setup": []
+    },
+    {
+      "name": "ordered_full_rows_null_and_duplicate",
+      "setup": [
+        "INSERT INTO `shop_orders_statuses_ref` VALUES (9,'Later','#999',2,0),(3,'First','#333',1,1),(9,'Latest','#new',3,NULL)",
+        "INSERT INTO `shop_orders_items_statuses_ref` VALUES (8,'Ignored','#888',4,'1',0),(4,'Null count','#444',1,NULL,1),(5,'Zero count','#555',2,' 0 ',0),(6,'Empty count','#666',3,'',0)",
+        "INSERT INTO `shop_offices` VALUES (2,'Branch','not exported'),(1,'Main',NULL)"
+      ]
+    }
+  ]
+}
