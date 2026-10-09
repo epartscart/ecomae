@@ -1,0 +1,271 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "ws_static",
+            "output": "",
+            "result": [
+                "a&amp;b&lt;&#039;x&#039;&gt;",
+                "—",
+                "S-UAE",
+                "12",
+                "Ninety-nine",
+                "367.25 AED / 100.00 USD",
+                "10.00 AED / 0.00 USD",
+                "open",
+                "completed",
+                "open",
+                false,
+                false,
+                true,
+                [
+                    "1",
+                    "2"
+                ],
+                -1,
+                5,
+                1,
+                [
+                    "8",
+                    "9"
+                ],
+                -1,
+                0,
+                3.6725
+            ]
+        },
+        {
+            "name": "ws_db",
+            "output": "",
+            "result": [
+                [
+                    1,
+                    2
+                ],
+                [
+                    2
+                ],
+                [
+                    3
+                ],
+                "epc-scp-badge--urgent",
+                "epc-scp-badge--tenant",
+                "epc-scp-badge--high",
+                "epc-scp-badge--normal",
+                "epc-scp-badge--normal",
+                "<span class=\"epc-scp-badge epc-scp-badge--normal\">Pack</span>",
+                "<span class=\"epc-scp-badge epc-scp-badge--urgent\">Unpaid</span>",
+                "<span class=\"epc-scp-badge epc-scp-badge--tenant\">Paid</span>",
+                "<span class=\"epc-scp-badge epc-scp-badge--high\">Partial</span>",
+                {
+                    "open": 3,
+                    "today": 3,
+                    "pending_ship": 2
+                },
+                {
+                    "open": 0,
+                    "today": 0,
+                    "pending_ship": 0
+                },
+                2,
+                0,
+                2
+            ]
+        },
+        {
+            "name": "mkt_pure",
+            "output": "",
+            "result": [
+                "a&amp;b&lt;&#039;x&#039;&gt;",
+                "https://x.test/a",
+                "https://shop.test/ops/shop/x",
+                "https://shop.test/en/about",
+                "relative",
+                {
+                    "total": 3,
+                    "done": 0,
+                    "pct": 0,
+                    "by_strategy": {
+                        "measurement": {
+                            "total": 2,
+                            "done": 0,
+                            "pct": 0
+                        },
+                        "seo": {
+                            "total": 1,
+                            "done": 0,
+                            "pct": 0
+                        }
+                    }
+                },
+                {
+                    "total": 3,
+                    "done": 2,
+                    "pct": 67,
+                    "by_strategy": {
+                        "measurement": {
+                            "total": 2,
+                            "done": 2,
+                            "pct": 100
+                        },
+                        "seo": {
+                            "total": 1,
+                            "done": 0,
+                            "pct": 0
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "mkt_db",
+            "output": "",
+            "result": [
+                false,
+                true,
+                {
+                    "orders_total": 2,
+                    "orders_7d": 1,
+                    "orders_30d": 2,
+                    "users_total": 2,
+                    "marketplace_orders": 0,
+                    "whatsapp_api_sent": 0,
+                    "whatsapp_api_failed": 0,
+                    "price_rows": 0,
+                    "brands_count": 0,
+                    "ga_property": "G-J19D1KHXCG",
+                    "sitemap_url": "",
+                    "domain": ""
+                },
+                {
+                    "measurement": {
+                        "ga_conversions": {
+                            "done": false,
+                            "done_at": 0,
+                            "note": ""
+                        },
+                        "gsc_verify": {
+                            "done": true,
+                            "done_at": 1,
+                            "note": ""
+                        }
+                    }
+                },
+                {
+                    "monthly_sessions": {
+                        "strategy_key": "measurement",
+                        "kpi_key": "monthly_sessions",
+                        "value_decimal": null,
+                        "value_text": "n/a",
+                        "note": "x",
+                        "recorded_by": 7
+                    }
+                },
+                [
+                    {
+                        "strategy_key": "measurement",
+                        "kpi_key": "monthly_sessions",
+                        "value_decimal": null,
+                        "value_text": "n/a",
+                        "note": "x",
+                        "recorded_by": 7
+                    },
+                    {
+                        "strategy_key": "measurement",
+                        "kpi_key": "monthly_sessions",
+                        "value_decimal": "12.5000",
+                        "value_text": "12.5",
+                        "note": "note",
+                        "recorded_by": 7
+                    }
+                ],
+                [
+                    {
+                        "strategy_key": "seo",
+                        "review_type": "weekly",
+                        "score": 5,
+                        "notes": "ok",
+                        "created_by": 3
+                    },
+                    {
+                        "strategy_key": "seo",
+                        "review_type": "weekly",
+                        "score": 0,
+                        "notes": "bad",
+                        "created_by": 3
+                    }
+                ],
+                {
+                    "status": true,
+                    "completion": {
+                        "total": 3,
+                        "done": 1,
+                        "pct": 33,
+                        "by_strategy": {
+                            "measurement": {
+                                "total": 2,
+                                "done": 1,
+                                "pct": 50
+                            },
+                            "seo": {
+                                "total": 1,
+                                "done": 0,
+                                "pct": 0
+                            }
+                        }
+                    },
+                    "live": {
+                        "orders_total": 2,
+                        "orders_7d": 1,
+                        "orders_30d": 2,
+                        "users_total": 2,
+                        "marketplace_orders": 0,
+                        "whatsapp_api_sent": 0,
+                        "whatsapp_api_failed": 0,
+                        "price_rows": 0,
+                        "brands_count": 0,
+                        "ga_property": "G-J19D1KHXCG",
+                        "sitemap_url": "",
+                        "domain": ""
+                    },
+                    "strategies": [
+                        "measurement",
+                        "seo"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "crumb",
+            "output": "",
+            "result": [
+                "Procurement",
+                "   ",
+                "Orders",
+                "Users",
+                "Missing!",
+                "",
+                3,
+                3,
+                {
+                    "shop/procurement": 3,
+                    "shop/marketing": 4,
+                    "shop/payments": 5,
+                    "shop/channels": 6
+                },
+                [
+                    5,
+                    6
+                ],
+                {
+                    "url": "shop/procurement",
+                    "alias": "procurement_folder",
+                    "value": "epc_cp_group_procurement",
+                    "published_flag": 1,
+                    "parent": 1,
+                    "level": 1
+                }
+            ]
+        }
+    ]
+}
