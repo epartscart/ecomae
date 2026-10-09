@@ -1,0 +1,103 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "gov_static",
+            "output": "",
+            "result": [
+                [
+                    "auth",
+                    "tenant",
+                    "api",
+                    "erp",
+                    "demo",
+                    "branding",
+                    "tax",
+                    "catalog",
+                    "protocol"
+                ],
+                [
+                    "advisory",
+                    "required",
+                    "blocked"
+                ],
+                12,
+                "auth_tenant_email_otp_google",
+                "protocol_fta_legislation_fetch",
+                true,
+                false
+            ]
+        },
+        {
+            "name": "gov_flow",
+            "output": "",
+            "result": [
+                12,
+                12,
+                12,
+                3,
+                true,
+                false,
+                false,
+                "api_clients_require_key",
+                null,
+                [
+                    true,
+                    true,
+                    false,
+                    true,
+                    true,
+                    false
+                ],
+                10
+            ]
+        },
+        {
+            "name": "cfg_static",
+            "output": "",
+            "result": [
+                "1.0.0",
+                [
+                    "branding",
+                    "business",
+                    "tax",
+                    "shipping",
+                    "payments",
+                    "emails",
+                    "features"
+                ],
+                6,
+                "5"
+            ]
+        },
+        {
+            "name": "cfg_flow",
+            "output": "",
+            "result": [
+                "5",
+                "",
+                true,
+                "",
+                "Acme",
+                "Acme",
+                "Acme",
+                {
+                    "ok": false,
+                    "error": "Invalid config group"
+                },
+                false,
+                true,
+                "7.5",
+                7,
+                4,
+                3,
+                {
+                    "ok": true,
+                    "imported": 3
+                },
+                "siteA",
+                3
+            ]
+        }
+    ]
+}
