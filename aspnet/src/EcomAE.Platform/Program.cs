@@ -1350,6 +1350,7 @@ app.UseMiddleware<LegacyLoginBridgeMiddleware>();
 app.UseMiddleware<EcomAE.Platform.Storefront.StorefrontLoginPostMiddleware>();
 app.UseMiddleware<EcomAE.Platform.Storefront.StorefrontProfilePostMiddleware>();
 app.UseMiddleware<EcomAE.Platform.Storefront.StorefrontEditFormPostMiddleware>();
+app.UseMiddleware<EcomAE.Platform.Storefront.StorefrontMyOrderPostMiddleware>();
 app.UseMiddleware<EcomAE.Platform.Storefront.StorefrontOrderNotAuthorizedPostMiddleware>();
 // Exact /en/ /ar/ /me/ /ru/ homes → same storefront as / (browser URL stays /en/).
 app.UseMiddleware<LangHomeFallbackMiddleware>();

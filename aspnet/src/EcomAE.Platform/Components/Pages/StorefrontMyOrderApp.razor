@@ -1,0 +1,105 @@
+@page "/en/shop/orders/order"
+@page "/shop/orders/order"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
+@inject IHttpContextAccessor Http
+@inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
+@inject Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions> PhpReference
+@inject ILogger<StorefrontMyOrderApp> Log
+@*
+  PHP twin: content/shop/order_process/my_order.php (StorefrontMyOrder).
+  Its action POST is handled by StorefrontMyOrderPostMiddleware.
+*@
+
+<PageTitle>Order · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container">
+            <script>window.jQuery || document.write('<script src="/lib/jQuery/jQuery.js"><\/script>');</script>
+            @((MarkupString)_html)
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private string _html = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
+        var lang = StorefrontPhpHomeLinks.LangHref(ctx);
+        var cookies = ctx.Request.Cookies;
+        try
+        {
+            await using var connection = await Connections.OpenForTenantAsync(tenant, ctx.RequestAborted);
+            var userId = await ErpUserAccess.UserIdAsync(connection, new ErpUserAccess.Cookies(cookies["session"], cookies["u_id"], null, null), ctx.RequestAborted);
+            var translator = new StorefrontPhpTranslator(connection, lang.TrimStart('/'));
+            Func<string, Task<string>> translate = key => translator.TextAsync(key, ctx.RequestAborted);
+            var alertStrings = new Dictionary<int, string>();
+            foreach (var id in StorefrontActionsAlert.StringIds)
+            {
+                alertStrings[id] = await translate(id.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+
+            var picker = StorefrontPaymentMethodPicker.Render(await StorefrontPaymentMethodPicker.ListSelectableAsync(connection, translator, ctx.RequestAborted));
+            var orderId = StorefrontActionsAlert.Last(ctx.Request.Query, "order_id");
+            string? obtainHtml = null;
+            var numericOrderId = ShopPayForOrderService.PhpIntCast(orderId);
+            if (numericOrderId > 0 && userId > 0)
+            {
+                await using var ownership = connection.CreateCommand();
+                ownership.CommandText = "SELECT COUNT(*) FROM `shop_orders` WHERE `id` = @id AND `user_id` = @user";
+                var idParameter = ownership.CreateParameter();
+                idParameter.ParameterName = "@id";
+                idParameter.Value = numericOrderId;
+                ownership.Parameters.Add(idParameter);
+                var userParameter = ownership.CreateParameter();
+                userParameter.ParameterName = "@user";
+                userParameter.Value = userId;
+                ownership.Parameters.Add(userParameter);
+                if (Convert.ToInt64(await ownership.ExecuteScalarAsync(ctx.RequestAborted), System.Globalization.CultureInfo.InvariantCulture) > 0)
+                {
+                    var orderData = await StorefrontOrderNotificationService.OrderEmailData.LoadAsync(connection, numericOrderId, ctx.RequestAborted);
+                    var rendered = await StorefrontOrderNotificationService.ObtainInfoHtmlAsync(connection, translator, orderData, ctx.RequestAborted);
+                    obtainHtml = string.IsNullOrEmpty(rendered) ? null : rendered;
+                }
+            }
+            var input = new StorefrontMyOrder.Input(
+                userId,
+                orderId,
+                lang,
+                await StorefrontBottomPanelCart.CsrfGuardKeyAsync(connection, cookies["session"], cookies["u_id"], ctx.RequestAborted),
+                EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(PhpReference.Value),
+                cookies["epc_currency"],
+                cookies["epc_country"],
+                picker,
+                StorefrontActionsAlert.Render(key => StorefrontActionsAlert.Last(ctx.Request.Query, key), id => alertStrings[id]),
+                obtainHtml);
+            _html = await StorefrontMyOrder.RenderAsync(connection, input, translate, StorefrontMyOrder.PhpDate, ctx.RequestAborted);
+        }
+        catch (System.Data.Common.DbException ex)
+        {
+            Log.LogWarning(ex, "Customer order page query failed");
+            _html = "<p>Order is unavailable right now.</p>";
+        }
+        catch (InvalidOperationException ex)
+        {
+            Log.LogWarning(ex, "Customer order page render failed");
+            _html = "<p>Order is unavailable right now.</p>";
+        }
+    }
+}
