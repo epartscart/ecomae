@@ -343,6 +343,13 @@ Not complete.
 - Ratchet 512 to 511. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Walk`): `epc_multivendor_min_price_acl.php`. Session user stays injected. `empty('0')` restrict is open. Save keeps first-seen positive ids.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Walk` (2). PlanQ1 suites 105 of 105. Inventory content 529 to 530 of 952. Unnamed PHP functions 7,037 to 7,026. Ready ≤200-line non-ERP functions stay 74. The weighted headline stays about 20.4%. Non-ERP pending: 345 files / 174,740 lines (was 346 / 175,024). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-09 — plan Q1-hold (SSO SAML, BOS health)
+
+Not complete.
+
+- Ratchet 511 to 509. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Hold`): `epc_sso_saml.php` (AuthnRequest id/instant normalized; MariaDB `SUM(active)` is a string), `epc_bos_health_check.php` (tenant connect injected; unified parent stays a gap). Connectivity fail detail is hardcoded `Connection failed`.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Hold` (4). PlanQ1 suites 109 of 109. Inventory content 530 to 532 of 952. Unnamed PHP functions 7,026 to 7,011. Ready ≤200-line non-ERP functions 74 to 71. The weighted headline stays about 20.4%. Non-ERP pending: 343 files / 174,225 lines (was 345 / 174,740). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+
 ### Checkpoint 2026-10-09 — plan Q1-note (storefront seed data)
 
 Not complete.

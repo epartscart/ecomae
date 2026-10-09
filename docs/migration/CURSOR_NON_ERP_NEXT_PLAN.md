@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Walk (`--max-gap 512` passed; current gap **511**).
+after PlanQ1Hold (`--max-gap 511` passed; current gap **509**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 511
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 509
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 30 | 13,605 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 113 | 60,933 |
+| 5 | Marketing/BOS/industries | 111 | 60,418 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **511** | **240,931** |
+| | **Total** | **509** | **240,416** |
 
-- Non-ERP (Cursor): **345 files / 174,740 lines**
+- Non-ERP (Cursor): **343 files / 174,225 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,026** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **74**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,011** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **71**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -145,9 +145,13 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Talk`, 4 cases): order communi
 
 Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Walk`, 2 cases): multivendor min-price ACL ensure / defaults / get / save / admin-viewer / may-see / min-max row / display-storage / typed list / hide-row / customer groups. Session user stays injected. `empty('0')` restrict is open. Save keeps first-seen positive ids.
 
+### Q1 hold — done (`PhpPlanQ1Hold`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Hold`, 4 cases): SSO SAML schema / SP metadata / provider CRUD / AuthnRequest / response / sessions / logout / expire / fleet (AuthnRequest id/instant normalized; `SUM(active)` is a MariaDB string), BOS tenant health / all / summary (tenant connect injected so the unified parent stays a gap). Connectivity fail detail is the hardcoded `Connection failed`. `round` half-up: 62.5 → 63.
+
 ### Q1 next leftovers — honest schema/data twins still open
 
-The 74 leftover “ready” ≤200-line rows are still Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
+The 71 leftover “ready” ≤200-line rows are still Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
 
 | Order | File | Why now |
 |---|---|---|
