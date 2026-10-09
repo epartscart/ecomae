@@ -48,7 +48,10 @@
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
 <StorefrontTenantChrome>
+    @((MarkupString)_pageHtml)
 
+    @if (false)
+    {
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
         <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
@@ -240,6 +243,7 @@
         }
         </script>
     }
+    }
 </StorefrontTenantChrome>
 
 @code {
@@ -252,6 +256,7 @@
     private bool _inWishlist;
     private bool _inCompare;
     private string _offersHtml = "";
+    private string _pageHtml = "";
 
     [SupplyParameterFromQuery(Name = "id")]
     public int? ProductId { get; set; }
@@ -326,9 +331,9 @@
         _source = result.Source;
         _message = result.Message;
         _reviews = PhpProductReviews.ForProduct(ProductId.Value);
-        if (ctx is not null && _product is not null)
+        if (ctx is not null)
         {
-            await LoadOffersAsync(ctx, _product.Id);
+            await LoadOffersAsync(ctx, ProductId.Value);
         }
     }
 
@@ -338,41 +343,43 @@
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         var shopper = session.Kind == LegacySessionKind.Customer && session.UserId > 0
             ? new StorefrontShopper(session.UserId, 0, session.SessionId ?? "", false)
-            : await Guests.ResolveAsync(ctx, createIfMissing: true, ctx.RequestAborted);
+            : new StorefrontShopper(0, 0, ctx.Request.Cookies["session"] ?? "", false);
         var sessionCookie = ctx.Request.Cookies["session"];
         var userCookie = ctx.Request.Cookies["u_id"];
-        if (!shopper.IsSignedIn)
-        {
-            Guests.ApplyGuestCookies(ctx.Response, shopper);
-            if (shopper.SessionToken.Length > 0)
-            {
-                sessionCookie = shopper.SessionToken;
-                userCookie = "0";
-            }
-        }
 
         var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
         try
         {
             await using var connection = await Connections.OpenForTenantAsync(tenant, ctx.RequestAborted);
-            _offersHtml = await StorefrontProductOffers.RenderPageAsync(
+            var config = EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(PhpReference.Value);
+            var translator = new StorefrontPhpTranslator(connection, StorefrontRegFormLoader.LangCode(StorefrontPhpHomeLinks.LangHref(ctx)));
+            _pageHtml = await StorefrontProductPage.RenderAsync(
                 connection,
-                productId,
-                shopper.IsSignedIn ? shopper.UserId : 0,
-                ctx.Request.Cookies[StorefrontCustomerOffices.CityCookie],
-                StorefrontPhpHomeLinks.LangHref(ctx),
-                sessionCookie,
-                userCookie,
-                EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(PhpReference.Value),
+                new StorefrontProductPage.Request(
+                    productId,
+                    shopper.IsSignedIn ? shopper.UserId : 0,
+                    IsFrontMode: true,
+                    IsAdmin: session.Kind == LegacySessionKind.Admin,
+                    CurrentProductBlockType: 0,
+                    StorefrontPhpHomeLinks.LangHref(ctx),
+                    config.TryGetValue("domain_path", out var domain) ? domain : "",
+                    config.TryGetValue("backend_dir", out var backend) ? backend : "",
+                    ctx.Request.Cookies[StorefrontCustomerOffices.CityCookie],
+                    sessionCookie,
+                    userCookie,
+                    StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.BookmarksName, StorefrontIntListCookie.BookmarksMax).Select(x => (long)x).ToHashSet(),
+                    StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.CompareName, StorefrontIntListCookie.CompareMax).Select(x => (long)x).ToHashSet(),
+                    config),
+                (key, ct) => translator.TextAsync(key, ct),
                 ctx.RequestAborted);
         }
         catch (System.Data.Common.DbException)
         {
-            _offersHtml = "<p>Offers are unavailable right now.</p>";
+            _pageHtml = "<p>Product information is unavailable right now.</p>";
         }
         catch (InvalidOperationException)
         {
-            _offersHtml = "<p>Offers are unavailable right now.</p>";
+            _pageHtml = "<p>Product information is unavailable right now.</p>";
         }
     }
 }
