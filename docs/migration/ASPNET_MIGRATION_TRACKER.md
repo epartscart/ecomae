@@ -322,6 +322,13 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — named-function storefront helpers (taxonomy, hashes, cache, legal, branding)
+
+Not complete.
+
+- Ratchet 603 to 595. Eight more self-contained non-ERP files now have PHP 8.3 goldens and an ASP.NET twin (`PhpNamedBatch`): `epc_auto_parts_taxonomy.php` (`epc_auto_tax_seed_tree`), `docpart_product_hash.php` (type-2 MD5 cart hash plus refresh for one product and a list), `epc_price_upload_guide_data.php` (`epc_guide_snapshot` / `epc_guide_channel_definitions`), `epc_crossbase_cache.php` (dir/key/path/read/write/stats; writes reject HTML ≤400 chars), `epc_complementary_parts.php` (normalize/search/render; interchange suggestions stay empty until those parents land), `epc_session_security.php` (validate/metadata/destroy take a session dictionary — GET does not call `session_start`), `epc_ecomae_legal_pages.php` (meta/canonical/related-links against a stub catalog; the 650-line policy catalog stays a gap), and `epc_branding.php` (system/hub/trade/tagline/hosted-by/CP context). Inventory `functions_unmentioned` is not a set of anonymous closures: each PHP function already has a name; the catalog in `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md` assigns the PascalCase twin. Search tabs, `printProducts*`, `side_menu`, page-builder render, BOC consoles and `orders_background` stay skipped until their parents land.
+- Evidence: PHP 8.3.6 produced `Fixtures/NamedBatch/golden.json` (24 cases). The NamedBatch suite is 4 of 4. Inventory content 442 to 450 of 952. Unnamed PHP functions 7,779 to 7,745. The weighted headline stays about 20.4%. Non-ERP pending: 429 files / 200,973 lines (was 437 / 201,982). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session.
+
 ### Checkpoint 2026-10-09 — small storefront fragments and retired PHP-only CP bootstraps
 
 Not complete.

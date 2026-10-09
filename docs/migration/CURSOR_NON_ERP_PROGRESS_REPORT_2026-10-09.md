@@ -8,9 +8,9 @@ Sources: `docs/migration/ASPNET_MIGRATION_TRACKER.md`, `docs/migration/inventory
 
 - Weighted migration headline: still about **20.4% done / 79.6% pending** (Phase A 24/24, B-F open). Page-level slices do not move it.
 - Accepted ERP processes: **0/15**. Formal interactive acceptance for CP, ERP, BOS and storefront: **0**. Nothing in this report is production acceptance.
-- PHP file gap (files that nothing in ASP.NET references): **876 on 2026-10-07 to 603 today** (268,173 lines still unreferenced). Functions not named anywhere in ASP.NET: **8,152 to 7,779 of 9,870**.
+- PHP file gap (files that nothing in ASP.NET references): **876 on 2026-10-07 to 595 today** (267,164 lines still unreferenced). Functions not named anywhere in ASP.NET: **8,152 to 7,745 of 9,870**.
 - "Mentioned" in the inventory is a lead, not parity. Parity is claimed only where a PHP 8.3 runtime golden exists, and each tracker checkpoint says what is and is not golden-covered.
-- Last verified state: full ASP.NET suite **5,918 / 5,918 passing**, 0 build warnings, 0 errors. Throwaway test schemas left over: 0. Production counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
+- Last verified state: NamedBatch suite **4 / 4 passing** on this slice. Throwaway test schemas left over: 0. Production counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
 - Method for every slice: read the PHP, build a PHP 8.3 harness that runs the real script on a throwaway MariaDB schema, record a golden, make ASP.NET equal it, document intentional deviations (usually security hardening), run the full suite, update tracker and inventory ratchet, open a PR.
 
 ## 2. What Cursor built (non-ERP), by area
@@ -37,24 +37,24 @@ Gap files from the inventory (files nothing in ASP.NET references), grouped by t
 
 | Plan step | Area | Gap files | Lines |
 |---|---|---:|---:|
-| 1 | Storefront: parts search and `content/shop/docpart` (part search pages, parts agent, demand intelligence, garage, fitment, crosses, multivendor/commerce price ingest) | 44 | 37,164 |
+| 1 | Storefront: parts search and `content/shop/docpart` (part search pages, parts agent, demand intelligence, garage, fitment, crosses, multivendor/commerce price ingest) | 40 | 36,720 |
 | 1 | Storefront: catalogue (`printProducts.php`, `printProducts_2.php`, `printProductBlock`, compare, bookmarks, SKU media, text search, tree lists, `modules/shop/catalogue`) | 43 | 11,400 |
 | 1 | Storefront: other shop (tenant hub, usefull, POS, marketing, channels, workshop, customer mgmt, crm, geo, logistics, print docs) | 35 | 8,782 |
 | 1 | Storefront: modules (login, menu, bread crumbs, slider, news, lang, cart, balance, search string, geo, ucats) | 18 | 3,156 |
-| 1 | Storefront: users/login/plugins (`dp_user.php`, `epc_registration_enhanced.php` render half, `profileform.php`, session security, plugins) | 11 | 2,969 |
+| 1 | Storefront: users/login/plugins (`dp_user.php`, `epc_registration_enhanced.php` render half, `profileform.php`, plugins) | 10 | 2,842 |
 | 1 | Storefront: front templates `expan`, `modex`, `limo` | 3 | 2,689 |
 | 1 | Storefront: `content/shop/order_process/orders_background.php`. Already ported (`StorefrontOrdersBackground`, golden-verified) but still counted as a gap on purpose: the CP helper of the same name is not ported and a path mention would falsely close both | 1 | 56 |
 | 3 | CP shop core: orders (`order_card.php`, `orders_items.php` and modals, guides), catalogue `product.php`, price upload page bodies | 50 | 14,700 |
 | 3 | CP shop smaller sets (logistics, crosses, data transfer, document control, channels, marketing, tenant hub, POS, payments, demand countries, synonyms, accessories, statistics) | 46 | 8,755 |
 | 3 | CP other (users, lang, packs, file manager, requests, 2FA/auth plugins, CP modules) | 28 | 4,551 |
 | 4 | CP control and portal (auto-price shell, social hub, auth settings, tax toolkit, industry kit, marketing broadcast, visual page editor, fleet dashboard, governance, POS tenant mgmt, BOC panels, version control) | 58 | 11,418 |
-| 5 | Marketing, platform, BOS and industries (`content/general_pages`, ecomae.com pages and router, free tools, portal demo, web tracker, auth/MFA/SMTP/OAuth, API v1, Power BI, BOS unified, 28 industry templates) | 196 | 78,679 |
-| 6 | Price engine (`epc_auto_price_engine.php` 6,768 lines, discovery adapters; must stay on the existing importer) | 23 | 16,789 |
+| 5 | Marketing, platform, BOS and industries (`content/general_pages`, ecomae.com pages and router, free tools, portal demo, web tracker, auth/MFA/SMTP/OAuth, API v1, Power BI, BOS unified, 28 industry templates) | 194 | 78,403 |
+| 6 | Price engine (`epc_auto_price_engine.php` 6,768 lines, discovery adapters; must stay on the existing importer) | 22 | 16,632 |
 | 8 | Core and root (`core/dp_*.php`, root CP includes, mailer, license manager, eparts catalogue) | 27 | 8,186 |
 | 7 | **ERP (Devin): finance libraries and CP finance pages** | 166 | 66,191 |
-| | **Total (measured now)** | **603** | **268,173** |
+| | **Total (measured now)** | **595** | **267,164** |
 
-Per-area rows are the earlier grouping and no longer sum to the total. Measured current inventory: **603 gap files / 268,173 lines**; non-ERP **437 / 201,982**; ERP finance (Devin, unchanged) **166 / 66,191**. Biggest remaining non-ERP blocks: `content/general_pages` and `content/shop/docpart`.
+Per-area rows are the earlier grouping and no longer sum to the total. Measured current inventory: **595 gap files / 267,164 lines**; non-ERP **429 / 200,973**; ERP finance (Devin, unchanged) **166 / 66,191**. Biggest remaining non-ERP blocks: `content/general_pages` and `content/shop/docpart`. The “unnamed functions” count is unmentioned identifiers (PHP already named them); ready-to-build twins are in `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md` (180 ≤200-line non-ERP PHP functions still waiting).
 
 Beyond gap files, these are open for every surface regardless of file counts:
 - Same-to-same PHP vs ASP.NET dual samples per tenant host, human acceptance, and the three combined browser regression rounds.
@@ -66,7 +66,7 @@ Beyond gap files, these are open for every surface regardless of file counts:
 
 ## 4. In progress right now
 
-- Open stacked PRs: #2069 catalogue count, #2070 catalogue list/page ids, #2071 small storefront fragments, CP eval-safe wrappers, NextSmall/SmallMore includes and industry chrome (ratchet 717 → 695 → 656 → 629 → 617 → 603).
+- Open stacked PRs: #2069 catalogue count, #2070 catalogue list/page ids, #2071 small storefront fragments, CP eval-safe wrappers, NextSmall/SmallMore includes, industry chrome and named-function helpers (ratchet 717 → 695 → 656 → 629 → 617 → 603 → 595).
 - Next closable ≤60-line non-ERP files: search tabs, `printProducts*`, `side_menu`, page-builder render, and BOC consoles still wait for their parent kernels. The marketing-broadcast panel body stays a gap on purpose. Industry data libraries stay gaps; the footer/helper twins take already-resolved copy.
 - After the small files: product block markup (`printProductBlock`), then `printProducts.php` / `printProducts_2.php` shells, then `part_search_page.php` and the parts agent.
 
