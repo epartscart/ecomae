@@ -61,7 +61,8 @@ public sealed class StorefrontCheckoutConfirmSessionlessMiddleware(RequestDelega
     public static bool TryMatch(string? method, string? path, out string lang)
     {
         lang = "en";
-        if (!HttpMethods.IsGet(method) && !HttpMethods.IsHead(method))
+        if (!string.Equals(method, HttpMethods.Get, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(method, HttpMethods.Head, StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
