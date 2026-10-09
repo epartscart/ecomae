@@ -235,7 +235,7 @@ public static class StorefrontCart
         }
         else if (file.Contains('/', StringComparison.Ordinal) || file.StartsWith("auto_price/", StringComparison.Ordinal))
         {
-            return file.StartsWith('/', StringComparison.Ordinal) ? file : "/content/files/images/" + file;
+            return file.StartsWith("/", StringComparison.Ordinal) ? file : "/content/files/images/" + file;
         }
 
         return exists(file) ? "/content/files/images/products_images/" + file : string.Empty;
