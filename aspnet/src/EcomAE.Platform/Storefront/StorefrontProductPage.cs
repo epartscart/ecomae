@@ -27,7 +27,8 @@ public static class StorefrontProductPage
         string? SessionUserId,
         IReadOnlySet<long> Bookmarks,
         IReadOnlySet<long> Compare,
-        IReadOnlyDictionary<string, string> Config);
+        IReadOnlyDictionary<string, string> Config,
+        string? SelectedCurrencyIso = null);
 
     private sealed record Product(long Id, string CaptionKey, long CategoryId, string Alias);
     private sealed record Image(long Id, string FileName);
@@ -134,10 +135,14 @@ public static class StorefrontProductPage
         else
         {
             var office = await OfficeAsync(connection, offer.OfficeId, cancellationToken).ConfigureAwait(false);
+            var selectedCurrency = await CurrencyAsync(
+                connection,
+                request.SelectedCurrencyIso ?? Config(request, "shop_currency"),
+                cancellationToken).ConfigureAwait(false);
             var divId = offer.OfficeId + "_" + offer.StorageId + "_" + offer.StorageRecordId;
             sb.Append("\t\t\t<div class=\"price_div\"><div class=\"price_div_header\">")
                 .Append(H(await t(2751).ConfigureAwait(false))).Append(":</div><div class=\"price_div_text\">")
-                .Append(H(FormatCurrency(offer.Price, offer.CurrencyIso, offer.CurrencySign, offer.CurrencyShort, offer.CurrencyRate, Config(request, "currency_show_mode"))))
+                .Append(H(FormatCurrency(offer.Price, selectedCurrency.Sign, selectedCurrency.Short, selectedCurrency.Rate, Config(request, "currency_show_mode"))))
                 .Append("</div></div>\n")
                 .Append("\t\t\t<div class=\"office_info_div\"><div class=\"ooffice_info_div_header\">")
                 .Append(H(await t(3248).ConfigureAwait(false))).Append(":</div><div class=\"office_info_div_text\"><span>")
@@ -157,8 +162,8 @@ public static class StorefrontProductPage
             else
             {
                 sb.Append(offer.Reserved > 0
-                    ? "<span class=\"blue\">" + H(await t(4098).ConfigureAwait(false) + "</span>")
-                    : "<span class=\"red\">" + H(await t(4099).ConfigureAwait(false) + "</span>"));
+                    ? "<span class=\"blue\">" + H(await t(4098).ConfigureAwait(false)) + "</span>"
+                    : "<span class=\"red\">" + H(await t(4099).ConfigureAwait(false)) + "</span>");
             }
 
             sb.Append("</div></div>\n\t\t\t<div class=\"btn_cart_div\"><div class=\"btn_cart_div_header\"></div><div class=\"btn_cart_div_text\">");
@@ -189,8 +194,8 @@ public static class StorefrontProductPage
                 .Append("\" target=\"_blank\"><i class=\"fa fa-external-link\"></i></a></div>\n");
         }
 
-        sb.Append(RenderBookmark(product.Id, request.Bookmarks.Contains(product.Id), request.CurrentProductBlockType, t).Result)
-            .Append(RenderCompare(product.Id, request.Compare.Contains(product.Id), request.CurrentProductBlockType, t).Result)
+        sb.Append(await RenderBookmark(product.Id, request.Bookmarks.Contains(product.Id), request.CurrentProductBlockType, t).ConfigureAwait(false))
+            .Append(await RenderCompare(product.Id, request.Compare.Contains(product.Id), request.CurrentProductBlockType, t).ConfigureAwait(false))
             .Append("\t\t</div>\n\t\t<div style=\"color:#999; font-size: 75%; text-align:center; line-height: 1.3em; margin-top: 8px; margin-bottom: 5px;\">")
             .Append(H(await t(4116).ConfigureAwait(false))).Append("</div>\n\t</div>\n");
         return sb.ToString();
@@ -530,7 +535,8 @@ public static class StorefrontProductPage
             + "IFNULL(c.`caption_short`,''),IFNULL(c.`rate`,1) FROM `shop_storages_data` d "
             + "JOIN `shop_offices_storages_map` m ON m.`storage_id`=d.`storage_id` "
             + "LEFT JOIN `shop_storages` s ON s.`id`=d.`storage_id` LEFT JOIN `shop_currencies` c ON c.`iso_code`=s.`currency` "
-            + "WHERE d.`product_id`=? AND m.`office_id`=? ORDER BY (d.`price`>0) DESC,d.`price`,d.`id` LIMIT 1",
+            + "WHERE d.`product_id`=? AND m.`office_id`=? ORDER BY (d.`price`>0) DESC,"
+            + "(d.`price`*IFNULL(c.`rate`,1)*(1+(m.`markup`/100))),d.`id` LIMIT 1",
             [productId, offices[0]], cancellationToken).ConfigureAwait(false);
         if (rows.Count == 0)
         {
@@ -579,6 +585,18 @@ public static class StorefrontProductPage
         return rows.Count == 0 ? ("", "", "") : (rows[0][0], rows[0][1], rows[0][2]);
     }
 
+    private static async Task<(string Sign, string Short, decimal Rate)> CurrencyAsync(
+        DbConnection connection,
+        string iso,
+        CancellationToken cancellationToken)
+    {
+        var selected = iso.Length == 0 ? "784" : iso;
+        var rows = await RowsAsync(connection,
+            "SELECT IFNULL(`sign`,''),IFNULL(`caption_short`,''),IFNULL(`rate`,1) FROM `shop_currencies` WHERE `iso_code`=? LIMIT 1",
+            [selected], cancellationToken).ConfigureAwait(false);
+        return rows.Count == 0 ? ("AED", "AED", 1m) : (rows[0][0], rows[0][1], D(rows[0][2]));
+    }
+
     private static async Task<List<string[]>> RowsAsync(DbConnection connection, string sql, object?[] args, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
@@ -610,7 +628,7 @@ public static class StorefrontProductPage
                 ? fileName
                 : "/content/files/images/products_images/" + fileName;
 
-    private static string FormatCurrency(decimal amount, string iso, string sign, string shortName, decimal rate, string mode)
+    private static string FormatCurrency(decimal amount, string sign, string shortName, decimal rate, string mode)
     {
         var number = (amount / (rate <= 0 ? 1 : rate)).ToString("N2", CultureInfo.InvariantCulture).Replace(",", " ", StringComparison.Ordinal);
         return mode switch

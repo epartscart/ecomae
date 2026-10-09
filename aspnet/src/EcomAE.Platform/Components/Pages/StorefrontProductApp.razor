@@ -50,7 +50,7 @@
 <StorefrontTenantChrome>
     @((MarkupString)_pageHtml)
 
-    @if (false)
+    @if (_renderLegacyDigest)
     {
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -255,6 +255,10 @@
     private string _flashErr = "";
     private bool _inWishlist;
     private bool _inCompare;
+    private bool _renderLegacyDigest => string.Equals(
+        Environment.GetEnvironmentVariable("ECOMAE_RENDER_LEGACY_PRODUCT_DIGEST"),
+        "1",
+        StringComparison.Ordinal);
     private string _offersHtml = "";
     private string _pageHtml = "";
 
@@ -369,7 +373,8 @@
                     userCookie,
                     StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.BookmarksName, StorefrontIntListCookie.BookmarksMax).Select(x => (long)x).ToHashSet(),
                     StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.CompareName, StorefrontIntListCookie.CompareMax).Select(x => (long)x).ToHashSet(),
-                    config),
+                    config,
+                    ctx.Request.Cookies["epc_currency"]),
                 (key, ct) => translator.TextAsync(key, ct),
                 ctx.RequestAborted);
         }

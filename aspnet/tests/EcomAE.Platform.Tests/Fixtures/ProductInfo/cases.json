@@ -1,0 +1,63 @@
+{
+  "schema": [
+    "CREATE TABLE `shop_catalogue_products` (`id` int PRIMARY KEY, `caption` varchar(255), `category_id` int, `alias` varchar(255), `published_flag` tinyint DEFAULT 1)",
+    "CREATE TABLE `shop_products_images` (`id` int PRIMARY KEY, `product_id` int, `file_name` varchar(500))",
+    "CREATE TABLE `shop_products_text` (`product_id` int, `content` varchar(255))",
+    "CREATE TABLE `shop_categories_properties_map` (`id` int PRIMARY KEY, `category_id` int, `value` varchar(255), `property_type_id` int, `list_id` int DEFAULT 0, `is_option` tinyint DEFAULT 0, `for_similar` tinyint DEFAULT 0, `list_type` int DEFAULT 1, `order` int DEFAULT 0)",
+    "CREATE TABLE `shop_properties_values_int` (`id` int PRIMARY KEY, `product_id` int, `property_id` int, `value` varchar(255))",
+    "CREATE TABLE `shop_properties_values_float` (`id` int PRIMARY KEY, `product_id` int, `property_id` int, `value` varchar(255))",
+    "CREATE TABLE `shop_properties_values_text` (`id` int PRIMARY KEY, `product_id` int, `property_id` int, `value` varchar(255))",
+    "CREATE TABLE `shop_properties_values_bool` (`id` int PRIMARY KEY, `product_id` int, `property_id` int, `value` varchar(255))",
+    "CREATE TABLE `shop_properties_values_list` (`id` int PRIMARY KEY, `product_id` int, `property_id` int, `value` varchar(255))",
+    "CREATE TABLE `shop_properties_values_tree_list` (`id` int PRIMARY KEY, `product_id` int, `property_id` int, `value` varchar(255))",
+    "CREATE TABLE `shop_line_lists_items` (`id` int PRIMARY KEY, `line_list_id` int, `value` varchar(255), `order` int DEFAULT 0)",
+    "CREATE TABLE `shop_tree_lists_items` (`id` int PRIMARY KEY, `line_list_id` int, `value` varchar(255), `level` int, `count` int, `parent` int, `order` int DEFAULT 0)",
+    "CREATE TABLE `shop_currencies` (`id` int AUTO_INCREMENT PRIMARY KEY, `iso_code` int, `iso_name` varchar(10), `caption_short` varchar(10), `sign` varchar(10), `rate` decimal(15,6), `available` tinyint, `order` int)",
+    "CREATE TABLE `shop_offices` (`id` int PRIMARY KEY, `caption` varchar(255), `city` varchar(255), `address` varchar(255))",
+    "CREATE TABLE `shop_offices_geo_map` (`id` int AUTO_INCREMENT PRIMARY KEY, `office_id` int, `geo_id` int)",
+    "CREATE TABLE `shop_geo` (`id` int PRIMARY KEY, `value` varchar(255))",
+    "CREATE TABLE `shop_storages` (`id` int PRIMARY KEY, `currency` int, `interface_type` int DEFAULT 1)",
+    "CREATE TABLE `shop_offices_storages_map` (`id` int AUTO_INCREMENT PRIMARY KEY, `office_id` int, `storage_id` int, `group_id` int, `min_point` decimal(15,2), `max_point` decimal(15,2), `markup` decimal(10,2), `additional_time` int)",
+    "CREATE TABLE `shop_storages_data` (`id` int PRIMARY KEY, `storage_id` int, `product_id` int, `price` decimal(15,2), `price_crossed_out` decimal(15,2), `price_purchase` decimal(15,2), `exist` int, `reserved` int, `issued` int, `time_to_exe` int, `arrival_time` int, `article` varchar(255), `manufacturer` varchar(255))",
+    "CREATE TABLE `shop_catalogue_categories` (`id` int PRIMARY KEY, `url` varchar(255))",
+    "CREATE TABLE `shop_related_products` (`product_id` int, `product_id_related` int)",
+    "CREATE TABLE `groups` (`id` int PRIMARY KEY, `for_guests` tinyint, `for_registrated` tinyint)",
+    "CREATE TABLE `users_groups_bind` (`record_id` int AUTO_INCREMENT PRIMARY KEY, `user_id` int, `group_id` int)",
+    "CREATE TABLE `epc_price_settings` (`setting_key` varchar(64) PRIMARY KEY, `setting_value` varchar(255))",
+    "CREATE TABLE `epc_price_profiles` (`id` int AUTO_INCREMENT PRIMARY KEY, `group_id` int, `code` varchar(32), `margin_percent` decimal(10,2), `vat_percent` decimal(10,2))",
+    "CREATE TABLE `epc_price_profile_brand_rules` (`id` int AUTO_INCREMENT PRIMARY KEY, `group_id` int, `manufacturer` varchar(255), `margin_percent` decimal(10,2), `visible` tinyint)",
+    "CREATE TABLE `epc_price_profile_article_rules` (`id` int AUTO_INCREMENT PRIMARY KEY, `group_id` int, `manufacturer` varchar(255), `article` varchar(64), `margin_percent` decimal(10,2), `visible` tinyint)",
+    "CREATE TABLE `epc_price_storage_rules` (`id` int AUTO_INCREMENT PRIMARY KEY, `storage_id` int, `margin_percent` decimal(10,2), `visible` tinyint, `updated_at` int)",
+    "CREATE TABLE `epc_price_storage_brand_rules` (`id` int AUTO_INCREMENT PRIMARY KEY, `storage_id` int, `manufacturer` varchar(255), `margin_percent` decimal(10,2), `visible` tinyint, `updated_at` int)",
+    "CREATE TABLE `epc_price_storage_article_rules` (`id` int AUTO_INCREMENT PRIMARY KEY, `storage_id` int, `manufacturer` varchar(255), `article` varchar(64), `margin_percent` decimal(10,2), `visible` tinyint, `updated_at` int)",
+    "CREATE TABLE `sessions` (`session` varchar(64), `user_id` int, `csrf_guard_key` varchar(64))"
+  ],
+  "base": [
+    "INSERT INTO `shop_catalogue_products` VALUES (7,'CAP<unsafe>',20,'part-seven',1),(8,'RELATED',20,'related-eight',1),(9,'SIMILAR',20,'similar-nine',1)",
+    "INSERT INTO `shop_catalogue_categories` VALUES (20,'filters')",
+    "INSERT INTO `shop_geo` VALUES (3,'Dubai')",
+    "INSERT INTO `shop_offices` VALUES (1,'OFFICE','CITY','ADDR<script>')",
+    "INSERT INTO `shop_offices_geo_map` (`office_id`,`geo_id`) VALUES (1,3)",
+    "INSERT INTO `shop_storages` VALUES (10,784,1)",
+    "INSERT INTO `shop_currencies` (`iso_code`,`iso_name`,`caption_short`,`sign`,`rate`,`available`,`order`) VALUES (784,'AED','AED','AED',1,1,1),(840,'USD','USD','$',3.6725,1,2)",
+    "INSERT INTO `shop_offices_storages_map` (`office_id`,`storage_id`,`group_id`,`min_point`,`max_point`,`markup`,`additional_time`) VALUES (1,10,1,0,999999,10,0)",
+    "INSERT INTO `groups` VALUES (1,1,0),(2,0,1)",
+    "INSERT INTO `shop_related_products` VALUES (7,8)"
+  ],
+  "cases": [
+    {"name":"catalog_no_image_no_properties","setup":[]},
+    {"name":"catalog_one_local_image","setup":["INSERT INTO `shop_products_images` VALUES (1,7,'local image.png')"]},
+    {"name":"catalog_multiple_auto_images","setup":["INSERT INTO `shop_products_images` VALUES (1,7,'auto_price/a.webp'),(2,7,'auto_price/b.webp'),(3,7,'https://img.example/x.png')"]},
+    {"name":"catalog_php83_supported_property_types","setup":[
+      "INSERT INTO `shop_categories_properties_map` VALUES (1,20,'P_INT',1,0,0,0,1,1),(2,20,'P_FLOAT',2,0,0,0,1,2),(3,20,'P_TEXT',3,0,0,0,1,3),(4,20,'P_BOOL',4,0,0,0,1,4),(5,20,'P_LIST',5,50,0,0,2,5),(6,20,'P_TREE',6,60,0,0,1,6)",
+      "INSERT INTO `shop_properties_values_int` VALUES (1,7,1,'42')",
+      "INSERT INTO `shop_properties_values_float` VALUES (2,7,2,'3.14')",
+      "INSERT INTO `shop_properties_values_text` VALUES (3,7,3,'TXT<script>')",
+      "INSERT INTO `shop_properties_values_bool` VALUES (4,7,4,'1')",
+      "INSERT INTO `shop_properties_values_list` VALUES (5,7,5,'501'),(6,7,5,'502')",
+      "INSERT INTO `shop_line_lists_items` VALUES (501,50,'LIST_A',1),(502,50,'LIST_B',2)",
+      "INSERT INTO `shop_products_text` VALUES (7,'BODY<b>')"
+    ]}
+  ],
+  "unsupported_property_types": ["tree (PHP 8.3 fatal: count(property_variants))", "select-alias-after-type-6", "date", "file", "image"]
+}
