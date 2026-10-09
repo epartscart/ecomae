@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Ask (`--max-gap 527` passed; current gap **525**).
+after PlanQ1Work (`--max-gap 525` passed; current gap **522**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 525
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 522
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -19,23 +19,23 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 |---|---|---:|---:|
 | 1 | Storefront: catalogue | 35 | 10,764 |
 | 1 | Storefront: modules | 18 | 3,446 |
-| 1 | Storefront: other shop | 20 | 6,932 |
+| 1 | Storefront: other shop | 19 | 6,669 |
 | 1 | Storefront: parts/docpart | 30 | 34,919 |
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 3 | 2,192 |
 | 3 | CP other | 12 | 3,578 |
-| 3 | CP shop core (orders, catalogue, price upload) | 31 | 13,857 |
+| 3 | CP shop core (orders, catalogue, price upload) | 30 | 13,605 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 121 | 63,750 |
+| 5 | Marketing/BOS/industries | 120 | 63,591 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **525** | **245,514** |
+| | **Total** | **522** | **244,840** |
 
-- Non-ERP (Cursor): **359 files / 179,323 lines**
+- Non-ERP (Cursor): **356 files / 178,649 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,180** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **78**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,152** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **74**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -117,9 +117,13 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Site`, 5 cases): site-context 
 
 Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Ask`, 4 cases): copilot intents / parse / generate-sql / execute / fleet (history `LIMIT ?` bind skipped — twin takes an int), AI PII strip / detect / classify / anomaly / NL report / route / service-query / stats (recent `LIMIT ?` bind skipped). PII patterns apply in PHP order (15-digit TRN before IBAN). Execute logs SQL and does not run it.
 
+### Q1 work — done (`PhpPlanQ1Work`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Work`, 5 cases): orders workspace h / storage-label / usd-rate / aed-usd / badges / kpi / status ids / cookie tab / filter / count (currency records injected), marketing helpers h / snapshot / progress / completion / kpi / review / resolve-link / demo-report (playbook catalog injected so that parent stays a gap), CP breadcrumb humanize / caption / ensure-folder / repair. `empty('0')` is empty. Badge class uses a request static cache.
+
 ### Q1 next leftovers — honest schema/data twins still open
 
-The 78 leftover “ready” ≤200-line rows are still Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
+The 74 leftover “ready” ≤200-line rows are still Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
 
 | Order | File | Why now |
 |---|---|---|
