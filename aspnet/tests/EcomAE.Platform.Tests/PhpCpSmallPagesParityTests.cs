@@ -38,6 +38,10 @@ public sealed class PhpCpSmallPagesParityTests
         PhpCpEvalWrappers.RelatedProductsPath,
         PhpCpEvalWrappers.CustomerMgmtGuideShopPath,
         PhpCpEvalWrappers.CustomerMgmtGuideUsersPath,
+        PhpCpEvalWrappers.AuthSettingsPath,
+        PhpCpEvalWrappers.OfficeManagerPath,
+        PhpCpEvalWrappers.OfficeActualPath,
+        PhpCpEvalWrappers.OfficeDetailsPath,
         PhpCpSmallScripts.PageGuardPath,
         PhpCpSmallScripts.FastTenantPath,
         PhpCpSmallScripts.IndustrySwitchPath,
@@ -269,6 +273,18 @@ public sealed class PhpCpSmallPagesParityTests
                 return PhpCpSmallScripts.ApiDebug(7, true, false, "");
             case "api_debug_log":
                 return PhpCpSmallScripts.ApiDebug(7, true, true, "LOG7");
+            case "auth_settings_not_super":
+                return PhpCpEvalWrappers.AuthSettings(false, false, false, "");
+            case "auth_settings_login":
+                return PhpCpEvalWrappers.AuthSettings(true, false, false, "");
+            case "auth_settings_missing":
+                return PhpCpEvalWrappers.AuthSettings(true, true, false, "");
+            case "office_manager":
+                return PhpCpEvalWrappers.OfficeObtain("manager", "3510", "OFFICE");
+            case "office_actual":
+                return PhpCpEvalWrappers.OfficeObtain("actual", "3511", "OFFICE");
+            case "office_details":
+                return PhpCpEvalWrappers.OfficeObtain("details", "3511", "OFFICE");
             case "customer_guide_shop":
             case "customer_guide_users":
                 return PhpCpEvalWrappers.CustomerMgmtGuide("/cp/a&x", "/cp/orders", "/cp/erp");

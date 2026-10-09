@@ -353,6 +353,44 @@
       "prelude": "function epc_cm_h($v) { return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); }"
     },
     {
+      "name": "auth_settings_not_super",
+      "file": "cp/content/control/portal/epc_cp_auth_settings.php",
+      "config": { "backend_dir": "cp" },
+      "is_super": false
+    },
+    {
+      "name": "auth_settings_login",
+      "file": "cp/content/control/portal/epc_cp_auth_settings.php",
+      "config": { "backend_dir": "cp" },
+      "is_super": true,
+      "is_admin": false
+    },
+    {
+      "name": "auth_settings_missing",
+      "file": "cp/content/control/portal/epc_cp_auth_settings.php",
+      "config": { "backend_dir": "cp" },
+      "is_super": true,
+      "is_admin": true
+    },
+    {
+      "name": "office_manager",
+      "file": "content/shop/obtaining_modes/get_in_office/manager_interface.php",
+      "vars": { "obtain_caption": "3510", "how_get_json": { "office_id": 3 } },
+      "stubs": { "content/shop/obtaining_modes/get_in_office/show_office_info.php": "<?php echo 'OFFICE';" }
+    },
+    {
+      "name": "office_actual",
+      "file": "content/shop/obtaining_modes/get_in_office/show_actual_info.php",
+      "vars": { "obtain_mode": { "caption": "3511" }, "how_get_json": { "office_id": 3 } },
+      "stubs": { "content/shop/obtaining_modes/get_in_office/show_office_info.php": "<?php echo 'OFFICE';" }
+    },
+    {
+      "name": "office_details",
+      "file": "content/shop/obtaining_modes/get_in_office/show_details.php",
+      "vars": { "obtain_mode": { "caption": "3511" }, "how_get_json": { "office_id": 3 } },
+      "stubs": { "content/shop/obtaining_modes/get_in_office/show_office_info.php": "<?php echo 'OFFICE';" }
+    },
+    {
       "name": "customer_guide_users",
       "file": "cp/content/users/customer_mgmt_guide.php",
       "vars": { "approvalsUrl": "/cp/a&x", "ordersUrl": "/cp/orders", "erpUrl": "/cp/erp" },

@@ -51,6 +51,8 @@ if (isset($argv[2])) {
 		'<?php function epc_portal_apply_config($c) {} function epc_portal_cp_industry_session_key() { return "epc_cp_industry_filter"; } function epc_portal_industries() { return array("auto_parts" => array("name" => "Auto"), "fashion" => array("name" => "Fashion")); } function epc_portal_is_super_cp_host() { return !empty($GLOBALS["__case_is_super"]); } function epc_portal_is_platform_operator() { return !empty($GLOBALS["__case_is_operator"]); }'
 	);
 	file_put_contents($doc . '/content/general_pages/epc_eparts_product_route.php', '<?php');
+	@mkdir($doc . '/' . $backend . '/content/control', 0777, true);
+	@copy($root . '/cp/content/control/epc_cp_page_guard.php', $doc . '/' . $backend . '/content/control/epc_cp_page_guard.php');
 	file_put_contents($doc . '/content/shop/document_control/epc_document_control_helpers.php', '<?php');
 
 	foreach (($case['stubs'] ?? array()) as $rel => $body) {

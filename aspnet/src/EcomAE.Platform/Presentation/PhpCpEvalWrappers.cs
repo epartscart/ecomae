@@ -34,6 +34,10 @@ public static class PhpCpEvalWrappers
     public const string RelatedProductsPath = "cp/content/shop/catalogue/related_products.php";
     public const string CustomerMgmtGuideShopPath = "cp/content/shop/customer_mgmt/customer_mgmt_guide.php";
     public const string CustomerMgmtGuideUsersPath = "cp/content/users/customer_mgmt_guide.php";
+    public const string AuthSettingsPath = "cp/content/control/portal/epc_cp_auth_settings.php";
+    public const string OfficeManagerPath = "content/shop/obtaining_modes/get_in_office/manager_interface.php";
+    public const string OfficeActualPath = "content/shop/obtaining_modes/get_in_office/show_actual_info.php";
+    public const string OfficeDetailsPath = "content/shop/obtaining_modes/get_in_office/show_details.php";
 
     public static string LoginUrl(string? backendDir)
         => "/" + StorefrontTinyPages.HtmlSpecialChars(backendDir ?? "") + "/";
@@ -103,6 +107,34 @@ public static class PhpCpEvalWrappers
         => includePresent
             ? includeBody
             : Danger("<strong>Guide could not load:</strong> " + StorefrontTinyPages.HtmlSpecialChars(errorMessage));
+
+    public static string AuthSettings(bool superHost, bool isAdmin, bool includePresent, string includeBody, string? backendDir = "cp")
+    {
+        if (!superHost)
+        {
+            return "<div class=\"col-lg-12\"><div class=\"alert alert-warning\">Modern auth settings are available on ECOM AE Super CP only.</div></div>";
+        }
+
+        var denied = PhpCpSmallScripts.PageRequireAdmin(isAdmin, "Modern auth settings", backendDir);
+        if (denied is not null)
+        {
+            return denied;
+        }
+
+        return PhpCpSmallScripts.PageInclude(
+            includePresent,
+            includeBody,
+            "Modern auth settings module missing. Deploy via <code>tools/push_one.py</code>.");
+    }
+
+    public static string OfficeObtain(string kind, string captionId, string includeBody, Func<int, string>? translate = null)
+    {
+        string T(int id) => (translate ?? (key => "{" + key.ToString(CultureInfo.InvariantCulture) + "}"))(id);
+        var caption = "{" + captionId + "}";
+        return kind == "manager"
+            ? "<p>" + T(3507) + " - <b>" + caption + "</b></p>\r\n" + includeBody
+            : "<p class=\"lead\">" + T(3507) + " - " + caption + "</p>\r\n" + includeBody;
+    }
 
     public static string CustomerMgmtGuide(string approvalsUrl, string ordersUrl, string erpUrl)
     {
