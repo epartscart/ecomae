@@ -327,7 +327,7 @@ Order:
 Not complete.
 
 - Ratchet 544 to 539. Five more files now have PHP 8.3 goldens and ASP.NET twins: `epc_demand_country_iso.php` (`PhpPlanQ1Rest`; ISO maps / parse / preview / import with injectable article-normalize; CHAR(2) migrate INSERT fatals on this MariaDB STRICT — no-op ISO3 path is golden), `epc_storefront_industry_themes.php`, `epc_cp_brochure_topic_photos.php`, `epc_portal_theme_templates.php` (industry maps injected so the portal parent stays unmentioned), `epc_portal_storefront_packages.php` (package dump omits header/home/footer sibling paths).
-- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Rest` (9). PlanQ1 suites 61 of 61. Inventory content 500 to 505 of 952. Unnamed PHP functions 7,356 to 7,306. Ready ≤200-line non-ERP functions stay 93. The weighted headline stays about 20.4%. Non-ERP pending: 373 files / 183,541 lines (was 378 / 185,572). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Rest` (9). PlanQ1 suites 61 of 61. Full platform suite 6019 of 6019. Inventory content 500 to 505 of 952. Unnamed PHP functions 7,356 to 7,306. Ready ≤200-line non-ERP functions stay 93. The weighted headline stays about 20.4%. Non-ERP pending: 373 files / 183,541 lines (was 378 / 185,572). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
 ### Checkpoint 2026-10-09 — plan Q1-mark / pack (printProductBlock, FAQ, legal, DED mapping)
 
