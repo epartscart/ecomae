@@ -1,0 +1,119 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "site_key",
+            "output": "",
+            "result": [
+                "www.shop.example",
+                "www.shop.example:demo:emoite",
+                "www.shop.example:demo-cp:pey"
+            ]
+        },
+        {
+            "name": "site_ctx",
+            "output": "",
+            "result": [
+                "https://guess.example",
+                "https://guess.example/",
+                "localhost",
+                "auto_parts",
+                "Auto parts",
+                "Acme Hub",
+                "acme",
+                "Go",
+                "Acme",
+                "sales@acme.test",
+                "sales@acme.test",
+                "Dubai",
+                "United Arab Emirates",
+                true,
+                "auto_parts",
+                "https://shop.acme.test",
+                "https://shop.acme.test/",
+                "cfg@acme.test",
+                "Acme",
+                "+971",
+                "050",
+                "hq@acme.test",
+                "SZR",
+                "cfg@acme.test",
+                "https://www.ecomae.com/demo/enant1",
+                "Acme Hub",
+                "Acme Hub",
+                "Changed",
+                "https://shop.acme.test",
+                "https://shop.acme.test/en/shop",
+                "https://shop.acme.test",
+                "localhost",
+                "Acme",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "name": "site_apply",
+            "output": "",
+            "result": [
+                "https://legal.example/",
+                "Ops",
+                "ops@legal.example",
+                "04",
+                "05",
+                "x",
+                "x",
+                "https://legal.example/",
+                "ops@legal.example",
+                {
+                    "legal_name": "legalco",
+                    "trade_name": "Legal Co",
+                    "address_line1": "x",
+                    "city": "Abu Dhabi",
+                    "country": "AE",
+                    "phone": "04",
+                    "email": "x",
+                    "website": "https://legal.example"
+                }
+            ]
+        },
+        {
+            "name": "supplier",
+            "output": "",
+            "result": [
+                "a&amp;b&lt;&#039;x&#039;&gt;",
+                5,
+                4,
+                0,
+                "<div style=\"font-family:Calibri,Arial,sans-serif;font-size:14px;color:#111;\"><p style=\"margin:0 0 12px;\">Dear supplier,</p><p style=\"margin:0 0 12px;\">Please supply the following parts for our customer order. Use <strong>LPO / PO number <span style=\"color:#b45309;\">17</span></strong> on your invoice and delivery note (this is our customer order number).</p><table style=\"border-collapse:collapse;margin:0 0 16px;font-size:14px;\"><tr><td style=\"padding:4px 16px 4px 0;font-weight:bold;\">LPO number</td><td>17</td></tr><tr><td style=\"padding:4px 16px 4px 0;font-weight:bold;\">Warehouse</td><td>Main &lt;WH&gt;</td></tr></table><table style=\"border-collapse:collapse;width:100%;max-width:720px;font-size:13px;\" border=\"1\" cellpadding=\"6\" cellspacing=\"0\"><thead><tr style=\"background:#f1f5f9;\"><th align=\"left\">Brand</th><th align=\"left\">Part no.</th><th align=\"left\">Description</th><th align=\"right\">Qty</th></tr></thead><tbody><tr><td>Bosch</td><td>0986</td><td>Oil &amp; filter</td><td align=\"right\">2</td></tr></tbody></table><p style=\"margin:16px 0 0;font-size:13px;color:#475569;\">Reply to this e-mail if any line is unavailable. Reference LPO <strong>17</strong> on all correspondence.</p><p style=\"margin:8px 0 0;font-size:12px;color:#64748b;\">https://shop.example</p></div>"
+            ]
+        },
+        {
+            "name": "acl",
+            "output": "",
+            "result": [
+                "shop/orders",
+                "shop/users",
+                "",
+                1,
+                2,
+                0,
+                [
+                    3,
+                    5
+                ],
+                [
+                    3,
+                    5,
+                    7
+                ],
+                [
+                    3,
+                    5,
+                    7
+                ],
+                []
+            ]
+        }
+    ]
+}
