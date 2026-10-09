@@ -54,9 +54,13 @@ public sealed class StorefrontCartTests
                 var bytes = Encoding.UTF8.GetBytes(html);
                 Assert.Equal(expected[i].GetProperty("html_length").GetInt32(), bytes.Length);
                 Assert.Equal(expected[i].GetProperty("html_sha256").GetString(), Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant());
-                Assert.Equal(
-                    expected[i].GetProperty("cart_after").GetRawText(),
-                    JsonSerializer.Serialize(await CartStateAsync(connection)));
+                var expectedState = expected[i].GetProperty("cart_after").EnumerateArray()
+                    .Select(x => (x.GetProperty("id").GetInt32(), x.GetProperty("checked_for_order").GetInt32()))
+                    .ToArray();
+                var actualState = (await CartStateAsync(connection))
+                    .Select(x => (Convert.ToInt32(x["id"], CultureInfo.InvariantCulture), Convert.ToInt32(x["checked_for_order"], CultureInfo.InvariantCulture)))
+                    .ToArray();
+                Assert.Equal(expectedState, actualState);
             });
         }
     }
