@@ -772,6 +772,7 @@ public sealed class StorefrontPhpShopTests
         );
         CREATE TABLE shop_orders_items_statuses_ref (
           id INT NOT NULL PRIMARY KEY,
+          `order` INT NOT NULL DEFAULT 0,
           for_created INT NOT NULL,
           check_for_return INT NOT NULL,
           count_flag INT NOT NULL
