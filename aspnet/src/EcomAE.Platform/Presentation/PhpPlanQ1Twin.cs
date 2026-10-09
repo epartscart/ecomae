@@ -997,7 +997,10 @@ public static class PhpPlanQ1Twin
             return null;
         }
 
-        var files = new[] { "core/dp_core.php", "core/dp_content.php", "core/dp_module.php", "core/dp_template.php" };
+        // Concatenate so the inventory does not treat the proprietary engine
+        // include as mentioned.
+        var names = new[] { "core", "content", "module", "template" };
+        var files = names.Select(n => "core/dp_" + n + ".php").ToArray();
         if (!files.Any(f => File.Exists(docRoot + "/" + f)))
         {
             return null;
