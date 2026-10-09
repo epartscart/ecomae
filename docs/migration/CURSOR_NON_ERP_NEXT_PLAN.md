@@ -107,7 +107,7 @@ Port the page, or leave the identifier unmentioned.
 1. Product-block markup (`printProductBlock`), then `printProducts.php` / `printProducts_2.php` shells.
 2. `part_search_page.php` and the parts agent.
 3. CP order card / order lines / price-upload page bodies (step 3 core).
-4. Marketing / industry page kernels in `content/general_pages` (largest remaining non-ERP block: 173 files / 80,616 lines).
+4. Marketing / industry page kernels in `content/general_pages` (largest remaining non-ERP block: 168 files / 79,838 lines).
 5. Price engine last among Cursor-owned libraries, on the existing importer.
 
 ## 5. Invariants every slice
