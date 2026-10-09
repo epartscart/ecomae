@@ -1677,7 +1677,7 @@ public static partial class StorefrontPhpAjax
     {
         var ids = new List<int>();
         await using var command = connection.CreateCommand();
-        command.CommandText = "SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `count_flag` = 0";
+        command.CommandText = "SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `count_flag` = 0 ORDER BY `order` ASC";
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
