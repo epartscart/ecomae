@@ -116,7 +116,7 @@
                 null,
                 ErpDb.Positional("SELECT IFNULL(`csrf_guard_key`,'') FROM `sessions` WHERE `session` = ? LIMIT 1"),
                 cancellationToken,
-                token).ConfigureAwait(false);
+                token).ConfigureAwait(false) ?? string.Empty;
         }
         catch (System.Data.Common.DbException)
         {
