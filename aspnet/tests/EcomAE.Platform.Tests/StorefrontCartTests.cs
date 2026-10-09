@@ -52,8 +52,12 @@ public sealed class StorefrontCartTests
                 }
 
                 var bytes = Encoding.UTF8.GetBytes(html);
-                Assert.Equal(expected[i].GetProperty("html_length").GetInt32(), bytes.Length);
-                Assert.Equal(expected[i].GetProperty("html_sha256").GetString(), Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant());
+                Assert.True(
+                    expected[i].GetProperty("html_length").GetInt32() == bytes.Length,
+                    name + ": expected " + expected[i].GetProperty("html_length").GetInt32() + " bytes, got " + bytes.Length);
+                Assert.True(
+                    expected[i].GetProperty("html_sha256").GetString() == Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant(),
+                    name + ": rendered bytes differ from PHP 8.3 golden");
                 var expectedState = expected[i].GetProperty("cart_after").EnumerateArray()
                     .Select(x => (x.GetProperty("id").GetInt32(), x.GetProperty("checked_for_order").GetInt32()))
                     .ToArray();
