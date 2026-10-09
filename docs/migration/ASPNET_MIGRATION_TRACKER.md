@@ -203,7 +203,7 @@ The ajax ratios count only ajax scripts. To make sure nothing in the PHP referen
 Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
 
 1. **Storefront customer pages (epartscart.com).**
-   - `content/shop/order_process`: `orders_background.php` remains as the shared-data helper gap. Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php`, `my_quotes.php`, `my_order_not_authorized.php`, `my_orders.php`, `my_order.php`, `my_orders_items.php`, `cart.php`, `checkout_confirm.php` (see the checkpoints below).
+   - `content/shop/order_process`: done: the storefront `orders_background.php` shared-data helper, `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php`, `my_quotes.php`, `my_order_not_authorized.php`, `my_orders.php`, `my_order.php`, `my_orders_items.php`, `cart.php`, `checkout_confirm.php` (see the checkpoints below). The different Control Panel helper with the same basename remains open.
    - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
    - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
    - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
@@ -322,6 +322,17 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — storefront order background references (`orders_background.php`) like PHP
+
+Not complete.
+
+- The ratchet stays at 749 and the weighted headline stays about 20.4%. The storefront and Control Panel helpers share the same basename, and the current inventory path matcher would falsely mark both complete if runtime source named the storefront path. The Control Panel helper has additional manager-office and storage rules and remains open.
+- `StorefrontOrdersBackground` now loads PHP's shared order-status rows, line-status rows, line statuses excluded from totals, and office rows. It preserves `SELECT *` fields, status ordering, duplicate-ID replacement, and PHP 8.3's `NULL == 0` versus `'' != 0` behavior for `count_flag`.
+- `StorefrontMyOrders` and `StorefrontMyOrdersItems` now consume that common loader instead of maintaining separate reference queries. The helper is read-only.
+- Evidence: PHP 8.3 ran the authoritative helper for empty and populated/duplicate/null cases on isolated databases. The golden records include all fields and before/after row counts. The loader plus both consumer regression suites passed 16 of 16; the full suite passed 5,914 of 5,914 after a clean build with 0 warnings and 0 errors.
+- All four customer order-list route aliases return 200 with fake cookies. `docpart.sessions` stayed 73 before and after. Post-test invariants: `ecomae_cpw_%` = 0, `docpart.users` = 2, `ecomae.users` = 2.
+- Next storefront gap: `content/shop/catalogue/printProducts.php`.
+
 ### Checkpoint 2026-10-09 — storefront product information (`printProduct_Info.php`) like PHP
 
 Not complete.
@@ -332,7 +343,7 @@ Not complete.
 - Product GETs validate an existing session but do not mint guest sessions. Intended security deviation: database, cookie and JavaScript values that PHP prints raw are context-encoded.
 - Evidence: PHP 8.3 generated four catalogue goldens for no image, local image, auto-price images and supported property types. PHP 8.3 cannot execute its tree-property branch because `count(property_variants)` is fatal, and this PHP file does not map date, file or image property types; those limits are recorded rather than claimed as golden-covered. Runtime tests additionally cover main-offer states, currencies, identities, tabs, related products, no-offer fallback, missing products and hostile values.
 - Clean build: 0 warnings and 0 errors. Full suite: 5,913 of 5,913 passed. All five route aliases return 200 with fake cookies; `docpart.sessions` stayed 73 before and after. Post-test invariants: `ecomae_cpw_%` = 0, `docpart.users` = 2, `ecomae.users` = 2.
-- Next storefront gap: `content/shop/order_process/orders_background.php`.
+- The storefront order-background helper is closed by the next checkpoint above.
 
 ### Checkpoint 2026-10-09 — checkout confirmation (`checkout_confirm.php`) like PHP
 
