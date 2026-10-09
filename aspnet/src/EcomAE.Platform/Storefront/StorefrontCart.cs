@@ -94,8 +94,9 @@ public static class StorefrontCart
             return html;
         }
 
+        var cartJson = JsonSerializer.Serialize(rows.Select(JsonRow), PhpJson).Replace("/", "\\/", StringComparison.Ordinal);
         return html
-            .Replace("{{CART_JSON}}", JsonSerializer.Serialize(rows.Select(JsonRow), PhpJson), StringComparison.Ordinal)
+            .Replace("{{CART_JSON}}", cartJson, StringComparison.Ordinal)
             .Replace("{{CHECKOUT_JS}}", CheckoutJs(input), StringComparison.Ordinal);
     }
 
