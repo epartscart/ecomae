@@ -203,7 +203,7 @@ The ajax ratios count only ajax scripts. To make sure nothing in the PHP referen
 Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
 
 1. **Storefront customer pages (epartscart.com).**
-   - `content/shop/order_process`: `cart.php`, `checkout_confirm.php`. Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php`, `my_quotes.php`, `my_order_not_authorized.php`, `my_orders.php`, `my_order.php`, `my_orders_items.php` (see the checkpoints below).
+   - `content/shop/order_process`: `checkout_confirm.php`. Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php`, `my_quotes.php`, `my_order_not_authorized.php`, `my_orders.php`, `my_order.php`, `my_orders_items.php`, `cart.php` (see the checkpoints below).
    - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
    - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
    - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
@@ -321,6 +321,21 @@ Evidence per page, recorded in its checkpoint:
 Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
+
+### Checkpoint 2026-10-09 — the storefront cart (`cart.php`) like PHP
+
+Not complete.
+
+- Ratchet 752 to 751. Inventory content 390 to 391 of 952. Unnamed PHP functions 7,873 to 7,871. The weighted headline (about 20.4%) is unchanged.
+- `/en/shop/cart` and `/shop/cart` now print PHP's cart through `StorefrontCart`:
+  - the guest commerce login gate, signed-in and guest ownership, empty state, cart table, checked state, quantity controls, totals and checkout link;
+  - catalogue and supplier lines, delivery terms, minimum quantities, product images, repricing links, WhatsApp sharing and the garage-notepad modal;
+  - trade pending/rejected checkout blocking and language-prefixed destinations;
+  - PHP's GET-side writes: clearing a blocked guest cart and unchecking inaccessible catalogue lines. The port adds shopper/session ownership predicates to both writes.
+- The existing ASP.NET legacy AJAX endpoints remain the single implementation for quantity, delete, order selection and garage-notepad mutations.
+- Runtime translations use `StorefrontPhpTranslator`. Intended security deviation: PHP prints several database and JavaScript values without context escaping; the port escapes them.
+- Evidence: `Fixtures/Cart/harness.php` ran PHP 8.3 for 15 isolated cases. Exact UTF-8 byte length and SHA-256 plus post-GET cart state cover blocked/no-session guests, guest clearing, signed and guest empty/populated carts, both line types, inaccessible-line writes, images and URLs, currency/term branches, trade states, garage states, language prefix and hostile values. The full suite passed 5,892 of 5,892.
+- Kestrel GETs for both routes return 200 with fake signed-in cookies. The local tenant lacks the cart schema, so it prints the safe fallback; the golden databases prove the complete page. `docpart.sessions` stayed 73 before and after. Post-test invariants: `ecomae_cpw_%` = 0, `docpart.users` = 2, `ecomae.users` = 2.
 
 ### Checkpoint 2026-10-09 — the customer order line list (`my_orders_items.php`) like PHP
 
