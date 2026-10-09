@@ -19,6 +19,8 @@
     <Content Update="Migration/Data/erp-guide-modules.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Presentation/PlanQ1LockGroups.json" />
+    <EmbeddedResource Include="Presentation/PlanQ1LockGroups.json" LogicalName="EcomAE.Platform.Presentation.PlanQ1LockGroups.json" />
     <None Remove="Storefront/Captcha/*" />
     <EmbeddedResource Include="Storefront/Captcha/*" LogicalName="EcomAE.Platform.Captcha.%(Filename)%(Extension)" />
     <None Remove="Storefront/Templates/MyOrder*.html" />
