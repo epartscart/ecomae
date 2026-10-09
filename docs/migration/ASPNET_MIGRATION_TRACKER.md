@@ -203,7 +203,7 @@ The ajax ratios count only ajax scripts. To make sure nothing in the PHP referen
 Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
 
 1. **Storefront customer pages (epartscart.com).**
-   - `content/shop/order_process`: Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php`, `my_quotes.php`, `my_order_not_authorized.php`, `my_orders.php`, `my_order.php`, `my_orders_items.php`, `cart.php`, `checkout_confirm.php` (see the checkpoints below).
+   - `content/shop/order_process`: `orders_background.php` remains as the shared-data helper gap. Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php`, `my_quotes.php`, `my_order_not_authorized.php`, `my_orders.php`, `my_order.php`, `my_orders_items.php`, `cart.php`, `checkout_confirm.php` (see the checkpoints below).
    - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
    - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
    - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
