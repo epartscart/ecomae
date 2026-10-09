@@ -8,7 +8,7 @@ Sources: `docs/migration/ASPNET_MIGRATION_TRACKER.md`, `docs/migration/inventory
 
 - Weighted migration headline: still about **20.4% done / 79.6% pending** (Phase A 24/24, B-F open). Page-level slices do not move it.
 - Accepted ERP processes: **0/15**. Formal interactive acceptance for CP, ERP, BOS and storefront: **0**. Nothing in this report is production acceptance.
-- PHP file gap (files that nothing in ASP.NET references): **876 on 2026-10-07 to 749 today** (275,485 lines still unreferenced). Functions not named anywhere in ASP.NET: **8,152 to 7,866 of 9,870**.
+- PHP file gap (files that nothing in ASP.NET references): **876 on 2026-10-07 to 697 today** (273,031 lines still unreferenced). Functions not named anywhere in ASP.NET: **8,152 to 7,860 of 9,870**.
 - "Mentioned" in the inventory is a lead, not parity. Parity is claimed only where a PHP 8.3 runtime golden exists, and each tracker checkpoint says what is and is not golden-covered.
 - Last verified state: full ASP.NET suite **5,918 / 5,918 passing**, 0 build warnings, 0 errors. Throwaway test schemas left over: 0. Production counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
 - Method for every slice: read the PHP, build a PHP 8.3 harness that runs the real script on a throwaway MariaDB schema, record a golden, make ASP.NET equal it, document intentional deviations (usually security hardening), run the full suite, update tracker and inventory ratchet, open a PR.
@@ -52,9 +52,9 @@ Gap files from the inventory (files nothing in ASP.NET references), grouped by t
 | 6 | Price engine (`epc_auto_price_engine.php` 6,768 lines, discovery adapters; must stay on the existing importer) | 23 | 16,789 |
 | 8 | Core and root (`core/dp_*.php`, root CP includes, mailer, license manager, eparts catalogue) | 27 | 8,186 |
 | 7 | **ERP (Devin): finance libraries and CP finance pages** | 166 | 66,191 |
-| | **Total** | **749** | **275,485** |
+| | **Total (measured now)** | **697** | **273,031** |
 
-Non-ERP total is 583 files (209,294 lines). Biggest single blocks: `content/general_pages` (about 79k lines) and `content/shop/docpart` (about 37k lines).
+Per-area rows are the earlier grouping and no longer sum to the total. Measured current inventory: **697 gap files / 273,031 lines**; non-ERP **531 / 206,840**; ERP finance (Devin, unchanged) **166 / 66,191**. Biggest remaining non-ERP blocks: `content/general_pages` and `content/shop/docpart`.
 
 Beyond gap files, these are open for every surface regardless of file counts:
 - Same-to-same PHP vs ASP.NET dual samples per tenant host, human acceptance, and the three combined browser regression rounds.
@@ -66,9 +66,9 @@ Beyond gap files, these are open for every surface regardless of file counts:
 
 ## 4. In progress right now
 
-- Open PR #2069: catalogue count verified against PHP (183 golden cases; ASP.NET fixes for price filter, loose comparison, `products_ids_str`, search quirks).
-- Running next: PHP-parity for the catalogue list and page data plane (sort modes, pagination, id ordering). Then the product block markup (`printProductBlock`), then `printProducts.php` and `printProducts_2.php` shells.
-- After the catalogue: `part_search_page.php` and the parts agent (`content/shop/docpart`), then the remaining storefront modules and templates, then the CP shop pages (step 3).
+- Open stacked PRs: #2069 catalogue count, #2070 catalogue list/page ids, #2071 small storefront fragments plus this next small-include batch (ratchet 717 → 697).
+- Next closable ≤60-line non-ERP files: 87 remain (about 3k lines). Skip search tabs, `printProducts*`, `side_menu`, page-builder render, and most CP guide wrappers until their parent pages land.
+- After the small files: product block markup (`printProductBlock`), then `printProducts.php` / `printProducts_2.php` shells, then `part_search_page.php` and the parts agent.
 
 ## 5. ERP handoff notes for Devin
 

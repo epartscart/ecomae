@@ -38,6 +38,7 @@ public sealed class PhpProductPathRedirectMiddleware
             || path.StartsWith("/content/general_pages/", StringComparison.OrdinalIgnoreCase)
             || PhpAssetWrappers.IsWrapperPath(path)
             || PhpCpConfigScripts.IsScriptPath(path)
+            || PhpCpTinyPages.IsScriptPath(path)
             || path.StartsWith("/api/epc_oauth_", StringComparison.OrdinalIgnoreCase)
             || path.EndsWith(".css", StringComparison.OrdinalIgnoreCase)
             || path.EndsWith(".js", StringComparison.OrdinalIgnoreCase)

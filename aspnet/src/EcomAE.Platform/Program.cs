@@ -1911,6 +1911,7 @@ app.MapEcomAeSurfaceModules();
 // even when PHP-FPM is not fronting Kestrel (local + loopback probes).
 PhpLegacyAssetBridge.Map(app, app.Environment);
 PhpCpConfigScripts.Map(app);
+PhpCpTinyPages.Map(app);
 OAuthStartEndpoint.Map(app);
 AuthEmailOtpEndpoints.Map(app);
 EcomAE.Platform.Storefront.FreeToolsAjaxEndpoint.Map(app);
