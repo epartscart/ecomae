@@ -9,9 +9,9 @@ if (isset($argv[2])) {
 	$case = $spec['cases'][(int)$argv[2]];
 	$password = getenv('ECOMAE_LOCAL_MARIADB_E2E_DSN');
 	$admin = new PDO('mysql:host=127.0.0.1;port=3306;dbname=mysql', 'ecomae', $password, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
-	$name = 'ecomae_cpw_' . substr(md5(uniqid('', true)), 0, 12);
-	$doc = sys_get_temp_dir() . '/' . $name;
-	$admin->exec('CREATE DATABASE `' . $name . '` CHARACTER SET utf8mb4');
+	$database_name = 'ecomae_cpw_' . substr(md5(uniqid('', true)), 0, 12);
+	$doc = sys_get_temp_dir() . '/' . $database_name;
+	$admin->exec('CREATE DATABASE `' . $database_name . '` CHARACTER SET utf8mb4');
 	foreach (array(
 		'/content/users',
 		'/content/shop/order_process',
@@ -49,7 +49,7 @@ PHP);
 	copy($root . '/content/users/users_agreement_module.php', $doc . '/content/users/users_agreement_module.php');
 
 	$db_link = new PDO(
-		'mysql:host=127.0.0.1;port=3306;dbname=' . $name . ';charset=utf8mb4',
+		'mysql:host=127.0.0.1;port=3306;dbname=' . $database_name . ';charset=utf8mb4',
 		'ecomae',
 		$password,
 		array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
@@ -74,12 +74,12 @@ PHP);
 	$done = false;
 	function checkout_fixture_finish()
 	{
-		global $done, $db_link, $admin, $name, $doc, $case, $before;
+		global $done, $db_link, $admin, $database_name, $doc, $case, $before;
 		if ($done) return;
 		$done = true;
 		$html = ob_get_level() > 0 ? ob_get_clean() : '';
 		$after = hash('sha256', json_encode($db_link->query('SELECT * FROM shop_carts ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)));
-		echo json_encode(array(
+		$result = array(
 			'name' => $case['name'],
 			'html' => $html,
 			'redirect' => in_array($case['name'], array(
@@ -87,9 +87,16 @@ PHP);
 			), true) ? $case['lang_href'] . '/shop/checkout/how_get' : null,
 			'cart_before' => $before,
 			'cart_after' => $after
-		), JSON_UNESCAPED_UNICODE);
+		);
+		foreach (array_keys($GLOBALS) as $global_key) {
+			if (($GLOBALS[$global_key] ?? null) instanceof PDOStatement) {
+				unset($GLOBALS[$global_key]);
+			}
+		}
+		$db_link->exec('USE `mysql`');
 		$db_link = null;
-		$admin->exec('DROP DATABASE IF EXISTS `' . $name . '`');
+		$admin->exec('DROP DATABASE IF EXISTS `' . $database_name . '`');
+		echo json_encode($result, JSON_UNESCAPED_UNICODE);
 		foreach (array(
 			'/content/users/dp_user.php',
 			'/content/users/users_agreement_module.php',
