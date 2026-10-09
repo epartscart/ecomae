@@ -4,13 +4,13 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 
 | Class | Count | What to do |
 |---|---:|---|
-| Real PHP (non-ERP), gap file ≤200 lines | 97 | Build next — listed below |
-| Real PHP (non-ERP), larger gap file | 2587 | Build with the parent kernel |
+| Real PHP (non-ERP), gap file ≤200 lines | 93 | Build next — listed below |
+| Real PHP (non-ERP), larger gap file | 2559 | Build with the parent kernel |
 | Real PHP already on a mentioned file | 859 | Finish leftover helpers on that twin |
 | JS functions written inside PHP templates | 1390 | Port as browser JS, not C# methods |
 | Vendor (PHPExcel, PclZip, …) | 255 | Do not port |
 | ERP finance (Devin) | 2034 | Leave for Devin |
-| **Total unmentioned** | **7660** | |
+| **Total unmentioned** | **7628** | |
 
 ## Ready to build (non-ERP PHP, gap file ≤200 lines)
 
@@ -46,10 +46,6 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_cpi_header_href` | `EpcCpiHeaderHref` | `content/general_pages/epc_portal_consulting_primeinvest_header.php` | 113 |
 | `epc_er_header_href` | `EpcErHeaderHref` | `content/general_pages/epc_portal_electronics_retail_header.php` | 162 |
 | `epc_frn_header_href` | `EpcFrnHeaderHref` | `content/general_pages/epc_portal_fashion_retail_namshi_header.php` | 196 |
-| `epc_portal_industry_live_audit` | `EpcPortalIndustryLiveAudit` | `content/general_pages/epc_portal_industry_live_bridge.php` | 199 |
-| `epc_portal_industry_live_defs` | `EpcPortalIndustryLiveDefs` | `content/general_pages/epc_portal_industry_live_bridge.php` | 199 |
-| `epc_portal_industry_live_storefront_url` | `EpcPortalIndustryLiveStorefrontUrl` | `content/general_pages/epc_portal_industry_live_bridge.php` | 199 |
-| `epc_portal_merge_live_subs_into_industry` | `EpcPortalMergeLiveSubsIntoIndustry` | `content/general_pages/epc_portal_industry_live_bridge.php` | 199 |
 | `epc_jrk_header_href` | `EpcJrkHeaderHref` | `content/general_pages/epc_portal_jewellery_retail_kiyasha_header.php` | 199 |
 | `epc_tenant_pdo` | `EpcTenantPdo` | `content/general_pages/epc_tenant_pdo.php` | 153 |
 | `epc_tenant_pdo_from_row` | `EpcTenantPdoFromRow` | `content/general_pages/epc_tenant_pdo.php` | 153 |

@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Next (`--max-gap 581` passed; current gap **578**).
+after PlanQ1After + PlanQ1More (`--max-gap 578` passed; current gap **572**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 578
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 572
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 31 | 13,857 |
 | 3 | CP shop smaller | 24 | 8,039 |
 | 4 | CP control/portal | 41 | 10,505 |
-| 5 | Marketing/BOS/industries | 165 | 79,326 |
+| 5 | Marketing/BOS/industries | 159 | 78,086 |
 | 6 | Price engine | 19 | 16,422 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **578** | **264,385** |
+| | **Total** | **572** | **263,145** |
 
-- Non-ERP (Cursor): **412 files / 198,194 lines**
+- Non-ERP (Cursor): **406 files / 196,954 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,660** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **97**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,628** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **93**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -65,14 +65,24 @@ Skipped on purpose:
 - `epc_sku_media_storefront.php` / `epc_sku_media_cp_install.php` until `epc_sku_media.php`.
 - `cp/content/content/get_content_records.php` (`addContentToDump`): the walker is a pure tree walk, but mentioning it closes the include-time dump page, which needs `DP_ContentRecord` / `translate_str_by_id`. Leave unmentioned until that class is ported.
 
-### Q1 after — remaining honest ≤200-line helpers
+### Q1 after — done (PlanQ1After / `PhpPlanQ1After`)
 
-Most leftover “ready” rows are still Q2/Q3. Next honest ports:
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1After`, 4 cases): industry live-bridge defs / storefront URL / inject-merge / audit. URL and audit stub `epc_industry_seo` / `epc_portal_industries` like tenant-brand (do not mention the SEO parent path or all 12 SEO functions).
+
+### Q1 more — done (PlanQ1More / `PhpPlanQ1More`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1More`, 23 cases): industry catalog profile/title/unsplash/categories/render (electronics-retail image helpers optional; parent stays a gap), storefront layout registry/default/meta/sections/active/js, industry subdomain detect/resolve/bootstrap, dealer portal tiers/register/list/order/auto-tier/fleet/get/update/suspend/activate/report (in-memory twin; `epc_dealer_orders` LIMIT bind fatals on this MariaDB — twin takes an int limit), social-hub CSS body (do not mention the CP page-assets parent). OEM `Functions.Common.php` stays skipped.
+
+### Q1 leftover — next honest files just over 200 lines
+
+The 93 leftover “ready” ≤200-line rows are Q2/Q3. Next honest ports:
 
 | Order | File | Why now |
 |---|---|---|
-| 1 | `content/general_pages/epc_portal_industry_live_bridge.php` (199) | Builtin defs + merge are pure catalogs. URL/audit stub `epc_industry_seo` / `epc_portal_industries` like tenant-brand. |
-| 2 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip** (not a storefront/CP helper). |
+| 1 | `content/general_pages/epc_page_cache.php` (230) | Enabled/key/serve/store are request-shape helpers. Inject cache dir; no production writes. |
+| 2 | `content/general_pages/epc_isolation_anomaly.php` (222) | Schema + scan like dealer/promotions. Stub missing audit tables. |
+| 3 | Other `*_css.php` hubs (`epc_integrations_hub_css.php` 474, `epc_industry_settings_css.php` 421, `epc_marketing_broadcast_css.php` 354) | Static CSS after headers, same pattern as social-hub CSS. |
+| 4 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
@@ -113,7 +123,7 @@ Port the page, or leave the identifier unmentioned.
 1. Product-block markup (`printProductBlock`), then `printProducts.php` / `printProducts_2.php` shells.
 2. `part_search_page.php` and the parts agent.
 3. CP order card / order lines / price-upload page bodies (step 3 core).
-4. Marketing / industry page kernels in `content/general_pages` (largest remaining non-ERP block: 165 files / 79,326 lines).
+4. Marketing / industry page kernels in `content/general_pages` (largest remaining non-ERP block: 159 files / 78,086 lines).
 5. Price engine last among Cursor-owned libraries, on the existing importer.
 
 ## 5. Invariants every slice
