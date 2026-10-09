@@ -1,0 +1,87 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "mv_pure",
+            "output": "",
+            "result": [
+                "epc_mv_min",
+                "epc_mv_max",
+                {
+                    "restrict": true,
+                    "group_ids": [],
+                    "user_ids": []
+                },
+                true,
+                true,
+                true,
+                false,
+                true,
+                true,
+                true,
+                "Main WH",
+                "",
+                "",
+                true,
+                true,
+                true,
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "name": "mv_db",
+            "output": "",
+            "result": [
+                {
+                    "restrict": true,
+                    "group_ids": [],
+                    "user_ids": []
+                },
+                true,
+                1,
+                "[4,9]",
+                "[12,7]",
+                3,
+                {
+                    "restrict": true,
+                    "group_ids": [
+                        4,
+                        9
+                    ],
+                    "user_ids": [
+                        12,
+                        7
+                    ]
+                },
+                [
+                    {
+                        "id": 1,
+                        "value": "Alpha"
+                    },
+                    {
+                        "id": 4,
+                        "value": "Beta"
+                    },
+                    {
+                        "id": 5,
+                        "value": "Gamma"
+                    }
+                ],
+                true,
+                true,
+                true,
+                false,
+                true,
+                false,
+                true,
+                false,
+                false,
+                true,
+                true,
+                false
+            ]
+        }
+    ]
+}
