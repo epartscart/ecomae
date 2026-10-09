@@ -10,7 +10,7 @@ Sources: `docs/migration/ASPNET_MIGRATION_TRACKER.md`, `docs/migration/inventory
 - Accepted ERP processes: **0/15**. Formal interactive acceptance for CP, ERP, BOS and storefront: **0**. Nothing in this report is production acceptance.
 - PHP file gap (files that nothing in ASP.NET references): **876 on 2026-10-07 to 544 today** (251,763 lines still unreferenced). Functions not named anywhere in ASP.NET: **8,152 to 7,356 of 9,870**.
 - "Mentioned" in the inventory is a lead, not parity. Parity is claimed only where a PHP 8.3 runtime golden exists, and each tracker checkpoint says what is and is not golden-covered.
-- Last verified state: PlanQ1Mark + Pack plus prior PlanQ1 suites **57 / 57 passing**. Throwaway test schemas left over: 0. Production counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
+- Last verified state: PlanQ1Mark + Pack plus prior PlanQ1 suites **57 / 57 passing**. Full platform suite **6015 / 6015**. Throwaway test schemas left over: 0. Production counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
 - Method for every slice: read the PHP, build a PHP 8.3 harness that runs the real script on a throwaway MariaDB schema, record a golden, make ASP.NET equal it, document intentional deviations (usually security hardening), run the full suite, update tracker and inventory ratchet, open a PR.
 - Executable next queue (not a progress narrative): `docs/migration/CURSOR_NON_ERP_NEXT_PLAN.md`. Refresh buckets with `scripts/php_non_erp_gap_buckets.py`.
 
