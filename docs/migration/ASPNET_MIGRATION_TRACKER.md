@@ -330,6 +330,14 @@ Not complete.
 - The products-style cookie follows PHP 8.3 `(int)` (scientific-notation strings included), PHP request-key rewriting (`.`, space and `+` become `_`), and `(int)` of a non-empty array is 1. GET does not mint a guest session.
 - Evidence: PHP 8.3.6 produced `Fixtures/StorefrontFragments/golden.json` and `golden_http.json`. The fragment suite passed 5 of 5. The weighted headline stays about 20.4%.
 
+### Checkpoint 2026-10-09 — next small storefront/CP includes after the eval-safe wrappers
+
+Not complete.
+
+- Ratchet 656 to 629. Twenty-six small non-ERP files now have PHP 8.3 goldens and an ASP.NET twin (`PhpNextSmallBatch`, `DocpartManufacturer`): `epc_portal_route_aliases.php`, `epc_moq_helpers.php`, `epc_fashion_taxonomy.php`, `epc_mobile_app_landing.php`, `modules/login/epc_social/app.php`, `tree_lists/helper.php` (`addItemToDump`), `epc_prices_ajax_init.php` (No DB Connect JSON), the marketing-broadcast wrapper plus `epc_marketing_broadcast_config.php`, `data_transfer.php`, Ilcats `content/originalnye-katalogi/settings.php` (full path — `settings.php` collides), CP `actions_alert.php` (distinct from the storefront twin), `document_control_guide.php`, `DocpartManufacturer.php`, `autoxp_clicks_control.php`, `check_admin_access.php`, `chose_car.php`, `epc_platform_health_checkup.php`, `about_program.php`, `auth_with_user.php` (GET returns Forbidden JSON and does not mint an impersonation session), `pyprices_tables_cleaner.php` (week-ago formula plus the DELETE SQL constants), `page_lang_main.php`, both language selectors (`cp/modules/lang/module.php` and `modules/lang/module.php`), `cp/content/users/helper.php` (`getInsertedGroups`, leaf-only — PHP recursively calls undefined `getAllowedGroups` on nested groups), and `epc_portal_industry_catalog_print.php`. The dead cart plugin `plugins/shop/cart/cart_handler.php` is retired (entire body commented out; ASP.NET cart merge is `StorefrontCart`). The marketing-broadcast panel body stays a gap: the wrapper missing-panel HTML is identical to PHP, but the panel path is concatenated in C# so the inventory does not treat the 430-line panel as mentioned.
+- Autoxp live increment uses positional SQL (`SELECT` / `UPDATE` / `INSERT` on `shop_docpart_autoxp_clicks`). Prices ajax init and auth-with-user GET stay outside the CP login wall like PHP. GET does not mint a guest session.
+- Evidence: PHP 8.3.6 produced `Fixtures/NextSmall/golden.json` (50 cases). The NextSmall suite is 4 of 4. Inventory content 409 to 419 of 952, cp-page 238 to 250 of 523, modules 4 to 6 of 31, plugins 3 to 3 of 6 (retired cart handler), root 71 to 73 of 491, retired 35 to 36. Unnamed PHP functions 7,851 to 7,834. The weighted headline stays about 20.4%. Non-ERP pending: 463 files / 204,226 lines (was 490 / 205,602). ERP finance (Devin) unchanged: 166 / 66,191.
+
 ### Checkpoint 2026-10-09 — CP eval-safe wrappers and small storefront/CP scripts
 
 Not complete.
