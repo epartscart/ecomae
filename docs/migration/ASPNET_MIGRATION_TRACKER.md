@@ -322,6 +322,13 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — plan Q1-gov (platform governance, tenant config)
+
+Not complete.
+
+- Ratchet 562 to 560. Two more files now have PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Gov`): `epc_platform_governance.php` (categories / defaults / seed / list / update / applies / active / branding-block), `epc_tenant_config.php` (groups / get / set / bulk / export / import / fleet; `epc_tenant_config_history` LIMIT bind fatals on this MariaDB). Industry templates stay skipped (`_base_template.php` parent).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Gov/golden.json` (4 cases). The Gov suite is 4 of 4. Inventory content 482 to 484 of 952. Unnamed PHP functions 7,566 to 7,550. Ready ≤200-line non-ERP functions stay 93. The weighted headline stays about 20.4%. Non-ERP pending: 394 files / 191,974 lines (was 396 / 192,618). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session.
+
 ### Checkpoint 2026-10-09 — plan Q1-leftover + Q1-done (page cache, anomaly, CSS hubs, catalogs, SOC2)
 
 Not complete.
