@@ -322,6 +322,13 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — plan Q1-faq (marketing FAQ page)
+
+Not complete.
+
+- Ratchet 522 to 521. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Faq`): `content/general_pages/epc_ecomae_faq.php` (format-answer / status-class / schema / styles / render-page plus page-local `showModule` / `filterFaq`). Home helpers stay harness stubs and unmentioned. Longest-label-first replace nests Auto Price AI inside Auto Price AI page.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Faq` (2). PlanQ1 suites 85 of 85. Inventory content 519 to 520 of 952. Unnamed PHP functions 7,152 to 7,146. Ready ≤200-line non-ERP functions stay 74. The weighted headline stays about 20.4%. Non-ERP pending: 355 files / 178,421 lines (was 356 / 178,649). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+
 ### Checkpoint 2026-10-09 — plan Q1-work (orders workspace, marketing helpers, CP breadcrumb)
 
 Not complete.

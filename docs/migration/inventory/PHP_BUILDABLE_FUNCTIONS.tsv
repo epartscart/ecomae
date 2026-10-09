@@ -826,12 +826,6 @@ epc_dt_safe_color	EpcDtSafeColor	content/general_pages/epc_design_tokens.php	php
 epc_dt_safe_font	EpcDtSafeFont	content/general_pages/epc_design_tokens.php	php	423	mentioned	partial-file
 epc_dt_safe_px	EpcDtSafePx	content/general_pages/epc_design_tokens.php	php	423	mentioned	partial-file
 epc_ecomae_blockchain_page_assets	EpcEcomaeBlockchainPageAssets	content/general_pages/epc_ecomae_blockchain_page.php	php	269	gap	later
-epc_ecomae_faq_format_answer	EpcEcomaeFaqFormatAnswer	content/general_pages/epc_ecomae_faq.php	php	228	gap	later
-epc_ecomae_faq_schema_json	EpcEcomaeFaqSchemaJson	content/general_pages/epc_ecomae_faq.php	php	228	gap	later
-epc_ecomae_faq_status_class	EpcEcomaeFaqStatusClass	content/general_pages/epc_ecomae_faq.php	php	228	gap	later
-epc_ecomae_faq_styles	EpcEcomaeFaqStyles	content/general_pages/epc_ecomae_faq.php	php	228	gap	later
-filterFaq	FilterFaq	content/general_pages/epc_ecomae_faq.php	js	228	gap	browser-js
-showModule	ShowModule	content/general_pages/epc_ecomae_faq.php	js	228	gap	browser-js
 csvEscape	CsvEscape	content/general_pages/epc_ecomae_free_tools.php	php	3195	gap	later
 epc_free_tools_authority	EpcFreeToolsAuthority	content/general_pages/epc_ecomae_free_tools.php	php	3195	gap	later
 epc_free_tools_catalog	EpcFreeToolsCatalog	content/general_pages/epc_ecomae_free_tools.php	php	3195	gap	later

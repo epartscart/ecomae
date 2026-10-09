@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Work (`--max-gap 525` passed; current gap **522**).
+after PlanQ1Faq (`--max-gap 522` passed; current gap **521**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 522
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 521
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 30 | 13,605 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 120 | 63,591 |
+| 5 | Marketing/BOS/industries | 119 | 63,363 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **522** | **244,840** |
+| | **Total** | **521** | **244,612** |
 
-- Non-ERP (Cursor): **356 files / 178,649 lines**
+- Non-ERP (Cursor): **355 files / 178,421 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,152** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **74**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,146** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **74**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -121,15 +121,22 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Ask`, 4 cases): copilot intent
 
 Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Work`, 5 cases): orders workspace h / storage-label / usd-rate / aed-usd / badges / kpi / status ids / cookie tab / filter / count (currency records injected), marketing helpers h / snapshot / progress / completion / kpi / review / resolve-link / demo-report (playbook catalog injected so that parent stays a gap), CP breadcrumb humanize / caption / ensure-folder / repair. `empty('0')` is empty. Badge class uses a request static cache.
 
+### Q1 faq — done (`PhpPlanQ1Faq`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Faq`, 2 cases): FAQ format-answer (longest-label-first replace, so Auto Price AI nests inside Auto Price AI page), status class, schema JSON (105 questions), styles body (3334 chars), render-page counts/contains. Home helpers are harness stubs only and stay unmentioned. `showModule` / `filterFaq` are the page-local JS identifiers.
+
 ### Q1 next leftovers — honest schema/data twins still open
 
 The 74 leftover “ready” ≤200-line rows are still Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
 
 | Order | File | Why now |
 |---|---|---|
-| 1 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
-| 2 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
-| 3 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
+| 1 | `epc_ai_classification.php` | Self-contained HS/category rules + schema. |
+| 2 | `epc_ecomae_marketing_pages.php` | Content parent already mentioned; home helpers stay stubbed. |
+| 3 | `epc_cp_top_alerts.php` | Header SSL/email/SMS helpers, no missing kernel. |
+| 4 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
+| 5 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
+| 6 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
