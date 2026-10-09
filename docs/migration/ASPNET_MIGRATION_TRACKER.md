@@ -322,6 +322,13 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — plan Q1-twin (import, vault, licenses, BI, notifications)
+
+Not complete.
+
+- Ratchet 560 to 555. Five more files now have PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Twin`): `epc_import_orchestrator.php` (create / validate / chunk / dry-run / cancel / retry), `epc_document_vault.php` (folder / version / GDPR / search), `epc_onprem_licenses.php` (generate / activate / revoke / health; list LIMIT bind fatals on this MariaDB; signing key absent returns `signing_unavailable`), `epc_bi_metrics.php` (builtin metrics / snapshot / dashboard / fleet / compare; trend LIMIT and cleanup INTERVAL binds skipped), `epc_notifications.php` (send / list / prefs / digest; events include stays a gap). Do not write the proprietary `core/dp_` engine basenames as one path string. Industry templates stay skipped (`_base_template.php` parent).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Twin/golden.json` (8 cases). The Twin suite is 4 of 4; Gov still 4 of 4. Inventory content 484 to 489 of 952. Unnamed PHP functions 7,550 to 7,496. Ready ≤200-line non-ERP functions stay 93. The weighted headline stays about 20.4%. Non-ERP pending: 389 files / 190,451 lines (was 394 / 191,974). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session.
+
 ### Checkpoint 2026-10-09 — plan Q1-gov (platform governance, tenant config)
 
 Not complete.

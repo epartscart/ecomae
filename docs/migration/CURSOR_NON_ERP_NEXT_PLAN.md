@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Gov (`--max-gap 562` passed; current gap **560**).
+after PlanQ1Twin (`--max-gap 560` passed; current gap **555**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 560
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 555
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 31 | 13,857 |
 | 3 | CP shop smaller | 24 | 8,039 |
 | 4 | CP control/portal | 41 | 10,505 |
-| 5 | Marketing/BOS/industries | 147 | 73,106 |
+| 5 | Marketing/BOS/industries | 142 | 71,583 |
 | 6 | Price engine | 19 | 16,422 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **560** | **258,165** |
+| | **Total** | **555** | **256,642** |
 
-- Non-ERP (Cursor): **394 files / 191,974 lines**
+- Non-ERP (Cursor): **389 files / 190,451 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,550** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **93**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,496** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **93**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -85,17 +85,22 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Done`, 9 cases): PHP serving p
 
 Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Gov`, 4 cases): platform governance categories/defaults/seed/list/update/applies/active/branding-block, tenant config groups/get/set/bulk/export/import/fleet (`epc_tenant_config_history` LIMIT bind skipped — twin takes an int).
 
+### Q1 twin — done (PlanQ1Twin / `PhpPlanQ1Twin`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Twin`, 8 cases): import orchestrator create/validate/chunk/dry-run/cancel/retry, document vault folder/version/GDPR/search, on-prem license generate/activate/revoke/health (signing key absent → `signing_unavailable`; list LIMIT bind skipped), BI builtin metrics/snapshot/dashboard/fleet/compare (`epc_bi_metric_trend` LIMIT and `epc_bi_cleanup` INTERVAL binds skipped), notification center send/list/prefs/digest (events include stays a gap — harness does not copy it). Do not write `core/dp_` + engine basenames as one path string.
+
 ### Q1 next leftovers — honest schema/data twins still open
 
 The 93 leftover “ready” ≤200-line rows are still Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
 
 | Order | File | Why now |
 |---|---|---|
-| 1 | `content/general_pages/epc_import_orchestrator.php` (273) | Job create / validate / dry-run schema twin. |
-| 2 | `content/general_pages/epc_document_vault.php` (254) | Folder/document/GDPR schema twin. |
-| 3 | `content/general_pages/epc_onprem_licenses.php` (297) | License generate/list/revoke in-memory twin. |
-| 4 | `content/general_pages/epc_bi_metrics.php` (333) | Builtin metrics / snapshot / fleet twin. |
+| 1 | `content/general_pages/epc_webhooks.php` + `epc_events.php` | Events emit calls webhook dispatch — port as one twin. |
+| 2 | `content/general_pages/epc_security_kernel.php` (275) | Headers / lockdown / risk class. `epc_sec_require_ops_access` needs deploy-auth. |
+| 3 | Industry `*_data.php` catalogs (kiyasha / namshi / electronics) | Data twins like Prime Invest; do not mention the HTML homes. |
+| 4 | `content/general_pages/epc_db_migrations.php` (364) | Migration runner schema twin. |
 | 5 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
+| 6 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
@@ -136,7 +141,7 @@ Port the page, or leave the identifier unmentioned.
 1. Product-block markup (`printProductBlock`), then `printProducts.php` / `printProducts_2.php` shells.
 2. `part_search_page.php` and the parts agent.
 3. CP order card / order lines / price-upload page bodies (step 3 core).
-4. Marketing / industry page kernels in `content/general_pages` (largest remaining non-ERP block: 159 files / 78,086 lines).
+4. Marketing / industry page kernels in `content/general_pages` (largest remaining non-ERP block: 103 files / 58,788 lines).
 5. Price engine last among Cursor-owned libraries, on the existing importer.
 
 ## 5. Invariants every slice
