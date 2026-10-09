@@ -1,0 +1,6356 @@
+{
+ "schema": [
+  "CREATE TABLE `shop_geo` (`id` int NOT NULL AUTO_INCREMENT, `value` varchar(255) NOT NULL DEFAULT '', PRIMARY KEY (`id`))",
+  "CREATE TABLE `shop_offices` (`id` int NOT NULL AUTO_INCREMENT, `caption` varchar(255) NOT NULL DEFAULT '', PRIMARY KEY (`id`))",
+  "CREATE TABLE `shop_offices_geo_map` (`id` int NOT NULL AUTO_INCREMENT, `office_id` int NOT NULL, `geo_id` int NOT NULL, PRIMARY KEY (`id`))",
+  "CREATE TABLE `shop_storages` (`id` int NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL DEFAULT '', `currency` int NOT NULL DEFAULT 784, `interface_type` int NOT NULL DEFAULT 1, PRIMARY KEY (`id`))",
+  "CREATE TABLE `shop_currencies` (`id` int NOT NULL AUTO_INCREMENT, `iso_code` int NOT NULL DEFAULT 0, `rate` decimal(15,6) NOT NULL DEFAULT 1.000000, PRIMARY KEY (`id`))",
+  "CREATE TABLE `shop_storages_data` (`id` int NOT NULL AUTO_INCREMENT, `storage_id` int NOT NULL DEFAULT 0, `product_id` int NOT NULL DEFAULT 0, `price` decimal(15,2) NOT NULL DEFAULT 0.00, `price_crossed_out` decimal(15,2) NOT NULL DEFAULT 0.00, `price_purchase` decimal(15,2) NOT NULL DEFAULT 0.00, `arrival_time` int NOT NULL DEFAULT 0, `time_to_exe` int NOT NULL DEFAULT 0, `exist` int NOT NULL DEFAULT 0, `reserved` int NOT NULL DEFAULT 0, `issued` int NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+  "CREATE TABLE `shop_offices_storages_map` (`id` int NOT NULL AUTO_INCREMENT, `office_id` int NOT NULL DEFAULT 0, `storage_id` int NOT NULL DEFAULT 0, `group_id` int NOT NULL DEFAULT 0, `min_point` decimal(15,2) NOT NULL DEFAULT 0.00, `max_point` decimal(15,2) NOT NULL DEFAULT 999999999.00, `markup` decimal(10,2) NOT NULL DEFAULT 0.00, `additional_time` int NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+  "CREATE TABLE `groups` (`id` int NOT NULL AUTO_INCREMENT, `value` varchar(255) NOT NULL DEFAULT '', `for_guests` tinyint(1) NOT NULL DEFAULT 0, `for_registrated` tinyint(1) NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+  "CREATE TABLE `users_groups_bind` (`record_id` int NOT NULL AUTO_INCREMENT, `user_id` int NOT NULL, `group_id` int NOT NULL, PRIMARY KEY (`record_id`))",
+  "CREATE TABLE `shop_catalogue_products` (`id` int NOT NULL PRIMARY KEY, `caption` varchar(255) NOT NULL DEFAULT '', `category_id` int NOT NULL DEFAULT 0, `alias` varchar(255) NOT NULL DEFAULT '', `published_flag` tinyint NOT NULL DEFAULT 1)",
+  "CREATE TABLE `shop_properties_values_int` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `property_id` int NOT NULL, `value` int NOT NULL)",
+  "CREATE TABLE `shop_properties_values_float` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `property_id` int NOT NULL, `value` double NOT NULL)",
+  "CREATE TABLE `shop_properties_values_bool` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `property_id` int NOT NULL, `value` tinyint(1) NOT NULL)",
+  "CREATE TABLE `shop_properties_values_list` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `property_id` int NOT NULL, `value` int NOT NULL)",
+  "CREATE TABLE `shop_properties_values_tree_list` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `property_id` int NOT NULL, `value` int NOT NULL)",
+  "CREATE TABLE `shop_properties_values_text` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `property_id` int NOT NULL, `value` varchar(255) NOT NULL)",
+  "CREATE TABLE `shop_categories_properties_map` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `category_id` int NOT NULL, `value` varchar(255) NOT NULL, `property_type_id` int NOT NULL)",
+  "CREATE TABLE `lang_text_strings_translation` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `str_id` varchar(64) NOT NULL, `str_key` varchar(64) NOT NULL, `lang_code` varchar(8) NOT NULL, `value` text NOT NULL)",
+  "CREATE TABLE `shop_products_text` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `content` varchar(64) NOT NULL)",
+  "CREATE TABLE `epc_product_discovery_queue` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `status` varchar(32) NOT NULL, `product_id` int NOT NULL DEFAULT 0, `brand_article_key` varchar(255) NOT NULL DEFAULT '', `meta_json` text)",
+  "CREATE TABLE `shop_products_images` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `file_name` varchar(255) NOT NULL DEFAULT '')",
+  "CREATE TABLE `shop_products_evaluations` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `mark` int NOT NULL DEFAULT 0)",
+  "CREATE TABLE `shop_products_stickers` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `value` varchar(255) NOT NULL DEFAULT '', `color_text` varchar(32) NOT NULL DEFAULT '', `color_background` varchar(32) NOT NULL DEFAULT '', `href` varchar(255) NOT NULL DEFAULT '', `class_css` varchar(255) NOT NULL DEFAULT '', `description` varchar(255) NOT NULL DEFAULT '')",
+  "CREATE TABLE `shop_catalogue_categories` (`id` int NOT NULL PRIMARY KEY, `url` varchar(255) NOT NULL DEFAULT '')",
+  "CREATE TABLE `shop_line_lists_items` (`id` int NOT NULL PRIMARY KEY, `value` varchar(255) NOT NULL DEFAULT '')",
+  "CREATE TABLE `lang_text_strings` (`id` varchar(64) NOT NULL PRIMARY KEY, `str_key` varchar(64) NOT NULL DEFAULT '', `is_error` tinyint NOT NULL DEFAULT 0, `same` varchar(64) DEFAULT NULL)"
+ ],
+ "base": [
+  "INSERT INTO `groups` (`id`, `value`, `for_guests`, `for_registrated`) VALUES (1, 'Guests', 1, 0), (2, 'Registered', 0, 1), (3, 'Wholesale', 0, 0)",
+  "INSERT INTO `users_groups_bind` (`user_id`, `group_id`) VALUES (5, 3), (7, 2), (7, 1)",
+  "INSERT INTO `shop_geo` (`id`, `value`) VALUES (1, 'Dubai'), (2, 'Sharjah'), (3, 'Ajman')",
+  "INSERT INTO `shop_offices` (`id`, `caption`) VALUES (1, 'Office 1'), (2, 'Office 2'), (3, 'Office 3'), (4, 'Office 4')",
+  "INSERT INTO `shop_offices_geo_map` (`office_id`, `geo_id`) VALUES (1, 1), (2, 1), (3, 2), (4, 3)",
+  "INSERT INTO `shop_currencies` (`iso_code`, `rate`) VALUES (784, '1.000000'), (840, '3.670000')",
+  "INSERT INTO `shop_storages` (`id`, `name`, `currency`, `interface_type`) VALUES (1, 'AED stock', 784, 1), (2, 'USD stock', 840, 1), (3, 'API stock', 784, 2)",
+  "INSERT INTO `shop_offices_storages_map` (`office_id`, `storage_id`, `group_id`, `min_point`, `max_point`, `markup`) VALUES (1, 1, 1, 0, 1000, 10), (1, 1, 1, 1000, 99999, 5), (1, 1, 2, 0, 99999, 20), (1, 2, 1, 0, 99999, 0), (1, 2, 2, 0, 99999, 25), (1, 3, 1, 0, 99999, 50), (2, 1, 1, 0, 99999, 0), (2, 1, 2, 0, 99999, 50), (3, 2, 1, 0, 99999, 100), (3, 2, 2, 0, 99999, 10), (4, 1, 1, 0, 99999, 0), (4, 2, 1, 0, 99999, 0), (4, 1, 2, 0, 99999, 5), (4, 2, 2, 0, 99999, 5)",
+  "INSERT INTO `shop_catalogue_products` (`id`, `caption`, `category_id`, `alias`, `published_flag`) VALUES (1, 'c1', 10, 'acme/p1', 1), (2, 'c2', 10, 'acme/p2', 1), (3, 'c3', 10, 'acme/p3', 1), (4, 'c4', 10, 'acme/p4', 1), (5, 'c5', 10, 'acme/p5', 0), (6, 'c6', 20, 'acme/p6', 1), (7, 'c7', 20, 'acme/p7', 1), (8, 'c8', 20, 'acme/p8', 0), (9, 'c9', 30, 'acme/p9', 1), (10, 'c10', 10, 'acme/p10', 1), (11, 'c11', 40, 'acme/p11', 1), (12, 'c12', 40, 'acme/p12', 1), (13, 'c13', 40, 'acme/p13', 1), (14, 'c14', 40, 'acme/p14', 1), (15, 'c15', 40, 'acme/p15', 1), (16, 'c16', 40, 'acme/p16', 1), (17, 'c17', 40, 'acme/p17', 1), (18, 'c18', 40, 'acme/p18', 1), (19, 'c19', 40, 'acme/p19', 1), (20, 'c20', 40, 'acme/p20', 1), (21, 'c21', 40, 'acme/p21', 1), (22, 'c22', 40, 'acme/p22', 1), (23, 'c23', 40, 'acme/p23', 1)",
+  "INSERT INTO `lang_text_strings_translation` (`str_id`, `str_key`, `lang_code`, `value`) VALUES ('c1', 'c1', 'en', 'Brake Pad Front'), ('c2', 'c2', 'en', 'Brake Disc Front'), ('c3', 'c3', 'en', 'Oil Filter'), ('c4', 'c4', 'en', 'Air Filter'), ('c5', 'c5', 'en', 'Brake Pad Hidden'), ('c6', 'c6', 'en', 'Spark Plug'), ('c7', 'c7', 'en', 'Wiper Blade Kit'), ('c8', 'c8', 'en', 'Brake Fluid'), ('c9', 'c9', 'en', 'Тормозная жидкость'), ('c10', 'c10', 'en', 'O&#039;Brien Wrench'), ('c11', 'c11', 'en', 'Tie Price A'), ('c12', 'c12', 'en', 'Tie Price B'), ('c13', 'c13', 'en', 'Tie Price C'), ('c14', 'c14', 'en', 'Wiper Blade'), ('c15', 'c15', 'en', 'Wiper Blade'), ('c16', 'c16', 'en', 'Wiper Blade'), ('c18', 'c18', 'en', 'Zeta Unpriced'), ('c19', 'c19', 'en', 'Zero Price'), ('c20', 'c20', 'en', 'Out Of Stock'), ('c21', 'c21', 'en', 'air filter'), ('c22', 'c22', 'en', 'Rival Priced'), ('c23', 'c23', 'en', 'Brake Cable'), ('c1', 'c1', 'ru', 'Колодки передние'), ('c2', 'c2', 'ru', 'Диск тормозной'), ('c3', 'c3', 'ru', 'Фильтр масляный'), ('c4', 'c4', 'ru', 'Воздушный фильтр'), ('c9', 'c9', 'ru', 'Тормозная жидкость RU'), ('c14', 'c14', 'ru', 'Щётка 14'), ('c15', 'c15', 'ru', 'Щётка 15'), ('c16', 'c16', 'ru', 'Щётка 16')",
+  "INSERT INTO `shop_storages_data` (`storage_id`, `product_id`, `price`, `exist`) VALUES (1, 1, 100, 5), (1, 2, 200, 3), (2, 2, 50, 2), (1, 3, 500, 0), (2, 4, 10, 1), (3, 4, 9999, 1), (1, 5, 150, 1), (1, 6, 1000, 1), (1, 7, 2500, 1), (1, 8, 300, 1), (1, 10, 0, 4), (1, 11, 300, 1), (1, 12, 300, 1), (1, 13, 300, 1), (1, 14, 400, 1), (1, 15, 350, 1), (1, 16, 350, 1), (1, 17, 80, 1), (1, 19, 0, 4), (1, 20, 120, 0), (1, 21, 20, 1), (2, 22, 28.61, 1), (1, 23, 300, 1), (2, 23, 81.74, 2)",
+  "INSERT INTO `lang_text_strings_translation` (`str_id`, `str_key`, `lang_code`, `value`) VALUES ('d3', 'd3', 'en', 'Premium synthetic oil for engines'), ('d7', 'd7', 'en', 'Silicone wiper insert')",
+  "INSERT INTO `shop_products_text` (`product_id`, `content`) VALUES (3, 'd3'), (7, 'd7')",
+  "INSERT INTO `shop_properties_values_int` (`product_id`, `property_id`, `value`) VALUES (1, 101, 5), (2, 101, 10), (3, 101, 15), (4, 101, 20), (6, 101, 100)",
+  "INSERT INTO `shop_properties_values_bool` (`product_id`, `property_id`, `value`) VALUES (1, 103, 1), (2, 103, 0), (3, 103, 1), (6, 103, 1), (11, 103, 1)",
+  "INSERT INTO `shop_catalogue_categories` (`id`, `url`) VALUES (10, 'brakes'), (20, 'engine'), (30, 'fluids'), (40, 'misc')"
+ ],
+ "cases": [
+  {
+   "name": "all_cookie1_guest_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_price_no_direction",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_name_no_direction",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_direction_only_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_direction_only_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_direction_upper_DESC",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "DESC"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_direction_mixed_Desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "Desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_direction_padded_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": " desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_direction_descending_word",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "descending"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_direction_null",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": null
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_direction_zero",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": 0
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_direction_array",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": [
+      "desc"
+     ]
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_field_unknown_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "article",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_field_Price_capital",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "Price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_field_null",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": null,
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_field_true_is_price",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": true,
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_field_zero",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": 0,
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_field_array",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": [
+      "name"
+     ],
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_sort_mode_empty_object",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {}
+   }
+  },
+  {
+   "name": "all_cookie1_guest_sort_sort_mode_string",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": "name"
+   }
+  },
+  {
+   "name": "all_cookie3_single_office_guest_sort_price_asc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie3_single_office_guest_sort_price_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie3_single_office_guest_sort_name_asc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie3_single_office_guest_sort_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie3_single_office_guest_sort_price_no_direction",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "all_cookie3_single_office_guest_sort_name_no_direction",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_registered_user7_sort_price_asc",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_wholesale_user5_sort_price_asc",
+   "cookie": "1",
+   "user_id": 5,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie2_office3_sort_price_asc",
+   "cookie": "2",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_no_cookie_sort_price_asc",
+   "cookie": null,
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_registered_user7_sort_price_desc",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_wholesale_user5_sort_price_desc",
+   "cookie": "1",
+   "user_id": 5,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie2_office3_sort_price_desc",
+   "cookie": "2",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_no_cookie_sort_price_desc",
+   "cookie": null,
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_registered_user7_sort_name_asc",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_wholesale_user5_sort_name_asc",
+   "cookie": "1",
+   "user_id": 5,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie2_office3_sort_name_asc",
+   "cookie": "2",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_no_cookie_sort_name_asc",
+   "cookie": null,
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_registered_user7_sort_name_desc",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_wholesale_user5_sort_name_desc",
+   "cookie": "1",
+   "user_id": 5,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie2_office3_sort_name_desc",
+   "cookie": "2",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_no_cookie_sort_name_desc",
+   "cookie": null,
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_cookie1_sort_missing",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1
+   }
+  },
+  {
+   "name": "all_cookie1_sort_random",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "random"
+    }
+   },
+   "unordered": true
+  },
+  {
+   "name": "all_cookie1_sort_random_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "random",
+     "asc_desc": "desc"
+    }
+   },
+   "unordered": true
+  },
+  {
+   "name": "all_cookie3_sort_random",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "random"
+    }
+   },
+   "unordered": true
+  },
+  {
+   "name": "category40_ties_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "category40_ties_cookie3_sort_price_asc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "category40_ties_lang_ru_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "lang": "ru",
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_lang_ru_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "lang": "ru",
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "category40_ties_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "category40_ties_cookie3_sort_price_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "category40_ties_lang_ru_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "lang": "ru",
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_lang_ru_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "lang": "ru",
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "category40_ties_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "category40_ties_cookie3_sort_name_asc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "category40_ties_lang_ru_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "lang": "ru",
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "all_lang_ru_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "lang": "ru",
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "category40_ties_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "category40_ties_cookie3_sort_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "category40_ties_lang_ru_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "lang": "ru",
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "all_lang_ru_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "lang": "ru",
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "category40_lang_unknown_name_sort",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "lang": "de",
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    }
+   }
+  },
+  {
+   "name": "union_duplicates_guest_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_registered_price_asc",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_wholesale_price_asc",
+   "cookie": "1",
+   "user_id": 5,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_single_office4_price_asc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_guest_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_registered_price_desc",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_wholesale_price_desc",
+   "cookie": "1",
+   "user_id": 5,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_single_office4_price_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_guest_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_registered_name_asc",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_wholesale_name_asc",
+   "cookie": "1",
+   "user_id": 5,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_single_office4_name_asc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_guest_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_registered_name_desc",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_wholesale_name_desc",
+   "cookie": "1",
+   "user_id": 5,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_single_office4_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "1,22,23,2,3"
+   }
+  },
+  {
+   "name": "union_duplicates_price_asc_page_size1_first",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 1,
+    "needPagesCount": 1,
+    "startFrom": 0,
+    "products_ids_str": "1,22"
+   }
+  },
+  {
+   "name": "union_duplicates_price_asc_page_size1_second",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 1,
+    "needPagesCount": 1,
+    "startFrom": 1,
+    "products_ids_str": "1,22"
+   }
+  },
+  {
+   "name": "union_duplicates_price_desc_page_size1_first",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 1,
+    "needPagesCount": 1,
+    "startFrom": 0,
+    "products_ids_str": "1,22"
+   }
+  },
+  {
+   "name": "union_duplicates_price_desc_page_size1_second",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 1,
+    "needPagesCount": 1,
+    "startFrom": 1,
+    "products_ids_str": "1,22"
+   }
+  },
+  {
+   "name": "block_1_all_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_1_all_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_1_all_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_1_all_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_1_all_sort_price_no_direction",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "block_1_all_sort_none",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1
+   }
+  },
+  {
+   "name": "block_1_category10_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_1_category10_cookie3_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_1_all_paged",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "block_2_all_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 2,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_2_all_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 2,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_2_all_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 2,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_2_all_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 2,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_2_all_sort_price_no_direction",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 2,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "block_2_all_sort_none",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 2
+   }
+  },
+  {
+   "name": "block_2_category10_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 2,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_2_category10_cookie3_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 2,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_2_all_paged",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 2,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "block_3_all_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 3,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_3_all_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 3,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_3_all_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 3,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_3_all_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 3,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_3_all_sort_price_no_direction",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 3,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "block_3_all_sort_none",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 3
+   }
+  },
+  {
+   "name": "block_3_category10_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 3,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_3_category10_cookie3_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 3,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_3_all_paged",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 3,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "block_4_all_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 4,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_4_all_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 4,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_4_all_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 4,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_4_all_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 4,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_4_all_sort_price_no_direction",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 4,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "block_4_all_sort_none",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 4
+   }
+  },
+  {
+   "name": "block_4_category10_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 4,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_4_category10_cookie3_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 4,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_4_all_paged",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 4,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "block_5_all_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 5,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_5_all_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 5,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_5_all_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 5,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_5_all_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 5,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_5_all_sort_price_no_direction",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 5,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "block_5_all_sort_none",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 5
+   }
+  },
+  {
+   "name": "block_5_category10_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 5,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_5_category10_cookie3_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 5,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_5_all_paged",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 5,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "block_6_all_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 6,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_6_all_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 6,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_6_all_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 6,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_6_all_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 6,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_6_all_sort_price_no_direction",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 6,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "block_6_all_sort_none",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 6
+   }
+  },
+  {
+   "name": "block_6_category10_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 6,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_6_category10_cookie3_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 6,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_6_all_paged",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 6,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "block_7_all_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 7,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_7_all_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 7,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_7_all_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 7,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_7_all_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 7,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_7_all_sort_price_no_direction",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 7,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "block_7_all_sort_none",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 7
+   }
+  },
+  {
+   "name": "block_7_category10_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 7,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_7_category10_cookie3_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 7,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_7_all_paged",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 7,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "block_missing_all_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_missing_all_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_missing_all_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_missing_all_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_missing_all_sort_price_no_direction",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "block_missing_all_sort_none",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {}
+  },
+  {
+   "name": "block_missing_category10_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_missing_category10_cookie3_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_missing_all_paged",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "block_str_1_all_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "1",
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_str_1_all_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "1",
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_str_1_all_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "1",
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_str_1_all_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "1",
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_str_1_all_sort_price_no_direction",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "1",
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "block_str_1_all_sort_none",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "1"
+   }
+  },
+  {
+   "name": "block_str_1_category10_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": "1",
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_str_1_category10_cookie3_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": "1",
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_str_1_all_paged",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "1",
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "block_str_2_all_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "2",
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_str_2_all_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "2",
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_str_2_all_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "2",
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_str_2_all_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "2",
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_str_2_all_sort_price_no_direction",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "2",
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "block_str_2_all_sort_none",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "2"
+   }
+  },
+  {
+   "name": "block_str_2_category10_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": "2",
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_str_2_category10_cookie3_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": "2",
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_str_2_all_paged",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "2",
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "block_str_abc_all_sort_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "abc",
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_str_abc_all_sort_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "abc",
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_str_abc_all_sort_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "abc",
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    }
+   }
+  },
+  {
+   "name": "block_str_abc_all_sort_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "abc",
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_str_abc_all_sort_price_no_direction",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "abc",
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "block_str_abc_all_sort_none",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "abc"
+   }
+  },
+  {
+   "name": "block_str_abc_category10_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": "abc",
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_str_abc_category10_cookie3_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": "abc",
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "block_str_abc_all_paged",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": "abc",
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "page_size5_start0_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "page_size5_start1_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "page_size5_start2_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "page_size5_start3_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 3
+   }
+  },
+  {
+   "name": "page_size5_start4_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 4
+   }
+  },
+  {
+   "name": "page_size5_start5_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 5
+   }
+  },
+  {
+   "name": "page_size5_start8_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 8
+   }
+  },
+  {
+   "name": "pages2_size4_start0_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 2,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "pages2_size4_start1_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "pages2_size4_start2_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 2,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "page_size7_start2_cookie3_price_asc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 7,
+    "needPagesCount": 1,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "page_size5_start0_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "page_size5_start1_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "page_size5_start2_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "page_size5_start3_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 3
+   }
+  },
+  {
+   "name": "page_size5_start4_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 4
+   }
+  },
+  {
+   "name": "page_size5_start5_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 5
+   }
+  },
+  {
+   "name": "page_size5_start8_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 8
+   }
+  },
+  {
+   "name": "pages2_size4_start0_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 2,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "pages2_size4_start1_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "pages2_size4_start2_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 2,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "page_size7_start2_cookie3_price_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 7,
+    "needPagesCount": 1,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "page_size5_start0_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "page_size5_start1_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "page_size5_start2_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "page_size5_start3_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 3
+   }
+  },
+  {
+   "name": "page_size5_start4_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 4
+   }
+  },
+  {
+   "name": "page_size5_start5_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 5
+   }
+  },
+  {
+   "name": "page_size5_start8_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 8
+   }
+  },
+  {
+   "name": "pages2_size4_start0_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 2,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "pages2_size4_start1_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "pages2_size4_start2_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 2,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "page_size7_start2_cookie3_name_asc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "productsPerPage": 7,
+    "needPagesCount": 1,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "page_size5_start0_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "page_size5_start1_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "page_size5_start2_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "page_size5_start3_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 3
+   }
+  },
+  {
+   "name": "page_size5_start4_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 4
+   }
+  },
+  {
+   "name": "page_size5_start5_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 5
+   }
+  },
+  {
+   "name": "page_size5_start8_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 8
+   }
+  },
+  {
+   "name": "pages2_size4_start0_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 2,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "pages2_size4_start1_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "pages2_size4_start2_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 2,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "page_size7_start2_cookie3_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 7,
+    "needPagesCount": 1,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "page_size1_start0_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 1,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "page_size1_start3_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 1,
+    "needPagesCount": 1,
+    "startFrom": 3
+   }
+  },
+  {
+   "name": "page_size100_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 100,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "page_size100_start1_empty",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 100,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "page_start_out_of_range",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 999
+   }
+  },
+  {
+   "name": "page_size5_start2_category40_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "page_size5_start1_category40_price_asc_cookie1_registered",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_zero_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 0,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_zero_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 0,
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_negative_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": -3,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_negative_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": -3,
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_string_abc_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": "abc",
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_string_abc_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": "abc",
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_string_numeric_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": "4",
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_string_numeric_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": "4",
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_string_leading_numeric_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": "4abc",
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_string_leading_numeric_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": "4abc",
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_float_integral_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 4.0,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_float_integral_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 4.0,
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_float_fraction_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 2.5,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_float_fraction_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 2.5,
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_true_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": true,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_true_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": true,
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_false_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": false,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_false_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": false,
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_null_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": null,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_null_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": null,
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_empty_string_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": "",
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_empty_string_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": "",
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_array_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": [
+     4
+    ],
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_array_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": [
+     4
+    ],
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_huge_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 2000000000,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_huge_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 2000000000,
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_string_float_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": "4.0",
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_string_float_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": "4.0",
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_string_padded_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": " 4",
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_string_padded_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": " 4",
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_string_exponent_pages1_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": "1e1",
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_perpage_string_exponent_pages2_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": "1e1",
+    "needPagesCount": 2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_perpage_absent_pages1_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_pages_zero_perpage3_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 0,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_pages_zero_perpage3_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 0,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_pages_negative_perpage3_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": -1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_pages_negative_perpage3_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": -1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_pages_string_numeric_perpage3_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": "2",
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_pages_string_numeric_perpage3_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": "2",
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_pages_string_abc_perpage3_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": "x",
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_pages_string_abc_perpage3_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": "x",
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_pages_float_fraction_perpage3_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1.5,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_pages_float_fraction_perpage3_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1.5,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_pages_float_integral_perpage3_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 2.0,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_pages_float_integral_perpage3_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 2.0,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_pages_null_perpage3_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": null,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_pages_null_perpage3_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": null,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_pages_absent_perpage3_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_pages_absent_perpage3_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_pages_huge_perpage3_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 9999,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_pages_huge_perpage3_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 9999,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_pages_true_perpage3_start0",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": true,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "limit_pages_true_perpage3_start1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": true,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "limit_start_negative_perpage3_pages1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": -1
+   }
+  },
+  {
+   "name": "limit_start_string_numeric_perpage3_pages1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": "1"
+   }
+  },
+  {
+   "name": "limit_start_string_abc_perpage3_pages1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": "x"
+   }
+  },
+  {
+   "name": "limit_start_float_fraction_perpage3_pages1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": 1.5
+   }
+  },
+  {
+   "name": "limit_start_float_integral_perpage3_pages1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": 1.0
+   }
+  },
+  {
+   "name": "limit_start_null_perpage3_pages1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": null
+   }
+  },
+  {
+   "name": "limit_start_absent_perpage3_pages1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1
+   }
+  },
+  {
+   "name": "limit_start_true_perpage3_pages1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": true
+   }
+  },
+  {
+   "name": "limit_start_huge_perpage3_pages1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": 100000000
+   }
+  },
+  {
+   "name": "limit_start_array_perpage3_pages1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": [
+     1
+    ]
+   }
+  },
+  {
+   "name": "limit_start_string_leading_numeric_perpage3_pages1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": "1x"
+   }
+  },
+  {
+   "name": "limit_start_negative_perpage_zero",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 0,
+    "needPagesCount": 1,
+    "startFrom": -1
+   }
+  },
+  {
+   "name": "limit_start_string_abc_perpage_zero",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 0,
+    "needPagesCount": 1,
+    "startFrom": "x"
+   }
+  },
+  {
+   "name": "limit_start_positive_perpage_zero_pages_zero",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 0,
+    "needPagesCount": 0,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "limit_pages_zero_start_positive",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 0,
+    "startFrom": 2
+   }
+  },
+  {
+   "name": "limit_negative_perpage_negative_start",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": -3,
+    "needPagesCount": 1,
+    "startFrom": -2
+   }
+  },
+  {
+   "name": "limit_pages_negative_perpage_negative",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": -3,
+    "needPagesCount": -2,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "search_brake_default_sort",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "Brake"
+   }
+  },
+  {
+   "name": "search_brake_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "Brake"
+   }
+  },
+  {
+   "name": "search_brake_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "search_string": "Brake"
+   }
+  },
+  {
+   "name": "search_brake_lower_default_sort",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "brake"
+   }
+  },
+  {
+   "name": "search_brake_lower_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "brake"
+   }
+  },
+  {
+   "name": "search_brake_lower_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "search_string": "brake"
+   }
+  },
+  {
+   "name": "search_two_tokens_default_sort",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "Brake Pad"
+   }
+  },
+  {
+   "name": "search_two_tokens_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "Brake Pad"
+   }
+  },
+  {
+   "name": "search_two_tokens_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "search_string": "Brake Pad"
+   }
+  },
+  {
+   "name": "search_filter_default_sort",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "Filter"
+   }
+  },
+  {
+   "name": "search_filter_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "Filter"
+   }
+  },
+  {
+   "name": "search_filter_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "search_string": "Filter"
+   }
+  },
+  {
+   "name": "search_wiper_default_sort",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "Wiper"
+   }
+  },
+  {
+   "name": "search_wiper_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "Wiper"
+   }
+  },
+  {
+   "name": "search_wiper_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "search_string": "Wiper"
+   }
+  },
+  {
+   "name": "search_no_match_default_sort",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "zzzz"
+   }
+  },
+  {
+   "name": "search_no_match_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "zzzz"
+   }
+  },
+  {
+   "name": "search_no_match_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "search_string": "zzzz"
+   }
+  },
+  {
+   "name": "search_html_stripped_default_sort",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "<b>Brake</b>"
+   }
+  },
+  {
+   "name": "search_html_stripped_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "<b>Brake</b>"
+   }
+  },
+  {
+   "name": "search_html_stripped_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "search_string": "<b>Brake</b>"
+   }
+  },
+  {
+   "name": "search_padded_default_sort",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "  brake  "
+   }
+  },
+  {
+   "name": "search_padded_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "  brake  "
+   }
+  },
+  {
+   "name": "search_padded_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "search_string": "  brake  "
+   }
+  },
+  {
+   "name": "search_cyrillic_default_sort",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "Тормозная"
+   }
+  },
+  {
+   "name": "search_cyrillic_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "Тормозная"
+   }
+  },
+  {
+   "name": "search_cyrillic_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "search_string": "Тормозная"
+   }
+  },
+  {
+   "name": "search_short_and_long_default_sort",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "a Brake"
+   }
+  },
+  {
+   "name": "search_short_and_long_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "a Brake"
+   }
+  },
+  {
+   "name": "search_short_and_long_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "search_string": "a Brake"
+   }
+  },
+  {
+   "name": "search_quote_default_sort",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "O'Brien"
+   }
+  },
+  {
+   "name": "search_quote_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "O'Brien"
+   }
+  },
+  {
+   "name": "search_quote_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "search_string": "O'Brien"
+   }
+  },
+  {
+   "name": "search_percent_default_sort",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "100%"
+   }
+  },
+  {
+   "name": "search_percent_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "100%"
+   }
+  },
+  {
+   "name": "search_percent_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "search_string": "100%"
+   }
+  },
+  {
+   "name": "search_brake_block4_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 4,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "search_string": "Brake"
+   }
+  },
+  {
+   "name": "search_brake_block2_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 2,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "search_string": "Brake"
+   }
+  },
+  {
+   "name": "search_brake_block3_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 3,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "search_string": "Brake"
+   }
+  },
+  {
+   "name": "search_brake_with_category_ignored",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "search_string": "Brake"
+   }
+  },
+  {
+   "name": "search_nomatch_with_category",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "search_string": "zzzz"
+   }
+  },
+  {
+   "name": "search_filter_paged_name_asc_page2",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "productsPerPage": 1,
+    "needPagesCount": 1,
+    "startFrom": 1,
+    "search_string": "Filter"
+   }
+  },
+  {
+   "name": "search_brake_cookie3_price_asc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "search_string": "Brake"
+   }
+  },
+  {
+   "name": "search_brake_lang_ru",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "lang": "ru",
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "Brake"
+   }
+  },
+  {
+   "name": "search_only_short_tokens",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "a b"
+   }
+  },
+  {
+   "name": "search_whitespace_only",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "   "
+   }
+  },
+  {
+   "name": "search_description_match",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "synthetic"
+   }
+  },
+  {
+   "name": "search_with_products_ids_str_override",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "search_string": "Brake",
+    "products_ids_str": "6,7"
+   }
+  },
+  {
+   "name": "ids_list_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "3,1,2"
+   }
+  },
+  {
+   "name": "ids_list_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "3,1,2"
+   }
+  },
+  {
+   "name": "ids_single_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "4"
+   }
+  },
+  {
+   "name": "ids_single_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "4"
+   }
+  },
+  {
+   "name": "ids_with_unpublished_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "5,1"
+   }
+  },
+  {
+   "name": "ids_with_unpublished_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "5,1"
+   }
+  },
+  {
+   "name": "ids_unknown_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "999"
+   }
+  },
+  {
+   "name": "ids_unknown_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "999"
+   }
+  },
+  {
+   "name": "ids_zero_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "0"
+   }
+  },
+  {
+   "name": "ids_zero_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "0"
+   }
+  },
+  {
+   "name": "ids_spaces_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": " 1, 2 ,3"
+   }
+  },
+  {
+   "name": "ids_spaces_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": " 1, 2 ,3"
+   }
+  },
+  {
+   "name": "ids_duplicates_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "1,1,2"
+   }
+  },
+  {
+   "name": "ids_duplicates_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "1,1,2"
+   }
+  },
+  {
+   "name": "ids_number",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "products_ids_str": 4
+   }
+  },
+  {
+   "name": "ids_block2_unpublished_included",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 2,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "5,1,8"
+   }
+  },
+  {
+   "name": "ids_empty_string_means_all",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": 0,
+    "products_ids_str": ""
+   }
+  },
+  {
+   "name": "pricefilter_100_600_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_100_600_cookie3_price_asc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_100_600_registered_price_asc",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_union_band_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "asc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 101,
+      "min_value": 0,
+      "max_need": 110,
+      "max_value": 10000
+     }
+    ],
+    "products_ids_str": "1,22,23,2"
+   }
+  },
+  {
+   "name": "pricefilter_100_600_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_100_600_cookie3_price_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_100_600_registered_price_desc",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_union_band_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 101,
+      "min_value": 0,
+      "max_need": 110,
+      "max_value": 10000
+     }
+    ],
+    "products_ids_str": "1,22,23,2"
+   }
+  },
+  {
+   "name": "pricefilter_100_600_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_100_600_cookie3_name_asc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_100_600_registered_name_asc",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_union_band_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "asc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 101,
+      "min_value": 0,
+      "max_need": 110,
+      "max_value": 10000
+     }
+    ],
+    "products_ids_str": "1,22,23,2"
+   }
+  },
+  {
+   "name": "pricefilter_100_600_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_100_600_cookie3_name_desc",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_100_600_registered_name_desc",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_union_band_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 101,
+      "min_value": 0,
+      "max_need": 110,
+      "max_value": 10000
+     }
+    ],
+    "products_ids_str": "1,22,23,2"
+   }
+  },
+  {
+   "name": "pricefilter_100_600_paged_second",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_100_600_paged_last",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": 2,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_100_600_paged_out_of_range",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 3,
+    "needPagesCount": 1,
+    "startFrom": 20,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_min_only",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 500,
+      "min_value": 0,
+      "max_need": 10000,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_max_only",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 0,
+      "min_value": 0,
+      "max_need": 100,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_zero_range",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 0,
+      "min_value": 0,
+      "max_need": 0,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_inverted",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 600,
+      "min_value": 0,
+      "max_need": 100,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_no_effect_full_range",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 0,
+      "min_value": 0,
+      "max_need": 10000,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_block2_admin_raw_price",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 2,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_block3",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 3,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_string_bounds",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": "100",
+      "min_value": 0,
+      "max_need": "600",
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_search_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "search_string": "Brake",
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 300,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_category40_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 40,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 400,
+      "max_value": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_plus_int_property",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 100,
+      "min_value": 0,
+      "max_need": 600,
+      "max_value": 10000
+     },
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_need": 5,
+      "min_value": 0,
+      "max_need": 15,
+      "max_value": 100
+     }
+    ]
+   }
+  },
+  {
+   "name": "pricefilter_plus_bool_property_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_need": 0,
+      "min_value": 0,
+      "max_need": 300,
+      "max_value": 10000
+     },
+     {
+      "property_id": 103,
+      "property_type_id": 4,
+      "true_checked": true,
+      "false_checked": false
+     }
+    ]
+   }
+  },
+  {
+   "name": "unpriced_only_category30_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 30,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "unpriced_only_category30_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 30,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    }
+   }
+  },
+  {
+   "name": "unpriced_ids_price_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "3,9,18,19,20,1"
+   }
+  },
+  {
+   "name": "unpriced_ids_price_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "3,9,18,19,20,1"
+   }
+  },
+  {
+   "name": "unpriced_ids_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "products_ids_str": "3,9,18,19,20,1,17"
+   }
+  },
+  {
+   "name": "unpriced_ids_name_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "3,9,18,19,20,1,17"
+   }
+  },
+  {
+   "name": "unpriced_ids_block2_name_asc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 2,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "3,9,18,19,20,1,17"
+   }
+  },
+  {
+   "name": "unpriced_ids_paged_price_asc_p1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 2,
+    "needPagesCount": 1,
+    "startFrom": 1,
+    "products_ids_str": "3,9,18,19,20,1,17"
+   }
+  },
+  {
+   "name": "unpriced_ids_paged_price_desc_p1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "productsPerPage": 2,
+    "needPagesCount": 1,
+    "startFrom": 1,
+    "products_ids_str": "3,9,18,19,20,1,17"
+   }
+  },
+  {
+   "name": "category_empty_unknown",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 999,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "category_string_numeric",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": "40",
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    }
+   }
+  },
+  {
+   "name": "category_zero_means_all",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "category_absent_block_absent",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "storage_without_markup_band_guest_wholesale_user",
+   "cookie": "1",
+   "user_id": 5,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "1,2,6"
+   }
+  },
+  {
+   "name": "price_outside_every_markup_band",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "UPDATE `shop_offices_storages_map` SET `max_point` = 500 WHERE `office_id` = 1 AND `storage_id` = 1 AND `group_id` = 1 AND `min_point` = 1000"
+   ],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "1,6,7"
+   }
+  },
+  {
+   "name": "currency_rate_missing_for_storage_currency",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "DELETE FROM `shop_currencies` WHERE `iso_code` = 840"
+   ],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "2,4,22"
+   }
+  },
+  {
+   "name": "office_without_storages",
+   "cookie": "2",
+   "user_id": 0,
+   "setup": [
+    "DELETE FROM `shop_offices_storages_map` WHERE `office_id` = 3"
+   ],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "productsPerPage": 5,
+    "needPagesCount": 1,
+    "startFrom": 0
+   }
+  },
+  {
+   "name": "cookie_unknown_geo_falls_back_to_first_office",
+   "cookie": "99",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "no_offices_at_all",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "DELETE FROM `shop_offices_geo_map`",
+    "DELETE FROM `shop_offices`"
+   ],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "duplicate_translation_for_lang",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "INSERT INTO `lang_text_strings_translation` (`str_id`, `str_key`, `lang_code`, `value`) VALUES ('c1b', 'c1', 'en', 'Brake Pad Duplicate')"
+   ],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "1,2"
+   }
+  },
+  {
+   "name": "storage_not_interface_type_1_ignored",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "4"
+   }
+  },
+  {
+   "name": "storage_row_exist_zero_after_update_goes_unpriced",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "UPDATE `shop_storages_data` SET `exist` = 0 WHERE `product_id` = 1"
+   ],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "1,2,11"
+   }
+  },
+  {
+   "name": "equal_price_different_storages_same_product",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "23,11,12"
+   }
+  },
+  {
+   "name": "equal_price_different_storages_same_product_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "23,11,12"
+   }
+  },
+  {
+   "name": "three_offices_union",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "INSERT INTO `shop_offices_geo_map` (`office_id`, `geo_id`) VALUES (4, 1)"
+   ],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "1,2,22,23"
+   }
+  },
+  {
+   "name": "three_offices_union_desc",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "INSERT INTO `shop_offices_geo_map` (`office_id`, `geo_id`) VALUES (4, 1)"
+   ],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price",
+     "asc_desc": "desc"
+    },
+    "products_ids_str": "1,2,22,23"
+   }
+  },
+  {
+   "name": "three_offices_union_name_asc_paged",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "INSERT INTO `shop_offices_geo_map` (`office_id`, `geo_id`) VALUES (4, 1)"
+   ],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "productsPerPage": 4,
+    "needPagesCount": 1,
+    "startFrom": 1
+   }
+  },
+  {
+   "name": "stickers_duplicate_rows_do_not_duplicate_ids",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "INSERT INTO `shop_products_stickers` (`product_id`, `value`) VALUES (1, 'New'), (1, 'Hot'), (2, 'Sale')"
+   ],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "products_ids_str": "1,2"
+   }
+  },
+  {
+   "name": "request_invalid_json",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request_raw": "{not json"
+  },
+  {
+   "name": "request_json_null",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request_raw": "null"
+  },
+  {
+   "name": "request_json_list",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request_raw": "[1,2,3]"
+  },
+  {
+   "name": "request_json_scalar_string",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request_raw": "\"abc\""
+  },
+  {
+   "name": "request_empty_object",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request_raw": "{}"
+  },
+  {
+   "name": "request_empty_string",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request_raw": ""
+  },
+  {
+   "name": "request_sort_mode_null",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request_raw": "{\"product_block_type\":1,\"products_sort_mode\":null}"
+  },
+  {
+   "name": "request_sort_mode_list_of_strings",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request_raw": "{\"product_block_type\":1,\"products_sort_mode\":[\"name\"]}"
+  },
+  {
+   "name": "request_block1_only_page_style_ignored",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "name"
+    },
+    "page_style": 2
+   }
+  },
+  {
+   "name": "request_category_non_numeric",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": "abc",
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    }
+   }
+  },
+  {
+   "name": "request_properties_list_string",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "products_sort_mode": {
+     "field": "price"
+    },
+    "properties_list": "abc"
+   }
+  }
+ ]
+}
