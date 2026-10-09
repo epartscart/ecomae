@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Lead (`--max-gap 521` passed; current gap **518**).
+after PlanQ1Note (`--max-gap 518` passed; current gap **517**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 518
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 517
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 30 | 13,605 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 116 | 62,450 |
+| 5 | Marketing/BOS/industries | 115 | 61,896 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **518** | **243,699** |
+| | **Total** | **517** | **243,145** |
 
-- Non-ERP (Cursor): **352 files / 177,508 lines**
+- Non-ERP (Cursor): **351 files / 176,954 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,121** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **74**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,104** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **74**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -129,16 +129,19 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Faq`, 2 cases): FAQ format-ans
 
 Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Lead`, 5 cases): AI classification rules / classify / store / batch / HS seed+lookup / stats / review, marketing page meta / JSON-LD / crumb / docs-compare-bos-solution render (content catalogs already ported; home helpers stubbed), CP top-alerts HTTPS / email / SMS state and styles. HTTPS reads the global config (the parameter is overwritten). `empty()` treats `"0"` as empty. Professional header is always on, so the header items stay blank.
 
+### Q1 note — done (`PhpPlanQ1Note`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Note`, 2 cases): storefront seed locale defaults (portal/ERP locale parents omitted), FX rates / convert-price (`round` 0), generic + electronics/fashion/consulting/jewellery catalogs, idempotent category/product upserts. Product catalog non-AED prices divide the AED list by 3.67 then convert.
+
 ### Q1 next leftovers — honest schema/data twins still open
 
 The 74 leftover “ready” ≤200-line rows are still Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
 
 | Order | File | Why now |
 |---|---|---|
-| 1 | `epc_storefront_seed_data.php` | Category/product catalogs plus upsert twins. |
-| 2 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
-| 3 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
-| 4 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
+| 1 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
+| 2 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
+| 3 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 

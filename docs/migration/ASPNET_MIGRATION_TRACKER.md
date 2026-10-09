@@ -322,6 +322,13 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — plan Q1-note (storefront seed data)
+
+Not complete.
+
+- Ratchet 518 to 517. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Note`): `epc_storefront_seed_data.php`. Portal / ERP locale / theme parents are omitted so locale stays AE/AED/VAT/gcc. Non-AED product prices divide the AED list by 3.67 then convert.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Note` (2). PlanQ1 suites 93 of 93. Inventory content 523 to 524 of 952. Unnamed PHP functions 7,121 to 7,104. Ready ≤200-line non-ERP functions stay 74. The weighted headline stays about 20.4%. Non-ERP pending: 351 files / 176,954 lines (was 352 / 177,508). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+
 ### Checkpoint 2026-10-09 — plan Q1-lead (AI classification, marketing pages, CP top alerts)
 
 Not complete.
