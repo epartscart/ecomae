@@ -46,7 +46,8 @@ public sealed class StorefrontCartTests
                 {
                     Assert.DoesNotContain("</script><script>", html, StringComparison.OrdinalIgnoreCase);
                     Assert.DoesNotContain("<img src=x", html, StringComparison.OrdinalIgnoreCase);
-                    Assert.Contains("&lt;script&gt;alert(2)&lt;/script&gt;", html, StringComparison.Ordinal);
+                    Assert.Contains("\\u0026lt;script\\u0026gt;alert(2)\\u0026lt;\\/script\\u0026gt;", html, StringComparison.Ordinal);
+                    Assert.Contains("\\u0026lt;img src=x onerror=alert(3)\\u0026gt;", html, StringComparison.Ordinal);
                     Assert.Contains("&lt;img src=x onerror=alert(4)&gt;", html, StringComparison.Ordinal);
                     return;
                 }
