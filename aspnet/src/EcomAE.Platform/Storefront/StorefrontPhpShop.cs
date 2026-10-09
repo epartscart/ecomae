@@ -1674,8 +1674,18 @@ public static partial class StorefrontPhpAjax
     }
 
     private static async Task<List<int>> StatusesNotCountedAsync(DbConnection connection, CancellationToken cancellationToken)
-        => (await StorefrontOrdersBackground.LoadAsync(connection, cancellationToken).ConfigureAwait(false))
-            .ItemStatusesNotCount.Select(id => checked((int)id)).ToList();
+    {
+        var ids = new List<int>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `count_flag` = 0 ORDER BY `order` ASC";
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            ids.Add(Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture));
+        }
+
+        return ids;
+    }
 
     private static async Task<decimal> OrderSumAsync(
         DbConnection connection,
