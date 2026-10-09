@@ -322,6 +322,13 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — plan Q1-safe (warehouse sitemap, tenant data protection, customer helpers)
+
+Not complete.
+
+- Ratchet 517 to 514. Three files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Safe`): `epc_sitemap_warehouse.php` (SEO price-clause and part-loc injected; storage-flag and article-match parents omitted), `epc_tenant_data_protection.php` (portal tenant row/connect injected; `enforce_access` mentioned but not golden-run because it exits), `epc_customer_mgmt_helpers.php` (finance save/VAT injected). `empty('0')` is empty.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Safe` (6). PlanQ1 suites 97 of 97. Inventory content 524 to 527 of 952. Unnamed PHP functions 7,104 to 7,055. Ready ≤200-line non-ERP functions stay 74. The weighted headline stays about 20.4%. Non-ERP pending: 348 files / 175,651 lines (was 351 / 176,954). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+
 ### Checkpoint 2026-10-09 — plan Q1-note (storefront seed data)
 
 Not complete.
