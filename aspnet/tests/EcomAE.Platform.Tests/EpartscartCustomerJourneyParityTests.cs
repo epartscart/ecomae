@@ -89,7 +89,10 @@ public sealed class EpartscartCustomerJourneyParityTests
 
         var orders = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOrdersApp.razor"));
-        Assert.Contains("@page \"/en/shop/orders\"", orders, StringComparison.Ordinal);
+        var myOrders = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontMyOrdersApp.razor"));
+        Assert.Contains("@page \"/en/shop/orders\"", myOrders, StringComparison.Ordinal);
+        Assert.Contains("StorefrontMyOrders.RenderAsync(", myOrders, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/shop/orders/order\"", orders, StringComparison.Ordinal);
         Assert.Contains("panel panel-primary", orders, StringComparison.Ordinal);
         Assert.Contains("id=\"time_from\"", orders, StringComparison.Ordinal);
