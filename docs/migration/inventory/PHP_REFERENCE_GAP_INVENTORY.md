@@ -31,15 +31,15 @@ Functions defined: 9870; not mentioned anywhere in ASP.NET: 7860.
 
 | Triage | Files |
 |---|---:|
-| gap | 697 |
+| gap | 695 |
 | mapped-tab | 118 |
 | mentioned | 924 |
 | ops-script | 413 |
-| retired | 33 |
+| retired | 35 |
 | sitemap-shard | 80 |
 | third-party | 314 |
 
-Gap files: 697 (273031 lines).
+Gap files: 695 (272960 lines).
 
 ## Gap areas (largest first)
 
@@ -49,7 +49,7 @@ Gap files: 697 (273031 lines).
 | `content/shop/finance` | 142 | 59916 |
 | `content/shop/docpart` | 41 | 37051 |
 | `content/shop/price_engine` | 23 | 16789 |
-| `content/shop/catalogue` | 36 | 10696 |
+| `content/shop/catalogue` | 34 | 10625 |
 | `cp/content/control/portal` | 42 | 9563 |
 | `content/general_pages/industry_templates` | 31 | 8333 |
 | `cp/content/shop/finance` | 24 | 6275 |
@@ -521,7 +521,7 @@ Gap files: 697 (273031 lines).
 - `content/shop/price_engine/epc_tax_advisory_taxonomy.php` (53 lines, 0/1 functions mentioned)
 - `content/shop/price_engine/epc_auto_price_market_block.php` (38 lines, 0/0 functions mentioned)
 
-### content/shop/catalogue (36)
+### content/shop/catalogue (34)
 
 - `content/shop/catalogue/printProducts_2.php` (2898 lines, 0/30 functions mentioned)
 - `content/shop/catalogue/printProducts.php` (1789 lines, 0/21 functions mentioned)
@@ -548,11 +548,9 @@ Gap files: 697 (273031 lines).
 - `content/shop/catalogue/search_tabs/search_tabs.php` (63 lines, 0/0 functions mentioned)
 - `content/shop/catalogue/search_tabs/tabs_content/aftermarket/tab_content.php` (60 lines, 0/0 functions mentioned)
 - `content/shop/catalogue/tree_lists/get_tree_list_items.php` (59 lines, 0/0 functions mentioned)
-- `content/shop/catalogue/tree_lists/dp_tree_list_item.php` (48 lines, 0/0 functions mentioned)
 - `content/shop/catalogue/tree_lists/helper.php` (32 lines, 0/1 functions mentioned)
 - `content/shop/catalogue/search_tabs/tabs_content/to_catalogue/tab_content.php` (27 lines, 0/0 functions mentioned)
 - `content/shop/catalogue/search_tabs/tabs_content/vin_search/tab_content.php` (24 lines, 0/0 functions mentioned)
-- `content/shop/catalogue/dp_product.php` (23 lines, 0/0 functions mentioned)
 - `content/shop/catalogue/search_result.php` (22 lines, 0/0 functions mentioned)
 - `content/shop/catalogue/search_tabs/tabs_content/vin_search_neoriginal/tab_content.php` (22 lines, 0/0 functions mentioned)
 - `content/shop/catalogue/search_tabs/tabs_content/article_search/tab_content.php` (18 lines, 0/0 functions mentioned)
