@@ -1,0 +1,96 @@
+@page "/en/shop/orders"
+@page "/shop/orders"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
+@inject IHttpContextAccessor Http
+@inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
+@inject Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions> PhpReference
+@inject IWebHostEnvironment Env
+@inject ILogger<StorefrontMyOrdersApp> Log
+@*
+  PHP twin: content/shop/order_process/my_orders.php (StorefrontMyOrders).
+*@
+
+<PageTitle>My orders · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container">
+            <script>window.jQuery || document.write('<script src="/lib/jQuery/jQuery.js"><\/script>');</script>
+            @((MarkupString)_html)
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private string _html = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        var tenant = ctx.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] as EcomAE.Platform.Services.TenantContext;
+        var config = EcomAE.Platform.Cp.PriceImport.CpPhpConfig.Read(PhpReference.Value);
+        var cookies = ctx.Request.Cookies;
+        var cookieHeader = ctx.Request.Headers.Cookie.ToString();
+        var query = ctx.Request.Query;
+        var lang = StorefrontPhpHomeLinks.LangHref(ctx);
+        try
+        {
+            await using var connection = await Connections.OpenForTenantAsync(tenant, ctx.RequestAborted);
+            var userId = await ErpUserAccess.UserIdAsync(connection, new ErpUserAccess.Cookies(cookies["session"], cookies["u_id"], null, null), ctx.RequestAborted);
+            var loginForm = string.Empty;
+            if (userId <= 0)
+            {
+                (loginForm, _) = await StorefrontLoginFormLoader.RenderGeneralAsync(
+                    ctx,
+                    connection,
+                    Connections,
+                    PhpReference.Value,
+                    Env,
+                    new StorefrontLoginFormLoader.Request(0, lang, cookies["session"], cookies["u_id"], cookies["epc_oauth_last_google_email"], config),
+                    StorefrontMyOrders.LoginFormPostfix,
+                    StorefrontMyOrders.LoginFormTarget,
+                    [StorefrontMyOrders.LoginTextStringId],
+                    ctx.RequestAborted);
+            }
+
+            var limit = config.TryGetValue("list_page_limit", out var raw) && int.TryParse(raw, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var parsed) && parsed > 0
+                ? parsed
+                : 20;
+            var translator = new StorefrontPhpTranslator(connection, lang.TrimStart('/'));
+            var input = new StorefrontMyOrders.Input(
+                userId,
+                lang,
+                "shop/orders",
+                limit,
+                StorefrontActionsAlert.Last(query, "page"),
+                StorefrontActionsAlert.Last(query, "garage"),
+                StorefrontActionsAlert.Last(query, "read"),
+                StorefrontMyOrders.PhpCookie(cookieHeader, StorefrontMyOrders.FilterCookie),
+                StorefrontMyOrders.PhpCookie(cookieHeader, StorefrontMyOrders.SortCookie),
+                loginForm);
+            _html = await StorefrontMyOrders.RenderAsync(connection, input, key => translator.TextAsync(key, ctx.RequestAborted), StorefrontMyOrders.PhpDate, ctx.RequestAborted);
+        }
+        catch (System.Data.Common.DbException ex)
+        {
+            Log.LogWarning(ex, "My orders page query failed");
+            _html = "<p>Orders are unavailable right now.</p>";
+        }
+        catch (InvalidOperationException ex)
+        {
+            Log.LogWarning(ex, "My orders page render failed");
+            _html = "<p>Orders are unavailable right now.</p>";
+        }
+    }
+}

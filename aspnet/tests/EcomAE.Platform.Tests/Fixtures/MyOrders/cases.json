@@ -1,0 +1,308 @@
+{
+  "schema": [
+    "CREATE TABLE `shop_orders` (`id` int(11) NOT NULL AUTO_INCREMENT, `user_id` int(11) NOT NULL DEFAULT 0, `time` int(11) NOT NULL DEFAULT 0, `office_id` int(11) NOT NULL DEFAULT 0, `status` int(11) NOT NULL DEFAULT 0, `paid` tinyint(4) NOT NULL DEFAULT 0, `paid_type` int(11) NOT NULL DEFAULT 0, `how_get` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_orders_items` (`id` int(11) NOT NULL AUTO_INCREMENT, `order_id` int(11) NOT NULL, `status` int(11) NOT NULL DEFAULT 0, `price` decimal(12,2) NOT NULL DEFAULT 0, `count_need` int(11) NOT NULL DEFAULT 1, `t2_manufacturer` varchar(64) NOT NULL DEFAULT '', `t2_article` varchar(64) NOT NULL DEFAULT '', `t2_name` varchar(128) NOT NULL DEFAULT '', PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_orders_statuses_ref` (`id` int(11) NOT NULL, `name` varchar(64) NOT NULL, `color` varchar(16) NOT NULL DEFAULT '', `order` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_orders_items_statuses_ref` (`id` int(11) NOT NULL, `name` varchar(64) NOT NULL, `color` varchar(16) NOT NULL DEFAULT '', `order` int(11) NOT NULL DEFAULT 0, `count_flag` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_offices` (`id` int(11) NOT NULL, `caption` varchar(128) NOT NULL DEFAULT '', PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_obtaining_modes` (`id` int(11) NOT NULL, `caption` varchar(128) NOT NULL DEFAULT '', PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_orders_paid_type` (`id` int(11) NOT NULL, `name` varchar(64) NOT NULL, `active` tinyint(1) NOT NULL DEFAULT 1, `order` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_docpart_garage` (`id` int(11) NOT NULL, `user_id` int(11) NOT NULL, `caption` varchar(128) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_docpart_garage_orders` (`id` int(11) NOT NULL AUTO_INCREMENT, `order_id` int(11) NOT NULL, `garage_id` int(11) NOT NULL, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_orders_messages` (`id` int(11) NOT NULL AUTO_INCREMENT, `order_id` int(11) NOT NULL, `read` tinyint(1) NOT NULL DEFAULT 0, `is_customer` tinyint(1) NOT NULL DEFAULT 0, PRIMARY KEY (`id`))"
+  ],
+  "base": [
+    "INSERT INTO `shop_orders_statuses_ref` VALUES (1,'New','#ffffff',1),(2,'Paid','#dff0d8',2),(3,'Done','#eeeeee',3)",
+    "INSERT INTO `shop_orders_items_statuses_ref` VALUES (1,'Active','#fafafa',1,1),(2,'Cancelled','#f2dede',2,0),(3,'Ready','#d9edf7',3,1)",
+    "INSERT INTO `shop_offices` VALUES (1,'Main office'),(2,'Branch')",
+    "INSERT INTO `shop_obtaining_modes` VALUES (1,'Pickup'),(2,'Delivery')",
+    "INSERT INTO `shop_orders_paid_type` VALUES (1,'Pay on place',1,1),(2,'Card',1,2),(3,'Old',0,3)",
+    "INSERT INTO `shop_docpart_garage` VALUES (1,7,'My \"Car\"\\tA',1),(2,7,'Truck',0),(3,8,'Other',1)",
+    "INSERT INTO `shop_docpart_garage_orders` (`order_id`,`garage_id`) VALUES (101,1),(103,1),(103,2),(105,3)",
+    "INSERT INTO `shop_orders_messages` (`order_id`,`read`,`is_customer`) VALUES (101,0,0),(101,0,0),(102,1,0),(103,0,1)",
+    "INSERT INTO `shop_orders` VALUES (101,7,1700000000,1,1,0,1,1),(102,7,1700100000,2,2,1,2,2),(103,7,1700200000,9,9,2,0,0),(104,7,1700300000,1,3,0,3,1),(105,7,1700400000,1,1,1,1,2),(106,7,1700500000,1,2,0,0,1),(107,7,1700600000,2,1,0,0,2),(201,8,1700700000,1,1,0,0,1)",
+    "INSERT INTO `shop_orders_items` (`order_id`,`status`,`price`,`count_need`,`t2_manufacturer`,`t2_article`,`t2_name`) VALUES (101,1,10.50,2,'Bosch','0986','Brake pad'),(101,2,99,1,'Mann','W712','Oil filter'),(102,3,1234.5,3,'Febi','123','Bulb'),(103,9,5,1,'X','Y','Z'),(105,1,7.25,4,'A','B','C'),(106,1,100,1,'NGK','BKR6','Spark plug'),(107,1,2,1,'K','L','M'),(201,1,1,1,'P','Q','R')"
+  ],
+  "cases": [
+    {
+      "name": "visitor_en",
+      "user_id": 0,
+      "get": {},
+      "cookies": {},
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "visitor_no_lang",
+      "user_id": 0,
+      "get": {},
+      "cookies": {},
+      "config": {
+        "list_page_limit": "20"
+      },
+      "lang_href": ""
+    },
+    {
+      "name": "customer_default",
+      "user_id": 7,
+      "get": {},
+      "cookies": {},
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "filter_time_status_paid",
+      "user_id": 7,
+      "get": {},
+      "cookies": {
+        "my_orders_filter": "{\"time_from\":\"1699999999\",\"time_to\":\"1700650000\",\"order_id\":\"\",\"status\":\"1\",\"paid\":\"0\",\"paid_type\":\"-1\",\"garage\":\"0\"}"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "filter_order_id",
+      "user_id": 7,
+      "get": {},
+      "cookies": {
+        "my_orders_filter": "{\"time_from\":\"\",\"time_to\":\"\",\"order_id\":\"103\",\"status\":\"0\",\"paid\":\"-1\",\"paid_type\":\"-1\",\"garage\":\"0\"}"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "filter_garage_1",
+      "user_id": 7,
+      "get": {},
+      "cookies": {
+        "my_orders_filter": "{\"time_from\":\"\",\"time_to\":\"\",\"order_id\":\"\",\"status\":\"0\",\"paid\":\"-1\",\"paid_type\":\"-1\",\"garage\":\"1\"}"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "filter_garage_none",
+      "user_id": 7,
+      "get": {},
+      "cookies": {
+        "my_orders_filter": "{\"time_from\":\"\",\"time_to\":\"\",\"order_id\":\"\",\"status\":\"0\",\"paid\":\"-1\",\"paid_type\":\"-1\",\"garage\":\"-1\"}"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "filter_paid_type",
+      "user_id": 7,
+      "get": {},
+      "cookies": {
+        "my_orders_filter": "{\"time_from\":\"\",\"time_to\":\"\",\"order_id\":\"\",\"status\":\"0\",\"paid\":\"-1\",\"paid_type\":\"2\",\"garage\":\"0\"}"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "filter_invalid_json",
+      "user_id": 7,
+      "get": {},
+      "cookies": {
+        "my_orders_filter": "not json"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "filter_scalar_json",
+      "user_id": 7,
+      "get": {},
+      "cookies": {
+        "my_orders_filter": "5"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "filter_loose_values",
+      "user_id": 7,
+      "get": {},
+      "cookies": {
+        "my_orders_filter": "{\"time_from\": false, \"time_to\": null, \"paid\": \"\", \"paid_type\": \" -1\", \"garage\": \"-abc\"}"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "filter_loose_empty",
+      "user_id": 7,
+      "get": {},
+      "cookies": {
+        "my_orders_filter": "{\"status\": \"abc\", \"order_id\": 0, \"time_from\": \"x\"}"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "sort_price_asc",
+      "user_id": 7,
+      "get": {},
+      "cookies": {
+        "my_orders_sort": "{\"field\":\"price_sum\",\"asc_desc\":\"asc\"}"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "sort_time_desc",
+      "user_id": 7,
+      "get": {},
+      "cookies": {
+        "my_orders_sort": "{\"field\":\"time\",\"asc_desc\":\"desc\"}"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "sort_hostile",
+      "user_id": 7,
+      "get": {},
+      "cookies": {
+        "my_orders_sort": "{\"field\":\"id` DESC; --\",\"asc_desc\":\"x\"}"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "sort_invalid_json",
+      "user_id": 7,
+      "get": {},
+      "cookies": {
+        "my_orders_sort": "zzz"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "get_garage_match",
+      "user_id": 7,
+      "get": {
+        "garage": "1"
+      },
+      "cookies": {
+        "my_orders_filter": "{\"time_from\":\"\",\"time_to\":\"\",\"order_id\":\"\",\"status\":\"2\",\"paid\":\"-1\",\"paid_type\":\"-1\",\"garage\":\"0\"}"
+      },
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "get_garage_other_user",
+      "user_id": 7,
+      "get": {
+        "garage": "3"
+      },
+      "cookies": {},
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "get_read_0",
+      "user_id": 7,
+      "get": {
+        "read": "0"
+      },
+      "cookies": {},
+      "config": {
+        "list_page_limit": "20"
+      }
+    },
+    {
+      "name": "page_1_of_7",
+      "user_id": 7,
+      "get": {},
+      "cookies": {},
+      "config": {
+        "list_page_limit": "1"
+      }
+    },
+    {
+      "name": "page_4_of_7",
+      "user_id": 7,
+      "get": {
+        "page": "4"
+      },
+      "cookies": {},
+      "config": {
+        "list_page_limit": "1"
+      }
+    },
+    {
+      "name": "page_5_of_7",
+      "user_id": 7,
+      "get": {
+        "page": "5"
+      },
+      "cookies": {},
+      "config": {
+        "list_page_limit": "1"
+      }
+    },
+    {
+      "name": "page_7_of_7",
+      "user_id": 7,
+      "get": {
+        "page": "7"
+      },
+      "cookies": {},
+      "config": {
+        "list_page_limit": "1"
+      }
+    },
+    {
+      "name": "page_10_of_7",
+      "user_id": 7,
+      "get": {
+        "page": "10"
+      },
+      "cookies": {},
+      "config": {
+        "list_page_limit": "1"
+      }
+    },
+    {
+      "name": "page_abc_no_lang",
+      "user_id": 7,
+      "get": {
+        "page": "abc"
+      },
+      "cookies": {},
+      "config": {
+        "list_page_limit": "2"
+      },
+      "lang_href": ""
+    },
+    {
+      "name": "customer_no_orders",
+      "user_id": 9,
+      "get": {},
+      "cookies": {},
+      "config": {
+        "list_page_limit": "20"
+      }
+    }
+  ]
+}
