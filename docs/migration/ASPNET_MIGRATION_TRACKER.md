@@ -322,6 +322,13 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — plan Q1-site (site context, supplier leftovers, CP ACL)
+
+Not complete.
+
+- Ratchet 530 to 527. Three files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Site`): `content/general_pages/epc_site_context.php` (portal/branding parents stubbed; default-contact is private), leftover functions on `epc_supplier_notifications.php` (`epc_supplier_h`, `epc_order_item_storage_id`) and `cp/content/control/control_helper.php` (`epc_cp_acl_preload`, `epc_cp_acl_expand_groups`). Cache-key regex is lowercase-only. Apply skips empty head-office fields.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Site` (5). PlanQ1 suites 73 of 73. Inventory content 513 to 515 of 952; cp-page 255 to 256 of 523. Unnamed PHP functions 7,215 to 7,198. Ready ≤200-line non-ERP functions stay 85. The weighted headline stays about 20.4%. Non-ERP pending: 361 files / 179,705 lines (was 364 / 180,357). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+
 ### Checkpoint 2026-10-09 — plan Q1-ship (logistics, electronics taxonomy, social pack, worldclass)
 
 Not complete.
