@@ -322,6 +322,13 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — plan Q1-leftover + Q1-done (page cache, anomaly, CSS hubs, catalogs, SOC2)
+
+Not complete.
+
+- Ratchet 572 to 562. Twelve more files now have PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Left`, `PhpPlanQ1Done`): `epc_page_cache.php` (enabled / key / serve / flush / purge; inject cache dir; lock/exit goldens skipped), `epc_isolation_anomaly.php` (scan / record / resolve / fleet; missing audit tables stubbed; `epc_anomaly_list` LIMIT bind fatals on this MariaDB), `epc_integrations_hub_css.php`, `epc_industry_settings_css.php`, `epc_marketing_broadcast_css.php` (CSS bodies; broadcast panel parent stays a gap), `epc_cp_brochure_inventory.php`, `epc_ecomae_platform_capability_guides.php`, `epc_php_serving_deactivate.php`, `epc_cp_trace.php`, `epc_consulting_primeinvest_data.php`, `epc_ecomae_marketing_content.php`, `epc_soc2_compliance.php` (in-memory twin of the PDO helpers, MariaDB goldens). Industry templates stay skipped (`_base_template.php` parent).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Left/golden.json` (11 cases) and `Fixtures/PlanQ1Done/golden.json` (9 cases). The Left + Done suites are 8 of 8; After + More + Next + PlanQ1 + ReadyNamed + NamedBatch still 24 of 24 (32 of 32 together). Inventory content 470 to 482 of 952. Unnamed PHP functions 7,628 to 7,566. Ready ≤200-line non-ERP functions stay 93. The weighted headline stays about 20.4%. Non-ERP pending: 396 files / 192,618 lines (was 406 / 196,954). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session.
+
 ### Checkpoint 2026-10-09 — plan Q1-after + Q1-more (live-bridge, catalog, layouts, subdomain, dealer, social CSS)
 
 Not complete.

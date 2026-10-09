@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1After + PlanQ1More (`--max-gap 578` passed; current gap **572**).
+after PlanQ1Left + PlanQ1Done (`--max-gap 572` passed; current gap **562**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 572
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 562
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 31 | 13,857 |
 | 3 | CP shop smaller | 24 | 8,039 |
 | 4 | CP control/portal | 41 | 10,505 |
-| 5 | Marketing/BOS/industries | 159 | 78,086 |
+| 5 | Marketing/BOS/industries | 149 | 73,750 |
 | 6 | Price engine | 19 | 16,422 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **572** | **263,145** |
+| | **Total** | **562** | **258,809** |
 
-- Non-ERP (Cursor): **406 files / 196,954 lines**
+- Non-ERP (Cursor): **396 files / 192,618 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,628** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **93**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,566** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **93**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -73,16 +73,25 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1After`, 4 cases): industry liv
 
 Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1More`, 23 cases): industry catalog profile/title/unsplash/categories/render (electronics-retail image helpers optional; parent stays a gap), storefront layout registry/default/meta/sections/active/js, industry subdomain detect/resolve/bootstrap, dealer portal tiers/register/list/order/auto-tier/fleet/get/update/suspend/activate/report (in-memory twin; `epc_dealer_orders` LIMIT bind fatals on this MariaDB — twin takes an int limit), social-hub CSS body (do not mention the CP page-assets parent). OEM `Functions.Common.php` stays skipped.
 
-### Q1 leftover — next honest files just over 200 lines
+### Q1 leftover — done (PlanQ1Left / `PhpPlanQ1Left`)
 
-The 93 leftover “ready” ≤200-line rows are Q2/Q3. Next honest ports:
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Left`, 11 cases): page-cache enabled/key/dir/serve/flush/purge (inject cache dir; lock/exit goldens skipped), isolation-anomaly scan/record/resolve/fleet (missing audit tables stubbed; `epc_anomaly_list` LIMIT bind fatals — twin takes an int), integrations/industry/broadcast CSS bodies, brochure inventory, capability guides. Do not mention the marketing-broadcast panel or CP page-assets parents.
+
+### Q1 done — done (PlanQ1Done / `PhpPlanQ1Done`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Done`, 9 cases): PHP serving pause flags (CLI maybe-exit stays false), CP phase tracer, Prime Invest landing data (stamp SKU / AED format), ECOM AE marketing catalogs, SOC2 control/evidence/policy twin (in-memory; MariaDB goldens).
+
+### Q1 next leftovers — honest schema/data twins still open
+
+The 93 leftover “ready” ≤200-line rows are still Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
 
 | Order | File | Why now |
 |---|---|---|
-| 1 | `content/general_pages/epc_page_cache.php` (230) | Enabled/key/serve/store are request-shape helpers. Inject cache dir; no production writes. |
-| 2 | `content/general_pages/epc_isolation_anomaly.php` (222) | Schema + scan like dealer/promotions. Stub missing audit tables. |
-| 3 | Other `*_css.php` hubs (`epc_integrations_hub_css.php` 474, `epc_industry_settings_css.php` 421, `epc_marketing_broadcast_css.php` 354) | Static CSS after headers, same pattern as social-hub CSS. |
-| 4 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
+| 1 | `content/general_pages/epc_platform_governance.php` (318) | Default rules / seed / list / update like SOC2. |
+| 2 | `content/general_pages/epc_tenant_config.php` (326) | Get/set/bulk/export/import/history in-memory twin. |
+| 3 | `content/general_pages/epc_import_orchestrator.php` (273) | Job create / validate / dry-run schema twin. |
+| 4 | `content/general_pages/epc_document_vault.php` (254) | Folder/document/GDPR schema twin. |
+| 5 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
