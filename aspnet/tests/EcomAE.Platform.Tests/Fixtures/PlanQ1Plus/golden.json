@@ -1,0 +1,420 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "extra_maps",
+            "output": "",
+            "result": [
+                [
+                    "engine_code",
+                    "country_code",
+                    "size",
+                    "cross_reference",
+                    "oe_number",
+                    "color",
+                    "weight",
+                    "model",
+                    "year",
+                    "position",
+                    "material",
+                    "voltage",
+                    "other"
+                ],
+                [
+                    "engine_code",
+                    "engine code",
+                    "engine_number",
+                    "engine number",
+                    "engine no",
+                    "engine_no",
+                    "eng_code",
+                    "eng code",
+                    "engine"
+                ],
+                [
+                    {
+                        "key": "all",
+                        "label": "All fields"
+                    },
+                    {
+                        "key": "engine_code",
+                        "label": "Engine code"
+                    },
+                    {
+                        "key": "country_code",
+                        "label": "Country code"
+                    },
+                    {
+                        "key": "size",
+                        "label": "Size"
+                    },
+                    {
+                        "key": "cross_reference",
+                        "label": "Cross reference"
+                    },
+                    {
+                        "key": "oe_number",
+                        "label": "OE number"
+                    },
+                    {
+                        "key": "color",
+                        "label": "Color"
+                    },
+                    {
+                        "key": "weight",
+                        "label": "Weight"
+                    },
+                    {
+                        "key": "model",
+                        "label": "Model"
+                    },
+                    {
+                        "key": "year",
+                        "label": "Year"
+                    },
+                    {
+                        "key": "position",
+                        "label": "Position"
+                    },
+                    {
+                        "key": "material",
+                        "label": "Material"
+                    },
+                    {
+                        "key": "voltage",
+                        "label": "Voltage"
+                    },
+                    {
+                        "key": "other",
+                        "label": "Other information"
+                    }
+                ],
+                "Engine code",
+                "Unknown Field",
+                "engine code x",
+                "",
+                "engine_code",
+                "custom",
+                "AB123",
+                "",
+                {
+                    "1": "engine_code",
+                    "2": "foo_bar",
+                    "4": "other",
+                    "5": "size",
+                    "6": "cross_reference"
+                },
+                {
+                    "engine_code": "B20B",
+                    "foo_bar": "red",
+                    "size": "12",
+                    "cross_reference": "R1",
+                    "other": "note1"
+                },
+                {
+                    "engine_code": "B20B",
+                    "other": "Engine code: B20C"
+                },
+                {
+                    "size": "10",
+                    "other": "a | b",
+                    "color": "red"
+                },
+                {
+                    "size": "10"
+                },
+                "",
+                "{\"a\":\"1\",\"b\":\"2\"}",
+                {
+                    "a": "1"
+                },
+                {
+                    "a": "1"
+                },
+                [],
+                []
+            ]
+        },
+        {
+            "name": "extra_index",
+            "output": "",
+            "result": [
+                true,
+                true,
+                "OK",
+                1,
+                "engine_code",
+                "B20B",
+                1,
+                false,
+                "Enter at least 2 characters.",
+                false,
+                "Unknown search field.",
+                true,
+                "No matching warehouse products.",
+                {
+                    "cross_reference": "X1; Y2",
+                    "engine_code": "B20B",
+                    "other": "note"
+                },
+                "{\"foo\":1,\"warehouse_attrs\":{\"cross_reference\":\"X1; Y2\",\"engine_code\":\"B20B\",\"other\":\"note\"},\"used\":1}",
+                "",
+                0,
+                {
+                    "cross_reference": "X1; Y2",
+                    "engine_code": "B20B",
+                    "other": "note"
+                }
+            ]
+        },
+        {
+            "name": "relocate",
+            "output": "",
+            "result": [
+                "<p>Hi</p><b>X</b>",
+                [
+                    "<script>alert(1)</script>"
+                ],
+                "<div>ok</div>",
+                [
+                    "<style>.a{color:red}</style>"
+                ],
+                "HiEnd",
+                {
+                    "left": "L",
+                    "right": "R"
+                },
+                "<!--epc-cp-main-begin-->",
+                "<!--epc-cp-main-end-->",
+                "HEAD<!--epc-cp-main-begin-->MAIN<!--epc-cp-main-end-->TAIL",
+                "HEADMAINTAIL",
+                "<html><head><style id=\"epc-boc-first-paint\">html:has(body.epc-boc-mode),body.epc-boc-mode{background:#0b1220!important;}body.epc-boc-mode #header,body.epc-boc-mode #menu,body.epc-boc-mode .navbar-static-side,body.epc-boc-mode nav.navbar-default,body.epc-boc-mode #top-navigation,body.epc-boc-mode .epc-cp-topbar,body.epc-boc-mode .footer,body.epc-boc-mode #right-sidebar,body.epc-boc-mode .splash,body.epc-boc-mode #navigation{display:none!important;}body.epc-boc-mode #wrapper,body.epc-boc-mode .content{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;min-height:100vh!important;background:#0b1220!important;}</style></head><body class=\"x epc-boc-mode\"><div class=\"epc-boc\"></div>\n<script>3</script>\n</body></html>",
+                "<html><head><style id=\"epc-boc-first-paint\">html:has(body.epc-boc-mode),body.epc-boc-mode{background:#0b1220!important;}body.epc-boc-mode #header,body.epc-boc-mode #menu,body.epc-boc-mode .navbar-static-side,body.epc-boc-mode nav.navbar-default,body.epc-boc-mode #top-navigation,body.epc-boc-mode .epc-cp-topbar,body.epc-boc-mode .footer,body.epc-boc-mode #right-sidebar,body.epc-boc-mode .splash,body.epc-boc-mode #navigation{display:none!important;}body.epc-boc-mode #wrapper,body.epc-boc-mode .content{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;min-height:100vh!important;background:#0b1220!important;}</style></head><body class=\"wrap epc-boc-mode\"><div class=\"epc-boc\">c</div></body></html>",
+                "<html><head></head><body class=\"wrap\"><p>no</p></body></html>",
+                "no-markers",
+                "",
+                "<html><body>Z\n<style>q{}</style>\n<script>q</script>\n</body></html>"
+            ]
+        },
+        {
+            "name": "pos_markup",
+            "output": "",
+            "result": [
+                "<div class=\"col-lg-12 epc-pos-wrap\" id=\"epc-pos-app\" data-ajax-url=\"/a\" data-pos-url=\"/p\" data-csrf=\"tok\" data-session-id=\"0\" data-session-open=\"0\" data-currency=\"AED\" data-tax-label=\"VAT\" data-tax-rate=\"5.0\" data-warehouse-id=\"4\"><header class=\"epc-pos-brand\"><div class=\"epc-pos-brand__mark\"><i class=\"fa fa-cash-register\" aria-hidden=\"true\"></i></div><div class=\"epc-pos-brand__text\"><div class=\"epc-pos-brand__name\">POS Terminal</div><div class=\"epc-pos-brand__sub\">Front &lt;desk&gt; · AE · AED · VAT 5.0%</div></div><div class=\"epc-pos-brand__links\"><a class=\"epc-pos-chip-link\" href=\"/set\"><i class=\"fa fa-cog\"></i> Settings</a><a class=\"epc-pos-chip-link\" href=\"/erp\"><i class=\"fa fa-file-invoice\"></i> ERP sales</a></div></header><div class=\"epc-pos-kpi\" role=\"group\" aria-label=\"Shift metrics\"><div class=\"epc-pos-kpi__card\"><div class=\"epc-pos-kpi__icon\"><i class=\"fa fa-receipt\"></i></div><div><div class=\"epc-pos-kpi__label\">Today sales</div><div class=\"epc-pos-kpi__value\" id=\"epc-pos-kpi-today\">3</div></div></div><div class=\"epc-pos-kpi__card\"><div class=\"epc-pos-kpi__icon\"><i class=\"fa fa-coins\"></i></div><div><div class=\"epc-pos-kpi__label\">Today total</div><div class=\"epc-pos-kpi__value\" id=\"epc-pos-kpi-today-total\">AED 12.50</div></div></div><div class=\"epc-pos-kpi__card\"><div class=\"epc-pos-kpi__icon\"><i class=\"fa fa-chart-line\"></i></div><div><div class=\"epc-pos-kpi__label\">Week sales</div><div class=\"epc-pos-kpi__value\">8 · AED 99.10</div></div></div><div class=\"epc-pos-kpi__card\"><div class=\"epc-pos-kpi__icon\"><i class=\"fa fa-percent\"></i></div><div><div class=\"epc-pos-kpi__label\">VAT rate</div><div class=\"epc-pos-kpi__value\">5.0%</div></div></div><div class=\"epc-pos-kpi__card\"><div class=\"epc-pos-kpi__icon\"><i class=\"fa fa-store\"></i></div><div><div class=\"epc-pos-kpi__label\">Register</div><div class=\"epc-pos-kpi__value epc-pos-kpi__value--sm\">Front &lt;desk&gt;</div></div></div></div><div id=\"epc-pos-msg\" class=\"epc-pos-msg\" role=\"status\" aria-live=\"polite\"></div><div class=\"epc-pos-session\" id=\"epc-pos-session-bar\"><div class=\"epc-pos-session__status\"><span class=\"epc-pos-badge epc-pos-badge-closed\"><i class=\"fa fa-lock\"></i> No open shift</span><span class=\"epc-pos-session__meta\">Open the register before checkout</span><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-primary\" id=\"epc-pos-open-session\"><i class=\"fa fa-unlock\"></i> Open register</button></div><div class=\"epc-pos-session__warehouse\"><label for=\"epc-pos-warehouse\">Stock warehouse</label><select id=\"epc-pos-warehouse\" name=\"warehouse_id\" aria-label=\"Stock warehouse\"><option value=\"4\">Main</option></select></div><div class=\"epc-pos-session__keys\" aria-label=\"Keyboard shortcuts\"><span><kbd>Enter</kbd> search</span><span><kbd>F2</kbd> focus scan</span><span><kbd>F4</kbd> customer</span><span><kbd>F9</kbd> checkout</span></div></div><div class=\"epc-pos-grid\"><section class=\"epc-pos-panel epc-pos-panel--catalog\" aria-label=\"Product search\"><div class=\"epc-pos-panel-head\"><div><i class=\"fa fa-barcode\"></i> Scan / search products</div><span class=\"epc-pos-panel-head__hint\">SKU · barcode · brand · name</span></div><div class=\"epc-pos-panel-body\"><div class=\"epc-pos-search\"><input type=\"search\" id=\"epc-pos-q\" placeholder=\"Scan barcode or type SKU / name…\" autocomplete=\"off\" autofocus aria-label=\"Product search\"><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-primary\" id=\"epc-pos-search-btn\" title=\"Search\"><i class=\"fa fa-search\"></i> Search</button></div><div id=\"epc-pos-products\" class=\"epc-pos-products\"><div class=\"epc-pos-empty epc-pos-empty--graphical\"><div class=\"epc-pos-empty__icon\"><i class=\"fa fa-search\"></i></div><div class=\"epc-pos-empty__title\">Ready to scan</div><p class=\"epc-pos-empty__text\">Type a SKU, barcode, or product name. A single exact match adds to the cart automatically.</p><ol class=\"epc-pos-empty__steps\"><li>Scan or search</li><li>Adjust qty &amp; discount</li><li>Take payment</li></ol></div></div></div></section><section class=\"epc-pos-panel epc-pos-panel--cart\" aria-label=\"Cart and payment\"><div class=\"epc-pos-panel-head\"><div><i class=\"fa fa-shopping-basket\"></i> Cart &amp; checkout</div><span class=\"epc-pos-panel-head__hint\" id=\"epc-pos-cart-count\">0 lines</span></div><div class=\"epc-pos-panel-body epc-pos-panel-body--cart\"><div class=\"epc-pos-block epc-pos-customer\"><div class=\"epc-pos-block__label\"><i class=\"fa fa-user\"></i> Customer</div><div class=\"epc-pos-customer__row\"><input type=\"text\" id=\"epc-pos-customer-q\" placeholder=\"Search name, email, phone…\" autocomplete=\"off\" aria-label=\"Customer search\"><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-muted\" id=\"epc-pos-customer-walkin\" title=\"Reset to walk-in\"><i class=\"fa fa-walking\"></i> Walk-in</button></div><div id=\"epc-pos-customer-pick\" class=\"epc-pos-customer-pick\" style=\"display:none\"></div><input type=\"hidden\" id=\"epc-pos-customer-user\" value=\"0\"><input type=\"hidden\" id=\"epc-pos-customer-contact\" value=\"0\"><div id=\"epc-pos-customer-label\" class=\"epc-pos-customer__selected\"><i class=\"fa fa-check-circle\"></i> Walk-in guest</div></div><div class=\"epc-pos-block epc-pos-block--grow\"><div class=\"epc-pos-block__label\"><i class=\"fa fa-list\"></i> Line items <span class=\"epc-pos-block__hint\">qty · price · % off · amount off</span></div><div id=\"epc-pos-cart\" class=\"epc-pos-cart-lines\"><div class=\"epc-pos-empty epc-pos-empty--compact\">Cart is empty — add products from search</div></div></div><div class=\"epc-pos-block epc-pos-totals\" aria-label=\"Totals\"><div class=\"epc-pos-total-row\"><span>Subtotal (ex VAT)</span><span><span class=\"epc-pos-cur\">AED</span> <span id=\"epc-pos-subtotal\">0.00</span></span></div><div class=\"epc-pos-total-row\"><span>Discount</span><span><span class=\"epc-pos-cur\">AED</span> <span id=\"epc-pos-discount\">0.00</span></span></div><div class=\"epc-pos-total-row\"><span>VAT (<span id=\"epc-pos-tax-rate-lbl\">5.0</span>%)</span><span><span class=\"epc-pos-cur\">AED</span> <span id=\"epc-pos-vat\">0.00</span></span></div><div class=\"epc-pos-total-row grand\"><span>Total due</span><span><span class=\"epc-pos-cur\">AED</span> <span id=\"epc-pos-total\">0.00</span></span></div></div><div class=\"epc-pos-block epc-pos-pay\"><div class=\"epc-pos-block__label\"><i class=\"fa fa-credit-card\"></i> Payment method</div><div class=\"epc-pos-pay-btns\" id=\"epc-pos-pay-mode\" role=\"group\" aria-label=\"Payment method\"><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-muted active\" data-pay=\"cash\"><i class=\"fa fa-money-bill\"></i> Cash</button><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-muted\" data-pay=\"card\"><i class=\"fa fa-credit-card\"></i> Card</button><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-muted\" data-pay=\"split\"><i class=\"fa fa-divide\"></i> Split</button></div><div id=\"epc-pos-cash-fields\" class=\"epc-pos-pay-fields\"><div class=\"epc-pos-field\"><label for=\"epc-pos-tendered\">Cash tendered (AED)</label><input type=\"number\" step=\"0.01\" min=\"0\" id=\"epc-pos-tendered\" placeholder=\"0.00\" inputmode=\"decimal\"></div><div class=\"epc-pos-change\" id=\"epc-pos-change-wrap\">Change <strong id=\"epc-pos-change\">AED 0.00</strong></div></div><div id=\"epc-pos-split-fields\" class=\"epc-pos-pay-fields\" style=\"display:none\"><div class=\"epc-pos-field\"><label for=\"epc-pos-cash-amt\">Cash amount (AED)</label><input type=\"number\" step=\"0.01\" min=\"0\" id=\"epc-pos-cash-amt\" placeholder=\"0.00\" inputmode=\"decimal\"></div><div class=\"epc-pos-field\"><label for=\"epc-pos-card-amt\">Card amount (AED)</label><input type=\"number\" step=\"0.01\" min=\"0\" id=\"epc-pos-card-amt\" placeholder=\"0.00\" inputmode=\"decimal\"></div></div></div><div class=\"epc-pos-block\"><div class=\"epc-pos-field\"><label for=\"epc-pos-notes\">Sale notes <span class=\"epc-pos-block__hint\">(optional · saved on ERP order)</span></label><input type=\"text\" id=\"epc-pos-notes\" maxlength=\"240\" placeholder=\"e.g. counter pickup, invoice reference…\"></div></div><div class=\"epc-pos-actions\"><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-success epc-pos-btn-lg\" id=\"epc-pos-checkout\" disabled><i class=\"fa fa-check-circle\"></i> Complete sale</button><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-muted epc-pos-btn-lg\" id=\"epc-pos-clear\"><i class=\"fa fa-trash\"></i> Clear cart</button></div><p class=\"epc-pos-footnote\">Checkout creates ERP sales order → invoice → receipt voucher and stock out from the selected warehouse.</p></div></section></div></div>",
+                "<div class=\"col-lg-12 epc-pos-wrap\" id=\"epc-pos-app\" data-ajax-url=\"\" data-pos-url=\"\" data-csrf=\"\" data-session-id=\"17\" data-session-open=\"1\" data-currency=\"AED\" data-tax-label=\"VAT\" data-tax-rate=\"0.0\" data-warehouse-id=\"9\"><header class=\"epc-pos-brand\"><div class=\"epc-pos-brand__mark\"><i class=\"fa fa-cash-register\" aria-hidden=\"true\"></i></div><div class=\"epc-pos-brand__text\"><div class=\"epc-pos-brand__name\">POS Terminal</div><div class=\"epc-pos-brand__sub\">Register 1 · AED · VAT 0.0%</div></div><div class=\"epc-pos-brand__links\"><a class=\"epc-pos-chip-link\" href=\"/wh\"><i class=\"fa fa-warehouse\"></i> Warehouses</a><a class=\"epc-pos-chip-link\" href=\"\"><i class=\"fa fa-file-invoice\"></i> ERP sales</a></div></header><div class=\"epc-pos-kpi\" role=\"group\" aria-label=\"Shift metrics\"><div class=\"epc-pos-kpi__card\"><div class=\"epc-pos-kpi__icon\"><i class=\"fa fa-receipt\"></i></div><div><div class=\"epc-pos-kpi__label\">Today sales</div><div class=\"epc-pos-kpi__value\" id=\"epc-pos-kpi-today\">0</div></div></div><div class=\"epc-pos-kpi__card\"><div class=\"epc-pos-kpi__icon\"><i class=\"fa fa-coins\"></i></div><div><div class=\"epc-pos-kpi__label\">Today total</div><div class=\"epc-pos-kpi__value\" id=\"epc-pos-kpi-today-total\">AED 0.00</div></div></div><div class=\"epc-pos-kpi__card\"><div class=\"epc-pos-kpi__icon\"><i class=\"fa fa-chart-line\"></i></div><div><div class=\"epc-pos-kpi__label\">Week sales</div><div class=\"epc-pos-kpi__value\">0 · AED 0.00</div></div></div><div class=\"epc-pos-kpi__card\"><div class=\"epc-pos-kpi__icon\"><i class=\"fa fa-percent\"></i></div><div><div class=\"epc-pos-kpi__label\">VAT rate</div><div class=\"epc-pos-kpi__value\">0.0%</div></div></div><div class=\"epc-pos-kpi__card\"><div class=\"epc-pos-kpi__icon\"><i class=\"fa fa-store\"></i></div><div><div class=\"epc-pos-kpi__label\">Register</div><div class=\"epc-pos-kpi__value epc-pos-kpi__value--sm\">Register 1</div></div></div></div><div id=\"epc-pos-msg\" class=\"epc-pos-msg\" role=\"status\" aria-live=\"polite\"></div><div class=\"epc-pos-session\" id=\"epc-pos-session-bar\"><div class=\"epc-pos-session__status\"><span class=\"epc-pos-badge epc-pos-badge-open\"><i class=\"fa fa-circle\"></i> Shift open</span><span class=\"epc-pos-session__meta\"><strong>S-1</strong> · Float AED 50.00</span><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-muted\" id=\"epc-pos-close-session\"><i class=\"fa fa-lock\"></i> Close shift</button></div><div class=\"epc-pos-session__warehouse\"><label for=\"epc-pos-warehouse\">Stock warehouse</label><select id=\"epc-pos-warehouse\" name=\"warehouse_id\" aria-label=\"Stock warehouse\"><option value=\"4\">Main</option><option value=\"9\" selected>WH9</option></select></div><div class=\"epc-pos-session__keys\" aria-label=\"Keyboard shortcuts\"><span><kbd>Enter</kbd> search</span><span><kbd>F2</kbd> focus scan</span><span><kbd>F4</kbd> customer</span><span><kbd>F9</kbd> checkout</span></div></div><div class=\"epc-pos-grid\"><section class=\"epc-pos-panel epc-pos-panel--catalog\" aria-label=\"Product search\"><div class=\"epc-pos-panel-head\"><div><i class=\"fa fa-barcode\"></i> Scan / search products</div><span class=\"epc-pos-panel-head__hint\">SKU · barcode · brand · name</span></div><div class=\"epc-pos-panel-body\"><div class=\"epc-pos-search\"><input type=\"search\" id=\"epc-pos-q\" placeholder=\"Scan barcode or type SKU / name…\" autocomplete=\"off\" autofocus aria-label=\"Product search\"><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-primary\" id=\"epc-pos-search-btn\" title=\"Search\"><i class=\"fa fa-search\"></i> Search</button></div><div id=\"epc-pos-products\" class=\"epc-pos-products\"><div class=\"epc-pos-empty epc-pos-empty--graphical\"><div class=\"epc-pos-empty__icon\"><i class=\"fa fa-search\"></i></div><div class=\"epc-pos-empty__title\">Ready to scan</div><p class=\"epc-pos-empty__text\">Type a SKU, barcode, or product name. A single exact match adds to the cart automatically.</p><ol class=\"epc-pos-empty__steps\"><li>Scan or search</li><li>Adjust qty &amp; discount</li><li>Take payment</li></ol></div></div></div></section><section class=\"epc-pos-panel epc-pos-panel--cart\" aria-label=\"Cart and payment\"><div class=\"epc-pos-panel-head\"><div><i class=\"fa fa-shopping-basket\"></i> Cart &amp; checkout</div><span class=\"epc-pos-panel-head__hint\" id=\"epc-pos-cart-count\">0 lines</span></div><div class=\"epc-pos-panel-body epc-pos-panel-body--cart\"><div class=\"epc-pos-block epc-pos-customer\"><div class=\"epc-pos-block__label\"><i class=\"fa fa-user\"></i> Customer</div><div class=\"epc-pos-customer__row\"><input type=\"text\" id=\"epc-pos-customer-q\" placeholder=\"Search name, email, phone…\" autocomplete=\"off\" aria-label=\"Customer search\"><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-muted\" id=\"epc-pos-customer-walkin\" title=\"Reset to walk-in\"><i class=\"fa fa-walking\"></i> Walk-in</button></div><div id=\"epc-pos-customer-pick\" class=\"epc-pos-customer-pick\" style=\"display:none\"></div><input type=\"hidden\" id=\"epc-pos-customer-user\" value=\"0\"><input type=\"hidden\" id=\"epc-pos-customer-contact\" value=\"0\"><div id=\"epc-pos-customer-label\" class=\"epc-pos-customer__selected\"><i class=\"fa fa-check-circle\"></i> Walk-in guest</div></div><div class=\"epc-pos-block epc-pos-block--grow\"><div class=\"epc-pos-block__label\"><i class=\"fa fa-list\"></i> Line items <span class=\"epc-pos-block__hint\">qty · price · % off · amount off</span></div><div id=\"epc-pos-cart\" class=\"epc-pos-cart-lines\"><div class=\"epc-pos-empty epc-pos-empty--compact\">Cart is empty — add products from search</div></div></div><div class=\"epc-pos-block epc-pos-totals\" aria-label=\"Totals\"><div class=\"epc-pos-total-row\"><span>Subtotal (ex VAT)</span><span><span class=\"epc-pos-cur\">AED</span> <span id=\"epc-pos-subtotal\">0.00</span></span></div><div class=\"epc-pos-total-row\"><span>Discount</span><span><span class=\"epc-pos-cur\">AED</span> <span id=\"epc-pos-discount\">0.00</span></span></div><div class=\"epc-pos-total-row\"><span>VAT (<span id=\"epc-pos-tax-rate-lbl\">0.0</span>%)</span><span><span class=\"epc-pos-cur\">AED</span> <span id=\"epc-pos-vat\">0.00</span></span></div><div class=\"epc-pos-total-row grand\"><span>Total due</span><span><span class=\"epc-pos-cur\">AED</span> <span id=\"epc-pos-total\">0.00</span></span></div></div><div class=\"epc-pos-block epc-pos-pay\"><div class=\"epc-pos-block__label\"><i class=\"fa fa-credit-card\"></i> Payment method</div><div class=\"epc-pos-pay-btns\" id=\"epc-pos-pay-mode\" role=\"group\" aria-label=\"Payment method\"><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-muted active\" data-pay=\"cash\"><i class=\"fa fa-money-bill\"></i> Cash</button><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-muted\" data-pay=\"card\"><i class=\"fa fa-credit-card\"></i> Card</button><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-muted\" data-pay=\"split\"><i class=\"fa fa-divide\"></i> Split</button></div><div id=\"epc-pos-cash-fields\" class=\"epc-pos-pay-fields\"><div class=\"epc-pos-field\"><label for=\"epc-pos-tendered\">Cash tendered (AED)</label><input type=\"number\" step=\"0.01\" min=\"0\" id=\"epc-pos-tendered\" placeholder=\"0.00\" inputmode=\"decimal\"></div><div class=\"epc-pos-change\" id=\"epc-pos-change-wrap\">Change <strong id=\"epc-pos-change\">AED 0.00</strong></div></div><div id=\"epc-pos-split-fields\" class=\"epc-pos-pay-fields\" style=\"display:none\"><div class=\"epc-pos-field\"><label for=\"epc-pos-cash-amt\">Cash amount (AED)</label><input type=\"number\" step=\"0.01\" min=\"0\" id=\"epc-pos-cash-amt\" placeholder=\"0.00\" inputmode=\"decimal\"></div><div class=\"epc-pos-field\"><label for=\"epc-pos-card-amt\">Card amount (AED)</label><input type=\"number\" step=\"0.01\" min=\"0\" id=\"epc-pos-card-amt\" placeholder=\"0.00\" inputmode=\"decimal\"></div></div></div><div class=\"epc-pos-block\"><div class=\"epc-pos-field\"><label for=\"epc-pos-notes\">Sale notes <span class=\"epc-pos-block__hint\">(optional · saved on ERP order)</span></label><input type=\"text\" id=\"epc-pos-notes\" maxlength=\"240\" placeholder=\"e.g. counter pickup, invoice reference…\"></div></div><div class=\"epc-pos-actions\"><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-success epc-pos-btn-lg\" id=\"epc-pos-checkout\" disabled><i class=\"fa fa-check-circle\"></i> Complete sale</button><button type=\"button\" class=\"epc-pos-btn epc-pos-btn-muted epc-pos-btn-lg\" id=\"epc-pos-clear\"><i class=\"fa fa-trash\"></i> Clear cart</button></div><p class=\"epc-pos-footnote\">Checkout creates ERP sales order → invoice → receipt voucher and stock out from the selected warehouse.</p></div></section></div></div>"
+            ]
+        },
+        {
+            "name": "role_data",
+            "output": "",
+            "result": [
+                [
+                    "admin",
+                    "finance",
+                    "warehouse",
+                    "sales",
+                    "support",
+                    "viewer"
+                ],
+                "Administrator",
+                "revenue_mtd",
+                "revenue_mtd",
+                4,
+                "ERP Suite",
+                "/cp/content/shop/reports/reports.php",
+                [
+                    "orders",
+                    "customers",
+                    "quotes",
+                    "reports",
+                    "pricing"
+                ],
+                true,
+                true,
+                true,
+                true,
+                false,
+                true,
+                true,
+                "<div class=\"epc-role-home\" style=\"padding:20px;\"><div style=\"margin-bottom:24px;\"><h2 style=\"margin:0 0 4px 0;color:#1e293b;\"><i class=\"fa fa-headset\" style=\"color:#8b5cf6;margin-right:8px;\"></i>Customer Support Dashboard</h2><p style=\"margin:0;color:#64748b;font-size:14px;\">Tickets, returns, customer inquiries</p></div><div style=\"display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px;\"><div style=\"background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #ef4444;\"><div style=\"font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;\">Open Tickets</div><div style=\"font-size:28px;font-weight:700;color:#1e293b;\">0</div><div style=\"margin-top:4px;\"><i class=\"fa fa-ticket\" style=\"color:#ef4444;\"></i></div></div><div style=\"background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #f59e0b;\"><div style=\"font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;\">Pending Returns</div><div style=\"font-size:28px;font-weight:700;color:#1e293b;\">0</div><div style=\"margin-top:4px;\"><i class=\"fa fa-undo\" style=\"color:#f59e0b;\"></i></div></div><div style=\"background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #3b82f6;\"><div style=\"font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;\">Avg Response Time</div><div style=\"font-size:28px;font-weight:700;color:#1e293b;\">0</div><div style=\"margin-top:4px;\"><i class=\"fa fa-clock-o\" style=\"color:#3b82f6;\"></i></div></div><div style=\"background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #10b981;\"><div style=\"font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;\">Resolved Today</div><div style=\"font-size:28px;font-weight:700;color:#1e293b;\">0</div><div style=\"margin-top:4px;\"><i class=\"fa fa-check-circle\" style=\"color:#10b981;\"></i></div></div><div style=\"background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #ec4899;\"><div style=\"font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;\">Escalated</div><div style=\"font-size:28px;font-weight:700;color:#1e293b;\">0</div><div style=\"margin-top:4px;\"><i class=\"fa fa-arrow-up\" style=\"color:#ec4899;\"></i></div></div><div style=\"background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #8b5cf6;\"><div style=\"font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;\">Satisfaction Score</div><div style=\"font-size:28px;font-weight:700;color:#1e293b;\">0</div><div style=\"margin-top:4px;\"><i class=\"fa fa-smile-o\" style=\"color:#8b5cf6;\"></i></div></div></div><h3 style=\"color:#1e293b;margin:0 0 12px 0;\"><i class=\"fa fa-bolt\" style=\"color:#f59e0b;margin-right:6px;\"></i>Quick Actions</h3><div style=\"display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px;\"><a href=\"/cp/content/shop/support/new_ticket.php\" style=\"display:flex;align-items:center;gap:10px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;text-decoration:none;color:#334155;font-size:14px;transition:all 0.2s;\" onmouseover=\"this.style.background='#e0f2fe';this.style.borderColor='#93c5fd'\" onmouseout=\"this.style.background='#f8fafc';this.style.borderColor='#e2e8f0'\"><i class=\"fa fa-plus\" style=\"color:#3b82f6;\"></i>New Ticket</a><a href=\"/cp/content/shop/support/queue.php\" style=\"display:flex;align-items:center;gap:10px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;text-decoration:none;color:#334155;font-size:14px;transition:all 0.2s;\" onmouseover=\"this.style.background='#e0f2fe';this.style.borderColor='#93c5fd'\" onmouseout=\"this.style.background='#f8fafc';this.style.borderColor='#e2e8f0'\"><i class=\"fa fa-inbox\" style=\"color:#3b82f6;\"></i>My Queue</a><a href=\"/cp/content/shop/support/returns.php\" style=\"display:flex;align-items:center;gap:10px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;text-decoration:none;color:#334155;font-size:14px;transition:all 0.2s;\" onmouseover=\"this.style.background='#e0f2fe';this.style.borderColor='#93c5fd'\" onmouseout=\"this.style.background='#f8fafc';this.style.borderColor='#e2e8f0'\"><i class=\"fa fa-undo\" style=\"color:#3b82f6;\"></i>Process Return</a><a href=\"/cp/content/shop/customers/search.php\" style=\"display:flex;align-items:center;gap:10px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;text-decoration:none;color:#334155;font-size:14px;transition:all 0.2s;\" onmouseover=\"this.style.background='#e0f2fe';this.style.borderColor='#93c5fd'\" onmouseout=\"this.style.background='#f8fafc';this.style.borderColor='#e2e8f0'\"><i class=\"fa fa-search\" style=\"color:#3b82f6;\"></i>Customer Lookup</a><a href=\"/cp/content/shop/support/kb.php\" style=\"display:flex;align-items:center;gap:10px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;text-decoration:none;color:#334155;font-size:14px;transition:all 0.2s;\" onmouseover=\"this.style.background='#e0f2fe';this.style.borderColor='#93c5fd'\" onmouseout=\"this.style.background='#f8fafc';this.style.borderColor='#e2e8f0'\"><i class=\"fa fa-book\" style=\"color:#3b82f6;\"></i>Knowledge Base</a></div></div>",
+                "<div class=\"epc-role-home\" style=\"padding:20px;\"><div style=\"margin-bottom:24px;\"><h2 style=\"margin:0 0 4px 0;color:#1e293b;\"><i class=\"fa fa-eye\" style=\"color:#6b7280;margin-right:8px;\"></i>Read-Only Viewer Dashboard</h2><p style=\"margin:0;color:#64748b;font-size:14px;\">View-only access to reports and dashboards</p></div><div style=\"display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px;\"><div style=\"background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #3b82f6;\"><div style=\"font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;\">Total Orders</div><div style=\"font-size:28px;font-weight:700;color:#1e293b;\">0</div><div style=\"margin-top:4px;\"><i class=\"fa fa-shopping-cart\" style=\"color:#3b82f6;\"></i></div></div><div style=\"background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #10b981;\"><div style=\"font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;\">Revenue (MTD)</div><div style=\"font-size:28px;font-weight:700;color:#1e293b;\">0</div><div style=\"margin-top:4px;\"><i class=\"fa fa-money\" style=\"color:#10b981;\"></i></div></div><div style=\"background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #f59e0b;\"><div style=\"font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;\">Total SKUs</div><div style=\"font-size:28px;font-weight:700;color:#1e293b;\">0</div><div style=\"margin-top:4px;\"><i class=\"fa fa-barcode\" style=\"color:#f59e0b;\"></i></div></div><div style=\"background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #8b5cf6;\"><div style=\"font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;\">Active Users</div><div style=\"font-size:28px;font-weight:700;color:#1e293b;\">0</div><div style=\"margin-top:4px;\"><i class=\"fa fa-users\" style=\"color:#8b5cf6;\"></i></div></div></div><h3 style=\"color:#1e293b;margin:0 0 12px 0;\"><i class=\"fa fa-bolt\" style=\"color:#f59e0b;margin-right:6px;\"></i>Quick Actions</h3><div style=\"display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px;\"><a href=\"/cp/content/shop/reports/reports.php\" style=\"display:flex;align-items:center;gap:10px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;text-decoration:none;color:#334155;font-size:14px;transition:all 0.2s;\" onmouseover=\"this.style.background='#e0f2fe';this.style.borderColor='#93c5fd'\" onmouseout=\"this.style.background='#f8fafc';this.style.borderColor='#e2e8f0'\"><i class=\"fa fa-bar-chart\" style=\"color:#3b82f6;\"></i>View Reports</a><a href=\"/cp/content/shop/orders/order_list.php\" style=\"display:flex;align-items:center;gap:10px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;text-decoration:none;color:#334155;font-size:14px;transition:all 0.2s;\" onmouseover=\"this.style.background='#e0f2fe';this.style.borderColor='#93c5fd'\" onmouseout=\"this.style.background='#f8fafc';this.style.borderColor='#e2e8f0'\"><i class=\"fa fa-shopping-cart\" style=\"color:#3b82f6;\"></i>View Orders</a></div></div>"
+            ]
+        },
+        {
+            "name": "role_db",
+            "output": "",
+            "result": [
+                "finance",
+                "warehouse",
+                "admin",
+                "admin",
+                true,
+                false,
+                "sales",
+                {
+                    "value": 2,
+                    "format": "number",
+                    "trend": ""
+                },
+                {
+                    "value": 0,
+                    "format": "number",
+                    "trend": ""
+                },
+                7
+            ]
+        },
+        {
+            "name": "channel_maps",
+            "output": "",
+            "result": [
+                [
+                    "dhl",
+                    "fedex",
+                    "ups",
+                    "tnt",
+                    "aramex",
+                    "smsa",
+                    "naqel",
+                    "emirates_post",
+                    "imile",
+                    "dpd",
+                    "gls",
+                    "postnl",
+                    "royal_mail",
+                    "chronopost",
+                    "usps",
+                    "canada_post",
+                    "sf_express",
+                    "jt_express",
+                    "yamato",
+                    "bluedart"
+                ],
+                "DHL Express",
+                45,
+                [
+                    "EXPRESS",
+                    "ECONOMY"
+                ],
+                [
+                    "amazon",
+                    "ebay",
+                    "amazon_com",
+                    "amazon_ca",
+                    "amazon_mx",
+                    "amazon_br",
+                    "amazon_uk",
+                    "amazon_de",
+                    "amazon_fr",
+                    "amazon_it",
+                    "amazon_es",
+                    "amazon_nl",
+                    "amazon_sa",
+                    "amazon_eg",
+                    "amazon_in",
+                    "amazon_au",
+                    "amazon_jp",
+                    "ebay_uk",
+                    "ebay_de",
+                    "ebay_au",
+                    "ebay_ca",
+                    "ebay_fr",
+                    "noon",
+                    "noon_sa",
+                    "noon_eg",
+                    "dubizzle",
+                    "salla",
+                    "jumia",
+                    "daraz_pk",
+                    "flipkart",
+                    "allegro",
+                    "mercadolibre",
+                    "walmart",
+                    "etsy",
+                    "shopify"
+                ],
+                "A2EUQ1WTGCTBG2",
+                "AE",
+                45,
+                24,
+                53.5,
+                72.23,
+                35.85,
+                "1,234.50",
+                "0.00",
+                "a&amp;b&lt;&#039;x&#039;&gt;",
+                {
+                    "channelsUrl": "/cp/shop/channels/channels",
+                    "guideUrl": "/cp/shop/channels/guide",
+                    "logisticsGuideUrl": "/cp/shop/logistics/guide",
+                    "logisticsUrl": "/cp/shop/logistics",
+                    "ordersUrl": "/cp/shop/orders/orders",
+                    "demoJsonUrl": "/epc-channels-demo.php?token=epartscart-deploy-2026",
+                    "setupUrl": "/epc-channels-setup.php?token=epartscart-deploy-2026"
+                }
+            ]
+        },
+        {
+            "name": "channel_seed",
+            "output": "",
+            "result": [
+                35,
+                35,
+                35,
+                6,
+                6,
+                3,
+                3,
+                [
+                    "amazon",
+                    "ebay",
+                    "amazon_com",
+                    "amazon_ca",
+                    "amazon_mx",
+                    "amazon_br",
+                    "amazon_uk",
+                    "amazon_de",
+                    "amazon_fr",
+                    "amazon_it",
+                    "amazon_es",
+                    "amazon_nl",
+                    "amazon_sa",
+                    "amazon_eg",
+                    "amazon_in",
+                    "amazon_au",
+                    "amazon_jp",
+                    "ebay_uk",
+                    "ebay_de",
+                    "ebay_au",
+                    "ebay_ca",
+                    "ebay_fr",
+                    "noon",
+                    "noon_sa",
+                    "noon_eg",
+                    "dubizzle",
+                    "salla",
+                    "jumia",
+                    "daraz_pk",
+                    "flipkart",
+                    "allegro",
+                    "mercadolibre",
+                    "walmart",
+                    "etsy",
+                    "shopify"
+                ],
+                0,
+                "amazon",
+                2,
+                2,
+                true,
+                "AMZ-402-8819201",
+                "Demo import complete — link to shop_orders when live API credentials are configured",
+                6,
+                3,
+                4,
+                true,
+                6
+            ]
+        }
+    ]
+}
