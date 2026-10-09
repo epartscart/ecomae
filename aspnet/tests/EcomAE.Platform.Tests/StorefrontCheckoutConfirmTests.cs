@@ -147,6 +147,19 @@ public sealed class StorefrontCheckoutConfirmTests
             Path.Combine(root, "aspnet/src/EcomAE.Platform/Storefront/StorefrontCheckoutConfirm.cs")), StringComparison.Ordinal);
         Assert.Contains("@page \"/en/shop/checkout/how_get\"", shared, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/shop/checkout/login_offer\"", shared, StringComparison.Ordinal);
+        // checkout_confirm is a compatibility alias, not the canonical checkout/confirm route moved in this cutover.
+        // Keep it on the shared compatibility page unless the PHP route map proves both aliases resolve to this script.
+        Assert.Contains("@page \"/en/shop/checkout_confirm\"", shared, StringComparison.Ordinal);
+        Assert.Contains("@page \"/shop/checkout_confirm\"", shared, StringComparison.Ordinal);
+        Assert.DoesNotContain("@page \"/en/shop/checkout_confirm\"", dedicated, StringComparison.Ordinal);
+        Assert.DoesNotContain("@page \"/shop/checkout_confirm\"", dedicated, StringComparison.Ordinal);
+
+        var program = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Program.cs"));
+        var tenantAt = program.IndexOf("UseMiddleware<TenantResolutionMiddleware>()", StringComparison.Ordinal);
+        var interceptAt = program.IndexOf("UseMiddleware<EcomAE.Platform.Storefront.StorefrontCheckoutConfirmSessionlessMiddleware>()", StringComparison.Ordinal);
+        var routingAt = program.IndexOf("app.UseRouting()", StringComparison.Ordinal);
+        Assert.True(tenantAt >= 0 && interceptAt > tenantAt && routingAt > interceptAt,
+            "Sessionless checkout interception must run after tenant resolution and before Razor routing.");
     }
 
     private static StorefrontCheckoutConfirm.Input Input(JsonElement c)

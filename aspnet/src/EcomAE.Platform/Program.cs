@@ -1320,6 +1320,7 @@ app.UseMiddleware<EcomaeMarketingSnapshotMiddleware>();
 // Legacy stub→PHP /en redirect. Skipped when PreferAspNetStorefrontApps (product ASP.NET primary).
 app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
+app.UseMiddleware<EcomAE.Platform.Storefront.StorefrontCheckoutConfirmSessionlessMiddleware>();
 // Shared ERP remains available to every tenant; industry-specific workspaces are gated
 // by host/company industry before Blazor can render or accept their forms.
 app.UseMiddleware<IndustrySpecificRouteGateMiddleware>();
