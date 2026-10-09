@@ -100,14 +100,15 @@ public static class StorefrontCheckoutConfirm
         var complementary = await renderComplementaryParts().ConfigureAwait(false);
 
         var html = new StringBuilder();
-        html.Append("\n<p class=\"lead\">{4506}</p>\n<p>{4507}</p>\n");
+        const string detailsToken = "\u001eOBTAIN_DETAILS\u001e";
+        html.Append("<p class=\"lead\">{4506}</p>\n<p>{4507}</p>\n");
         if (input.TradeCheckoutMessage.Length > 0)
         {
             html.Append("\t<div class=\"alert alert-warning\" style=\"margin:15px 0;\">")
                 .Append(H(input.TradeCheckoutMessage)).Append("</div>\n\t");
         }
 
-        html.Append("\n<div style=\"overflow: hidden; overflow-x: auto;\">\n    <table class=\"table\">\n\t\t<tr>\n")
+        html.Append("<div style=\"overflow: hidden; overflow-x: auto;\">\n    <table class=\"table\">\n\t\t<tr>\n")
             .Append("\t\t\t<th style=\"vertical-align: middle; white-space: nowrap;\">{4508}</th>\n")
             .Append("\t\t\t<th style=\"vertical-align: middle; white-space: nowrap; text-align: right;\">{3550}</th>\n")
             .Append("\t\t\t<th style=\"vertical-align: middle; white-space: nowrap; text-align: right;\">{2751}</th>\n")
@@ -126,23 +127,23 @@ public static class StorefrontCheckoutConfirm
             term = term == "0" ? "{4197}" : term + " {4097}.";
             html.Append("    \n    \n    \n    <tr>\n")
                 .Append("        <td style=\"vertical-align: middle; width: 100%; min-width: 200px; max-width: 800px; word-wrap: break-word;\">\n")
-                .Append("            ").Append(H(line.Name)).Append("\n        </td>\n        \n\t\t")
-                .Append("\n\t\t\n\t\t\n        <td style=\"vertical-align: middle; white-space: nowrap; text-align: right;\">\n")
-                .Append("            ").Append(term).Append("\n        </td>\n")
+                .Append("            ").Append(H(line.Name)).Append("        </td>\n        \n\t\t\t\t\n\t\t\n")
                 .Append("        <td style=\"vertical-align: middle; white-space: nowrap; text-align: right;\">\n")
-                .Append("            ").Append(Price(line.Price, input.CurrencyShowMode, currencyIndicator, false)).Append("\n        </td>\n")
+                .Append("            ").Append(term).Append("        </td>\n")
+                .Append("        <td style=\"vertical-align: middle; white-space: nowrap; text-align: right;\">\n")
+                .Append("            ").Append(Price(line.Price, input.CurrencyShowMode, currencyIndicator, false)).Append("        </td>\n")
                 .Append("        \n        <td style=\"vertical-align: middle; white-space: nowrap; text-align: center;\">\n")
-                .Append("            ").Append(H(line.CountNeed)).Append("\n        </td>\n        \n")
+                .Append("            ").Append(H(line.CountNeed)).Append("        </td>\n        \n")
                 .Append("        <td style=\"vertical-align: middle; white-space: nowrap; text-align: right;\">\n")
-                .Append("            ").Append(Price(sum, input.CurrencyShowMode, currencyIndicator, true)).Append("\n        </td>\n")
+                .Append("            ").Append(Price(sum, input.CurrencyShowMode, currencyIndicator, true)).Append("        </td>\n")
                 .Append("    </tr>\n    ");
         }
 
-        html.Append("\n</table>\n</div>\n\n\n<div style=\"margin-bottom: 0px; text-align: right; font-size: 18px; font-weight: bold;\"><span style=\"font-size: 14px; font-weight: normal;\">{3503}:</span> ")
+        html.Append("</table>\n</div>\n\n\n<div style=\"margin-bottom: 0px; text-align: right; font-size: 18px; font-weight: bold;\"><span style=\"font-size: 14px; font-weight: normal;\">{3503}:</span> ")
             .Append(Price(total, input.CurrencyShowMode, currencyIndicator, false)).Append("</div>\n\n")
             .Append("<div class=\"hidden-sm hidden-md hidden-lg\" style=\"margin-bottom:40px;\"></div>\n\n")
-            .Append("<div style=\"overflow-x: auto;\">").Append(details).Append("</div>\n")
-            .Append("\n\n\n\n\n\n<div class=\"row\">\n\t<div class=\"col-lg-12\">\n\t\t<p class=\"lead\">{4509}:</p>\n")
+            .Append("<div style=\"overflow-x: auto;\">").Append(detailsToken).Append("</div>\n")
+            .Append("\n\n\n\n\n<div class=\"row\">\n\t<div class=\"col-lg-12\">\n\t\t<p class=\"lead\">{4509}:</p>\n")
             .Append("\t\t<textarea style=\"height: 36px;\" class=\"form-control\" id=\"message_textarea\" rows=\"1\" placeholder=\"{4510}...\"></textarea>\n")
             .Append("\t</div>\n</div>\n\n");
 
@@ -156,7 +157,7 @@ public static class StorefrontCheckoutConfirm
                 .Append("\t</div>\n</div>\n");
         }
 
-        html.Append('\n').Append(complementary).Append("\n\n\n\n\n\n\n");
+        html.Append(complementary).Append(input.UserId <= 0 ? "\n\n\n\n\n\n\n\n" : "\n\n\n\n\n\n\n\n\n");
         if (input.UserId <= 0)
         {
             html.Append("\t<div class=\"row\" style=\"margin-top:20px;\">\n\t\t<div class=\"col-lg-6\">\n")
@@ -165,7 +166,7 @@ public static class StorefrontCheckoutConfirm
                 .Append("\t\t</div>\n\n\t\n\t\t<div class=\"col-lg-6\">\n")
                 .Append("\t\t\t<p class=\"lead\">E-mail:</p>\n")
                 .Append("\t\t\t<input style=\"height: 36px;\" class=\"form-control\" type=\"text\" id=\"email_not_auth\" value=\"\" placeholder=\"{4513}\" />\n")
-                .Append("\t\t</div>\n\n\t\t<div class=\"col-xs-12 hidden-lg\" style=\"margin-top: 20px;\"></div>\n\t</div>\n\t");
+                .Append("\t\t</div>\n\n\t\t<div class=\"col-xs-12 hidden-lg\" style=\"margin-top: 20px;\"></div>\n\t</div>\n\t\n");
         }
 
         var phoneRegexp = input.UserId <= 0
@@ -175,8 +176,8 @@ public static class StorefrontCheckoutConfirm
             ? await RegexpAsync(connection, "email", cancellationToken).ConfigureAwait(false)
             : string.Empty;
         AppendScript(html, input, phoneRegexp, emailRegexp);
-        html.Append('\n').Append(StorefrontAuthPartials.UsersAgreementModule(input.LangHref, id => "{" + id.ToString(CultureInfo.InvariantCulture) + "}"))
-            .Append("\n\n\n<div class=\"order_confirm_button_div text-center\">\n\t");
+        html.Append("\n\n").Append(StorefrontAuthPartials.UsersAgreementModule(input.LangHref, id => "{" + id.ToString(CultureInfo.InvariantCulture) + "}"))
+            .Append("\n\n<div class=\"order_confirm_button_div text-center\">\n\t\t");
         if (input.TradeCheckoutBlocked)
         {
             html.Append("<p class=\"text-muted\">Place order is disabled until your trade account is approved.</p>\n\t");
@@ -187,8 +188,12 @@ public static class StorefrontCheckoutConfirm
                 .Append("\t<div id=\"confirm_loader\" style=\"display:none;\">\n\t\t<p>{4293}</p>\n")
                 .Append("\t\t<img src=\"/content/files/images/ajax-loader-transparent.gif\" />\n\t</div>\n\t");
         }
-        html.Append("\n</div>\n");
-        return new RenderResult(await StorefrontCart.TranslateAsync(html.ToString(), translate).ConfigureAwait(false));
+        html.Append("</div>\n");
+        var phpLineEndings = html.ToString()
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace("\n", "\r\n", StringComparison.Ordinal)
+            .Replace(detailsToken, details, StringComparison.Ordinal);
+        return new RenderResult(await StorefrontCart.TranslateAsync(phpLineEndings, translate).ConfigureAwait(false));
     }
 
     public static async Task<string> RenderComplementaryPartsAsync(
@@ -264,7 +269,7 @@ public static class StorefrontCheckoutConfirm
             .Append("\tdocument.getElementById(\"confirm_loader\").style.display = 'block';\n\t\n")
             .Append("\tvar result = confirm_order();\n\t\n\tif(result == false){\n")
             .Append("\t\tdocument.getElementById(\"confirm_loader\").style.display = 'none';\n")
-            .Append("\t\tdocument.getElementById(\"confirm_btn\").style.display = 'inline';\n\t}\n}\n\n\n")
+            .Append("\t\tdocument.getElementById(\"confirm_btn\").style.display = 'inline';\n\t}\n}\n\n\n\n")
             .Append("//ПОДТВЕРЖДЕНИЕ ЗАКАЗА\nfunction confirm_order()\n{\n")
             .Append("\t//Проверка согласия с обработкой персональных данных\n\tif( !check_user_agreement() )\n\t{\n\t\treturn false;\n\t}\n\t\n\t\n\t\n")
             .Append("\tvar phone_not_auth = '';\n\tvar email_not_auth = '';\n\t");
@@ -307,7 +312,7 @@ public static class StorefrontCheckoutConfirm
             .Append("\t\t\t//Если некорректный парсинг ответа\n\t\t\tif( typeof answer_ob.status === \"undefined\" )\n\t\t\t{\n\t\t\t\talert(\"{4519}\");\n\t\t\t}\n")
             .Append("\t\t\telse\n\t\t\t{\n\t\t\t\t//Корректный парсинг ответа\n\t\t\t\tif(answer_ob.status == true)\n\t\t\t\t{\n\t\t\t\t\t");
         var destination = input.UserId > 0 ? "/shop/orders/order" : "/shop/orders/zakaz-bez-registracii";
-        html.Append("\t\t\t\t\tlocation = \"").Append(Js(input.LangHref + destination))
+        html.Append("\t\t\t\t\t\tlocation = \"").Append(Js(input.LangHref + destination))
             .Append("?order_id=\"+answer_ob.order_id+\"&success_message=\"+encodeURI(\"{4520}.\");\n\t\t\t\t\t\t")
             .Append("\t\t\t\t}\n\t\t\t\telse\n\t\t\t\t{\n\t\t\t\t\talert(answer_ob.message);\n\t\t\t\t\n")
             .Append("\t\t\t\t\tdocument.getElementById(\"confirm_loader\").style.display = 'none';\n")

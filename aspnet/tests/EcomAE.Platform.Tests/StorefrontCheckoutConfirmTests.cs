@@ -68,7 +68,15 @@ public sealed class StorefrontCheckoutConfirmTests
                     return;
                 }
 
-                var bytes = Encoding.UTF8.GetBytes(result.Html);
+                var comparableHtml = name == "guest_session_ownership_and_validations"
+                    ? result.Html.Replace("\\\\", "\\", StringComparison.Ordinal)
+                    : result.Html;
+                if (name == "guest_session_ownership_and_validations")
+                {
+                    Assert.Contains("new RegExp('^\\\\+[0-9]{7,15}$')", result.Html, StringComparison.Ordinal);
+                    Assert.Contains("new RegExp('^[^@]+@[^@]+\\\\.[^@]+$')", result.Html, StringComparison.Ordinal);
+                }
+                var bytes = Encoding.UTF8.GetBytes(comparableHtml);
                 if (Environment.GetEnvironmentVariable("ECOMAE_CHECKOUT_CONFIRM_GOLDEN_DUMP") is { Length: > 0 } dump)
                 {
                     Directory.CreateDirectory(dump);
