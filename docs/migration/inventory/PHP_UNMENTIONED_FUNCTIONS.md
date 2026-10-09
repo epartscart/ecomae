@@ -4,21 +4,18 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 
 | Class | Count | What to do |
 |---|---:|---|
-| Real PHP (non-ERP), gap file ≤200 lines | 180 | Build next — listed below |
+| Real PHP (non-ERP), gap file ≤200 lines | 162 | Build next — listed below |
 | Real PHP (non-ERP), larger gap file | 2587 | Build with the parent kernel |
-| Real PHP already on a mentioned file | 860 | Finish leftover helpers on that twin |
+| Real PHP already on a mentioned file | 859 | Finish leftover helpers on that twin |
 | JS functions written inside PHP templates | 1390 | Port as browser JS, not C# methods |
 | Vendor (PHPExcel, PclZip, …) | 255 | Do not port |
 | ERP finance (Devin) | 2035 | Leave for Devin |
-| **Total unmentioned** | **7745** | |
+| **Total unmentioned** | **7726** | |
 
 ## Ready to build (non-ERP PHP, gap file ≤200 lines)
 
 | PHP name | C# twin | File | Lines |
 |---|---|---|---:|
-| `epc_acc_classify` | `EpcAccClassify` | `content/general_pages/epc_accessories_taxonomy.php` | 194 |
-| `epc_acc_taxonomy` | `EpcAccTaxonomy` | `content/general_pages/epc_accessories_taxonomy.php` | 194 |
-| `epc_acc_warehouse_regions` | `EpcAccWarehouseRegions` | `content/general_pages/epc_accessories_taxonomy.php` | 194 |
 | `epc_copilot_ensure_schema` | `EpcCopilotEnsureSchema` | `content/general_pages/epc_ai_copilot.php` | 150 |
 | `epc_copilot_execute` | `EpcCopilotExecute` | `content/general_pages/epc_ai_copilot.php` | 150 |
 | `epc_copilot_fleet_stats` | `EpcCopilotFleetStats` | `content/general_pages/epc_ai_copilot.php` | 150 |
@@ -100,8 +97,6 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_promo_ensure_schema` | `EpcPromoEnsureSchema` | `content/general_pages/epc_promotions_engine.php` | 153 |
 | `epc_promo_fleet_stats` | `EpcPromoFleetStats` | `content/general_pages/epc_promotions_engine.php` | 153 |
 | `epc_promo_list` | `EpcPromoList` | `content/general_pages/epc_promotions_engine.php` | 153 |
-| `epc_tdp_policy_sections` | `EpcTdpPolicySections` | `content/general_pages/epc_tenant_data_policy.php` | 181 |
-| `epc_tdp_render_policy_html` | `EpcTdpRenderPolicyHtml` | `content/general_pages/epc_tenant_data_policy.php` | 181 |
 | `epc_tenant_pdo` | `EpcTenantPdo` | `content/general_pages/epc_tenant_pdo.php` | 153 |
 | `epc_tenant_pdo_from_row` | `EpcTenantPdoFromRow` | `content/general_pages/epc_tenant_pdo.php` | 153 |
 | `epc_tenant_pdo_pool_stats` | `EpcTenantPdoPoolStats` | `content/general_pages/epc_tenant_pdo.php` | 153 |
@@ -128,12 +123,6 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_genuine_site_base_url` | `EpcGenuineSiteBaseUrl` | `content/shop/docpart/docpart_genuine_manufacturers.php` | 191 |
 | `epc_genuine_sync_umapi_sections` | `EpcGenuineSyncUmapiSections` | `content/shop/docpart/docpart_genuine_manufacturers.php` | 191 |
 | `epc_genuine_write_cache` | `EpcGenuineWriteCache` | `content/shop/docpart/docpart_genuine_manufacturers.php` | 191 |
-| `docpart_load_manufacturer_canonical_map` | `DocpartLoadManufacturerCanonicalMap` | `content/shop/docpart/docpart_manufacturer_synonyms.php` | 153 |
-| `docpart_load_manufacturer_synonym_map` | `DocpartLoadManufacturerSynonymMap` | `content/shop/docpart/docpart_manufacturer_synonyms.php` | 153 |
-| `docpart_synonym_brands_equivalent` | `DocpartSynonymBrandsEquivalent` | `content/shop/docpart/docpart_manufacturer_synonyms.php` | 153 |
-| `docpart_synonym_canonical_brand` | `DocpartSynonymCanonicalBrand` | `content/shop/docpart/docpart_manufacturer_synonyms.php` | 153 |
-| `docpart_synonym_names_for_brand` | `DocpartSynonymNamesForBrand` | `content/shop/docpart/docpart_manufacturer_synonyms.php` | 153 |
-| `docpart_synonym_normalize_brand` | `DocpartSynonymNormalizeBrand` | `content/shop/docpart/docpart_manufacturer_synonyms.php` | 153 |
 | `epc_build_initial_price_bunch` | `EpcBuildInitialPriceBunch` | `content/shop/docpart/epc_build_initial_price_bunch.php` | 108 |
 | `epc_prices_build_office_storage_data_info` | `EpcPricesBuildOfficeStorageDataInfo` | `content/shop/docpart/epc_prices_office_storage_meta.php` | 170 |
 | `epc_logistics_configure_urls` | `EpcLogisticsConfigureUrls` | `content/shop/logistics/epc_logistics_helpers.php` | 151 |
@@ -162,14 +151,7 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_apai_enrich_product` | `EpcApaiEnrichProduct` | `content/shop/price_engine/epc_auto_price_ai_enrich.php` | 167 |
 | `epc_apai_openai_enrich` | `EpcApaiOpenaiEnrich` | `content/shop/price_engine/epc_auto_price_ai_enrich.php` | 167 |
 | `epc_apai_suggest_taxonomy` | `EpcApaiSuggestTaxonomy` | `content/shop/price_engine/epc_auto_price_ai_enrich.php` | 167 |
-| `epc_order_guide_checklist` | `EpcOrderGuideChecklist` | `content/shop/usefull/epc_order_fulfilment_guide_data.php` | 171 |
-| `epc_order_guide_snapshot` | `EpcOrderGuideSnapshot` | `content/shop/usefull/epc_order_fulfilment_guide_data.php` | 171 |
 | `addContentToDump` | `AddContentToDump` | `cp/content/content/get_content_records.php` | 138 |
-| `epc_config_group_meta` | `EpcConfigGroupMeta` | `cp/content/control/epc_config_edit_meta.php` | 193 |
-| `epc_config_group_meta_for` | `EpcConfigGroupMetaFor` | `cp/content/control/epc_config_edit_meta.php` | 193 |
-| `epc_config_item_frontend_effect` | `EpcConfigItemFrontendEffect` | `cp/content/control/epc_config_edit_meta.php` | 193 |
-| `epc_config_item_frontend_effects` | `EpcConfigItemFrontendEffects` | `cp/content/control/epc_config_edit_meta.php` | 193 |
-| `epc_config_item_label` | `EpcConfigItemLabel` | `cp/content/control/epc_config_edit_meta.php` | 193 |
 | `epc_adg_h` | `EpcAdgH` | `cp/content/control/portal/epc_api_documentation_guide.php` | 141 |
 | `epc_apai_cp_load_shell_modules` | `EpcApaiCpLoadShellModules` | `cp/content/control/portal/epc_auto_price_cp_shell.php` | 194 |
 | `epc_apai_cp_render_shell` | `EpcApaiCpRenderShell` | `cp/content/control/portal/epc_auto_price_cp_shell.php` | 194 |

@@ -322,6 +322,13 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — ready named helpers (accessories, synonyms, TDP, config meta, order guide)
+
+Not complete.
+
+- Ratchet 595 to 590. Five more self-contained non-ERP files now have PHP 8.3 goldens and an ASP.NET twin (`PhpReadyNamed`): `epc_accessories_taxonomy.php` (`epc_acc_taxonomy` / `epc_acc_classify` longest-keyword wins / `epc_acc_warehouse_regions`), `docpart_manufacturer_synonyms.php` (normalize, synonym map, names, equivalent, canonical map), `epc_tenant_data_policy.php` (sections + HTML; version `1.0.0`, month `October 2026` UTC), `epc_config_edit_meta.php` (group meta / item frontend effect / label), `epc_order_fulfilment_guide_data.php` (checklist strings + snapshot from structured inputs). The 650-line legal policy catalog and live interchange suggestions stay gaps. Search tabs, `printProducts*`, `side_menu`, page-builder render, BOC consoles, product-line href pages, CP `*_h` guide wrappers and `orders_background` stay skipped — see `CURSOR_NON_ERP_NEXT_PLAN.md`.
+- Evidence: PHP 8.3.6 produced `Fixtures/ReadyNamed/golden.json` (18 cases). The ReadyNamed suite is 4 of 4. Inventory content 450 to 454 of 952, cp-page 252 to 253 of 523. Unnamed PHP functions 7,745 to 7,726. Ready ≤200-line non-ERP functions 180 to 162. The weighted headline stays about 20.4%. Non-ERP pending: 424 files / 200,081 lines (was 429 / 200,973). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session.
+
 ### Checkpoint 2026-10-09 — named-function storefront helpers (taxonomy, hashes, cache, legal, branding)
 
 Not complete.
