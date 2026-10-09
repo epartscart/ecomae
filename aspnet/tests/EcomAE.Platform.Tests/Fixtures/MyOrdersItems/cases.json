@@ -1,0 +1,53 @@
+{
+  "schema": [
+    "CREATE TABLE `shop_orders` (`id` int NOT NULL, `user_id` int NOT NULL, `time` int NOT NULL, `office_id` int NOT NULL, `status` int NOT NULL, `paid` tinyint NOT NULL, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_orders_items` (`id` int NOT NULL, `order_id` int NOT NULL, `product_type` int NULL, `status` int NOT NULL, `price` decimal(12,2) NOT NULL, `count_need` decimal(12,3) NOT NULL, `t2_manufacturer` varchar(255) NOT NULL, `t2_article` varchar(255) NOT NULL, `t2_name` varchar(255) NOT NULL, `t2_time_to_exe` int NOT NULL, `t2_time_to_exe_guaranteed` int NOT NULL, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_orders_statuses_ref` (`id` int NOT NULL, `name` varchar(64) NOT NULL, `color` varchar(32) NOT NULL, `order` int NOT NULL, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_orders_items_statuses_ref` (`id` int NOT NULL, `name` varchar(64) NOT NULL, `color` varchar(32) NOT NULL, `order` int NOT NULL, `count_flag` tinyint NOT NULL, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_offices` (`id` int NOT NULL, `caption` varchar(255) NOT NULL, PRIMARY KEY (`id`))"
+  ],
+  "base": [
+    "INSERT INTO `shop_orders_statuses_ref` VALUES (1,'Order new','#fff',1),(2,'Order done','#ddd',2),(3,'Order hold','#ffc',3)",
+    "INSERT INTO `shop_orders_items_statuses_ref` VALUES (1,'Line new','#fafafa',1,1),(2,'Line cancelled','#f2dede',2,0),(3,'Line ready','#d9edf7',3,1)",
+    "INSERT INTO `shop_offices` VALUES (1,'Main office'),(2,'Branch'),(9,'Remote')",
+    "INSERT INTO `shop_orders` VALUES (101,7,1700000000,1,1,0),(102,7,1700100000,2,2,1),(103,7,1700200000,9,3,2),(104,7,1700300000,1,1,0),(105,7,1700400000,2,2,1),(106,7,1700500000,1,3,2),(201,8,1700600000,1,1,0)",
+    "INSERT INTO `shop_orders_items` VALUES (11,101,2,1,10.50,2.000,'Bosch','0986','Brake pad',2,4),(12,101,1,2,99.00,1.000,'Mann','W712','Oil filter',3,3),(13,102,2,3,1234.50,3.000,'Febi','123','Bulb',1,2),(14,103,NULL,1,5.00,1.000,'X','Y','Z',0,0),(15,104,2,2,7.25,4.000,'A','B','C',7,5),(16,105,2,3,100.00,1.500,'NGK','BKR6','Spark plug',2,2),(17,106,2,1,2.00,1.000,'K','L','M',9,12),(21,201,2,1,1.00,1.000,'Other','Q','Private',1,1)"
+  ],
+  "cases": [
+    {"name":"visitor_en","user_id":0,"get":{},"cookies":{},"config":{"list_page_limit":"20"}},
+    {"name":"visitor_no_lang","user_id":0,"get":{},"cookies":{},"config":{"list_page_limit":"20"},"lang_href":""},
+    {"name":"customer_default","user_id":7,"get":{},"cookies":{},"config":{"list_page_limit":"20"}},
+    {"name":"filter_all","user_id":7,"get":{},"cookies":{"my_orders_items_filter":"{\"time_from\":\"1699999999\",\"time_to\":\"1700150000\",\"order_id\":\"101\",\"order_status\":\"1\",\"paid\":\"0\",\"order_item_status\":\"1\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"filter_time_from","user_id":7,"get":{},"cookies":{"my_orders_items_filter":"{\"time_from\":\"1700250000\",\"time_to\":\"\",\"order_id\":\"\",\"order_status\":0,\"paid\":-1,\"order_item_status\":0}"},"config":{"list_page_limit":"20"}},
+    {"name":"filter_time_to","user_id":7,"get":{},"cookies":{"my_orders_items_filter":"{\"time_from\":\"\",\"time_to\":\"1700250000\",\"order_id\":\"\",\"order_status\":0,\"paid\":-1,\"order_item_status\":0}"},"config":{"list_page_limit":"20"}},
+    {"name":"filter_order","user_id":7,"get":{},"cookies":{"my_orders_items_filter":"{\"time_from\":\"\",\"time_to\":\"\",\"order_id\":\"102\",\"order_status\":0,\"paid\":-1,\"order_item_status\":0}"},"config":{"list_page_limit":"20"}},
+    {"name":"filter_order_status","user_id":7,"get":{},"cookies":{"my_orders_items_filter":"{\"time_from\":\"\",\"time_to\":\"\",\"order_id\":\"\",\"order_status\":\"2\",\"paid\":-1,\"order_item_status\":0}"},"config":{"list_page_limit":"20"}},
+    {"name":"filter_paid_partial","user_id":7,"get":{},"cookies":{"my_orders_items_filter":"{\"time_from\":\"\",\"time_to\":\"\",\"order_id\":\"\",\"order_status\":0,\"paid\":\"2\",\"order_item_status\":0}"},"config":{"list_page_limit":"20"}},
+    {"name":"filter_item_status","user_id":7,"get":{},"cookies":{"my_orders_items_filter":"{\"time_from\":\"\",\"time_to\":\"\",\"order_id\":\"\",\"order_status\":0,\"paid\":-1,\"order_item_status\":\"2\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"filter_invalid_json","user_id":7,"get":{},"cookies":{"my_orders_items_filter":"not-json"},"config":{"list_page_limit":"20"}},
+    {"name":"filter_scalar_json","user_id":7,"get":{},"cookies":{"my_orders_items_filter":"5"},"config":{"list_page_limit":"20"}},
+    {"name":"filter_loose_values","user_id":7,"get":{},"cookies":{"my_orders_items_filter":"{\"time_from\":false,\"time_to\":null,\"order_id\":0,\"order_status\":\"abc\",\"paid\":\"\",\"order_item_status\":[]}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_id_asc","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"{\"field\":\"id\",\"asc_desc\":\"asc\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_manufacturer_desc","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"{\"field\":\"manufacturer\",\"asc_desc\":\"desc\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_article_asc","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"{\"field\":\"article\",\"asc_desc\":\"asc\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_product_name_asc","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"{\"field\":\"product_name\",\"asc_desc\":\"asc\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_price_desc","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"{\"field\":\"price\",\"asc_desc\":\"desc\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_count_asc","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"{\"field\":\"count_need\",\"asc_desc\":\"asc\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_sum_desc","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"{\"field\":\"price_sum\",\"asc_desc\":\"desc\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_status_asc","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"{\"field\":\"status\",\"asc_desc\":\"asc\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_delivery_desc","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"{\"field\":\"t2_time_to_exe\",\"asc_desc\":\"desc\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_time_asc","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"{\"field\":\"time\",\"asc_desc\":\"asc\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_order_id_desc","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"{\"field\":\"order_id\",\"asc_desc\":\"desc\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_office_asc","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"{\"field\":\"office_id\",\"asc_desc\":\"asc\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_hostile","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"{\"field\":\"id` DESC; DROP TABLE x\",\"asc_desc\":\"sideways\"}"},"config":{"list_page_limit":"20"}},
+    {"name":"sort_invalid_json","user_id":7,"get":{},"cookies":{"my_orders_items_sort":"bad"},"config":{"list_page_limit":"20"}},
+    {"name":"page_1_of_7","user_id":7,"get":{},"cookies":{},"config":{"list_page_limit":"1"}},
+    {"name":"page_4_of_7","user_id":7,"get":{"page":"4"},"cookies":{},"config":{"list_page_limit":"1"}},
+    {"name":"page_7_of_7","user_id":7,"get":{"page":"7"},"cookies":{},"config":{"list_page_limit":"1"}},
+    {"name":"page_10_of_7","user_id":7,"get":{"page":"10"},"cookies":{},"config":{"list_page_limit":"1"}},
+    {"name":"page_zero","user_id":7,"get":{"page":"0"},"cookies":{},"config":{"list_page_limit":"2"}},
+    {"name":"page_abc_no_lang","user_id":7,"get":{"page":"abc"},"cookies":{},"config":{"list_page_limit":"2"},"lang_href":""},
+    {"name":"no_rows","user_id":9,"get":{},"cookies":{},"config":{"list_page_limit":"20"}},
+    {"name":"hostile_cookie_and_db","user_id":7,"get":{},"cookies":{"my_orders_items_filter":"{\"time_from\":\"\\\"><script>cookie1</script>\",\"time_to\":\"\",\"order_id\":\"101<b>\",\"order_status\":0,\"paid\":-1,\"order_item_status\":0}"},"config":{"list_page_limit":"20"},"sql":["UPDATE `shop_orders_items` SET `t2_manufacturer`='<img src=x onerror=db1>',`t2_article`='A&B',`t2_name`='<script>db2</script>' WHERE `id`=11","UPDATE `shop_offices` SET `caption`='<svg onload=db3>' WHERE `id`=1","UPDATE `shop_orders_items_statuses_ref` SET `name`='<b>Status</b>',`color`='\\\" onmouseover=db4' WHERE `id`=1"]}
+  ]
+}
