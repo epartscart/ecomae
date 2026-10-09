@@ -1,0 +1,3187 @@
+{
+ "schema": [
+  "CREATE TABLE `shop_geo` (`id` int NOT NULL AUTO_INCREMENT, `value` varchar(255) NOT NULL DEFAULT '', PRIMARY KEY (`id`))",
+  "CREATE TABLE `shop_offices` (`id` int NOT NULL AUTO_INCREMENT, `caption` varchar(255) NOT NULL DEFAULT '', PRIMARY KEY (`id`))",
+  "CREATE TABLE `shop_offices_geo_map` (`id` int NOT NULL AUTO_INCREMENT, `office_id` int NOT NULL, `geo_id` int NOT NULL, PRIMARY KEY (`id`))",
+  "CREATE TABLE `shop_storages` (`id` int NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL DEFAULT '', `currency` int NOT NULL DEFAULT 784, `interface_type` int NOT NULL DEFAULT 1, PRIMARY KEY (`id`))",
+  "CREATE TABLE `shop_currencies` (`id` int NOT NULL AUTO_INCREMENT, `iso_code` int NOT NULL DEFAULT 0, `rate` decimal(15,6) NOT NULL DEFAULT 1.000000, PRIMARY KEY (`id`))",
+  "CREATE TABLE `shop_storages_data` (`id` int NOT NULL AUTO_INCREMENT, `storage_id` int NOT NULL DEFAULT 0, `product_id` int NOT NULL DEFAULT 0, `price` decimal(15,2) NOT NULL DEFAULT 0.00, `exist` int NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+  "CREATE TABLE `shop_offices_storages_map` (`id` int NOT NULL AUTO_INCREMENT, `office_id` int NOT NULL DEFAULT 0, `storage_id` int NOT NULL DEFAULT 0, `group_id` int NOT NULL DEFAULT 0, `min_point` decimal(15,2) NOT NULL DEFAULT 0.00, `max_point` decimal(15,2) NOT NULL DEFAULT 999999999.00, `markup` decimal(10,2) NOT NULL DEFAULT 0.00, PRIMARY KEY (`id`))",
+  "CREATE TABLE `groups` (`id` int NOT NULL AUTO_INCREMENT, `value` varchar(255) NOT NULL DEFAULT '', `for_guests` tinyint(1) NOT NULL DEFAULT 0, `for_registrated` tinyint(1) NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+  "CREATE TABLE `users_groups_bind` (`record_id` int NOT NULL AUTO_INCREMENT, `user_id` int NOT NULL, `group_id` int NOT NULL, PRIMARY KEY (`record_id`))",
+  "CREATE TABLE `shop_catalogue_products` (`id` int NOT NULL PRIMARY KEY, `caption` varchar(255) NOT NULL DEFAULT '', `category_id` int NOT NULL DEFAULT 0, `alias` varchar(255) NOT NULL DEFAULT '', `published_flag` tinyint NOT NULL DEFAULT 1)",
+  "CREATE TABLE `shop_properties_values_int` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `property_id` int NOT NULL, `value` int NOT NULL)",
+  "CREATE TABLE `shop_properties_values_float` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `property_id` int NOT NULL, `value` double NOT NULL)",
+  "CREATE TABLE `shop_properties_values_bool` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `property_id` int NOT NULL, `value` tinyint(1) NOT NULL)",
+  "CREATE TABLE `shop_properties_values_list` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `property_id` int NOT NULL, `value` int NOT NULL)",
+  "CREATE TABLE `shop_properties_values_tree_list` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `property_id` int NOT NULL, `value` int NOT NULL)",
+  "CREATE TABLE `shop_properties_values_text` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `property_id` int NOT NULL, `value` varchar(255) NOT NULL)",
+  "CREATE TABLE `shop_categories_properties_map` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `category_id` int NOT NULL, `value` varchar(255) NOT NULL, `property_type_id` int NOT NULL)",
+  "CREATE TABLE `lang_text_strings_translation` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `str_id` varchar(64) NOT NULL, `str_key` varchar(64) NOT NULL, `lang_code` varchar(8) NOT NULL, `value` text NOT NULL)",
+  "CREATE TABLE `shop_products_text` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `product_id` int NOT NULL, `content` varchar(64) NOT NULL)",
+  "CREATE TABLE `epc_product_discovery_queue` (`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY, `status` varchar(32) NOT NULL, `product_id` int NOT NULL DEFAULT 0, `brand_article_key` varchar(255) NOT NULL DEFAULT '', `meta_json` text)"
+ ],
+ "base": [
+  "INSERT INTO `groups` (`id`, `value`, `for_guests`, `for_registrated`) VALUES (1, 'Guests', 1, 0), (2, 'Registered', 0, 1), (3, 'Wholesale', 0, 0)",
+  "INSERT INTO `users_groups_bind` (`user_id`, `group_id`) VALUES (5, 3), (7, 2), (7, 1)",
+  "INSERT INTO `shop_geo` (`id`, `value`) VALUES (1, 'Dubai'), (2, 'Sharjah')",
+  "INSERT INTO `shop_offices` (`id`, `caption`) VALUES (1, 'Office 1'), (2, 'Office 2'), (3, 'Office 3')",
+  "INSERT INTO `shop_offices_geo_map` (`office_id`, `geo_id`) VALUES (1, 1), (2, 1), (3, 2)",
+  "INSERT INTO `shop_currencies` (`iso_code`, `rate`) VALUES (784, '1.000000'), (840, '3.670000')",
+  "INSERT INTO `shop_storages` (`id`, `name`, `currency`, `interface_type`) VALUES (1, 'AED stock', 784, 1), (2, 'USD stock', 840, 1), (3, 'API stock', 784, 2)",
+  "INSERT INTO `shop_offices_storages_map` (`office_id`, `storage_id`, `group_id`, `min_point`, `max_point`, `markup`) VALUES (1, 1, 1, 0, 1000, 10), (1, 1, 1, 1000, 99999, 5), (1, 1, 2, 0, 99999, 20), (1, 2, 1, 0, 99999, 0), (1, 2, 2, 0, 99999, 25), (1, 3, 1, 0, 99999, 50), (2, 1, 1, 0, 99999, 0), (2, 1, 2, 0, 99999, 50), (3, 2, 1, 0, 99999, 100), (3, 2, 2, 0, 99999, 10)",
+  "INSERT INTO `shop_catalogue_products` (`id`, `caption`, `category_id`, `alias`, `published_flag`) VALUES (1, 'c1', 10, 'acme/bp100', 1), (2, 'c2', 10, 'acme/bd200', 1), (3, 'c3', 10, 'acme/of300', 1), (4, 'c4', 10, 'acme/af400', 1), (5, 'c5', 10, 'acme/bp500', 0), (6, 'c6', 20, 'acme/sp600', 1), (7, 'c7', 20, 'acme/wb700', 1), (8, 'c8', 20, 'acme/bf800', 0), (9, 'c9', 30, 'acme/tz900', 1), (10, 'c10', 10, 'acme/ob1000', 1)",
+  "INSERT INTO `shop_storages_data` (`storage_id`, `product_id`, `price`, `exist`) VALUES (1, 1, 100, 5), (1, 2, 200, 3), (2, 2, 50, 2), (1, 3, 500, 0), (2, 4, 10, 1), (3, 4, 9999, 1), (1, 5, 150, 1), (1, 6, 1000, 1), (1, 7, 2500, 1), (1, 8, 300, 1), (1, 10, 0, 4)",
+  "INSERT INTO `shop_properties_values_int` (`product_id`, `property_id`, `value`) VALUES (1, 101, 5), (2, 101, 10), (3, 101, 15), (4, 101, 20), (6, 101, 100)",
+  "INSERT INTO `shop_properties_values_float` (`product_id`, `property_id`, `value`) VALUES (1, 102, 1.5), (2, 102, 2.5), (3, 102, 3.5)",
+  "INSERT INTO `shop_properties_values_bool` (`product_id`, `property_id`, `value`) VALUES (1, 103, 1), (2, 103, 0), (3, 103, 1), (6, 103, 1)",
+  "INSERT INTO `shop_properties_values_list` (`product_id`, `property_id`, `value`) VALUES (1, 104, 1), (2, 104, 2), (3, 104, 1), (3, 104, 2), (4, 104, 3)",
+  "INSERT INTO `shop_properties_values_tree_list` (`product_id`, `property_id`, `value`) VALUES (1, 105, 11), (2, 105, 12), (3, 105, 0), (4, 105, 13)",
+  "INSERT INTO `lang_text_strings_translation` (`str_id`, `str_key`, `lang_code`, `value`) VALUES ('c1', 'c1', 'en', 'Brake Pad Front'), ('c2', 'c2', 'en', 'Brake Disc Front'), ('c3', 'c3', 'en', 'Oil Filter'), ('c4', 'c4', 'en', 'Air Filter'), ('c5', 'c5', 'en', 'Brake Pad Hidden'), ('c6', 'c6', 'en', 'Spark Plug'), ('c7', 'c7', 'en', 'Wiper Blade'), ('c8', 'c8', 'en', 'Brake Fluid'), ('c9', 'c9', 'en', 'Тормозная жидкость'), ('c10', 'c10', 'en', 'O&#039;Brien Wrench'), ('d3', 'd3', 'en', 'Premium synthetic oil for engines'), ('d7', 'd7', 'en', 'Silicone wiper insert'), ('k_article', 'k_article', 'en', 'Article'), ('k_article', 'k_article', 'ru', 'Артикул'), ('art3', 'art3', 'en', 'BP123'), ('art3', 'art3', 'ru', 'ZZ777'), ('art4', 'art4', 'ru', 'BP999')",
+  "INSERT INTO `shop_categories_properties_map` (`id`, `category_id`, `value`, `property_type_id`) VALUES (200, 10, 'k_article', 3), (201, 10, 'k_other', 4)",
+  "INSERT INTO `shop_properties_values_text` (`product_id`, `property_id`, `value`) VALUES (3, 200, 'art3'), (4, 200, 'art4')",
+  "INSERT INTO `shop_products_text` (`product_id`, `content`) VALUES (3, 'd3'), (7, 'd7')",
+  "INSERT INTO `epc_product_discovery_queue` (`status`, `product_id`, `brand_article_key`, `meta_json`) VALUES ('imported', 7, 'acme-zz9', '{\"brand_article_key\":\"acme-zz9\"}'), ('queued', 4, 'acme-qq1', '{}'), ('imported', 0, 'acme-xx0', '{}')"
+ ],
+ "cases": [
+  {
+   "name": "block1_category10",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1
+   }
+  },
+  {
+   "name": "block4_category10",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 4
+   }
+  },
+  {
+   "name": "block2_category10_unpublished_included",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 2
+   }
+  },
+  {
+   "name": "block3_category10_unpublished_included",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 3
+   }
+  },
+  {
+   "name": "block_type_missing_category10",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "properties_list": []
+   }
+  },
+  {
+   "name": "block_type_string_1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": "1"
+   }
+  },
+  {
+   "name": "block_type_string_4",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": "4"
+   }
+  },
+  {
+   "name": "category20_block1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 20,
+    "product_block_type": 1
+   }
+  },
+  {
+   "name": "category20_block3_unpublished_included",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 20,
+    "product_block_type": 3
+   }
+  },
+  {
+   "name": "category_empty_99",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 99,
+    "product_block_type": 1
+   }
+  },
+  {
+   "name": "category_zero_means_all_published",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1
+   }
+  },
+  {
+   "name": "category_zero_string_means_all",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": "0",
+    "product_block_type": 1
+   }
+  },
+  {
+   "name": "category_null_means_all",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": null,
+    "product_block_type": 1,
+    "properties_list": []
+   }
+  },
+  {
+   "name": "category_missing_means_all",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "product_block_type": 1,
+    "properties_list": []
+   }
+  },
+  {
+   "name": "category_numeric_string",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": "10",
+    "product_block_type": 1
+   }
+  },
+  {
+   "name": "category30_product_without_priced_stock",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 30,
+    "product_block_type": 1
+   }
+  },
+  {
+   "name": "category10_includes_zero_price_and_no_stock_products",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1
+   }
+  },
+  {
+   "name": "all_categories_block3_all_products",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 3
+   }
+  },
+  {
+   "name": "properties_list_missing",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1
+   }
+  },
+  {
+   "name": "properties_list_empty",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": []
+   }
+  },
+  {
+   "name": "properties_list_null",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": null
+   }
+  },
+  {
+   "name": "properties_list_empty_objects",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {},
+     {}
+    ]
+   }
+  },
+  {
+   "name": "properties_list_scalar_elements",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     5,
+     "x",
+     null
+    ]
+   }
+  },
+  {
+   "name": "properties_list_unknown_property_types",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 1,
+      "property_type_id": 3
+     },
+     {
+      "property_id": 2,
+      "property_type_id": 7
+     },
+     {
+      "property_id": 3
+     }
+    ]
+   }
+  },
+  {
+   "name": "request_empty_object",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {}
+  },
+  {
+   "name": "paging_fields_non_numeric_are_ignored_by_count",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "productsPerPage": "abc",
+    "needPagesCount": [],
+    "startFrom": {
+     "a": 1
+    },
+    "page_style": "x"
+   }
+  },
+  {
+   "name": "offices_cookie_missing_uses_min_geo",
+   "cookie": null,
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "offices_cookie_geo2_single_office",
+   "cookie": "2",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 70,
+      "max_need": 80
+     }
+    ]
+   }
+  },
+  {
+   "name": "offices_cookie_unknown_geo_falls_back_to_first_office",
+   "cookie": "99",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "offices_cookie_numeric_prefix_geo",
+   "cookie": "1abc",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "offices_cookie_empty_string",
+   "cookie": "",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "offices_geo_without_offices_falls_back_to_first_office",
+   "cookie": "3",
+   "user_id": 0,
+   "setup": [
+    "INSERT INTO `shop_geo` (`id`, `value`) VALUES (3, 'Ajman')"
+   ],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "offices_geo_map_empty_first_office_only",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "DELETE FROM `shop_offices_geo_map`"
+   ],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "offices_none_at_all_php_pdo_error",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "DELETE FROM `shop_offices_geo_map`",
+    "DELETE FROM `shop_offices`"
+   ],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1
+   }
+  },
+  {
+   "name": "offices_one_office_no_storages_mapped_price_filter",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "DELETE FROM `shop_offices_geo_map`",
+    "INSERT INTO `shop_offices_geo_map` (`office_id`, `geo_id`) VALUES (2, 1)",
+    "DELETE FROM `shop_offices_storages_map` WHERE `office_id` = 2"
+   ],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_two_offices_union_dedup_guest",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_two_offices_unpublished_included_block3",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 3,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_min_only_raised",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 200,
+      "max_need": 3000
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_max_only_lowered",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 0,
+      "max_need": 120
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_equal_to_bounds_is_ignored",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 0,
+      "max_need": 3000
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_min_need_equals_min_value_max_lowered_by_one",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 0,
+      "max_need": 2999
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_min_need_below_min_value_max_above",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": -5,
+      "max_need": 4000
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_inverted_range_matches_nothing",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 500,
+      "max_need": 100
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_registered_group_markup",
+   "cookie": "1",
+   "user_id": 6,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_registered_group_user_with_binding_first_group_wins",
+   "cookie": "1",
+   "user_id": 7,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_group_without_markup_rows_uses_raw_price",
+   "cookie": "1",
+   "user_id": 5,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_guest_group_missing_no_group_null",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "DELETE FROM `groups`",
+    "DELETE FROM `shop_offices_storages_map` WHERE `group_id` = 0"
+   ],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_currency_usd_conversion_exact_edge",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 36.7,
+      "max_need": 36.7
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_currency_usd_conversion_just_above_edge",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 36.71,
+      "max_need": 40
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_usd_office3_markup_100",
+   "cookie": "2",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 30,
+      "max_need": 80
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_markup_band_boundary_1000_uses_upper_band",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 20,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 1050,
+      "max_need": 1050
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_markup_band_just_below_boundary_uses_lower_band",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "UPDATE `shop_storages_data` SET `price` = 999.99 WHERE `product_id` = 7"
+   ],
+   "request": {
+    "category_id": 20,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 1099.9,
+      "max_need": 1099.9
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_exact_value_office2_zero_markup",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 100
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_outside_every_band_falls_back_to_raw",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "DELETE FROM `shop_offices_storages_map` WHERE `office_id` = 1 AND `storage_id` = 1 AND `group_id` = 1",
+    "INSERT INTO `shop_offices_storages_map` (`office_id`, `storage_id`, `group_id`, `min_point`, `max_point`, `markup`) VALUES (1, 1, 1, 5000, 9000, 50)"
+   ],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_storage_with_interface_type_2_not_priced",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 9000,
+      "max_need": 10000
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_non_existing_stock_not_priced",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 400,
+      "max_need": 600
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_zero_price_not_priced",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 0,
+      "max_need": 0
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_string_values",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": "0",
+      "max_value": "3000",
+      "min_need": "100",
+      "max_need": "200"
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_float_values",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 183.5,
+      "max_need": 183.5
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_missing_keys_php_null_semantics",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price"
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_missing_min_need_only",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_value": 5,
+      "max_value": 3000,
+      "max_need": 3000
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_missing_max_need_only",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 0
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_two_price_objects_anded",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 3000
+     },
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 0,
+      "max_need": 150
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_with_category20",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 20,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 900,
+      "max_need": 1100
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_block2_raw_price_first_office_only",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 2,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 160
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_block2_raw_price_ignores_markup_currency",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 2,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 9,
+      "max_need": 11
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_block2_sort_by_name_forced",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 2,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 160
+     }
+    ],
+    "products_sort_mode": {
+     "field": "name"
+    }
+   }
+  },
+  {
+   "name": "price_sort_mode_name_block1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ],
+    "products_sort_mode": {
+     "field": "name",
+     "direction": "asc"
+    }
+   }
+  },
+  {
+   "name": "price_with_int_property_combined",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     },
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 5,
+      "max_need": 10
+     }
+    ]
+   }
+  },
+  {
+   "name": "price_property_id_price_with_type_1_ignored_type",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "int_range_inclusive",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 5,
+      "max_need": 10
+     }
+    ]
+   }
+  },
+  {
+   "name": "int_range_excludes_outside",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 11,
+      "max_need": 19
+     }
+    ]
+   }
+  },
+  {
+   "name": "int_range_equal_to_bounds_skipped",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 0,
+      "max_need": 100
+     }
+    ]
+   }
+  },
+  {
+   "name": "int_range_min_equal_max_lowered",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 0,
+      "max_need": 12
+     }
+    ]
+   }
+  },
+  {
+   "name": "int_range_max_equal_min_raised",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 12,
+      "max_need": 100
+     }
+    ]
+   }
+  },
+  {
+   "name": "int_range_string_numbers",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "101",
+      "property_type_id": 1,
+      "min_value": "0",
+      "max_value": "100",
+      "min_need": "5",
+      "max_need": "10"
+     }
+    ]
+   }
+  },
+  {
+   "name": "int_range_products_without_value_excluded",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 20,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 1,
+      "max_need": 1000
+     }
+    ]
+   }
+  },
+  {
+   "name": "int_range_property_type_as_string",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": "1",
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 5,
+      "max_need": 10
+     }
+    ]
+   }
+  },
+  {
+   "name": "int_range_missing_need_keys_null_args",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100
+     }
+    ]
+   }
+  },
+  {
+   "name": "int_range_missing_property_id_null",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 1,
+      "max_need": 50
+     }
+    ]
+   }
+  },
+  {
+   "name": "int_range_unpublished_excluded_for_block1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 0,
+      "max_need": 99
+     }
+    ]
+   }
+  },
+  {
+   "name": "float_range_inclusive",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 102,
+      "property_type_id": 2,
+      "min_value": 0,
+      "max_value": 10,
+      "min_need": 1.5,
+      "max_need": 2.5
+     }
+    ]
+   }
+  },
+  {
+   "name": "float_range_fractional_edges",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 102,
+      "property_type_id": 2,
+      "min_value": 0,
+      "max_value": 10,
+      "min_need": 1.51,
+      "max_need": 3.49
+     }
+    ]
+   }
+  },
+  {
+   "name": "float_range_equal_to_bounds_skipped",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 102,
+      "property_type_id": 2,
+      "min_value": 0,
+      "max_value": 10,
+      "min_need": 0,
+      "max_need": 10
+     }
+    ]
+   }
+  },
+  {
+   "name": "float_range_one_side_changed",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 102,
+      "property_type_id": 2,
+      "min_value": 0,
+      "max_value": 10,
+      "min_need": 0,
+      "max_need": 2.5
+     }
+    ]
+   }
+  },
+  {
+   "name": "bool_true_only",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 103,
+      "property_type_id": 4,
+      "true_checked": true,
+      "false_checked": false
+     }
+    ]
+   }
+  },
+  {
+   "name": "bool_false_only",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 103,
+      "property_type_id": 4,
+      "true_checked": false,
+      "false_checked": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "bool_both_checked_ignored",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 103,
+      "property_type_id": 4,
+      "true_checked": true,
+      "false_checked": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "bool_neither_checked_ignored",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 103,
+      "property_type_id": 4,
+      "true_checked": false,
+      "false_checked": false
+     }
+    ]
+   }
+  },
+  {
+   "name": "bool_missing_flags_ignored",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 103,
+      "property_type_id": 4
+     }
+    ]
+   }
+  },
+  {
+   "name": "bool_true_string_one_false_string_zero",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 103,
+      "property_type_id": 4,
+      "true_checked": "1",
+      "false_checked": "0"
+     }
+    ]
+   }
+  },
+  {
+   "name": "bool_false_checked_numeric_one_true_numeric_zero",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 103,
+      "property_type_id": 4,
+      "true_checked": 0,
+      "false_checked": 1
+     }
+    ]
+   }
+  },
+  {
+   "name": "bool_true_only_category20",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 20,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 103,
+      "property_type_id": 4,
+      "true_checked": true,
+      "false_checked": false
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_or_two_options",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 1,
+      "list_options": [
+       {
+        "id": 1,
+        "value": true
+       },
+       {
+        "id": 2,
+        "value": true
+       },
+       {
+        "id": 3,
+        "value": false
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_and_two_options",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 2,
+      "list_options": [
+       {
+        "id": 1,
+        "value": true
+       },
+       {
+        "id": 2,
+        "value": true
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_and_single_option",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 2,
+      "list_options": [
+       {
+        "id": 1,
+        "value": true
+       },
+       {
+        "id": 2,
+        "value": false
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_no_option_checked_ignored",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 1,
+      "list_options": [
+       {
+        "id": 1,
+        "value": false
+       },
+       {
+        "id": 2,
+        "value": false
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_empty_options_ignored",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 1,
+      "list_options": []
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_option_flags_numeric_and_strings",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 1,
+      "list_options": [
+       {
+        "id": 1,
+        "value": "1"
+       },
+       {
+        "id": 2,
+        "value": "0"
+       },
+       {
+        "id": 3,
+        "value": 1
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_unknown_list_type_single_option_applies",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 3,
+      "list_options": [
+       {
+        "id": 3,
+        "value": true
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_missing_list_type_single_option_applies",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_options": [
+       {
+        "id": 1,
+        "value": true
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_unknown_list_type_two_options_php_pdo_error",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 3,
+      "list_options": [
+       {
+        "id": 1,
+        "value": true
+       },
+       {
+        "id": 2,
+        "value": true
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_unknown_list_type_inherits_previous_joiner",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 2,
+      "list_options": [
+       {
+        "id": 9,
+        "value": false
+       }
+      ]
+     },
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 3,
+      "list_options": [
+       {
+        "id": 1,
+        "value": true
+       },
+       {
+        "id": 2,
+        "value": true
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_unknown_list_type_inherits_previous_or_joiner",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 1,
+      "list_options": [
+       {
+        "id": 1,
+        "value": false
+       }
+      ]
+     },
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 3,
+      "list_options": [
+       {
+        "id": 1,
+        "value": true
+       },
+       {
+        "id": 3,
+        "value": true
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_option_without_id_null_arg",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 1,
+      "list_options": [
+       {
+        "value": true
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_option_without_value_key_skipped",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 1,
+      "list_options": [
+       {
+        "id": 1
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "list_missing_list_options_php_type_error",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 1
+     }
+    ]
+   }
+  },
+  {
+   "name": "tree_level1_value0_all_skipped",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 105,
+      "property_type_id": 6,
+      "current_level": 1,
+      "current_value": 0
+     }
+    ]
+   }
+  },
+  {
+   "name": "tree_level1_value_selected",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 105,
+      "property_type_id": 6,
+      "current_level": 1,
+      "current_value": 11
+     }
+    ]
+   }
+  },
+  {
+   "name": "tree_level2_value_selected",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 105,
+      "property_type_id": 6,
+      "current_level": 2,
+      "current_value": 12
+     }
+    ]
+   }
+  },
+  {
+   "name": "tree_level2_value0_applies_but_zero_is_falsy",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 105,
+      "property_type_id": 6,
+      "current_level": 2,
+      "current_value": 0
+     }
+    ]
+   }
+  },
+  {
+   "name": "tree_level_string_values",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "105",
+      "property_type_id": 6,
+      "current_level": "1",
+      "current_value": "13"
+     }
+    ]
+   }
+  },
+  {
+   "name": "tree_level1_value_string_zero_skipped",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 105,
+      "property_type_id": 6,
+      "current_level": "1",
+      "current_value": "0"
+     }
+    ]
+   }
+  },
+  {
+   "name": "tree_missing_level_value0_applies",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 105,
+      "property_type_id": 6,
+      "current_value": 0
+     }
+    ]
+   }
+  },
+  {
+   "name": "tree_missing_current_value_level2_null_arg",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 105,
+      "property_type_id": 6,
+      "current_level": 2
+     }
+    ]
+   }
+  },
+  {
+   "name": "tree_missing_current_value_level1_skipped",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 105,
+      "property_type_id": 6,
+      "current_level": 1
+     }
+    ]
+   }
+  },
+  {
+   "name": "tree_unknown_value_matches_nothing",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 105,
+      "property_type_id": 6,
+      "current_level": 2,
+      "current_value": 99
+     }
+    ]
+   }
+  },
+  {
+   "name": "combined_int_bool",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 5,
+      "max_need": 15
+     },
+     {
+      "property_id": 103,
+      "property_type_id": 4,
+      "true_checked": true,
+      "false_checked": false
+     }
+    ]
+   }
+  },
+  {
+   "name": "combined_int_float_list_tree",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 5,
+      "max_need": 15
+     },
+     {
+      "property_id": 102,
+      "property_type_id": 2,
+      "min_value": 0,
+      "max_value": 10,
+      "min_need": 1,
+      "max_need": 3
+     },
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 1,
+      "list_options": [
+       {
+        "id": 1,
+        "value": true
+       }
+      ]
+     },
+     {
+      "property_id": 105,
+      "property_type_id": 6,
+      "current_level": 1,
+      "current_value": 11
+     }
+    ]
+   }
+  },
+  {
+   "name": "combined_ignored_filters_do_not_change_count",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 0,
+      "max_need": 100
+     },
+     {
+      "property_id": 103,
+      "property_type_id": 4,
+      "true_checked": true,
+      "false_checked": true
+     },
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 1,
+      "list_options": [
+       {
+        "id": 1,
+        "value": false
+       }
+      ]
+     },
+     {
+      "property_id": 105,
+      "property_type_id": 6,
+      "current_level": 1,
+      "current_value": 0
+     },
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 0,
+      "max_need": 3000
+     }
+    ]
+   }
+  },
+  {
+   "name": "combined_category_block3_list_and_price",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 3,
+    "properties_list": [
+     {
+      "property_id": 104,
+      "property_type_id": 5,
+      "list_type": 1,
+      "list_options": [
+       {
+        "id": 1,
+        "value": true
+       },
+       {
+        "id": 2,
+        "value": true
+       }
+      ]
+     },
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "combined_two_offices_filters_cloned_per_office",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 103,
+      "property_type_id": 4,
+      "true_checked": true,
+      "false_checked": false
+     },
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ]
+   }
+  },
+  {
+   "name": "combined_filters_anded_to_zero",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 103,
+      "property_type_id": 4,
+      "true_checked": false,
+      "false_checked": true
+     },
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 15,
+      "max_need": 20
+     }
+    ]
+   }
+  },
+  {
+   "name": "ids_direct_block1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "products_ids_str": "1,2,3"
+   }
+  },
+  {
+   "name": "ids_direct_ignores_category_when_search_empty_is_and_ed",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 20,
+    "product_block_type": 1,
+    "properties_list": [],
+    "products_ids_str": "1,6,7"
+   }
+  },
+  {
+   "name": "ids_direct_category_zero",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "products_ids_str": "1,6,7,5,8"
+   }
+  },
+  {
+   "name": "ids_direct_unpublished_block1_excluded",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "products_ids_str": "5"
+   }
+  },
+  {
+   "name": "ids_direct_unpublished_block3_included",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 3,
+    "properties_list": [],
+    "products_ids_str": "5"
+   }
+  },
+  {
+   "name": "ids_direct_with_spaces",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "products_ids_str": "1, 2 ,3"
+   }
+  },
+  {
+   "name": "ids_direct_empty_string_ignored",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "products_ids_str": ""
+   }
+  },
+  {
+   "name": "ids_direct_zero_string_matches_nothing",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "products_ids_str": "0"
+   }
+  },
+  {
+   "name": "ids_direct_number",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "products_ids_str": 2
+   }
+  },
+  {
+   "name": "ids_direct_unknown_ids",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "products_ids_str": "1000,2000"
+   }
+  },
+  {
+   "name": "ids_direct_duplicates",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "products_ids_str": "1,1,2,2"
+   }
+  },
+  {
+   "name": "ids_direct_with_price_filter",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ],
+    "products_ids_str": "1,2,4,6"
+   }
+  },
+  {
+   "name": "ids_direct_with_property_filter",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 5,
+      "max_need": 10
+     }
+    ],
+    "products_ids_str": "1,2,3,4"
+   }
+  },
+  {
+   "name": "ids_direct_null_ignored",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "products_ids_str": null
+   }
+  },
+  {
+   "name": "search_name_single_token",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "brake"
+   }
+  },
+  {
+   "name": "search_name_two_tokens_and",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "brake pad"
+   }
+  },
+  {
+   "name": "search_ignores_category_when_results_found",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 20,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "brake"
+   }
+  },
+  {
+   "name": "search_no_results_with_category",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "zzzzzz"
+   }
+  },
+  {
+   "name": "search_description_match",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "synthetic"
+   }
+  },
+  {
+   "name": "search_description_and_name_union",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "filter synthetic"
+   }
+  },
+  {
+   "name": "search_unpublished_excluded_block1",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "hidden"
+   }
+  },
+  {
+   "name": "search_unpublished_included_block3",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 3,
+    "properties_list": [],
+    "search_string": "hidden"
+   }
+  },
+  {
+   "name": "search_block4_is_published_only",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 4,
+    "properties_list": [],
+    "search_string": "pad"
+   }
+  },
+  {
+   "name": "search_short_token_skipped",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "a brake"
+   }
+  },
+  {
+   "name": "search_only_short_tokens_php_pdo_error",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "a"
+   }
+  },
+  {
+   "name": "search_whitespace_only_is_no_search",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "   "
+   }
+  },
+  {
+   "name": "search_tags_only_is_no_search",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "<b></b>"
+   }
+  },
+  {
+   "name": "search_strip_tags_and_trim",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "  <b>brake</b> pad "
+   }
+  },
+  {
+   "name": "search_strip_tags_lone_less_than_with_space",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "brake < pad"
+   }
+  },
+  {
+   "name": "search_apostrophe_is_html_escaped",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "o'brien"
+   }
+  },
+  {
+   "name": "search_ampersand_is_html_escaped",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "rock &#039;n"
+   }
+  },
+  {
+   "name": "search_double_quote_is_html_escaped",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "\"brake\""
+   }
+  },
+  {
+   "name": "search_cyrillic",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 30,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "тормозная"
+   }
+  },
+  {
+   "name": "search_cyrillic_single_char_token_php_pdo_error",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 30,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "ж"
+   }
+  },
+  {
+   "name": "search_article_property_match",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "bp-123"
+   }
+  },
+  {
+   "name": "search_article_property_match_lowercase_with_symbols",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "b.p/123"
+   }
+  },
+  {
+   "name": "search_article_property_other_language_not_matched",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "zz777"
+   }
+  },
+  {
+   "name": "search_article_property_work_language_ru",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "zz777"
+   },
+   "lang": "ru"
+  },
+  {
+   "name": "search_alias_suffix_match",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "bp100"
+   }
+  },
+  {
+   "name": "search_alias_prefix_match",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "acme/bd200"
+   }
+  },
+  {
+   "name": "search_alias_unpublished_not_matched_even_block3",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 3,
+    "properties_list": [],
+    "search_string": "bp500"
+   }
+  },
+  {
+   "name": "search_alias_uppercase_exact_lowercased",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "ACME/OF300"
+   }
+  },
+  {
+   "name": "search_discovery_queue_imported_match",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "zz9"
+   }
+  },
+  {
+   "name": "search_discovery_queue_not_imported_ignored",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "qq1"
+   }
+  },
+  {
+   "name": "search_discovery_queue_product_zero_ignored",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "xx0"
+   }
+  },
+  {
+   "name": "search_discovery_queue_meta_json_match",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "acme-zz"
+   }
+  },
+  {
+   "name": "search_discovery_table_missing_is_swallowed",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [
+    "DROP TABLE `epc_product_discovery_queue`"
+   ],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "brake"
+   }
+  },
+  {
+   "name": "search_plus_products_ids_str_overrides_search_ids",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "brake",
+    "products_ids_str": "3,4"
+   }
+  },
+  {
+   "name": "search_plus_products_ids_str_empty_keeps_search",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "brake",
+    "products_ids_str": ""
+   }
+  },
+  {
+   "name": "search_with_price_filter",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ],
+    "search_string": "brake"
+   }
+  },
+  {
+   "name": "search_with_int_filter",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": 101,
+      "property_type_id": 1,
+      "min_value": 0,
+      "max_value": 100,
+      "min_need": 5,
+      "max_need": 5
+     }
+    ],
+    "search_string": "brake"
+   }
+  },
+  {
+   "name": "search_with_price_filter_registered",
+   "cookie": "1",
+   "user_id": 6,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [
+     {
+      "property_id": "price",
+      "property_type_id": 0,
+      "min_value": 0,
+      "max_value": 3000,
+      "min_need": 100,
+      "max_need": 200
+     }
+    ],
+    "search_string": "brake pad"
+   }
+  },
+  {
+   "name": "search_string_number_is_coerced",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 0,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": 300
+   }
+  },
+  {
+   "name": "search_string_null_is_no_search",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": null
+   }
+  },
+  {
+   "name": "search_wildcard_percent_is_literal_in_like_value",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": [],
+    "search_string": "br%ke"
+   }
+  },
+  {
+   "name": "category_non_numeric_string_php_pdo_error",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": "abc",
+    "product_block_type": 1
+   }
+  },
+  {
+   "name": "properties_list_string_php_type_error",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request": {
+    "category_id": 10,
+    "product_block_type": 1,
+    "properties_list": "abc"
+   }
+  },
+  {
+   "name": "request_json_invalid_counts_everything",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request_raw": "not json"
+  },
+  {
+   "name": "request_json_empty_string_counts_everything",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request_raw": ""
+  },
+  {
+   "name": "request_json_scalar_counts_everything",
+   "cookie": "1",
+   "user_id": 0,
+   "setup": [],
+   "request_raw": "5"
+  }
+ ]
+}
