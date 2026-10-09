@@ -203,7 +203,7 @@ The ajax ratios count only ajax scripts. To make sure nothing in the PHP referen
 Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
 
 1. **Storefront customer pages (epartscart.com).**
-   - `content/shop/order_process`: `checkout_confirm.php`. Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php`, `my_quotes.php`, `my_order_not_authorized.php`, `my_orders.php`, `my_order.php`, `my_orders_items.php`, `cart.php` (see the checkpoints below).
+   - `content/shop/order_process`: Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php`, `my_quotes.php`, `my_order_not_authorized.php`, `my_orders.php`, `my_order.php`, `my_orders_items.php`, `cart.php`, `checkout_confirm.php` (see the checkpoints below).
    - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
    - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
    - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
@@ -321,6 +321,21 @@ Evidence per page, recorded in its checkpoint:
 Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
+
+### Checkpoint 2026-10-09 — checkout confirmation (`checkout_confirm.php`) like PHP
+
+Not complete.
+
+- Ratchet stays at 751 because the earlier ASP.NET checkout surface had already mapped this PHP file. Unnamed PHP functions 7,871 to 7,870. The weighted headline (about 20.4%) is unchanged.
+- `/en/shop/checkout/confirm` and `/shop/checkout/confirm` now print PHP's confirmation page through `StorefrontCheckoutConfirm`:
+  - signed-in and existing-guest ownership, checked cart lines, quantities, terms, currency formatting and totals;
+  - obtaining-cookie validation and redirects, the selected obtaining handler details, complementary parts, message and buyer PO fields;
+  - guest phone/e-mail validation, the user agreement, trade-account blocking, confirmation button and loader;
+  - the client still posts to the ported `/content/shop/order_process/ajax_checkout_create.php`, so there is one checkout side-effect engine.
+- A narrow pre-Razor middleware returns PHP's raw JSON response for a guest without an existing session. It does not mint or write a session. The `/shop/checkout_confirm` compatibility aliases intentionally remain on the earlier combined checkout page.
+- Intended security deviation: PHP prints several database, cookie, HTML and JavaScript values without context escaping. The port escapes them.
+- Evidence: `Fixtures/CheckoutConfirm/harness.php` ran PHP 8.3 for 14 isolated cases covering sessionless JSON, every redirect branch, missing handler, both line types, guest ownership and validation, empty checked cart, currency modes, trade block, wholesale PO, language prefix, missing regexes and hostile values. Exact byte length/SHA-256 matches and the cart snapshot proves the renderer is read-only. Full suite 5,909 of 5,909 passed after a clean build.
+- Kestrel GETs without cookies return status 200, `application/json; charset=utf-8`, and `{"status":false,"code":"incorrect_session","message":""}` on the local tenant. `docpart.sessions` stayed 73 before and after. Post-test invariants: `ecomae_cpw_%` = 0, `docpart.users` = 2, `ecomae.users` = 2.
 
 ### Checkpoint 2026-10-09 — the storefront cart (`cart.php`) like PHP
 
