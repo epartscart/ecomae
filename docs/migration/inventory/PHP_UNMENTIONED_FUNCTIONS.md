@@ -4,13 +4,13 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 
 | Class | Count | What to do |
 |---|---:|---|
-| Real PHP (non-ERP), gap file ≤200 lines | 71 | Build next — listed below |
+| Real PHP (non-ERP), gap file ≤200 lines | 65 | Build next — listed below |
 | Real PHP (non-ERP), larger gap file | 1901 | Build with the parent kernel |
 | Real PHP already on a mentioned file | 863 | Finish leftover helpers on that twin |
 | JS functions written inside PHP templates | 1371 | Port as browser JS, not C# methods |
 | Vendor (PHPExcel, PclZip, …) | 255 | Do not port |
 | ERP finance (Devin) | 2033 | Leave for Devin |
-| **Total unmentioned** | **6922** | |
+| **Total unmentioned** | **6916** | |
 
 ## Ready to build (non-ERP PHP, gap file ≤200 lines)
 
@@ -45,12 +45,6 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `generateBrandUrl` | `GenerateBrandUrl` | `content/originalnye-katalogi/API.v2/PHP/Functions.Common.php` | 124 |
 | `generateLink2` | `GenerateLink2` | `content/originalnye-katalogi/API.v2/PHP/Functions.Common.php` | 124 |
 | `getApiData` | `GetApiData` | `content/originalnye-katalogi/API.v2/PHP/Functions.Common.php` | 124 |
-| `epc_sku_media_cp_install` | `EpcSkuMediaCpInstall` | `content/shop/catalogue/epc_sku_media_cp_install.php` | 118 |
-| `epc_sku_media_cp_lang` | `EpcSkuMediaCpLang` | `content/shop/catalogue/epc_sku_media_cp_install.php` | 118 |
-| `epc_sku_media_emit_storefront_css` | `EpcSkuMediaEmitStorefrontCss` | `content/shop/catalogue/epc_sku_media_storefront.php` | 165 |
-| `epc_sku_media_render_spec_groups_html` | `EpcSkuMediaRenderSpecGroupsHtml` | `content/shop/catalogue/epc_sku_media_storefront.php` | 165 |
-| `epc_sku_media_render_storefront` | `EpcSkuMediaRenderStorefront` | `content/shop/catalogue/epc_sku_media_storefront.php` | 165 |
-| `epc_sku_media_storefront_load` | `EpcSkuMediaStorefrontLoad` | `content/shop/catalogue/epc_sku_media_storefront.php` | 165 |
 | `epc_build_initial_price_bunch` | `EpcBuildInitialPriceBunch` | `content/shop/docpart/epc_build_initial_price_bunch.php` | 108 |
 | `epc_apai_cp_catalogue_filter_close` | `EpcApaiCpCatalogueFilterClose` | `content/shop/price_engine/epc_apai_cp_catalogue_filter.php` | 195 |
 | `epc_apai_cp_catalogue_filter_ctx` | `EpcApaiCpCatalogueFilterCtx` | `content/shop/price_engine/epc_apai_cp_catalogue_filter.php` | 195 |

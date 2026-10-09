@@ -1799,12 +1799,6 @@ compareNumbers	CompareNumbers	content/shop/catalogue/compare/compare.php	js	674	
 compareStrings	CompareStrings	content/shop/catalogue/compare/compare.php	js	674	gap	browser-js
 field_action	FieldAction	content/shop/catalogue/compare/compare.php	js	674	gap	browser-js
 removeCurrentGroup	RemoveCurrentGroup	content/shop/catalogue/compare/compare.php	js	674	gap	browser-js
-epc_sku_media_cp_install	EpcSkuMediaCpInstall	content/shop/catalogue/epc_sku_media_cp_install.php	php	118	gap	ready
-epc_sku_media_cp_lang	EpcSkuMediaCpLang	content/shop/catalogue/epc_sku_media_cp_install.php	php	118	gap	ready
-epc_sku_media_emit_storefront_css	EpcSkuMediaEmitStorefrontCss	content/shop/catalogue/epc_sku_media_storefront.php	php	165	gap	ready
-epc_sku_media_render_spec_groups_html	EpcSkuMediaRenderSpecGroupsHtml	content/shop/catalogue/epc_sku_media_storefront.php	php	165	gap	ready
-epc_sku_media_render_storefront	EpcSkuMediaRenderStorefront	content/shop/catalogue/epc_sku_media_storefront.php	php	165	gap	ready
-epc_sku_media_storefront_load	EpcSkuMediaStorefrontLoad	content/shop/catalogue/epc_sku_media_storefront.php	php	165	gap	ready
 str_replace_once	StrReplaceOnce	content/shop/catalogue/generate_products_objects_by_sql.php	php	540	gap	later
 addCategoryToDump	AddCategoryToDump	content/shop/catalogue/get_catalogue_tree.php	php	261	gap	later
 addProductsToCategory	AddProductsToCategory	content/shop/catalogue/get_catalogue_tree.php	php	261	gap	later
