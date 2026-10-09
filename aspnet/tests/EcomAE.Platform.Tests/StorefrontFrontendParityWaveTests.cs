@@ -102,7 +102,11 @@ public sealed class StorefrontFrontendParityWaveTests
         Assert.Contains("id=\"all_product_images_div\"", text, StringComparison.Ordinal);
         Assert.Contains("product_div_manufacturer", text, StringComparison.Ordinal);
         Assert.Contains("product_div_article", text, StringComparison.Ordinal);
-        Assert.Contains("StorefrontProductOffers.RenderPageAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontProductPage.RenderAsync(", text, StringComparison.Ordinal);
+        Assert.Contains(
+            "StorefrontProductOffers.RenderPageAsync(",
+            Read("aspnet/src/EcomAE.Platform/Storefront/StorefrontProductPage.cs"),
+            StringComparison.Ordinal);
         Assert.Contains("/lib/jQuery/jQuery.js", text, StringComparison.Ordinal);
         Assert.DoesNotContain("method=\"get\" action=\"@StorefrontSurfaceLinks.Cart\"", text, StringComparison.Ordinal);
         Assert.Contains("product_div_bookmark", text, StringComparison.Ordinal);

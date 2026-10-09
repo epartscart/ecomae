@@ -212,7 +212,7 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: the country list `content/users/epc_countries.php`. Retired: `content/users/epc_reg_fields_compliance.php`, which nothing includes or calls.
    - Done: the e-invoice schema `content/shop/finance/epc_einvoice_schema.php`. Partly done: the validation and save half of `epc_registration_enhanced.php` (the render half remains) and the `customer_vat_type` sync of `epc_uae_customer_vat.php`. See the checkpoint below.
    - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `epc_session_security.php`, the agreement module.
-   - `content/shop/catalogue` (41 files): `printProducts.php`, `printProducts_2.php`, `printProduct_Info.php`, the product pages, compare, bookmarks, SKU media, the text search algorithm, the tree lists.
+   - `content/shop/catalogue` (41 files): `printProducts.php`, `printProducts_2.php`, the remaining product pages, compare, bookmarks, SKU media, the text search algorithm, the tree lists. Done: `printProduct_Info.php` and `product_page_for_customer.php` (see the checkpoint below).
    - `content/shop/docpart` (44 files): `part_search_page.php` and `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest.
    - `modules/*`: login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats).
    - Front templates `expan`, `modex` and `limo`; `core/dp_core.php` and `dp_helper.php` behaviour; plugins (metadata handler, phone/tablet, error pages, shop cart).
@@ -321,6 +321,18 @@ Evidence per page, recorded in its checkpoint:
 Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
+
+### Checkpoint 2026-10-09 — storefront product information (`printProduct_Info.php`) like PHP
+
+Not complete.
+
+- Ratchet 751 to 749: `content/shop/catalogue/printProduct_Info.php` and its customer-page owner `product_page_for_customer.php` close. Inventory content 391 to 393 of 952. Unnamed PHP functions 7,870 to 7,866. The weighted headline (about 20.4%) is unchanged.
+- All five product route forms now render through `StorefrontProductPage`: the gallery and no-image state; main office offer, price and currency display; stock, reserved and delivery states; request fallback; bookmark and compare state; administrator link; property table; description, reviews and evaluation hooks; variants, related and similar products.
+- The previously ported multi-office offer table and add-to-basket script remain the authoritative offer and basket slices. Existing PHP endpoints remain authoritative for bookmark, compare and evaluation mutations.
+- Product GETs validate an existing session but do not mint guest sessions. Intended security deviation: database, cookie and JavaScript values that PHP prints raw are context-encoded.
+- Evidence: PHP 8.3 generated four catalogue goldens for no image, local image, auto-price images and supported property types. PHP 8.3 cannot execute its tree-property branch because `count(property_variants)` is fatal, and this PHP file does not map date, file or image property types; those limits are recorded rather than claimed as golden-covered. Runtime tests additionally cover main-offer states, currencies, identities, tabs, related products, no-offer fallback, missing products and hostile values.
+- Clean build: 0 warnings and 0 errors. Full suite: 5,913 of 5,913 passed. All five route aliases return 200 with fake cookies; `docpart.sessions` stayed 73 before and after. Post-test invariants: `ecomae_cpw_%` = 0, `docpart.users` = 2, `ecomae.users` = 2.
+- Next storefront gap: `content/shop/order_process/orders_background.php`.
 
 ### Checkpoint 2026-10-09 — checkout confirmation (`checkout_confirm.php`) like PHP
 
@@ -461,8 +473,8 @@ Not complete.
   - Delivery days come from `arrival_time`, `time_to_exe` and the office's `additional_time`, then `price_rounding` 1, 2 or 3 is applied.
 - `check_hash` is made from the shown price, so "Add to cart" posts rows that the ported `ajax_add_to_basket.php` accepts. `EpcPricing.SellFromPurchaseAsync` now returns PHP's `visible` flag and the unrounded price; `ApplySellFromPurchaseAsync` still rounds as before.
 - Removed: the page's "Add to cart" form, which did a GET to the cart page and added nothing.
-- Still a gap: the rest of the PHP customer product page (the main offer box from `printProduct_Info.php`, related products and the tabs). The basename is kept out of code comments so the inventory does not count it as ported.
-- Next: the bottom panel's `updateCartInfo()` and `showAdded()` (`bottom_panel.php`). PHP's script calls them after a successful add. The ASP.NET chrome does not define them yet, so the cart count and the "added" label do not refresh until the next page load.
+- At this checkpoint the rest of the PHP customer product page (the main offer box, related products and tabs) remained open; the 2026-10-09 product-information checkpoint closes it.
+- At this checkpoint the bottom panel's `updateCartInfo()` and `showAdded()` remained next; the later bottom-panel checkpoint closes that slice.
 - Evidence: `Fixtures/ProductOffers/harness.php` ran the real PHP 8.3 code (`get_customer_offices.php`, `epc_pricing.php` and the page's offers snippet) for 13 cases, each in its own process on a throwaway database:
   - two offices and one office with no stock;
   - the guest-margin setting;

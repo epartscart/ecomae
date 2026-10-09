@@ -56,7 +56,7 @@ function purchase_action(div_id)
         url: ""/content/shop/order_process/ajax_add_to_basket.php"",
         dataType: ""json"",//Тип возвращаемого значения
         data: ""product_objects=""+encodeURI(JSON.stringify(product_objects))+""&csrf_guard_key="
-           + csrfGuardKey
+           + EscapeInlineJavaScript(csrfGuardKey)
            + @""",
         success: function(answer)
         {
@@ -78,13 +78,13 @@ function purchase_action(div_id)
                 if(answer.code == ""already"")
                 {
                     alert("""
-           + t(4336)
+           + EscapeInlineJavaScript(t(4336))
            + @""");
                 }
                 else
                 {
                     alert(answer.message || """
-           + t(4524)
+           + EscapeInlineJavaScript(t(4524))
            + @""");
                 }
             }
@@ -156,7 +156,7 @@ function onKeyUpCountNeed(product_record_id, count, count_min)
 	else//Просто исправляем обратно
 	{
 		alert("""
-           + t(4313)
+           + EscapeInlineJavaScript(t(4313))
            + @""");
 		$("".count_need_""+product_record_id).val(count_min);
 	}
@@ -171,4 +171,13 @@ function getDecimal(num) {
 	return +str;
 }
 </script>";
+
+    /// <summary>Safety deviation from PHP's raw interpolation into double-quoted inline JavaScript.</summary>
+    public static string EscapeInlineJavaScript(string? value)
+        => (value ?? string.Empty)
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("\"", "\\\"", StringComparison.Ordinal)
+            .Replace("\r", "\\r", StringComparison.Ordinal)
+            .Replace("\n", "\\n", StringComparison.Ordinal)
+            .Replace("</", "<\\/", StringComparison.Ordinal);
 }
