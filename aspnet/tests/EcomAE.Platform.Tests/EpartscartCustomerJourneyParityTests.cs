@@ -54,8 +54,11 @@ public sealed class EpartscartCustomerJourneyParityTests
     {
         var checkout = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCheckoutApp.razor"));
+        var confirm = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCheckoutConfirmPage.razor"));
         Assert.Contains("@page \"/en/shop/checkout/how_get\"", checkout, StringComparison.Ordinal);
-        Assert.Contains("@page \"/en/shop/checkout/confirm\"", checkout, StringComparison.Ordinal);
+        Assert.Contains("@page \"/en/shop/checkout/confirm\"", confirm, StringComparison.Ordinal);
+        Assert.Contains("StorefrontCheckoutConfirm.RenderAsync", confirm, StringComparison.Ordinal);
         Assert.Contains("StorefrontSurfaceLinks.CheckoutHowGet", checkout, StringComparison.Ordinal);
         Assert.Contains("panel panel-primary", checkout, StringComparison.Ordinal);
         Assert.Contains("login_offer", checkout, StringComparison.Ordinal);
