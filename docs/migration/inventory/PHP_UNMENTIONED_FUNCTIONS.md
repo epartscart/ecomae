@@ -4,25 +4,18 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 
 | Class | Count | What to do |
 |---|---:|---|
-| Real PHP (non-ERP), gap file ≤200 lines | 85 | Build next — listed below |
-| Real PHP (non-ERP), larger gap file | 2146 | Build with the parent kernel |
+| Real PHP (non-ERP), gap file ≤200 lines | 78 | Build next — listed below |
+| Real PHP (non-ERP), larger gap file | 2135 | Build with the parent kernel |
 | Real PHP already on a mentioned file | 864 | Finish leftover helpers on that twin |
 | JS functions written inside PHP templates | 1387 | Port as browser JS, not C# methods |
 | Vendor (PHPExcel, PclZip, …) | 255 | Do not port |
 | ERP finance (Devin) | 2033 | Leave for Devin |
-| **Total unmentioned** | **7198** | |
+| **Total unmentioned** | **7180** | |
 
 ## Ready to build (non-ERP PHP, gap file ≤200 lines)
 
 | PHP name | C# twin | File | Lines |
 |---|---|---|---:|
-| `epc_copilot_ensure_schema` | `EpcCopilotEnsureSchema` | `content/general_pages/epc_ai_copilot.php` | 150 |
-| `epc_copilot_execute` | `EpcCopilotExecute` | `content/general_pages/epc_ai_copilot.php` | 150 |
-| `epc_copilot_fleet_stats` | `EpcCopilotFleetStats` | `content/general_pages/epc_ai_copilot.php` | 150 |
-| `epc_copilot_generate_sql` | `EpcCopilotGenerateSql` | `content/general_pages/epc_ai_copilot.php` | 150 |
-| `epc_copilot_history` | `EpcCopilotHistory` | `content/general_pages/epc_ai_copilot.php` | 150 |
-| `epc_copilot_intents` | `EpcCopilotIntents` | `content/general_pages/epc_ai_copilot.php` | 150 |
-| `epc_copilot_parse_intent` | `EpcCopilotParseIntent` | `content/general_pages/epc_ai_copilot.php` | 150 |
 | `epc_bos_ajax_login_secure` | `EpcBosAjaxLoginSecure` | `content/general_pages/epc_bos_ajax_login.php` | 157 |
 | `epc_bos_health_check_all` | `EpcBosHealthCheckAll` | `content/general_pages/epc_bos_health_check.php` | 157 |
 | `epc_bos_health_check_tenant` | `EpcBosHealthCheckTenant` | `content/general_pages/epc_bos_health_check.php` | 157 |

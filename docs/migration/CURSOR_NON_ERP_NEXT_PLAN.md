@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Site (`--max-gap 530` passed; current gap **527**).
+after PlanQ1Ask (`--max-gap 527` passed; current gap **525**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 527
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 525
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 31 | 13,857 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 123 | 64,132 |
+| 5 | Marketing/BOS/industries | 121 | 63,750 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **527** | **245,896** |
+| | **Total** | **525** | **245,514** |
 
-- Non-ERP (Cursor): **361 files / 179,705 lines**
+- Non-ERP (Cursor): **359 files / 179,323 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,198** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **85**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,180** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **78**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -113,16 +113,19 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Ship`, 6 cases): logistics hel
 
 Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Site`, 5 cases): site-context cache key / reset / context / domain / url / host / trade / from / admin / phone / apply / document defaults (portal host/profile/industry/guess/auto/home and branding system/hub stubbed; default-contact is private so the portal parent stays a gap), leftover supplier `epc_supplier_h` / storage-id / LPO HTML, leftover CP ACL preload / expand-groups / content-url. Cache-key regex is lowercase-only (`Demo-Site!` → `emoite`). Apply uses `empty()` so blank head-office fields keep the config value. Expand-groups unique+sorts when the nested-groups helper is absent.
 
+### Q1 ask — done (`PhpPlanQ1Ask`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Ask`, 4 cases): copilot intents / parse / generate-sql / execute / fleet (history `LIMIT ?` bind skipped — twin takes an int), AI PII strip / detect / classify / anomaly / NL report / route / service-query / stats (recent `LIMIT ?` bind skipped). PII patterns apply in PHP order (15-digit TRN before IBAN). Execute logs SQL and does not run it.
+
 ### Q1 next leftovers — honest schema/data twins still open
 
-The 85 leftover “ready” ≤200-line rows are still Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
+The 78 leftover “ready” ≤200-line rows are still Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
 
 | Order | File | Why now |
 |---|---|---|
-| 1 | `epc_ai_copilot.php` (150) / `epc_ai_service.php` (232) | Injectable PDO, no parent require — next slice. |
-| 2 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
-| 3 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
-| 4 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
+| 1 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
+| 2 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
+| 3 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
