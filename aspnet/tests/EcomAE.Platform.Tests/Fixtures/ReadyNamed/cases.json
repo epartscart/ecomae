@@ -1,0 +1,22 @@
+{
+  "cases": [
+    { "name": "acc_tax", "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_accessories_taxonomy.php'; return epc_acc_taxonomy();" },
+    { "name": "acc_classify_pad", "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_accessories_taxonomy.php'; return epc_acc_classify('Ceramic brake pad');" },
+    { "name": "acc_classify_disc", "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_accessories_taxonomy.php'; return epc_acc_classify('Brake disc rotor');" },
+    { "name": "acc_classify_none", "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_accessories_taxonomy.php'; return epc_acc_classify('xyzzy');" },
+    { "name": "acc_regions", "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_accessories_taxonomy.php'; return epc_acc_warehouse_regions();" },
+    { "name": "syn_norm", "eval": "require $GLOBALS['__root'].'/content/shop/docpart/docpart_manufacturer_synonyms.php'; return array(docpart_synonym_normalize_brand('  bosch '), docpart_synonym_normalize_brand('he said \"x\"'), docpart_synonym_normalize_brand(''));" },
+    { "name": "syn_names", "eval": "require $GLOBALS['__root'].'/content/shop/docpart/docpart_manufacturer_synonyms.php'; $map=array('BOSCH'=>array('BOSCH','BOSCH-K')); return array(docpart_synonym_names_for_brand('', $map), docpart_synonym_names_for_brand('bosch', $map), docpart_synonym_names_for_brand('Febi', $map));" },
+    { "name": "syn_eq", "eval": "require $GLOBALS['__root'].'/content/shop/docpart/docpart_manufacturer_synonyms.php'; $map=array('BOSCH'=>array('BOSCH','BOSCH-K'),'BOSCH-K'=>array('BOSCH','BOSCH-K')); return array(docpart_synonym_brands_equivalent('bosch','BOSCH-K',$map), docpart_synonym_brands_equivalent('bosch','Febi',$map), docpart_synonym_brands_equivalent('','',$map));" },
+    { "name": "syn_canon", "eval": "require $GLOBALS['__root'].'/content/shop/docpart/docpart_manufacturer_synonyms.php'; $map=array('BOSCH-K'=>'BOSCH','BOSCH'=>'BOSCH'); return array(docpart_synonym_canonical_brand('bosch-k',$map), docpart_synonym_canonical_brand('Febi',$map), docpart_synonym_canonical_brand('',$map));" },
+    { "name": "syn_maps", "eval": "require $GLOBALS['__root'].'/content/shop/docpart/docpart_manufacturer_synonyms.php'; return array(docpart_load_manufacturer_synonym_map($GLOBALS['db_link']), docpart_load_manufacturer_canonical_map($GLOBALS['db_link']));" },
+    { "name": "tdp_sections", "eval": "require $GLOBALS['__root'].'/content/general_pages/epc_tenant_data_policy.php'; return epc_tdp_policy_sections();" },
+    { "name": "tdp_html", "eval": "if (!defined('EPC_TDP_VERSION')) define('EPC_TDP_VERSION','1.0.0'); require $GLOBALS['__root'].'/content/general_pages/epc_tenant_data_policy.php'; return epc_tdp_render_policy_html();" },
+    { "name": "cfg_groups", "eval": "require $GLOBALS['__root'].'/cp/content/control/epc_config_edit_meta.php'; return epc_config_group_meta();" },
+    { "name": "cfg_group_for", "eval": "require $GLOBALS['__root'].'/cp/content/control/epc_config_edit_meta.php'; return array(epc_config_group_meta_for(9), epc_config_group_meta_for(99));" },
+    { "name": "cfg_effect", "eval": "require $GLOBALS['__root'].'/cp/content/control/epc_config_edit_meta.php'; return array(epc_config_item_frontend_effect('shop_currency'), epc_config_item_frontend_effect('missing'));" },
+    { "name": "cfg_label", "eval": "require $GLOBALS['__root'].'/cp/content/control/epc_config_edit_meta.php'; return array(epc_config_item_label('epc_contact_phone','Phone'), epc_config_item_label('unknown','  Caption  '));" },
+    { "name": "order_check", "eval": "require $GLOBALS['__root'].'/content/shop/usefull/epc_order_fulfilment_guide_data.php'; return epc_order_guide_checklist('cp');" },
+    { "name": "order_snap", "eval": "require $GLOBALS['__root'].'/content/shop/usefull/epc_order_fulfilment_guide_data.php'; $r=epc_order_guide_snapshot($GLOBALS['db_link'], array('backend_dir'=>'cp','domain_path'=>'https://x.test/')); unset($r['generated_at']); return $r;" }
+  ]
+}
