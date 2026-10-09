@@ -1,0 +1,50 @@
+{
+  "schema": [
+    "CREATE TABLE `shop_orders` (`id` int NOT NULL, `user_id` int NOT NULL, `time` int NOT NULL, `office_id` int NOT NULL, `status` int NOT NULL, `paid` tinyint NOT NULL, `paid_type` int NOT NULL, `how_get` int NOT NULL, `how_get_json` text NULL, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_orders_items` (`id` int NOT NULL, `order_id` int NOT NULL, `status` int NOT NULL, `price` decimal(12,2) NOT NULL, `count_need` decimal(12,2) NOT NULL, `product_type` int NOT NULL DEFAULT 2, `product_id` int NOT NULL DEFAULT 0, `t2_name` varchar(255) NOT NULL DEFAULT '', `t2_article` varchar(128) NOT NULL DEFAULT '', `t2_manufacturer` varchar(128) NOT NULL DEFAULT '', `t2_time_to_exe` int NOT NULL DEFAULT 0, `t2_time_to_exe_guaranteed` int NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_orders_statuses_ref` (`id` int NOT NULL, `name` varchar(64) NOT NULL, `color` varchar(16) NOT NULL DEFAULT '', `order` int NOT NULL DEFAULT 0, `for_paid` tinyint NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_orders_items_statuses_ref` (`id` int NOT NULL, `name` varchar(64) NOT NULL, `color` varchar(16) NOT NULL DEFAULT '', `order` int NOT NULL DEFAULT 0, `count_flag` tinyint NOT NULL DEFAULT 1, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_offices` (`id` int NOT NULL, `caption` varchar(128) NOT NULL, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_orders_paid_type` (`id` int NOT NULL, `name` varchar(64) NOT NULL, `active` tinyint NOT NULL DEFAULT 1, `order` int NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_users_accounting` (`id` int NOT NULL AUTO_INCREMENT, `user_id` int NOT NULL, `office_id` int NOT NULL DEFAULT 0, `income` tinyint NOT NULL, `amount` decimal(12,2) NOT NULL, `active` tinyint NOT NULL DEFAULT 1, `order_id` int NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_docpart_garage` (`id` int NOT NULL, `user_id` int NOT NULL, `caption` varchar(255) NOT NULL, `vin` varchar(64) NOT NULL DEFAULT '', `active` tinyint NOT NULL DEFAULT 1, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_docpart_garage_orders` (`id` int NOT NULL AUTO_INCREMENT, `order_id` int NOT NULL, `garage_id` int NOT NULL, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_orders_messages` (`id` int NOT NULL AUTO_INCREMENT, `order_id` int NOT NULL, `read` tinyint NOT NULL DEFAULT 0, `is_customer` tinyint NOT NULL DEFAULT 0, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_print_docs` (`id` int NOT NULL, `name` varchar(64) NOT NULL, `caption` varchar(64) NOT NULL, `parameters_values` text NOT NULL, `control_available` tinyint NOT NULL DEFAULT 1, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_print_docs_wholesaler` (`id` int NOT NULL AUTO_INCREMENT, `doc_name` varchar(64) NOT NULL, `office_id` int NOT NULL, `parameters_values` text NOT NULL, PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_obtaining_modes` (`id` int NOT NULL, `caption` varchar(64) NOT NULL, `handler` varchar(64) NOT NULL DEFAULT '', PRIMARY KEY (`id`))",
+    "CREATE TABLE `shop_currencies` (`id` int NOT NULL AUTO_INCREMENT, `iso_code` varchar(8) NOT NULL, `iso_name` varchar(16) NOT NULL, `caption_short` varchar(16) NOT NULL, `sign` varchar(16) NOT NULL, `rate` decimal(16,6) NOT NULL, `available` tinyint NOT NULL DEFAULT 1, `order` int NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY (`iso_code`))",
+    "CREATE TABLE `users_profiles` (`id` int NOT NULL AUTO_INCREMENT, `user_id` int NOT NULL, `data_key` varchar(64) NOT NULL, `data_value` text NOT NULL, PRIMARY KEY (`id`))",
+    "CREATE TABLE `epc_price_settings` (`setting_key` varchar(64) NOT NULL, `setting_value` varchar(255) NOT NULL, PRIMARY KEY (`setting_key`))"
+  ],
+  "base": [
+    "INSERT INTO `shop_orders_statuses_ref` VALUES (1,'status_new','#fff',1,0),(2,'status_paid','#dfd',2,1)",
+    "INSERT INTO `shop_orders_items_statuses_ref` VALUES (1,'item_active','#fafafa',1,1),(5,'item_cancelled','#fdd',2,0)",
+    "INSERT INTO `shop_offices` VALUES (1,'Main office')",
+    "INSERT INTO `shop_orders_paid_type` VALUES (1,'Pay on place',1,1),(2,'Card',1,2)",
+    "INSERT INTO `shop_obtaining_modes` VALUES (1,'Pickup','')",
+    "INSERT INTO `shop_orders` VALUES (10,7,1700000000,1,1,0,0,1,'{}'),(11,7,1700100000,1,2,1,2,1,'{}'),(12,8,1700200000,1,1,0,0,1,'{}')",
+    "INSERT INTO `shop_orders_items` VALUES (101,10,1,50.00,2,2,0,'Brake pad','A1','Bosch',2,4),(102,10,5,30.00,1,2,0,'Cancelled','C','Mann',1,1),(103,11,1,12.35,3,2,0,'Bulb','B1','Febi',5,5)",
+    "INSERT INTO `shop_users_accounting` (`user_id`,`income`,`amount`,`active`,`order_id`) VALUES (7,0,40.00,1,10),(7,1,5.00,1,10),(7,0,37.05,1,11)",
+    "INSERT INTO `shop_docpart_garage` VALUES (1,7,'Roadster','VIN1',1),(2,7,'Truck','VIN2',0),(3,8,'Other','VIN3',1)",
+    "INSERT INTO `shop_docpart_garage_orders` (`order_id`,`garage_id`) VALUES (10,1),(10,3)",
+    "INSERT INTO `shop_orders_messages` (`order_id`,`read`,`is_customer`) VALUES (10,0,0),(10,0,1),(11,0,0),(12,0,0)",
+    "INSERT INTO `shop_print_docs` VALUES (1,'sales_receipt','receipt_caption','{\"button_visible_for_customer\":1}',1),(2,'invoice_for_payment','invoice_caption','{\"button_visible_for_customer\":1}',1),(3,'legacy_ru','legacy_caption','{\"button_visible_for_customer\":1}',1),(4,'hidden','hidden_caption','{\"button_visible_for_customer\":0}',1)",
+    "INSERT INTO `epc_price_settings` VALUES ('company_vat_registered','0'),('vat_percent','5.00')"
+  ],
+  "cases": [
+    { "name": "visitor", "user_id": 0, "get": {}, "config": { "shop_currency": "784", "currency_show_mode": "sign_before" } },
+    { "name": "missing_order", "user_id": 7, "get": { "order_id": "999" }, "config": { "shop_currency": "784", "currency_show_mode": "sign_before" }, "csrf": "csrf-7" },
+    { "name": "owned_unpaid_order", "user_id": 7, "get": { "order_id": "10", "success_message": "Saved" }, "config": { "shop_currency": "784", "currency_show_mode": "sign_before", "return_available": "1", "partial_payment": "0", "order_pay_on_place": "1" }, "csrf": "csrf-7" },
+    { "name": "owned_partial_payment_order", "user_id": 7, "get": { "order_id": "10" }, "config": { "shop_currency": "784", "currency_show_mode": "sign_before", "return_available": "1", "partial_payment": "1", "partial_payment_min_percent": "30", "order_pay_on_place": "1" }, "csrf": "csrf-7" },
+    { "name": "owned_partial_below_minimum", "user_id": 7, "get": { "order_id": "10" }, "config": { "shop_currency": "784", "currency_show_mode": "sign_before", "return_available": "1", "partial_payment": "1", "partial_payment_min_percent": "100", "order_pay_on_place": "0" }, "csrf": "csrf-7" },
+    { "name": "balance_nonpartial_sufficient", "user_id": 7, "get": { "order_id": "10" }, "config": { "shop_currency": "784", "currency_show_mode": "sign_before", "return_available": "1", "partial_payment": "0", "order_pay_on_place": "0" }, "csrf": "csrf-7", "sql": ["INSERT INTO `shop_users_accounting` (`user_id`,`income`,`amount`,`active`,`order_id`) VALUES (7,1,200.00,1,0)"] },
+    { "name": "balance_partial_limit_below_debt", "user_id": 7, "get": { "order_id": "10" }, "config": { "shop_currency": "784", "currency_show_mode": "sign_before", "return_available": "1", "partial_payment": "1", "partial_payment_min_percent": "30", "order_pay_on_place": "0" }, "csrf": "csrf-7", "sql": ["INSERT INTO `shop_users_accounting` (`user_id`,`income`,`amount`,`active`,`order_id`) VALUES (7,1,112.05,1,0)"] },
+    { "name": "balance_unlimited_overdraft_negative", "user_id": 7, "get": { "order_id": "10" }, "config": { "shop_currency": "784", "currency_show_mode": "sign_before", "return_available": "1", "partial_payment": "0", "client_overdraft": "1", "client_overdraft_value": "0", "order_pay_on_place": "0" }, "csrf": "csrf-7" },
+    { "name": "balance_finite_overdraft_allowed", "user_id": 7, "get": { "order_id": "10" }, "config": { "shop_currency": "784", "currency_show_mode": "sign_before", "return_available": "1", "partial_payment": "1", "partial_payment_min_percent": "30", "client_overdraft": "1", "client_overdraft_value": "15", "order_pay_on_place": "0" }, "csrf": "csrf-7", "sql": ["INSERT INTO `shop_users_accounting` (`user_id`,`income`,`amount`,`active`,`order_id`) VALUES (7,1,92.05,1,0)"] },
+    { "name": "balance_finite_overdraft_denied", "user_id": 7, "get": { "order_id": "10" }, "config": { "shop_currency": "784", "currency_show_mode": "sign_before", "return_available": "1", "partial_payment": "1", "partial_payment_min_percent": "30", "client_overdraft": "1", "client_overdraft_value": "5", "order_pay_on_place": "0" }, "csrf": "csrf-7", "sql": ["INSERT INTO `shop_users_accounting` (`user_id`,`income`,`amount`,`active`,`order_id`) VALUES (7,1,92.05,1,0)"] },
+    { "name": "balance_wholesaler_office_scoped", "user_id": 7, "get": { "order_id": "10" }, "config": { "shop_currency": "784", "currency_show_mode": "sign_before", "return_available": "1", "partial_payment": "0", "wholesaler": "1", "order_pay_on_place": "0" }, "csrf": "csrf-7", "sql": ["INSERT INTO `shop_users_accounting` (`user_id`,`office_id`,`income`,`amount`,`active`,`order_id`) VALUES (7,1,1,70.00,1,0)"] },
+    { "name": "owned_paid_order", "user_id": 7, "get": { "order_id": "11" }, "config": { "shop_currency": "784", "currency_show_mode": "short_name_after", "return_available": "0", "partial_payment": "0", "order_pay_on_place": "1" }, "csrf": "csrf-7", "lang_href": "" },
+    { "name": "other_customer_order", "user_id": 7, "get": { "order_id": "12" }, "config": { "shop_currency": "784", "currency_show_mode": "sign_before" }, "csrf": "csrf-7" }
+  ]
+}
