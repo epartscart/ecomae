@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after ReadyNamed (`--max-gap 595` passed; current gap **590**).
+after PlanQ1 (`--max-gap 590` passed; current gap **581**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 590
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 581
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -20,22 +20,22 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 1 | Storefront: catalogue | 36 | 11,180 |
 | 1 | Storefront: modules | 18 | 3,446 |
 | 1 | Storefront: other shop | 23 | 7,989 |
-| 1 | Storefront: parts/docpart | 34 | 36,349 |
+| 1 | Storefront: parts/docpart | 32 | 35,988 |
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 3 | 2,192 |
-| 3 | CP other | 13 | 3,686 |
+| 3 | CP other | 12 | 3,578 |
 | 3 | CP shop core (orders, catalogue, price upload) | 31 | 13,857 |
 | 3 | CP shop smaller | 24 | 8,039 |
 | 4 | CP control/portal | 41 | 10,505 |
-| 5 | Marketing/BOS/industries | 173 | 80,616 |
+| 5 | Marketing/BOS/industries | 168 | 79,838 |
 | 6 | Price engine | 19 | 16,422 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
-| 8 | Core/root | 6 | 3,111 |
-| | **Total** | **590** | **266,272** |
+| 8 | Core/root | 5 | 2,983 |
+| | **Total** | **581** | **264,897** |
 
-- Non-ERP (Cursor): **424 files / 200,081 lines**
+- Non-ERP (Cursor): **415 files / 198,706 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **7,726** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **162** (50 files). Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **7,676** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **112**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -52,22 +52,21 @@ Do not close both sides of a basename collision (`orders_background.php`, `show_
 
 ## 3. Next queue
 
-### Q1 — port next (self-contained named helpers)
+### Q1 — done (PlanQ1 / `PhpPlanQ1`)
 
-Smallest honest files first. Each row is a real PHP function file, not a page-body `*_h` wrapper.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1`, 35 cases): bootstrap-light, deploy-auth, BOS security lists, PHP-reference router, CP common-parity, office/storage meta, perf-cache, tenant-brand stub, genuine-manufacturer index. SKU-media CP install stays in Q2 (`epc_sku_media.php` parent).
 
-| Order | File | C# twins | Why now |
-|---|---|---|---|
-| 1 | `cp/epc_cp_bootstrap_light.php` (108) | `EpcCpBootstrapLightActive`, `EpcCpBootstrapLightInit`, `EpcCpHasAdminCookies`, `EpcCpIsLoginRequest`, `EpcCpRequestRoute` | Cookie/route predicates only. Do not `session_start` on GET. |
-| 2 | `epc_deploy_auth.php` (128) | `EpcDeployAllowedIps`, `EpcDeployClientIp`, `EpcDeployForbidden`, `EpcDeployLockdownEnabled`, `EpcDeployRequireToken` | Token/IP gate. Root ops helper, no ERP. |
-| 3 | `content/general_pages/epc_bos_security.php` (138) | `EpcBosPublicActions`, `EpcBosProviderOnlyActions`, `EpcBosAjaxActionName`, `EpcBosCsrfMeta`, `EpcBosAjaxEntryGuard` | Action lists + CSRF meta. No live BOS login. |
-| 4 | `content/general_pages/epc_php_reference_router.php` (144) | `EpcPhpReferenceApplyDeepUri`, `EpcPhpReferenceIsSuperCpHost`, `EpcPhpReferenceSurface`, `EpcPhpReferenceTryRoute` | URI/surface helpers. |
-| 5 | `content/general_pages/epc_cp_common_parity.php` (151) | `EpcCpCommonParityHostMap`, `EpcCpCommonParityPacks`, `EpcCpCommonParityTargets`, `EpcCpCommonParityPackApplies` | Static host/pack catalogs. |
-| 6 | `content/shop/catalogue/epc_sku_media_cp_install.php` (118) | `EpcSkuMediaCpInstall`, `EpcSkuMediaCpLang` | Install + lang table. Keep storefront renderer as its own file. |
-| 7 | `content/shop/docpart/epc_prices_office_storage_meta.php` (170) | `EpcPricesBuildOfficeStorageDataInfo` | Structured office/storage meta. |
-| 8 | `content/general_pages/epc_perf_cache.php` (171) | `EpcPerfCacheDir` / `KeySafe` / `Get` / `Set` / `Delete` / `Remember` / `BustPrefix`, `EpcCpMenuCache`, `EpcCpMenuCacheBust` | File cache, same pattern as `epc_crossbase_cache`. |
-| 9 | `content/general_pages/epc_portal_tenant_brand.php` (174) | catalog / config / css / markup / hero | Stub site profile; do not load `epc_portal.php`. |
-| 10 | `content/shop/docpart/docpart_genuine_manufacturers.php` (191) | cache path/read/write, names, section counts | Umapi sync stays stub-safe if the live client is absent. |
+### Q1 next — remaining honest ≤200-line helpers
+
+Most leftover “ready” rows are Q2/Q3 (copilot, BOS login/health, breadcrumb DB, product-line hrefs, `*_h` pages, APE, logistics). Next honest ports:
+
+| Order | File | Why now |
+|---|---|---|
+| 1 | `content/shop/catalogue/epc_sku_media_storefront.php` (165) | Renderer only if install parent is still skipped — **skip** until `epc_sku_media.php`. |
+| 2 | `content/general_pages/epc_portal_storefront_logo.php` (191) | Logo markup/hub flags. Stub site profile like tenant-brand. |
+| 3 | `content/general_pages/epc_industry_packs.php` (168) | Builtin pack catalog only; schema/fleet stay stub-safe. |
+| 4 | `content/general_pages/epc_promotions_engine.php` (153) | List/apply against in-memory rows; schema optional. |
+| 5 | `cp/content/content/get_content_records.php` (`addContentToDump`, 138) | Dump walker if it is pure tree walk. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
@@ -91,7 +90,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_tenant_pdo.php` | Live tenant connections |
 | `get_alternative_bread_crumbs` | Breadcrumb module |
 | `clear_dir` (`del_tmp_folder.php`) | pyprices upload parent |
-| `epc_sku_media_storefront.php` | After CP install + product-page media slot |
+| `epc_sku_media_cp_install.php`, `epc_sku_media_storefront.php` | `epc_sku_media.php` (1,311 lines) |
 
 ### Q3 — do not mention-only (false close)
 

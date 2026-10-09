@@ -322,6 +322,13 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — plan Q1 named helpers (bootstrap, deploy-auth, BOS lists, parity, cache, brand, genuine)
+
+Not complete.
+
+- Ratchet 590 to 581. Nine Q1 files from `CURSOR_NON_ERP_NEXT_PLAN.md` now have PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1`): `epc_cp_bootstrap_light.php` (route / cookies / login / init — GET does not `session_start`), `epc_deploy_auth.php` (token / client IP / allowlist / lockdown / safe redirect; `epc_deploy_require_token` returns a status dict instead of `exit`), `epc_bos_security.php` (public/provider lists + action name; CSRF meta takes a token; entry_guard is a decision dict with no session start), `epc_php_reference_router.php` (surface / deep URI / Super-CP host), `epc_cp_common_parity.php` (targets / packs / host map), `epc_prices_office_storage_meta.php`, `epc_perf_cache.php`, `epc_portal_tenant_brand.php` (stub site profile; does not load `epc_portal.php`), `docpart_genuine_manufacturers.php` (UMAPI sync is URL-only). `epc_sku_media_cp_install.php` stays a gap until `epc_sku_media.php`.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1/golden.json` (35 cases). The PlanQ1 suite is 4 of 4. Inventory content 454 to 461 of 952, cp-page 253 to 254 of 523, root 73 to 74 of 491. Unnamed PHP functions 7,726 to 7,676. Ready ≤200-line non-ERP functions 162 to 112. The weighted headline stays about 20.4%. Non-ERP pending: 415 files / 198,706 lines (was 424 / 200,081). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session.
+
 ### Checkpoint 2026-10-09 — ready named helpers (accessories, synonyms, TDP, config meta, order guide)
 
 Not complete.

@@ -4,13 +4,13 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 
 | Class | Count | What to do |
 |---|---:|---|
-| Real PHP (non-ERP), gap file ≤200 lines | 162 | Build next — listed below |
+| Real PHP (non-ERP), gap file ≤200 lines | 112 | Build next — listed below |
 | Real PHP (non-ERP), larger gap file | 2587 | Build with the parent kernel |
 | Real PHP already on a mentioned file | 859 | Finish leftover helpers on that twin |
 | JS functions written inside PHP templates | 1390 | Port as browser JS, not C# methods |
 | Vendor (PHPExcel, PclZip, …) | 255 | Do not port |
 | ERP finance (Devin) | 2035 | Leave for Devin |
-| **Total unmentioned** | **7726** | |
+| **Total unmentioned** | **7676** | |
 
 ## Ready to build (non-ERP PHP, gap file ≤200 lines)
 
@@ -27,19 +27,10 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_bos_health_check_all` | `EpcBosHealthCheckAll` | `content/general_pages/epc_bos_health_check.php` | 157 |
 | `epc_bos_health_check_tenant` | `EpcBosHealthCheckTenant` | `content/general_pages/epc_bos_health_check.php` | 157 |
 | `epc_bos_health_summary` | `EpcBosHealthSummary` | `content/general_pages/epc_bos_health_check.php` | 157 |
-| `epc_bos_ajax_action_name` | `EpcBosAjaxActionName` | `content/general_pages/epc_bos_security.php` | 138 |
-| `epc_bos_ajax_entry_guard` | `EpcBosAjaxEntryGuard` | `content/general_pages/epc_bos_security.php` | 138 |
-| `epc_bos_csrf_meta` | `EpcBosCsrfMeta` | `content/general_pages/epc_bos_security.php` | 138 |
-| `epc_bos_provider_only_actions` | `EpcBosProviderOnlyActions` | `content/general_pages/epc_bos_security.php` | 138 |
-| `epc_bos_public_actions` | `EpcBosPublicActions` | `content/general_pages/epc_bos_security.php` | 138 |
 | `epc_cp_breadcrumb_caption_for_node` | `EpcCpBreadcrumbCaptionForNode` | `content/general_pages/epc_cp_breadcrumb.php` | 159 |
 | `epc_cp_breadcrumb_ensure_folder_content` | `EpcCpBreadcrumbEnsureFolderContent` | `content/general_pages/epc_cp_breadcrumb.php` | 159 |
 | `epc_cp_breadcrumb_humanize_segment` | `EpcCpBreadcrumbHumanizeSegment` | `content/general_pages/epc_cp_breadcrumb.php` | 159 |
 | `epc_cp_breadcrumb_repair_intermediate_folders` | `EpcCpBreadcrumbRepairIntermediateFolders` | `content/general_pages/epc_cp_breadcrumb.php` | 159 |
-| `epc_cp_common_parity_host_map` | `EpcCpCommonParityHostMap` | `content/general_pages/epc_cp_common_parity.php` | 151 |
-| `epc_cp_common_parity_pack_applies` | `EpcCpCommonParityPackApplies` | `content/general_pages/epc_cp_common_parity.php` | 151 |
-| `epc_cp_common_parity_packs` | `EpcCpCommonParityPacks` | `content/general_pages/epc_cp_common_parity.php` | 151 |
-| `epc_cp_common_parity_targets` | `EpcCpCommonParityTargets` | `content/general_pages/epc_cp_common_parity.php` | 151 |
 | `epc_ecomae_h` | `EpcEcomaeH` | `content/general_pages/epc_ecomae_platform_home.php` | 118 |
 | `epc_el_pl_href` | `EpcElPlHref` | `content/general_pages/epc_electronicae_home_product_lines.php` | 70 |
 | `epc_ep_pl_href` | `EpcEpPlHref` | `content/general_pages/epc_epartscart_home_product_lines.php` | 81 |
@@ -57,19 +48,6 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_industry_fleet_stats` | `EpcIndustryFleetStats` | `content/general_pages/epc_industry_packs.php` | 168 |
 | `epc_industry_seed_packs` | `EpcIndustrySeedPacks` | `content/general_pages/epc_industry_packs.php` | 168 |
 | `epc_industry_tenant_packs` | `EpcIndustryTenantPacks` | `content/general_pages/epc_industry_packs.php` | 168 |
-| `epc_cp_menu_cache` | `EpcCpMenuCache` | `content/general_pages/epc_perf_cache.php` | 171 |
-| `epc_cp_menu_cache_bust` | `EpcCpMenuCacheBust` | `content/general_pages/epc_perf_cache.php` | 171 |
-| `epc_perf_cache_bust_prefix` | `EpcPerfCacheBustPrefix` | `content/general_pages/epc_perf_cache.php` | 171 |
-| `epc_perf_cache_delete` | `EpcPerfCacheDelete` | `content/general_pages/epc_perf_cache.php` | 171 |
-| `epc_perf_cache_dir` | `EpcPerfCacheDir` | `content/general_pages/epc_perf_cache.php` | 171 |
-| `epc_perf_cache_get` | `EpcPerfCacheGet` | `content/general_pages/epc_perf_cache.php` | 171 |
-| `epc_perf_cache_key_safe` | `EpcPerfCacheKeySafe` | `content/general_pages/epc_perf_cache.php` | 171 |
-| `epc_perf_cache_remember` | `EpcPerfCacheRemember` | `content/general_pages/epc_perf_cache.php` | 171 |
-| `epc_perf_cache_set` | `EpcPerfCacheSet` | `content/general_pages/epc_perf_cache.php` | 171 |
-| `epc_php_reference_apply_deep_uri` | `EpcPhpReferenceApplyDeepUri` | `content/general_pages/epc_php_reference_router.php` | 144 |
-| `epc_php_reference_is_super_cp_host` | `EpcPhpReferenceIsSuperCpHost` | `content/general_pages/epc_php_reference_router.php` | 144 |
-| `epc_php_reference_surface` | `EpcPhpReferenceSurface` | `content/general_pages/epc_php_reference_router.php` | 144 |
-| `epc_php_reference_try_route` | `EpcPhpReferenceTryRoute` | `content/general_pages/epc_php_reference_router.php` | 144 |
 | `epc_cpi_header_href` | `EpcCpiHeaderHref` | `content/general_pages/epc_portal_consulting_primeinvest_header.php` | 113 |
 | `epc_er_header_href` | `EpcErHeaderHref` | `content/general_pages/epc_portal_electronics_retail_header.php` | 162 |
 | `epc_frn_header_href` | `EpcFrnHeaderHref` | `content/general_pages/epc_portal_fashion_retail_namshi_header.php` | 196 |
@@ -84,15 +62,6 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_portal_storefront_hub_logo_setting` | `EpcPortalStorefrontHubLogoSetting` | `content/general_pages/epc_portal_storefront_logo.php` | 191 |
 | `epc_portal_storefront_logo_markup` | `EpcPortalStorefrontLogoMarkup` | `content/general_pages/epc_portal_storefront_logo.php` | 191 |
 | `epc_portal_storefront_logo_show_trade_label` | `EpcPortalStorefrontLogoShowTradeLabel` | `content/general_pages/epc_portal_storefront_logo.php` | 191 |
-| `epc_portal_tenant_brand_catalog` | `EpcPortalTenantBrandCatalog` | `content/general_pages/epc_portal_tenant_brand.php` | 174 |
-| `epc_portal_tenant_brand_config` | `EpcPortalTenantBrandConfig` | `content/general_pages/epc_portal_tenant_brand.php` | 174 |
-| `epc_portal_tenant_brand_css_href` | `EpcPortalTenantBrandCssHref` | `content/general_pages/epc_portal_tenant_brand.php` | 174 |
-| `epc_portal_tenant_brand_css_version` | `EpcPortalTenantBrandCssVersion` | `content/general_pages/epc_portal_tenant_brand.php` | 174 |
-| `epc_portal_tenant_brand_enabled` | `EpcPortalTenantBrandEnabled` | `content/general_pages/epc_portal_tenant_brand.php` | 174 |
-| `epc_portal_tenant_brand_enqueue` | `EpcPortalTenantBrandEnqueue` | `content/general_pages/epc_portal_tenant_brand.php` | 174 |
-| `epc_portal_tenant_brand_hero_block` | `EpcPortalTenantBrandHeroBlock` | `content/general_pages/epc_portal_tenant_brand.php` | 174 |
-| `epc_portal_tenant_brand_markup` | `EpcPortalTenantBrandMarkup` | `content/general_pages/epc_portal_tenant_brand.php` | 174 |
-| `epc_portal_tenant_brand_site_key` | `EpcPortalTenantBrandSiteKey` | `content/general_pages/epc_portal_tenant_brand.php` | 174 |
 | `epc_promo_apply` | `EpcPromoApply` | `content/general_pages/epc_promotions_engine.php` | 153 |
 | `epc_promo_ensure_schema` | `EpcPromoEnsureSchema` | `content/general_pages/epc_promotions_engine.php` | 153 |
 | `epc_promo_fleet_stats` | `EpcPromoFleetStats` | `content/general_pages/epc_promotions_engine.php` | 153 |
@@ -115,16 +84,7 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_sku_media_render_spec_groups_html` | `EpcSkuMediaRenderSpecGroupsHtml` | `content/shop/catalogue/epc_sku_media_storefront.php` | 165 |
 | `epc_sku_media_render_storefront` | `EpcSkuMediaRenderStorefront` | `content/shop/catalogue/epc_sku_media_storefront.php` | 165 |
 | `epc_sku_media_storefront_load` | `EpcSkuMediaStorefrontLoad` | `content/shop/catalogue/epc_sku_media_storefront.php` | 165 |
-| `epc_genuine_cache_path` | `EpcGenuineCachePath` | `content/shop/docpart/docpart_genuine_manufacturers.php` | 191 |
-| `epc_genuine_count_umapi_rows` | `EpcGenuineCountUmapiRows` | `content/shop/docpart/docpart_genuine_manufacturers.php` | 191 |
-| `epc_genuine_load_manufacturer_names` | `EpcGenuineLoadManufacturerNames` | `content/shop/docpart/docpart_genuine_manufacturers.php` | 191 |
-| `epc_genuine_read_cache` | `EpcGenuineReadCache` | `content/shop/docpart/docpart_genuine_manufacturers.php` | 191 |
-| `epc_genuine_section_counts` | `EpcGenuineSectionCounts` | `content/shop/docpart/docpart_genuine_manufacturers.php` | 191 |
-| `epc_genuine_site_base_url` | `EpcGenuineSiteBaseUrl` | `content/shop/docpart/docpart_genuine_manufacturers.php` | 191 |
-| `epc_genuine_sync_umapi_sections` | `EpcGenuineSyncUmapiSections` | `content/shop/docpart/docpart_genuine_manufacturers.php` | 191 |
-| `epc_genuine_write_cache` | `EpcGenuineWriteCache` | `content/shop/docpart/docpart_genuine_manufacturers.php` | 191 |
 | `epc_build_initial_price_bunch` | `EpcBuildInitialPriceBunch` | `content/shop/docpart/epc_build_initial_price_bunch.php` | 108 |
-| `epc_prices_build_office_storage_data_info` | `EpcPricesBuildOfficeStorageDataInfo` | `content/shop/docpart/epc_prices_office_storage_meta.php` | 170 |
 | `epc_logistics_configure_urls` | `EpcLogisticsConfigureUrls` | `content/shop/logistics/epc_logistics_helpers.php` | 151 |
 | `epc_logistics_dashboard` | `EpcLogisticsDashboard` | `content/shop/logistics/epc_logistics_helpers.php` | 151 |
 | `epc_logistics_demo_report` | `EpcLogisticsDemoReport` | `content/shop/logistics/epc_logistics_helpers.php` | 151 |
@@ -165,16 +125,6 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_emod_cp_h` | `EpcEmodCpH` | `cp/content/shop/eparts-mod/eparts_mod_cp.php` | 155 |
 | `epc_wa_guide_h` | `EpcWaGuideH` | `cp/content/shop/order_process/whatsapp_guide.php` | 166 |
 | `clear_dir` | `ClearDir` | `cp/content/shop/prices_upload/for_pyprices/del_tmp_folder.php` | 102 |
-| `epc_cp_bootstrap_light_active` | `EpcCpBootstrapLightActive` | `cp/epc_cp_bootstrap_light.php` | 108 |
-| `epc_cp_bootstrap_light_init` | `EpcCpBootstrapLightInit` | `cp/epc_cp_bootstrap_light.php` | 108 |
-| `epc_cp_has_admin_cookies` | `EpcCpHasAdminCookies` | `cp/epc_cp_bootstrap_light.php` | 108 |
-| `epc_cp_is_login_request` | `EpcCpIsLoginRequest` | `cp/epc_cp_bootstrap_light.php` | 108 |
-| `epc_cp_request_route` | `EpcCpRequestRoute` | `cp/epc_cp_bootstrap_light.php` | 108 |
-| `epc_deploy_allowed_ips` | `EpcDeployAllowedIps` | `epc_deploy_auth.php` | 128 |
-| `epc_deploy_client_ip` | `EpcDeployClientIp` | `epc_deploy_auth.php` | 128 |
-| `epc_deploy_forbidden` | `EpcDeployForbidden` | `epc_deploy_auth.php` | 128 |
-| `epc_deploy_lockdown_enabled` | `EpcDeployLockdownEnabled` | `epc_deploy_auth.php` | 128 |
-| `epc_deploy_require_token` | `EpcDeployRequireToken` | `epc_deploy_auth.php` | 128 |
 | `get_alternative_bread_crumbs` | `GetAlternativeBreadCrumbs` | `modules/bread_crumbs/helper.php` | 125 |
 | `printCatalogueNode` | `PrintCatalogueNode` | `modules/shop/catalogue/printCatalogueNode.php` | 121 |
 | `getHtmlOfTopMenuCatalogue` | `GetHtmlOfTopMenuCatalogue` | `modules/shop/catalogue/top_menu_catalog.php` | 155 |

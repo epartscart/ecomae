@@ -422,7 +422,7 @@ public static class PhpPlanQ1
 
         if (pairs.Count == 0)
         {
-            return [info, priceIds];
+            return [Array.Empty<object>(), priceIds];
         }
 
         foreach (var (officeId, storageId) in pairs)
@@ -687,7 +687,7 @@ public static class PhpPlanQ1
 
         return "<section class=\"epc-tenant-brand-hero col-lg-12\" aria-label=\"Brand presentation\">\n\t<div class=\"epc-tenant-brand-hero__inner\">\n\t\t"
             + EpcPortalTenantBrandMarkup("hero", siteKey, host)
-            + "</div>\n</section>\n\t";
+            + "\t</div>\n</section>\n\t";
     }
 
     public static string EpcGenuineCachePath(string dir)
