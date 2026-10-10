@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-helm (auth SMTP)
+
+Not complete.
+
+- Ratchet 477 to 476. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Helm`): `content/general_pages/epc_auth_smtp.php` (file / local / tenant overlay, Super-CP skips tenant overlay, `empty('0')` tenant fields skip while file `"0"` host applies, validate/write with `var_export` and blank-password keep, diagnose, classify, send with mailer/mail injected, demo OTP fallback `demo_` prefix, operator store/lookup with `empty('0')` code skip). Portal / mailer leftovers stay injected. GET does not mint a session.
+- Area functionality gained an SMTP isolation case (tenant overlay vs Super-CP file source, operator OTP lookup stays on that email/tenant).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Helm` (4). Helm parity 4 of 4. Area functionality 13 of 13. PlanQ1 suites 213 of 213. Full platform suite **6184 / 6184** after Helm (was 6179 after Mast). Area runner: auth 162, storefront commerce 123, CP/BOS 167, tenants/jobs/social 31. Inventory content 558 to 559 of 952. Unnamed PHP functions 6,587 to 6,580. Ready ≤200-line non-ERP functions stay 59. The weighted headline stays about 20.4%. Non-ERP pending: 310 files / 156,363 lines (was 311 / 156,950). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
+
 ### Checkpoint 2026-10-10 — plan Q1-mast (REST API v2)
 
 Not complete.
