@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "pure",
+      "eval": "return wave_run_pure($GLOBALS['db_link']);"
+    },
+    {
+      "name": "enroll",
+      "eval": "return wave_run_enroll($GLOBALS['db_link']);"
+    },
+    {
+      "name": "policy",
+      "eval": "return wave_run_policy($GLOBALS['db_link']);"
+    },
+    {
+      "name": "ajax",
+      "eval": "return wave_run_ajax($GLOBALS['db_link']);"
+    }
+  ]
+}
