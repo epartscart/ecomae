@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Reed (`--max-gap 426` passed; current gap **425**).
+after PlanQ1Mere (`--max-gap 425` passed; current gap **424**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 425
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 424
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -18,7 +18,7 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | Plan step | Area | Gap files | Lines |
 |---|---|---:|---:|
 | 1 | Storefront: catalogue | 30 | 8,978 |
-| 1 | Storefront: modules | 14 | 2,896 |
+| 1 | Storefront: modules | 13 | 2,802 |
 | 1 | Storefront: other shop | 10 | 4,189 |
 | 1 | Storefront: parts/docpart | 16 | 26,316 |
 | 1 | Storefront: templates | 3 | 2,689 |
@@ -31,9 +31,9 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **425** | **199,379** |
+| | **Total** | **424** | **199,285** |
 
-- Non-ERP (Cursor): **259 files / 133,188 lines**
+- Non-ERP (Cursor): **258 files / 133,094 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
 - Functions unmentioned: **6,036** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **48**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
@@ -479,9 +479,13 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Loch`, 4 cases): empty/zero ar
 
 ### Q1 reed — done (`PhpPlanQ1Reed`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Reed`, 4 cases): guest panel, signed net balance, currency modes, tenant amount isolation. Leftover unique user helper stays injected. GET does not mint a session. Next unused class after Reed: Mere.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Reed`, 4 cases): guest panel, signed net balance, currency modes, tenant amount isolation. Leftover unique user helper stays injected. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 259 files.
+### Q1 mere — done (`PhpPlanQ1Mere`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Mere`, 4 cases): guest cookie cart, signed user cart, currency modes, tenant sum isolation. Full path only — `cart.php` basename is not unique. Leftover unique user helper stays injected. GET does not mint a session. Next unused class after Mere: Tarn.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 258 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -548,7 +552,8 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6az | `epc_epartscart_spare_parts.php` | Closed in Bight (with search ajax). |
 | 6ba | `search_string.php` | Closed in Loch. |
 | 6bb | `modules/shop/balance/module.php` | Closed in Reed. |
-| 6bc | `modules/shop/cart/cart.php` | Next (`PhpPlanQ1Mere`). Path 94/0; basename is not unique. Leftover unique user helper stays injected. |
+| 6bc | `modules/shop/cart/cart.php` | Closed in Mere (full path; sibling order-process cart stays a separate file). |
+| 6bd | `modules/login/module.php` | Next (`PhpPlanQ1Tarn`). Path 100/0. Leftover unique user helper stays injected if required. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
