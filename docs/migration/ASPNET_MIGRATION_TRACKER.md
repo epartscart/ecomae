@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-leech / knot / bend (SSL checker, metadata handler, order WhatsApp)
+
+Not complete.
+
+- Ratchet 461 to 458. Three files now have PHP 8.3 goldens and ASP.NET twins: `PhpPlanQ1Leech` `cp/modules/check_ssl/check_ssl.php` (probe+redirect digits `11`/`12`/`21`/`22`; leftover top-alert parents injected — Reef already owns prices-manager perf), `PhpPlanQ1Knot` `plugins/metadata_handler/metadata_handler.php` (url/complex/like_title + `text_for_url` override; leftover page-url / translate / HTTP injected), `PhpPlanQ1Bend` `cp/content/shop/order_process/epc_order_whatsapp_share.php` (empty/no-phone/profile-phone/LPO; leftover WhatsApp helpers injected). GET does not mint a session.
+- Area functionality gained SSL host isolation, metadata page-url isolation, and order WhatsApp phone isolation.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Leech` (4), `Fixtures/PlanQ1Knot` (4) and `Fixtures/PlanQ1Bend` (4). Leech/Knot/area **10 / 10**. Bend parity+area **5 / 5**. Full suite after Leech/Knot **6269 / 6269**. Full suite after Bend **6274 / 6274**. CP pages mentioned 265 to 267 of 523. Plugins mentioned 3 to 4 of 6. Unnamed PHP functions stay 6,423 (these files declare no functions). Ready ≤200-line non-ERP functions stay 57. The weighted headline stays about 20.4%. Non-ERP pending: 292 files / 150,417 lines (was 295 / 150,657). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73, `ecomae.sessions` 28).
+
 ### Checkpoint 2026-10-10 — plan Q1-cringle / throat (bread crumbs, staff summary)
 
 Not complete.

@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Cringle/Throat (`--max-gap 463` passed; current gap **461**).
+after PlanQ1Leech/Knot/Bend (`--max-gap 461` passed; current gap **458**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 461
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 458
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -22,18 +22,18 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 1 | Storefront: other shop | 16 | 5,799 |
 | 1 | Storefront: parts/docpart | 25 | 33,260 |
 | 1 | Storefront: templates | 3 | 2,689 |
-| 1 | Storefront: users/plugins | 3 | 2,192 |
-| 3 | CP other | 11 | 3,346 |
-| 3 | CP shop core (orders, catalogue, price upload) | 25 | 12,758 |
+| 1 | Storefront: users/plugins | 2 | 2,084 |
+| 3 | CP other | 10 | 3,274 |
+| 3 | CP shop core (orders, catalogue, price upload) | 24 | 12,698 |
 | 3 | CP shop smaller | 22 | 7,537 |
 | 4 | CP control/portal | 40 | 10,296 |
 | 5 | Marketing/BOS/industries | 82 | 42,913 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **461** | **216,848** |
+| | **Total** | **458** | **216,608** |
 
-- Non-ERP (Cursor): **295 files / 150,657 lines**
+- Non-ERP (Cursor): **292 files / 150,417 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
 - Functions unmentioned: **6,423** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **57**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
@@ -339,9 +339,21 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Cringle`, 4 cases): no rule, t
 
 ### Q1 throat — done (`PhpPlanQ1Throat`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Throat`, 4 cases): empty order/id, no CRM, CRM id, `number_format` thousands + VAT. Leftover notify/currency parents stay injected. GET does not mint a session. Next unused class after Throat: Reef.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Throat`, 4 cases): empty order/id, no CRM, CRM id, `number_format` thousands + VAT. Leftover notify/currency parents stay injected. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 295 files.
+### Q1 leech — done (`PhpPlanQ1Leech`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Leech`, 4 cases): probe+redirect digits concatenate to `11`/`12`/`21`/`22` (ok+redir / ok+nored / fail+redir / fail+nored). Leftover top-alert parents stay injected. Reef already owns `epc_prices_manager_perf.php` — this file is not a Reef overwrite. GET does not mint a session.
+
+### Q1 knot — done (`PhpPlanQ1Knot`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Knot`, 4 cases): no rule keeps title, `url` title + `like_title` description, `complex` translate `%0` replace, `text_for_url` override wins. Leftover page-url / translate / HTTP parents stay injected. GET does not mint a session.
+
+### Q1 bend — done (`PhpPlanQ1Bend`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Bend`, 4 cases): empty order/id, no customer phone, profile phone wins, LPO groups + `phone_not_auth`. Leftover WhatsApp helper parents stay injected. PHP `?>` eats the following newline. GET does not mint a session. Next unused class after Bend: Wake.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 292 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -373,6 +385,9 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6q | `del_tmp_folder.php` | Closed in Halyard. |
 | 6r | `modules/bread_crumbs/helper.php` | Closed in Cringle. |
 | 6s | `epc_order_staff_summary.php` | Closed in Throat. |
+| 6t | `cp/modules/check_ssl/check_ssl.php` | Closed in Leech. |
+| 6u | `plugins/metadata_handler/metadata_handler.php` | Closed in Knot. |
+| 6v | `epc_order_whatsapp_share.php` | Closed in Bend. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
@@ -393,7 +408,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_custom_shipping_guide.php`, `epc_erp_only_onboard_guide.php` | ERP include — Devin |
 | `epc_ai_copilot.php` | BOS unified / AI parent |
 | `epc_cp_breadcrumb.php` | CP content-folder DB |
-| `get_alternative_bread_crumbs` | Breadcrumb module |
+| `get_alternative_bread_crumbs` | Closed in Cringle |
 | `clear_dir` (`del_tmp_folder.php`) | pyprices upload parent |
 | `epc_sku_media_cp_install.php`, `epc_sku_media_storefront.php` | Closed in View |
 | `epc_sku_media_manager.php`, `epc_storefront_storage_panel.php` | Closed in Form |
