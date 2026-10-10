@@ -362,7 +362,7 @@ Not complete.
 Not complete.
 
 - Ratchet 490 to 489. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Tide`): `content/general_pages/epc_platform_failover.php` (mode / config / status JSON / splash / local probe). HTTP probe stays injected. Leftover deploy-auth and portal paths are concatenated.
-- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Tide` (4). Tide parity 4 of 4. PlanQ1 suites 161 of 161. Full platform suite pending this revision (was **6115 / 6115** after Wave). Inventory content 548 to 549 of 952. Unnamed PHP functions 6,742 to 6,716. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 323 files / 161,973 lines (was 324 / 162,396). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Tide` (4). Tide parity 4 of 4. PlanQ1 suites 161 of 161. Full platform suite **6119 / 6119** after Tide (was 6115 after Wave). Inventory content 548 to 549 of 952. Unnamed PHP functions 6,742 to 6,716. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 323 files / 161,973 lines (was 324 / 162,396). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
 ### Checkpoint 2026-10-10 — plan Q1-wave (MFA helpers)
 
