@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "pure",
+      "eval": "return reef_run_pure();"
+    },
+    {
+      "name": "lists",
+      "eval": "return reef_run_lists($GLOBALS['db_link']);"
+    },
+    {
+      "name": "indexes",
+      "eval": "return reef_run_indexes($GLOBALS['db_link']);"
+    },
+    {
+      "name": "health",
+      "eval": "return reef_run_health();"
+    }
+  ]
+}
