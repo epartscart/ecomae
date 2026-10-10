@@ -206,7 +206,6 @@ public sealed class PhpPlanQ1YardParityTests
         var empty = PhpPlanQ1Yard.EpcReadinessFleetSummary();
         PhpPlanQ1Yard.HasTenants = false;
         var missing = PhpPlanQ1Yard.EpcReadinessFleetSummary();
-        PhpPlanQ1Yard.HasSettings = false;
         return new Rendered(new object?[] { live, empty, missing, PhpPlanQ1Yard.ScoreIds(PhpPlanQ1Yard.EpcReadinessScore("beta")) });
     }
 
