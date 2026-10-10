@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-port (CP brochure live inventory)
+
+Not complete.
+
+- Ratchet 453 to 452. One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Port` `content/general_pages/epc_cp_brochure_live.php` (norm key, process-photo fallback, screen pool, area visuals, capability index, ERP nav items, live inventory merge; leftover topic-photo / dump / ERP-nav injected). GET does not mint a session. The leftover finance nav filename is not written in `aspnet/src`.
+- Area functionality gained injected ERP-nav isolation between tenants.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Port` (7). Port + area **5 / 5**. Full suite **6304 / 6304**. Content mentioned 574 to 575 of 952. Unnamed PHP functions 6,392 to 6,382. Ready ≤200-line non-ERP functions stay 57. The weighted headline stays about 20.4%. Non-ERP pending: 286 files / 148,461 lines (was 287 / 148,866). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73, `ecomae.sessions` 28).
+
 ### Checkpoint 2026-10-10 — plan Q1-stem (accessories catalog)
 
 Not complete.

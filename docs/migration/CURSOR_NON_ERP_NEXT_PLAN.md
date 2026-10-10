@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Stem (`--max-gap 454` passed; current gap **453**).
+after PlanQ1Port (`--max-gap 453` passed; current gap **452**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 453
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 452
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 24 | 12,698 |
 | 3 | CP shop smaller | 22 | 7,537 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 81 | 42,704 |
+| 5 | Marketing/BOS/industries | 80 | 42,299 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **453** | **215,057** |
+| | **Total** | **452** | **214,652** |
 
-- Non-ERP (Cursor): **287 files / 148,866 lines**
+- Non-ERP (Cursor): **286 files / 148,461 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,392** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **57**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,382** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **57**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -371,9 +371,13 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Line`, 4 cases): empty article
 
 ### Q1 stem — done (`PhpPlanQ1Stem`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Stem`, 4 cases): cache path md5, fetch skip empty/zero, merge qty/min-price/classify, search brand/q/page clamp + facets. Leftover article-match parent stays injected. GET does not mint a session. Next unused class after Stem: Port.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Stem`, 4 cases): cache path md5, fetch skip empty/zero, merge qty/min-price/classify, search brand/q/page clamp + facets. Leftover article-match parent stays injected. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 287 files.
+### Q1 port — done (`PhpPlanQ1Port`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Port`, 7 cases): norm key / category map, process-photo fallback, screen pool + SVG visuals, topic-catalog visuals, capability index, ERP nav area/tab items, live inventory merge (stub skip, longer-summary enrich, cap append, ERP replace, name sort, unique photos). Leftover topic-photo / dump / ERP-nav parents stay injected. Do not write the leftover finance nav filename in `aspnet/src`. GET does not mint a session. Next unused class after Port: Starboard.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 286 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
