@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "okredir" },
+    { "name": "oknored" },
+    { "name": "failredir" },
+    { "name": "failnored" }
+  ]
+}

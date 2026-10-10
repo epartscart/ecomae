@@ -678,6 +678,40 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void CheckSsl_ProbeAndRedirect_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Leech.Reset();
+        PhpPlanQ1Leech.ProbeOk = host => host == "acme.example";
+        PhpPlanQ1Leech.RedirectConfigured = () => true;
+        var acme = PhpPlanQ1Leech.EpcCheckSslEvaluate("https://acme.example/");
+        PhpPlanQ1Leech.RedirectConfigured = () => false;
+        var beta = PhpPlanQ1Leech.EpcCheckSslEvaluate("https://beta.example/");
+        Assert.Equal("11", acme["state"]);
+        Assert.Equal("acme.example", acme["host"]);
+        Assert.Equal("22", beta["state"]);
+        Assert.Equal("beta.example", beta["host"]);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Leech.CheckSslPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Leech.CheckSslPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MetadataHandler_RulesAndUrlOverride_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Knot.Reset();
+        PhpPlanQ1Knot.PageUrl = () => "/acme";
+        PhpPlanQ1Knot.Translate = id => "acme-" + id;
+        Assert.Equal("/acme", PhpPlanQ1Knot.PageUrl());
+        Assert.Equal("acme-7", PhpPlanQ1Knot.Translate(7));
+        PhpPlanQ1Knot.PageUrl = () => "/beta";
+        PhpPlanQ1Knot.Translate = id => "beta-" + id;
+        Assert.Equal("/beta", PhpPlanQ1Knot.PageUrl());
+        Assert.Equal("beta-7", PhpPlanQ1Knot.Translate(7));
+        Assert.NotEqual("/acme", PhpPlanQ1Knot.PageUrl());
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Knot.MetadataHandlerPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Knot.MetadataHandlerPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -727,6 +761,9 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Halyard.DelTmpFolderPath,
             PhpPlanQ1Cringle.BreadCrumbsHelperPath,
             PhpPlanQ1Throat.OrderStaffSummaryPath,
+            PhpPlanQ1Reef.PricesPerfPath,
+            PhpPlanQ1Leech.CheckSslPath,
+            PhpPlanQ1Knot.MetadataHandlerPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
