@@ -124,6 +124,9 @@ public static class PhpPlanQ1Open
         public string Name { get; set; } = "";
         public decimal Price { get; set; }
         public int Exist { get; set; }
+        public string TimeToExe { get; set; } = "";
+        public string Storage { get; set; } = "";
+        public string MinOrder { get; set; } = "";
     }
 
     public sealed class AuditRow
