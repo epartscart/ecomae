@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "pure",
+      "eval": "return tide_run_pure();"
+    },
+    {
+      "name": "files",
+      "eval": "return tide_run_files();"
+    },
+    {
+      "name": "probe",
+      "eval": "return tide_run_probe();"
+    },
+    {
+      "name": "status",
+      "eval": "return tide_run_status();"
+    }
+  ]
+}
