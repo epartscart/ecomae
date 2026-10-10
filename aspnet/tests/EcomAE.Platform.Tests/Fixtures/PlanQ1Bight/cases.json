@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "page" },
+    { "name": "inline" },
+    { "name": "ajax" },
+    { "name": "tenant" }
+  ]
+}

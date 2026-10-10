@@ -1828,6 +1828,41 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.DoesNotContain("epc_demand_intelligence.php", PhpPlanQ1Road.SparePartsWarehousePath, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void SparePartsPage_WarehouseCityStaysOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Bight.Reset();
+        PhpPlanQ1Bight.HasPdo = () => true;
+        PhpPlanQ1Bight.LangPrefix = () => "/en";
+        PhpPlanQ1Bight.Brands = () =>
+        [
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["value"] = "Toyota", ["label"] = "Toyota" }
+        ];
+        PhpPlanQ1Bight.Search = (brand, article) => new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["ok"] = true,
+            ["brand"] = brand,
+            ["article"] = article,
+            ["in_warehouse"] = true,
+            ["qty"] = 1,
+            ["warehouse_rows"] = new List<Dictionary<string, object?>>
+            {
+                new(StringComparer.Ordinal) { ["warehouse"] = brand == "Toyota" ? "Acme City" : "Beta Town" }
+            },
+            ["message"] = ""
+        };
+        PhpPlanQ1Bight.Query = new Dictionary<string, string>(StringComparer.Ordinal) { ["brand"] = "Toyota", ["article"] = "1310154101" };
+        var acme = PhpPlanQ1Bight.EpcEpartscartSparePartsPage();
+        PhpPlanQ1Bight.Query = new Dictionary<string, string>(StringComparer.Ordinal) { ["brand"] = "Beta", ["article"] = "1310154101" };
+        var beta = PhpPlanQ1Bight.EpcEpartscartSparePartsPage();
+        Assert.Contains("Acme City", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("Beta Town", acme, StringComparison.Ordinal);
+        Assert.Contains("Beta Town", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("Acme City", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Bight.EpartscartSparePartsPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Bight.SparePartsSearchPath, StringComparison.Ordinal);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -1914,6 +1949,8 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Sound.CpGuidelinePath,
             PhpPlanQ1Reach.PointGeoNodePath,
             PhpPlanQ1Road.SparePartsWarehousePath,
+            PhpPlanQ1Bight.EpartscartSparePartsPath,
+            PhpPlanQ1Bight.SparePartsSearchPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
