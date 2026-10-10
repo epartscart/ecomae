@@ -1922,6 +1922,35 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.DoesNotContain("dp_user.php", PhpPlanQ1Reed.BalanceModulePath, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CartModule_SumStaysOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Mere.Reset();
+        PhpPlanQ1Mere.TranslateById = raw => raw == "4495" ? "Items" : raw;
+        PhpPlanQ1Mere.LangHref = () => "/en";
+        PhpPlanQ1Mere.QueryCurrency = () => new Dictionary<string, object?>(StringComparer.Ordinal) { ["sign"] = "د.إ", ["caption_short"] = "AED" };
+        PhpPlanQ1Mere.CurrencyShowMode = () => "sign_after";
+        PhpPlanQ1Mere.GetUserId = () => 7;
+        PhpPlanQ1Mere.QuerySignedCart = _ => new Dictionary<string, object?>(StringComparer.Ordinal) { ["count"] = 1, ["sum"] = 80 };
+        var acme = PhpPlanQ1Mere.EpcCartModule();
+        PhpPlanQ1Mere.LangHref = () => "/ar";
+        PhpPlanQ1Mere.QueryCurrency = () => new Dictionary<string, object?>(StringComparer.Ordinal) { ["sign"] = "$", ["caption_short"] = "USD" };
+        PhpPlanQ1Mere.CurrencyShowMode = () => "sign_before";
+        PhpPlanQ1Mere.GetUserId = () => 8;
+        PhpPlanQ1Mere.QuerySignedCart = _ => new Dictionary<string, object?>(StringComparer.Ordinal) { ["count"] = 1, ["sum"] = 5 };
+        var beta = PhpPlanQ1Mere.EpcCartModule();
+        Assert.Contains("80.00 د.إ", acme, StringComparison.Ordinal);
+        Assert.Contains("/en/shop/cart", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("$ 5.00", acme, StringComparison.Ordinal);
+        Assert.Contains("$ 5.00", beta, StringComparison.Ordinal);
+        Assert.Contains("/ar/shop/cart", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("80.00 د.إ", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Mere.CartModulePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Mere.CartModulePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("dp_user.php", PhpPlanQ1Mere.CartModulePath, StringComparison.Ordinal);
+        Assert.Equal("modules/shop/cart/cart.php", PhpPlanQ1Mere.CartModulePath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2012,6 +2041,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Bight.SparePartsSearchPath,
             PhpPlanQ1Loch.SearchStringPath,
             PhpPlanQ1Reed.BalanceModulePath,
+            PhpPlanQ1Mere.CartModulePath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
