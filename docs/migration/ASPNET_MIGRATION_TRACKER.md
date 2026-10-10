@@ -362,7 +362,7 @@ Not complete.
 Not complete.
 
 - Ratchet 491 to 490. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Wave`): `content/general_pages/epc_auth_mfa.php` (TOTP / enroll / backup / policy / route+ajax gates). Clock and random stay injected. `LIMIT ?` twin takes an int.
-- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Wave` (4). Wave parity 4 of 4. PlanQ1 suites 157 of 157. Inventory content 547 to 548 of 952. Unnamed PHP functions 6,770 to 6,742. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 324 files / 162,396 lines (was 325 / 163,113). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Wave` (4). Wave parity 4 of 4. PlanQ1 suites 157 of 157. Full platform suite **6115 / 6115** after Wave (was 6111 after Peak). Inventory content 547 to 548 of 952. Unnamed PHP functions 6,770 to 6,742. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 324 files / 162,396 lines (was 325 / 163,113). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
 ### Checkpoint 2026-10-10 — plan Q1-peak (commerce isolation helpers)
 
