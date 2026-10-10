@@ -1863,6 +1863,41 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.DoesNotContain("/finance/", PhpPlanQ1Bight.SparePartsSearchPath, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void SearchString_LangHrefAndCsrfStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Loch.Reset();
+        PhpPlanQ1Loch.TranslateById = raw => raw switch
+        {
+            "4772" => "By article",
+            "4773" => "By name",
+            "4774" => "Search",
+            "2379" => "Find",
+            _ => raw
+        };
+        PhpPlanQ1Loch.LangHref = () => "/en";
+        PhpPlanQ1Loch.GetUserSession = () => new Dictionary<string, object?>(StringComparer.Ordinal) { ["csrf_guard_key"] = "tok-acme" };
+        PhpPlanQ1Loch.Query = new Dictionary<string, string>(StringComparer.Ordinal) { ["article"] = "AcmeCity" };
+        var acme = PhpPlanQ1Loch.EpcSearchStringModule();
+        PhpPlanQ1Loch.LangHref = () => "/ar";
+        PhpPlanQ1Loch.GetUserSession = () => new Dictionary<string, object?>(StringComparer.Ordinal) { ["csrf_guard_key"] = "tok-beta" };
+        PhpPlanQ1Loch.Query = new Dictionary<string, string>(StringComparer.Ordinal) { ["article"] = "BetaTown" };
+        var beta = PhpPlanQ1Loch.EpcSearchStringModule();
+        Assert.Contains("AcmeCity", acme, StringComparison.Ordinal);
+        Assert.Contains("tok-acme", acme, StringComparison.Ordinal);
+        Assert.Contains("/en/shop/search", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("BetaTown", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("tok-beta", acme, StringComparison.Ordinal);
+        Assert.Contains("BetaTown", beta, StringComparison.Ordinal);
+        Assert.Contains("tok-beta", beta, StringComparison.Ordinal);
+        Assert.Contains("/ar/shop/part_search", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("AcmeCity", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("tok-acme", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Loch.SearchStringPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Loch.SearchStringPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("dp_user.php", PhpPlanQ1Loch.SearchStringPath, StringComparison.Ordinal);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -1951,6 +1986,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Road.SparePartsWarehousePath,
             PhpPlanQ1Bight.EpartscartSparePartsPath,
             PhpPlanQ1Bight.SparePartsSearchPath,
+            PhpPlanQ1Loch.SearchStringPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
