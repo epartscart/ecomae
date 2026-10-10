@@ -712,6 +712,33 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void OrderWhatsappShare_PhoneAndLpo_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Bend.Reset();
+        PhpPlanQ1Bend.SalesDigits = () => "97150";
+        PhpPlanQ1Bend.CustomerMessage = (_, _, _) => "acme-cust";
+        PhpPlanQ1Bend.SalesMessage = (_, _, _) => "acme-sales";
+        var acme = PhpPlanQ1Bend.EpcOrderWhatsappShareRenderHtml(
+            new Dictionary<string, object?> { ["id"] = 1 },
+            1,
+            new Dictionary<string, object?> { ["phone"] = "+971 50 111" });
+        PhpPlanQ1Bend.SalesDigits = () => "97156";
+        PhpPlanQ1Bend.CustomerMessage = (_, _, _) => "beta-cust";
+        PhpPlanQ1Bend.SalesMessage = (_, _, _) => "beta-sales";
+        var beta = PhpPlanQ1Bend.EpcOrderWhatsappShareRenderHtml(
+            new Dictionary<string, object?> { ["id"] = 2 },
+            2,
+            new Dictionary<string, object?> { ["phone"] = "+971 56 222" });
+        Assert.Contains("97150111", acme, StringComparison.Ordinal);
+        Assert.Contains("acme-cust", acme, StringComparison.Ordinal);
+        Assert.Contains("97156222", beta, StringComparison.Ordinal);
+        Assert.Contains("beta-cust", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("beta-cust", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Bend.OrderWhatsappSharePath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -764,6 +791,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Reef.PricesPerfPath,
             PhpPlanQ1Leech.CheckSslPath,
             PhpPlanQ1Knot.MetadataHandlerPath,
+            PhpPlanQ1Bend.OrderWhatsappSharePath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
