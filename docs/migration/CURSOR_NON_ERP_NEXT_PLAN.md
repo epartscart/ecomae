@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Text (`--max-gap 499` passed; current gap **496**).
+after PlanQ1List (`--max-gap 496` passed; current gap **495**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 496
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 495
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -20,7 +20,7 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 1 | Storefront: catalogue | 30 | 8,978 |
 | 1 | Storefront: modules | 18 | 3,446 |
 | 1 | Storefront: other shop | 17 | 6,022 |
-| 1 | Storefront: parts/docpart | 26 | 33,598 |
+| 1 | Storefront: parts/docpart | 25 | 33,260 |
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 3 | 2,192 |
 | 3 | CP other | 12 | 3,578 |
@@ -31,11 +31,11 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **496** | **235,525** |
+| | **Total** | **495** | **235,187** |
 
-- Non-ERP (Cursor): **330 files / 169,334 lines**
+- Non-ERP (Cursor): **329 files / 168,996 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,909** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,895** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -173,16 +173,19 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Form`, 4 cases): SKU-media man
 
 Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Text`, 4 cases): stock-brand price IDs / in-stock fallback / counts+letters / match params / manufacturer parts / genuine-aftermarket tags (offices, genuine index, and synonym map injected so those parents stay their own mentions), tree-list items dump (`json_encode` flags=`JSON_HEX_TAG`; `"level"` / `"parent"` / `"count"` become `$` keys; `(bool)` on native INT `0` is false), catalogue text-search include (caption / description / article / alias / discovery-queue; parent lang fragment already mentioned). File cache TTL is 600s.
 
+### Q1 list — done (`PhpPlanQ1List`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1List`, 4 cases): agent catalog cache path / norm key / match pattern / index build / section hint+label / stock+vehicle+model match / inquiry+list detect / resolve query / name-in-text. Stock-brand counts reuse the Text twin. File cache TTL is 21600s; in-process memo is 300s. Next class `PhpPlanQ1Scan`.
+
 ### Q1 next leftovers — honest schema/data twins still open
 
 The 65 leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
 
 | Order | File | Why now |
 |---|---|---|
-| 1 | `epc_agent_catalog_knowledge.php` (338, 14 fns) | Stock-brand parent now mentioned — next class `PhpPlanQ1List`. |
-| 2 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
-| 3 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
-| 4 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
+| 1 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
+| 2 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
+| 3 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
@@ -207,6 +210,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_sku_media_cp_install.php`, `epc_sku_media_storefront.php` | Closed in View |
 | `epc_sku_media_manager.php`, `epc_storefront_storage_panel.php` | Closed in Form |
 | `epc_stock_brands_helpers.php`, `get_tree_list_items.php`, `text_search_algorithm.php` | Closed in Text |
+| `epc_agent_catalog_knowledge.php` | Closed in List |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
