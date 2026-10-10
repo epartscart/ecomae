@@ -897,6 +897,28 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void BrochureLive_ErpNav_StaysOnTheInjectedTenant()
+    {
+        PhpPlanQ1Port.Reset();
+        PhpPlanQ1Port.ErpNavLoad = () => new Dictionary<string, Dictionary<string, object?>>(StringComparer.Ordinal)
+        {
+            ["acme"] = new(StringComparer.Ordinal) { ["label"] = "Acme ledger", ["icon"] = "fa-book", ["desc"] = "Acme books" }
+        };
+        var acme = PhpPlanQ1Port.EpcCpBrochureErpNavItems();
+        PhpPlanQ1Port.Reset();
+        PhpPlanQ1Port.ErpNavLoad = () => new Dictionary<string, Dictionary<string, object?>>(StringComparer.Ordinal)
+        {
+            ["beta"] = new(StringComparer.Ordinal) { ["label"] = "Beta ledger", ["icon"] = "fa-book", ["desc"] = "Beta books" }
+        };
+        var beta = PhpPlanQ1Port.EpcCpBrochureErpNavItems();
+        Assert.Equal("Acme ledger", acme[0]["name"]);
+        Assert.Equal("Beta ledger", beta[0]["name"]);
+        Assert.DoesNotContain("Beta", Convert.ToString(acme[0]["name"]), StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Port.BrochureLivePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Port.BrochureLivePath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -955,6 +977,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Sail.TenantTemplatesCatalogPath,
             PhpPlanQ1Line.ArticleBrandsPath,
             PhpPlanQ1Stem.AccessoriesCatalogPath,
+            PhpPlanQ1Port.BrochureLivePath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,

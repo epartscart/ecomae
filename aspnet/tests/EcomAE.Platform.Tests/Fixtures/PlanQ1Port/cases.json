@@ -1,0 +1,11 @@
+{
+  "cases": [
+    { "name": "norm" },
+    { "name": "image" },
+    { "name": "pool" },
+    { "name": "visuals" },
+    { "name": "caps" },
+    { "name": "erp" },
+    { "name": "live" }
+  ]
+}
