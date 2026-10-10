@@ -6,6 +6,7 @@ using Xunit;
 
 namespace EcomAE.Platform.Tests;
 
+[Collection("PlanQ1Statics")]
 public sealed class PhpPlanQ1OpenParityTests
 {
     private static readonly JsonSerializerOptions JsonOpts = new()
