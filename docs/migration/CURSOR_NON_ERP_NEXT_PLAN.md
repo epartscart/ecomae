@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Grow (`--max-gap 494` passed; current gap **493**).
+after PlanQ1Rise (`--max-gap 493` passed; current gap **492**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 493
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 492
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -30,12 +30,12 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 5 | Marketing/BOS/industries | 105 | 54,598 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
-| 8 | Core/root | 5 | 2,983 |
-| | **Total** | **493** | **231,398** |
+| 8 | Core/root | 4 | 1,678 |
+| | **Total** | **492** | **230,093** |
 
-- Non-ERP (Cursor): **327 files / 165,207 lines**
+- Non-ERP (Cursor): **326 files / 163,902 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,814** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,788** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -183,7 +183,11 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Scan`, 4 cases): CloudPanel CL
 
 ### Q1 grow — done (`PhpPlanQ1Grow`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Grow`, 4 cases): web tracker h / country / UA / clip / uuid / duration / csv / client-ip / geo (CF header; lookup HTTP injected), site-key / beacon, range+filters, ingest (bad ids + upsert), dashboard summary + session detail. Next class `PhpPlanQ1Rise`.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Grow`, 4 cases): web tracker h / country / UA / clip / uuid / duration / csv / client-ip / geo (CF header; lookup HTTP injected), site-key / beacon, range+filters, ingest (bad ids + upsert), dashboard summary + session detail.
+
+### Q1 rise — done (`PhpPlanQ1Rise`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Rise`, 4 cases): CP sidebar lang / shop-group / ensure group+item, mainstream apply, payments / marketing / procurement / POS / customers / documents / hub / operator / integrations / portal packs, ERP+OMS cleanup, system hidden URL/label cleanup, parity registry+apply (cache bust stays unmentioned). Next class `PhpPlanQ1Peak`.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -221,6 +225,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_agent_catalog_knowledge.php` | Closed in List |
 | `epc_cloudpanel_helpers.php` | Closed in Scan |
 | `epc_web_tracker.php` | Closed in Grow |
+| `epc_cp_mainstream_menu.php` | Closed in Rise |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
