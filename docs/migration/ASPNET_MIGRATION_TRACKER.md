@@ -362,7 +362,7 @@ Not complete.
 Not complete.
 
 - Ratchet 492 to 491. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Peak`): `content/general_pages/epc_commerce_isolation.php` (price-id scope / assert / audit / scoped-query / enforcement scan). ConnectTenant stays injected. `LIMIT ?` twin takes an int.
-- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Peak` (4). Peak parity 4 of 4. Inventory content 546 to 547 of 952. Unnamed PHP functions 6,788 to 6,770. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 325 files / 163,113 lines (was 326 / 163,902). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Peak` (4). Peak parity 4 of 4. PlanQ1 suites 153 of 153. Full platform suite **6111 / 6111** after Peak (was 6107 after Rise). Inventory content 546 to 547 of 952. Unnamed PHP functions 6,788 to 6,770. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 325 files / 163,113 lines (was 326 / 163,902). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
 ### Checkpoint 2026-10-10 — plan Q1-rise (CP mainstream menu helpers)
 
