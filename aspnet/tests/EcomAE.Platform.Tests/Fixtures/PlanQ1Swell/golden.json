@@ -1,0 +1,302 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "names",
+            "output": "",
+            "result": [
+                [
+                    "manufacturer",
+                    "article",
+                    "name",
+                    "exist",
+                    "price",
+                    "vendor_full",
+                    "vendor_short",
+                    "data_type",
+                    "time_to_exe",
+                    "min_order"
+                ],
+                "vendor_short",
+                "inventory",
+                "sales",
+                "purchase",
+                "inventory",
+                "sales",
+                "purchase",
+                "inventory",
+                1,
+                1,
+                0,
+                "combine",
+                "combine",
+                "sales",
+                " · Sales",
+                " · Purchase",
+                "",
+                "SUAE",
+                "S-UAE Trading",
+                "ACME TRADING\u001eS-UAE",
+                "ONLY-CODE\u001eONLY-CODE",
+                "",
+                "S-UAE · S-UAE Trading LLC",
+                "S-UAE",
+                "Full Only",
+                "Vendor",
+                {
+                    "manufacturer": 1,
+                    "article": 0,
+                    "name": 4,
+                    "exist": 2,
+                    "price": 3,
+                    "vendor_full": 5,
+                    "vendor_short": 6,
+                    "data_type": 7,
+                    "time_to_exe": 8,
+                    "min_order": 9
+                },
+                {
+                    "manufacturer": -1,
+                    "article": -1,
+                    "name": -1,
+                    "exist": -1,
+                    "price": -1,
+                    "vendor_full": -1,
+                    "vendor_short": -1,
+                    "data_type": -1,
+                    "time_to_exe": -1,
+                    "min_order": -1
+                },
+                {
+                    "manufacturer": -1,
+                    "article": 0,
+                    "name": 4,
+                    "exist": -1,
+                    "price": 3,
+                    "vendor_full": 1,
+                    "vendor_short": 2,
+                    "data_type": 5,
+                    "time_to_exe": -1,
+                    "min_order": -1
+                },
+                [
+                    {
+                        "name": "Oil filter long",
+                        "exist": 6,
+                        "price": 11,
+                        "storage": "",
+                        "tier": ""
+                    }
+                ],
+                [
+                    {
+                        "name": "FILTER",
+                        "exist": 19,
+                        "price": 18,
+                        "storage": "epc_mv_min",
+                        "tier": "min"
+                    },
+                    {
+                        "name": "FILTER",
+                        "exist": 19,
+                        "price": 29.9,
+                        "storage": "epc_mv_max",
+                        "tier": "max"
+                    }
+                ],
+                [
+                    {
+                        "name": "B",
+                        "exist": 5,
+                        "price": 10,
+                        "storage": "epc_mv_max",
+                        "tier": "max"
+                    }
+                ],
+                "Brand,Article,Name,Qty,Price,\"Data type\"",
+                4,
+                "Brand,Article,Name,Qty,Price,\"Vendor full name\",\"V",
+                7,
+                "csv",
+                0
+            ]
+        },
+        {
+            "name": "rows",
+            "output": "",
+            "result": [
+                ";",
+                0,
+                "Could not find Article/SKU column",
+                0,
+                "Could not find Price column",
+                0,
+                "Could not find Vendor short / Warehouse short column (customer-facing warehouse name)",
+                0,
+                "Could not find Vendor full name column (backend-only warehouse name)",
+                0,
+                "Combine mode needs a Data type column (inventory / sales / purchase) so one file can load all three. Or pick a single type override in the form.",
+                1,
+                6,
+                "446610010",
+                "S-UAE",
+                "inventory",
+                0,
+                "combine",
+                1,
+                6,
+                3,
+                [
+                    {
+                        "vendor_full": "S-UAE Trading LLC",
+                        "vendor_short": "S-UAE",
+                        "data_type": "inventory",
+                        "n": 2,
+                        "products": [
+                            {
+                                "article": "446610010",
+                                "name": "PAD KIT",
+                                "exist": 8,
+                                "price": 103.51,
+                                "storage": "",
+                                "tier": "",
+                                "vendor_short": "S-UAE"
+                            },
+                            {
+                                "article": "SKIP",
+                                "name": "x",
+                                "exist": 1,
+                                "price": 9,
+                                "storage": "",
+                                "tier": "",
+                                "vendor_short": "S-UAE"
+                            }
+                        ]
+                    },
+                    {
+                        "vendor_full": "S-UAE Trading LLC",
+                        "vendor_short": "S-UAE",
+                        "data_type": "sales",
+                        "n": 2,
+                        "products": [
+                            {
+                                "article": "0671007450",
+                                "name": "FILTER",
+                                "exist": 19,
+                                "price": 18,
+                                "storage": "epc_mv_min",
+                                "tier": "min",
+                                "vendor_short": "S-UAE"
+                            },
+                            {
+                                "article": "0671007450",
+                                "name": "FILTER",
+                                "exist": 19,
+                                "price": 29.9,
+                                "storage": "epc_mv_max",
+                                "tier": "max",
+                                "vendor_short": "S-UAE"
+                            }
+                        ]
+                    },
+                    {
+                        "vendor_full": "Gulf Parts Trading",
+                        "vendor_short": "S-UAE",
+                        "data_type": "inventory",
+                        "n": 1,
+                        "products": [
+                            {
+                                "article": "F026400039",
+                                "name": "FILTER",
+                                "exist": 4,
+                                "price": 15,
+                                "storage": "",
+                                "tier": "",
+                                "vendor_short": "S-UAE"
+                            }
+                        ]
+                    }
+                ],
+                1,
+                "Brand,Number,Name,Qty,Price,Delivery,MinOrder,Storage,ExtraJSON\nTOYOTA,446610010,\"PAD KIT\",8,103.51,0,0,,\n,SKIP,x,1,9.00,0,0,,\n"
+            ]
+        },
+        {
+            "name": "import",
+            "output": "",
+            "result": [
+                1,
+                1,
+                1,
+                0,
+                1,
+                1,
+                "S-UAE",
+                "S-UAE Trading LLC",
+                1,
+                0,
+                "Invalid warehouse id",
+                0,
+                "Vendor code cannot be empty",
+                1,
+                "S-UAE2"
+            ]
+        },
+        {
+            "name": "ingest",
+            "output": "",
+            "result": [
+                1,
+                "Imported 3 vendor lists (4 rows, mode: inventory).",
+                1,
+                "Imported 3 vendor lists (4 rows, mode: combine (per-row Data type)).",
+                "combine",
+                3,
+                3,
+                0,
+                5,
+                4,
+                3,
+                [
+                    {
+                        "status": 1,
+                        "price_name": "S-UAE · S-UAE Trading LLC",
+                        "data_type": "inventory",
+                        "vendor_short": "S-UAE",
+                        "records_handled": 1,
+                        "records_in_db": 1,
+                        "history_id": 7,
+                        "storage_id": 1
+                    },
+                    {
+                        "status": 1,
+                        "price_name": "S-UAE · S-UAE Trading LLC · Sales",
+                        "data_type": "sales",
+                        "vendor_short": "S-UAE",
+                        "records_handled": 2,
+                        "records_in_db": 2,
+                        "history_id": 7,
+                        "storage_id": 1
+                    },
+                    {
+                        "status": 1,
+                        "price_name": "S-UAE · Gulf Parts Trading",
+                        "data_type": "inventory",
+                        "vendor_short": "S-UAE",
+                        "records_handled": 1,
+                        "records_in_db": 1,
+                        "history_id": 7,
+                        "storage_id": 1
+                    }
+                ],
+                0,
+                "No rows for your vendor code. 5 rows belonged to other vendors.",
+                5,
+                1,
+                "Uploaded 4 rows for S-UAE.",
+                "S-UAE",
+                4
+            ]
+        }
+    ]
+}
