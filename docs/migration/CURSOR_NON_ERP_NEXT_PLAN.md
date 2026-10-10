@@ -2,7 +2,7 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Pier (`--max-gap 483` passed; current gap **482**).
+after PlanQ1Quay (`--max-gap 482` passed; current gap pending inventory).
 
 Refresh the table:
 
@@ -255,18 +255,24 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Dock`, 4 cases): templates / s
 
 ### Q1 pier — done (`PhpPlanQ1Pier`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Pier`, 4 cases): enqueue (dedupe / empty payload `[]`), claim by priority, complete keeps `locked_by`, fail retry vs dead, dispatch (noop / custom / unknown / tenant health+warmup), batch. Leftover intro / tenant-PDO / blockchain / ERP-tick parents stay stubbed or unmentioned. GET does not mint a session. Next unused class after Pier.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Pier`, 4 cases): enqueue (dedupe / empty payload `[]`), claim by priority, complete keeps `locked_by`, fail retry vs dead, dispatch (noop / custom / unknown / tenant health+warmup), batch. Leftover intro / tenant-PDO / blockchain / ERP-tick parents stay stubbed or unmentioned. GET does not mint a session.
+
+### Q1 quay — done (`PhpPlanQ1Quay`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Quay`, 4 cases): missing fields, host resolve (row / DP_Config / config.php / 127.0.0.1), dedicated-db flags (`empty('0')` erp-only), from-row aliases + shared-docpart creds hook, live connect reuse / dead reconnect / user-case miss, pool eviction at max 2. Open / ping stay injectable in the twin. GET does not mint a session. Next unused class after Quay.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
-The 65 leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
+The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest ports (do not port industry templates — each `require`s `_base_template.php` and renders a full HTML page):
 
 | Order | File | Why now |
 |---|---|---|
 | 1 | `content/social_media/epc_social_publish.php` | Closed in Cove. |
 | 2 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
 | 3 | `epc_platform_jobs.php` | Closed in Pier. |
-| 4 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
+| 4 | `epc_tenant_pdo.php` | Closed in Quay. |
+| 5 | `epc_bos_ajax_login.php` / `epc_bos_health_check.php` | Tenant PDO parent now closed — next honest if BOS session stays injected. |
+| 6 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
@@ -283,9 +289,8 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_build_initial_price_bunch.php` | `prices_enclosure` |
 | `epc_auto_price_*`, `epc_apai_*`, `epc_auto_price_cp_shell.php` | Auto-price engine (6,768 lines) |
 | `epc_custom_shipping_guide.php`, `epc_erp_only_onboard_guide.php` | ERP include — Devin |
-| `epc_ai_copilot.php`, `epc_bos_ajax_login.php`, `epc_bos_health_check.php` | Tenant PDO / BOS session |
+| `epc_ai_copilot.php`, `epc_bos_ajax_login.php`, `epc_bos_health_check.php` | BOS session (tenant PDO closed in Quay) |
 | `epc_cp_breadcrumb.php` | CP content-folder DB |
-| `epc_tenant_pdo.php` | Live tenant connections |
 | `get_alternative_bread_crumbs` | Breadcrumb module |
 | `clear_dir` (`del_tmp_folder.php`) | pyprices upload parent |
 | `epc_sku_media_cp_install.php`, `epc_sku_media_storefront.php` | Closed in View |
@@ -305,6 +310,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_social_publish.php` | Closed in Cove |
 | `epc_portal_tenant.php` | Closed in Dock |
 | `epc_platform_jobs.php` | Closed in Pier |
+| `epc_tenant_pdo.php` | Closed in Quay |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
