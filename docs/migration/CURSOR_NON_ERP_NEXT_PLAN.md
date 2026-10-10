@@ -432,6 +432,7 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6ab | `epc_cp_brochure_live.php` | Closed in Port. |
 | 6ac | `epc_cp_full_brochure.php` | Closed in Starboard. |
 | 6ad | `epc_marketing_strategies_data.php` | Closed in Aft. |
+| 6ae | `epc_product_family.php` | Closed in Bow. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
