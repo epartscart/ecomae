@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-boom (blockchain BOS proofs)
+
+Not complete.
+
+- Ratchet 474 to 473. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Boom`): `content/general_pages/epc_blockchain_bos.php` (canonical JSON with `JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES` and ksort on assoc / `[]` on lists, SHA-256 of the envelope, Merkle even/odd last-leaf duplicate + `hash_equals`, UID `prefix_16hex_dechex(ms)`, tenant sanitize `[a-z0-9_]` strips uppercase before lower, record_type `[a-z0-9_\-]`, record_id substr 128, LIMIT clamp 1–500 / 1–200 interpolated, `empty($opts['enqueue_anchor'])`, maybe-record enqueue defaults true when the key is absent, mode `off` when site_key is empty else `anchor` when the registry row is missing). Leftover ERP/shared/intro parents stay injected. GET does not mint a session. Proofs stay per `tenant_key`.
+- Area functionality gained a blockchain isolation case (acme vs beta proofs, mode-off skip, no session cookie).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Boom` (4). Boom parity 4 of 4. Area functionality 16 of 16. PlanQ1 suites 225 of 225. Full platform suite **6199 / 6199** after Boom (was 6194 after Spar). Area runner: auth 165, storefront commerce 127, CP/BOS 167, tenants/jobs/social 39. Inventory content 561 to 562 of 952. Unnamed PHP functions 6,529 to 6,492. Ready ≤200-line non-ERP functions stay 59. The weighted headline stays about 20.4%. Non-ERP pending: 307 files / 153,954 lines (was 308 / 155,035). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
+
 ### Checkpoint 2026-10-10 — plan Q1-spar (PartsAPI config)
 
 Not complete.
