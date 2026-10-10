@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1List (`--max-gap 496` passed; current gap **495**).
+after PlanQ1Scan (`--max-gap 495` passed; current gap **494**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 495
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 494
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 28 | 13,248 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 107 | 58,387 |
+| 5 | Marketing/BOS/industries | 106 | 55,927 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 5 | 2,983 |
-| | **Total** | **495** | **235,187** |
+| | **Total** | **494** | **232,727** |
 
-- Non-ERP (Cursor): **329 files / 168,996 lines**
+- Non-ERP (Cursor): **328 files / 166,536 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,895** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,834** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -175,7 +175,11 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Text`, 4 cases): stock-brand p
 
 ### Q1 list — done (`PhpPlanQ1List`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1List`, 4 cases): agent catalog cache path / norm key / match pattern / index build / section hint+label / stock+vehicle+model match / inquiry+list detect / resolve query / name-in-text. Stock-brand counts reuse the Text twin. File cache TTL is 21600s; in-process memo is 300s. Next class `PhpPlanQ1Scan`.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1List`, 4 cases): agent catalog cache path / norm key / match pattern / index build / section hint+label / stock+vehicle+model match / inquiry+list detect / resolve query / name-in-text. Stock-brand counts reuse the Text twin. File cache TTL is 21600s; in-process memo is 300s.
+
+### Q1 scan — done (`PhpPlanQ1Scan`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Scan`, 4 cases): CloudPanel CLI bin/available fallback, provision empty/unavailable, vhost scrub/strip/audit/orphan, tenant snippets, 8080 alias add/remove, failover splash, SSL path patch. RunCmd / IsDir / IsFile / Http stay injected so goldens never hit `https://127.0.0.1:8443` or rewrite nginx. `part_search_page.php` and the auto-price engine stay open (parents). Next class `PhpPlanQ1Grow`.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -211,6 +215,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_sku_media_manager.php`, `epc_storefront_storage_panel.php` | Closed in Form |
 | `epc_stock_brands_helpers.php`, `get_tree_list_items.php`, `text_search_algorithm.php` | Closed in Text |
 | `epc_agent_catalog_knowledge.php` | Closed in List |
+| `epc_cloudpanel_helpers.php` | Closed in Scan |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
