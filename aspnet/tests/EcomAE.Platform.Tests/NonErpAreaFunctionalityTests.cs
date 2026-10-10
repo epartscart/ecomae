@@ -1898,6 +1898,30 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.DoesNotContain("dp_user.php", PhpPlanQ1Loch.SearchStringPath, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void BalancePanel_AmountStaysOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Reed.Reset();
+        PhpPlanQ1Reed.TranslateById = raw => raw == "4655" ? "Balance" : raw;
+        PhpPlanQ1Reed.QueryCurrency = () => new Dictionary<string, object?>(StringComparer.Ordinal) { ["sign"] = "د.إ", ["caption_short"] = "AED" };
+        PhpPlanQ1Reed.CurrencyShowMode = () => "sign_after";
+        PhpPlanQ1Reed.GetUserId = () => 7;
+        PhpPlanQ1Reed.QueryBalance = _ => new Dictionary<string, object?>(StringComparer.Ordinal) { ["balance"] = 100 };
+        var acme = PhpPlanQ1Reed.EpcBalanceModule();
+        PhpPlanQ1Reed.QueryCurrency = () => new Dictionary<string, object?>(StringComparer.Ordinal) { ["sign"] = "$", ["caption_short"] = "USD" };
+        PhpPlanQ1Reed.CurrencyShowMode = () => "sign_before";
+        PhpPlanQ1Reed.GetUserId = () => 8;
+        PhpPlanQ1Reed.QueryBalance = _ => new Dictionary<string, object?>(StringComparer.Ordinal) { ["balance"] = 5 };
+        var beta = PhpPlanQ1Reed.EpcBalanceModule();
+        Assert.Contains("100.00 د.إ", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("$ 5.00", acme, StringComparison.Ordinal);
+        Assert.Contains("$ 5.00", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("100.00 د.إ", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Reed.BalanceModulePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Reed.BalanceModulePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("dp_user.php", PhpPlanQ1Reed.BalanceModulePath, StringComparison.Ordinal);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -1987,6 +2011,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Bight.EpartscartSparePartsPath,
             PhpPlanQ1Bight.SparePartsSearchPath,
             PhpPlanQ1Loch.SearchStringPath,
+            PhpPlanQ1Reed.BalanceModulePath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
