@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "config",
+      "eval": "return spar_run_config();"
+    },
+    {
+      "name": "errors",
+      "eval": "return spar_run_errors();"
+    },
+    {
+      "name": "maps",
+      "eval": "return spar_run_maps();"
+    },
+    {
+      "name": "call",
+      "eval": "return spar_run_call();"
+    }
+  ]
+}

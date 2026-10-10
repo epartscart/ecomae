@@ -388,6 +388,32 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Spar.Reset();
+        PhpPlanQ1Spar.File = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["api_key"] = "platformkey99",
+            ["method_keys"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["getMakes"] = "makeskey1"
+            },
+            ["allow_auto_parts_tenants"] = "0"
+        };
+        PhpPlanQ1Spar.IsEpartsHost = true;
+        Assert.True(PhpPlanQ1Spar.EpcPartsapiEnabledForRequest());
+        Assert.Equal("makeskey1", PhpPlanQ1Spar.EpcPartsapiResolveKeyForMethod("getMakes"));
+        Assert.Equal("platformkey99", PhpPlanQ1Spar.EpcPartsapiResolveKeyForMethod("getModels"));
+        PhpPlanQ1Spar.IsEpartsHost = false;
+        PhpPlanQ1Spar.IsAutoPartsSite = true;
+        Assert.False(PhpPlanQ1Spar.EpcPartsapiEnabledForRequest());
+        PhpPlanQ1Spar.File["allow_auto_parts_tenants"] = "1";
+        Assert.True(PhpPlanQ1Spar.EpcPartsapiEnabledForRequest());
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Spar.PartsApiPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Spar.PartsApiPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CoveredAreas_AreCursorOwnedNotErp()
     {
         var paths = new[]
@@ -397,6 +423,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Mast.RestApiPath,
             PhpPlanQ1Helm.AuthSmtpPath,
             PhpPlanQ1Yard.ReadinessPath,
+            PhpPlanQ1Spar.PartsApiPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
