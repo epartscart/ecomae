@@ -6075,12 +6075,6 @@ epc_wt_register_page	EpcWtRegisterPage	epc-web-tracker-setup.php	php	243	ops-scr
 epc_wt_setup_lang	EpcWtSetupLang	epc-web-tracker-setup.php	php	243	ops-script	skip
 epc_wt_setup_pdo_from_cfg	EpcWtSetupPdoFromCfg	epc-web-tracker-setup.php	php	243	ops-script	skip
 epc_wa_register_content	EpcWaRegisterContent	epc-whatsapp-setup.php	js	194	ops-script	browser-js
-epc_demo_autoparts_bootstrap_apply	EpcDemoAutopartsBootstrapApply	epc_demo_autoparts_bootstrap.php	php	223	gap	later
-epc_demo_autoparts_bootstrap_clone_tables	EpcDemoAutopartsBootstrapCloneTables	epc_demo_autoparts_bootstrap.php	php	223	gap	later
-epc_demo_autoparts_bootstrap_docpart_pdo	EpcDemoAutopartsBootstrapDocpartPdo	epc_demo_autoparts_bootstrap.php	php	223	gap	later
-epc_demo_autoparts_bootstrap_preset	EpcDemoAutopartsBootstrapPreset	epc_demo_autoparts_bootstrap.php	php	223	gap	later
-epc_demo_autoparts_bootstrap_preset_path	EpcDemoAutopartsBootstrapPresetPath	epc_demo_autoparts_bootstrap.php	php	223	gap	later
-epc_demo_autoparts_bootstrap_verify_db	EpcDemoAutopartsBootstrapVerifyDb	epc_demo_autoparts_bootstrap.php	php	223	gap	later
 epc_oms_register_guide_route	EpcOmsRegisterGuideRoute	epc_oms_menu_guide_lib.php	php	98	retired	skip
 epc_oms_setup_pdo	EpcOmsSetupPdo	epc_oms_menu_guide_lib.php	php	98	retired	skip
 epc_sitemap_add_entry	EpcSitemapAddEntry	epc_sitemap_lib.php	js	174	mentioned	browser-js
