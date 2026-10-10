@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "names" },
+    { "name": "context" },
+    { "name": "markup" },
+    { "name": "scripts" }
+  ]
+}

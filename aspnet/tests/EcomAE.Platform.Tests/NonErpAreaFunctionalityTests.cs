@@ -1440,6 +1440,29 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void ProfessionalShell_FlagsStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Spray.Reset();
+        PhpPlanQ1Spray.BrandCpContext = () => new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["company_name"] = "Acme Parts",
+            ["product_name"] = "Control Panel",
+            ["hub_tagline"] = "Finance & operations"
+        };
+        PhpPlanQ1Spray.TranslateById = id => "T" + id;
+        var acme = PhpPlanQ1Spray.EpcCpLoginContext();
+        PhpPlanQ1Spray.Reset();
+        PhpPlanQ1Spray.IsSuperCpHost = () => true;
+        var bos = PhpPlanQ1Spray.EpcCpLoginContext();
+        Assert.Equal("tenant", Convert.ToString(acme["type"]));
+        Assert.Equal("Acme Parts", Convert.ToString(acme["heading"]));
+        Assert.Equal("super", Convert.ToString(bos["type"]));
+        Assert.Equal("BOS — Business Operation System", Convert.ToString(bos["heading"]));
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Spray.ProfessionalShellPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Spray.ProfessionalShellPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1507,6 +1530,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Surge.CommercePriceIngestPath,
             PhpPlanQ1Swell.MultivendorPriceIngestPath,
             PhpPlanQ1Foam.AccessoriesDbPath,
+            PhpPlanQ1Spray.ProfessionalShellPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
