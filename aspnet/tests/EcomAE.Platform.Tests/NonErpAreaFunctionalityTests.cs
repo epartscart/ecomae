@@ -280,6 +280,76 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void Auth_SmtpOverlayAndOtpLookup_StayOnTheTenant()
+    {
+        PhpPlanQ1Helm.Reset();
+        PhpPlanQ1Helm.SmtpFileExists = true;
+        PhpPlanQ1Helm.SmtpFile = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["smtp_mode"] = "1",
+            ["smtp_host"] = "file.example",
+            ["smtp_port"] = "587",
+            ["smtp_encryption"] = "tls",
+            ["smtp_username"] = "file@shop.example",
+            ["smtp_password"] = "file-secret-1",
+            ["from_email"] = "file@shop.example",
+            ["from_name"] = "File"
+        };
+        PhpPlanQ1Helm.SiteSettings = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["integrations"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["smtp"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["use_tenant_smtp"] = "1",
+                    ["smtp_host"] = "acme.example",
+                    ["smtp_port"] = "465",
+                    ["smtp_encryption"] = "ssl",
+                    ["smtp_username"] = "acme@shop.example",
+                    ["smtp_password"] = "acme-secret",
+                    ["from_email"] = "acme@shop.example",
+                    ["from_name"] = "Acme"
+                }
+            }
+        };
+        PhpPlanQ1Helm.IsSuperCp = false;
+        var tenant = PhpPlanQ1Helm.EpcAuthSmtpEffectiveConfig();
+        Assert.Equal("acme.example", Convert.ToString(tenant["smtp_host"]));
+        Assert.Equal("tenant integrations (site_settings)", Convert.ToString(tenant["_source"]));
+        PhpPlanQ1Helm.IsSuperCp = true;
+        var platform = PhpPlanQ1Helm.EpcAuthSmtpEffectiveConfig();
+        Assert.Equal("file.example", Convert.ToString(platform["smtp_host"]));
+        Assert.Equal("config.epc-smtp.php", Convert.ToString(platform["_source"]));
+        PhpPlanQ1Helm.Otps.Add(new PhpPlanQ1Helm.OtpRow
+        {
+            Id = 1,
+            Email = "ops@acme.example",
+            TenantKey = "acme",
+            ContextJson = "{}",
+            CreatedAt = 1760083200
+        });
+        PhpPlanQ1Helm.Otps.Add(new PhpPlanQ1Helm.OtpRow
+        {
+            Id = 2,
+            Email = "ops@beta.example",
+            TenantKey = "beta",
+            ContextJson = "{}",
+            CreatedAt = 1760083200
+        });
+        PhpPlanQ1Helm.EpcAuthOtpStoreOperatorCode(1, "111111");
+        PhpPlanQ1Helm.EpcAuthOtpStoreOperatorCode(2, "222222");
+        var acme = PhpPlanQ1Helm.EpcAuthOtpOperatorLookup("OPS@acme.example");
+        var beta = PhpPlanQ1Helm.EpcAuthOtpOperatorLookup("ops@beta.example");
+        Assert.Equal("111111", Convert.ToString(acme["code"]));
+        Assert.Equal("acme", Convert.ToString(acme["tenant_key"]));
+        Assert.Equal("222222", Convert.ToString(beta["code"]));
+        Assert.Equal("beta", Convert.ToString(beta["tenant_key"]));
+        Assert.False((bool)PhpPlanQ1Helm.EpcAuthOtpOperatorLookup("other@shop.example")["ok"]!);
+        Assert.DoesNotContain("PHPSESSID", Convert.ToString(acme["code"]), StringComparison.Ordinal);
+        Assert.False(PhpPlanQ1Helm.EpcAuthOtpDemoFallbackAllowed("acme"));
+    }
+
+    [Fact]
     public void CoveredAreas_AreCursorOwnedNotErp()
     {
         var paths = new[]
@@ -287,6 +357,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Hull.AuthSocialPath,
             PhpPlanQ1Keel.AuthGatePath,
             PhpPlanQ1Mast.RestApiPath,
+            PhpPlanQ1Helm.AuthSmtpPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,

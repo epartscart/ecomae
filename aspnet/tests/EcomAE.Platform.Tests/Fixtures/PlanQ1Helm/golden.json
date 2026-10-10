@@ -1,0 +1,377 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "validate",
+            "output": "",
+            "result": [
+                [
+                    "gmail_tls",
+                    "gmail_ssl",
+                    "hostinger_ssl",
+                    "hostinger_tls"
+                ],
+                {
+                    "label": "Gmail (TLS 587)",
+                    "smtp_host": "smtp.gmail.com",
+                    "smtp_port": "587",
+                    "smtp_encryption": "tls",
+                    "note": "username must equal from_email; password = 16-char App Password."
+                },
+                "465",
+                {
+                    "errors": [
+                        "from_email must be a valid email address."
+                    ],
+                    "warnings": []
+                },
+                {
+                    "errors": [
+                        "smtp_host is required when SMTP mode is on.",
+                        "smtp_port must be a number (587 for TLS, 465 for SSL)."
+                    ],
+                    "warnings": [
+                        "smtp_username is empty — most providers require authentication."
+                    ]
+                },
+                {
+                    "errors": [
+                        "from_email must be a valid email address.",
+                        "smtp_port must be a number (587 for TLS, 465 for SSL).",
+                        "smtp_encryption must be tls, ssl, or empty.",
+                        "smtp_password looks too short (6 chars)."
+                    ],
+                    "warnings": [
+                        "smtp_username is empty — most providers require authentication."
+                    ]
+                },
+                {
+                    "errors": [],
+                    "warnings": [
+                        "Gmail App Passwords are normally 16 characters (you entered 15). Generate one at myaccount.google.com → Security → 2-Step Verification → App passwords.",
+                        "For Gmail, smtp_username should equal from_email (ops@gmail.com).",
+                        "Gmail expects TLS on port 587 or SSL on port 465."
+                    ]
+                },
+                {
+                    "errors": [],
+                    "warnings": []
+                },
+                {
+                    "errors": [],
+                    "warnings": [
+                        "smtp_username is empty — most providers require authentication."
+                    ]
+                },
+                {
+                    "errors": [],
+                    "warnings": [
+                        "smtp_username is empty — most providers require authentication."
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "write",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "message": "from_email must be a valid email address. smtp_host is required when SMTP mode is on. smtp_port must be a number (587 for TLS, 465 for SSL).",
+                    "path": "SMTP_FILE",
+                    "warnings": [
+                        "smtp_username is empty — most providers require authentication."
+                    ]
+                },
+                {
+                    "ok": true,
+                    "message": "SMTP settings saved to config.epc-smtp.php.",
+                    "path": "SMTP_FILE",
+                    "warnings": [],
+                    "mode": 416,
+                    "read": {
+                        "smtp_mode": "1",
+                        "smtp_host": "smtp.hostinger.com",
+                        "smtp_port": "465",
+                        "smtp_encryption": "ssl",
+                        "smtp_username": "ops@shop.example",
+                        "smtp_password": "mailbox-secret",
+                        "from_email": "ops@shop.example",
+                        "from_name": "Shop O'Brien",
+                        "allow_mail_fallback": "1",
+                        "disable_demo_otp_fallback": "0"
+                    },
+                    "content": "<?php\n/**\n * Platform SMTP for auth OTP — written by Super CP → Modern auth settings.\n * Do NOT commit to git. Overrides config.php / config.local.php for OTP mail.\n * Last saved: ISO\n */\nreturn array(\n\t'smtp_mode' => '1',\n\t'smtp_host' => 'smtp.hostinger.com',\n\t'smtp_port' => '465',\n\t'smtp_encryption' => 'ssl',\n\t'smtp_username' => 'ops@shop.example',\n\t'smtp_password' => 'mailbox-secret',\n\t'from_email' => 'ops@shop.example',\n\t'from_name' => 'Shop O\\'Brien',\n\t'allow_mail_fallback' => '1',\n\t'disable_demo_otp_fallback' => '0',\n);\n"
+                },
+                {
+                    "ok": true,
+                    "message": "SMTP settings saved to config.epc-smtp.php.",
+                    "path": "SMTP_FILE",
+                    "warnings": [],
+                    "read_pass": "mailbox-secret"
+                },
+                {
+                    "ok": true,
+                    "message": "SMTP settings saved to config.epc-smtp.php. Note: no password is stored — set one (Gmail App Password or mailbox password) unless using mail() fallback.",
+                    "path": "SMTP_FILE",
+                    "warnings": []
+                }
+            ]
+        },
+        {
+            "name": "effective",
+            "output": "",
+            "result": [
+                {
+                    "smtp_mode": "0",
+                    "smtp_host": "",
+                    "smtp_port": "",
+                    "smtp_encryption": "",
+                    "smtp_username": "",
+                    "smtp_password": "",
+                    "from_email": "",
+                    "from_name": "",
+                    "allow_mail_fallback": false,
+                    "_source": "config.php",
+                    "_epc_smtp_file": false
+                },
+                {
+                    "ok": false,
+                    "issues": [
+                        "SMTP mode is off in site config — enable smtp_mode=1 or deploy config.epc-smtp.php.",
+                        "smtp_host is empty.",
+                        "from_email is empty."
+                    ],
+                    "source": "config.php",
+                    "smtp_mode": false,
+                    "password_length": 0,
+                    "host": "",
+                    "port": "",
+                    "encryption": "",
+                    "username": "",
+                    "from_email": "",
+                    "from_name": "",
+                    "epc_smtp_file": false,
+                    "allow_mail_fallback": false
+                },
+                {
+                    "smtp_mode": "0",
+                    "smtp_host": "local.example",
+                    "smtp_port": "",
+                    "smtp_encryption": "",
+                    "smtp_username": "",
+                    "smtp_password": "",
+                    "from_email": "from@cfg.example",
+                    "from_name": "Local",
+                    "allow_mail_fallback": false,
+                    "_source": "config.php + config.local.php",
+                    "_epc_smtp_file": false
+                },
+                {
+                    "smtp_mode": "1",
+                    "smtp_host": "0",
+                    "smtp_port": "587",
+                    "smtp_encryption": "tls",
+                    "smtp_username": "file@shop.example",
+                    "smtp_password": "file-secret-1",
+                    "from_email": "file@shop.example",
+                    "from_name": "File",
+                    "allow_mail_fallback": false,
+                    "_source": "config.epc-smtp.php",
+                    "_epc_smtp_file": true
+                },
+                {
+                    "smtp_mode": "1",
+                    "smtp_host": "tenant.example",
+                    "smtp_port": "465",
+                    "smtp_encryption": "ssl",
+                    "smtp_username": "tenant@shop.example",
+                    "smtp_password": "tenant-secret",
+                    "from_email": "tenant@shop.example",
+                    "from_name": "Tenant",
+                    "allow_mail_fallback": false,
+                    "_source": "tenant integrations (site_settings)",
+                    "_epc_smtp_file": true
+                },
+                {
+                    "ok": true,
+                    "issues": [],
+                    "source": "tenant integrations (site_settings)",
+                    "smtp_mode": true,
+                    "password_length": 13,
+                    "host": "tenant.example",
+                    "port": "465",
+                    "encryption": "ssl",
+                    "username": "tenant@shop.example",
+                    "from_email": "tenant@shop.example",
+                    "from_name": "Tenant",
+                    "epc_smtp_file": true,
+                    "allow_mail_fallback": false
+                },
+                {
+                    "smtp_mode": "1",
+                    "smtp_host": "0",
+                    "smtp_port": "587",
+                    "smtp_encryption": "tls",
+                    "smtp_username": "file@shop.example",
+                    "smtp_password": "file-secret-1",
+                    "from_email": "file@shop.example",
+                    "from_name": "File",
+                    "allow_mail_fallback": false,
+                    "_source": "config.epc-smtp.php",
+                    "_epc_smtp_file": true
+                },
+                {
+                    "smtp_mode": "1",
+                    "smtp_host": "0",
+                    "smtp_port": "587",
+                    "smtp_encryption": "tls",
+                    "smtp_username": "file@shop.example",
+                    "smtp_password": "file-secret-1",
+                    "from_email": "file@shop.example",
+                    "from_name": "File",
+                    "allow_mail_fallback": false,
+                    "_source": "config.epc-smtp.php",
+                    "_epc_smtp_file": true
+                },
+                {
+                    "smtp_mode": "1",
+                    "smtp_host": "0",
+                    "smtp_port": "465",
+                    "smtp_encryption": "tls",
+                    "smtp_username": "file@shop.example",
+                    "smtp_password": "file-secret-1",
+                    "from_email": "keep@shop.example",
+                    "from_name": "File",
+                    "allow_mail_fallback": false,
+                    "_source": "tenant integrations (site_settings)",
+                    "_epc_smtp_file": true
+                }
+            ]
+        },
+        {
+            "name": "send",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "ok": false,
+                        "message": "SMTP connection failed — check host, port, and firewall (try ssl/465 or tls/587).",
+                        "detail": "Could not connect to host",
+                        "transport": "smtp"
+                    },
+                    {
+                        "ok": false,
+                        "message": "SMTP authentication failed — use an app password (Gmail) or correct mailbox password (Hostinger).",
+                        "detail": "SMTP 535 authentication failed",
+                        "transport": "smtp"
+                    },
+                    {
+                        "ok": false,
+                        "message": "SMTP password not configured — deploy config.epc-smtp.php or update CP mail settings.",
+                        "detail": "password is empty",
+                        "transport": "smtp"
+                    },
+                    {
+                        "ok": false,
+                        "message": "Could not send email — check SMTP settings in Control Panel",
+                        "detail": "unknown boom",
+                        "transport": "smtp"
+                    },
+                    {
+                        "ok": false,
+                        "message": "SMTP connection failed — check host, port, and firewall (try ssl/465 or tls/587).",
+                        "detail": "connect() failed",
+                        "transport": "smtp"
+                    }
+                ],
+                {
+                    "ok": false,
+                    "message": "SMTP mode is off in site config — enable smtp_mode=1 or deploy config.epc-smtp.php. smtp_host is empty. from_email is empty.",
+                    "detail": "precheck",
+                    "transport": "none"
+                },
+                {
+                    "ok": false,
+                    "message": "Mailer library missing on server",
+                    "detail": "MAILER",
+                    "transport": "none"
+                },
+                {
+                    "ok": true,
+                    "message": "Sent via PHP mail()",
+                    "detail": "",
+                    "transport": "mail"
+                },
+                {
+                    "ok": true,
+                    "message": "Sent via SMTP",
+                    "detail": "",
+                    "transport": "smtp"
+                },
+                {
+                    "Host": "smtp.example",
+                    "Port": 587,
+                    "SMTPSecure": "tls",
+                    "SMTPAuth": true,
+                    "Username": "ops@shop.example",
+                    "Password": "file-secret-1",
+                    "Sender": "ops@shop.example"
+                },
+                {
+                    "ok": true,
+                    "message": "Sent via PHP mail() after SMTP failed",
+                    "detail": "Could not connect to host",
+                    "transport": "mail"
+                },
+                {
+                    "ok": true,
+                    "message": "Sent via PHP mail() after SMTP failed",
+                    "detail": "Could not connect to host",
+                    "transport": "mail"
+                },
+                [
+                    false,
+                    false,
+                    true,
+                    false,
+                    false,
+                    true
+                ],
+                [
+                    {
+                        "ok": false,
+                        "message": "Valid email required"
+                    },
+                    {
+                        "ok": false,
+                        "message": "Valid email required"
+                    },
+                    {
+                        "ok": false,
+                        "message": "No operator-logged OTP for this email (SMTP may have succeeded or address not used on a demo tenant)."
+                    },
+                    {
+                        "ok": true,
+                        "email": "ops@shop.example",
+                        "code": "123456",
+                        "logged_at": 1760083200,
+                        "tenant_key": "acme"
+                    }
+                ],
+                [
+                    {
+                        "id": 1,
+                        "tenant_key": "acme",
+                        "context_json": "{\"note\":\"x\",\"_operator_otp\":\"123456\",\"_operator_otp_at\":1760083200}"
+                    },
+                    {
+                        "id": 2,
+                        "tenant_key": "beta",
+                        "context_json": "{\"_operator_otp\":\"0\",\"_operator_otp_at\":1760083200}"
+                    }
+                ]
+            ]
+        }
+    ]
+}
