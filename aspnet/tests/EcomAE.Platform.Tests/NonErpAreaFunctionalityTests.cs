@@ -436,6 +436,52 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void TenantShowcase_IndustryAndScreenshot_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Jib.Reset();
+        PhpPlanQ1Jib.CustomerResults = () =>
+        [
+            new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["key"] = "acme",
+                ["name"] = "Acme",
+                ["industry"] = "fashion"
+            }
+        ];
+        var acme = PhpPlanQ1Jib.EpcEcomaePlatformTenantShowcaseRows();
+        PhpPlanQ1Jib.CustomerResults = () =>
+        [
+            new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["key"] = "beta",
+                ["name"] = "Beta",
+                ["industry"] = "jewellery"
+            }
+        ];
+        var beta = PhpPlanQ1Jib.EpcEcomaePlatformTenantShowcaseRows();
+        Assert.Equal("fashion", Convert.ToString(acme[0]["industry"]));
+        Assert.Equal("jewellery", Convert.ToString(beta[0]["industry"]));
+        Assert.NotEqual(Convert.ToString(((Dictionary<string, string>)acme[0]["theme_meta"]!)["label"]),
+            Convert.ToString(((Dictionary<string, string>)beta[0]["theme_meta"]!)["label"]));
+        var shots = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["tenant-acme1-storefront"] = "/content/files/images/tenant-acme1-storefront.webp",
+            ["tenant-beta2-storefront"] = "/content/files/images/tenant-beta2-storefront.png"
+        };
+        PhpPlanQ1Jib.Screenshot = slug => shots.TryGetValue(slug, out var path) ? path : "";
+        var acmeShot = PhpPlanQ1Jib.EpcEcomaePlatformTenantStorefrontScreenshot("Acme-1!");
+        var betaShot = PhpPlanQ1Jib.EpcEcomaePlatformTenantStorefrontScreenshot("Beta_2!");
+        Assert.Contains("tenant-acme1-storefront.webp", acmeShot, StringComparison.Ordinal);
+        Assert.Contains("tenant-beta2-storefront.png", betaShot, StringComparison.Ordinal);
+        Assert.DoesNotContain("acme1", betaShot, StringComparison.Ordinal);
+        Assert.DoesNotContain("beta2", acmeShot, StringComparison.Ordinal);
+        Assert.DoesNotContain("_", acmeShot, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", acmeShot, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Jib.TenantShowcasePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Jib.TenantShowcasePath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -474,6 +520,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Spar.PartsApiPath,
             PhpPlanQ1Boom.BlockchainBosPath,
             PhpPlanQ1Stay.PageAssetsPath,
+            PhpPlanQ1Jib.TenantShowcasePath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
