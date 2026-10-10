@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Swell (`--max-gap 446` passed; current gap **445**).
+after PlanQ1Foam (`--max-gap 445` passed; current gap **444**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 445
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 444
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -20,7 +20,7 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 1 | Storefront: catalogue | 30 | 8,978 |
 | 1 | Storefront: modules | 17 | 3,321 |
 | 1 | Storefront: other shop | 14 | 4,999 |
-| 1 | Storefront: parts/docpart | 17 | 27,940 |
+| 1 | Storefront: parts/docpart | 16 | 26,316 |
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 2 | 2,084 |
 | 3 | CP other | 10 | 3,274 |
@@ -31,11 +31,11 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **445** | **209,331** |
+| | **Total** | **444** | **207,707** |
 
-- Non-ERP (Cursor): **279 files / 143,140 lines**
+- Non-ERP (Cursor): **278 files / 141,516 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,285** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **57**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,253** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **57**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -403,9 +403,13 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Surge`, 4 cases): header alias
 
 ### Q1 swell — done (`PhpPlanQ1Swell`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Swell`, 4 cases): header aliases/map/normalize/sanitize/collapse, source read + vendor grouping, local import + warehouse + vendor-code save, full ingest + vendor-portal scope on throwaway `ecomae_cpw_swell_*`. ACL/extra/history/import parents stay injected. Commerce helpers are the Surge twin. GET does not mint a session. Next unused class after Swell: Foam.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Swell`, 4 cases): header aliases/map/normalize/sanitize/collapse, source read + vendor grouping, local import + warehouse + vendor-code save, full ingest + vendor-portal scope on throwaway `ecomae_cpw_swell_*`. ACL/extra/history/import parents stay injected. Commerce helpers are the Surge twin. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 279 files.
+### Q1 foam — done (`PhpPlanQ1Foam`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Foam`, 4 cases): slugify/storefront/outbound/photo URL, terms seed/save/active/delete + UAE locale migrate, category seed/tree/save/active/delete + listing CRUD/admin search, marketplace search + photo sync/primary/delete on throwaway `ecomae_cpw_foam_*`. Taxonomy parent stays injected. Leftover PHP `#` regex delimiter never matches accessories browse URLs, so outbound falls through to https / relative-path checks. GET does not mint a session. Next unused class after Foam: Spray.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 278 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -453,6 +457,7 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6ag | `docpart_cross_interchange.php` | Closed in Draft. |
 | 6ah | `epc_commerce_price_ingest.php` | Closed in Surge. |
 | 6ai | `epc_multivendor_price_ingest.php` | Closed in Swell. |
+| 6aj | `epc_accessories_db.php` | Closed in Foam. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
