@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Peak (`--max-gap 492` passed; current gap **491**).
+after PlanQ1Wave (`--max-gap 491` passed; current gap **490**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 491
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 490
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 28 | 13,248 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 104 | 53,809 |
+| 5 | Marketing/BOS/industries | 103 | 53,092 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 4 | 1,678 |
-| | **Total** | **491** | **229,304** |
+| | **Total** | **490** | **228,587** |
 
-- Non-ERP (Cursor): **325 files / 163,113 lines**
+- Non-ERP (Cursor): **324 files / 162,396 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,770** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,742** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -191,7 +191,11 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Rise`, 4 cases): CP sidebar la
 
 ### Q1 peak — done (`PhpPlanQ1Peak`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Peak`, 4 cases): tenant price-id resolve (site key unused in SQL; `empty('0')` skips), assert + violation log, full audit (check2/3 WARN do not set overall WARN), client/ERP isolation, ownership, orphans, query scoping, registry credentials (Connect injected), find-php-files (broken `content/files` skip), scoped-query rewrite, get-scoped-pdo prepare (placeholders only), enforcement scan. `epc_ci_recent_violations` LIMIT bind fatals — twin takes an int; goldens SELECT instead. Admin leftover basename is concatenated. Next class `PhpPlanQ1Wave`.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Peak`, 4 cases): tenant price-id resolve (site key unused in SQL; `empty('0')` skips), assert + violation log, full audit (check2/3 WARN do not set overall WARN), client/ERP isolation, ownership, orphans, query scoping, registry credentials (Connect injected), find-php-files (broken `content/files` skip), scoped-query rewrite, get-scoped-pdo prepare (placeholders only), enforcement scan. `epc_ci_recent_violations` LIMIT bind fatals — twin takes an int; goldens SELECT instead. Admin leftover basename is concatenated.
+
+### Q1 wave — done (`PhpPlanQ1Wave`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Wave`, 4 cases): TOTP base32 / RFC 6238, enroll / confirm / verify, backup codes, policy get/save/update (invalid JSON falls back to defaults), role/group/dept required-for-user, path guard, CP auth-gate `(string)array` → `Array` quirk, ERP finance tab gate, ajax handler. `epc_mfa_recent_activity` LIMIT bind fatals — twin takes an int; goldens SELECT instead. Clock / random stay injected. GET does not mint a session. Next unused class after Wave.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -231,6 +235,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_web_tracker.php` | Closed in Grow |
 | `epc_cp_mainstream_menu.php` | Closed in Rise |
 | `epc_commerce_isolation.php` | Closed in Peak |
+| `epc_auth_mfa.php` | Closed in Wave |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
