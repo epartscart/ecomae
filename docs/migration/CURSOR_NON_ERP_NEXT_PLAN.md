@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Drift (`--max-gap 488` passed; current gap **486**).
+after PlanQ1Bay (`--max-gap 486` passed; current gap **485**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 486
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 485
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 27 | 12,897 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 100 | 51,941 |
+| 5 | Marketing/BOS/industries | 99 | 51,264 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 4 | 1,678 |
-| | **Total** | **486** | **227,085** |
+| | **Total** | **485** | **226,408** |
 
-- Non-ERP (Cursor): **320 files / 160,894 lines**
+- Non-ERP (Cursor): **319 files / 160,217 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,677** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,666** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -211,7 +211,11 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Surf`, 4 cases): compact money
 
 ### Q1 drift — done (`PhpPlanQ1Drift`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Drift`, 4 cases): enroll/verify/settings HTML (`empty` backup and methods; ENT_QUOTES `&#039;`) plus the four JS helpers. QR generation is injected from the already-closed MFA helpers. GET does not mint a session. Next unused class after Drift.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Drift`, 4 cases): enroll/verify/settings HTML (`empty` backup and methods; ENT_QUOTES `&#039;`) plus the four JS helpers. QR generation is injected from the already-closed MFA helpers. GET does not mint a session.
+
+### Q1 bay — done (`PhpPlanQ1Bay`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Bay`, 4 cases): catalog / guide / capabilities, config+report storage (upsert consumes AUTO_INCREMENT), embed resolve (platform fallback / `empty('0')` / Azure never mints a token), CSV BOM, and dataset collectors. Leftover finance export and phase-8 paths stay injected or concatenated. GET does not mint a session. Next unused class after Bay.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -256,6 +260,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_prices_manager_perf.php` | Closed in Reef |
 | `epc_boc_advanced.php` | Closed in Surf |
 | `epc_mfa_ui.php` | Closed in Drift |
+| `epc_power_bi.php` (general_pages) | Closed in Bay |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
