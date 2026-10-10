@@ -413,6 +413,29 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void CpPageAssets_SiteKeyAndEmptyBackend_StayIsolated()
+    {
+        PhpPlanQ1Stay.Reset();
+        PhpPlanQ1Stay.Get["site_key"] = "Acme-1!";
+        PhpPlanQ1Stay.Get["tab"] = "discover";
+        var acme = PhpPlanQ1Stay.EpcCpApaiShellConfigScript();
+        PhpPlanQ1Stay.Get["site_key"] = "Beta-2!";
+        var beta = PhpPlanQ1Stay.EpcCpApaiShellConfigScript();
+        Assert.Contains("\"siteKey\":\"acme1\"", acme, StringComparison.Ordinal);
+        Assert.Contains("\"siteKey\":\"beta2\"", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("acme1", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("beta2", acme, StringComparison.Ordinal);
+        PhpPlanQ1Stay.BackendDir = "";
+        var emptyBackend = PhpPlanQ1Stay.EpcCpApaiShellConfigScript();
+        Assert.Contains("\"backend\":\"cp\"", emptyBackend, StringComparison.Ordinal);
+        var inline = PhpPlanQ1Stay.EpcCpApaiInlineDiscoverConfigScript();
+        Assert.Contains("\"backend\":\"\"", inline, StringComparison.Ordinal);
+        Assert.Contains("\"ajaxUrl\":\"//control/portal/ajax_auto_price\"", inline, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Stay.PageAssetsPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -450,6 +473,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Yard.ReadinessPath,
             PhpPlanQ1Spar.PartsApiPath,
             PhpPlanQ1Boom.BlockchainBosPath,
+            PhpPlanQ1Stay.PageAssetsPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
