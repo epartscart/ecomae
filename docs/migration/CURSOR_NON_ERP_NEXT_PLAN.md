@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Bay (`--max-gap 486` passed; current gap **485**).
+after PlanQ1Cove (`--max-gap 485` passed; current gap **484**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 485
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 484
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 27 | 12,897 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 99 | 51,264 |
+| 5 | Marketing/BOS/industries | 98 | 50,639 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 4 | 1,678 |
-| | **Total** | **485** | **226,408** |
+| | **Total** | **484** | **225,783** |
 
-- Non-ERP (Cursor): **319 files / 160,217 lines**
+- Non-ERP (Cursor): **318 files / 159,592 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,666** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,650** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -237,7 +237,11 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Drift`, 4 cases): enroll/verif
 
 ### Q1 bay — done (`PhpPlanQ1Bay`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Bay`, 4 cases): catalog / guide / capabilities, config+report storage (upsert consumes AUTO_INCREMENT), embed resolve (platform fallback / `empty('0')` / Azure never mints a token), CSV BOM, and dataset collectors. Leftover finance export and phase-8 paths stay injected or concatenated. GET does not mint a session. Next unused class after Bay.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Bay`, 4 cases): catalog / guide / capabilities, config+report storage (upsert consumes AUTO_INCREMENT), embed resolve (platform fallback / `empty('0')` / Azure never mints a token), CSV BOM, and dataset collectors. Leftover finance export and phase-8 paths stay injected or concatenated. GET does not mint a session.
+
+### Q1 cove — done (`PhpPlanQ1Cove`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Cove`, 4 cases): graph version / caption / URL helpers, tenant-scoped credentials and public meta, live tests (Facebook / Instagram / TikTok / LinkedIn vault-only), and publish draft/now. HTTP stays injected. Portal parents stay stubbed. GET does not mint a session. Next unused class after Cove.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -245,7 +249,7 @@ The 65 leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest
 
 | Order | File | Why now |
 |---|---|---|
-| 1 | `content/social_media/epc_social_publish.php` (625 / 17) | Helpers parent already mentioned. HTTP injected. Next unused class after Bay. |
+| 1 | `content/social_media/epc_social_publish.php` | Closed in Cove. |
 | 2 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
 | 3 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
 | 4 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
@@ -284,6 +288,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_boc_advanced.php` | Closed in Surf |
 | `epc_mfa_ui.php` | Closed in Drift |
 | `epc_power_bi.php` (general_pages) | Closed in Bay |
+| `epc_social_publish.php` | Closed in Cove |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
