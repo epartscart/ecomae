@@ -375,6 +375,13 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-slip (BOS login)
+
+Not complete.
+
+- Ratchet 481 to 480. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Slip`): `content/general_pages/epc_bos_ajax_login.php` (missing fields / unavailable DB, bcrypt + md5-secret + plain-md5 + `pass` alias, role deny / tenant / admin-table / allowlist / backend-group). Unified / upgrade / session-file / BOC audit stay injected or absent. GET does not mint a session.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Slip` (4). Slip parity 4 of 4. PlanQ1 suites 197 of 197. Full platform suite **6155 / 6155** after Slip (was 6151 after Quay). Inventory ajax 89 to 90 of 91. Unnamed PHP functions 6,618 to 6,616. Ready ≤200-line non-ERP functions 60 to 59. The weighted headline stays about 20.4%. Non-ERP pending: 314 files / 157,981 lines (was 315 / 158,138). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0.
+
 ### Checkpoint 2026-10-10 — plan Q1-quay (tenant PDO pool)
 
 Not complete.
