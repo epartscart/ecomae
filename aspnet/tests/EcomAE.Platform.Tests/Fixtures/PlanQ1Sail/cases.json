@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "guide" },
+    { "name": "codes" },
+    { "name": "catalog" },
+    { "name": "apply" }
+  ]
+}

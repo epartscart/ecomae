@@ -1,0 +1,63 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "guide",
+            "output": "",
+            "result": [
+                6,
+                [
+                    "What is a template?",
+                    "Layers that get applied",
+                    "Preview before apply",
+                    "Apply to a tenant",
+                    "New clients",
+                    "Where else to edit"
+                ]
+            ]
+        },
+        {
+            "name": "codes",
+            "output": "",
+            "result": [
+                [
+                    "auto_parts",
+                    "tyres"
+                ],
+                "auto_parts",
+                "auto_parts",
+                "medical"
+            ]
+        },
+        {
+            "name": "catalog",
+            "output": "",
+            "result": [
+                2,
+                "Auto",
+                "auto_parts",
+                1,
+                "https://automotive.ecomae.com/",
+                "Jewellery",
+                "Jew ERP",
+                1,
+                "auto_pkg",
+                1
+            ]
+        },
+        {
+            "name": "apply",
+            "output": "",
+            "result": [
+                0,
+                "Invalid template key",
+                0,
+                "Template not found in catalogue",
+                1,
+                "Applied · Next: client ERP → Setup → apply pack “Auto ERP”",
+                "automotive",
+                "acme"
+            ]
+        }
+    ]
+}

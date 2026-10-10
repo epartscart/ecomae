@@ -739,6 +739,95 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void BocPageShell_AreaAndHostGate_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Wake.Reset();
+        PhpPlanQ1Wake.IsSuperCpHost = () => true;
+        PhpPlanQ1Wake.Areas = new Dictionary<string, Dictionary<string, object?>>(StringComparer.Ordinal)
+        {
+            ["shop"] = new(StringComparer.Ordinal) { ["path"] = "shop", ["label"] = "Acme shop" }
+        };
+        PhpPlanQ1Wake.ContentUrl = "shop/prices";
+        PhpPlanQ1Wake.OperatorName = () => "acme-op";
+        var acme = PhpPlanQ1Wake.EpcBocPageShellOpen();
+        var acmeCtx = (Dictionary<string, object?>)acme["ctx"]!;
+        Assert.Equal("Acme shop", acmeCtx["title"]);
+        Assert.Equal("acme-op", acmeCtx["operator"]);
+        PhpPlanQ1Wake.Reset();
+        PhpPlanQ1Wake.IsSuperCpHost = () => false;
+        PhpPlanQ1Wake.Areas = new Dictionary<string, Dictionary<string, object?>>(StringComparer.Ordinal)
+        {
+            ["shop"] = new(StringComparer.Ordinal) { ["path"] = "shop", ["label"] = "Beta shop" }
+        };
+        var beta = PhpPlanQ1Wake.EpcBocPageShellOpen(new Dictionary<string, object?> { ["title"] = "Nope" });
+        Assert.Equal(0, beta["opened"]);
+        Assert.False(beta.ContainsKey("ctx"));
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Wake.BocPageShellPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Wake.BocPageShellPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PriceUploadDiagnostics_DomainAndKey_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Wind.Reset();
+        var acme = PhpPlanQ1Wind.EpcPriceUploadChannelDefinitions(new Dictionary<string, object?>
+        {
+            ["backend_dir"] = "cp",
+            ["domain_path"] = "https://acme.example",
+            ["tech_key"] = "acme-key"
+        });
+        var beta = PhpPlanQ1Wind.EpcPriceUploadChannelDefinitions(new Dictionary<string, object?>
+        {
+            ["backend_dir"] = "cp",
+            ["domain_path"] = "https://beta.example/",
+            ["tech_key"] = "beta-key"
+        });
+        var acmeCron = Convert.ToString(acme.First(r => Convert.ToString(r["id"]) == "cron_scheduled")["cron_wget"]);
+        var betaCron = Convert.ToString(beta.First(r => Convert.ToString(r["id"]) == "cron_scheduled")["cron_wget"]);
+        Assert.Contains("https://acme.examplecp/", acmeCron, StringComparison.Ordinal);
+        Assert.Contains("acme-key", acmeCron, StringComparison.Ordinal);
+        Assert.Contains("https://beta.example/cp/", betaCron, StringComparison.Ordinal);
+        Assert.Contains("beta-key", betaCron, StringComparison.Ordinal);
+        Assert.DoesNotContain("beta-key", acmeCron, StringComparison.Ordinal);
+        Assert.Equal("https://acme.example/pyprices/pyprices-api.php", PhpPlanQ1Wind.EpcPypricesApiUrl("https://acme.example/"));
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Wind.PriceUploadDiagnosticsPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Wind.PriceUploadDiagnosticsPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TenantTemplates_LiveDefsAndApply_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Sail.Reset();
+        PhpPlanQ1Sail.LiveDefs = () => new Dictionary<string, Dictionary<string, object?>>(StringComparer.Ordinal)
+        {
+            ["auto_parts"] = new(StringComparer.Ordinal) { ["template_key"] = "automotive", ["mode"] = "hub_root" }
+        };
+        PhpPlanQ1Sail.Groups = () => new Dictionary<string, Dictionary<string, object?>>(StringComparer.Ordinal)
+        {
+            ["a_auto"] = new(StringComparer.Ordinal)
+            {
+                ["template_key"] = "automotive",
+                ["label"] = "Auto",
+                ["erp_base"] = "auto",
+                ["color_scheme"] = new Dictionary<string, object?>()
+            }
+        };
+        PhpPlanQ1Sail.ErpPacks = () => new Dictionary<string, Dictionary<string, object?>>(StringComparer.Ordinal)
+        {
+            ["auto"] = new(StringComparer.Ordinal) { ["label"] = "Auto ERP" }
+        };
+        PhpPlanQ1Sail.SeoHost = tk => "acme-" + tk + ".example";
+        var acme = PhpPlanQ1Sail.EpcThIndustryTemplatesCatalog();
+        PhpPlanQ1Sail.SeoHost = tk => "beta-" + tk + ".example";
+        var beta = PhpPlanQ1Sail.EpcThIndustryTemplatesCatalog();
+        Assert.Equal("https://acme-automotive.example/", acme[0]["live_url"]);
+        Assert.Equal("https://beta-automotive.example/", beta[0]["live_url"]);
+        Assert.DoesNotContain("beta-automotive", Convert.ToString(acme[0]["live_url"]), StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Sail.TenantTemplatesCatalogPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Sail.TenantTemplatesCatalogPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -792,6 +881,9 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Leech.CheckSslPath,
             PhpPlanQ1Knot.MetadataHandlerPath,
             PhpPlanQ1Bend.OrderWhatsappSharePath,
+            PhpPlanQ1Wake.BocPageShellPath,
+            PhpPlanQ1Wind.PriceUploadDiagnosticsPath,
+            PhpPlanQ1Sail.TenantTemplatesCatalogPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
