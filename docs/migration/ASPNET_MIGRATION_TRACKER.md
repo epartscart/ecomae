@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-inlet (tenant hub helpers)
+
+Not complete.
+
+- Ratchet 444 to 439 (Spray / Brine / Kelp / Rip were already in `aspnet/src` with the Foam-era inventory file stale; Inlet is the fifth close). Files with PHP 8.3 goldens and ASP.NET twins: `PhpPlanQ1Spray` `epc_cp_professional_shell.php`, `PhpPlanQ1Brine` `epc_portal_erp_modules.php`, `PhpPlanQ1Kelp` `epc_portal_tenant_intro.php`, `PhpPlanQ1Rip` `epc_tenant_country_profile.php` (Tide failover twin restored), `PhpPlanQ1Inlet` `content/shop/tenant_hub/epc_tenant_hub_helpers.php` (action URLs, list/stats, status, blockchain mode, probe; leftover portal / demo / client-ERP injected). GET does not mint a session. Do not write leftover unique portal or client-ERP router basenames.
+- Area functionality gained tenant-hub URL isolation between configured hosts.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Inlet` (4). Inlet + area **5 / 5**. Full suite after Foam was **6344 / 6344**; Inlet suite pending on this revision. Content mentioned 583 to 588 of 952. Unnamed PHP functions 6,253 to 6,150. Ready ≤200-line non-ERP functions stay 57. The weighted headline stays about 20.4%. Non-ERP pending: 273 files / 138,176 lines (was 278 / 141,516). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-10 — plan Q1-foam (accessories marketplace DB)
 
 Not complete.
