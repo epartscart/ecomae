@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "pure",
+      "eval": "return cove_run_pure();"
+    },
+    {
+      "name": "accounts",
+      "eval": "return cove_run_accounts($GLOBALS['db_link']);"
+    },
+    {
+      "name": "publish",
+      "eval": "return cove_run_publish($GLOBALS['db_link']);"
+    },
+    {
+      "name": "now",
+      "eval": "return cove_run_now($GLOBALS['db_link']);"
+    }
+  ]
+}
