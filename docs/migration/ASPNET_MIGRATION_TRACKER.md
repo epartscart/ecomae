@@ -362,7 +362,7 @@ Not complete.
 Not complete.
 
 - Ratchet 493 to 492. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Rise`): `epc_cp_mainstream_menu.php` (sidebar apply / cleanup / parity / hidden SYSTEM rows). Cache-bust parents stay unmentioned.
-- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Rise` (4). Rise parity 4 of 4. Inventory root 86 to 87 of 491. Unnamed PHP functions 6,814 to 6,788. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 326 files / 163,902 lines (was 327 / 165,207). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Rise` (4). Rise parity 4 of 4. PlanQ1 suites 149 of 149. Full platform suite **6107 / 6107** after Rise (was 6099 after Scan; Grow + Rise added 8). Inventory root 86 to 87 of 491. Unnamed PHP functions 6,814 to 6,788. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 326 files / 163,902 lines (was 327 / 165,207). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
 ### Checkpoint 2026-10-10 — plan Q1-grow (web tracker helpers)
 
