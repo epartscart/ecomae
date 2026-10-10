@@ -1795,6 +1795,43 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void WarehouseSearch_CityNameStaysOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Road.Reset();
+        PhpPlanQ1Road.LangPrefix = () => "/en";
+        PhpPlanQ1Road.DemandPartUrl = (_, brand, article) => "/en/parts/" + brand + "/" + article;
+        PhpPlanQ1Road.QueryPriceRows = _ =>
+        [
+            new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["manufacturer"] = "Toyota", ["article"] = "1310154101", ["article_show"] = "13101-54101",
+                ["price"] = 12.5, ["exist"] = 3, ["storage"] = "Acme City", ["price_list_name"] = "Acme list", ["price_id"] = 4
+            }
+        ];
+        var acme = PhpPlanQ1Road.EpcSparePartsWarehouseSearch("Toyota", "1310154101", new Dictionary<string, object?>(StringComparer.Ordinal) { ["product_url"] = "alias" });
+        PhpPlanQ1Road.QueryPriceRows = _ =>
+        [
+            new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["manufacturer"] = "Toyota", ["article"] = "1310154101", ["article_show"] = "13101-54101",
+                ["price"] = 9, ["exist"] = 1, ["storage"] = "Beta Town", ["price_list_name"] = "Beta list", ["price_id"] = 5
+            }
+        ];
+        var beta = PhpPlanQ1Road.EpcSparePartsWarehouseSearch("Toyota", "1310154101", new Dictionary<string, object?>(StringComparer.Ordinal) { ["product_url"] = "alias" });
+        Assert.Equal("Acme City", Convert.ToString((acme["warehouse_rows"] as List<Dictionary<string, object?>>)![0]["warehouse"]));
+        Assert.DoesNotContain("Beta Town", Json(acme), StringComparison.Ordinal);
+        Assert.Equal("Beta Town", Convert.ToString((beta["warehouse_rows"] as List<Dictionary<string, object?>>)![0]["warehouse"]));
+        Assert.DoesNotContain("Acme City", Json(beta), StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Road.SparePartsWarehousePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Road.SparePartsWarehousePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_auto_price_categories.php", PhpPlanQ1Road.SparePartsWarehousePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_demand_intelligence.php", PhpPlanQ1Road.SparePartsWarehousePath, StringComparison.Ordinal);
+    }
+
+    private static string Json(object? value)
+        => System.Text.Json.JsonSerializer.Serialize(value);
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1876,6 +1913,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Fjord.MarketingBroadcastPanelPath,
             PhpPlanQ1Sound.CpGuidelinePath,
             PhpPlanQ1Reach.PointGeoNodePath,
+            PhpPlanQ1Road.SparePartsWarehousePath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
