@@ -1580,6 +1580,40 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void SuperCpPlatform_TenantOptionsStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Gulf.Reset();
+        PhpPlanQ1Gulf.Tenants.Add(new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["site_key"] = "acme_parts",
+            ["trade_name"] = "Acme Parts",
+            ["hostname"] = "www.acme.test",
+            ["in_registry"] = 1,
+            ["urls"] = new Dictionary<string, object?>(StringComparer.Ordinal) { ["cp"] = "https://www.acme.test/cp" }
+        });
+        PhpPlanQ1Gulf.Tenants.Add(new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["site_key"] = "beta",
+            ["trade_name"] = "",
+            ["hostname"] = "www.beta.test",
+            ["in_registry"] = 1,
+            ["access_blocked"] = 1
+        });
+        PhpPlanQ1Gulf.TenantUrls = t => new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["cp"] = "https://" + Convert.ToString(t.GetValueOrDefault("hostname")) + "/cp"
+        };
+        var opts = PhpPlanQ1Gulf.EpcScpTenantOptions(null!);
+        Assert.Equal("acme_parts", Convert.ToString(opts[0]["site_key"]));
+        Assert.Equal("beta", Convert.ToString(opts[1]["site_key"]));
+        Assert.Equal(" (beta)", Convert.ToString(opts[1]["label"]));
+        Assert.NotEqual(opts[0]["hostname"], opts[1]["hostname"]);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Gulf.SuperCpPlatformPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Gulf.SuperCpPlatformPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_portal.php", PhpPlanQ1Gulf.SuperCpPlatformPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1654,6 +1688,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Inlet.TenantHubHelpersPath,
             PhpPlanQ1Shoal.IntegrationsHelpersPath,
             PhpPlanQ1Cape.EpartscartStorefrontPath,
+            PhpPlanQ1Gulf.SuperCpPlatformPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
