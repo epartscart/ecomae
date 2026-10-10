@@ -5945,7 +5945,6 @@ getHtml_tabs_header	GetHtmlTabsHeader	modules/shop/catalogue/dp_menu.php	php	353
 get_cnt_links	GetCntLinks	modules/shop/catalogue/dp_menu.php	php	353	gap	later
 printCatalogueNode	PrintCatalogueNode	modules/shop/catalogue/printCatalogueNode.php	php	121	gap	ready
 getHtmlOfTopMenuCatalogue	GetHtmlOfTopMenuCatalogue	modules/shop/catalogue/top_menu_catalog.php	php	155	gap	ready
-submit_form	SubmitForm	modules/shop/search_string/search_string.php	js	93	gap	browser-js
 getProducts	GetProducts	modules/shop/ucats/accessories/module.php	js	237	gap	browser-js
 go_to_page	GoToPage	modules/shop/ucats/accessories/module.php	js	237	gap	browser-js
 groupChanged	GroupChanged	modules/shop/ucats/accessories/module.php	js	237	gap	browser-js

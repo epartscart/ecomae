@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Bight (`--max-gap 429` passed; current gap **427**).
+after PlanQ1Loch (`--max-gap 427` passed; current gap **426**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 427
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 426
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -18,7 +18,7 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | Plan step | Area | Gap files | Lines |
 |---|---|---:|---:|
 | 1 | Storefront: catalogue | 30 | 8,978 |
-| 1 | Storefront: modules | 16 | 3,082 |
+| 1 | Storefront: modules | 15 | 2,989 |
 | 1 | Storefront: other shop | 10 | 4,189 |
 | 1 | Storefront: parts/docpart | 16 | 26,316 |
 | 1 | Storefront: templates | 3 | 2,689 |
@@ -31,11 +31,11 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **427** | **199,565** |
+| | **Total** | **426** | **199,472** |
 
-- Non-ERP (Cursor): **261 files / 133,374 lines**
+- Non-ERP (Cursor): **260 files / 133,281 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,037** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **48**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,036** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **48**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -471,9 +471,13 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Road`, 4 cases): OEM brands, c
 
 ### Q1 bight — done (`PhpPlanQ1Bight`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Bight`, 4 cases): spare-parts page missing-DB / brand select / inline result, search ajax JSON, tenant city isolation. Leftover automotive-data stays injected. Warehouse helpers are the Road twin. GET does not mint a session. Next unused class after Bight: Loch.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Bight`, 4 cases): spare-parts page missing-DB / brand select / inline result, search ajax JSON, tenant city isolation. Leftover automotive-data stays injected. Warehouse helpers are the Road twin. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 261 files.
+### Q1 loch — done (`PhpPlanQ1Loch`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Loch`, 4 cases): empty/zero article, raw article echo, translated labels, tenant lang/csrf isolation. Leftover unique user helper stays injected. GET does not mint a session. Next unused class after Loch: Reed.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 260 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -538,7 +542,8 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6ax | `point_geo_node.php` | Closed in Reach. |
 | 6ay | `epc_spare_parts_warehouse.php` | Closed in Road. |
 | 6az | `epc_epartscart_spare_parts.php` | Closed in Bight (with search ajax). |
-| 6ba | `search_string.php` | Next (`PhpPlanQ1Loch`). Unique 93/1. Leftover unique user helper stays injected. |
+| 6ba | `search_string.php` | Closed in Loch. |
+| 6bb | `modules/shop/balance/module.php` | Next (`PhpPlanQ1Reed`). Path 93/0. Leftover unique user helper stays injected. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
