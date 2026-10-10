@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-sprit (marketing brochure)
+
+Not complete.
+
+- Ratchet 470 to 469. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Sprit`): `content/general_pages/epc_marketing_brochure.php` (brand sanitize lower-then-strip `[a-z0-9_]` so `AUTO_PARTS` / `Eparts-Cart!` → epartscart and `Fashion!` / `Acme-1!` → ecomae; interpolating CSS heredoc; printable HTML; `empty('0')` skips auto-print; `htmlspecialchars` ENT_QUOTES → `&#039;`). Leftover live-deck parents stay injected (item image / photo meta / inventory total). GET does not mint a session. Brochure HTML stays per injected brand and live-deck.
+- Area functionality gained a brochure isolation case (epartscart vs ecomae profile, acme vs beta live-deck images, no session cookie).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Sprit` (4). Sprit parity 4 of 4. Area functionality 20 of 20. PlanQ1 suites 241 of 241. Full platform suite **6219 / 6219** after Sprit (was 6214 after Gaff). Area runner: auth 169, storefront commerce 127, CP/BOS 171, tenants/jobs/social 51. Inventory content 566 to 567 of 952. Unnamed PHP functions 6,452 to 6,445. Ready ≤200-line non-ERP functions stay 59. The weighted headline stays about 20.4%. Non-ERP pending: 303 files / 151,853 lines (was 304 / 152,381). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
+
 ### Checkpoint 2026-10-10 — plan Q1-gaff (WhatsApp share)
 
 Not complete.
