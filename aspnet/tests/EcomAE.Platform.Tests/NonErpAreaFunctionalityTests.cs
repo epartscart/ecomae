@@ -251,12 +251,42 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void Api_KeysAndHandle_StayOnTheKeyTenant()
+    {
+        PhpPlanQ1Mast.Reset();
+        var acme = PhpPlanQ1Mast.EpcApiKeyGenerate("acme", new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["scopes"] = new[] { "read" }
+        });
+        var beta = PhpPlanQ1Mast.EpcApiKeyGenerate("beta", new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["scopes"] = new[] { "read" }
+        });
+        Assert.Empty(PhpPlanQ1Mast.EpcApiKeysList("missing"));
+        Assert.Single(PhpPlanQ1Mast.EpcApiKeysList("acme"));
+        Assert.Single(PhpPlanQ1Mast.EpcApiKeysList("beta"));
+        PhpPlanQ1Mast.Server["HTTP_AUTHORIZATION"] = "Bearer " + acme["api_key"];
+        var hit = PhpPlanQ1Mast.EpcApiV2Handle("GET", "/api/v2/products", new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["site_key"] = "beta"
+        });
+        Assert.True((bool)hit["ok"]!);
+        Assert.Equal("acme", Convert.ToString(hit["site_key"]));
+        PhpPlanQ1Mast.EpcApiKeyRevoke(Convert.ToInt32(acme["key_id"]));
+        var after = PhpPlanQ1Mast.EpcApiV2Handle("GET", "/api/v2/products");
+        Assert.False((bool)after["ok"]!);
+        Assert.DoesNotContain("PHPSESSID", Convert.ToString(after["error"]), StringComparison.Ordinal);
+        Assert.Equal("beta", Convert.ToString(((Dictionary<string, object?>)PhpPlanQ1Mast.EpcApiKeyValidate(Convert.ToString(beta["api_key"])!)["key"]!)["site_key"]));
+    }
+
+    [Fact]
     public void CoveredAreas_AreCursorOwnedNotErp()
     {
         var paths = new[]
         {
             PhpPlanQ1Hull.AuthSocialPath,
             PhpPlanQ1Keel.AuthGatePath,
+            PhpPlanQ1Mast.RestApiPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
