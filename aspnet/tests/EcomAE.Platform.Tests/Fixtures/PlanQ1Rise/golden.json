@@ -1,0 +1,741 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "pure",
+            "output": "",
+            "result": [
+                {
+                    "mainstream": "epc_cp_mainstream_menu_apply",
+                    "customers_accounts": "epc_cp_customer_mgmt_menu_apply",
+                    "documents": "epc_cp_document_control_menu_apply",
+                    "payments": "epc_cp_payments_menu_apply",
+                    "marketing": "epc_cp_marketing_menu_apply",
+                    "procurement": "epc_cp_procurement_menu_apply",
+                    "pos": "epc_cp_pos_menu_apply",
+                    "portal": "epc_cp_portal_menu_apply",
+                    "integrations": "epc_cp_integrations_menu_apply"
+                },
+                [
+                    "/control/o-programme",
+                    "/control/obnovleniya",
+                    "/control/izmeneniya",
+                    "/content/usefull/changes_fc",
+                    "changes_fc.php",
+                    "/version_control/about_program",
+                    "/version_control/updates"
+                ],
+                [
+                    "about program",
+                    "docpart changes",
+                    "updates",
+                    "история изменений",
+                    "изменения docpart",
+                    "изменения",
+                    "о программе",
+                    "обновления"
+                ],
+                true,
+                true,
+                true,
+                false,
+                true
+            ]
+        },
+        {
+            "name": "empty",
+            "output": "",
+            "result": [
+                {
+                    "id": 6,
+                    "order": 5
+                },
+                {
+                    "shop_group": 6,
+                    "channels_group": 1,
+                    "logistics_group": 2,
+                    "erp_group": 3,
+                    "ai_group": 4,
+                    "customers_group": 5,
+                    "menu_orders": {
+                        "channels": 6,
+                        "logistics": 7,
+                        "erp": 8,
+                        "ai": 9
+                    },
+                    "items": {
+                        "channels_hub": 1,
+                        "channels_guide": 2,
+                        "logistics_hub": 3,
+                        "logistics_carriers": 4,
+                        "logistics_guide": 5,
+                        "logistics_obtain": 6,
+                        "logistics_orders": 7,
+                        "whatsapp_guide": 8,
+                        "erp_hub": 9,
+                        "erp_guide": 10,
+                        "custom_shipping": 9,
+                        "custom_shipping_guide": 11,
+                        "uae_tax_compliance": 12,
+                        "ai_hub": 13,
+                        "shop_orders": 7,
+                        "shop_sku_media": 14,
+                        "shop_multivendor": 15,
+                        "shop_prices_guide": 16,
+                        "customers_customer_mgmt": 17,
+                        "customers_user_accounts": 18,
+                        "customers_user_groups": 19,
+                        "customers_user_create": 20,
+                        "customers_customer_approvals": 21,
+                        "customers_vendor_approvals": 22,
+                        "customers_reg_fields": 23,
+                        "customers_reg_variants": 24
+                    }
+                },
+                1,
+                1,
+                1,
+                [
+                    [
+                        {
+                            "id": 1,
+                            "caption": "epc_cp_group_channels",
+                            "order": 6
+                        },
+                        {
+                            "id": 2,
+                            "caption": "epc_cp_group_logistics",
+                            "order": 7
+                        },
+                        {
+                            "id": 3,
+                            "caption": "epc_cp_group_erp",
+                            "order": 8
+                        },
+                        {
+                            "id": 4,
+                            "caption": "epc_cp_group_ai",
+                            "order": 10
+                        },
+                        {
+                            "id": 5,
+                            "caption": "epc_cp_group_customers",
+                            "order": 9
+                        }
+                    ],
+                    [
+                        {
+                            "id": 1,
+                            "items_group": 1,
+                            "caption": "epc_channels_cp",
+                            "url": "/<backend>/shop/channels/channels",
+                            "order": 10,
+                            "background_color": "#2563eb",
+                            "fontawesome_class": "fas fa-plug",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 2,
+                            "items_group": 1,
+                            "caption": "epc_channels_guide_cp",
+                            "url": "/<backend>/shop/channels/guide",
+                            "order": 20,
+                            "background_color": "#2563eb",
+                            "fontawesome_class": "fas fa-book",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 3,
+                            "items_group": 2,
+                            "caption": "epc_logistics_cp",
+                            "url": "/<backend>/shop/logistics",
+                            "order": 10,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-th-large",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 4,
+                            "items_group": 2,
+                            "caption": "epc_logistics_carriers_cp",
+                            "url": "/<backend>/shop/logistics/carriers",
+                            "order": 20,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-shipping-fast",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 5,
+                            "items_group": 2,
+                            "caption": "epc_logistics_guide_cp",
+                            "url": "/<backend>/shop/logistics/guide",
+                            "order": 30,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-book",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 6,
+                            "items_group": 2,
+                            "caption": "epc_logistics_obtain_cp",
+                            "url": "/<backend>/shop/logistics/sposoby-polucheniya",
+                            "order": 40,
+                            "background_color": "#64748b",
+                            "fontawesome_class": "fas fa-truck",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 7,
+                            "items_group": 2,
+                            "caption": "epc_oms_orders_cp",
+                            "url": "/<backend>/shop/orders/orders",
+                            "order": 25,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-columns",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 8,
+                            "items_group": 2,
+                            "caption": "epc_whatsapp_guide",
+                            "url": "/<backend>/shop/orders/whatsapp-guide",
+                            "order": 55,
+                            "background_color": "#25D366",
+                            "fontawesome_class": "fab fa-whatsapp",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 9,
+                            "items_group": 3,
+                            "caption": "epc_custom_shipping_cp",
+                            "url": "/<backend>/shop/finance/erp?epc_erp_shell=1",
+                            "order": 15,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-ship",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 10,
+                            "items_group": 3,
+                            "caption": "epc_erp_guide_cp",
+                            "url": "/<backend>/shop/finance/erp/guide?epc_erp_shell=1",
+                            "order": 20,
+                            "background_color": "#27ae60",
+                            "fontawesome_class": "fas fa-book",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 11,
+                            "items_group": 3,
+                            "caption": "epc_custom_shipping_guide_cp",
+                            "url": "/<backend>/shop/finance/erp/custom-shipping-guide?epc_erp_shell=1",
+                            "order": 25,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-book",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 12,
+                            "items_group": 3,
+                            "caption": "epc_uae_tax_compliance_cp",
+                            "url": "/<backend>/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1",
+                            "order": 26,
+                            "background_color": "#7c3aed",
+                            "fontawesome_class": "fas fa-gavel",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 13,
+                            "items_group": 4,
+                            "caption": "epc_parts_agent_chats_cp",
+                            "url": "/<backend>/shop/parts_agent_chats",
+                            "order": 10,
+                            "background_color": "#8e44ad",
+                            "fontawesome_class": "fas fa-robot",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 14,
+                            "items_group": 2,
+                            "caption": "epc_sku_media_manager",
+                            "url": "/<backend>/shop/catalogue/sku_media",
+                            "order": 14,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fa-picture-o",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 15,
+                            "items_group": 2,
+                            "caption": "epc_prices_multivendor_cp",
+                            "url": "/<backend>/shop/prices/multivendor",
+                            "order": 15,
+                            "background_color": "#0891b2",
+                            "fontawesome_class": "fa-handshake-o",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 16,
+                            "items_group": 2,
+                            "caption": "epc_prices_guide_cp",
+                            "url": "/<backend>/shop/prices/guide",
+                            "order": 16,
+                            "background_color": "#26ad5f",
+                            "fontawesome_class": "fas fa-book",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 17,
+                            "items_group": 5,
+                            "caption": "epc_customer_mgmt_cp",
+                            "url": "/<backend>/shop/customer_mgmt/customer_mgmt",
+                            "order": 10,
+                            "background_color": "#2563eb",
+                            "fontawesome_class": "fas fa-address-book",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 18,
+                            "items_group": 5,
+                            "caption": "epc_user_accounts_cp",
+                            "url": "/<backend>/users/usermanager",
+                            "order": 20,
+                            "background_color": "#1d4ed8",
+                            "fontawesome_class": "fas fa-user-alt",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 19,
+                            "items_group": 5,
+                            "caption": "epc_user_groups_cp",
+                            "url": "/<backend>/users/usergroups",
+                            "order": 30,
+                            "background_color": "#1d4ed8",
+                            "fontawesome_class": "fas fa-users",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 20,
+                            "items_group": 5,
+                            "caption": "epc_user_create_cp",
+                            "url": "/<backend>/users/usermanager/user",
+                            "order": 40,
+                            "background_color": "#3b82f6",
+                            "fontawesome_class": "fas fa-user-plus",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 21,
+                            "items_group": 5,
+                            "caption": "epc_customer_approvals_cp",
+                            "url": "/<backend>/users/customer_approvals",
+                            "order": 50,
+                            "background_color": "#059669",
+                            "fontawesome_class": "fas fa-user-check",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 22,
+                            "items_group": 5,
+                            "caption": "epc_vendor_approvals_cp",
+                            "url": "/<backend>/users/vendor_approvals",
+                            "order": 55,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-store",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 23,
+                            "items_group": 5,
+                            "caption": "epc_reg_fields_cp",
+                            "url": "/<backend>/users/polya-registracii",
+                            "order": 60,
+                            "background_color": "#64748b",
+                            "fontawesome_class": "far fa-address-card",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 24,
+                            "items_group": 5,
+                            "caption": "epc_reg_variants_cp",
+                            "url": "/<backend>/users/registracionnye-varianty",
+                            "order": 70,
+                            "background_color": "#64748b",
+                            "fontawesome_class": "fas fa-users-cog",
+                            "show_anyway": 1
+                        }
+                    ]
+                ]
+            ]
+        },
+        {
+            "name": "seed",
+            "output": "",
+            "result": [
+                {
+                    "id": 1,
+                    "order": 10
+                },
+                1,
+                4,
+                5,
+                23,
+                2,
+                "OMS · Orders",
+                "About program",
+                "missing-key!",
+                [
+                    [
+                        {
+                            "id": 1,
+                            "caption": "744",
+                            "order": 10
+                        },
+                        {
+                            "id": 2,
+                            "caption": "741",
+                            "order": 2
+                        },
+                        {
+                            "id": 4,
+                            "caption": "epc_cp_group_channels",
+                            "order": 11
+                        },
+                        {
+                            "id": 5,
+                            "caption": "epc_cp_group_logistics",
+                            "order": 13
+                        },
+                        {
+                            "id": 6,
+                            "caption": "epc_cp_group_erp",
+                            "order": 14
+                        },
+                        {
+                            "id": 7,
+                            "caption": "epc_cp_group_ai",
+                            "order": 15
+                        },
+                        {
+                            "id": 8,
+                            "caption": "epc_cp_group_customers",
+                            "order": 12
+                        }
+                    ],
+                    [
+                        {
+                            "id": 1,
+                            "items_group": 1,
+                            "caption": "771",
+                            "url": "/<backend>/shop/prices",
+                            "order": 20,
+                            "background_color": "#111",
+                            "fontawesome_class": "fa-list",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 4,
+                            "items_group": 1,
+                            "caption": "wh",
+                            "url": "/<backend>/shop/storages",
+                            "order": 12,
+                            "background_color": "#333",
+                            "fontawesome_class": "fa-box",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 5,
+                            "items_group": 4,
+                            "caption": "epc_channels_cp",
+                            "url": "/<backend>/shop/channels/channels",
+                            "order": 10,
+                            "background_color": "#2563eb",
+                            "fontawesome_class": "fas fa-plug",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 7,
+                            "items_group": 8,
+                            "caption": "epc_user_accounts_cp",
+                            "url": "/<backend>/users/usermanager",
+                            "order": 20,
+                            "background_color": "#1d4ed8",
+                            "fontawesome_class": "fas fa-user-alt",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 10,
+                            "items_group": 4,
+                            "caption": "epc_channels_guide_cp",
+                            "url": "/<backend>/shop/channels/guide",
+                            "order": 20,
+                            "background_color": "#2563eb",
+                            "fontawesome_class": "fas fa-book",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 11,
+                            "items_group": 5,
+                            "caption": "epc_logistics_cp",
+                            "url": "/<backend>/shop/logistics",
+                            "order": 10,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-th-large",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 12,
+                            "items_group": 5,
+                            "caption": "epc_logistics_carriers_cp",
+                            "url": "/<backend>/shop/logistics/carriers",
+                            "order": 20,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-shipping-fast",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 13,
+                            "items_group": 5,
+                            "caption": "epc_logistics_guide_cp",
+                            "url": "/<backend>/shop/logistics/guide",
+                            "order": 30,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-book",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 14,
+                            "items_group": 5,
+                            "caption": "epc_logistics_obtain_cp",
+                            "url": "/<backend>/shop/logistics/sposoby-polucheniya",
+                            "order": 40,
+                            "background_color": "#64748b",
+                            "fontawesome_class": "fas fa-truck",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 15,
+                            "items_group": 5,
+                            "caption": "epc_oms_orders_cp",
+                            "url": "/<backend>/shop/orders/orders",
+                            "order": 50,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-columns",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 16,
+                            "items_group": 5,
+                            "caption": "epc_whatsapp_guide",
+                            "url": "/<backend>/shop/orders/whatsapp-guide",
+                            "order": 55,
+                            "background_color": "#25D366",
+                            "fontawesome_class": "fab fa-whatsapp",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 17,
+                            "items_group": 6,
+                            "caption": "epc_custom_shipping_cp",
+                            "url": "/<backend>/shop/finance/erp?epc_erp_shell=1",
+                            "order": 15,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-ship",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 18,
+                            "items_group": 6,
+                            "caption": "epc_erp_guide_cp",
+                            "url": "/<backend>/shop/finance/erp/guide?epc_erp_shell=1",
+                            "order": 20,
+                            "background_color": "#27ae60",
+                            "fontawesome_class": "fas fa-book",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 19,
+                            "items_group": 6,
+                            "caption": "epc_custom_shipping_guide_cp",
+                            "url": "/<backend>/shop/finance/erp/custom-shipping-guide?epc_erp_shell=1",
+                            "order": 25,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-book",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 20,
+                            "items_group": 6,
+                            "caption": "epc_uae_tax_compliance_cp",
+                            "url": "/<backend>/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1",
+                            "order": 26,
+                            "background_color": "#7c3aed",
+                            "fontawesome_class": "fas fa-gavel",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 21,
+                            "items_group": 7,
+                            "caption": "epc_parts_agent_chats_cp",
+                            "url": "/<backend>/shop/parts_agent_chats",
+                            "order": 10,
+                            "background_color": "#8e44ad",
+                            "fontawesome_class": "fas fa-robot",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 22,
+                            "items_group": 1,
+                            "caption": "epc_oms_orders_cp",
+                            "url": "/<backend>/shop/orders/orders",
+                            "order": 29,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-columns",
+                            "show_anyway": 0
+                        },
+                        {
+                            "id": 23,
+                            "items_group": 1,
+                            "caption": "epc_sku_media_manager",
+                            "url": "/<backend>/shop/catalogue/sku_media",
+                            "order": 21,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fa-picture-o",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 24,
+                            "items_group": 1,
+                            "caption": "epc_prices_multivendor_cp",
+                            "url": "/<backend>/shop/prices/multivendor",
+                            "order": 22,
+                            "background_color": "#0891b2",
+                            "fontawesome_class": "fa-handshake-o",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 25,
+                            "items_group": 1,
+                            "caption": "epc_prices_guide_cp",
+                            "url": "/<backend>/shop/prices/guide",
+                            "order": 23,
+                            "background_color": "#26ad5f",
+                            "fontawesome_class": "fas fa-book",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 26,
+                            "items_group": 8,
+                            "caption": "epc_customer_mgmt_cp",
+                            "url": "/<backend>/shop/customer_mgmt/customer_mgmt",
+                            "order": 10,
+                            "background_color": "#2563eb",
+                            "fontawesome_class": "fas fa-address-book",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 27,
+                            "items_group": 8,
+                            "caption": "epc_user_groups_cp",
+                            "url": "/<backend>/users/usergroups",
+                            "order": 30,
+                            "background_color": "#1d4ed8",
+                            "fontawesome_class": "fas fa-users",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 28,
+                            "items_group": 8,
+                            "caption": "epc_user_create_cp",
+                            "url": "/<backend>/users/usermanager/user",
+                            "order": 40,
+                            "background_color": "#3b82f6",
+                            "fontawesome_class": "fas fa-user-plus",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 29,
+                            "items_group": 8,
+                            "caption": "epc_customer_approvals_cp",
+                            "url": "/<backend>/users/customer_approvals",
+                            "order": 50,
+                            "background_color": "#059669",
+                            "fontawesome_class": "fas fa-user-check",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 30,
+                            "items_group": 8,
+                            "caption": "epc_vendor_approvals_cp",
+                            "url": "/<backend>/users/vendor_approvals",
+                            "order": 55,
+                            "background_color": "#0f766e",
+                            "fontawesome_class": "fas fa-store",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 31,
+                            "items_group": 8,
+                            "caption": "epc_reg_fields_cp",
+                            "url": "/<backend>/users/polya-registracii",
+                            "order": 60,
+                            "background_color": "#64748b",
+                            "fontawesome_class": "far fa-address-card",
+                            "show_anyway": 1
+                        },
+                        {
+                            "id": 32,
+                            "items_group": 8,
+                            "caption": "epc_reg_variants_cp",
+                            "url": "/<backend>/users/registracionnye-varianty",
+                            "order": 70,
+                            "background_color": "#64748b",
+                            "fontawesome_class": "fas fa-users-cog",
+                            "show_anyway": 1
+                        }
+                    ]
+                ]
+            ]
+        },
+        {
+            "name": "packs",
+            "output": "",
+            "result": [
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                2,
+                [
+                    "mainstream",
+                    "customers_accounts",
+                    "documents",
+                    "payments",
+                    "marketing",
+                    "procurement",
+                    "pos",
+                    "portal",
+                    "integrations"
+                ],
+                {
+                    "mainstream": true,
+                    "customers_accounts": true,
+                    "documents": true,
+                    "payments": true,
+                    "marketing": true,
+                    "procurement": true,
+                    "pos": true,
+                    "portal": true,
+                    "integrations": true
+                },
+                false
+            ]
+        }
+    ]
+}
