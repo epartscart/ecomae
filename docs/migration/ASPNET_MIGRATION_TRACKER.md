@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-spar (PartsAPI config)
+
+Not complete.
+
+- Ratchet 475 to 474. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Spar`): `content/general_pages/epc_partsapi_config.php` (file / method-key overlay with `empty('0')` skip, shop URL overrides and `https?://` path passthrough, default lang `/^[a-z]{2}$/` after lower, host gate eParts vs auto-parts `allow_auto_parts_tenants`, error classes rate 5000 / service 5005+5007 / auth 5002 and 401/403 only when the method key is blank, manufacturer/model/car/article/cross/VIN maps, `(int)"2012abc"` year, injected HTTP call and umapi fallback). Leftover catalog sanitize / portal host parents stay injected. GET does not mint a session.
+- Area functionality gained a PartsAPI isolation case (eParts host on, auto-parts `"0"` off, method key stays on that method).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Spar` (4). Spar parity 4 of 4. Area functionality 15 of 15. PlanQ1 suites 221 of 221. Full platform suite **6194 / 6194** after Spar (was 6189 after Yard). Area runner: auth 164, storefront commerce 127, CP/BOS 167, tenants/jobs/social 35. Inventory content 560 to 561 of 952. Unnamed PHP functions 6,569 to 6,529. Ready ≤200-line non-ERP functions stay 59. The weighted headline stays about 20.4%. Non-ERP pending: 308 files / 155,035 lines (was 309 / 155,818). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
+
 ### Checkpoint 2026-10-10 — plan Q1-yard (tenant readiness score)
 
 Not complete.
