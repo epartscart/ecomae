@@ -1614,6 +1614,32 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void ElectronicaeStorefront_TreeAndHrefStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Haven.Reset();
+        PhpPlanQ1Haven.CategorySlug = (_, _) => "apai-electronics-root";
+        var tree = new List<Dictionary<string, object?>>
+        {
+            new(StringComparer.Ordinal) { ["alias"] = "tires", ["data"] = new List<Dictionary<string, object?>>() },
+            new(StringComparer.Ordinal)
+            {
+                ["alias"] = "apai-electronics-root",
+                ["data"] = new List<Dictionary<string, object?>>
+                {
+                    new(StringComparer.Ordinal) { ["alias"] = "apai-phones", ["data"] = new List<Dictionary<string, object?>>() }
+                }
+            }
+        };
+        var filtered = PhpPlanQ1Haven.EpcElectronicaeFilterMenuTree(null!, tree, "acme_el");
+        Assert.Equal("apai-phones", Convert.ToString(filtered[0]["alias"]));
+        Assert.Single(filtered);
+        PhpPlanQ1Haven.LangPrefix = () => "/ar/";
+        Assert.Equal("/ar/phones", PhpPlanQ1Haven.EpcElectronicaeHref("/phones"));
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Haven.ElectronicaeStorefrontPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Haven.ElectronicaeStorefrontPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1689,6 +1715,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Shoal.IntegrationsHelpersPath,
             PhpPlanQ1Cape.EpartscartStorefrontPath,
             PhpPlanQ1Gulf.SuperCpPlatformPath,
+            PhpPlanQ1Haven.ElectronicaeStorefrontPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
