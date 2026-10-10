@@ -4,13 +4,13 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 
 | Class | Count | What to do |
 |---|---:|---|
-| Real PHP (non-ERP), gap file ≤200 lines | 65 | Build next — listed below |
-| Real PHP (non-ERP), larger gap file | 1628 | Build with the parent kernel |
+| Real PHP (non-ERP), gap file ≤200 lines | 60 | Build next — listed below |
+| Real PHP (non-ERP), larger gap file | 1617 | Build with the parent kernel |
 | Real PHP already on a mentioned file | 867 | Finish leftover helpers on that twin |
 | JS functions written inside PHP templates | 1366 | Port as browser JS, not C# methods |
 | Vendor (PHPExcel, PclZip, …) | 255 | Do not port |
 | ERP finance (Devin) | 2031 | Leave for Devin |
-| **Total unmentioned** | **6634** | |
+| **Total unmentioned** | **6618** | |
 
 ## Ready to build (non-ERP PHP, gap file ≤200 lines)
 
@@ -33,11 +33,6 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_er_header_href` | `EpcErHeaderHref` | `content/general_pages/epc_portal_electronics_retail_header.php` | 162 |
 | `epc_frn_header_href` | `EpcFrnHeaderHref` | `content/general_pages/epc_portal_fashion_retail_namshi_header.php` | 196 |
 | `epc_jrk_header_href` | `EpcJrkHeaderHref` | `content/general_pages/epc_portal_jewellery_retail_kiyasha_header.php` | 199 |
-| `epc_tenant_pdo` | `EpcTenantPdo` | `content/general_pages/epc_tenant_pdo.php` | 153 |
-| `epc_tenant_pdo_from_row` | `EpcTenantPdoFromRow` | `content/general_pages/epc_tenant_pdo.php` | 153 |
-| `epc_tenant_pdo_pool_stats` | `EpcTenantPdoPoolStats` | `content/general_pages/epc_tenant_pdo.php` | 153 |
-| `epc_tenant_pdo_resolve_host` | `EpcTenantPdoResolveHost` | `content/general_pages/epc_tenant_pdo.php` | 153 |
-| `epc_tenant_row_uses_dedicated_db` | `EpcTenantRowUsesDedicatedDb` | `content/general_pages/epc_tenant_pdo.php` | 153 |
 | `ImplodeIfArray` | `ImplodeIfArray` | `content/originalnye-katalogi/API.v2/PHP/Functions.Common.php` | 124 |
 | `SendMail` | `SendMail` | `content/originalnye-katalogi/API.v2/PHP/Functions.Common.php` | 124 |
 | `ShowApiAnswer` | `ShowApiAnswer` | `content/originalnye-katalogi/API.v2/PHP/Functions.Common.php` | 124 |
