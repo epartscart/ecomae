@@ -2,274 +2,70 @@
     "php": "8.3.6",
     "results": [
         {
-            "name": "pure",
+            "name": "names",
             "output": "",
             "result": [
-                [
-                    [
-                        "primary_ok",
-                        "primary_down",
-                        "backup_active",
-                        "failback_sync",
-                        "failback_redirect"
-                    ],
-                    {
-                        "primary_ok": "ok",
-                        "primary_down": "down",
-                        "backup_active": "down",
-                        "failback_sync": "recovering",
-                        "failback_redirect": "recovering",
-                        "unknown": "down"
-                    },
-                    {
-                        "primary_ok": "cloud_primary",
-                        "primary_down": "local_premises",
-                        "backup_active": "local_premises",
-                        "failback_sync": "cloud_restoring",
-                        "failback_redirect": "cloud_restoring",
-                        "unknown": "cloud_primary"
-                    },
-                    {
-                        "primary_ok": false,
-                        "primary_down": true,
-                        "backup_active": true,
-                        "failback_sync": true,
-                        "failback_redirect": true,
-                        "unknown": false
-                    }
-                ],
-                {
-                    "backup_base_url": "",
-                    "primary_url": "https://www.ecomae.com/",
-                    "poll_interval_sec": 60,
-                    "show_cloud_primary_badge": false
-                },
-                {
-                    "backup_base_url": "",
-                    "primary_url": "https://www.ecomae.com/",
-                    "poll_interval_sec": 60,
-                    "show_cloud_primary_badge": false
-                },
-                60,
-                15,
-                15,
-                60,
-                "https://www.ecomae.com/epc-platform-status.php?ping=1",
-                "https://backup.example/ping",
-                "shop.example",
-                "store",
-                false,
-                false,
-                true,
-                "primary_ok",
-                null,
-                null,
-                null,
-                "primary_ok",
-                false,
-                [
-                    [
-                        "DOCROOT/epc-platform-status.mode",
-                        "DOCROOT/var/epc-platform-status.mode"
-                    ],
-                    [
-                        "DOCROOT/epc-platform-status.json"
-                    ],
-                    [
-                        "DOCROOT/epc-platform-failover.config.json",
-                        "DOCROOT/var/epc-platform-failover.config.json"
-                    ]
-                ],
-                "DOCROOT"
+                "AE",
+                "AE",
+                "PK",
+                "XX",
+                ""
             ]
         },
         {
-            "name": "files",
+            "name": "defaults",
             "output": "",
             "result": [
-                false,
-                true,
-                "backup_active",
-                "backup_active",
                 {
-                    "ok": true,
-                    "mode": "backup_active",
-                    "label": "Local premises backup active",
-                    "updated_at": "2026-10-10T00:00:00+00:00",
-                    "primary_url": "https://www.ecomae.com/",
-                    "backup_base_url": "",
-                    "primary_health": "down",
-                    "env": "local_premises",
-                    "poll_interval_sec": 60,
-                    "show_cloud_primary_badge": false,
-                    "backup_hint": "local premises / laptop standby",
-                    "splash_url": "/epc-platform-splash.html",
-                    "status_php": "/epc-platform-status.php",
-                    "status_json": "/epc-platform-status.json",
-                    "snippet_js": "/epc-failover-snippet.js",
-                    "note": "standby"
+                    "company_country_code": "US",
+                    "company_currency": "USD",
+                    "erp_date_format": "m/d/Y"
                 },
                 {
-                    "ok": true,
-                    "mode": "failback_redirect",
-                    "label": "Returning to cloud primary",
-                    "updated_at": "2026-10-10T00:00:00+00:00",
-                    "primary_url": "https://www.ecomae.com/",
-                    "backup_base_url": "",
-                    "primary_health": "recovering",
-                    "env": "cloud_restoring",
-                    "poll_interval_sec": 60,
-                    "show_cloud_primary_badge": false,
-                    "backup_hint": "local premises / laptop standby",
-                    "splash_url": "/epc-platform-splash.html",
-                    "status_php": "/epc-platform-status.php",
-                    "status_json": "/epc-platform-status.json",
-                    "snippet_js": "/epc-failover-snippet.js",
-                    "redirect_seconds": 9,
-                    "ping": true
+                    "company_country_code": "GB",
+                    "company_currency": "GBP",
+                    "erp_date_format": "d/m/Y"
                 },
                 {
-                    "ok": true,
-                    "mode": "unknown-mode",
-                    "label": "unknown-mode",
-                    "updated_at": "2026-10-10T00:00:00+00:00",
-                    "primary_url": "https://www.ecomae.com/",
-                    "backup_base_url": "",
-                    "primary_health": "down",
-                    "env": "cloud_primary",
-                    "poll_interval_sec": 60,
-                    "show_cloud_primary_badge": false,
-                    "backup_hint": "local premises / laptop standby",
-                    "splash_url": "/epc-platform-splash.html",
-                    "status_php": "/epc-platform-status.php",
-                    "status_json": "/epc-platform-status.json",
-                    "snippet_js": "/epc-failover-snippet.js"
-                },
-                true,
-                {
-                    "backup_base_url": "https://backup.local",
-                    "primary_url": "https://cloud.example/",
-                    "poll_interval_sec": 30,
-                    "show_cloud_primary_badge": false,
-                    "extra": "keep"
-                },
-                30,
-                true,
-                {
-                    "backup_base_url": "https://backup.local",
-                    "primary_url": "https://cloud.example/",
-                    "poll_interval_sec": 90,
-                    "show_cloud_primary_badge": true,
-                    "extra": "keep"
+                    "company_country_code": "AE",
+                    "company_currency": "AED",
+                    "erp_date_format": "d/m/Y"
                 },
                 {
-                    "ok": true,
-                    "mode": "backup_active",
-                    "label": "Local premises backup active",
-                    "updated_at": "2026-10-10T00:00:00+00:00",
-                    "primary_url": "https://cloud.example/",
-                    "backup_base_url": "https://backup.local",
-                    "primary_health": "down",
-                    "env": "local_premises",
-                    "poll_interval_sec": 90,
-                    "show_cloud_primary_badge": true,
-                    "backup_hint": "local premises / laptop standby",
-                    "splash_url": "/epc-platform-splash.html",
-                    "status_php": "/epc-platform-status.php",
-                    "status_json": "/epc-platform-status.json",
-                    "snippet_js": "/epc-failover-snippet.js"
-                },
-                "backup_active"
+                    "company_country_code": "PK",
+                    "company_currency": "PKR",
+                    "erp_date_format": "d/m/Y"
+                }
             ]
         },
         {
-            "name": "probe",
+            "name": "apply",
             "output": "",
             "result": [
-                {
-                    "ok": true,
-                    "http_code": 200,
-                    "error": null,
-                    "local": true
-                },
-                {
-                    "ok": true,
-                    "http_code": 200,
-                    "error": null,
-                    "local": true
-                },
-                "primary_ok",
-                false,
-                false,
-                true,
-                false,
-                false,
-                false,
-                true
-            ]
-        },
-        {
-            "name": "status",
-            "output": "",
-            "result": [
-                {
-                    "ok": true,
-                    "mode": "primary_down",
-                    "label": "Cloud unreachable — switching to local premises backup",
-                    "updated_at": "2026-10-10T00:00:00+00:00",
-                    "primary_url": "https://www.ecomae.com/",
-                    "backup_base_url": "",
-                    "primary_health": "down",
-                    "env": "local_premises",
-                    "poll_interval_sec": 60,
-                    "show_cloud_primary_badge": false,
-                    "backup_hint": "local premises / laptop standby",
-                    "splash_url": "/epc-platform-splash.html",
-                    "status_php": "/epc-platform-status.php",
-                    "status_json": "/epc-platform-status.json",
-                    "snippet_js": "/epc-failover-snippet.js"
-                },
                 0,
-                {
-                    "ok": true,
-                    "mode": "primary_ok",
-                    "label": "Cloud primary is healthy",
-                    "updated_at": "OLD",
-                    "primary_url": "https://www.ecomae.com/",
-                    "backup_base_url": "",
-                    "primary_health": "ok",
-                    "env": "cloud_primary",
-                    "poll_interval_sec": 60,
-                    "show_cloud_primary_badge": false,
-                    "backup_hint": "local premises / laptop standby",
-                    "splash_url": "/epc-platform-splash.html",
-                    "status_php": "/epc-platform-status.php",
-                    "status_json": "/epc-platform-status.json",
-                    "snippet_js": "/epc-failover-snippet.js"
-                },
-                200,
-                {
-                    "ok": true,
-                    "mode": "primary_down",
-                    "label": "Cloud unreachable — switching to local premises backup",
-                    "updated_at": "2026-10-10T00:00:00+00:00",
-                    "primary_url": "https://www.ecomae.com/",
-                    "backup_base_url": "",
-                    "primary_health": "down",
-                    "env": "local_premises",
-                    "poll_interval_sec": 60,
-                    "show_cloud_primary_badge": false,
-                    "backup_hint": "local premises / laptop standby",
-                    "splash_url": "/epc-platform-splash.html",
-                    "status_php": "/epc-platform-status.php",
-                    "status_json": "/epc-platform-status.json",
-                    "snippet_js": "/epc-failover-snippet.js"
-                },
-                {
-                    "mode": "backup_active",
-                    "label": "cached-auto"
-                },
-                null
+                [
+                    "Invalid site key or country code"
+                ],
+                0,
+                1,
+                "PK",
+                "Pakistan",
+                "PK",
+                "www.acme.test",
+                "",
+                0,
+                0,
+                "PK",
+                0,
+                1
+            ]
+        },
+        {
+            "name": "market",
+            "output": "",
+            "result": [
+                "Pakistan",
+                "United Arab Emirates"
             ]
         }
     ]

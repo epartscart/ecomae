@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using EcomAE.Platform.Presentation;
+using MySqlConnector;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -8,25 +9,12 @@ namespace EcomAE.Platform.Tests;
 [Collection("PlanQ1Statics")]
 public sealed class PhpPlanQ1TideParityTests
 {
-    private static readonly JsonSerializerOptions JsonOpts = new()
-    {
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-    };
-
+    private static readonly JsonSerializerOptions JsonOpts = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     private static readonly string Fixtures = Path.Combine(AppContext.BaseDirectory, "Fixtures", "PlanQ1Tide");
-    private const string FrozenIso = "2026-10-10T00:00:00+00:00";
-    private const long FrozenUnix = 1_775_000_000;
 
     [Fact]
     public void Golden_IsPhp83RuntimeOutput()
-    {
-        var golden = JsonDocument.Parse(File.ReadAllText(Path.Combine(Fixtures, "golden.json"))).RootElement;
-        Assert.StartsWith("8.3.", golden.GetProperty("php").GetString(), StringComparison.Ordinal);
-        var cases = JsonDocument.Parse(File.ReadAllText(Path.Combine(Fixtures, "cases.json"))).RootElement.GetProperty("cases");
-        Assert.Equal(
-            cases.EnumerateArray().Select(c => c.GetProperty("name").GetString()),
-            golden.GetProperty("results").EnumerateArray().Select(r => r.GetProperty("name").GetString()));
-    }
+        => Assert.StartsWith("8.3.", JsonDocument.Parse(File.ReadAllText(Path.Combine(Fixtures, "golden.json"))).RootElement.GetProperty("php").GetString(), StringComparison.Ordinal);
 
     [Fact]
     public void PlanQ1Tide_MatchPhpGolden()
@@ -40,9 +28,9 @@ public sealed class PhpPlanQ1TideParityTests
             var name = cases[i].GetProperty("name").GetString()!;
             var expected = results[i].GetProperty("result");
             var actual = Render(name);
-            if (!Same(Json(Freeze(actual.Extra)), expected))
+            if (!JsonEquivalent(JsonDocument.Parse(Json(actual)).RootElement, expected))
             {
-                failures.Add(name + " extraExp=" + Truncate(expected.GetRawText()) + " extraGot=" + Truncate(Json(Freeze(actual.Extra))));
+                failures.Add(name + " exp=" + expected.GetRawText() + " got=" + Json(actual));
             }
         }
 
@@ -51,260 +39,165 @@ public sealed class PhpPlanQ1TideParityTests
 
     [Fact]
     public void CoveredPhpFiles_AreThePortedIncludes()
-        => Assert.Equal(
-            new HashSet<string>(StringComparer.Ordinal) { PhpPlanQ1Tide.FailoverPath },
-            new HashSet<string>(StringComparer.Ordinal) { PhpPlanQ1Tide.FailoverPath });
+        => Assert.Equal("content/shop/tenant_hub/epc_tenant_country_profile.php", PhpPlanQ1Tide.TenantCountryProfilePath);
 
     [Fact]
     public void Fragments_DoNotStartASession()
     {
         PhpPlanQ1Tide.Reset();
-        Assert.Contains("epc_platform_failover.php", PhpPlanQ1Tide.FailoverPath, StringComparison.Ordinal);
-        Assert.False(PhpPlanQ1Tide.SessionStarted);
-        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Tide.FailoverPath, StringComparison.Ordinal);
-        PhpPlanQ1Tide.Get["preview"] = "1";
-        Assert.True(PhpPlanQ1Tide.EpcFailoverSplashPreviewRequested());
-        Assert.False(PhpPlanQ1Tide.SessionStarted);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Tide.TenantCountryProfilePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("Set-Cookie", PhpPlanQ1Tide.EpcTenantCountryNormalize("AE"), StringComparison.Ordinal);
     }
 
-    private sealed record Rendered(object? Extra);
-
-    private static Rendered Render(string name)
+    private static object Render(string name)
     {
         PhpPlanQ1Tide.Reset();
-        PhpPlanQ1Tide.ClockIso = () => FrozenIso;
-        PhpPlanQ1Tide.UnixNow = () => FrozenUnix;
-        PhpPlanQ1Tide.DefinedDocroot = "/docroot";
-        PhpPlanQ1Tide.FallbackDocroot = "/docroot";
-        PhpPlanQ1Tide.StoreDir("/docroot");
-        PhpPlanQ1Tide.ProbeHttp = (_, _) => new PhpPlanQ1Tide.ProbeHit(false, 0, "blocked", "");
+        PhpPlanQ1Tide.TaxNameToIso = v => v == "UAE" ? "AE" : "";
+        PhpPlanQ1Tide.ApaiCountryMeta = cc =>
+        {
+            var map = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["US"] = "USD",
+                ["GB"] = "GBP",
+                ["PK"] = "PKR",
+                ["IN"] = "INR"
+            };
+            return new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["currency"] = map.GetValueOrDefault(cc, "AED"),
+                ["label"] = cc == "PK" ? "Pakistan" : cc == "US" ? "United States" : "United Arab Emirates"
+            };
+        };
+        PhpPlanQ1Tide.ApaiTenantCountry = _ => "AE";
         return name switch
         {
-            "pure" => Pure(),
-            "files" => Files(),
-            "probe" => Probe(),
-            "status" => Status(),
-            _ => new Rendered("unknown:" + name)
+            "names" => new object[]
+            {
+                PhpPlanQ1Tide.EpcTenantCountryNormalize("ae"),
+                PhpPlanQ1Tide.EpcTenantCountryNormalize("UAE"),
+                PhpPlanQ1Tide.EpcTenantCountryNormalize("Pakistan"),
+                PhpPlanQ1Tide.EpcTenantCountryNormalize("xx"),
+                PhpPlanQ1Tide.EpcTenantCountryNormalize("")
+            },
+            "defaults" => new object[]
+            {
+                PhpPlanQ1Tide.EpcTenantCountryErpDefaults("US"),
+                PhpPlanQ1Tide.EpcTenantCountryErpDefaults("GB"),
+                PhpPlanQ1Tide.EpcTenantCountryErpDefaults("AE"),
+                PhpPlanQ1Tide.EpcTenantCountryErpDefaults("PK")
+            },
+            "apply" => Apply(),
+            "market" => Market(),
+            _ => throw new ArgumentOutOfRangeException(nameof(name))
         };
     }
 
-    private static Rendered Pure()
+    private static object Apply()
     {
-        var modes = PhpPlanQ1Tide.EpcFailoverValidModes();
-        var health = new Dictionary<string, object?>(StringComparer.Ordinal);
-        var env = new Dictionary<string, object?>(StringComparer.Ordinal);
-        var splash = new Dictionary<string, object?>(StringComparer.Ordinal);
-        foreach (var m in modes.Concat(["unknown"]))
+        using var admin = OpenAdmin();
+        var schema = "ecomae_cpw_tide_" + Guid.NewGuid().ToString("N")[..8];
+        Exec(admin, $"CREATE DATABASE `{schema}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        try
         {
-            health[m] = PhpPlanQ1Tide.EpcFailoverPrimaryHealthForMode(m);
-            env[m] = PhpPlanQ1Tide.EpcFailoverEnvLabel(m);
-            splash[m] = PhpPlanQ1Tide.EpcFailoverShouldShowSplash(m);
+            using var db = OpenDb(schema);
+            Exec(db, """
+                CREATE TABLE `epc_portal_tenants` (
+                    `site_key` VARCHAR(64) NOT NULL PRIMARY KEY,
+                    `hostname` VARCHAR(120) NOT NULL DEFAULT '',
+                    `trade_name` VARCHAR(120) NOT NULL DEFAULT '',
+                    `db_name` VARCHAR(64) NOT NULL DEFAULT '',
+                    `country_code` CHAR(2) NOT NULL DEFAULT '',
+                    `updated_at` INT NOT NULL DEFAULT 0
+                )
+                """);
+            Exec(db, "CREATE TABLE `epc_price_settings` (`setting_key` VARCHAR(64) NOT NULL PRIMARY KEY, `setting_value` VARCHAR(255) NOT NULL)");
+            PhpPlanQ1Tide.LoadSettings = (_, host) => new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["host"] = host,
+                ["contact"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+            };
+            var bad = PhpPlanQ1Tide.EpcTenantApplyCountryProfile("", "AE", db);
+            var unknown = PhpPlanQ1Tide.EpcTenantApplyCountryProfile("acme", "ZZ", db);
+            Exec(db, "INSERT INTO `epc_portal_tenants` (`site_key`,`hostname`,`trade_name`,`db_name`) VALUES ('acme','www.acme.test','Acme','')");
+            var ok = PhpPlanQ1Tide.EpcTenantApplyCountryProfile("acme", "PK", db);
+            string cc;
+            using (var q = db.CreateCommand())
+            {
+                q.CommandText = "SELECT `country_code` FROM `epc_portal_tenants` WHERE `site_key`='acme'";
+                cc = Convert.ToString(q.ExecuteScalar()) ?? "";
+            }
+
+            int price;
+            using (var q = db.CreateCommand())
+            {
+                q.CommandText = "SELECT COUNT(*) FROM `epc_price_settings`";
+                price = Convert.ToInt32(q.ExecuteScalar());
+            }
+
+            var steps = (Dictionary<string, object?>)ok["steps"]!;
+            return new object?[]
+            {
+                okFalse(bad),
+                bad["errors"],
+                okFalse(unknown),
+                Truthy(ok, "ok") ? 1 : 0,
+                ok["country_code"],
+                ok["country_name"],
+                steps.GetValueOrDefault("registry") ?? "",
+                steps.GetValueOrDefault("platform_site_settings") ?? "",
+                steps.GetValueOrDefault("erp") ?? "",
+                steps.ContainsKey("tax_toolkit") ? 1 : 0,
+                steps.ContainsKey("apai_sources") ? 1 : 0,
+                cc,
+                price,
+                PhpPlanQ1Tide.SavedSettings.Count
+            };
         }
-
-        var def = PhpPlanQ1Tide.EpcFailoverDefaultConfig();
-        var cfg = PhpPlanQ1Tide.EpcFailoverReadConfig();
-        var ttl = PhpPlanQ1Tide.EpcFailoverStatusCacheTtl();
-        PhpPlanQ1Tide.Env["EPC_FAILOVER_STATUS_TTL"] = "15";
-        var ttl15 = PhpPlanQ1Tide.EpcFailoverStatusCacheTtl();
-        PhpPlanQ1Tide.Env["EPC_FAILOVER_STATUS_TTL"] = "12";
-        var ttl12 = PhpPlanQ1Tide.EpcFailoverStatusCacheTtl();
-        PhpPlanQ1Tide.Env["EPC_FAILOVER_STATUS_TTL"] = "abc";
-        var ttlBad = PhpPlanQ1Tide.EpcFailoverStatusCacheTtl();
-        PhpPlanQ1Tide.Env.Remove("EPC_FAILOVER_STATUS_TTL");
-        var url = PhpPlanQ1Tide.EpcFailoverPrimaryProbeUrl();
-        PhpPlanQ1Tide.Env["EPC_FAILOVER_PRIMARY_URL"] = " https://backup.example/ping ";
-        var urlEnv = PhpPlanQ1Tide.EpcFailoverPrimaryProbeUrl();
-        PhpPlanQ1Tide.Env.Remove("EPC_FAILOVER_PRIMARY_URL");
-        PhpPlanQ1Tide.Server["HTTP_HOST"] = "shop.example:8443";
-        var hostPort = PhpPlanQ1Tide.EpcFailoverHostLabel();
-        PhpPlanQ1Tide.Server.Remove("HTTP_HOST");
-        var hostDef = PhpPlanQ1Tide.EpcFailoverHostLabel();
-        PhpPlanQ1Tide.Get.Clear();
-        var prev0 = PhpPlanQ1Tide.EpcFailoverSplashPreviewRequested();
-        PhpPlanQ1Tide.Get["preview"] = "0";
-        var prevEmpty = PhpPlanQ1Tide.EpcFailoverSplashPreviewRequested();
-        PhpPlanQ1Tide.Get["epc_splash_preview"] = "1";
-        var prevOk = PhpPlanQ1Tide.EpcFailoverSplashPreviewRequested();
-        var fast = PhpPlanQ1Tide.EpcFailoverReadModeFast();
-        var mode = PhpPlanQ1Tide.EpcFailoverReadModeFile();
-        var json = PhpPlanQ1Tide.EpcFailoverReadJsonMirror();
-        var age = PhpPlanQ1Tide.EpcFailoverJsonMirrorAgeSec();
-        var resolved = PhpPlanQ1Tide.EpcFailoverResolveMode(false);
-        var splashNull = PhpPlanQ1Tide.EpcFailoverShouldShowSplash(null);
-        var paths = new object[]
+        finally
         {
-            PhpPlanQ1Tide.EpcFailoverModePaths(),
-            PhpPlanQ1Tide.EpcFailoverJsonPaths(),
-            PhpPlanQ1Tide.EpcFailoverConfigPaths()
-        };
-        var doc = PhpPlanQ1Tide.EpcFailoverDocroot();
-        return new Rendered(new object?[]
-        {
-            new object?[] { modes, health, env, splash },
-            def,
-            cfg,
-            ttl,
-            ttl15,
-            ttl12,
-            ttlBad,
-            url,
-            urlEnv,
-            hostPort,
-            hostDef,
-            prev0,
-            prevEmpty,
-            prevOk,
-            fast,
-            mode,
-            json,
-            age,
-            resolved,
-            splashNull,
-            paths,
-            doc
-        });
-    }
-
-    private static Rendered Files()
-    {
-        var bad = PhpPlanQ1Tide.EpcFailoverWriteModeFile("nope");
-        var ok = PhpPlanQ1Tide.EpcFailoverWriteModeFile("backup_active", new(StringComparer.Ordinal) { ["note"] = "standby" });
-        var read = PhpPlanQ1Tide.EpcFailoverReadModeFile();
-        var fast = PhpPlanQ1Tide.EpcFailoverReadModeFast();
-        var mirror = PhpPlanQ1Tide.EpcFailoverReadJsonMirror();
-        var st = PhpPlanQ1Tide.EpcFailoverBuildStatus("failback_redirect", new(StringComparer.Ordinal)
-        {
-            ["redirect_seconds"] = "9",
-            ["ping"] = true
-        });
-        var st2 = PhpPlanQ1Tide.EpcFailoverBuildStatus("unknown-mode");
-        var cfgW = PhpPlanQ1Tide.EpcFailoverWriteConfig(new(StringComparer.Ordinal)
-        {
-            ["backup_base_url"] = "https://backup.local/",
-            ["primary_url"] = "https://cloud.example",
-            ["poll_interval_sec"] = 5,
-            ["show_cloud_primary_badge"] = "0",
-            ["extra"] = "keep"
-        });
-        var cfg = PhpPlanQ1Tide.EpcFailoverReadConfig();
-        var cfgRawPoll = cfg["poll_interval_sec"];
-        var cfg2w = PhpPlanQ1Tide.EpcFailoverWriteConfig(new(StringComparer.Ordinal)
-        {
-            ["poll_interval_sec"] = 90,
-            ["show_cloud_primary_badge"] = 1
-        });
-        var cfg2 = PhpPlanQ1Tide.EpcFailoverReadConfig();
-        var cur = PhpPlanQ1Tide.EpcFailoverCurrentStatus(false);
-        var resolveFile = PhpPlanQ1Tide.EpcFailoverResolveMode(true);
-        return new Rendered(new object?[]
-        {
-            bad, ok, read, fast, mirror, st, st2, cfgW, cfg, cfgRawPoll, cfg2w, cfg2, cur, resolveFile
-        });
-    }
-
-    private static Rendered Probe()
-    {
-        PhpPlanQ1Tide.Server["HTTP_HOST"] = "www.ecomae.com";
-        var local = PhpPlanQ1Tide.EpcFailoverProbePrimary(4);
-        PhpPlanQ1Tide.Server["HTTP_HOST"] = "ecomae.com:443";
-        var www = PhpPlanQ1Tide.EpcFailoverProbePrimary(4);
-        PhpPlanQ1Tide.Server["HTTP_HOST"] = "www.ecomae.com";
-        var auto = PhpPlanQ1Tide.EpcFailoverResolveMode(true);
-        PhpPlanQ1Tide.Get.Clear();
-        PhpPlanQ1Tide.Post.Clear();
-        PhpPlanQ1Tide.Session.Clear();
-        var no = PhpPlanQ1Tide.EpcFailoverProbeAuthorized();
-        PhpPlanQ1Tide.Get["token"] = "0";
-        var zero = PhpPlanQ1Tide.EpcFailoverProbeAuthorized();
-        PhpPlanQ1Tide.DeployTokenDefined = true;
-        PhpPlanQ1Tide.DeployTokenValue = "tide-secret";
-        PhpPlanQ1Tide.Get["token"] = "tide-secret";
-        var tokOk = PhpPlanQ1Tide.EpcFailoverProbeAuthorized();
-        PhpPlanQ1Tide.Get.Clear();
-        PhpPlanQ1Tide.Post["token"] = "nope";
-        var tokBad = PhpPlanQ1Tide.EpcFailoverProbeAuthorized();
-        PhpPlanQ1Tide.Post.Clear();
-        PhpPlanQ1Tide.Session["user_id"] = 0;
-        var uid0 = PhpPlanQ1Tide.EpcFailoverProbeAuthorized();
-        PhpPlanQ1Tide.Session["user_id"] = 7;
-        var noPortal = PhpPlanQ1Tide.EpcFailoverProbeAuthorized();
-        PhpPlanQ1Tide.PutFile("/docroot/content/general_pages/" + "epc_portal" + "." + "php", "stub");
-        PhpPlanQ1Tide.LoadSuperCp = () => true;
-        var super = PhpPlanQ1Tide.EpcFailoverProbeAuthorized();
-        return new Rendered(new object?[] { local, www, auto, no, zero, tokOk, tokBad, uid0, noPortal, super });
-    }
-
-    private static Rendered Status()
-    {
-        PhpPlanQ1Tide.EpcFailoverWriteModeFile("primary_down");
-        var fresh = PhpPlanQ1Tide.EpcFailoverCurrentStatus(false);
-        var ageFresh = PhpPlanQ1Tide.EpcFailoverJsonMirrorAgeSec();
-        var json = PhpPlanQ1Tide.EpcFailoverJsonPaths()[0];
-        var staleMirror = PhpPlanQ1Tide.EpcFailoverBuildStatus("primary_ok");
-        staleMirror["updated_at"] = "OLD";
-        PhpPlanQ1Tide.PutFile(json, JsonSerializer.Serialize(staleMirror, JsonOpts) + "\n");
-        var cached = PhpPlanQ1Tide.EpcFailoverCurrentStatus(false);
-        PhpPlanQ1Tide.Touch(json, FrozenUnix - 200);
-        var ageStale = PhpPlanQ1Tide.EpcFailoverJsonMirrorAgeSec();
-        var rebuilt = PhpPlanQ1Tide.EpcFailoverCurrentStatus(false);
-        PhpPlanQ1Tide.PutFile(json, "{\"mode\":\"backup_active\",\"label\":\"cached-auto\"}\n");
-        var autoHit = PhpPlanQ1Tide.EpcFailoverCurrentStatus(true);
-        PhpPlanQ1Tide.PutFile(json, "{\"mode\":\"0\"}\n");
-        var emptyMode = PhpPlanQ1Tide.EpcFailoverReadJsonMirror();
-        return new Rendered(new object?[]
-        {
-            fresh,
-            ageFresh is < 5 ? 0 : ageFresh,
-            cached,
-            ageStale,
-            rebuilt,
-            autoHit,
-            emptyMode
-        });
-    }
-
-    private static object? Freeze(object? value)
-    {
-        switch (value)
-        {
-            case string s:
-                if (s.StartsWith("2026-10-10T", StringComparison.Ordinal) || (s.Length >= 19 && s[4] == '-' && s[10] == 'T'))
-                {
-                    return FrozenIso;
-                }
-
-                return s.Replace("/docroot", "DOCROOT", StringComparison.Ordinal);
-            case int n when n is >= 150 and <= 250:
-                return 200;
-            case Dictionary<string, object?> map:
-                return map.ToDictionary(kv => kv.Key, kv => Freeze(kv.Value), StringComparer.Ordinal);
-            case Dictionary<string, string> map:
-                return map.ToDictionary(kv => kv.Key, kv => (object?)Freeze(kv.Value), StringComparer.Ordinal);
-            case List<string> list:
-                return list.Select(Freeze).ToList();
-            case List<object?> boxed:
-                return boxed.Select(Freeze).ToList();
-            case object?[] arr:
-                return arr.Select(Freeze).ToArray();
-            default:
-                return value;
+            Exec(admin, $"DROP DATABASE IF EXISTS `{schema}`");
         }
+    }
+
+    private static object Market()
+    {
+        PhpPlanQ1Tide.ApaiTenantCountry = _ => "PK";
+        var with = PhpPlanQ1Tide.EpcTenantCountryMarketLabel(null, "acme");
+        PhpPlanQ1Tide.ApaiTenantCountry = _ => "AE";
+        var ae = PhpPlanQ1Tide.EpcTenantCountryMarketLabel(null, "acme");
+        return new object[] { with, ae };
+    }
+
+    private static int okFalse(Dictionary<string, object?> row) => Truthy(row, "ok") ? 1 : 0;
+
+    private static bool Truthy(Dictionary<string, object?> row, string key)
+        => row.TryGetValue(key, out var value) && value is true or 1 or 1L or 1.0;
+
+    private static string Password()
+        => Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN") ?? "local-throwaway-pw";
+
+    private static MySqlConnection OpenAdmin()
+    {
+        var db = new MySqlConnection($"Server=127.0.0.1;Port=3306;User ID=ecomae;Password={Password()};AllowUserVariables=true;");
+        db.Open();
+        return db;
+    }
+
+    private static MySqlConnection OpenDb(string schema)
+    {
+        var db = new MySqlConnection($"Server=127.0.0.1;Port=3306;Database={schema};User ID=ecomae;Password={Password()};AllowUserVariables=true;");
+        db.Open();
+        return db;
+    }
+
+    private static void Exec(MySqlConnection db, string sql)
+    {
+        using var cmd = db.CreateCommand();
+        cmd.CommandText = sql;
+        cmd.ExecuteNonQuery();
     }
 
     private static string Json(object? value) => JsonSerializer.Serialize(value, JsonOpts);
-
-    private static bool Same(string actual, JsonElement expected)
-    {
-        try
-        {
-            using var left = JsonDocument.Parse(actual);
-            return JsonEquivalent(left.RootElement, expected);
-        }
-        catch (JsonException)
-        {
-            return actual == (expected.ValueKind == JsonValueKind.String ? expected.GetString() : expected.GetRawText());
-        }
-    }
 
     private static bool JsonEquivalent(JsonElement left, JsonElement right)
     {
@@ -313,36 +206,17 @@ public sealed class PhpPlanQ1TideParityTests
             return left.ValueKind == JsonValueKind.Number && right.ValueKind == JsonValueKind.Number && left.GetDouble() == right.GetDouble();
         }
 
-        switch (left.ValueKind)
+        return left.ValueKind switch
         {
-            case JsonValueKind.Object:
-                if (left.EnumerateObject().Count() != right.EnumerateObject().Count())
-                {
-                    return false;
-                }
-
-                foreach (var prop in left.EnumerateObject())
-                {
-                    if (!right.TryGetProperty(prop.Name, out var other) || !JsonEquivalent(prop.Value, other))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            case JsonValueKind.Array:
-                var a = left.EnumerateArray().ToList();
-                var b = right.EnumerateArray().ToList();
-                return a.Count == b.Count && a.Zip(b, JsonEquivalent).All(x => x);
-            case JsonValueKind.String:
-                return left.GetString() == right.GetString();
-            case JsonValueKind.Number:
-                return left.GetRawText() == right.GetRawText() || left.GetDouble() == right.GetDouble();
-            default:
-                return true;
-        }
+            JsonValueKind.Object => left.EnumerateObject().All(p => right.TryGetProperty(p.Name, out var o) && JsonEquivalent(p.Value, o))
+                && left.EnumerateObject().Count() == right.EnumerateObject().Count(),
+            JsonValueKind.Array => left.EnumerateArray().ToList().Zip(right.EnumerateArray().ToList(), JsonEquivalent).All(x => x)
+                && left.GetArrayLength() == right.GetArrayLength(),
+            JsonValueKind.String => left.GetString() == right.GetString(),
+            JsonValueKind.Number => left.GetRawText() == right.GetRawText() || left.GetDouble() == right.GetDouble(),
+            JsonValueKind.True or JsonValueKind.False => left.GetBoolean() == right.GetBoolean(),
+            JsonValueKind.Null => true,
+            _ => true
+        };
     }
-
-    private static string Truncate(string value)
-        => value.Length <= 800 ? value : value[..800] + "…";
 }

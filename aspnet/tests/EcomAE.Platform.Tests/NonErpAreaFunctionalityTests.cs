@@ -1498,6 +1498,16 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void TenantCountryProfile_CodesStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Tide.Reset();
+        Assert.Equal("AE", PhpPlanQ1Tide.EpcTenantCountryNormalize("ae"));
+        Assert.Equal("PK", PhpPlanQ1Tide.EpcTenantCountryNormalize("Pakistan"));
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Tide.TenantCountryProfilePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Tide.TenantCountryProfilePath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1568,6 +1578,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Spray.ProfessionalShellPath,
             PhpPlanQ1Brine.PortalErpModulesPath,
             PhpPlanQ1Kelp.PortalTenantIntroPath,
+            PhpPlanQ1Tide.TenantCountryProfilePath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
