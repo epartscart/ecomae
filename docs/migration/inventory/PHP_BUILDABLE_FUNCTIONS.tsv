@@ -4575,16 +4575,6 @@ epc_pg_h	EpcPgH	cp/content/control/portal/epc_platform_governance.php	php	139	ga
 epc_pos_manage_h	EpcPosManageH	cp/content/control/portal/epc_pos_tenant_manage.php	php	127	gap	ready
 epc_pbi_h	EpcPbiH	cp/content/control/portal/epc_power_bi.php	php	328	mentioned	partial-file
 epc_pbig_h	EpcPbigH	cp/content/control/portal/epc_power_bi_guide.php	php	159	gap	ready
-epc_social_media_explore_hint_html	EpcSocialMediaExploreHintHtml	cp/content/control/portal/epc_social_media_hub_panel.php	php	552	gap	later
-epc_social_media_render_hub	EpcSocialMediaRenderHub	cp/content/control/portal/epc_social_media_hub_panel.php	php	552	gap	later
-epc_social_render_accounts_tab	EpcSocialRenderAccountsTab	cp/content/control/portal/epc_social_media_hub_panel.php	php	552	gap	later
-epc_social_render_ai_tab	EpcSocialRenderAiTab	cp/content/control/portal/epc_social_media_hub_panel.php	php	552	gap	later
-epc_social_render_drafts_tab	EpcSocialRenderDraftsTab	cp/content/control/portal/epc_social_media_hub_panel.php	php	552	gap	later
-epc_social_render_guide_tab	EpcSocialRenderGuideTab	cp/content/control/portal/epc_social_media_hub_panel.php	php	552	gap	later
-epc_social_render_instagram_tab	EpcSocialRenderInstagramTab	cp/content/control/portal/epc_social_media_hub_panel.php	php	552	gap	later
-epc_social_render_pack_tab	EpcSocialRenderPackTab	cp/content/control/portal/epc_social_media_hub_panel.php	php	552	gap	later
-epc_social_render_tiktok_tab	EpcSocialRenderTiktokTab	cp/content/control/portal/epc_social_media_hub_panel.php	php	552	gap	later
-epc_social_render_video_card	EpcSocialRenderVideoCard	cp/content/control/portal/epc_social_media_hub_panel.php	php	552	gap	later
 scpFilterFleet	ScpFilterFleet	cp/content/control/portal/epc_super_cp_fleet_dashboard.php	js	206	gap	browser-js
 sepSwitchTab	SepSwitchTab	cp/content/control/portal/epc_super_erp_fleet_dashboard.php	js	297	mentioned	browser-js
 epc_ttkm_h	EpcTtkmH	cp/content/control/portal/epc_tax_toolkit_manage.php	php	463	gap	later
