@@ -5951,10 +5951,6 @@ getHtml_tabs_header	GetHtmlTabsHeader	modules/shop/catalogue/dp_menu.php	php	353
 get_cnt_links	GetCntLinks	modules/shop/catalogue/dp_menu.php	php	353	gap	later
 printCatalogueNode	PrintCatalogueNode	modules/shop/catalogue/printCatalogueNode.php	php	121	gap	ready
 getHtmlOfTopMenuCatalogue	GetHtmlOfTopMenuCatalogue	modules/shop/catalogue/top_menu_catalog.php	php	155	gap	ready
-epc_geo_render_flat_list	EpcGeoRenderFlatList	modules/shop/geo/point_geo_node.php	php	239	gap	later
-openPopupWindow_CityList	OpenPopupWindowCityList	modules/shop/geo/point_geo_node.php	js	239	gap	browser-js
-printGeoNodes	PrintGeoNodes	modules/shop/geo/point_geo_node.php	php	239	gap	later
-set_my_city	SetMyCity	modules/shop/geo/point_geo_node.php	js	239	gap	browser-js
 submit_form	SubmitForm	modules/shop/search_string/search_string.php	js	93	gap	browser-js
 getProducts	GetProducts	modules/shop/ucats/accessories/module.php	js	237	gap	browser-js
 go_to_page	GoToPage	modules/shop/ucats/accessories/module.php	js	237	gap	browser-js
