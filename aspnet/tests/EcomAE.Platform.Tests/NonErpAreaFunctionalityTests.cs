@@ -990,6 +990,67 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void ProductFamily_CachedGroup_StaysOnTheTenantDatabase()
+    {
+        PhpPlanQ1Bow.Reset();
+        var pass = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN") ?? "";
+        using var admin = new MySqlConnector.MySqlConnection(
+            "Server=127.0.0.1;Port=3306;User ID=ecomae;Password=" + pass + ";AllowUserVariables=true;");
+        admin.Open();
+        var acmeSchema = "ecomae_cpw_bowacme_" + Guid.NewGuid().ToString("N")[..8];
+        var betaSchema = "ecomae_cpw_bowbeta_" + Guid.NewGuid().ToString("N")[..8];
+        using (var cmd = admin.CreateCommand())
+        {
+            cmd.CommandText = $"CREATE DATABASE `{acmeSchema}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = $"CREATE DATABASE `{betaSchema}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
+            cmd.ExecuteNonQuery();
+        }
+
+        try
+        {
+            using var acmeDb = new MySqlConnector.MySqlConnection(
+                $"Server=127.0.0.1;Port=3306;Database={acmeSchema};User ID=ecomae;Password={pass};AllowUserVariables=true;");
+            using var betaDb = new MySqlConnector.MySqlConnection(
+                $"Server=127.0.0.1;Port=3306;Database={betaSchema};User ID=ecomae;Password={pass};AllowUserVariables=true;");
+            acmeDb.Open();
+            betaDb.Open();
+            PhpPlanQ1Bow.EpcPfEnsureUmapiGroupSchema(acmeDb);
+            PhpPlanQ1Bow.EpcPfEnsureUmapiGroupSchema(betaDb);
+            using (var ins = acmeDb.CreateCommand())
+            {
+                ins.CommandText = "INSERT INTO `epc_umapi_product_group` (`manufacturer`,`article_norm`,`product_group`,`umapi_raw`,`updated_at`) VALUES ('Bosch','OC47','AcmeFam','raw',1)";
+                ins.ExecuteNonQuery();
+            }
+
+            using (var ins = betaDb.CreateCommand())
+            {
+                ins.CommandText = "INSERT INTO `epc_umapi_product_group` (`manufacturer`,`article_norm`,`product_group`,`umapi_raw`,`updated_at`) VALUES ('Bosch','OC47','BetaFam','raw',1)";
+                ins.ExecuteNonQuery();
+            }
+
+            var acmeBudget = 5;
+            var betaBudget = 5;
+            var acme = PhpPlanQ1Bow.EpcPfResolveProductGroup(new object(), acmeDb, "Bosch", "OC-47", "Oil filter", ref acmeBudget);
+            var beta = PhpPlanQ1Bow.EpcPfResolveProductGroup(new object(), betaDb, "Bosch", "OC-47", "Oil filter", ref betaBudget);
+            Assert.Equal("AcmeFam", acme);
+            Assert.Equal("BetaFam", beta);
+            Assert.DoesNotContain("Beta", acme, StringComparison.Ordinal);
+        }
+        finally
+        {
+            using var drop = admin.CreateCommand();
+            drop.CommandText = $"DROP DATABASE IF EXISTS `{acmeSchema}`";
+            drop.ExecuteNonQuery();
+            drop.CommandText = $"DROP DATABASE IF EXISTS `{betaSchema}`";
+            drop.ExecuteNonQuery();
+        }
+
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Bow.ProductFamilyPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Bow.ProductFamilyPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1051,6 +1112,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Port.BrochureLivePath,
             PhpPlanQ1Starboard.FullBrochurePath,
             PhpPlanQ1Aft.StrategiesDataPath,
+            PhpPlanQ1Bow.ProductFamilyPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
