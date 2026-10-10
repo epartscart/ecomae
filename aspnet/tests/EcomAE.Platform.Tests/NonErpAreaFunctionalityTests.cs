@@ -534,6 +534,30 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void DemoAutopartsBootstrap_SourceAndPreset_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Luff.Reset();
+        var acmePreset = Path.Combine(Path.GetTempPath(), "ecomae_luff_acme_" + Guid.NewGuid().ToString("N")[..8] + ".json");
+        var betaPreset = Path.Combine(Path.GetTempPath(), "ecomae_luff_beta_" + Guid.NewGuid().ToString("N")[..8] + ".json");
+        File.WriteAllText(acmePreset, "{\"id\":\"acme\",\"docpart_clone_tables\":[\"shop_geo\"]}");
+        File.WriteAllText(betaPreset, "{\"id\":\"beta\",\"docpart_clone_tables\":[\"shop_offices\"]}");
+        PhpPlanQ1Luff.PresetPath = () => acmePreset;
+        var acme = PhpPlanQ1Luff.EpcDemoAutopartsBootstrapCloneTables();
+        PhpPlanQ1Luff.PresetPath = () => betaPreset;
+        var beta = PhpPlanQ1Luff.EpcDemoAutopartsBootstrapCloneTables();
+        Assert.Equal(new[] { "shop_geo" }, acme);
+        Assert.Equal(new[] { "shop_offices" }, beta);
+        Assert.DoesNotContain("shop_offices", acme);
+        Assert.DoesNotContain("shop_geo", beta);
+        PhpPlanQ1Luff.SourcePdo = () => null;
+        Assert.Null(PhpPlanQ1Luff.EpcDemoAutopartsBootstrapDocpartPdo());
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Luff.DemoAutopartsBootstrapPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Luff.DemoAutopartsBootstrapPath, StringComparison.Ordinal);
+        File.Delete(acmePreset);
+        File.Delete(betaPreset);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -575,6 +599,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Jib.TenantShowcasePath,
             PhpPlanQ1Gaff.WhatsappSharePath,
             PhpPlanQ1Sprit.MarketingBrochurePath,
+            PhpPlanQ1Luff.DemoAutopartsBootstrapPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
