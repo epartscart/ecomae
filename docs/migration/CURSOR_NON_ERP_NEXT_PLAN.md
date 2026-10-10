@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Leech/Knot/Bend (`--max-gap 461` passed; current gap **458**).
+after PlanQ1Wake/Wind/Sail (`--max-gap 458` passed; current gap **455**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 458
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 455
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -19,23 +19,23 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 |---|---|---:|---:|
 | 1 | Storefront: catalogue | 30 | 8,978 |
 | 1 | Storefront: modules | 17 | 3,321 |
-| 1 | Storefront: other shop | 16 | 5,799 |
-| 1 | Storefront: parts/docpart | 25 | 33,260 |
+| 1 | Storefront: other shop | 15 | 5,502 |
+| 1 | Storefront: parts/docpart | 24 | 32,885 |
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 2 | 2,084 |
 | 3 | CP other | 10 | 3,274 |
 | 3 | CP shop core (orders, catalogue, price upload) | 24 | 12,698 |
 | 3 | CP shop smaller | 22 | 7,537 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 82 | 42,913 |
+| 5 | Marketing/BOS/industries | 81 | 42,704 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **458** | **216,608** |
+| | **Total** | **455** | **215,727** |
 
-- Non-ERP (Cursor): **292 files / 150,417 lines**
+- Non-ERP (Cursor): **289 files / 149,536 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,423** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **57**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,406** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **57**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -351,9 +351,21 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Knot`, 4 cases): no rule keeps
 
 ### Q1 bend — done (`PhpPlanQ1Bend`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Bend`, 4 cases): empty order/id, no customer phone, profile phone wins, LPO groups + `phone_not_auth`. Leftover WhatsApp helper parents stay injected. PHP `?>` eats the following newline. GET does not mint a session. Next unused class after Bend: Wake.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Bend`, 4 cases): empty order/id, no customer phone, profile phone wins, LPO groups + `phone_not_auth`. Leftover WhatsApp helper parents stay injected. PHP `?>` eats the following newline. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 292 files.
+### Q1 wake — done (`PhpPlanQ1Wake`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Wake`, 4 cases): normalize URL, longest-prefix area resolve, Super-CP gate (deny control/login/already-open), open/close. Leftover console / portal / tenant-scope parents stay injected. GET does not mint a session.
+
+### Q1 wind — done (`PhpPlanQ1Wind`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Wind`, 4 cases): pyprices URL, 11 channels, `cron_wget` concatenates domain+backend with no extra slash, snapshot missing cron tables = -1, health `empty()` all_ok. Leftover history-schema + HTTP stay injected. The leftover `epc_multivendor_price` + `_ingest.php` basename is concatenated so that 1,408-line sibling stays a gap. GET does not mint a session.
+
+### Q1 sail — done (`PhpPlanQ1Sail`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Sail`, 4 cases): 6 guide titles, portal codes + healthcare→medical map, catalogue usort Auto then Jewellery, apply invalid / not found / ok + curly-quote extra. Leftover portal / theme / finance-pack parents stay injected. GET does not mint a session. Next unused class after Sail: Line.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 289 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -388,6 +400,9 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6t | `cp/modules/check_ssl/check_ssl.php` | Closed in Leech. |
 | 6u | `plugins/metadata_handler/metadata_handler.php` | Closed in Knot. |
 | 6v | `epc_order_whatsapp_share.php` | Closed in Bend. |
+| 6w | `epc_boc_page_shell.php` | Closed in Wake. |
+| 6x | `epc_price_upload_diagnostics.php` | Closed in Wind. |
+| 6y | `epc_tenant_templates_catalog.php` | Closed in Sail. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
