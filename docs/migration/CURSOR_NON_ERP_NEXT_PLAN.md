@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Haven (`--max-gap 436` passed; current gap **435**).
+after PlanQ1Isle (`--max-gap 435` passed; current gap **434**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 435
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 434
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 24 | 12,698 |
 | 3 | CP shop smaller | 22 | 7,537 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 72 | 36,897 |
+| 5 | Marketing/BOS/industries | 71 | 36,295 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **435** | **202,313** |
+| | **Total** | **434** | **201,711** |
 
-- Non-ERP (Cursor): **269 files / 136,122 lines**
+- Non-ERP (Cursor): **268 files / 135,520 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,091** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **48**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,067** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **48**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -443,9 +443,13 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Gulf`, 4 cases): Super-CP `h` 
 
 ### Q1 haven — done (`PhpPlanQ1Haven`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Haven`, 4 cases): Electronicae storefront active / site-key / lang href / line visual / image normalize / empty category / menu-tree extract / category subtree / product-line tiles / mega-nav / hero / product card / home sections. Leftover portal and APE stay injected and are not named. GET does not mint a session. Next unused class after Haven: Isle.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Haven`, 4 cases): Electronicae storefront active / site-key / lang href / line visual / image normalize / empty category / menu-tree extract / category subtree / product-line tiles / mega-nav / hero / product card / home sections. Leftover portal and APE stay injected and are not named. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 269 files.
+### Q1 isle — done (`PhpPlanQ1Isle`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Isle`, 4 cases): public REST API v1 route/key/scope, tenant-scoped products/orders, ERP dashboard inject, dispatch + Power BI catalog/CSV. Leftover portal / shared-ERP / platform-data / finance helpers / power-bi stay injected and are not named. GET does not mint a session. Next unused class after Isle: Atoll.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 268 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -503,6 +507,8 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6aq | `epc_epartscart_storefront.php` | Closed in Cape. |
 | 6ar | `epc_super_cp_platform.php` | Closed in Gulf. |
 | 6as | `epc_electronicae_storefront.php` | Closed in Haven. |
+| 6at | `epc_api_v1.php` | Closed in Isle. |
+| 6au | `epc_social_media_hub_panel.php` | Next (`PhpPlanQ1Atoll`). Unique 552/10. Helpers / pack / publish / page-frame already mentioned. Leftover unique `dp_user` stays injected. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
