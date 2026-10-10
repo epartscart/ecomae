@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Cove (`--max-gap 485` passed; current gap **484**).
+after PlanQ1Dock (`--max-gap 484` passed; current gap **483**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 484
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 483
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 27 | 12,897 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 98 | 50,639 |
+| 5 | Marketing/BOS/industries | 97 | 49,787 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 4 | 1,678 |
-| | **Total** | **484** | **225,783** |
+| | **Total** | **483** | **224,931** |
 
-- Non-ERP (Cursor): **318 files / 159,592 lines**
+- Non-ERP (Cursor): **317 files / 158,740 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,650** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,634** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -59,7 +59,13 @@ Tenants are **site-only**, **ERP-only**, or **mixed** (site + ERP). Some tenants
 | Control (permissions) | CP roles, Super-CP operator vs tenant operator, capability flags (`cp`, `erp`, `bos`, `api`) | ERP document approval and period lock on ERP services | Shared authorization model. Site-only tenants do not receive another tenant’s ERP data. ERP-only tenants do not receive another tenant’s storefront users or carts. Mixed tenants share one `site_key` for site+ERP and stay isolated from every other tenant. |
 
 Commerce isolation, MFA, and Power BI API keys already lock work to one `site_key`.
-Remaining portal / tenant-PDO parents still block some pages; those stay skipped until the parent lands.
+The tenant onboard kernel (`PhpPlanQ1Dock`) now registers all three types on one save path:
+site-only (own hostname + shared or dedicated DB), ERP-only shared (hostname forced to
+`www.ecomae.com`, dedicated MySQL), and mixed (own hostname + dedicated MySQL). Platform
+hostnames cannot be stolen. Dedicated DBs cannot reuse `docpart` / `ecomae` / `epartscart`
+or another tenant. Super-CP still picks the tenant; a tenant operator never sees another
+`site_key`. Remaining HTML (intro form, tenant-hub panel) and leftover portal PDO / intro
+parents still block the click-through UI; those stay skipped until the parent lands.
 
 ## 2. Definition of done (honest close)
 
@@ -241,7 +247,11 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Bay`, 4 cases): catalog / guid
 
 ### Q1 cove — done (`PhpPlanQ1Cove`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Cove`, 4 cases): graph version / caption / URL helpers, tenant-scoped credentials and public meta, live tests (Facebook / Instagram / TikTok / LinkedIn vault-only), and publish draft/now. HTTP stays injected. Portal parents stay stubbed. GET does not mint a session. Next unused class after Cove.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Cove`, 4 cases): graph version / caption / URL helpers, tenant-scoped credentials and public meta, live tests (Facebook / Instagram / TikTok / LinkedIn vault-only), and publish draft/now. HTTP stays injected. Portal parents stay stubbed. GET does not mint a session.
+
+### Q1 dock — done (`PhpPlanQ1Dock`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Dock`, 4 cases): templates / statuses / host gates / DNS, save of site-only + ERP-only shared + mixed dedicated, reserved-DB and cross-tenant DB collision, host load (inactive and platform/eParts skipped), registry by `site_key`, and runtime vs dedicated credentials. Leftover portal / intro / demo / PDO parents stay stubbed. GET does not mint a session. Next unused class after Dock.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -251,7 +261,7 @@ The 65 leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest
 |---|---|---|
 | 1 | `content/social_media/epc_social_publish.php` | Closed in Cove. |
 | 2 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
-| 3 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
+| 3 | `epc_platform_jobs.php` | Tenant kernel closed in Dock — next honest leftover if it has no other parent. |
 | 4 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
@@ -289,6 +299,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_mfa_ui.php` | Closed in Drift |
 | `epc_power_bi.php` (general_pages) | Closed in Bay |
 | `epc_social_publish.php` | Closed in Cove |
+| `epc_portal_tenant.php` | Closed in Dock |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
