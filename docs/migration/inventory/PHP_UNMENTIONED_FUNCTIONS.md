@@ -4,19 +4,18 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 
 | Class | Count | What to do |
 |---|---:|---|
-| Real PHP (non-ERP), gap file ≤200 lines | 60 | Build next — listed below |
+| Real PHP (non-ERP), gap file ≤200 lines | 59 | Build next — listed below |
 | Real PHP (non-ERP), larger gap file | 1617 | Build with the parent kernel |
-| Real PHP already on a mentioned file | 867 | Finish leftover helpers on that twin |
+| Real PHP already on a mentioned file | 866 | Finish leftover helpers on that twin |
 | JS functions written inside PHP templates | 1366 | Port as browser JS, not C# methods |
 | Vendor (PHPExcel, PclZip, …) | 255 | Do not port |
 | ERP finance (Devin) | 2031 | Leave for Devin |
-| **Total unmentioned** | **6618** | |
+| **Total unmentioned** | **6616** | |
 
 ## Ready to build (non-ERP PHP, gap file ≤200 lines)
 
 | PHP name | C# twin | File | Lines |
 |---|---|---|---:|
-| `epc_bos_ajax_login_secure` | `EpcBosAjaxLoginSecure` | `content/general_pages/epc_bos_ajax_login.php` | 157 |
 | `epc_ecomae_h` | `EpcEcomaeH` | `content/general_pages/epc_ecomae_platform_home.php` | 118 |
 | `epc_el_pl_href` | `EpcElPlHref` | `content/general_pages/epc_electronicae_home_product_lines.php` | 70 |
 | `epc_ep_pl_href` | `EpcEpPlHref` | `content/general_pages/epc_epartscart_home_product_lines.php` | 81 |
