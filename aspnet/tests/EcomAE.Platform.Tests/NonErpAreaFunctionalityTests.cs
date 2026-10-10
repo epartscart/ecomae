@@ -645,6 +645,20 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void BreadCrumbs_QueryAndCaption_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Cringle.Reset();
+        PhpPlanQ1Cringle.QueryGet = key => key == "q" ? "acme" : "";
+        Assert.Equal("acme", PhpPlanQ1Cringle.QueryGet("q"));
+        PhpPlanQ1Cringle.QueryGet = key => key == "q" ? "beta" : "";
+        Assert.Equal("beta", PhpPlanQ1Cringle.QueryGet("q"));
+        Assert.NotEqual("acme", PhpPlanQ1Cringle.QueryGet("q"));
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Cringle.BreadCrumbsHelperPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Cringle.BreadCrumbsHelperPath, StringComparison.Ordinal);
+        Assert.Contains("modules/bread_crumbs/helper.php", PhpPlanQ1Cringle.BreadCrumbsHelperPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -692,6 +706,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Vang.PosCpInstallPath,
             PhpPlanQ1Sheet.CpCrossHelpersPath,
             PhpPlanQ1Halyard.DelTmpFolderPath,
+            PhpPlanQ1Cringle.BreadCrumbsHelperPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
