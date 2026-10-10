@@ -1686,6 +1686,26 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void MarketingBroadcast_ShopNameStaysOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Fjord.Reset();
+        PhpPlanQ1Fjord.IsAdmin = () => true;
+        PhpPlanQ1Fjord.TenantPdo = () => new object();
+        PhpPlanQ1Fjord.ShopContext = () => new Dictionary<string, object?>(StringComparer.Ordinal) { ["shop_name"] = "Acme Parts" };
+        PhpPlanQ1Fjord.Query["tab"] = "guide";
+        var acme = PhpPlanQ1Fjord.Capture(PhpPlanQ1Fjord.EpcMbRenderHub);
+        PhpPlanQ1Fjord.ShopContext = () => new Dictionary<string, object?>(StringComparer.Ordinal) { ["shop_name"] = "Beta Demo" };
+        var beta = PhpPlanQ1Fjord.Capture(PhpPlanQ1Fjord.EpcMbRenderHub);
+        Assert.Contains("Acme Parts", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("Beta Demo", acme, StringComparison.Ordinal);
+        Assert.Contains("Beta Demo", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("Acme Parts", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Fjord.MarketingBroadcastPanelPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Fjord.MarketingBroadcastPanelPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("dp_user.php", PhpPlanQ1Fjord.MarketingBroadcastPanelPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1764,6 +1784,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Haven.ElectronicaeStorefrontPath,
             PhpPlanQ1Isle.ApiV1Path,
             PhpPlanQ1Atoll.SocialMediaHubPanelPath,
+            PhpPlanQ1Fjord.MarketingBroadcastPanelPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
