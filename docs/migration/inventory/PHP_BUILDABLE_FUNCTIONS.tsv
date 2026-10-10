@@ -4135,7 +4135,6 @@ epc_mb_customer_vars	EpcMbCustomerVars	content/shop/marketing/epc_marketing_broa
 epc_mb_h	EpcMbH	content/shop/marketing/epc_marketing_broadcast_helpers.php	php	499	mentioned	partial-file
 epc_mb_hub_url	EpcMbHubUrl	content/shop/marketing/epc_marketing_broadcast_helpers.php	php	499	mentioned	partial-file
 epc_mb_verify_csrf	EpcMbVerifyCsrf	content/shop/marketing/epc_marketing_broadcast_helpers.php	php	499	mentioned	partial-file
-epc_marketing_strategies	EpcMarketingStrategies	content/shop/marketing/epc_marketing_strategies_data.php	php	503	gap	later
 handleSpecialChars	HandleSpecialChars	content/shop/obtaining_modes/get_in_office/customer_interface.php	php	208	mentioned	partial-file
 show_hide_timetable_map	ShowHideTimetableMap	content/shop/obtaining_modes/get_in_office/customer_interface.php	js	208	mentioned	browser-js
 changeCountType2	ChangeCountType2	content/shop/order_process/ajax_change_count_need.php	php	626	mentioned	partial-file

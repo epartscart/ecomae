@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Starboard (`--max-gap 452` passed; current gap **451**).
+after PlanQ1Aft (`--max-gap 451` passed; current gap **450**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 451
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 450
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -19,7 +19,7 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 |---|---|---:|---:|
 | 1 | Storefront: catalogue | 30 | 8,978 |
 | 1 | Storefront: modules | 17 | 3,321 |
-| 1 | Storefront: other shop | 15 | 5,502 |
+| 1 | Storefront: other shop | 14 | 4,999 |
 | 1 | Storefront: parts/docpart | 22 | 32,215 |
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 2 | 2,084 |
@@ -31,11 +31,11 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **451** | **214,109** |
+| | **Total** | **450** | **213,606** |
 
-- Non-ERP (Cursor): **285 files / 147,918 lines**
+- Non-ERP (Cursor): **284 files / 147,415 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,373** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **57**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,372** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **57**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -385,7 +385,7 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Starboard`, 4 cases): URL dedu
 
 Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Aft`, 4 cases): empty domain/host, domain interpolation, host `htmlspecialchars` ENT_QUOTES, config `domain_path` fallback. Site-context stays injected. Work helpers keep their two-key stub so that golden stays stable. GET does not mint a session. Next unused class after Aft: Bow.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 285 files.
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 284 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
