@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Dock (`--max-gap 484` passed; current gap **483**).
+after PlanQ1Pier (`--max-gap 483` passed; current gap **482**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 483
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 482
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 27 | 12,897 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 97 | 49,787 |
+| 5 | Marketing/BOS/industries | 96 | 49,338 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 4 | 1,678 |
-| | **Total** | **483** | **224,931** |
+| | **Total** | **482** | **224,482** |
 
-- Non-ERP (Cursor): **317 files / 158,740 lines**
+- Non-ERP (Cursor): **316 files / 158,291 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,634** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,623** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -251,7 +251,11 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Cove`, 4 cases): graph version
 
 ### Q1 dock — done (`PhpPlanQ1Dock`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Dock`, 4 cases): templates / statuses / host gates / DNS, save of site-only + ERP-only shared + mixed dedicated, reserved-DB and cross-tenant DB collision, host load (inactive and platform/eParts skipped), registry by `site_key`, and runtime vs dedicated credentials. Leftover portal / intro / demo / PDO parents stay stubbed. GET does not mint a session. Next unused class after Dock.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Dock`, 4 cases): templates / statuses / host gates / DNS, save of site-only + ERP-only shared + mixed dedicated, reserved-DB and cross-tenant DB collision, host load (inactive and platform/eParts skipped), registry by `site_key`, and runtime vs dedicated credentials. Leftover portal / intro / demo / PDO parents stay stubbed. GET does not mint a session.
+
+### Q1 pier — done (`PhpPlanQ1Pier`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Pier`, 4 cases): enqueue (dedupe / empty payload `[]`), claim by priority, complete keeps `locked_by`, fail retry vs dead, dispatch (noop / custom / unknown / tenant health+warmup), batch. Leftover intro / tenant-PDO / blockchain / ERP-tick parents stay stubbed or unmentioned. GET does not mint a session. Next unused class after Pier.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -261,7 +265,7 @@ The 65 leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest
 |---|---|---|
 | 1 | `content/social_media/epc_social_publish.php` | Closed in Cove. |
 | 2 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
-| 3 | `epc_platform_jobs.php` | Tenant kernel closed in Dock — next honest leftover if it has no other parent. |
+| 3 | `epc_platform_jobs.php` | Closed in Pier. |
 | 4 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
@@ -300,6 +304,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_power_bi.php` (general_pages) | Closed in Bay |
 | `epc_social_publish.php` | Closed in Cove |
 | `epc_portal_tenant.php` | Closed in Dock |
+| `epc_platform_jobs.php` | Closed in Pier |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
@@ -326,4 +331,5 @@ Port the page, or leave the identifier unmentioned.
 - Production counts stay `docpart.users` 2, `ecomae.users` 2 unless a test is supposed to change them.
 - Platform build: 0 warnings / 0 errors (`TreatWarningsAsErrors`).
 - Weighted headline stays a migration-gate number (~20.4%). It is not acceptance. ERP accepted processes stay 0/15.
+- Production update paste (from `main` only, PHP stays): `docs/migration/PRODUCTION_UPDATE_PASTE.md`. This branch is not production until it merges.
 - Tenant isolation: no cross-tenant read or write of users, profiles, sessions, credentials, or documents. Site-only / ERP-only / mixed tenants stay classified and scoped. High-user tenants use the same boundary.
