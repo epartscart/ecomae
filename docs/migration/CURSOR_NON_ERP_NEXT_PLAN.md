@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Wave (`--max-gap 491` passed; current gap **490**).
+after PlanQ1Tide (`--max-gap 490` passed; current gap **489**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 490
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 489
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 28 | 13,248 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 103 | 53,092 |
+| 5 | Marketing/BOS/industries | 102 | 52,669 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 4 | 1,678 |
-| | **Total** | **490** | **228,587** |
+| | **Total** | **489** | **228,164** |
 
-- Non-ERP (Cursor): **324 files / 162,396 lines**
+- Non-ERP (Cursor): **323 files / 161,973 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,742** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,716** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -195,7 +195,11 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Peak`, 4 cases): tenant price-
 
 ### Q1 wave — done (`PhpPlanQ1Wave`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Wave`, 4 cases): TOTP base32 / RFC 6238, enroll / confirm / verify, backup codes, policy get/save/update (invalid JSON falls back to defaults), role/group/dept required-for-user, path guard, CP auth-gate `(string)array` → `Array` quirk, ERP finance tab gate, ajax handler. `epc_mfa_recent_activity` LIMIT bind fatals — twin takes an int; goldens SELECT instead. Clock / random stay injected. GET does not mint a session. Next unused class after Wave.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Wave`, 4 cases): TOTP base32 / RFC 6238, enroll / confirm / verify, backup codes, policy get/save/update (invalid JSON falls back to defaults), role/group/dept required-for-user, path guard, CP auth-gate `(string)array` → `Array` quirk, ERP finance tab gate, ajax handler. `epc_mfa_recent_activity` LIMIT bind fatals — twin takes an int; goldens SELECT instead. Clock / random stay injected. GET does not mint a session.
+
+### Q1 tide — done (`PhpPlanQ1Tide`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Tide`, 4 cases): valid modes / health / env / splash, default+read/write config (`empty('0')` badge; poll clamp 30–300), mode file + JSON mirror, current-status TTL (stale rebuild vs cached; autoProbe with a valid mirror returns the mirror), local probe host short-circuit (HTTP injected, never a live primary), probe-authorized (token `hash_equals`; leftover deploy-auth / portal paths concatenated). GET does not mint a session. Next unused class after Tide.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -236,6 +240,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_cp_mainstream_menu.php` | Closed in Rise |
 | `epc_commerce_isolation.php` | Closed in Peak |
 | `epc_auth_mfa.php` | Closed in Wave |
+| `epc_platform_failover.php` | Closed in Tide |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
