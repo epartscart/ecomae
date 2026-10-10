@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Slip (`--max-gap 481` passed; current gap **480**).
+after PlanQ1Hull (`--max-gap 480` passed; current gap **479**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 480
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 479
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 27 | 12,897 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 94 | 49,028 |
+| 5 | Marketing/BOS/industries | 93 | 48,643 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 4 | 1,678 |
-| | **Total** | **480** | **224,172** |
+| | **Total** | **479** | **223,787** |
 
-- Non-ERP (Cursor): **314 files / 157,981 lines**
+- Non-ERP (Cursor): **313 files / 157,596 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,616** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **59**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,606** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **59**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -263,7 +263,13 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Quay`, 4 cases): missing field
 
 ### Q1 slip — done (`PhpPlanQ1Slip`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Slip`, 4 cases): missing fields / unavailable DB, bcrypt + md5-secret + plain-md5 + `pass` alias, role deny / tenant / admin-table / allowlist / backend-group, csrf + context. Unified / upgrade / session-file / BOC audit stay injected or absent. GET does not mint a session. Next unused class after Slip.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Slip`, 4 cases): missing fields / unavailable DB, bcrypt + md5-secret + plain-md5 + `pass` alias, role deny / tenant / admin-table / allowlist / backend-group, csrf + context. Unified / upgrade / session-file / BOC audit stay injected or absent. GET does not mint a session.
+
+### Q1 hull — done (`PhpPlanQ1Hull`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Hull`, 4 cases): Google providers (empty / client-id-only / full), HMAC state pack/unpack (tamper + 900s expiry + tenant_key isolation), Google start/verify/exchange (audience, unverified `empty('0')`, issuer, expired, HTTP inject), complete login CP vs storefront, modern HTML + second-call empty. Leftover auth-common / OTP-modal / oauth-buttons stay injected. GET does not mint a session. Next unused class after Hull: Keel.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 313 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -276,8 +282,9 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 3 | `epc_platform_jobs.php` | Closed in Pier. |
 | 4 | `epc_tenant_pdo.php` | Closed in Quay. |
 | 5 | `epc_bos_ajax_login.php` | Closed in Slip. |
-| 6 | `epc_bos_health_check.php` | Already mentioned. |
-| 7 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
+| 6 | `epc_auth_social.php` | Closed in Hull. |
+| 7 | `epc_bos_health_check.php` | Already mentioned. |
+| 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
@@ -317,6 +324,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_platform_jobs.php` | Closed in Pier |
 | `epc_tenant_pdo.php` | Closed in Quay |
 | `epc_bos_ajax_login.php` | Closed in Slip |
+| `epc_auth_social.php` | Closed in Hull |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
