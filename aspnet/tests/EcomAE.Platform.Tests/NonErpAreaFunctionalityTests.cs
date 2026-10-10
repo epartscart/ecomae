@@ -1531,6 +1531,30 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void IntegrationsHelpers_SiteKeyAndFlagsStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Shoal.Reset();
+        PhpPlanQ1Shoal.IsSuperHost = () => false;
+        PhpPlanQ1Shoal.Host = () => "www.acme.test";
+        PhpPlanQ1Shoal.Tenants.Add(new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["hostname"] = "www.acme.test",
+            ["site_key"] = "acme_parts"
+        });
+        PhpPlanQ1Shoal.Tenants.Add(new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["hostname"] = "www.beta.test",
+            ["site_key"] = "beta_trading"
+        });
+        Assert.Equal("acme-test", PhpPlanQ1Shoal.EpcIntegrationsSiteKey());
+        PhpPlanQ1Shoal.Host = () => "www.beta.test";
+        Assert.Equal("beta-test", PhpPlanQ1Shoal.EpcIntegrationsSiteKey());
+        Assert.NotEqual("acme-test", PhpPlanQ1Shoal.EpcIntegrationsSiteKey());
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Shoal.IntegrationsHelpersPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Shoal.IntegrationsHelpersPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1603,6 +1627,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Kelp.PortalTenantIntroPath,
             PhpPlanQ1Rip.TenantCountryProfilePath,
             PhpPlanQ1Inlet.TenantHubHelpersPath,
+            PhpPlanQ1Shoal.IntegrationsHelpersPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
