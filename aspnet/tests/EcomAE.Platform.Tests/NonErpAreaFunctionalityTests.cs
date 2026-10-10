@@ -605,6 +605,30 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void CpCrossHelpers_PairLookup_StaysOnTheInjectedCatalogue()
+    {
+        PhpPlanQ1Sheet.Reset();
+        PhpPlanQ1Sheet.PairExists = (a, ab, r, rb) =>
+        {
+            var acme = a == "AB12" && r == "XY9" && ab == "ACME";
+            return new Dictionary<string, object?>(StringComparer.Ordinal) { ["linked"] = acme, ["id"] = acme ? 1 : 0 };
+        };
+        var acme = PhpPlanQ1Sheet.EpcCpCrossPairStatus(null, "ab-12", "acme", "xy-9", "valeo");
+        PhpPlanQ1Sheet.PairExists = (a, ab, r, rb) =>
+        {
+            var beta = a == "AB12" && r == "XY9" && ab == "BETA";
+            return new Dictionary<string, object?>(StringComparer.Ordinal) { ["linked"] = beta, ["id"] = beta ? 2 : 0 };
+        };
+        var beta = PhpPlanQ1Sheet.EpcCpCrossPairStatus(null, "ab-12", "beta", "xy-9", "valeo");
+        Assert.True((bool)acme["linked"]!);
+        Assert.Equal(1, Convert.ToInt32(acme["id"]));
+        Assert.True((bool)beta["linked"]!);
+        Assert.Equal(2, Convert.ToInt32(beta["id"]));
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Sheet.CpCrossHelpersPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Sheet.CpCrossHelpersPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -650,6 +674,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Clew.SeoShippingExportPath,
             PhpPlanQ1Tack.ProductExistLimitPath,
             PhpPlanQ1Vang.PosCpInstallPath,
+            PhpPlanQ1Sheet.CpCrossHelpersPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
