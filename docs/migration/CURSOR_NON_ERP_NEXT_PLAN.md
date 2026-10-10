@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Boom (`--max-gap 474` passed; current gap **473**).
+after PlanQ1Stay (`--max-gap 473` passed; current gap **472**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 473
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 472
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 27 | 12,897 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 88 | 45,233 |
+| 5 | Marketing/BOS/industries | 87 | 44,594 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 4 | 1,678 |
-| | **Total** | **473** | **220,145** |
+| | **Total** | **472** | **219,506** |
 
-- Non-ERP (Cursor): **307 files / 153,954 lines**
+- Non-ERP (Cursor): **306 files / 153,315 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,492** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **59**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,483** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **59**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -291,9 +291,13 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Spar`, 4 cases): file / method
 
 ### Q1 boom — done (`PhpPlanQ1Boom`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Boom`, 4 cases): canonical JSON, SHA-256 proofs, Merkle even/odd last-leaf duplicate, tenant-scoped record/list/fleet, mode `off` skip, `empty($opts['enqueue_anchor'])`, maybe-record enqueue default true. Leftover ERP/shared/intro parents stay injected. GET does not mint a session. Next unused class after Boom: Stay.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Boom`, 4 cases): canonical JSON, SHA-256 proofs, Merkle even/odd last-leaf duplicate, tenant-scoped record/list/fleet, mode `off` skip, `empty($opts['enqueue_anchor'])`, maybe-record enqueue default true. Leftover ERP/shared/intro parents stay injected. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 307 files.
+### Q1 stay — done (`PhpPlanQ1Stay`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Stay`, 4 cases): asset version inject, content-URL CSS/JS map (empty `backend_dir` → `//…`, orders GET append), ERP-url resolve + injected nav JS, head `htmlspecialchars` ENT_QUOTES, APAI tab aliases / imports filter / `discoverInlined`, empty-backend shell=`cp` / inline=`""`, site-key lower-then-strip, host fallback, VPE extras + `empty()` skip. Leftover version / ajax / host / ERP-nav parents stay injected. GET does not mint a session. Next unused class after Stay: Jib.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 306 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -313,6 +317,7 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6e | `epc_readiness_score.php` | Closed in Yard. |
 | 6f | `epc_partsapi_config.php` | Closed in Spar. |
 | 6g | `epc_blockchain_bos.php` | Closed in Boom. |
+| 6h | `epc_cp_page_assets.php` | Closed in Stay. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
@@ -360,6 +365,8 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_auth_smtp.php` | Closed in Helm |
 | `epc_readiness_score.php` | Closed in Yard |
 | `epc_partsapi_config.php` | Closed in Spar |
+| `epc_blockchain_bos.php` | Closed in Boom |
+| `epc_cp_page_assets.php` | Closed in Stay |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
