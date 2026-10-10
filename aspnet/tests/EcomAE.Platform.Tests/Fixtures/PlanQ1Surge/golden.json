@@ -1,0 +1,155 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "names",
+            "output": "",
+            "result": [
+                [
+                    "manufacturer",
+                    "brand",
+                    "mfr",
+                    "make",
+                    "vendor_brand",
+                    "brend"
+                ],
+                "partnumber",
+                "sales price",
+                {
+                    "manufacturer": 1,
+                    "article": 0,
+                    "name": -1,
+                    "exist": 2,
+                    "price": 3,
+                    "cost": 4,
+                    "supplier": 5
+                },
+                {
+                    "manufacturer": -1,
+                    "article": -1,
+                    "name": -1,
+                    "exist": -1,
+                    "price": -1,
+                    "cost": -1,
+                    "supplier": -1
+                },
+                0,
+                1234.56,
+                12.5,
+                8,
+                1.234,
+                "OC47A",
+                "OC47",
+                "café",
+                "a",
+                "S",
+                "P",
+                "L",
+                "",
+                "EPC-S",
+                "ACME-S",
+                "Bosch-Parts.P",
+                "Mann.P",
+                "ACME-L",
+                "ACME-",
+                "sales",
+                "purchase",
+                "inventory",
+                "",
+                "ACME",
+                "Mann",
+                "ACME",
+                "EPC_COMMERCE:",
+                "sales",
+                "ACME",
+                12.5,
+                "ACME-S",
+                null,
+                null,
+                "https://drive.google.com/uc?export=download&id=abc123",
+                "https://drive.google.com/uc?export=download&id=abc123",
+                "https://docs.google.com/spreadsheets/d/sheet9/export?format=xlsx",
+                "https://www.dropbox.com/s/x/file.csv?dl=1",
+                "https://www.dropbox.com/s/x/file.csv?dl=1",
+                "https://example.com/a.csv",
+                "csv",
+                0
+            ]
+        },
+        {
+            "name": "rows",
+            "output": "",
+            "result": [
+                ";",
+                0,
+                0,
+                "Sales file needs a Price column",
+                1,
+                4,
+                "OC47",
+                2,
+                [
+                    "ACME-S"
+                ],
+                2,
+                12.5,
+                3,
+                [
+                    "Febi.P",
+                    "Valeo.P"
+                ],
+                9.9,
+                4,
+                13.2,
+                [
+                    "ACME-L"
+                ],
+                7,
+                13.2,
+                1,
+                "Brand,Number,Name,Qty,Price,Delivery\nBosch,OC-47,\"Oil filter\",3,12.50,1\nMann,HU712,Filter,1,8.25,1\n"
+            ]
+        },
+        {
+            "name": "import",
+            "output": "",
+            "result": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                "sales",
+                "ACME-S",
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "name": "ingest",
+            "output": "",
+            "result": [
+                0,
+                "role must be sales|purchase|inventory",
+                1,
+                "Commerce ingest completed",
+                "sales",
+                "ACME",
+                2,
+                1,
+                [
+                    {
+                        "status": 1,
+                        "price_name": "ACME-S",
+                        "records_handled": 2,
+                        "records_in_db": 2,
+                        "history_id": 7,
+                        "storage_id": 1
+                    }
+                ]
+            ]
+        }
+    ]
+}

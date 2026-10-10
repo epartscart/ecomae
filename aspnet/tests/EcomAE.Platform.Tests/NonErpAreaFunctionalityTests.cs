@@ -1140,6 +1140,115 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void CommerceIngest_ImportedRows_StayOnTheTenantDatabase()
+    {
+        PhpPlanQ1Surge.Reset();
+        var pass = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN") ?? "";
+        using var admin = new MySqlConnector.MySqlConnection(
+            "Server=127.0.0.1;Port=3306;User ID=ecomae;Password=" + pass + ";AllowUserVariables=true;");
+        admin.Open();
+        var acmeSchema = "ecomae_cpw_surgeacme_" + Guid.NewGuid().ToString("N")[..8];
+        var betaSchema = "ecomae_cpw_surgebeta_" + Guid.NewGuid().ToString("N")[..8];
+        using (var cmd = admin.CreateCommand())
+        {
+            cmd.CommandText = $"CREATE DATABASE `{acmeSchema}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = $"CREATE DATABASE `{betaSchema}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
+            cmd.ExecuteNonQuery();
+        }
+
+        try
+        {
+            using var acmeDb = new MySqlConnector.MySqlConnection(
+                $"Server=127.0.0.1;Port=3306;Database={acmeSchema};User ID=ecomae;Password={pass};AllowUserVariables=true;");
+            using var betaDb = new MySqlConnector.MySqlConnection(
+                $"Server=127.0.0.1;Port=3306;Database={betaSchema};User ID=ecomae;Password={pass};AllowUserVariables=true;");
+            acmeDb.Open();
+            betaDb.Open();
+            foreach (var db in new[] { acmeDb, betaDb })
+            {
+                using var create = db.CreateCommand();
+                create.CommandText = """
+                    CREATE TABLE shop_docpart_prices (
+                        id INT PRIMARY KEY AUTO_INCREMENT,
+                        name VARCHAR(128),
+                        link VARCHAR(500) DEFAULT '',
+                        load_mode INT DEFAULT 0,
+                        file_name_substring VARCHAR(128) DEFAULT '',
+                        message_header_substring VARCHAR(500) DEFAULT '',
+                        last_updated INT DEFAULT 0,
+                        records_count INT DEFAULT 0
+                    )
+                    """;
+                create.ExecuteNonQuery();
+                create.CommandText = """
+                    CREATE TABLE shop_docpart_prices_data (
+                        id INT PRIMARY KEY,
+                        price_id INT,
+                        manufacturer VARCHAR(128),
+                        article VARCHAR(64),
+                        article_show VARCHAR(64),
+                        name VARCHAR(255),
+                        `exist` INT,
+                        price DECIMAL(12,2),
+                        time_to_exe INT,
+                        storage VARCHAR(64),
+                        min_order INT
+                    )
+                    """;
+                create.ExecuteNonQuery();
+                create.CommandText = """
+                    CREATE TABLE shop_storages (
+                        id INT PRIMARY KEY AUTO_INCREMENT,
+                        name VARCHAR(128),
+                        interface_type INT,
+                        users TEXT,
+                        connection_options TEXT,
+                        currency INT,
+                        short_name VARCHAR(128),
+                        hidden INT,
+                        bg_line_color INT
+                    )
+                    """;
+                create.ExecuteNonQuery();
+                create.CommandText = "CREATE TABLE shop_offices (id INT PRIMARY KEY AUTO_INCREMENT)";
+                create.ExecuteNonQuery();
+                create.CommandText = "INSERT INTO shop_offices (id) VALUES (1)";
+                create.ExecuteNonQuery();
+                create.CommandText = "CREATE TABLE shop_offices_storages_map (office_id INT, storage_id INT, group_id INT, min_point INT, max_point INT, markup INT, additional_time INT)";
+                create.ExecuteNonQuery();
+                create.CommandText = "CREATE TABLE users (id INT PRIMARY KEY AUTO_INCREMENT, user_type INT)";
+                create.ExecuteNonQuery();
+                create.CommandText = "INSERT INTO users (id, user_type) VALUES (3, 2)";
+                create.ExecuteNonQuery();
+            }
+
+            var dir = Path.Combine(Path.GetTempPath(), "ecomae_surge_area_" + Guid.NewGuid().ToString("N")[..8]);
+            Directory.CreateDirectory(dir);
+            var src = Path.Combine(dir, "src.csv");
+            File.WriteAllText(src, "article,brand,qty,price,name\nOC-47,Bosch,2,12.5,Oil filter\n");
+            var acme = PhpPlanQ1Surge.EpcCommerceIngestFile(acmeDb, src, "sales", "ACME", 0);
+            var betaSources = PhpPlanQ1Surge.EpcCommerceListSources(betaDb, false);
+            try { File.Delete(src); } catch { /* ignore */ }
+            try { Directory.Delete(dir); } catch { /* ignore */ }
+            Assert.True(true.Equals(acme["status"]));
+            Assert.Equal(1, Convert.ToInt32(acme["source_rows"], System.Globalization.CultureInfo.InvariantCulture));
+            Assert.Empty(betaSources);
+        }
+        finally
+        {
+            using var drop = admin.CreateCommand();
+            drop.CommandText = $"DROP DATABASE IF EXISTS `{acmeSchema}`";
+            drop.ExecuteNonQuery();
+            drop.CommandText = $"DROP DATABASE IF EXISTS `{betaSchema}`";
+            drop.ExecuteNonQuery();
+        }
+
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Surge.CommercePriceIngestPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Surge.CommercePriceIngestPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1204,6 +1313,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Bow.ProductFamilyPath,
             PhpPlanQ1Beam.ArticleMatchPath,
             PhpPlanQ1Draft.CrossInterchangePath,
+            PhpPlanQ1Surge.CommercePriceIngestPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
