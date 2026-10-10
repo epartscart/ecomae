@@ -362,7 +362,7 @@ Not complete.
 Not complete.
 
 - Ratchet 486 to 485. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Bay`): `content/general_pages/epc_power_bi.php` (catalog / guide / capabilities / config+report storage / embed resolve / dataset collectors). Leftover finance export and phase-8 paths stay injected or concatenated. The already-mentioned CP portal page of the same basename stays a separate mention.
-- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Bay` (4). Bay parity 4 of 4. Inventory content 551 to 552 of 952. Unnamed PHP functions 6,677 to 6,666. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 319 files / 160,217 lines (was 320 / 160,894). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Bay` (4). Bay parity 4 of 4. PlanQ1 suites 177 of 177. Full platform suite **6135 / 6135** after Bay (was 6131 after Drift). Inventory content 551 to 552 of 952. Unnamed PHP functions 6,677 to 6,666. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 319 files / 160,217 lines (was 320 / 160,894). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
 ### Checkpoint 2026-10-10 — plan Q1-drift (MFA UI renderers)
 
