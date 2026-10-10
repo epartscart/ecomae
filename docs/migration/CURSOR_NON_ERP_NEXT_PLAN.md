@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Atoll (`--max-gap 434` passed; current gap **433**).
+after PlanQ1Fjord (`--max-gap 433` passed; current gap **432**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 433
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 432
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -26,16 +26,16 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP other | 10 | 3,274 |
 | 3 | CP shop core (orders, catalogue, price upload) | 24 | 12,698 |
 | 3 | CP shop smaller | 22 | 7,537 |
-| 4 | CP control/portal | 39 | 9,744 |
+| 4 | CP control/portal | 38 | 9,314 |
 | 5 | Marketing/BOS/industries | 71 | 36,295 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **433** | **201,159** |
+| | **Total** | **432** | **200,729** |
 
-- Non-ERP (Cursor): **267 files / 134,968 lines**
+- Non-ERP (Cursor): **266 files / 134,538 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,057** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **48**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,052** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **48**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -451,9 +451,13 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Isle`, 4 cases): public REST A
 
 ### Q1 atoll — done (`PhpPlanQ1Atoll`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Atoll`, 4 cases): social hub hint/video cards, admin/db gates, tenant-scoped hub HTML, pack/tiktok/instagram/accounts/ai/drafts/guide tabs. Leftover unique `dp_user` stays injected. GET does not mint a session. Next unused class after Atoll: Fjord.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Atoll`, 4 cases): social hub hint/video cards, admin/db gates, tenant-scoped hub HTML, pack/tiktok/instagram/accounts/ai/drafts/guide tabs. Leftover unique `dp_user` stays injected. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 267 files.
+### Q1 fjord — done (`PhpPlanQ1Fjord`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Fjord`, 4 cases): marketing broadcast admin/db gates, tenant shop-name isolation, email/WhatsApp compose, history, guide. Leftover unique `dp_user` stays injected. GET does not mint a session. Next unused class after Fjord: Sound.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 266 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -513,7 +517,8 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6as | `epc_electronicae_storefront.php` | Closed in Haven. |
 | 6at | `epc_api_v1.php` | Closed in Isle. |
 | 6au | `epc_social_media_hub_panel.php` | Closed in Atoll. |
-| 6av | `epc_marketing_broadcast_panel.php` | Next (`PhpPlanQ1Fjord`). Unique 430/5. Broadcast helpers / page-frame / WhatsApp notify already mentioned. Leftover unique `dp_user` stays injected. |
+| 6av | `epc_marketing_broadcast_panel.php` | Closed in Fjord. |
+| 6aw | `cp_guideline.php` | Next (`PhpPlanQ1Sound`). Unique 466/5. Page-frame already mentioned. Leftover unique `dp_user` stays injected. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
@@ -526,7 +531,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `printProducts.php`, `printProducts_2.php`, `printCatalogueNode`, `getHtmlOfTopMenuCatalogue` | Catalogue list kernel |
 | Search tabs, `side_menu`, page-builder render, BOC consoles | Those kernels |
 | Storefront `orders_background.php` | Already ported; CP helper of the same basename is not. Path mention would close both. |
-| `epc_marketing_broadcast_panel.php` | Panel body. Wrapper/config already ported. Concatenate the path in C#. |
+| `epc_marketing_broadcast_panel.php` | Closed in Fjord. |
 | `epc_el_pl_href`, `epc_ep_pl_href`, industry `*_header.php` hrefs | Product-line / header pages `require` a parent and return. |
 | `epc_epartscart_storefront.php` | Storefront kernel + APAI aliases |
 | `epc_build_initial_price_bunch.php` | `prices_enclosure` |
