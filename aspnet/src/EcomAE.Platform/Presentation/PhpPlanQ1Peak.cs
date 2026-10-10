@@ -152,6 +152,8 @@ public static class PhpPlanQ1Peak
             false => true,
             0 => true,
             0L => true,
+            0d => true,
+            0f => true,
             "" => true,
             "0" => true,
             JsonElement je when je.ValueKind is JsonValueKind.Null or JsonValueKind.False => true,
@@ -159,6 +161,18 @@ public static class PhpPlanQ1Peak
             JsonElement je when je.ValueKind == JsonValueKind.String && (je.GetString() is "" or "0") => true,
             System.Collections.ICollection c => c.Count == 0,
             _ => false
+        };
+
+    private static object BoxJson(JsonElement el)
+        => el.ValueKind switch
+        {
+            JsonValueKind.Number when el.TryGetInt32(out var n) => n,
+            JsonValueKind.Number => el.GetDouble(),
+            JsonValueKind.String => el.GetString() ?? "",
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => "",
+            _ => el
         };
 
     private static string Clip(string value, int max)
@@ -198,9 +212,7 @@ public static class PhpPlanQ1Peak
 
                 if (opts is Dictionary<string, JsonElement> map && map.TryGetValue("price_id", out var pidEl))
                 {
-                    object boxed = pidEl.ValueKind == JsonValueKind.Number
-                        ? pidEl.TryGetInt32(out var n) ? n : pidEl.GetDouble()
-                        : pidEl.ValueKind == JsonValueKind.String ? pidEl.GetString() ?? "" : pidEl;
+                    var boxed = BoxJson(pidEl);
                     if (!PhpEmpty(boxed))
                     {
                         var pid = Convert.ToInt32(boxed, CultureInfo.InvariantCulture);
@@ -514,9 +526,7 @@ public static class PhpPlanQ1Peak
 
                     if (opts is not null && opts.TryGetValue("price_id", out var pidEl))
                     {
-                        object boxed = pidEl.ValueKind == JsonValueKind.Number
-                            ? pidEl.TryGetInt32(out var n) ? n : pidEl.GetDouble()
-                            : pidEl.ValueKind == JsonValueKind.String ? pidEl.GetString() ?? "" : pidEl;
+                        var boxed = BoxJson(pidEl);
                         if (!PhpEmpty(boxed))
                         {
                             var pid = Convert.ToInt32(boxed, CultureInfo.InvariantCulture);
@@ -934,11 +944,12 @@ public static class PhpPlanQ1Peak
     {
         var rows = db.PriceData.AsEnumerable();
         var idx = 0;
+        var skuFilter = Regex.IsMatch(sql, @"\bsku\s*=", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         if (sql.IndexOf("`price_id` IN", StringComparison.OrdinalIgnoreCase) >= 0)
         {
             var allowed = new HashSet<int>();
             var qmarks = Regex.Matches(sql, @"\?").Count;
-            var inCount = Math.Max(0, qmarks - (sql.IndexOf("sku", StringComparison.OrdinalIgnoreCase) >= 0 ? 1 : 0));
+            var inCount = skuFilter ? Math.Max(0, qmarks - 1) : qmarks;
             for (var i = 0; i < inCount && i < parameters.Count; i++)
             {
                 allowed.Add(Convert.ToInt32(parameters[i] ?? 0, CultureInfo.InvariantCulture));
@@ -948,7 +959,7 @@ public static class PhpPlanQ1Peak
             rows = rows.Where(r => allowed.Contains(r.PriceId));
         }
 
-        if (sql.IndexOf("sku", StringComparison.OrdinalIgnoreCase) >= 0 && idx < parameters.Count)
+        if (skuFilter && idx < parameters.Count)
         {
             var sku = Convert.ToString(parameters[idx], CultureInfo.InvariantCulture) ?? "";
             rows = rows.Where(r => r.Sku == sku);
