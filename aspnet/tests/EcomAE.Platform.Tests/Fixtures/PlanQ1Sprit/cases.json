@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "profile" },
+    { "name": "lists" },
+    { "name": "html" },
+    { "name": "live" }
+  ]
+}

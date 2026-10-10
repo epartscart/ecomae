@@ -1,0 +1,429 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "profile",
+            "output": "",
+            "result": [
+                {
+                    "epartscart": {
+                        "id": "epartscart",
+                        "name": "eParts Cart",
+                        "domain": "www.epartscart.com",
+                        "accent": "#dc2626",
+                        "cp_brochure": "/brochure-cp",
+                        "cta": "Open storefront"
+                    },
+                    "auto_parts": {
+                        "id": "epartscart",
+                        "name": "eParts Cart",
+                        "domain": "www.epartscart.com",
+                        "accent": "#dc2626",
+                        "cp_brochure": "/brochure-cp",
+                        "cta": "Open storefront"
+                    },
+                    "AUTO_PARTS": {
+                        "id": "epartscart",
+                        "name": "eParts Cart",
+                        "domain": "www.epartscart.com",
+                        "accent": "#dc2626",
+                        "cp_brochure": "/brochure-cp",
+                        "cta": "Open storefront"
+                    },
+                    "Eparts-Cart!": {
+                        "id": "epartscart",
+                        "name": "eParts Cart",
+                        "domain": "www.epartscart.com",
+                        "accent": "#dc2626",
+                        "cp_brochure": "/brochure-cp",
+                        "cta": "Open storefront"
+                    },
+                    "Acme-1!": {
+                        "id": "ecomae",
+                        "name": "ECOM AE",
+                        "domain": "www.ecomae.com",
+                        "accent": "#0ea5e9",
+                        "cp_brochure": "/brochure/cp",
+                        "cta": "Book a demo"
+                    },
+                    "ecomae": {
+                        "id": "ecomae",
+                        "name": "ECOM AE",
+                        "domain": "www.ecomae.com",
+                        "accent": "#0ea5e9",
+                        "cp_brochure": "/brochure/cp",
+                        "cta": "Book a demo"
+                    },
+                    "": {
+                        "id": "ecomae",
+                        "name": "ECOM AE",
+                        "domain": "www.ecomae.com",
+                        "accent": "#0ea5e9",
+                        "cp_brochure": "/brochure/cp",
+                        "cta": "Book a demo"
+                    },
+                    "jewellery": {
+                        "id": "ecomae",
+                        "name": "ECOM AE",
+                        "domain": "www.ecomae.com",
+                        "accent": "#0ea5e9",
+                        "cp_brochure": "/brochure/cp",
+                        "cta": "Book a demo"
+                    },
+                    "Fashion!": {
+                        "id": "ecomae",
+                        "name": "ECOM AE",
+                        "domain": "www.ecomae.com",
+                        "accent": "#0ea5e9",
+                        "cp_brochure": "/brochure/cp",
+                        "cta": "Book a demo"
+                    }
+                },
+                "O&#039;Brien &amp; Co",
+                "&lt;x&gt;",
+                ""
+            ]
+        },
+        {
+            "name": "lists",
+            "output": "",
+            "result": {
+                "epartscart": {
+                    "id": "epartscart",
+                    "sec": [
+                        [
+                            "Storefront buyers understand",
+                            6
+                        ],
+                        [
+                            "Control Panel (Client CP) — daily work",
+                            7
+                        ],
+                        [
+                            "Orders & fulfilment (OMS)",
+                            6
+                        ],
+                        [
+                            "Pricing & warehouses",
+                            5
+                        ],
+                        [
+                            "AI, marketing & growth",
+                            5
+                        ],
+                        [
+                            "ERP, tax & compliance",
+                            5
+                        ]
+                    ],
+                    "stats": [
+                        {
+                            "label": "Focus",
+                            "value": "Auto parts B2B/B2C"
+                        },
+                        {
+                            "label": "Workspace",
+                            "value": "Storefront + /cp"
+                        },
+                        {
+                            "label": "Core",
+                            "value": "OMS · Prices · WH"
+                        },
+                        {
+                            "label": "AI",
+                            "value": "Parts Expert chat"
+                        },
+                        {
+                            "label": "Region",
+                            "value": "UAE · GCC"
+                        }
+                    ],
+                    "journey": [
+                        {
+                            "step": "01",
+                            "title": "Customer finds a part",
+                            "body": "Search, VIN, AI chat, or WhatsApp — prices from live warehouses."
+                        },
+                        {
+                            "step": "02",
+                            "title": "Order lands in OMS",
+                            "body": "Staff confirm lines, margin, supplier, and ship status in one desk."
+                        },
+                        {
+                            "step": "03",
+                            "title": "Fulfil & message",
+                            "body": "Print, courier VAT, WhatsApp updates — customer stays informed."
+                        },
+                        {
+                            "step": "04",
+                            "title": "Finance closes the loop",
+                            "body": "Documents and ERP views reflect the same order truth."
+                        }
+                    ],
+                    "css_len": 7524,
+                    "css_head": "@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&fami",
+                    "css_tail": "-br__j,.epc-br__cp{break-inside:avoid}\n  a{color:inherit;text-decoration:none}\n}"
+                },
+                "ecomae": {
+                    "id": "ecomae",
+                    "sec": [
+                        [
+                            "One Blockchain BOS for the enterprise",
+                            5
+                        ],
+                        [
+                            "Commerce that sells",
+                            6
+                        ],
+                        [
+                            "ERP & finance",
+                            6
+                        ],
+                        [
+                            "AI & automation",
+                            5
+                        ],
+                        [
+                            "Operator Control Panels",
+                            5
+                        ],
+                        [
+                            "Who it is for",
+                            5
+                        ]
+                    ],
+                    "stats": [
+                        {
+                            "label": "Model",
+                            "value": "Multi-tenant BOS"
+                        },
+                        {
+                            "label": "Panels",
+                            "value": "Super CP + Client CP"
+                        },
+                        {
+                            "label": "Modules",
+                            "value": "100+ capabilities"
+                        },
+                        {
+                            "label": "Compliance",
+                            "value": "VAT · Peppol path"
+                        },
+                        {
+                            "label": "HQ",
+                            "value": "Dubai, UAE"
+                        }
+                    ],
+                    "journey": [
+                        {
+                            "step": "01",
+                            "title": "Onboard a tenant",
+                            "body": "Super CP provisions industry pack, branding, and modules."
+                        },
+                        {
+                            "step": "02",
+                            "title": "Trade on storefront",
+                            "body": "Catalogue, prices, cart, and payments go live."
+                        },
+                        {
+                            "step": "03",
+                            "title": "Operate in Client CP",
+                            "body": "Orders, warehouses, CRM, marketing — daily workspace."
+                        },
+                        {
+                            "step": "04",
+                            "title": "Govern in ERP",
+                            "body": "Ledger, tax, documents, and proof-ready workflows."
+                        }
+                    ],
+                    "css_len": 7524,
+                    "css_head": "@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&fami",
+                    "css_tail": "-br__j,.epc-br__cp{break-inside:avoid}\n  a{color:inherit;text-decoration:none}\n}"
+                },
+                "AUTO_PARTS": {
+                    "id": "epartscart",
+                    "sec": [
+                        [
+                            "Storefront buyers understand",
+                            6
+                        ],
+                        [
+                            "Control Panel (Client CP) — daily work",
+                            7
+                        ],
+                        [
+                            "Orders & fulfilment (OMS)",
+                            6
+                        ],
+                        [
+                            "Pricing & warehouses",
+                            5
+                        ],
+                        [
+                            "AI, marketing & growth",
+                            5
+                        ],
+                        [
+                            "ERP, tax & compliance",
+                            5
+                        ]
+                    ],
+                    "stats": [
+                        {
+                            "label": "Focus",
+                            "value": "Auto parts B2B/B2C"
+                        },
+                        {
+                            "label": "Workspace",
+                            "value": "Storefront + /cp"
+                        },
+                        {
+                            "label": "Core",
+                            "value": "OMS · Prices · WH"
+                        },
+                        {
+                            "label": "AI",
+                            "value": "Parts Expert chat"
+                        },
+                        {
+                            "label": "Region",
+                            "value": "UAE · GCC"
+                        }
+                    ],
+                    "journey": [
+                        {
+                            "step": "01",
+                            "title": "Customer finds a part",
+                            "body": "Search, VIN, AI chat, or WhatsApp — prices from live warehouses."
+                        },
+                        {
+                            "step": "02",
+                            "title": "Order lands in OMS",
+                            "body": "Staff confirm lines, margin, supplier, and ship status in one desk."
+                        },
+                        {
+                            "step": "03",
+                            "title": "Fulfil & message",
+                            "body": "Print, courier VAT, WhatsApp updates — customer stays informed."
+                        },
+                        {
+                            "step": "04",
+                            "title": "Finance closes the loop",
+                            "body": "Documents and ERP views reflect the same order truth."
+                        }
+                    ],
+                    "css_len": 7524,
+                    "css_head": "@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&fami",
+                    "css_tail": "-br__j,.epc-br__cp{break-inside:avoid}\n  a{color:inherit;text-decoration:none}\n}"
+                },
+                "nope": {
+                    "id": "ecomae",
+                    "sec": [
+                        [
+                            "One Blockchain BOS for the enterprise",
+                            5
+                        ],
+                        [
+                            "Commerce that sells",
+                            6
+                        ],
+                        [
+                            "ERP & finance",
+                            6
+                        ],
+                        [
+                            "AI & automation",
+                            5
+                        ],
+                        [
+                            "Operator Control Panels",
+                            5
+                        ],
+                        [
+                            "Who it is for",
+                            5
+                        ]
+                    ],
+                    "stats": [
+                        {
+                            "label": "Model",
+                            "value": "Multi-tenant BOS"
+                        },
+                        {
+                            "label": "Panels",
+                            "value": "Super CP + Client CP"
+                        },
+                        {
+                            "label": "Modules",
+                            "value": "100+ capabilities"
+                        },
+                        {
+                            "label": "Compliance",
+                            "value": "VAT · Peppol path"
+                        },
+                        {
+                            "label": "HQ",
+                            "value": "Dubai, UAE"
+                        }
+                    ],
+                    "journey": [
+                        {
+                            "step": "01",
+                            "title": "Onboard a tenant",
+                            "body": "Super CP provisions industry pack, branding, and modules."
+                        },
+                        {
+                            "step": "02",
+                            "title": "Trade on storefront",
+                            "body": "Catalogue, prices, cart, and payments go live."
+                        },
+                        {
+                            "step": "03",
+                            "title": "Operate in Client CP",
+                            "body": "Orders, warehouses, CRM, marketing — daily workspace."
+                        },
+                        {
+                            "step": "04",
+                            "title": "Govern in ERP",
+                            "body": "Ledger, tax, documents, and proof-ready workflows."
+                        }
+                    ],
+                    "css_len": 7524,
+                    "css_head": "@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&fami",
+                    "css_tail": "-br__j,.epc-br__cp{break-inside:avoid}\n  a{color:inherit;text-decoration:none}\n}"
+                }
+            }
+        },
+        {
+            "name": "html",
+            "output": "",
+            "result": [
+                23295,
+                "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-sca",
+                "cp\">Full CP brochure (every function) →</a></div></footer></div></body></html>",
+                1,
+                1,
+                0,
+                1,
+                1,
+                0,
+                1,
+                1,
+                1
+            ]
+        },
+        {
+            "name": "live",
+            "output": "",
+            "result": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                0
+            ]
+        }
+    ]
+}

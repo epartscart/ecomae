@@ -511,6 +511,29 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void MarketingBrochure_BrandAndLiveDeck_StayOnTheInjectedBrand()
+    {
+        PhpPlanQ1Sprit.Reset();
+        var parts = PhpPlanQ1Sprit.EpcBrochureProfile("AUTO_PARTS");
+        var platform = PhpPlanQ1Sprit.EpcBrochureProfile("Fashion!");
+        Assert.Equal("epartscart", Convert.ToString(parts["id"]));
+        Assert.Equal("ecomae", Convert.ToString(platform["id"]));
+        Assert.NotEqual(Convert.ToString(parts["accent"]), Convert.ToString(platform["accent"]));
+        PhpPlanQ1Sprit.ItemImage = (_, group) => group == "How work flows" ? "/live/acme.jpg" : "/live/acme-sec.jpg";
+        var acme = PhpPlanQ1Sprit.EpcBrochureRenderHtml("ecomae");
+        PhpPlanQ1Sprit.ItemImage = (_, group) => group == "How work flows" ? "/live/beta.jpg" : "/live/beta-sec.jpg";
+        var beta = PhpPlanQ1Sprit.EpcBrochureRenderHtml("ecomae");
+        Assert.Contains("/live/acme.jpg", acme, StringComparison.Ordinal);
+        Assert.Contains("/live/beta.jpg", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("/live/acme", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("/live/beta", acme, StringComparison.Ordinal);
+        Assert.Contains("&#039;", PhpPlanQ1Sprit.EpcBrochureH("O'area"), StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Sprit.MarketingBrochurePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Sprit.MarketingBrochurePath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -551,6 +574,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Stay.PageAssetsPath,
             PhpPlanQ1Jib.TenantShowcasePath,
             PhpPlanQ1Gaff.WhatsappSharePath,
+            PhpPlanQ1Sprit.MarketingBrochurePath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
