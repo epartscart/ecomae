@@ -362,7 +362,7 @@ Not complete.
 Not complete.
 
 - Ratchet 496 to 495. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1List`): `epc_agent_catalog_knowledge.php` (stock-brand counts reuse the Text twin). File cache TTL is 21600s; in-process memo is 300s.
-- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1List` (4). List parity 4 of 4. Inventory content 543 to 544 of 952. Unnamed PHP functions 6,909 to 6,895. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 329 files / 168,996 lines (was 330 / 169,334). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1List` (4). List parity 4 of 4. Full platform suite **6095 / 6095** after Text + List. Inventory content 543 to 544 of 952. Unnamed PHP functions 6,909 to 6,895. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 329 files / 168,996 lines (was 330 / 169,334). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
 ### Checkpoint 2026-10-10 — plan Q1-text (stock brands, tree-list dump, text search)
 
