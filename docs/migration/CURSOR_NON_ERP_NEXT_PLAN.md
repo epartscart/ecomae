@@ -39,6 +39,28 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
+## 1b. Who owns UI/UX, design, testing, and tenant control
+
+Recorded 2026-10-10 from the owner. Fleet size in scope: about **1000 tenants**.
+Tenants are **site-only**, **ERP-only**, or **mixed** (site + ERP). Some tenants have
+**1000+ users**. Isolation is mandatory. Scale does not relax the boundary.
+
+| Concern | Cursor | Devin | Shared / owner |
+|---|---|---|---|
+| Overall structure | Tenant control plane, host routing, storefront / CP / BOS / CRM shells, industry and demo hosts | ERP document model, posting, ledgers, finance tabs | One system of record, one authorization model, one workflow, one audit trail, one API contract. Owner accepts the structure. |
+| UI / UX | Storefront, marketing, CP, BOS, CRM, tenant chrome. Must be better than the PHP reference. | ERP workspaces and finance screens. Must be better than the PHP reference. | Same-tenant PHP vs ASP.NET dual samples. Human acceptance. |
+| Designing (IA, flows, role workspaces) | BOS / CRM / CP / storefront / tenant flows | ERP role workspaces (CFO, Finance Manager, Accountant, Sales, Purchasing, Warehouse) | Screens may differ by role. Business logic is not copied into a second engine. |
+| Presentation | Layout, colours, menus, tables, chrome on Cursor surfaces | Layout of ERP pages, reports, and finance print | PHP reference is the minimum, not the ceiling. |
+| Graphics | Storefront / marketing / industry / BOS / CP visual assets and tenant branding | ERP document logos and attachments on finance docs | Branding stays tenant-scoped. Tenant A never serves Tenant B assets. |
+| Functionality testing | PHP 8.3 goldens and the platform suite for non-ERP; CP / storefront / BOS browser rounds | ERP write dry-runs, 15 process acceptance, ERP browser round | Phase D combined test, dual samples, production `/health` `/ready` probes. |
+| Data security / confidentiality | Tenant DB + `site_key` scoping. No cross-tenant read of users, carts, orders, tokens, or files. Super-CP may pick a tenant; tenant CP sees only its own `site_key`. | ERP rows stay on that tenant’s ledger. No cross-company leak. | One tenant = one data boundary. A 1000-user tenant does not share sessions or caches keyed only by user id. |
+| Authentication | Storefront / CP / BOS / CRM login, MFA, OTP, SSO, session cookies per tenant host | ERP login uses the same tenant session and capabilities — not a second identity store | GET does not mint a guest or impersonation session. |
+| Profile / user control | `users`, profiles, groups, offices, KYC, trade status scoped to `site_key` | ERP staff / payroll profiles on that tenant only | Tenant A cannot see Tenant B users even when e-mails collide. |
+| Control (permissions) | CP roles, Super-CP operator vs tenant operator, capability flags (`cp`, `erp`, `bos`, `api`) | ERP document approval and period lock on ERP services | Shared authorization model. Site-only tenants do not receive another tenant’s ERP data. ERP-only tenants do not receive another tenant’s storefront users or carts. Mixed tenants share one `site_key` for site+ERP and stay isolated from every other tenant. |
+
+Commerce isolation, MFA, and Power BI API keys already lock work to one `site_key`.
+Remaining portal / tenant-PDO parents still block some pages; those stay skipped until the parent lands.
+
 ## 2. Definition of done (honest close)
 
 A gap file leaves the inventory only as **PORT**, **MAP**, **RETIRE**, or **SKIP**.
@@ -223,9 +245,10 @@ The 65 leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest
 
 | Order | File | Why now |
 |---|---|---|
-| 1 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
-| 2 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
-| 3 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
+| 1 | `content/social_media/epc_social_publish.php` (625 / 17) | Helpers parent already mentioned. HTTP injected. Next unused class after Bay. |
+| 2 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
+| 3 | `epc_platform_jobs.php` | Skip until `epc_portal_tenant.php`. |
+| 4 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
@@ -287,3 +310,4 @@ Port the page, or leave the identifier unmentioned.
 - Production counts stay `docpart.users` 2, `ecomae.users` 2 unless a test is supposed to change them.
 - Platform build: 0 warnings / 0 errors (`TreatWarningsAsErrors`).
 - Weighted headline stays a migration-gate number (~20.4%). It is not acceptance. ERP accepted processes stay 0/15.
+- Tenant isolation: no cross-tenant read or write of users, profiles, sessions, credentials, or documents. Site-only / ERP-only / mixed tenants stay classified and scoped. High-user tenants use the same boundary.

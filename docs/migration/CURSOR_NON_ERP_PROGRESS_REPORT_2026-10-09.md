@@ -13,6 +13,7 @@ Sources: `docs/migration/ASPNET_MIGRATION_TRACKER.md`, `docs/migration/inventory
 - Last verified state: PlanQ1Bay (Power BI helpers). Bay 4/4, PlanQ1 **177 / 177**, full platform suite **6135 / 6135**. Throwaway test schemas left over: 0. Production counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
 - Method for every slice: read the PHP, build a PHP 8.3 harness that runs the real script on a throwaway MariaDB schema, record a golden, make ASP.NET equal it, document intentional deviations (usually security hardening), run the full suite, update tracker and inventory ratchet, open a PR.
 - Executable next queue (not a progress narrative): `docs/migration/CURSOR_NON_ERP_NEXT_PLAN.md`. Refresh buckets with `scripts/php_non_erp_gap_buckets.py`.
+- Owner clarification 2026-10-10: Cursor owns UI/UX, design, presentation, graphics, and functionality testing on storefront / CP / BOS / CRM / marketing / tenants. Devin owns the same concerns on ERP finance screens and the 15 ERP processes. Overall structure is shared (one SoR / one auth / one workflow). About 1000 tenants (site-only, ERP-only, mixed); some have 1000+ users. Each tenant owns its users, profiles, sessions, credentials, and documents. Super-CP may pick a tenant; a tenant operator never sees another tenant.
 
 ## 2. What Cursor built (non-ERP), by area
 
@@ -66,7 +67,7 @@ Beyond gap files, these are open for every surface regardless of file counts:
 
 ## 4. In progress right now
 
-- PlanQ1Bay (this slice): Power BI helpers. Leftover finance export and phase-8 paths stay injected or concatenated. GET does not mint a session. `part_search_page.php`, auto-price engine, free-tools (ERP require), CP product.php, parts agent, and portal demo stay skipped (parents). POS helpers and industry templates stay skipped. `addContentToDump` stays skipped (`DP_ContentRecord` dump page). Finance-path files stay Devin.
+- PlanQ1Cove (this slice): social publish helpers. HTTP stays injected (no live Meta/TikTok). Helpers parent already mentioned. GET does not mint a session. `part_search_page.php`, auto-price engine, free-tools (ERP require), CP product.php, parts agent, and portal demo stay skipped (parents). POS helpers and industry templates stay skipped. `addContentToDump` stays skipped (`DP_ContentRecord` dump page). Finance-path files stay Devin.
 - Next work is the remaining Q1 leftovers in `CURSOR_NON_ERP_NEXT_PLAN.md` (skip OEM `Functions.Common.php` and `epc_platform_jobs.php` until `epc_portal_tenant.php`). Search tabs, `printProducts*`, `side_menu`, page-builder render, BOC consoles, product-line href pages, `*_h` guide wrappers, APE adapters and the marketing-broadcast panel stay skipped until their parents land.
 - After those named helpers: `printProducts.php` / `printProducts_2.php` shells once the catalogue list kernel is in, then `part_search_page.php` and the parts agent.
 
@@ -77,6 +78,7 @@ Beyond gap files, these are open for every surface regardless of file counts:
 - Storefront code that calls into finance data: order payment (`ajax_create_operation`) reads and writes `shop_users_accounting`; order print and Document Control print read ERP context. If you change those tables or services, run the storefront suites too (`StorefrontPhpShopTests`, `ShopOrderProtocolTests`, `StorefrontOrderPrintTests`).
 - Housekeeping: the order-payment test fixture was missing the `order` column on `shop_orders_items_statuses_ref` and failed on `main` after PR #2068. Fixed on PR #2069.
 - ERP gap still on your side: 166 finance PHP files (about 66k lines), the write side of the 118 mapped ERP tabs, the ERP portal half of `epc_erp_access.php`, and the deferred findings in the ERP restart note. ERP accepted processes remain 0/15.
+- Owner split for UI/UX, design, presentation, graphics, and ERP functionality testing is yours for finance screens and the 15 processes. Cursor does not take ERP chrome. Tenant isolation (site-only / ERP-only / mixed, including 1000-user tenants) still means ERP rows stay on that tenant ledger only.
 
 ## 6. Open questions that still need the owner
 

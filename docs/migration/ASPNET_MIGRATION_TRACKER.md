@@ -42,6 +42,24 @@ Purchasing, Operations, Management (Cursor). The completion roadmap already
 records a PHP-shaped ERP dashboard and a role-preview catalogue, and it still
 lists CFO, CEO, Sales Manager, and Purchasing Manager acceptance as open.
 
+### UI/UX, design, testing, and tenant control (1000-tenant fleet)
+
+Recorded 2026-10-10 from the owner. About 1000 tenants: site-only, ERP-only,
+or mixed. Some tenants have 1000+ users. Isolation is mandatory.
+
+| Concern | Cursor | Devin | Shared / owner |
+|---|---|---|---|
+| Overall structure | Tenant control plane, host routing, storefront / CP / BOS / CRM shells | ERP document model, posting, ledgers, finance tabs | One SoR, one auth, one workflow, one audit, one API. Owner accepts structure. |
+| UI / UX | Storefront, marketing, CP, BOS, CRM, tenant chrome (better than PHP) | ERP workspaces and finance screens (better than PHP) | Same-tenant dual samples. Human acceptance. |
+| Designing | BOS / CRM / CP / storefront / tenant flows | ERP role workspaces | Role screens may differ. No second business-logic engine. |
+| Presentation | Layout, colours, menus, tables on Cursor surfaces | ERP pages, reports, finance print | PHP reference is the minimum, not the ceiling. |
+| Graphics | Storefront / marketing / industry / BOS / CP assets and tenant branding | ERP document logos / attachments | Branding is tenant-scoped. |
+| Functionality testing | Non-ERP PHP 8.3 goldens + platform suite; CP / storefront / BOS browser rounds | ERP write dry-runs, 15 process acceptance, ERP browser round | Phase D combined test, dual samples, production probes. |
+| Data security / confidentiality | Tenant DB + `site_key`. No cross-tenant users, carts, orders, tokens, files. Super-CP may pick a tenant; tenant CP sees only its own `site_key`. | ERP rows stay on that tenant ledger | One tenant = one data boundary. 1000-user tenants do not share sessions or caches keyed only by user id. |
+| Authentication | Storefront / CP / BOS / CRM login, MFA, OTP, SSO, per-host session | ERP uses the same tenant session — not a second identity store | GET does not mint guest / impersonation sessions. |
+| Profile / user control | Users, profiles, groups, offices, KYC, trade status scoped to `site_key` | ERP staff / payroll on that tenant only | E-mail collision across tenants is not a shared profile. |
+| Control (permissions) | CP roles, Super-CP vs tenant operator, capability flags | ERP approval and period lock | Site-only / ERP-only / mixed stay classified. Mixed uses one `site_key` for site+ERP and stays isolated from every other tenant. |
+
 ### How to read a matrix row
 
 `ECOM AE current` uses the completion board and the tracker checkboxes. It is
