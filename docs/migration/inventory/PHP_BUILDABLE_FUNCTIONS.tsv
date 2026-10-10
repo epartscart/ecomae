@@ -4544,11 +4544,6 @@ deleteURLS	DeleteURLS	cp/content/content/text_for_url/text_for_url_list.php	js	5
 searchURL	SearchURL	cp/content/content/text_for_url/text_for_url_list.php	js	511	mentioned	browser-js
 searchURL_cancel	SearchURLCancel	cp/content/content/text_for_url/text_for_url_list.php	js	511	mentioned	browser-js
 sortURLS	SortURLS	cp/content/content/text_for_url/text_for_url_list.php	js	511	mentioned	browser-js
-epc_cpg_h	EpcCpgH	cp/content/control/cp_guideline.php	php	466	gap	later
-epc_cpg_hint_for_url	EpcCpgHintForUrl	cp/content/control/cp_guideline.php	php	466	gap	later
-epc_cpg_item_label	EpcCpgItemLabel	cp/content/control/cp_guideline.php	php	466	gap	later
-epc_cpg_load_menu_tabs	EpcCpgLoadMenuTabs	cp/content/control/cp_guideline.php	php	466	gap	later
-epc_cpg_page_hints	EpcCpgPageHints	cp/content/control/cp_guideline.php	php	466	gap	later
 epc_tcp_dash_h	EpcTcpDashH	cp/content/control/epc_tenant_cp_dashboard.php	php	744	mentioned	partial-file
 apply_button_click	ApplyButtonClick	cp/content/control/get_widget.php	js	284	mentioned	browser-js
 point_file	PointFile	cp/content/control/get_widget.php	js	284	mentioned	browser-js
