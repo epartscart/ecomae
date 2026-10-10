@@ -51,7 +51,7 @@ public static class PhpPlanQ1Surge
     public static Func<MySqlConnection, int, int>? HistoryCountBrands { get; set; }
     public static Action<MySqlConnection, int, int>? HistorySetActive { get; set; }
     public static Func<string, Dictionary<string, object?>>? Download { get; set; }
-    public static Func<string, bool>? ExcelLibraryPresent { get; set; }
+    public static Func<bool>? ExcelLibraryPresent { get; set; }
     public static Func<int>? ShopCurrency { get; set; }
 
     public static void Reset()
