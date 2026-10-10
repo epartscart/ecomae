@@ -67,8 +67,8 @@ Beyond gap files, these are open for every surface regardless of file counts:
 
 ## 4. In progress right now
 
-- PlanQ1Quay (this slice): tenant PDO pool for 1000-tenant scale (resolve host, dedicated-db flags, from-row aliases, reuse / dead reconnect, max-2 eviction). Live opens stay injectable. CloudPanel 2026-10-10 publish of `main` `b7f1554bf` is live; this branch is not. Finance-path files stay Devin.
-- Next work is the remaining Q1 leftovers in `CURSOR_NON_ERP_NEXT_PLAN.md` (`epc_bos_ajax_login.php` / health if BOS session stays injected). Search tabs, `printProducts*`, `side_menu`, page-builder render, BOC consoles, product-line href pages, `*_h` guide wrappers, APE adapters and the marketing-broadcast panel stay skipped until their parents land.
+- PlanQ1Slip (this slice): BOS login (`epc_bos_ajax_login_secure`) against PHP 8.3 goldens. Unified / upgrade / session-file / BOC audit stay injected. CloudPanel 2026-10-10 publish of `main` `b7f1554bf` is live; this branch is not. Finance-path files stay Devin.
+- Remaining ready ≤200 rows are still Q2/Q3 (industry templates, `*_h` guides, APE, OEM catalog, `printProducts*`). Those are not closed by mention-only.
 - After those named helpers: `printProducts.php` / `printProducts_2.php` shells once the catalogue list kernel is in, then `part_search_page.php` and the parts agent.
 
 ## 5. ERP handoff notes for Devin

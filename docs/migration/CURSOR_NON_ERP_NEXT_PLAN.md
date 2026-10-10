@@ -2,7 +2,7 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Quay (`--max-gap 482` passed; current gap **481**).
+after PlanQ1Slip (`--max-gap 481` passed; current gap pending inventory).
 
 Refresh the table:
 
@@ -259,7 +259,11 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Pier`, 4 cases): enqueue (dedu
 
 ### Q1 quay — done (`PhpPlanQ1Quay`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Quay`, 4 cases): missing fields, host resolve (row / DP_Config / config.php / 127.0.0.1), dedicated-db flags (`empty('0')` erp-only), from-row aliases + shared-docpart creds hook, live connect reuse / dead reconnect / user-case miss, pool eviction at max 2. Open / ping stay injectable in the twin. GET does not mint a session. Next unused class after Quay.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Quay`, 4 cases): missing fields, host resolve (row / DP_Config / config.php / 127.0.0.1), dedicated-db flags (`empty('0')` erp-only), from-row aliases + shared-docpart creds hook, live connect reuse / dead reconnect / user-case miss, pool eviction at max 2. Open / ping stay injectable in the twin. GET does not mint a session.
+
+### Q1 slip — done (`PhpPlanQ1Slip`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Slip`, 4 cases): missing fields / unavailable DB, bcrypt + md5-secret + plain-md5 + `pass` alias, role deny / tenant / admin-table / allowlist / backend-group, csrf + context. Unified / upgrade / session-file / BOC audit stay injected or absent. GET does not mint a session. Next unused class after Slip.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -271,8 +275,9 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 2 | OEM `Functions.Common.php` (124) | Third-party catalog API client — **skip**. |
 | 3 | `epc_platform_jobs.php` | Closed in Pier. |
 | 4 | `epc_tenant_pdo.php` | Closed in Quay. |
-| 5 | `epc_bos_ajax_login.php` / `epc_bos_health_check.php` | Tenant PDO parent now closed — next honest if BOS session stays injected. |
-| 6 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
+| 5 | `epc_bos_ajax_login.php` | Closed in Slip. |
+| 6 | `epc_bos_health_check.php` | Already mentioned. |
+| 7 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
 After each file: regenerate inventory with `--max-gap` = previous gap count; leftover `ecomae_cpw_%` must be 0.
 
@@ -289,7 +294,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_build_initial_price_bunch.php` | `prices_enclosure` |
 | `epc_auto_price_*`, `epc_apai_*`, `epc_auto_price_cp_shell.php` | Auto-price engine (6,768 lines) |
 | `epc_custom_shipping_guide.php`, `epc_erp_only_onboard_guide.php` | ERP include — Devin |
-| `epc_ai_copilot.php`, `epc_bos_ajax_login.php`, `epc_bos_health_check.php` | BOS session (tenant PDO closed in Quay) |
+| `epc_ai_copilot.php` | BOS unified / AI parent |
 | `epc_cp_breadcrumb.php` | CP content-folder DB |
 | `get_alternative_bread_crumbs` | Breadcrumb module |
 | `clear_dir` (`del_tmp_folder.php`) | pyprices upload parent |
@@ -311,6 +316,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_portal_tenant.php` | Closed in Dock |
 | `epc_platform_jobs.php` | Closed in Pier |
 | `epc_tenant_pdo.php` | Closed in Quay |
+| `epc_bos_ajax_login.php` | Closed in Slip |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
