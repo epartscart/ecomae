@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Keel (`--max-gap 479` passed; current gap **478**).
+after PlanQ1Mast (`--max-gap 478` passed; current gap **477**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 478
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 477
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 27 | 12,897 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 93 | 48,643 |
+| 5 | Marketing/BOS/industries | 92 | 48,229 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 4 | 1,678 |
-| | **Total** | **478** | **223,555** |
+| | **Total** | **477** | **223,141** |
 
-- Non-ERP (Cursor): **312 files / 157,364 lines**
+- Non-ERP (Cursor): **311 files / 156,950 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,600** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **59**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,587** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **59**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -271,9 +271,13 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Hull`, 4 cases): Google provid
 
 ### Q1 keel — done (`PhpPlanQ1Keel`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Keel`, 4 cases): admin `COUNT===1` (no-config, user-type, foreign uid, duplicate token, dropped table), ERP-only landing (empty `backend_dir` → `//shop/...`, custom `panel`, injected shell URL), run (guest roots + operator prefixes, POST `authentication` / `empty('0')`, `backend_dir` trim, demo ERP-shell then post-login, platform/client ERP, ERP-only landing skipped on platform hostname), MFA route (`?qs` null vs empty path) and ajax (slash-escaped JSON). Portal / demo / MFA parents stay injected. GET does not mint a session. Next unused class after Keel: Mast.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Keel`, 4 cases): admin `COUNT===1` (no-config, user-type, foreign uid, duplicate token, dropped table), ERP-only landing (empty `backend_dir` → `//shop/...`, custom `panel`, injected shell URL), run (guest roots + operator prefixes, POST `authentication` / `empty('0')`, `backend_dir` trim, demo ERP-shell then post-login, platform/client ERP, ERP-only landing skipped on platform hostname), MFA route (`?qs` null vs empty path) and ajax (slash-escaped JSON). Portal / demo / MFA parents stay injected. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 312 files.
+### Q1 mast — done (`PhpPlanQ1Mast`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Mast`, 4 cases): schema, key generate/validate/revoke/list (SHA-256, validate last_used is pre-UPDATE), hourly rate (`strtotime(window + ' +1 hour')`), handle (`Bearer ` case-sensitive, `site_key` from the key, empty arrays `[]`), OpenAPI / fleet COUNT int / SUM string / AVG `"0.0000"`. Clock / RNG / microtime injected. GET does not mint a session. Next unused class after Mast: Helm.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 311 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -287,7 +291,10 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 4 | `epc_tenant_pdo.php` | Closed in Quay. |
 | 5 | `epc_bos_ajax_login.php` | Closed in Slip. |
 | 6 | `epc_auth_social.php` | Closed in Hull. |
+| `epc_cp_auth_gate.php` | Closed in Keel. |
+| `epc_rest_api_v2.php` | Closed in Mast. |
 | 6b | `cp/epc_cp_auth_gate.php` | Closed in Keel. |
+| 6c | `epc_rest_api_v2.php` | Closed in Mast. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 

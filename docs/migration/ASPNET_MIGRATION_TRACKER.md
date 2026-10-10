@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-mast (REST API v2)
+
+Not complete.
+
+- Ratchet 478 to 477. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Mast`): `content/general_pages/epc_rest_api_v2.php` (schema ensure, SHA-256 key generate / validate / revoke / list, hourly rate window `date('Y-m-d H:00:00')` then `count <= limit` after increment, `Bearer ` prefix case-sensitive, `api_key` via `!empty`, validate SELECT then UPDATE last_used so the returned row is pre-update, handle `site_key` from the key not the params, empty PHP arrays encode as `[]`, PDO COUNT int / SUM string, fleet AVG `"0.0000"`, OpenAPI / endpoints / scope / error / usage). Clock / RNG / microtime stay injected. GET does not mint a session. Keys stay per `site_key`.
+- Area functionality gained a REST-key isolation case (acme vs beta list, handle stays on the key tenant, revoke then 401, foreign key still validates).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Mast` (4). Mast parity 4 of 4. Area functionality 12 of 12. PlanQ1 suites 209 of 209. Full platform suite **6179 / 6179** after Mast (was 6174 after Keel). Area runner: auth 157, storefront commerce 123, CP/BOS 167, tenants/jobs/social 31. Inventory content 557 to 558 of 952. Unnamed PHP functions 6,600 to 6,587. Ready ≤200-line non-ERP functions stay 59. The weighted headline stays about 20.4%. Non-ERP pending: 311 files / 156,950 lines (was 312 / 157,364). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
+
 ### Checkpoint 2026-10-10 — plan Q1-keel (Super CP auth gate)
 
 Not complete.
