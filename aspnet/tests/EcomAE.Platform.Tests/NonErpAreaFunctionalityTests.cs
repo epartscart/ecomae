@@ -1359,6 +1359,87 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void AccessoriesMarketplace_Listings_StayOnTheTenantDatabase()
+    {
+        PhpPlanQ1Foam.Reset();
+        PhpPlanQ1Foam.LoadTaxonomyJson = () => new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["categories"] = new List<object?>
+            {
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["slug"] = "brakes",
+                    ["label"] = "Brakes",
+                    ["pw_id"] = 1,
+                    ["children"] = new List<object?>
+                    {
+                        new Dictionary<string, object?>(StringComparer.Ordinal)
+                        {
+                            ["slug"] = "pads",
+                            ["label"] = "Brake Pads",
+                            ["pw_id"] = 11
+                        }
+                    }
+                }
+            },
+            ["makes"] = new List<object?> { "Toyota" },
+            ["cities"] = new List<object?> { "Dubai" },
+            ["filters"] = new List<object?>()
+        };
+        var pass = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN") ?? "";
+        using var admin = new MySqlConnector.MySqlConnection(
+            "Server=127.0.0.1;Port=3306;User ID=ecomae;Password=" + pass + ";AllowUserVariables=true;");
+        admin.Open();
+        var acmeSchema = "ecomae_cpw_foamacme_" + Guid.NewGuid().ToString("N")[..8];
+        var betaSchema = "ecomae_cpw_foambeta_" + Guid.NewGuid().ToString("N")[..8];
+        using (var cmd = admin.CreateCommand())
+        {
+            cmd.CommandText = $"CREATE DATABASE `{acmeSchema}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = $"CREATE DATABASE `{betaSchema}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
+            cmd.ExecuteNonQuery();
+        }
+
+        try
+        {
+            using var acmeDb = new MySqlConnector.MySqlConnection(
+                $"Server=127.0.0.1;Port=3306;Database={acmeSchema};User ID=ecomae;Password={pass};AllowUserVariables=true;");
+            using var betaDb = new MySqlConnector.MySqlConnection(
+                $"Server=127.0.0.1;Port=3306;Database={betaSchema};User ID=ecomae;Password={pass};AllowUserVariables=true;");
+            acmeDb.Open();
+            betaDb.Open();
+            PhpPlanQ1Foam.EpcAccSeedCategoriesFromJson(acmeDb);
+            PhpPlanQ1Foam.EpcAccEnsureSchema(betaDb);
+            var tree = PhpPlanQ1Foam.EpcAccGetCategoryTree(acmeDb);
+            var lid = PhpPlanQ1Foam.EpcAccAddListing(acmeDb, new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["category_id"] = tree[0]["id"],
+                ["title"] = "Acme pad",
+                ["make"] = "Toyota",
+                ["city"] = "Dubai",
+                ["price"] = 20
+            });
+            var acme = PhpPlanQ1Foam.EpcAccMarketplaceSearch(acmeDb, new Dictionary<string, object?>(StringComparer.Ordinal));
+            var beta = PhpPlanQ1Foam.EpcAccMarketplaceSearch(betaDb, new Dictionary<string, object?>(StringComparer.Ordinal));
+            Assert.True(lid > 0);
+            Assert.Equal(1, Convert.ToInt32(acme["total"], System.Globalization.CultureInfo.InvariantCulture));
+            Assert.Equal(0, Convert.ToInt32(beta["total"], System.Globalization.CultureInfo.InvariantCulture));
+            Assert.True(true.Equals(beta["empty_catalog"]));
+        }
+        finally
+        {
+            using var drop = admin.CreateCommand();
+            drop.CommandText = $"DROP DATABASE IF EXISTS `{acmeSchema}`";
+            drop.ExecuteNonQuery();
+            drop.CommandText = $"DROP DATABASE IF EXISTS `{betaSchema}`";
+            drop.ExecuteNonQuery();
+        }
+
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Foam.AccessoriesDbPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Foam.AccessoriesDbPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1425,6 +1506,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Draft.CrossInterchangePath,
             PhpPlanQ1Surge.CommercePriceIngestPath,
             PhpPlanQ1Swell.MultivendorPriceIngestPath,
+            PhpPlanQ1Foam.AccessoriesDbPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
