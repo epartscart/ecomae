@@ -1,0 +1,199 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "pure",
+            "output": "",
+            "result": [
+                "O&#039;Reilly &amp; Co",
+                "United Arab Emirates",
+                "ZZ",
+                {
+                    "device_type": "desktop",
+                    "browser": "Edge",
+                    "os": "Windows"
+                },
+                {
+                    "device_type": "tablet",
+                    "browser": "Other",
+                    "os": "macOS"
+                },
+                "hello wo",
+                true,
+                false,
+                "400 ms",
+                "2s",
+                "2m 5s",
+                "1h 1m",
+                "plain",
+                "\"a,b\"",
+                "\"say \"\"hi\"\"\"",
+                "a,\"b,c\"\r\n",
+                "10.1.2.3",
+                {
+                    "code": "AE",
+                    "name": "United Arab Emirates",
+                    "region": "",
+                    "city": ""
+                },
+                {
+                    "code": "",
+                    "name": "",
+                    "region": "",
+                    "city": ""
+                },
+                "ecomae",
+                "\n<script>window.EPC_WEB_TRACKER={\"endpoint\":\"/epc-web-tracker-collect.php\",\"site_key\":\"ecomae\",\"hostname\":\"www.ecomae.com\",\"user_id\":0,\"is_registered\":false,\"v\":\"20260718\"};</script>\n<script src=\"/content/general_pages/epc_web_tracker.js?v=20260718\" defer></script>\n",
+                {
+                    "sql": " AND s.`device_type` = ?  AND s.`country_code` = ?  AND s.`ip` LIKE ?  AND s.`user_id` = ?  AND s.`is_registered` = 1  AND s.`browser` LIKE ?  AND (s.`landing_path` LIKE ? OR s.`exit_path` LIKE ? OR EXISTS (SELECT 1 FROM `epc_web_tracker_pageviews` _wt_pv WHERE _wt_pv.`session_id` = s.`id` AND _wt_pv.`path` LIKE ?)) ",
+                    "params": [
+                        "mobile",
+                        "AE",
+                        "%10.%",
+                        12,
+                        "%Safari%",
+                        "%/desk%",
+                        "%/desk%",
+                        "%/desk%"
+                    ],
+                    "active": true
+                }
+            ]
+        },
+        {
+            "name": "request",
+            "output": "",
+            "result": [
+                {
+                    "from": 1767225600,
+                    "to": 1769903999
+                },
+                {
+                    "device": "mobile",
+                    "country": "AEXX",
+                    "ip": "10.1.2.3",
+                    "user_id": "42",
+                    "user_type": "registered",
+                    "path": "/deskparts",
+                    "browser": "Safari 17"
+                },
+                {
+                    "from": 1767311999,
+                    "to": 1798675200
+                },
+                "epartscart",
+                "shop_demo_test"
+            ]
+        },
+        {
+            "name": "ingest",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "session_id": 0,
+                    "pageviews": 0,
+                    "events": 0,
+                    "error": "bad_ids"
+                },
+                true,
+                2,
+                2,
+                {
+                    "site_key": "ecomae",
+                    "visitor_uid": "",
+                    "hostname": "www.ecomae.com",
+                    "user_id": 7,
+                    "is_registered": 1,
+                    "pageview_count": 2,
+                    "event_count": 2,
+                    "landing_path": "/desk/parts",
+                    "exit_path": "/cart",
+                    "referrer_host": "google.com",
+                    "utm_source": "google",
+                    "country_code": "AE",
+                    "device_type": "desktop",
+                    "browser": "Chrome"
+                },
+                2,
+                2,
+                true,
+                {
+                    "pageview_count": 3,
+                    "event_count": 2,
+                    "exit_path": "/checkout"
+                }
+            ]
+        },
+        {
+            "name": "dash",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "sessions": 1,
+                        "visitors": 0,
+                        "pageviews": 1,
+                        "events": 2,
+                        "clicks": 1,
+                        "searches": 1,
+                        "registered_sessions": 1,
+                        "guest_sessions": 0,
+                        "avg_duration_ms": 2500,
+                        "avg_pages": 1,
+                        "bounce_rate": 100
+                    },
+                    [
+                        "/desk/parts"
+                    ],
+                    [
+                        "bosch"
+                    ],
+                    1,
+                    [
+                        {
+                            "device_type": "desktop",
+                            "sessions": 1
+                        }
+                    ]
+                ],
+                [
+                    {
+                        "sessions": 1,
+                        "visitors": 0,
+                        "pageviews": 1,
+                        "events": 2,
+                        "clicks": 1,
+                        "searches": 1,
+                        "registered_sessions": 1,
+                        "guest_sessions": 0,
+                        "avg_duration_ms": 2500,
+                        "avg_pages": 1,
+                        "bounce_rate": 100
+                    },
+                    [
+                        "/desk/parts"
+                    ],
+                    [
+                        "bosch"
+                    ],
+                    1,
+                    [
+                        {
+                            "device_type": "desktop",
+                            "sessions": 1
+                        }
+                    ]
+                ],
+                "/desk/parts",
+                1,
+                2,
+                null,
+                null,
+                true,
+                true,
+                true
+            ]
+        }
+    ]
+}
