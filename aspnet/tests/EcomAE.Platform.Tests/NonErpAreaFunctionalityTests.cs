@@ -1463,6 +1463,28 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void PortalErpModules_FlagsStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Brine.Reset();
+        PhpPlanQ1Brine.IsPlatformErpActive = () => false;
+        var acme = PhpPlanQ1Brine.EpcPortalErpModulesEnabled(new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["erp_modules"] = new[] { "erp_sales" }
+        });
+        PhpPlanQ1Brine.Reset();
+        PhpPlanQ1Brine.IsPlatformErpActive = () => true;
+        var bos = PhpPlanQ1Brine.EpcPortalErpModulesEnabled(new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["erp_modules"] = new[] { "erp_sales" }
+        });
+        Assert.Equal(new[] { "erp_sales" }, acme);
+        Assert.Equal(11, bos.Count);
+        Assert.Contains("erp_finance", bos);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Brine.PortalErpModulesPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Brine.PortalErpModulesPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1531,6 +1553,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Swell.MultivendorPriceIngestPath,
             PhpPlanQ1Foam.AccessoriesDbPath,
             PhpPlanQ1Spray.ProfessionalShellPath,
+            PhpPlanQ1Brine.PortalErpModulesPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,

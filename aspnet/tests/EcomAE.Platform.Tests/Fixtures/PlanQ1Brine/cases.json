@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "names" },
+    { "name": "normalize" },
+    { "name": "onboard" },
+    { "name": "enabled" }
+  ]
+}
