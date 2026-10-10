@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "flat" },
+    { "name": "tree" },
+    { "name": "page" },
+    { "name": "single" }
+  ]
+}

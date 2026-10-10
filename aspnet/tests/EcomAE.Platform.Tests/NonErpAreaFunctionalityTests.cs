@@ -1758,6 +1758,43 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void GeoPicker_CityNameStaysOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Reach.Reset();
+        PhpPlanQ1Reach.TranslateById = raw => raw == "12" ? "Acme City" : raw == "4771" ? "Choose your city" : raw;
+        PhpPlanQ1Reach.GetUserSession = () => new Dictionary<string, object?>(StringComparer.Ordinal) { ["csrf_guard_key"] = "tok-1" };
+        var acmeRows = new List<Dictionary<string, object?>>
+        {
+            new(StringComparer.Ordinal) { ["id"] = 1, ["value"] = "100", ["level"] = 1, ["order"] = 10 },
+            new(StringComparer.Ordinal) { ["id"] = 12, ["value"] = "12", ["level"] = 3, ["order"] = 20 }
+        };
+        PhpPlanQ1Reach.QueryRows = () => acmeRows;
+        PhpPlanQ1Reach.CountRows = () => 2;
+        PhpPlanQ1Reach.QueryFirst = () => acmeRows[0];
+        PhpPlanQ1Reach.QueryById = id => acmeRows.FirstOrDefault(r => Convert.ToString(r["id"]) == id);
+        PhpPlanQ1Reach.MyCity = "12";
+        var acme = PhpPlanQ1Reach.Capture(PhpPlanQ1Reach.EpcGeoRenderModule);
+        var betaRows = new List<Dictionary<string, object?>>
+        {
+            new(StringComparer.Ordinal) { ["id"] = 1, ["value"] = "Beta Town", ["level"] = 3, ["order"] = 10 },
+            new(StringComparer.Ordinal) { ["id"] = 2, ["value"] = "Beta Port", ["level"] = 3, ["order"] = 20 }
+        };
+        PhpPlanQ1Reach.QueryRows = () => betaRows;
+        PhpPlanQ1Reach.QueryFirst = () => betaRows[0];
+        PhpPlanQ1Reach.QueryById = id => betaRows.FirstOrDefault(r => Convert.ToString(r["id"]) == id);
+        PhpPlanQ1Reach.TranslateById = raw => raw == "4771" ? "Choose your city" : raw;
+        PhpPlanQ1Reach.MyCity = "1";
+        var beta = PhpPlanQ1Reach.Capture(PhpPlanQ1Reach.EpcGeoRenderModule);
+        Assert.Contains("Acme City", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("Beta Town", acme, StringComparison.Ordinal);
+        Assert.Contains("Beta Town", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("Acme City", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Reach.PointGeoNodePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Reach.PointGeoNodePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("dp_user.php", PhpPlanQ1Reach.PointGeoNodePath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1838,6 +1875,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Atoll.SocialMediaHubPanelPath,
             PhpPlanQ1Fjord.MarketingBroadcastPanelPath,
             PhpPlanQ1Sound.CpGuidelinePath,
+            PhpPlanQ1Reach.PointGeoNodePath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
