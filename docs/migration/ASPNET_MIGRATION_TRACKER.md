@@ -380,7 +380,7 @@ Not complete.
 Not complete.
 
 - Ratchet 485 to 484. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Cove`): `content/social_media/epc_social_publish.php` (caption/URL helpers, tenant-scoped credentials, live tests, Facebook / Instagram / TikTok publish). HTTP stays injected. Portal parents stay stubbed. Credentials stay per `site_key`.
-- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Cove` (4). Cove parity 4 of 4. Inventory content 552 to 553 of 952. Unnamed PHP functions 6,666 to 6,650. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 318 files / 159,592 lines (was 319 / 160,217). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Cove` (4). Cove parity 4 of 4. PlanQ1 suites 181 of 181. Full platform suite **6139 / 6139** after Cove (was 6135 after Bay). Inventory content 552 to 553 of 952. Unnamed PHP functions 6,666 to 6,650. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 318 files / 159,592 lines (was 319 / 160,217). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
 ### Checkpoint 2026-10-10 — plan Q1-bay (Power BI helpers)
 
