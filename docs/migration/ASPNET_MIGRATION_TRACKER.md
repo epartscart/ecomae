@@ -380,7 +380,7 @@ Not complete.
 Not complete.
 
 - Ratchet 484 to 483. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Dock`): `content/general_pages/epc_portal_tenant.php` (templates, host gates, DNS, save of site-only / ERP-only shared / mixed dedicated, reserved-DB and cross-tenant DB collision, host load, registry by `site_key`, runtime vs dedicated credentials). Leftover portal / intro / demo / PDO parents stay stubbed. GET does not mint a session.
-- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Dock` (4). Dock parity 4 of 4. Inventory content 553 to 554 of 952. Unnamed PHP functions 6,650 to 6,634. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 317 files / 158,740 lines (was 318 / 159,592). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Dock` (4). Dock parity 4 of 4. PlanQ1 suites 185 of 185. Full platform suite **6143 / 6143** after Dock (was 6139 after Cove). Inventory content 553 to 554 of 952. Unnamed PHP functions 6,650 to 6,634. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 317 files / 158,740 lines (was 318 / 159,592). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0.
 
 ### Checkpoint 2026-10-10 — plan Q1-cove (social publish helpers)
 
