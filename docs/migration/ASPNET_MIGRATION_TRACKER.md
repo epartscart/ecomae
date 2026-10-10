@@ -362,7 +362,7 @@ Not complete.
 Not complete.
 
 - Ratchet 495 to 494. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Scan`): `content/general_pages/epc_cloudpanel_helpers.php` (CLI bin/available fallback, provision empty/unavailable, vhost string transforms, tenant snippets). RunCmd / IsDir / IsFile / Http stay injected so goldens never hit the panel or rewrite nginx.
-- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Scan` (4). Scan parity 4 of 4. Inventory content 544 to 545 of 952. Unnamed PHP functions 6,895 to 6,834. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 328 files / 166,536 lines (was 329 / 168,996). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Scan` (4). Scan parity 4 of 4. PlanQ1 suites 141 of 141. Full platform suite **6099 / 6099** after Scan (was 6095 after List). Inventory content 544 to 545 of 952. Unnamed PHP functions 6,895 to 6,834. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 328 files / 166,536 lines (was 329 / 168,996). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
 ### Checkpoint 2026-10-10 — plan Q1-list (agent catalog knowledge)
 
