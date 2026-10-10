@@ -5743,12 +5743,6 @@ setForRegistrated	SetForRegistrated	cp/content/users/user_groups.php	js	888	ment
 goToPage	GoToPage	cp/content/users/user_manager.php	js	1256	mentioned	browser-js
 locationBalance	LocationBalance	cp/content/users/user_manager.php	js	1256	mentioned	browser-js
 locationOrders	LocationOrders	cp/content/users/user_manager.php	js	1256	mentioned	browser-js
-epc_cp_auth_gate_erp_only_landing	EpcCpAuthGateErpOnlyLanding	cp/epc_cp_auth_gate.php	php	232	gap	later
-epc_cp_auth_gate_is_admin	EpcCpAuthGateIsAdmin	cp/epc_cp_auth_gate.php	php	232	gap	later
-epc_cp_auth_gate_mfa_ajax	EpcCpAuthGateMfaAjax	cp/epc_cp_auth_gate.php	php	232	gap	later
-epc_cp_auth_gate_pdo	EpcCpAuthGatePdo	cp/epc_cp_auth_gate.php	php	232	gap	later
-epc_cp_auth_gate_run	EpcCpAuthGateRun	cp/epc_cp_auth_gate.php	php	232	gap	later
-epc_cp_mfa_route_guard	EpcCpMfaRouteGuard	cp/epc_cp_auth_gate.php	php	232	gap	later
 printCatalogueBranch	PrintCatalogueBranch	cp/modules/left_cp_menu/catalogue_menu_helper.php	php	93	retired	skip
 on_auth_contact_select_changed	OnAuthContactSelectChanged	cp/plugins/authentication/login_form/template.php	js	209	gap	browser-js
 epc_cp_auth_plugin_file	EpcCpAuthPluginFile	cp/plugins/authentication/plugin.php	php	548	mentioned	partial-file

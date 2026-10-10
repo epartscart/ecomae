@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-keel (Super CP auth gate)
+
+Not complete.
+
+- Ratchet 479 to 478. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Keel`): `cp/epc_cp_auth_gate.php` (admin `COUNT===1` including duplicate-token refuse and missing-config / dropped-table catch, `(int)"7abc"` = 7, ERP-only landing with empty `backend_dir` → `//shop/...` and custom `panel`, guest `/cp` `/cp/` `/index.php` plus operator prefixes, POST `authentication` continue vs `empty('0')`, `backend_dir` trim, demo ERP-shell then post-login, platform ERP then client ERP then ERP-only landing skipped on platform hostname, MFA route guard `parse_url` null vs empty path, MFA ajax PHP slash-escaped JSON). Portal / demo / MFA parents stay injected. GET does not mint a session.
+- Area functionality gained a CP gate isolation case (foreign-user refuse, guest `/cp/` and tenant-hub redirects without cookies, platform-hostname skip of ERP-only landing, unauthenticated MFA JSON).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keel` (4). Keel parity 4 of 4. Area functionality 11 of 11. PlanQ1 suites 205 of 205. Full platform suite **6174 / 6174** after Keel (was 6169 after Hull). Area runner: auth 156, storefront commerce 123, CP/BOS 167, tenants/jobs/social 27. Inventory cp-page 261 to 262 of 523. Content stays 557 of 952. Unnamed PHP functions 6,606 to 6,600. Ready ≤200-line non-ERP functions stay 59. The weighted headline stays about 20.4%. Non-ERP pending: 312 files / 157,364 lines (was 313 / 157,596). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
+
 ### Checkpoint 2026-10-10 — plan Q1-hull (CP social login)
 
 Not complete.
