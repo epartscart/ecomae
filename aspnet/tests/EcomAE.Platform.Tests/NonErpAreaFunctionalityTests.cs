@@ -1659,6 +1659,33 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void SocialHubPanel_TenantKeysStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Atoll.Reset();
+        PhpPlanQ1Atoll.IsAdmin = () => true;
+        PhpPlanQ1Atoll.SocialPdo = () => new object();
+        PhpPlanQ1Atoll.ResolveSiteKey = () => "acme_parts";
+        PhpPlanQ1Atoll.BrandContext = key => new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["brand_name"] = key == "beta" ? "Beta Demo" : "Acme Parts",
+            ["industry"] = key,
+            ["market"] = key,
+            ["country"] = "AE",
+            ["handle"] = "@" + key
+        };
+        var acme = PhpPlanQ1Atoll.Capture(() => PhpPlanQ1Atoll.EpcSocialMediaRenderHub(new Dictionary<string, object?>(StringComparer.Ordinal) { ["is_super"] = 1 }));
+        PhpPlanQ1Atoll.ResolveSiteKey = () => "beta";
+        var beta = PhpPlanQ1Atoll.Capture(() => PhpPlanQ1Atoll.EpcSocialMediaRenderHub(new Dictionary<string, object?>(StringComparer.Ordinal) { ["is_super"] = 1 }));
+        Assert.Contains("Acme Parts", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("Beta Demo", acme, StringComparison.Ordinal);
+        Assert.Contains("Beta Demo", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("Acme Parts", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Atoll.SocialMediaHubPanelPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Atoll.SocialMediaHubPanelPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("dp_user.php", PhpPlanQ1Atoll.SocialMediaHubPanelPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1736,6 +1763,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Gulf.SuperCpPlatformPath,
             PhpPlanQ1Haven.ElectronicaeStorefrontPath,
             PhpPlanQ1Isle.ApiV1Path,
+            PhpPlanQ1Atoll.SocialMediaHubPanelPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,

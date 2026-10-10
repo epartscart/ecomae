@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "names" },
+    { "name": "gates" },
+    { "name": "hub" },
+    { "name": "tabs" }
+  ]
+}
