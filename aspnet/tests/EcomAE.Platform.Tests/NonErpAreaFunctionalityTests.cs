@@ -1640,6 +1640,25 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void ApiV1_TenantKeysAndProductsStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Isle.Reset();
+        PhpPlanQ1Isle.RequestUri = "/epc-api/v1/products/search?q=Pixel";
+        Assert.Equal("products/search", PhpPlanQ1Isle.EpcApiV1RoutePath());
+        PhpPlanQ1Isle.HeaderXApiKey = "0";
+        PhpPlanQ1Isle.HeaderAuthorization = "Bearer acme-key";
+        Assert.Equal("acme-key", PhpPlanQ1Isle.EpcApiV1ExtractKey());
+        PhpPlanQ1Isle.HeaderXApiKey = "beta-key";
+        Assert.Equal("beta-key", PhpPlanQ1Isle.EpcApiV1ExtractKey());
+        Assert.True(PhpPlanQ1Isle.EpcApiV1ScopeAllowed(["read:products"], "read:products"));
+        Assert.False(PhpPlanQ1Isle.EpcApiV1ScopeAllowed(["read:products"], "read:erp"));
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Isle.ApiV1Path, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Isle.ApiV1Path, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_portal.php", PhpPlanQ1Isle.ApiV1Path, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_portal_shared_erp.php", PhpPlanQ1Isle.ApiV1Path, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1716,6 +1735,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Cape.EpartscartStorefrontPath,
             PhpPlanQ1Gulf.SuperCpPlatformPath,
             PhpPlanQ1Haven.ElectronicaeStorefrontPath,
+            PhpPlanQ1Isle.ApiV1Path,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,

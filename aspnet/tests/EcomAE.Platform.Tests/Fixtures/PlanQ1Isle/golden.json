@@ -1,0 +1,337 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "names",
+            "output": "",
+            "result": [
+                "",
+                "",
+                "health",
+                "tenant/info",
+                "",
+                "",
+                "",
+                "key-one",
+                "tok-99",
+                "fallback",
+                [],
+                [
+                    "read:orders",
+                    "read:products"
+                ],
+                1,
+                1,
+                1,
+                0,
+                {
+                    "ok": false,
+                    "error": {
+                        "code": "missing_api_key",
+                        "message": "O'Reilly & Co"
+                    }
+                },
+                {
+                    "ok": true,
+                    "n": 1,
+                    "href": "https://www.ecomae.com/x"
+                }
+            ]
+        },
+        {
+            "name": "auth",
+            "output": "",
+            "result": [
+                1,
+                {
+                    "ok": false,
+                    "error": {
+                        "code": "missing_api_key",
+                        "message": "Send X-API-Key header with a valid tenant API key."
+                    }
+                },
+                1,
+                {
+                    "ok": false,
+                    "error": {
+                        "code": "invalid_api_key",
+                        "message": "API key not recognized or revoked."
+                    }
+                },
+                1,
+                {
+                    "ok": false,
+                    "error": {
+                        "code": "invalid_api_key",
+                        "message": "API key not recognized or revoked."
+                    }
+                },
+                1,
+                {
+                    "ok": false,
+                    "error": {
+                        "code": "insufficient_scope",
+                        "message": "This key lacks scope: read:erp"
+                    }
+                },
+                1,
+                "acme_parts",
+                "O'Reilly",
+                [
+                    "read:tenant",
+                    "read:orders"
+                ],
+                1,
+                1,
+                {
+                    "ok": false,
+                    "error": {
+                        "code": "tenant_not_found",
+                        "message": "Tenant linked to this API key is not registered."
+                    }
+                },
+                "catalog",
+                "full",
+                "full",
+                "full"
+            ]
+        },
+        {
+            "name": "shop",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "error": {
+                        "code": "missing_query",
+                        "message": "Provide q= search term."
+                    }
+                },
+                {
+                    "ok": true,
+                    "tenant_site_key": "acme_parts",
+                    "query": "Pixel",
+                    "count": 1,
+                    "products": [
+                        {
+                            "id": 21,
+                            "caption": "Pixel 8",
+                            "alias": "pixel-8",
+                            "category_id": 11
+                        }
+                    ]
+                },
+                {
+                    "ok": true,
+                    "tenant_site_key": "beta",
+                    "query": "Pixel",
+                    "count": 0,
+                    "products": []
+                },
+                {
+                    "ok": true,
+                    "tenant_site_key": "beta",
+                    "query": "Beta",
+                    "count": 1,
+                    "products": [
+                        {
+                            "id": 31,
+                            "caption": "Beta Cable",
+                            "alias": "beta-cable",
+                            "category_id": 4
+                        }
+                    ]
+                },
+                {
+                    "ok": true,
+                    "tenant_site_key": "acme_parts",
+                    "count": 1,
+                    "limit": 20,
+                    "orders": [
+                        {
+                            "id": 9,
+                            "time": "2023-11-14T22:13:20+00:00",
+                            "user_id": 21,
+                            "paid": true,
+                            "paid_type": 2,
+                            "status_name": "open"
+                        }
+                    ]
+                },
+                {
+                    "ok": true,
+                    "tenant_site_key": "acme_parts",
+                    "period": {
+                        "from": "2023-11-14T22:13:20+00:00",
+                        "to": "2023-11-15T22:13:20+00:00"
+                    },
+                    "kpis": {
+                        "order_count": 2,
+                        "revenue_ex_vat": 10.13,
+                        "profit_ex_vat": 1,
+                        "receivable_due_orders": 0,
+                        "customer_ledger_balance": 3.1,
+                        "payable_balance": 0,
+                        "cash_bank_total": 8,
+                        "vat_net_payable": 0.5,
+                        "vat_net_status": "payable"
+                    }
+                },
+                {
+                    "ok": false,
+                    "error": {
+                        "code": "insufficient_scope",
+                        "message": "This key lacks scope: read:erp"
+                    }
+                },
+                1
+            ]
+        },
+        {
+            "name": "dispatch",
+            "output": "",
+            "result": [
+                {
+                    "ok": true,
+                    "service": "epc-api",
+                    "version": "v1",
+                    "phase": 1,
+                    "mode": "read-only",
+                    "platform": "ECOM AE",
+                    "time": "ISO",
+                    "endpoints": [
+                        "/epc-api/v1/health",
+                        "/epc-api/v1/capabilities",
+                        "/epc-api/v1/openapi.json",
+                        "/epc-api/v1/tenant/info",
+                        "/epc-api/v1/orders",
+                        "/epc-api/v1/products/search",
+                        "/epc-api/v1/erp/dashboard-summary",
+                        "/epc-api/v1/powerbi/catalog",
+                        "/epc-api/v1/powerbi/kpis",
+                        "/epc-api/v1/powerbi/orders",
+                        "/epc-api/v1/powerbi/sales",
+                        "/epc-api/v1/powerbi/stock",
+                        "/epc-api/v1/powerbi/gl",
+                        "/epc-api/v1/powerbi/metrics"
+                    ]
+                },
+                {
+                    "ok": true,
+                    "api_phase": 1,
+                    "capability_areas": [
+                        {
+                            "area": "cp",
+                            "capability_count": 3
+                        },
+                        {
+                            "area": "bos",
+                            "capability_count": 2
+                        }
+                    ],
+                    "total_capabilities": 5,
+                    "integrations": {
+                        "public_rest": "Phase 1 read-only JSON at /epc-api/v1/",
+                        "power_bi": "Web connector datasets at /epc-api/v1/powerbi/* (JSON/CSV, X-API-Key)",
+                        "erp_ajax": "Internal CP session — not public",
+                        "future": [
+                            "webhooks",
+                            "e-invoice submit",
+                            "d365 sync",
+                            "marketplace write APIs v2",
+                            "power_bi_azure_embed"
+                        ]
+                    },
+                    "docs": "https://www.ecomae.com/platform/api-documentation"
+                },
+                {
+                    "ok": false,
+                    "error": {
+                        "code": "not_found",
+                        "message": "Unknown API route: nope"
+                    }
+                },
+                {
+                    "ok": false,
+                    "error": {
+                        "code": "spec_missing",
+                        "message": "OpenAPI spec file not deployed."
+                    }
+                },
+                {
+                    "ok": false,
+                    "error": {
+                        "code": "missing_api_key",
+                        "message": "Send X-API-Key header with a valid tenant API key."
+                    }
+                },
+                {
+                    "ok": true,
+                    "tenant": {
+                        "site_key": "acme_parts",
+                        "trade_name": "Acme Parts",
+                        "hostname": "www.acme.test",
+                        "industry_code": "auto_parts",
+                        "status": "live",
+                        "access_mode": "catalog",
+                        "erp_only_shared": false
+                    },
+                    "key_label": "Ops",
+                    "scopes": [
+                        "read:tenant",
+                        "read:bi",
+                        "read:erp"
+                    ]
+                },
+                {
+                    "ok": true,
+                    "tenant_site_key": "acme_parts",
+                    "capabilities": [
+                        "kpis",
+                        "orders"
+                    ],
+                    "datasets": [
+                        {
+                            "id": "kpis",
+                            "url": "https://www.ecomae.com/epc-api/v1/powerbi/kpis"
+                        }
+                    ],
+                    "auth": {
+                        "header": "X-API-Key",
+                        "scopes_accepted": [
+                            "read:bi",
+                            "read:erp",
+                            "read:*",
+                            "*"
+                        ]
+                    }
+                },
+                {
+                    "ok": true,
+                    "tenant_site_key": "acme_parts",
+                    "dataset": "kpis",
+                    "count": 1,
+                    "meta": {
+                        "n": 1
+                    },
+                    "columns": [
+                        "a",
+                        "b"
+                    ],
+                    "rows": [
+                        {
+                            "a": "x",
+                            "b": 1
+                        }
+                    ],
+                    "power_bi": {
+                        "format_hint": "Add ?format=csv for Power BI Web connector CSV refresh",
+                        "scope": "read:bi"
+                    }
+                },
+                "CSV:powerbi_kpis.csv:a,b",
+                1
+            ]
+        }
+    ]
+}
