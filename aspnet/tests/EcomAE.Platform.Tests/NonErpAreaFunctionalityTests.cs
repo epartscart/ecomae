@@ -482,6 +482,35 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void WhatsappShare_SalesDigitsAndLogs_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Gaff.Reset();
+        PhpPlanQ1Gaff.AgentHref = () => "https://wa.me/971500000001";
+        var acme = PhpPlanQ1Gaff.EpcWaSalesDigits(new Dictionary<string, object?>(StringComparer.Ordinal));
+        PhpPlanQ1Gaff.AgentHref = () => "https://wa.me/971500000002";
+        var beta = PhpPlanQ1Gaff.EpcWaSalesDigits(new Dictionary<string, object?>(StringComparer.Ordinal));
+        Assert.Equal("971500000001", acme);
+        Assert.Equal("971500000002", beta);
+        var logs = new List<string>();
+        PhpPlanQ1Gaff.InsertLog = (_, _, text) => logs.Add(text);
+        PhpPlanQ1Gaff.OrderItems = _ => [];
+        PhpPlanQ1Gaff.EpcWaNotifyOrderStatusChange(
+            new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["from_name"] = "Acme",
+                ["domain_path"] = "https://acme.example/"
+            },
+            9,
+            "Packed",
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["phone_not_auth"] = "+971-55-1" });
+        Assert.Single(logs);
+        Assert.Contains("Packed", logs[0], StringComparison.Ordinal);
+        Assert.DoesNotContain("971500000002", logs[0], StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Gaff.WhatsappSharePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Gaff.WhatsappSharePath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -521,6 +550,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Boom.BlockchainBosPath,
             PhpPlanQ1Stay.PageAssetsPath,
             PhpPlanQ1Jib.TenantShowcasePath,
+            PhpPlanQ1Gaff.WhatsappSharePath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
