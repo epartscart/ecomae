@@ -381,7 +381,7 @@ Not complete.
 
 - Ratchet 483 to 482. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Pier`): `content/general_pages/epc_platform_jobs.php` (enqueue with dedupe, claim by priority, complete, fail retry/dead, tenant health/warmup, batch). Leftover intro / tenant-PDO / blockchain / ERP-tick parents stay stubbed or unmentioned. GET does not mint a session.
 - Production update paste for completed `main` work: `docs/migration/PRODUCTION_UPDATE_PASTE.md`. This branch is not production until it merges and CloudPanel republishes `:5100`.
-- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Pier` (4). Pier parity 4 of 4. Inventory content 554 to 555 of 952. Unnamed PHP functions 6,634 to 6,623. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 316 files / 158,291 lines (was 317 / 158,740). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Pier` (4). Pier parity 4 of 4. PlanQ1 suites 189 of 189. Full platform suite **6147 / 6147** after Pier (was 6143 after Dock). Inventory content 554 to 555 of 952. Unnamed PHP functions 6,634 to 6,623. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 316 files / 158,291 lines (was 317 / 158,740). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0.
 
 ### Checkpoint 2026-10-10 — plan Q1-dock (tenant onboard kernel)
 
