@@ -967,6 +967,29 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void MarketingStrategies_DomainHost_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Aft.Reset();
+        PhpPlanQ1Aft.SiteDomain = () => "https://acme.test";
+        PhpPlanQ1Aft.SiteHost = () => "acme.test";
+        var acme = PhpPlanQ1Aft.EpcMarketingStrategies();
+        PhpPlanQ1Aft.SiteDomain = () => "https://beta.test";
+        PhpPlanQ1Aft.SiteHost = () => "beta.test";
+        var beta = PhpPlanQ1Aft.EpcMarketingStrategies();
+        var acmeUrl = ((List<object?>)acme["measurement"]["links"]!)[0] is Dictionary<string, object?> acmeLink
+            ? Convert.ToString(acmeLink["url"])
+            : "";
+        var betaUrl = ((List<object?>)beta["measurement"]["links"]!)[0] is Dictionary<string, object?> betaLink
+            ? Convert.ToString(betaLink["url"])
+            : "";
+        Assert.Equal("https://acme.test/sitemap-products.php", acmeUrl);
+        Assert.Equal("https://beta.test/sitemap-products.php", betaUrl);
+        Assert.DoesNotContain("beta", acmeUrl, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Aft.StrategiesDataPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Aft.StrategiesDataPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1027,6 +1050,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Stem.AccessoriesCatalogPath,
             PhpPlanQ1Port.BrochureLivePath,
             PhpPlanQ1Starboard.FullBrochurePath,
+            PhpPlanQ1Aft.StrategiesDataPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,

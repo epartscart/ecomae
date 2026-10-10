@@ -379,7 +379,11 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Port`, 7 cases): norm key / ca
 
 ### Q1 starboard — done (`PhpPlanQ1Starboard`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Starboard`, 4 cases): URL dedupe (stub lose), scope filter + empty-area drop, extra CSS concat, deck/catalog HTML byte length. Live inventory and marketing brochure parents stay injected. GET does not mint a session. Next unused class after Starboard: Aft.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Starboard`, 4 cases): URL dedupe (stub lose), scope filter + empty-area drop, extra CSS concat, deck/catalog HTML byte length. Live inventory and marketing brochure parents stay injected. GET does not mint a session.
+
+### Q1 aft — done (`PhpPlanQ1Aft`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Aft`, 4 cases): empty domain/host, domain interpolation, host `htmlspecialchars` ENT_QUOTES, config `domain_path` fallback. Site-context stays injected. Work helpers keep their two-key stub so that golden stays stable. GET does not mint a session. Next unused class after Aft: Bow.
 
 Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 285 files.
 
@@ -421,6 +425,9 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6y | `epc_tenant_templates_catalog.php` | Closed in Sail. |
 | 6z | `docpart_epc_article_brands.php` | Closed in Line. |
 | 6aa | `epc_accessories_catalog.php` | Closed in Stem. |
+| 6ab | `epc_cp_brochure_live.php` | Closed in Port. |
+| 6ac | `epc_cp_full_brochure.php` | Closed in Starboard. |
+| 6ad | `epc_marketing_strategies_data.php` | Closed in Aft. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
