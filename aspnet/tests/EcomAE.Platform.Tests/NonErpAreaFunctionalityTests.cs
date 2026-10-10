@@ -828,6 +828,60 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void ArticleBrands_WarehouseAndCanon_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Line.Reset();
+        PhpPlanQ1Line.WarehouseBrands = (_, _, _) => ["AcmeBrand"];
+        PhpPlanQ1Line.CanonicalMap = _ => new Dictionary<string, string>(StringComparer.Ordinal);
+        PhpPlanQ1Line.SynonymCanonical = (_, _) => "";
+        PhpPlanQ1Line.CacheRead = _ => "";
+        PhpPlanQ1Line.HttpGet = (_, _) => "";
+        using var admin = new MySqlConnector.MySqlConnection(
+            "Server=127.0.0.1;Port=3306;User ID=ecomae;Password=" +
+            (Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN") ?? "") +
+            ";AllowUserVariables=true;");
+        admin.Open();
+        var schema = "ecomae_cpw_linearea_" + Guid.NewGuid().ToString("N")[..8];
+        using (var cmd = admin.CreateCommand())
+        {
+            cmd.CommandText = $"CREATE DATABASE `{schema}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
+            cmd.ExecuteNonQuery();
+        }
+
+        try
+        {
+            using var db = new MySqlConnector.MySqlConnection(
+                $"Server=127.0.0.1;Port=3306;Database={schema};User ID=ecomae;Password=" +
+                (Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN") ?? "") +
+                ";AllowUserVariables=true;");
+            db.Open();
+            using (var cmd = db.CreateCommand())
+            {
+                cmd.CommandText = "CREATE TABLE shop_docpart_articles_analogs_list (article VARCHAR(64), manufacturer_article VARCHAR(64), analog VARCHAR(64), manufacturer_analog VARCHAR(64))";
+                cmd.ExecuteNonQuery();
+            }
+
+            var acme = PhpPlanQ1Line.EpcCollectArticleCatalogBrands(db, new Dictionary<string, object?> { ["local_crosses"] = 0 }, "OC47");
+            PhpPlanQ1Line.WarehouseBrands = (_, _, _) => ["BetaBrand"];
+            var beta = PhpPlanQ1Line.EpcCollectArticleCatalogBrands(db, new Dictionary<string, object?> { ["local_crosses"] = 0 }, "OC47");
+            var acmeShows = ((List<Dictionary<string, object?>>)acme["manufacturers"]!).Select(m => Convert.ToString(m["manufacturer_show"])).ToList();
+            var betaShows = ((List<Dictionary<string, object?>>)beta["manufacturers"]!).Select(m => Convert.ToString(m["manufacturer_show"])).ToList();
+            Assert.Contains("ACMEBRAND", acmeShows);
+            Assert.Contains("BETABRAND", betaShows);
+            Assert.DoesNotContain("BETABRAND", acmeShows);
+        }
+        finally
+        {
+            using var drop = admin.CreateCommand();
+            drop.CommandText = $"DROP DATABASE IF EXISTS `{schema}`";
+            drop.ExecuteNonQuery();
+        }
+
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Line.ArticleBrandsPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Line.ArticleBrandsPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -884,6 +938,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Wake.BocPageShellPath,
             PhpPlanQ1Wind.PriceUploadDiagnosticsPath,
             PhpPlanQ1Sail.TenantTemplatesCatalogPath,
+            PhpPlanQ1Line.ArticleBrandsPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
