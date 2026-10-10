@@ -259,7 +259,7 @@ public sealed class PhpPlanQ1MoreParityTests
         var got = PhpPlanQ1More.EpcDealerGet(store, Convert.ToInt32(a["dealer_id"]));
         var miss = PhpPlanQ1More.EpcDealerPlaceOrder(store, "siteA", Convert.ToInt32(a["dealer_id"]), 1000);
         var act = PhpPlanQ1More.EpcDealerActivate(store, Convert.ToInt32(a["dealer_id"]));
-        var ord = PhpPlanQ1More.EpcDealerPlaceOrder(store, "siteA", Convert.ToInt32(a["dealer_id"]), 1000);
+        var ord = PhpPlanQ1More.EpcDealerPlaceOrder(store, "siteA", Convert.ToInt32(a["dealer_id"]), 1000, now: new DateTime(2026, 10, 9, 0, 0, 0, DateTimeKind.Utc));
         var tier = PhpPlanQ1More.EpcDealerAutoTier(store, Convert.ToInt32(a["dealer_id"]));
         store.Dealers.First(d => d.Id == Convert.ToInt32(a["dealer_id"])).YtdRevenue = 200000;
         var tier2 = PhpPlanQ1More.EpcDealerAutoTier(store, Convert.ToInt32(a["dealer_id"]));
