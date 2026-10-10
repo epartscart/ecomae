@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "norm" },
+    { "name": "clause" },
+    { "name": "collect" },
+    { "name": "chpu" }
+  ]
+}

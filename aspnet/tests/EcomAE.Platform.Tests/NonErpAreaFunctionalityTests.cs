@@ -1051,6 +1051,43 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void ArticleMatch_PartUrl_StaysOnTheInjectedTenant()
+    {
+        PhpPlanQ1Beam.Reset();
+        var acme = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["chpu_search_config"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["level_1"] = new Dictionary<string, object?>(StringComparer.Ordinal) { ["url"] = "acme-parts" },
+                ["level_2"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["mode_1"] = new Dictionary<string, object?>(StringComparer.Ordinal) { ["url"] = "brands" }
+                },
+                ["slash_code"] = "---"
+            }
+        };
+        var beta = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["chpu_search_config"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["level_1"] = new Dictionary<string, object?>(StringComparer.Ordinal) { ["url"] = "beta-parts" },
+                ["level_2"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["mode_1"] = new Dictionary<string, object?>(StringComparer.Ordinal) { ["url"] = "brands" }
+                },
+                ["slash_code"] = "---"
+            }
+        };
+        var acmeUrl = PhpPlanQ1Beam.EpcChpuBuildPartUrl(acme, "/en", "Bosch", "OC-47");
+        var betaUrl = PhpPlanQ1Beam.EpcChpuBuildPartUrl(beta, "/en", "Bosch", "OC-47");
+        Assert.Equal("/en/acme-parts/BOSCH/OC47", acmeUrl);
+        Assert.Equal("/en/beta-parts/BOSCH/OC47", betaUrl);
+        Assert.DoesNotContain("beta-parts", acmeUrl, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Beam.ArticleMatchPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Beam.ArticleMatchPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1113,6 +1150,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Starboard.FullBrochurePath,
             PhpPlanQ1Aft.StrategiesDataPath,
             PhpPlanQ1Bow.ProductFamilyPath,
+            PhpPlanQ1Beam.ArticleMatchPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
