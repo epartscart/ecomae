@@ -1,0 +1,1485 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "tiers",
+            "output": "",
+            "result": [
+                "Demo",
+                "Pilot",
+                "Production",
+                "Enterprise",
+                "Unknown",
+                {
+                    "site_key": "missing",
+                    "score": 0,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 0,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                {
+                    "site_key": "pilot",
+                    "score": 20,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 20,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "warn",
+                            "earned": 10,
+                            "detail": "Isolation audit has warnings. Review recommended."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "pass",
+                            "earned": 10,
+                            "detail": "Homepage loads in 1500ms. Under 2s target."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                {
+                    "site_key": "paid",
+                    "score": 75,
+                    "tier": "paid",
+                    "tier_label": "Production",
+                    "total_weight": 100,
+                    "earned_weight": 75,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "pass",
+                            "earned": 20,
+                            "detail": "Site_key isolation audit passed."
+                        },
+                        "mfa": {
+                            "status": "pass",
+                            "earned": 15,
+                            "detail": "MFA (TOTP) is enabled for finance roles."
+                        },
+                        "backup": {
+                            "status": "pass",
+                            "earned": 10,
+                            "detail": "Last backup 1h ago. Within 24h RPO."
+                        },
+                        "einvoice": {
+                            "status": "pass",
+                            "earned": 15,
+                            "detail": "E-invoice ASP API integration is live."
+                        },
+                        "homepage_perf": {
+                            "status": "pass",
+                            "earned": 10,
+                            "detail": "Homepage loads in 900ms. Under 2s target."
+                        },
+                        "compliance": {
+                            "status": "warn",
+                            "earned": 5,
+                            "detail": "1/2 compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                {
+                    "site_key": "ent",
+                    "score": 100,
+                    "tier": "enterprise",
+                    "tier_label": "Enterprise",
+                    "total_weight": 100,
+                    "earned_weight": 100,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "pass",
+                            "earned": 20,
+                            "detail": "Site_key isolation audit passed."
+                        },
+                        "mfa": {
+                            "status": "pass",
+                            "earned": 15,
+                            "detail": "MFA (TOTP) is enabled for finance roles."
+                        },
+                        "backup": {
+                            "status": "pass",
+                            "earned": 10,
+                            "detail": "Last backup 1h ago. Within 24h RPO."
+                        },
+                        "einvoice": {
+                            "status": "pass",
+                            "earned": 15,
+                            "detail": "E-invoice ASP API integration is live."
+                        },
+                        "homepage_perf": {
+                            "status": "pass",
+                            "earned": 10,
+                            "detail": "Homepage loads in 800ms. Under 2s target."
+                        },
+                        "compliance": {
+                            "status": "pass",
+                            "earned": 10,
+                            "detail": "VAT TRN and trade license configured."
+                        },
+                        "erp_modules": {
+                            "status": "pass",
+                            "earned": 10,
+                            "detail": "5 ERP modules activated."
+                        },
+                        "branding": {
+                            "status": "pass",
+                            "earned": 5,
+                            "detail": "Tenant branding configured (3 design tokens)."
+                        },
+                        "webhooks": {
+                            "status": "pass",
+                            "earned": 5,
+                            "detail": "1 active webhook configured."
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "checks",
+            "output": "",
+            "result": {
+                "acme": {
+                    "site_key": "acme",
+                    "score": 60,
+                    "tier": "paid",
+                    "tier_label": "Production",
+                    "total_weight": 100,
+                    "earned_weight": 60,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "pass",
+                            "earned": 20,
+                            "detail": "Site_key isolation audit passed."
+                        },
+                        "mfa": {
+                            "status": "pass",
+                            "earned": 15,
+                            "detail": "MFA (TOTP) is enabled for finance roles."
+                        },
+                        "backup": {
+                            "status": "pass",
+                            "earned": 10,
+                            "detail": "Last backup 2h ago. Within 24h RPO."
+                        },
+                        "einvoice": {
+                            "status": "pass",
+                            "earned": 15,
+                            "detail": "E-invoice ASP API integration is live."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "beta": {
+                    "site_key": "beta",
+                    "score": 0,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 0,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "Isolation audit failed. Fix cross-tenant leaks."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "warn": {
+                    "site_key": "warn",
+                    "score": 10,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 10,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "warn",
+                            "earned": 10,
+                            "detail": "Isolation audit has warnings. Review recommended."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "old": {
+                    "site_key": "old",
+                    "score": 5,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 5,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "warn",
+                            "earned": 5,
+                            "detail": "Last backup 28h ago. Exceeds 24h RPO."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "stale": {
+                    "site_key": "stale",
+                    "score": 0,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 0,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "Last backup 2 days ago. Critical."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "zero": {
+                    "site_key": "zero",
+                    "score": 0,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 0,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "man": {
+                    "site_key": "man",
+                    "score": 7,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 7,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "warn",
+                            "earned": 7,
+                            "detail": "E-invoice in manual mode. Switch to API for automation."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "tst": {
+                    "site_key": "tst",
+                    "score": 4,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 4,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "warn",
+                            "earned": 4,
+                            "detail": "E-invoice in test mode. Move to live for FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "fast": {
+                    "site_key": "fast",
+                    "score": 10,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 10,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "pass",
+                            "earned": 10,
+                            "detail": "Homepage loads in 1999ms. Under 2s target."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "slow": {
+                    "site_key": "slow",
+                    "score": 5,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 5,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "warn",
+                            "earned": 5,
+                            "detail": "Homepage loads in 2000ms. Target is under 2s."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "dead": {
+                    "site_key": "dead",
+                    "score": 0,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 0,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "Homepage loads in 5000ms. Critical performance issue."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "half": {
+                    "site_key": "half",
+                    "score": 5,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 5,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "warn",
+                            "earned": 5,
+                            "detail": "1/2 compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "full": {
+                    "site_key": "full",
+                    "score": 10,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 10,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "pass",
+                            "earned": 10,
+                            "detail": "VAT TRN and trade license configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "blank": {
+                    "site_key": "blank",
+                    "score": 0,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 0,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "one": {
+                    "site_key": "one",
+                    "score": 2,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 2,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "warn",
+                            "earned": 2,
+                            "detail": "Partial branding configured. Add logo and colors."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "three": {
+                    "site_key": "three",
+                    "score": 5,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 5,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "pass",
+                            "earned": 5,
+                            "detail": "Tenant branding configured (3 design tokens)."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                },
+                "hook": {
+                    "site_key": "hook",
+                    "score": 5,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 5,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "pass",
+                            "earned": 5,
+                            "detail": "1 active webhook configured."
+                        }
+                    }
+                },
+                "hook2": {
+                    "site_key": "hook2",
+                    "score": 5,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 5,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Isolation audit not yet run for this tenant."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No ERP modules activated for this tenant."
+                        },
+                        "branding": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No tenant branding configured."
+                        },
+                        "webhooks": {
+                            "status": "pass",
+                            "earned": 5,
+                            "detail": "1 active webhook configured."
+                        }
+                    }
+                },
+                "iso_direct": [
+                    {
+                        "id": "isolation",
+                        "label": "Commerce Isolation",
+                        "weight": 20,
+                        "earned": 20,
+                        "status": "pass",
+                        "detail": "Site_key isolation audit passed.",
+                        "icon": "fa-shield",
+                        "remediation": "Run isolation audit from BOS Fleet Command."
+                    },
+                    {
+                        "id": "isolation",
+                        "label": "Commerce Isolation",
+                        "weight": 20,
+                        "earned": 0,
+                        "status": "fail",
+                        "detail": "Isolation audit failed. Fix cross-tenant leaks.",
+                        "icon": "fa-shield",
+                        "remediation": "Run isolation audit from BOS Fleet Command."
+                    },
+                    {
+                        "id": "isolation",
+                        "label": "Commerce Isolation",
+                        "weight": 20,
+                        "earned": 0,
+                        "status": "not_run",
+                        "detail": "Isolation audit not yet run for this tenant.",
+                        "icon": "fa-shield",
+                        "remediation": "Run isolation audit from BOS Fleet Command."
+                    }
+                ]
+            }
+        },
+        {
+            "name": "erp",
+            "output": "",
+            "result": [
+                {
+                    "five": {
+                        "id": "erp_modules",
+                        "label": "ERP Modules",
+                        "weight": 10,
+                        "earned": 10,
+                        "status": "pass",
+                        "detail": "5 ERP modules activated.",
+                        "icon": "fa-th-large",
+                        "remediation": "Enable ERP modules in Super CP → Tenant Hub."
+                    },
+                    "three": {
+                        "id": "erp_modules",
+                        "label": "ERP Modules",
+                        "weight": 10,
+                        "earned": 6,
+                        "status": "warn",
+                        "detail": "3 ERP modules activated. Recommend 5+ for full suite.",
+                        "icon": "fa-th-large",
+                        "remediation": "Enable ERP modules in Super CP → Tenant Hub."
+                    },
+                    "empty": {
+                        "id": "erp_modules",
+                        "label": "ERP Modules",
+                        "weight": 10,
+                        "earned": 0,
+                        "status": "fail",
+                        "detail": "No ERP modules activated for this tenant.",
+                        "icon": "fa-th-large",
+                        "remediation": "Enable ERP modules in Super CP → Tenant Hub."
+                    },
+                    "bad": {
+                        "id": "erp_modules",
+                        "label": "ERP Modules",
+                        "weight": 10,
+                        "earned": 0,
+                        "status": "fail",
+                        "detail": "No ERP modules activated for this tenant.",
+                        "icon": "fa-th-large",
+                        "remediation": "Enable ERP modules in Super CP → Tenant Hub."
+                    },
+                    "blank": {
+                        "id": "erp_modules",
+                        "label": "ERP Modules",
+                        "weight": 10,
+                        "earned": 0,
+                        "status": "fail",
+                        "detail": "No ERP modules activated for this tenant.",
+                        "icon": "fa-th-large",
+                        "remediation": "Enable ERP modules in Super CP → Tenant Hub."
+                    },
+                    "erp1": {
+                        "id": "erp_modules",
+                        "label": "ERP Modules",
+                        "weight": 10,
+                        "earned": 10,
+                        "status": "pass",
+                        "detail": "ERP enabled for tenant (module list not tracked).",
+                        "icon": "fa-th-large",
+                        "remediation": "Enable ERP modules in Super CP → Tenant Hub."
+                    },
+                    "site1": {
+                        "id": "erp_modules",
+                        "label": "ERP Modules",
+                        "weight": 10,
+                        "earned": 0,
+                        "status": "fail",
+                        "detail": "No ERP modules activated for this tenant.",
+                        "icon": "fa-th-large",
+                        "remediation": "Enable ERP modules in Super CP → Tenant Hub."
+                    }
+                },
+                {
+                    "id": "erp_modules",
+                    "label": "ERP Modules",
+                    "weight": 10,
+                    "earned": 0,
+                    "status": "not_run",
+                    "detail": "ERP module check unavailable.",
+                    "icon": "fa-th-large",
+                    "remediation": "Enable ERP modules in Super CP → Tenant Hub."
+                },
+                {
+                    "id": "webhooks",
+                    "label": "Webhooks",
+                    "weight": 5,
+                    "earned": 0,
+                    "status": "not_run",
+                    "detail": "Webhook system not deployed yet.",
+                    "icon": "fa-plug",
+                    "remediation": "Register webhook endpoints in BOS or ERP settings."
+                }
+            ]
+        },
+        {
+            "name": "fleet",
+            "output": "",
+            "result": [
+                {
+                    "tenant_count": 2,
+                    "average_score": 51,
+                    "tenants": [
+                        {
+                            "site_key": "acme",
+                            "trade_name": "Acme Parts",
+                            "industry": "auto",
+                            "score": 100,
+                            "tier": "enterprise",
+                            "tier_label": "Enterprise",
+                            "checks": 9,
+                            "passed": 9
+                        },
+                        {
+                            "site_key": "beta",
+                            "trade_name": "Beta Shop",
+                            "industry": "retail",
+                            "score": 2,
+                            "tier": "demo",
+                            "tier_label": "Demo",
+                            "checks": 9,
+                            "passed": 0
+                        }
+                    ],
+                    "generated_at": "ISO"
+                },
+                {
+                    "tenant_count": 0,
+                    "average_score": 0,
+                    "tenants": [],
+                    "generated_at": "ISO"
+                },
+                {
+                    "tenant_count": 0,
+                    "average_score": 0,
+                    "tenants": [],
+                    "generated_at": "ISO"
+                },
+                {
+                    "site_key": "beta",
+                    "score": 2,
+                    "tier": "demo",
+                    "tier_label": "Demo",
+                    "total_weight": 100,
+                    "earned_weight": 2,
+                    "generated_at": "ISO",
+                    "checks": {
+                        "isolation": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "Isolation audit failed. Fix cross-tenant leaks."
+                        },
+                        "mfa": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "MFA not enabled. Required for enterprise tier."
+                        },
+                        "backup": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No backup recorded. Set up daily backup schedule."
+                        },
+                        "einvoice": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "E-invoice not configured. Required for UAE FTA compliance."
+                        },
+                        "homepage_perf": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "Homepage load time not measured. Run performance test."
+                        },
+                        "compliance": {
+                            "status": "fail",
+                            "earned": 0,
+                            "detail": "No compliance items configured."
+                        },
+                        "erp_modules": {
+                            "status": "not_run",
+                            "earned": 0,
+                            "detail": "ERP module check unavailable."
+                        },
+                        "branding": {
+                            "status": "warn",
+                            "earned": 2,
+                            "detail": "Partial branding configured. Add logo and colors."
+                        },
+                        "webhooks": {
+                            "status": "warn",
+                            "earned": 0,
+                            "detail": "No webhooks configured. Optional but recommended for integrations."
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

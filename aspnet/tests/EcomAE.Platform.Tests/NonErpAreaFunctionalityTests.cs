@@ -350,6 +350,44 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void Readiness_ScoreAndFleet_StayOnTheTenant()
+    {
+        PhpPlanQ1Yard.Reset();
+        PhpPlanQ1Yard.AddSetting("acme", "isolation_audit_status", "pass");
+        PhpPlanQ1Yard.AddSetting("acme", "mfa_enabled", "1");
+        PhpPlanQ1Yard.AddSetting("beta", "isolation_audit_status", "fail");
+        PhpPlanQ1Yard.Tenants.Add(new PhpPlanQ1Yard.TenantRow
+        {
+            SiteKey = "acme",
+            TradeName = "Acme",
+            Status = "live",
+            Industry = "auto",
+            ErpEnabled = 1
+        });
+        PhpPlanQ1Yard.Tenants.Add(new PhpPlanQ1Yard.TenantRow
+        {
+            SiteKey = "beta",
+            TradeName = "Beta",
+            Status = "live",
+            Industry = "retail",
+            ErpEnabled = 0
+        });
+        var acme = PhpPlanQ1Yard.EpcReadinessScore("acme");
+        var beta = PhpPlanQ1Yard.EpcReadinessScore("beta");
+        Assert.Equal("acme", Convert.ToString(acme["site_key"]));
+        Assert.Equal("beta", Convert.ToString(beta["site_key"]));
+        Assert.True(Convert.ToInt32(acme["score"]) > Convert.ToInt32(beta["score"]));
+        var isoAcme = ((List<Dictionary<string, object?>>)acme["checks"]!).First(c => Convert.ToString(c["id"]) == "isolation");
+        var isoBeta = ((List<Dictionary<string, object?>>)beta["checks"]!).First(c => Convert.ToString(c["id"]) == "isolation");
+        Assert.Equal("pass", Convert.ToString(isoAcme["status"]));
+        Assert.Equal("fail", Convert.ToString(isoBeta["status"]));
+        var fleet = PhpPlanQ1Yard.EpcReadinessFleetSummary();
+        Assert.Equal(2, Convert.ToInt32(fleet["tenant_count"]));
+        Assert.DoesNotContain("PHPSESSID", Convert.ToString(acme["tier"]), StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Yard.ReadinessPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CoveredAreas_AreCursorOwnedNotErp()
     {
         var paths = new[]
@@ -358,6 +396,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Keel.AuthGatePath,
             PhpPlanQ1Mast.RestApiPath,
             PhpPlanQ1Helm.AuthSmtpPath,
+            PhpPlanQ1Yard.ReadinessPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,

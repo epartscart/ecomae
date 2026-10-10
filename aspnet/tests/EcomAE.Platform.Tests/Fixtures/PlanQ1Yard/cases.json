@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "tiers",
+      "eval": "return yard_run_tiers($GLOBALS['db_link']);"
+    },
+    {
+      "name": "checks",
+      "eval": "return yard_run_checks($GLOBALS['db_link']);"
+    },
+    {
+      "name": "erp",
+      "eval": "return yard_run_erp($GLOBALS['db_link']);"
+    },
+    {
+      "name": "fleet",
+      "eval": "return yard_run_fleet($GLOBALS['db_link']);"
+    }
+  ]
+}
