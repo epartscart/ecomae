@@ -381,7 +381,7 @@ Not complete.
 
 - Ratchet 455 to 454. One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Line` `content/shop/docpart/docpart_epc_article_brands.php` (empty article, add/dedupe/UMAPI key tail, Crossbase HTML brand parse, warehouse + CP crosses + synonym merge; leftover article-match / synonym / cache injected; HTTP stubbed). GET does not mint a session.
 - Area functionality gained warehouse-brand isolation between injected tenants.
-- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Line` (4). Line + area **6 / 6**. Full suite recorded with this checkpoint. Content mentioned 572 to 573 of 952. Unnamed PHP functions 6,406 to 6,397. Ready ≤200-line non-ERP functions stay 57. The weighted headline stays about 20.4%. Non-ERP pending: 288 files / 149,181 lines (was 289 / 149,536). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73, `ecomae.sessions` 28).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Line` (4). Line + area **6 / 6**. Full suite **6294 / 6294**. Content mentioned 572 to 573 of 952. Unnamed PHP functions 6,406 to 6,397. Ready ≤200-line non-ERP functions stay 57. The weighted headline stays about 20.4%. Non-ERP pending: 288 files / 149,181 lines (was 289 / 149,536). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73, `ecomae.sessions` 28).
 
 ### Checkpoint 2026-10-10 — plan Q1-wake / wind / sail (BOC shell, price-upload diagnostics, tenant templates)
 
