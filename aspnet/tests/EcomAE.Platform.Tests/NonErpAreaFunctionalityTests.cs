@@ -1555,6 +1555,31 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void EpartscartStorefront_PlaceholderAndTreeStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Cape.Reset();
+        PhpPlanQ1Cape.IsWarehouseStorefront = _ => true;
+        var tree = new List<Dictionary<string, object?>>
+        {
+            new(StringComparer.Ordinal)
+            {
+                ["alias"] = "tires",
+                ["data"] = new List<Dictionary<string, object?>>
+                {
+                    new(StringComparer.Ordinal) { ["alias"] = "apai-summer", ["data"] = new List<Dictionary<string, object?>>() }
+                }
+            },
+            new(StringComparer.Ordinal) { ["alias"] = "apai_rims", ["data"] = new List<Dictionary<string, object?>>() }
+        };
+        var filtered = PhpPlanQ1Cape.EpcEpartscartFilterMenuTree(new object(), tree);
+        Assert.Equal("tires", filtered[0]["alias"]);
+        Assert.Single(filtered);
+        Assert.Equal("/content/files/images/epc_electronics_placeholder.svg", PhpPlanQ1Cape.EpcStorefrontCatalogPlaceholderForHint("electronics"));
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Cape.EpartscartStorefrontPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Cape.EpartscartStorefrontPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1628,6 +1653,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Rip.TenantCountryProfilePath,
             PhpPlanQ1Inlet.TenantHubHelpersPath,
             PhpPlanQ1Shoal.IntegrationsHelpersPath,
+            PhpPlanQ1Cape.EpartscartStorefrontPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
