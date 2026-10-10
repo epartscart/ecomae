@@ -774,8 +774,8 @@ public static class PhpPlanQ1Shoal
             cmd.Parameters.AddWithValue(name, value ?? DBNull.Value);
         }
 
-        var value = cmd.ExecuteScalar();
-        return value is null or DBNull ? 0 : ToInt(value);
+        var scalar = cmd.ExecuteScalar();
+        return scalar is null or DBNull ? 0 : ToInt(scalar);
     }
 
     private static bool PhpEmpty(object? value)

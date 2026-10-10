@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Inlet (`--max-gap 440` passed; current gap **439**).
+after PlanQ1Shoal (`--max-gap 439` passed; current gap **438**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 439
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 438
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 24 | 12,698 |
 | 3 | CP shop smaller | 22 | 7,537 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 76 | 38,951 |
+| 5 | Marketing/BOS/industries | 75 | 38,289 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **439** | **204,367** |
+| | **Total** | **438** | **203,705** |
 
-- Non-ERP (Cursor): **273 files / 138,176 lines**
+- Non-ERP (Cursor): **272 files / 137,514 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,150** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **57**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,140** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **57**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -427,9 +427,13 @@ Tide failover restored. Rip closed leftover `epc_tenant_country_profile.php` (no
 
 ### Q1 inlet — done (`PhpPlanQ1Inlet`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Inlet`, 4 cases): hub `h` / action URLs / connect-ok / Super-CP gate / list+stats / status / blockchain mode / anchor / probe / onboard / checklist / theme. Leftover portal / demo / client-ERP stay injected. Do not write leftover unique portal or client-ERP router basenames. GET does not mint a session. Next unused class after Inlet: Shoal.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Inlet`, 4 cases): hub `h` / action URLs / connect-ok / Super-CP gate / list+stats / status / blockchain mode / anchor / probe / onboard / checklist / theme. Leftover portal / demo / client-ERP stay injected. Do not write leftover unique portal or client-ERP router basenames. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 273 files.
+### Q1 shoal — done (`PhpPlanQ1Shoal`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Shoal`, 4 cases): integrations `h` / backend / categories / resolve-guide / catalog / site-key / feature flags / tenant config / mobile defaults / menu-blocked / hub rows / CP content register. Leftover portal stays injected. Do not write leftover unique portal basenames. GET does not mint a session. Feature request cache and schema-done reset between cases. Next unused class after Shoal: Cape.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 272 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -483,6 +487,7 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6am | `epc_portal_tenant_intro.php` | Closed in Kelp. |
 | 6an | `epc_tenant_country_profile.php` | Closed in Rip. |
 | 6ao | `epc_tenant_hub_helpers.php` | Closed in Inlet. |
+| 6ap | `epc_integrations_helpers.php` | Closed in Shoal. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
