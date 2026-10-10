@@ -1,0 +1,43 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "faq_bits",
+            "output": "",
+            "result": [
+                "epm-faq__status--yes",
+                "epm-faq__status--partial",
+                "epm-faq__status--planned",
+                "epm-faq__status--no",
+                "epm-faq__status--partial",
+                "See the <a href=\"https://www.ecomae.com/platform/auto-price-ai\"><a href=\"https://www.ecomae.com/platform/auto-price-ai\">Auto Price AI</a> page</a> and <a href=\"https://www.ecomae.com/platform/api-services\">Catalog API</a>.",
+                "Open the <a href=\"https://www.ecomae.com/platform/demo\">demo page</a> or <a href=\"https://www.ecomae.com/platform/pricing\">pricing page</a>.",
+                {
+                    "Yes": 50,
+                    "Partial": 33,
+                    "Planned": 2,
+                    "No": 20
+                },
+                "<style>\n.epm-faq-her",
+                3334,
+                "FAQPage",
+                105,
+                "Does the platform natively support international catalog standards like ACES or PIES?"
+            ]
+        },
+        {
+            "name": "faq_page",
+            "output": "",
+            "result": [
+                541,
+                15,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
+            ]
+        }
+    ]
+}

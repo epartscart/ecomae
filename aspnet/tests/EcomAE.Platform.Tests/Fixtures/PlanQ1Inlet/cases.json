@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "names" },
+    { "name": "list" },
+    { "name": "status" },
+    { "name": "chain" }
+  ]
+}

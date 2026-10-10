@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "names" },
+    { "name": "rows" },
+    { "name": "import" },
+    { "name": "ingest" }
+  ]
+}

@@ -1,0 +1,279 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "pure",
+            "output": "",
+            "result": [
+                "v21.0",
+                "v22.0beta",
+                "v21.0",
+                [
+                    "Hello",
+                    "#parts",
+                    "Hello\n\n#parts",
+                    "Hi\n\n#x"
+                ],
+                [
+                    true,
+                    false,
+                    true,
+                    false,
+                    false
+                ],
+                {
+                    "ok": true,
+                    "http": 200,
+                    "json": {
+                        "id": "me1",
+                        "name": "Me Page"
+                    },
+                    "raw": "{\"id\":\"me1\",\"name\":\"Me Page\"}",
+                    "error": ""
+                },
+                {
+                    "ok": false,
+                    "http": 400,
+                    "json": {
+                        "error": {
+                            "message": "bad token"
+                        }
+                    },
+                    "raw": "{\"error\":{\"message\":\"bad token\"}}",
+                    "error": "bad token"
+                },
+                {
+                    "ok": false,
+                    "http": 0,
+                    "json": [],
+                    "raw": "",
+                    "error": "Failed to connect"
+                },
+                {
+                    "ok": true,
+                    "http": 200,
+                    "json": {
+                        "id": "fb-feed-1"
+                    },
+                    "raw": "{\"id\":\"fb-feed-1\"}",
+                    "error": ""
+                },
+                {
+                    "ok": true,
+                    "http": 200,
+                    "json": {
+                        "data": {
+                            "creator_username": "ttuser",
+                            "privacy_level_options": [
+                                "SELF_ONLY",
+                                "PUBLIC_TO_EVERYONE"
+                            ]
+                        }
+                    },
+                    "raw": "{\"data\":{\"creator_username\":\"ttuser\",\"privacy_level_options\":[\"SELF_ONLY\",\"PUBLIC_TO_EVERYONE\"]}}",
+                    "error": ""
+                },
+                {
+                    "method": "POST",
+                    "url": "https://open.tiktokapis.com/v2/post/publish/creator_info/query/",
+                    "body": "[]"
+                }
+            ]
+        },
+        {
+            "name": "accounts",
+            "output": "",
+            "result": [
+                [],
+                {
+                    "page_id": "",
+                    "ig_user_id": "",
+                    "open_id": "",
+                    "privacy_level": "SELF_ONLY",
+                    "has_token": false
+                },
+                {
+                    "username": "page",
+                    "page_id": "pg1",
+                    "ig_user_id": "",
+                    "open_id": "",
+                    "privacy_level": "SELF_ONLY"
+                },
+                {
+                    "page_id": "pg1",
+                    "ig_user_id": "",
+                    "open_id": "",
+                    "privacy_level": "SELF_ONLY",
+                    "has_token": true
+                },
+                true,
+                {
+                    "ok": true,
+                    "message": "Facebook Graph OK — connected as Shop Page."
+                },
+                {
+                    "ok": true,
+                    "message": "Instagram Graph OK — @parts.ae (Business/Creator)."
+                },
+                {
+                    "ok": true,
+                    "message": "TikTok API OK — @ttuser. Allowed privacy: SELF_ONLY, PUBLIC_TO_EVERYONE. Unaudited apps can only post SELF_ONLY (private).",
+                    "privacy_options": [
+                        "SELF_ONLY",
+                        "PUBLIC_TO_EVERYONE"
+                    ]
+                },
+                {
+                    "ok": false,
+                    "message": "Linkedin live publish is not enabled yet. Vault storage works — use Copy → native app for now."
+                },
+                {
+                    "ok": false,
+                    "message": "No account credentials for nope. Save an access token first."
+                },
+                {
+                    "ok": false,
+                    "message": "No account credentials for facebook. Save an access token first."
+                },
+                {
+                    "ok": false,
+                    "message": "Facebook needs a Page access token."
+                },
+                {
+                    "status": "verified",
+                    "last_test_ok": 1
+                },
+                {
+                    "status": "error",
+                    "last_test_ok": 0
+                }
+            ]
+        },
+        {
+            "name": "publish",
+            "output": "",
+            "result": [
+                {
+                    "ok": true,
+                    "message": "Published to Facebook Page. ID: fb-photo-1",
+                    "external_post_id": "fb-photo-1",
+                    "platform": "facebook"
+                },
+                {
+                    "ok": true,
+                    "message": "Published to Facebook Page. ID: fb-vid-1",
+                    "external_post_id": "fb-vid-1",
+                    "platform": "facebook"
+                },
+                {
+                    "ok": true,
+                    "message": "Published to Facebook Page. ID: fb-feed-1",
+                    "external_post_id": "fb-feed-1",
+                    "platform": "facebook"
+                },
+                {
+                    "ok": true,
+                    "message": "Published to Instagram. Media ID: ig-media-1",
+                    "external_post_id": "ig-media-1",
+                    "platform": "instagram"
+                },
+                {
+                    "ok": true,
+                    "message": "Published to TikTok (SELF_ONLY). Publish ID: tt-pub-1",
+                    "external_post_id": "tt-pub-1",
+                    "platform": "tiktok"
+                },
+                {
+                    "ok": false,
+                    "message": "Live publish supports Facebook, Instagram, and TikTok only."
+                },
+                {
+                    "ok": false,
+                    "message": "Draft not found."
+                },
+                {
+                    "ok": false,
+                    "message": "Draft not found."
+                },
+                {
+                    "ok": false,
+                    "message": "Facebook publish needs Page access token + Page ID."
+                },
+                {
+                    "ok": false,
+                    "message": "Instagram requires a public https media_url (image or .mp4 Reel)."
+                },
+                {
+                    "ok": false,
+                    "message": "TikTok requires a public https video URL (.mp4/.mov). Verify the domain in TikTok Developer Portal."
+                },
+                [
+                    {
+                        "title": "F1",
+                        "status": "published",
+                        "external_post_id": "fb-photo-1",
+                        "last_error": ""
+                    },
+                    {
+                        "title": "F2",
+                        "status": "published",
+                        "external_post_id": "fb-vid-1",
+                        "last_error": ""
+                    },
+                    {
+                        "title": "F3",
+                        "status": "published",
+                        "external_post_id": "fb-feed-1",
+                        "last_error": ""
+                    },
+                    {
+                        "title": "I1",
+                        "status": "published",
+                        "external_post_id": "ig-media-1",
+                        "last_error": ""
+                    },
+                    {
+                        "title": "T1",
+                        "status": "published",
+                        "external_post_id": "tt-pub-1",
+                        "last_error": ""
+                    },
+                    {
+                        "title": "L1",
+                        "status": "error",
+                        "external_post_id": "",
+                        "last_error": "Live publish supports Facebook, Instagram, and TikTok only."
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "now",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "message": "Platform plus caption or media URL is required."
+                },
+                {
+                    "ok": false,
+                    "message": "Platform plus caption or media URL is required."
+                },
+                {
+                    "ok": true,
+                    "message": "Published to Facebook Page. ID: fb-photo-1",
+                    "external_post_id": "fb-photo-1",
+                    "platform": "facebook",
+                    "draft_id": 1
+                },
+                [
+                    {
+                        "title": "Publish facebook",
+                        "status": "published",
+                        "caption": "Now post"
+                    }
+                ]
+            ]
+        }
+    ]
+}

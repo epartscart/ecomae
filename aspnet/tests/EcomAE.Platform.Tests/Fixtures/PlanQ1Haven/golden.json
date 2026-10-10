@@ -1,0 +1,238 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "names",
+            "output": "",
+            "result": [
+                0,
+                1,
+                "electronicae",
+                "acme_el",
+                "/en",
+                "/ar/",
+                "/ar/",
+                "/ar/phones",
+                "phones",
+                "/en/x",
+                [
+                    "cell-phones",
+                    "computers-laptops",
+                    "tv-video",
+                    "gaming",
+                    "smart-home",
+                    "headphones",
+                    "wearables",
+                    "cameras"
+                ],
+                {
+                    "icon": "fa-mobile",
+                    "accent": "#1a73e8",
+                    "label": "Cell Phones"
+                },
+                {
+                    "icon": "fa-microchip",
+                    "accent": "#e10a0a",
+                    "label": ""
+                },
+                {
+                    "icon": "fa-laptop",
+                    "accent": "#5f6368",
+                    "label": "Laptops"
+                },
+                "",
+                "https://cdn.test/a.png",
+                "/img/files/a.png",
+                "<div class=\"epc-el-empty-category\"><div class=\"epc-el-empty-category__inner\"><i class=\"fa fa-clock-o\" aria-hidden=\"true\"></i><h3>Coming soon</h3><p>New products for this category are being added. Check back shortly or browse our featured product lines.</p><a class=\"epc-er-btn epc-er-btn--primary\" href=\"/en/\">Back to shop</a></div></div>"
+            ]
+        },
+        {
+            "name": "tree",
+            "output": "",
+            "result": [
+                [
+                    "apai-phones",
+                    "apai-tv"
+                ],
+                [
+                    "apai-electronics-root"
+                ],
+                [
+                    "apai-phones",
+                    "apai-tv"
+                ],
+                [
+                    "tires",
+                    "batteries"
+                ]
+            ]
+        },
+        {
+            "name": "catalog",
+            "output": "",
+            "result": [
+                10,
+                "electronics/phones",
+                "",
+                [
+                    10,
+                    11,
+                    12,
+                    13
+                ],
+                "10,11,12,13",
+                1,
+                0,
+                0,
+                1,
+                1,
+                0,
+                "/electronics"
+            ]
+        },
+        {
+            "name": "tiles",
+            "output": "",
+            "result": [
+                "epc_pl_tiles:v1:acme_el:5",
+                4,
+                [
+                    {
+                        "id": 7,
+                        "name": "Phones",
+                        "slug": "cell-phones-5g",
+                        "href": "/electronics/phones",
+                        "image": "/img/pixel.png",
+                        "icon": "fa-mobile",
+                        "accent": "#1a73e8",
+                        "product_count": 2,
+                        "trend": "up",
+                        "score": 9
+                    },
+                    {
+                        "id": 9,
+                        "name": "Laptops",
+                        "slug": "gaming-laptops",
+                        "href": "/electronics/phones",
+                        "image": "https://cdn.test/g.png",
+                        "icon": "fa-laptop",
+                        "accent": "#5f6368",
+                        "product_count": 0,
+                        "trend": "",
+                        "score": 1
+                    },
+                    {
+                        "id": 12,
+                        "name": "Audio",
+                        "slug": "audio-kits",
+                        "href": "/shop/search?q=Audio",
+                        "image": "",
+                        "icon": "fa-volume-up",
+                        "accent": "#9334e6",
+                        "product_count": 1,
+                        "trend": "",
+                        "score": 2
+                    }
+                ],
+                [
+                    {
+                        "label": "Phones",
+                        "href": "/electronics/phones",
+                        "count": 2
+                    },
+                    {
+                        "label": "Laptops",
+                        "href": "/electronics/phones",
+                        "count": 0
+                    },
+                    {
+                        "label": "Audio",
+                        "href": "/shop/search?q=Audio",
+                        "count": 1
+                    },
+                    {
+                        "label": "All product lines",
+                        "href": "/electronics",
+                        "highlight": true
+                    }
+                ],
+                [
+                    {
+                        "title": "Phones",
+                        "sub": "Shop verified UAE listings — official warranty, prices in AED",
+                        "cta": "Shop Phones",
+                        "href": "/electronics/phones",
+                        "image": "/img/pixel.png",
+                        "icon": "fa-mobile",
+                        "accent": "#1a73e8",
+                        "alt": "Phones",
+                        "tone": "dark"
+                    },
+                    {
+                        "title": "Laptops",
+                        "sub": "New arrivals coming soon — browse the full range",
+                        "cta": "Shop Laptops",
+                        "href": "/electronics/phones",
+                        "image": "https://cdn.test/g.png",
+                        "icon": "fa-laptop",
+                        "accent": "#5f6368",
+                        "alt": "Laptops",
+                        "tone": "light"
+                    },
+                    {
+                        "title": "Audio",
+                        "sub": "Shop verified UAE listings — official warranty, prices in AED",
+                        "cta": "Shop Audio",
+                        "href": "/shop/search?q=Audio",
+                        "image": "",
+                        "icon": "fa-volume-up",
+                        "accent": "#9334e6",
+                        "alt": "Audio",
+                        "tone": "dark"
+                    }
+                ],
+                {
+                    "id": 21,
+                    "brand": "PIXEL",
+                    "name": "Pixel 8",
+                    "price": 1299.5,
+                    "was": 0,
+                    "image": "/img/pixel.png",
+                    "href": "/electronics/phones/pixel-8",
+                    "alt": "Pixel 8",
+                    "sku": ""
+                },
+                {
+                    "id": 21,
+                    "brand": "PIXEL",
+                    "name": "Pixel 8",
+                    "price": 0,
+                    "was": 0,
+                    "image": "",
+                    "href": "/forced/path",
+                    "alt": "Pixel 8",
+                    "sku": ""
+                },
+                [
+                    {
+                        "title": "Phones",
+                        "href": "/electronics/phones",
+                        "products": [
+                            {
+                                "id": 21,
+                                "brand": "PIXEL",
+                                "name": "Pixel 8",
+                                "price": 1299,
+                                "was": 0,
+                                "image": "/img/pixel.png",
+                                "href": "/forced/path",
+                                "alt": "Pixel 8",
+                                "sku": ""
+                            }
+                        ]
+                    }
+                ]
+            ]
+        }
+    ]
+}

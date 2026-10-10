@@ -1,0 +1,123 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "missing",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "error": "Email and password required"
+                },
+                {
+                    "ok": false,
+                    "error": "Email and password required"
+                },
+                {
+                    "ok": false,
+                    "error": "Email and password required"
+                },
+                {
+                    "ok": false,
+                    "error": "Platform database unavailable"
+                }
+            ]
+        },
+        {
+            "name": "stores",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "error": "Invalid credentials"
+                },
+                {
+                    "ok": false,
+                    "error": "Invalid credentials"
+                },
+                {
+                    "ok": false,
+                    "error": "Invalid credentials"
+                },
+                {
+                    "ok": true,
+                    "redirect": "/bos/?t=shop",
+                    "role": "tenant",
+                    "csrf": "fixedcsrf"
+                },
+                {
+                    "ok": true,
+                    "redirect": "/bos/?t=shop",
+                    "role": "tenant",
+                    "csrf": "fixedcsrf"
+                },
+                {
+                    "ok": true,
+                    "redirect": "/bos/?t=shop",
+                    "role": "tenant",
+                    "csrf": "fixedcsrf"
+                },
+                {
+                    "ok": true,
+                    "redirect": "/bos/",
+                    "role": "provider",
+                    "csrf": "fixedcsrf"
+                }
+            ]
+        },
+        {
+            "name": "roles",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "error": "Access denied — operator credentials required"
+                },
+                {
+                    "ok": true,
+                    "redirect": "/bos/?t=Acme",
+                    "role": "tenant",
+                    "csrf": "fixedcsrf"
+                },
+                {
+                    "ok": true,
+                    "redirect": "/bos/",
+                    "role": "provider",
+                    "csrf": "fixedcsrf"
+                },
+                {
+                    "ok": true,
+                    "redirect": "/bos/",
+                    "role": "provider",
+                    "csrf": "fixedcsrf"
+                },
+                {
+                    "ok": true,
+                    "redirect": "/bos/",
+                    "role": "provider",
+                    "csrf": "fixedcsrf"
+                }
+            ]
+        },
+        {
+            "name": "session",
+            "output": "",
+            "result": [
+                {
+                    "ok": true,
+                    "redirect": "/bos/",
+                    "role": "provider",
+                    "csrf": "fixedcsrf"
+                },
+                {
+                    "role": "provider",
+                    "user_id": 1,
+                    "email": "hello@ecomae.com",
+                    "tenant_key": ""
+                },
+                0,
+                0
+            ]
+        }
+    ]
+}

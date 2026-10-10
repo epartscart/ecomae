@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "empty" },
+    { "name": "domain" },
+    { "name": "hostenc" },
+    { "name": "config" }
+  ]
+}

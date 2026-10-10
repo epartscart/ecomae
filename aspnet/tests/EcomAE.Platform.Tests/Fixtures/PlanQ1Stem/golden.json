@@ -1,0 +1,62 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "path",
+            "output": "",
+            "result": [
+                "epc_acc_catalog_v1_097854dd7cac8af63cb6364cae7097a8.json",
+                "097854dd",
+                1
+            ]
+        },
+        {
+            "name": "fetch",
+            "output": "",
+            "result": [
+                0,
+                3,
+                [
+                    "Bosch",
+                    "Bosch",
+                    "Febi"
+                ],
+                10
+            ]
+        },
+        {
+            "name": "build",
+            "output": "",
+            "result": [
+                2,
+                "BOSCH",
+                "OC47",
+                "Oil filter",
+                13,
+                9.5,
+                "Dubai / Sharjah stock",
+                "other",
+                "brakes"
+            ]
+        },
+        {
+            "name": "search",
+            "output": "",
+            "result": [
+                2,
+                "P1",
+                8,
+                1,
+                "BOSCH",
+                1,
+                1,
+                3,
+                [
+                    "FEBI"
+                ],
+                "brakes",
+                "price-asc"
+            ]
+        }
+    ]
+}

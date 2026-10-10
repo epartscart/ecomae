@@ -121,7 +121,12 @@ public sealed class AdminSurfaceAuthGateMiddleware
         }
 
         // The portal *_config.php JS loaders run outside cp/index.php, so PHP never puts them behind the CP login.
-        if (Presentation.PhpAssetWrappers.IsWrapperPath(value))
+        if (Presentation.PhpAssetWrappers.IsWrapperPath(value)
+            || Presentation.PhpCpConfigScripts.IsScriptPath(value)
+            || Presentation.PhpCpTinyPages.IsScriptPath(value)
+            || Presentation.PhpCpSmallScripts.IsScriptPath(value)
+            || Presentation.PhpNextSmallBatch.IsScriptPath(value)
+            || Presentation.PhpIndustryChrome.IsScriptPath(value))
         {
             return false;
         }

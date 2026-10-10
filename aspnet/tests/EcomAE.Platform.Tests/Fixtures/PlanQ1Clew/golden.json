@@ -1,0 +1,60 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "en",
+            "output": "",
+            "result": [
+                [
+                    1231,
+                    "<div class=\"epc-shipping-export\" style=\"max-width:860px;margin:0 auto;padding:8p",
+                    "\"https://www.epartscart.com/en/available-brands\">Browse brands</a>\n\t</p>\n</div>\n"
+                ],
+                1,
+                1
+            ]
+        },
+        {
+            "name": "ar",
+            "output": "",
+            "result": [
+                [
+                    1388,
+                    "<div class=\"epc-shipping-export\" style=\"max-width:860px;margin:0 auto;padding:8p",
+                    "tps://www.epartscart.com/ar/available-brands\">الماركات</a>\n\t</p>\n</div>\n"
+                ],
+                1,
+                1
+            ]
+        },
+        {
+            "name": "ru",
+            "output": "",
+            "result": [
+                [
+                    1430,
+                    "<div class=\"epc-shipping-export\" style=\"max-width:860px;margin:0 auto;padding:8p",
+                    "=\"https://www.epartscart.com/ru/available-brands\">Бренды</a>\n\t</p>\n</div>\n"
+                ],
+                1,
+                1
+            ]
+        },
+        {
+            "name": "edge",
+            "output": "",
+            "result": [
+                [
+                    1239,
+                    "<div class=\"epc-shipping-export\" style=\"max-width:860px;margin:0 auto;padding:8p",
+                    "ref=\"https://shop.example/a/xx/available-brands\">Browse brands</a>\n\t</p>\n</div>\n"
+                ],
+                1,
+                1,
+                1,
+                1,
+                1
+            ]
+        }
+    ]
+}

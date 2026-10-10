@@ -1,0 +1,89 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "names",
+            "output": "",
+            "result": [
+                false,
+                0,
+                1,
+                1,
+                1,
+                0,
+                1,
+                1,
+                1,
+                0,
+                "/content/files/images/epc_electronics_placeholder.svg",
+                "/content/files/images/epc_fashion_placeholder.svg",
+                "/content/files/images/epc_jewellery_placeholder.svg",
+                "/content/files/images/epc_services_placeholder.svg",
+                "/content/files/images/epc_autoparts_placeholder.svg",
+                "/content/files/images/epc_catalog_placeholder.svg"
+            ]
+        },
+        {
+            "name": "flags",
+            "output": "",
+            "result": [
+                0,
+                "/content/files/images/no_image.png",
+                0,
+                1,
+                "/content/files/images/epc_autoparts_placeholder.svg",
+                1,
+                "/content/files/images/no_image.png",
+                "/en",
+                "/ar"
+            ]
+        },
+        {
+            "name": "redirect",
+            "output": "",
+            "result": [
+                "",
+                "",
+                "/en/",
+                "",
+                "/en/",
+                "/en/"
+            ]
+        },
+        {
+            "name": "tree",
+            "output": "",
+            "result": [
+                [
+                    [
+                        "tires",
+                        [
+                            "apai-summer",
+                            "winter"
+                        ]
+                    ],
+                    [
+                        "apai_rims",
+                        []
+                    ],
+                    [
+                        "batteries",
+                        []
+                    ]
+                ],
+                [
+                    [
+                        "tires",
+                        [
+                            "winter"
+                        ]
+                    ],
+                    [
+                        "batteries",
+                        []
+                    ]
+                ]
+            ]
+        }
+    ]
+}

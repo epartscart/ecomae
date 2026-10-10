@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "empty" },
+    { "name": "nophone" },
+    { "name": "phone" },
+    { "name": "lpo" }
+  ]
+}

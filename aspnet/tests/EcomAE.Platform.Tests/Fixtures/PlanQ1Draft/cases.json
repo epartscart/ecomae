@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "names" },
+    { "name": "partners" },
+    { "name": "refs" },
+    { "name": "persist" }
+  ]
+}

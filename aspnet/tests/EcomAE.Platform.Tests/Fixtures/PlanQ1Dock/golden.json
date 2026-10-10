@@ -1,0 +1,324 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "pure",
+            "output": "",
+            "result": [
+                "31.97.216.247",
+                "10.1.2.3",
+                [
+                    "www.ecomae.com",
+                    "ecomae.com",
+                    "cp.ecomae.com"
+                ],
+                [
+                    true,
+                    true,
+                    false,
+                    true,
+                    false
+                ],
+                {
+                    "draft": "Draft — not published",
+                    "dns_pending": "Awaiting GoDaddy DNS",
+                    "live": "Live on platform",
+                    "suspended": "Suspended"
+                },
+                {
+                    "epartscart": {
+                        "industry": "auto_parts",
+                        "hostname": "www.epartscart.com",
+                        "access_mode": "",
+                        "hosted_on": "",
+                        "erp_only_shared": 0
+                    },
+                    "taxofinca": {
+                        "industry": "tax_advisory",
+                        "hostname": "www.taxofinca.com",
+                        "access_mode": "",
+                        "hosted_on": "",
+                        "erp_only_shared": 0
+                    },
+                    "electronicae": {
+                        "industry": "electronics",
+                        "hostname": "www.electronicae.com",
+                        "access_mode": "",
+                        "hosted_on": "",
+                        "erp_only_shared": 0
+                    },
+                    "stylenlook": {
+                        "industry": "fashion",
+                        "hostname": "www.stylenlook.com",
+                        "access_mode": "",
+                        "hosted_on": "",
+                        "erp_only_shared": 0
+                    },
+                    "thejewellerytrend": {
+                        "industry": "jewellery",
+                        "hostname": "www.thejewellerytrend.com",
+                        "access_mode": "",
+                        "hosted_on": "",
+                        "erp_only_shared": 0
+                    },
+                    "erp_only_demo": {
+                        "industry": "erp_standalone",
+                        "hostname": "www.ecomae.com",
+                        "access_mode": "erp_only",
+                        "hosted_on": "platform",
+                        "erp_only_shared": 1
+                    },
+                    "asap": {
+                        "industry": "erp_standalone",
+                        "hostname": "www.ecomae.com",
+                        "access_mode": "erp_only",
+                        "hosted_on": "platform",
+                        "erp_only_shared": 1
+                    }
+                },
+                {
+                    "ip": "10.1.2.3",
+                    "hostname": "www.shop.ae",
+                    "steps": [
+                        "Log in to GoDaddy → DNS for shop.ae",
+                        "Add A record @ → 10.1.2.3",
+                        "Add A record www → 10.1.2.3",
+                        "Remove old A records pointing to other hosts",
+                        "Wait 5–60 minutes for DNS propagation",
+                        "In CloudPanel: add www.shop.ae as domain alias on www.ecomae.com (same docroot, no extra disk)",
+                        "Issue Let's Encrypt SSL for the alias",
+                        "Set tenant status to Live in Super CP"
+                    ]
+                },
+                [
+                    true,
+                    true,
+                    false
+                ],
+                {
+                    "tenant_id": 7,
+                    "tenant_status": "live",
+                    "site_key": "alpha",
+                    "industry": "food",
+                    "domain_path": "https://www.alpha.ae/",
+                    "db": "alpha",
+                    "user": "alpha",
+                    "dedicated_db": 1,
+                    "scale_policy": "dedicated_mysql",
+                    "trade_name": "Alpha",
+                    "hub_name": "Hub",
+                    "from_email": "a@x.com",
+                    "system_name": "e-world Commerce System",
+                    "tagline": "Designed by Electronic World Group"
+                },
+                true,
+                false
+            ]
+        },
+        {
+            "name": "save_types",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "message": "Site key is required"
+                },
+                {
+                    "ok": false,
+                    "message": "Site key and full hostname are required"
+                },
+                {
+                    "ok": false,
+                    "message": "Cannot register a platform hostname as tenant (use shared ERP flag for ecomae.com companies)"
+                },
+                {
+                    "ok": true,
+                    "message": "Tenant saved: www.siteone.ae",
+                    "site_key": "siteone",
+                    "client_sync": {
+                        "ok": true,
+                        "message": "skipped"
+                    }
+                },
+                {
+                    "ok": true,
+                    "message": "Tenant saved: www.ecomae.com",
+                    "site_key": "erpone",
+                    "client_sync": {
+                        "ok": true,
+                        "message": "skipped"
+                    }
+                },
+                {
+                    "ok": true,
+                    "message": "Tenant saved: www.mixed.ae — skipped",
+                    "site_key": "mixedone",
+                    "client_sync": {
+                        "ok": true,
+                        "message": "skipped"
+                    }
+                },
+                {
+                    "ok": false,
+                    "message": "Dedicated tenants must use their own database — not the shared commerce or platform registry database"
+                },
+                {
+                    "ok": false,
+                    "message": "Database erpone already assigned to tenant erpone"
+                },
+                {
+                    "ok": true,
+                    "message": "Tenant saved: www.siteone.ae — skipped",
+                    "site_key": "siteone",
+                    "client_sync": {
+                        "ok": true,
+                        "message": "skipped"
+                    }
+                },
+                {
+                    "site_key": "siteone",
+                    "hostname": "www.siteone.ae",
+                    "industry_code": "auto_parts",
+                    "status": "live",
+                    "trade_name": "Site One Live",
+                    "db_name": "docpart",
+                    "db_user": "docpart",
+                    "hosted_on": "client",
+                    "erp_only_shared": 0,
+                    "dedicated_db": 0,
+                    "scale_policy": "shared_docpart",
+                    "blockchain_mode": "anchor"
+                },
+                {
+                    "site_key": "erpone",
+                    "hostname": "www.ecomae.com",
+                    "industry_code": "erp_standalone",
+                    "status": "draft",
+                    "trade_name": "ERP One",
+                    "db_name": "erpone",
+                    "db_user": "erpone",
+                    "hosted_on": "platform",
+                    "erp_only_shared": 1,
+                    "dedicated_db": 1,
+                    "scale_policy": "dedicated_mysql",
+                    "blockchain_mode": "anchor"
+                },
+                {
+                    "site_key": "mixedone",
+                    "hostname": "www.mixed.ae",
+                    "industry_code": "retail",
+                    "status": "live",
+                    "trade_name": "Mixed One",
+                    "db_name": "mixedone",
+                    "db_user": "mixedone",
+                    "hosted_on": "client",
+                    "erp_only_shared": 0,
+                    "dedicated_db": 1,
+                    "scale_policy": "dedicated_mysql",
+                    "blockchain_mode": "off"
+                },
+                [
+                    {
+                        "host": "www.siteone.ae",
+                        "industry_code": "food_beverage",
+                        "hub_name": "Site One",
+                        "domain_path": "https://www.siteone.ae/"
+                    },
+                    {
+                        "host": "www.ecomae.com",
+                        "industry_code": "erp_standalone",
+                        "hub_name": "ERP One",
+                        "domain_path": "https://www.ecomae.com/"
+                    },
+                    {
+                        "host": "www.mixed.ae",
+                        "industry_code": "retail",
+                        "hub_name": "Mixed One",
+                        "domain_path": "https://www.mixed.ae/"
+                    },
+                    {
+                        "host": "www.siteone.ae",
+                        "industry_code": "auto_parts",
+                        "hub_name": "Site One Live",
+                        "domain_path": "https://www.siteone.ae/"
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "isolation",
+            "output": "",
+            "result": [
+                {
+                    "tenant_id": 1,
+                    "tenant_status": "live",
+                    "site_key": "alpha",
+                    "industry": "auto_parts",
+                    "domain_path": "https://www.alpha.ae/",
+                    "db": "alpha",
+                    "user": "alpha",
+                    "dedicated_db": 1,
+                    "scale_policy": "dedicated_mysql",
+                    "trade_name": "Alpha",
+                    "hub_name": "",
+                    "from_email": "",
+                    "system_name": "e-world Commerce System",
+                    "tagline": "Designed by Electronic World Group"
+                },
+                null,
+                null,
+                null,
+                "alpha",
+                null,
+                [
+                    {
+                        "site_key": "alpha",
+                        "hostname": "www.alpha.ae"
+                    },
+                    {
+                        "site_key": "beta",
+                        "hostname": "www.beta.ae"
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "creds",
+            "output": "",
+            "result": [
+                {
+                    "db": "docpart",
+                    "user": "docpart",
+                    "password": "dp-secret"
+                },
+                {
+                    "db": "taxo",
+                    "user": "taxo",
+                    "password": "tax-secret"
+                },
+                {
+                    "db": "alpha",
+                    "user": "alpha",
+                    "pass": "p",
+                    "registry_db": "alpha",
+                    "source": "registry_dedicated"
+                },
+                {
+                    "db": "taxo",
+                    "user": "taxo",
+                    "pass": "tax-secret",
+                    "registry_db": "x",
+                    "source": "runtime_host_db"
+                },
+                {
+                    "db": "taxo",
+                    "user": "taxo",
+                    "password": "tax-secret",
+                    "host": "localhost",
+                    "epc_tenant_db_isolation_error": ""
+                },
+                false
+            ]
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+  "cases": [
+    {
+      "name": "faq_data",
+      "eval": "$mods=epc_ecomae_faq_modules(); $c=epc_ecomae_faq_status_counts(); $n=0; foreach($mods as $m){ $n += count($m['items']); } return array(count($mods), $n, $mods[0]['id'], $mods[0]['items'][0]['num'], $mods[0]['items'][0]['status'], $mods[6]['id'], $mods[6]['items'][14]['num'], $c);"
+    },
+    {
+      "name": "legal_data",
+      "eval": "$cat=epc_ecomae_legal_catalog(); $alias=epc_ecomae_legal_top_level_aliases(); return array(epc_ecomae_legal_effective_date(), count($cat), array_keys($cat), $cat['privacy']['title'], $cat['privacy']['icon'], count($cat['privacy']['sections']), $cat['dmca']['title'], $alias['/privacy'], $alias['/en/terms'], count($alias));"
+    },
+    {
+      "name": "ded_data",
+      "eval": "$d=epc_ded_divisions(); $g=epc_ded_divisions_for_group('agriculture_farming'); $miss=epc_ded_divisions_for_group('nope'); $r=epc_worldwide_business_registries(); $audit=epc_ded_coverage_audit(); $bridge=epc_ded_portal_industry_bridge(); return array(count($d), epc_ded_total_activities(), array_keys($d), $d['agriculture']['activities'], $d['agriculture']['ecomae_groups'], array_keys($g), $miss, $r['UAE']['activities'], $r['USA']['standard'], $audit, $bridge['agriculture']['portal_codes'], $bridge['fishing']['portal_codes'], epc_ded_portal_bridge_complete());"
+    }
+  ]
+}

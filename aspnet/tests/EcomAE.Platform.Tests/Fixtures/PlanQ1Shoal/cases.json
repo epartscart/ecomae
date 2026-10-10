@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "names" },
+    { "name": "flags" },
+    { "name": "config" },
+    { "name": "hub" }
+  ]
+}

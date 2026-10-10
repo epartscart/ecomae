@@ -1,0 +1,189 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "names",
+            "output": "",
+            "result": [
+                "O&#039;Reilly &amp; Co",
+                {
+                    "storefront": "https://www.acme.test/en/",
+                    "cp": "https://www.acme.test/cp/",
+                    "erp": "https://www.acme.test/cp/shop/finance/erp?epc_erp_shell=1"
+                },
+                {
+                    "storefront": "",
+                    "cp": "https://www.beta.trading/cp/",
+                    "erp": "https://www.beta.trading/cp/shop/finance/erp?epc_erp_shell=1"
+                },
+                {
+                    "storefront": "",
+                    "cp": "",
+                    "erp": "https://www.ecomae.com/cp/client-erp/shared_erp/shop/finance/erp?epc_erp_shell=1",
+                    "erp_login": "https://www.ecomae.com/cp/client-erp/shared_erp/"
+                },
+                {
+                    "storefront": "https://localhost/en/",
+                    "cp": "https://localhost/cp/",
+                    "erp": "https://localhost/cp/shop/finance/erp?epc_erp_shell=1"
+                },
+                0,
+                "ok",
+                "Super CP is only available on www.ecomae.com/cp"
+            ]
+        },
+        {
+            "name": "list",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "site_key": "acme_parts",
+                        "industry_name": "Auto Parts",
+                        "ecosystem_code": "commerce",
+                        "ecosystem_name": "Commerce",
+                        "status_label": "Live",
+                        "storefront_url": "https://www.acme.test/en/",
+                        "cp_url": "https://www.acme.test/cp/",
+                        "erp_url": "https://www.acme.test/cp/shop/finance/erp?epc_erp_shell=1",
+                        "intro_done": 1,
+                        "db_connect_ok": 0
+                    },
+                    {
+                        "site_key": "Beta Demo!",
+                        "industry_name": "Auto Parts",
+                        "ecosystem_code": "commerce",
+                        "ecosystem_name": "Commerce",
+                        "status_label": "DNS pending",
+                        "storefront_url": "https://demo.ecomae.com/betademo/",
+                        "cp_url": "https://www.ecomae.com/demo-cp/betademo",
+                        "erp_url": "https://www.ecomae.com/demo/betademo/erp",
+                        "intro_done": 0,
+                        "db_connect_ok": 0,
+                        "is_demo_tenant": 1
+                    },
+                    {
+                        "site_key": "shared_erp",
+                        "industry_name": "ERP only",
+                        "ecosystem_code": "erp",
+                        "ecosystem_name": "ERP",
+                        "status_label": "Live",
+                        "storefront_url": "",
+                        "cp_url": "",
+                        "erp_url": "https://www.ecomae.com/cp/client-erp/shared_erp/shop/finance/erp?epc_erp_shell=1",
+                        "intro_done": 0,
+                        "db_connect_ok": 0
+                    }
+                ],
+                {
+                    "tenants_total": 3,
+                    "tenants_live": 2,
+                    "tenants_dns_pending": 1,
+                    "platform_ip": "203.0.113.10",
+                    "platform_host": "www.ecomae.com"
+                },
+                {
+                    "ok": true,
+                    "site_key": "newco"
+                },
+                1
+            ]
+        },
+        {
+            "name": "status",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "message": "Invalid status"
+                },
+                {
+                    "ok": false,
+                    "message": "Tenant not found"
+                },
+                {
+                    "ok": true,
+                    "message": "Status updated to live — packs synced",
+                    "client_sync": {
+                        "ok": true,
+                        "message": "packs synced"
+                    }
+                },
+                "live",
+                1,
+                {
+                    "ok": true,
+                    "message": "Status updated to live — pack sync: denied",
+                    "client_sync": {
+                        "ok": false,
+                        "message": "denied"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "chain",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "message": "Invalid tenant"
+                },
+                {
+                    "ok": false,
+                    "message": "Tenant not found"
+                },
+                {
+                    "ok": true,
+                    "message": "Blockchain mode for acme set to Network participant (roadmap) (roadmap — currently records and anchors like Anchor)",
+                    "mode": "network"
+                },
+                {
+                    "ok": true,
+                    "message": "Blockchain mode for same set to Blockchain anchor (recommended)",
+                    "mode": "anchor"
+                },
+                {
+                    "ok": false,
+                    "message": "Anchor failed: down"
+                },
+                {
+                    "ok": true,
+                    "message": "No pending proofs to anchor."
+                },
+                {
+                    "ok": true,
+                    "message": "Anchored 3 proof(s) on local_merkle · root abcdef012345…",
+                    "result": {
+                        "ok": true,
+                        "proof_count": 3,
+                        "anchor_network": "local_merkle",
+                        "merkle_root": "abcdef0123456789ffff"
+                    }
+                },
+                1,
+                200,
+                "Hello world",
+                {
+                    "ok": true,
+                    "by": "ops",
+                    "trade": "Acme"
+                },
+                {
+                    "ok": true,
+                    "site_key": "acme",
+                    "ready": 1
+                },
+                {
+                    "ok": true,
+                    "site_key": "acme",
+                    "theme": "auto"
+                },
+                [
+                    "acme",
+                    "same"
+                ]
+            ]
+        }
+    ]
+}

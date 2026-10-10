@@ -1,0 +1,509 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "tdp_pure",
+            "output": "",
+            "result": [
+                {
+                    "allowed": false,
+                    "reason": "Invalid tenant key",
+                    "access_level": 0
+                },
+                {
+                    "allowed": false,
+                    "reason": "Authentication required",
+                    "access_level": 0
+                },
+                {
+                    "allowed": true,
+                    "reason": "Provider access granted",
+                    "access_level": 11
+                },
+                {
+                    "allowed": false,
+                    "reason": "Insufficient provider permissions for this operation",
+                    "access_level": 11
+                },
+                {
+                    "allowed": false,
+                    "reason": "Access denied — tenant users can only access their own tenant data",
+                    "access_level": 0
+                },
+                {
+                    "allowed": true,
+                    "reason": "Tenant user access granted",
+                    "access_level": 23
+                },
+                {
+                    "allowed": false,
+                    "reason": "Insufficient tenant permissions",
+                    "access_level": 23
+                },
+                {
+                    "allowed": false,
+                    "reason": "Unknown role: ops",
+                    "access_level": 0
+                },
+                {
+                    "name": "Ann",
+                    "password": "***REDACTED***",
+                    "nested": {
+                        "iban": "***REDACTED***",
+                        "ok": "***REDACTED***"
+                    },
+                    "TRN": "***REDACTED***"
+                },
+                {
+                    "level": "highly_confidential",
+                    "label": "Financial — General Ledger"
+                },
+                {
+                    "level": "internal",
+                    "label": "Unclassified — unknownX"
+                },
+                [
+                    "audit_logs",
+                    "violation_logs",
+                    "erp_transactions",
+                    "customer_data",
+                    "session_logs",
+                    "temp_exports"
+                ],
+                "1.1.1.1",
+                [],
+                true,
+                "1.0.0",
+                11,
+                23
+            ]
+        },
+        {
+            "name": "tdp_db",
+            "output": "",
+            "result": [
+                2,
+                1,
+                [
+                    "{\"q\":\"x\"}",
+                    null
+                ],
+                {
+                    "tenant": "missing",
+                    "timestamp": "FIXED",
+                    "checks": [
+                        {
+                            "check": "tenant_exists",
+                            "passed": false,
+                            "detail": "Tenant not found in registry"
+                        }
+                    ],
+                    "passed": false
+                },
+                {
+                    "tenant": "liveok",
+                    "timestamp": "FIXED",
+                    "checks": [
+                        {
+                            "check": "dedicated_database",
+                            "passed": true,
+                            "detail": "Database: tenant_live"
+                        },
+                        {
+                            "check": "credentials_stored",
+                            "passed": true,
+                            "detail": "Database credentials present in registry"
+                        },
+                        {
+                            "check": "db_connectivity",
+                            "passed": true,
+                            "detail": "Successfully connected to tenant database"
+                        },
+                        {
+                            "check": "hostname_scoped",
+                            "passed": true,
+                            "detail": "Hostname: shop.example.com"
+                        },
+                        {
+                            "check": "valid_status",
+                            "passed": true,
+                            "detail": "Status: live"
+                        },
+                        {
+                            "check": "no_platform_db_sharing",
+                            "passed": true,
+                            "detail": "Tenant uses dedicated database (not platform registry)"
+                        }
+                    ],
+                    "passed": true
+                },
+                {
+                    "tenant": "shared",
+                    "timestamp": "FIXED",
+                    "checks": [
+                        {
+                            "check": "dedicated_database",
+                            "passed": true,
+                            "detail": "Database: docpart"
+                        },
+                        {
+                            "check": "credentials_stored",
+                            "passed": true,
+                            "detail": "Database credentials present in registry"
+                        },
+                        {
+                            "check": "db_connectivity",
+                            "passed": true,
+                            "detail": "Successfully connected to tenant database"
+                        },
+                        {
+                            "check": "hostname_scoped",
+                            "passed": true,
+                            "detail": "Shared ERP tenant on platform host (expected)"
+                        },
+                        {
+                            "check": "valid_status",
+                            "passed": true,
+                            "detail": "Status: live"
+                        },
+                        {
+                            "check": "no_platform_db_sharing",
+                            "passed": true,
+                            "detail": "Tenant uses dedicated database (not platform registry)"
+                        }
+                    ],
+                    "passed": true
+                },
+                {
+                    "tenant": "ecomaedb",
+                    "timestamp": "FIXED",
+                    "checks": [
+                        {
+                            "check": "dedicated_database",
+                            "passed": false,
+                            "detail": "Database: ecomae"
+                        },
+                        {
+                            "check": "credentials_stored",
+                            "passed": true,
+                            "detail": "Database credentials present in registry"
+                        },
+                        {
+                            "check": "db_connectivity",
+                            "passed": false,
+                            "detail": "Connection failed: denied"
+                        },
+                        {
+                            "check": "hostname_scoped",
+                            "passed": true,
+                            "detail": "Hostname: x.example.com"
+                        },
+                        {
+                            "check": "valid_status",
+                            "passed": true,
+                            "detail": "Status: draft"
+                        },
+                        {
+                            "check": "no_platform_db_sharing",
+                            "passed": false,
+                            "detail": "CRITICAL: tenant is using the platform registry database!"
+                        }
+                    ],
+                    "passed": false
+                },
+                {
+                    "tenant": "nopass",
+                    "timestamp": "FIXED",
+                    "checks": [
+                        {
+                            "check": "dedicated_database",
+                            "passed": true,
+                            "detail": "Database: tenant_x"
+                        },
+                        {
+                            "check": "credentials_stored",
+                            "passed": false,
+                            "detail": "Missing database credentials"
+                        },
+                        {
+                            "check": "db_connectivity",
+                            "passed": false,
+                            "detail": "Connection failed: denied"
+                        },
+                        {
+                            "check": "hostname_scoped",
+                            "passed": true,
+                            "detail": "Hostname: x.example.com"
+                        },
+                        {
+                            "check": "valid_status",
+                            "passed": false,
+                            "detail": "Status: weird"
+                        },
+                        {
+                            "check": "no_platform_db_sharing",
+                            "passed": true,
+                            "detail": "Tenant uses dedicated database (not platform registry)"
+                        }
+                    ],
+                    "passed": false
+                },
+                {
+                    "liveok": {
+                        "tenant": "liveok",
+                        "timestamp": "FIXED",
+                        "checks": [
+                            {
+                                "check": "dedicated_database",
+                                "passed": true,
+                                "detail": "Database: tenant_live"
+                            },
+                            {
+                                "check": "credentials_stored",
+                                "passed": true,
+                                "detail": "Database credentials present in registry"
+                            },
+                            {
+                                "check": "db_connectivity",
+                                "passed": true,
+                                "detail": "Successfully connected to tenant database"
+                            },
+                            {
+                                "check": "hostname_scoped",
+                                "passed": true,
+                                "detail": "Hostname: shop.example.com"
+                            },
+                            {
+                                "check": "valid_status",
+                                "passed": true,
+                                "detail": "Status: live"
+                            },
+                            {
+                                "check": "no_platform_db_sharing",
+                                "passed": true,
+                                "detail": "Tenant uses dedicated database (not platform registry)"
+                            }
+                        ],
+                        "passed": true
+                    },
+                    "missing": {
+                        "tenant": "missing",
+                        "timestamp": "FIXED",
+                        "checks": [
+                            {
+                                "check": "tenant_exists",
+                                "passed": false,
+                                "detail": "Tenant not found in registry"
+                            }
+                        ],
+                        "passed": false
+                    }
+                },
+                true
+            ]
+        },
+        {
+            "name": "sm_pure",
+            "output": "",
+            "result": [
+                5000,
+                80,
+                "sitemap_cache",
+                "warehouse-stale.json",
+                "warehouse-meta.json",
+                "warehouse-3.xml",
+                "sitemap-warehouse-3.xml",
+                true,
+                {
+                    "stale": true,
+                    "reason": "upload",
+                    "price_id": 12,
+                    "marked_at": "FIXED"
+                },
+                true,
+                {
+                    "shards": 0,
+                    "urls": 0,
+                    "generated_at": "",
+                    "shard_size": 5000
+                },
+                {
+                    "shards": 2,
+                    "urls": 9,
+                    "generated_at": "FIXED",
+                    "shard_size": 5000
+                },
+                "\t<url>\n\t\t<loc>https://www.epartscart.com/en/parts/BOSCH/0123</loc>\n\t\t<lastmod>2026-10-09</lastmod>\n\t\t<changefreq>weekly</changefreq>\n\t\t<priority>0.6</priority>\n\t</url>\n",
+                "",
+                true,
+                278,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<",
+                false,
+                false,
+                2,
+                {
+                    "shards": 2,
+                    "urls": 1,
+                    "generated_at": "FIXED",
+                    "shard_size": 5000
+                },
+                2
+            ]
+        },
+        {
+            "name": "sm_db",
+            "output": "",
+            "result": [
+                [
+                    " AND IFNULL(d.`price`, 0) > 0",
+                    ""
+                ],
+                [
+                    "",
+                    ""
+                ],
+                {
+                    "shard": 0,
+                    "urls": 2,
+                    "bytes": 445,
+                    "error": "",
+                    "done": true
+                },
+                {
+                    "shard": 80,
+                    "urls": 0,
+                    "bytes": 0,
+                    "error": "invalid shard",
+                    "done": true
+                },
+                {
+                    "shard": 1,
+                    "urls": 0,
+                    "bytes": 0,
+                    "error": "",
+                    "done": true
+                },
+                {
+                    "shards": 1,
+                    "urls": 2,
+                    "error": ""
+                },
+                {
+                    "shards": 1,
+                    "urls": 2,
+                    "generated_at": "FIXED",
+                    "shard_size": 5000
+                },
+                1,
+                1
+            ]
+        },
+        {
+            "name": "cm_pure",
+            "output": "",
+            "result": [
+                "O&#039;Reilly &amp; Co&lt;",
+                "1,234.50",
+                "0.00",
+                "Acme",
+                "Buyer",
+                "Jean Luc",
+                "ann",
+                "noreply",
+                "Customer #5",
+                "AL",
+                "JL",
+                "C#",
+                "/cp/customers?tab=orders&q=1",
+                "/cp/customers?tab=open"
+            ]
+        },
+        {
+            "name": "cm_db",
+            "output": "",
+            "result": [
+                {
+                    "customers": 3,
+                    "orders_30d": 0,
+                    "open_orders": 2,
+                    "buyers_with_trn": 1,
+                    "einvoices": 1,
+                    "returns": 2,
+                    "customer_ledger_balance": 12.5
+                },
+                3,
+                1,
+                [
+                    [
+                        2,
+                        "Bob",
+                        1,
+                        ""
+                    ],
+                    [
+                        1,
+                        "Acme",
+                        2,
+                        "100234567890003"
+                    ]
+                ],
+                [
+                    [
+                        1,
+                        "Acme"
+                    ]
+                ],
+                "Acme",
+                2,
+                "100234567890003",
+                true,
+                2,
+                21,
+                2,
+                12.5,
+                1,
+                2,
+                3,
+                0,
+                "100-234",
+                [
+                    [
+                        1,
+                        "epc_reg_country",
+                        "AE"
+                    ],
+                    [
+                        1,
+                        "epc_reg_trn",
+                        "100234"
+                    ]
+                ],
+                [
+                    1
+                ],
+                [
+                    {
+                        "data_key": "city",
+                        "data_value": "Sharjah"
+                    },
+                    {
+                        "data_key": "company",
+                        "data_value": "Acme2"
+                    },
+                    {
+                        "data_key": "name",
+                        "data_value": "Ann"
+                    },
+                    {
+                        "data_key": "phone",
+                        "data_value": "55"
+                    },
+                    {
+                        "data_key": "surname",
+                        "data_value": "Lee"
+                    }
+                ]
+            ]
+        }
+    ]
+}

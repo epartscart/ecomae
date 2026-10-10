@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "admin",
+      "eval": "return keel_run_admin($GLOBALS['db_link']);"
+    },
+    {
+      "name": "landing",
+      "eval": "return keel_run_landing();"
+    },
+    {
+      "name": "run",
+      "eval": "return keel_run_gate($GLOBALS['db_link']);"
+    },
+    {
+      "name": "mfa",
+      "eval": "return keel_run_mfa($GLOBALS['db_link']);"
+    }
+  ]
+}

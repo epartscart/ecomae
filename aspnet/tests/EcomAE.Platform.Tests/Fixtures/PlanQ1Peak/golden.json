@@ -1,0 +1,654 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "pure",
+            "output": "",
+            "result": [
+                [],
+                true,
+                true,
+                "[epc_ci] violation (no platform pdo): no platform pdo detail",
+                null,
+                [
+                    "admin/epc-site-health.php",
+                    "content/files/leak.php",
+                    "mention.php",
+                    "ok.php",
+                    "other.php",
+                    "prices_only.php",
+                    "shop.php",
+                    "sitekey.php"
+                ],
+                {
+                    "scanned": 13,
+                    "violations": [
+                        {
+                            "file": "/admin/epc-site-health.php",
+                            "table": "shop_docpart_prices",
+                            "issue": "Query references shop_docpart_prices without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/admin/epc-site-health.php",
+                            "table": "shop_docpart_prices_data",
+                            "issue": "Query references shop_docpart_prices_data without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/content/files/leak.php",
+                            "table": "shop_docpart_prices",
+                            "issue": "Query references shop_docpart_prices without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/content/files/leak.php",
+                            "table": "shop_docpart_prices_data",
+                            "issue": "Query references shop_docpart_prices_data without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/mention.php",
+                            "table": "shop_docpart_prices",
+                            "issue": "Query references shop_docpart_prices without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/mention.php",
+                            "table": "shop_docpart_prices_data",
+                            "issue": "Query references shop_docpart_prices_data without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/prices_only.php",
+                            "table": "shop_docpart_prices",
+                            "issue": "Query references shop_docpart_prices without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/shop.php",
+                            "table": "shop_docpart_prices",
+                            "issue": "Query references shop_docpart_prices without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/shop.php",
+                            "table": "shop_docpart_prices_data",
+                            "issue": "Query references shop_docpart_prices_data without price_id/site_key scope"
+                        }
+                    ],
+                    "passed": 4,
+                    "enforcement_pct": 30.8
+                }
+            ]
+        },
+        {
+            "name": "price",
+            "output": "",
+            "result": [
+                [],
+                [
+                    5,
+                    7
+                ],
+                [
+                    5,
+                    7
+                ],
+                [
+                    5,
+                    7
+                ],
+                true,
+                true,
+                "Commerce isolation violation: price_id not in tenant scope",
+                {
+                    "sql": "SELECT price_id, sku FROM shop_docpart_prices_data WHERE `price_id` IN (?,?) AND  sku = ?",
+                    "rows": [
+                        {
+                            "price_id": 5,
+                            "sku": "ABC"
+                        },
+                        {
+                            "price_id": 7,
+                            "sku": "ABC"
+                        }
+                    ]
+                },
+                {
+                    "sql": "SELECT price_id, sku FROM shop_docpart_prices_data WHERE `price_id` IN (?,?)",
+                    "rows": [
+                        {
+                            "price_id": 5,
+                            "sku": "ABC"
+                        },
+                        {
+                            "price_id": 5,
+                            "sku": "ZZZ"
+                        },
+                        {
+                            "price_id": 7,
+                            "sku": "ABC"
+                        }
+                    ]
+                },
+                {
+                    "sql": "SELECT price_id, sku FROM shop_docpart_prices_data WHERE sku = ?",
+                    "rows": [
+                        {
+                            "price_id": 5,
+                            "sku": "ABC"
+                        },
+                        {
+                            "price_id": 7,
+                            "sku": "ABC"
+                        },
+                        {
+                            "price_id": 99,
+                            "sku": "ABC"
+                        }
+                    ]
+                },
+                {
+                    "sql": "SELECT price_id, sku FROM shop_docpart_prices_data WHERE sku = ?",
+                    "rows": [
+                        {
+                            "price_id": 5,
+                            "sku": "ABC"
+                        },
+                        {
+                            "price_id": 7,
+                            "sku": "ABC"
+                        },
+                        {
+                            "price_id": 99,
+                            "sku": "ABC"
+                        }
+                    ]
+                },
+                "SELECT price_id, sku FROM shop_docpart_prices_data WHERE price_id = 99",
+                "SELECT sku FROM shop_docpart_prices_data WHERE `price_id` IN (?,?) AND  sku = ?",
+                {
+                    "n": 1
+                },
+                [
+                    {
+                        "site_key": "acme",
+                        "actor": "price-bad",
+                        "detail": "Cross-tenant price_id access attempt: requested [99] but tenant acme only owns [5,7]",
+                        "ip": "198.51.100.10"
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "audit",
+            "output": "",
+            "result": [
+                {
+                    "name": "ERP database isolation",
+                    "status": "FAIL",
+                    "details": [
+                        {
+                            "site_key": "erpbads",
+                            "db_name": "docpart",
+                            "trade_name": "ERP Bad",
+                            "ok": false
+                        },
+                        {
+                            "site_key": "erpempty",
+                            "db_name": "",
+                            "trade_name": "ERP Empty",
+                            "ok": false
+                        },
+                        {
+                            "site_key": "erpgood",
+                            "db_name": "TENANT_DB",
+                            "trade_name": "ERP Good",
+                            "ok": true
+                        },
+                        {
+                            "site_key": "erpold",
+                            "db_name": "okdb",
+                            "trade_name": "Old",
+                            "ok": true
+                        }
+                    ]
+                },
+                {
+                    "name": "Client tenant docpart isolation",
+                    "status": "FAIL",
+                    "details": [
+                        {
+                            "site_key": "boutique",
+                            "hostname": "boutique.example.com",
+                            "db_name": "boutique_db",
+                            "industry": "retail",
+                            "dedicated_db": 1,
+                            "scale_policy": "dedicated",
+                            "ok": true,
+                            "note": "dedicated"
+                        },
+                        {
+                            "site_key": "epartscart",
+                            "db_name": "docpart",
+                            "ok": true,
+                            "note": "epartscart may share docpart"
+                        },
+                        {
+                            "site_key": "pending",
+                            "hostname": "pend.example.com",
+                            "db_name": "ecomae",
+                            "industry": "x",
+                            "dedicated_db": 0,
+                            "scale_policy": "",
+                            "ok": false,
+                            "note": "FAIL shares docpart/platform DB — run epc-client-tenant-db-isolate.php"
+                        },
+                        {
+                            "site_key": "taxo",
+                            "hostname": "taxo.example.com",
+                            "db_name": "docpart",
+                            "industry": "tax",
+                            "dedicated_db": 0,
+                            "scale_policy": "shared",
+                            "ok": false,
+                            "note": "FAIL shares docpart/platform DB — run epc-client-tenant-db-isolate.php"
+                        }
+                    ]
+                },
+                {
+                    "name": "Price ID ownership uniqueness",
+                    "status": "WARN",
+                    "details": [],
+                    "total_price_ids": 3,
+                    "shared_price_ids": {
+                        "5": [
+                            {
+                                "office_id": 1,
+                                "office_name": "Alpha",
+                                "storage_id": 1
+                            },
+                            {
+                                "office_id": 2,
+                                "office_name": "Beta",
+                                "storage_id": 2
+                            }
+                        ]
+                    },
+                    "message": "1 price_id(s) shared across multiple offices"
+                },
+                {
+                    "name": "Orphan price data rows",
+                    "status": "WARN",
+                    "details": [],
+                    "orphan_price_ids": [
+                        {
+                            "price_id": 99,
+                            "row_count": 3
+                        },
+                        {
+                            "price_id": 100,
+                            "row_count": 1
+                        }
+                    ],
+                    "total_orphan_rows": 4,
+                    "message": "4 orphan rows across 2 price_id(s)"
+                },
+                {
+                    "name": "Commerce query scoping",
+                    "status": "WARN",
+                    "details": [],
+                    "total_files_scanned": 8,
+                    "files_with_target_table": 5,
+                    "properly_scoped": 1,
+                    "unscoped": [
+                        {
+                            "file": "admin/epc-site-health.php",
+                            "admin": true,
+                            "risk": "low"
+                        },
+                        {
+                            "file": "content/files/leak.php",
+                            "admin": false,
+                            "risk": "HIGH"
+                        },
+                        {
+                            "file": "shop.php",
+                            "admin": false,
+                            "risk": "HIGH"
+                        },
+                        {
+                            "file": "sitekey.php",
+                            "admin": false,
+                            "risk": "HIGH"
+                        }
+                    ],
+                    "high_risk_count": 3,
+                    "message": "3 file(s) query shop_docpart_prices_data without price_id filter (non-admin)"
+                },
+                {
+                    "name": "Registry credential verification",
+                    "status": "FAIL",
+                    "details": [
+                        {
+                            "site_key": "erpbads",
+                            "db_name": "docpart",
+                            "trade_name": "ERP Bad",
+                            "ok": false,
+                            "error": "Missing credentials"
+                        },
+                        {
+                            "site_key": "erpempty",
+                            "db_name": "",
+                            "trade_name": "ERP Empty",
+                            "ok": false,
+                            "error": "Missing credentials"
+                        },
+                        {
+                            "site_key": "erpgood",
+                            "db_name": "TENANT_DB",
+                            "trade_name": "ERP Good",
+                            "ok": true
+                        }
+                    ]
+                },
+                {
+                    "timestamp": "2026-10-10 00:00:00",
+                    "overall": "FAIL",
+                    "checks": {
+                        "erp_db_isolation": {
+                            "name": "ERP database isolation",
+                            "status": "FAIL",
+                            "details": [
+                                {
+                                    "site_key": "erpbads",
+                                    "db_name": "docpart",
+                                    "trade_name": "ERP Bad",
+                                    "ok": false
+                                },
+                                {
+                                    "site_key": "erpempty",
+                                    "db_name": "",
+                                    "trade_name": "ERP Empty",
+                                    "ok": false
+                                },
+                                {
+                                    "site_key": "erpgood",
+                                    "db_name": "TENANT_DB",
+                                    "trade_name": "ERP Good",
+                                    "ok": true
+                                },
+                                {
+                                    "site_key": "erpold",
+                                    "db_name": "okdb",
+                                    "trade_name": "Old",
+                                    "ok": true
+                                }
+                            ]
+                        },
+                        "client_docpart_isolation": {
+                            "name": "Client tenant docpart isolation",
+                            "status": "FAIL",
+                            "details": [
+                                {
+                                    "site_key": "boutique",
+                                    "hostname": "boutique.example.com",
+                                    "db_name": "boutique_db",
+                                    "industry": "retail",
+                                    "dedicated_db": 1,
+                                    "scale_policy": "dedicated",
+                                    "ok": true,
+                                    "note": "dedicated"
+                                },
+                                {
+                                    "site_key": "epartscart",
+                                    "db_name": "docpart",
+                                    "ok": true,
+                                    "note": "epartscart may share docpart"
+                                },
+                                {
+                                    "site_key": "pending",
+                                    "hostname": "pend.example.com",
+                                    "db_name": "ecomae",
+                                    "industry": "x",
+                                    "dedicated_db": 0,
+                                    "scale_policy": "",
+                                    "ok": false,
+                                    "note": "FAIL shares docpart/platform DB — run epc-client-tenant-db-isolate.php"
+                                },
+                                {
+                                    "site_key": "taxo",
+                                    "hostname": "taxo.example.com",
+                                    "db_name": "docpart",
+                                    "industry": "tax",
+                                    "dedicated_db": 0,
+                                    "scale_policy": "shared",
+                                    "ok": false,
+                                    "note": "FAIL shares docpart/platform DB — run epc-client-tenant-db-isolate.php"
+                                }
+                            ]
+                        },
+                        "price_id_ownership": {
+                            "name": "Price ID ownership uniqueness",
+                            "status": "WARN",
+                            "details": [],
+                            "total_price_ids": 3,
+                            "shared_price_ids": {
+                                "5": [
+                                    {
+                                        "office_id": 1,
+                                        "office_name": "Alpha",
+                                        "storage_id": 1
+                                    },
+                                    {
+                                        "office_id": 2,
+                                        "office_name": "Beta",
+                                        "storage_id": 2
+                                    }
+                                ]
+                            },
+                            "message": "1 price_id(s) shared across multiple offices"
+                        },
+                        "orphan_price_data": {
+                            "name": "Orphan price data rows",
+                            "status": "WARN",
+                            "details": [],
+                            "orphan_price_ids": [
+                                {
+                                    "price_id": 99,
+                                    "row_count": 3
+                                },
+                                {
+                                    "price_id": 100,
+                                    "row_count": 1
+                                }
+                            ],
+                            "total_orphan_rows": 4,
+                            "message": "4 orphan rows across 2 price_id(s)"
+                        },
+                        "query_scoping": {
+                            "name": "Commerce query scoping",
+                            "status": "WARN",
+                            "details": [],
+                            "total_files_scanned": 8,
+                            "files_with_target_table": 5,
+                            "properly_scoped": 1,
+                            "unscoped": [
+                                {
+                                    "file": "admin/epc-site-health.php",
+                                    "admin": true,
+                                    "risk": "low"
+                                },
+                                {
+                                    "file": "content/files/leak.php",
+                                    "admin": false,
+                                    "risk": "HIGH"
+                                },
+                                {
+                                    "file": "shop.php",
+                                    "admin": false,
+                                    "risk": "HIGH"
+                                },
+                                {
+                                    "file": "sitekey.php",
+                                    "admin": false,
+                                    "risk": "HIGH"
+                                }
+                            ],
+                            "high_risk_count": 3,
+                            "message": "3 file(s) query shop_docpart_prices_data without price_id filter (non-admin)"
+                        },
+                        "registry_credentials": {
+                            "name": "Registry credential verification",
+                            "status": "FAIL",
+                            "details": [
+                                {
+                                    "site_key": "erpbads",
+                                    "db_name": "docpart",
+                                    "trade_name": "ERP Bad",
+                                    "ok": false,
+                                    "error": "Missing credentials"
+                                },
+                                {
+                                    "site_key": "erpempty",
+                                    "db_name": "",
+                                    "trade_name": "ERP Empty",
+                                    "ok": false,
+                                    "error": "Missing credentials"
+                                },
+                                {
+                                    "site_key": "erpgood",
+                                    "db_name": "TENANT_DB",
+                                    "trade_name": "ERP Good",
+                                    "ok": true
+                                }
+                            ]
+                        }
+                    },
+                    "tenants": [],
+                    "summary": {
+                        "passed": 0,
+                        "failed": 3,
+                        "warnings": 3
+                    }
+                },
+                {
+                    "id": 1,
+                    "run_at": "2026-10-10 00:00:00",
+                    "total_tenants": 6,
+                    "passed": 0,
+                    "failed": 3,
+                    "warnings": 3,
+                    "triggered_by": "cli"
+                }
+            ]
+        },
+        {
+            "name": "scan",
+            "output": "",
+            "result": [
+                [
+                    "admin/epc-site-health.php",
+                    "content/files/leak.php",
+                    "mention.php",
+                    "ok.php",
+                    "other.php",
+                    "prices_only.php",
+                    "shop.php",
+                    "sitekey.php"
+                ],
+                {
+                    "scanned": 13,
+                    "violations": [
+                        {
+                            "file": "/admin/epc-site-health.php",
+                            "table": "shop_docpart_prices",
+                            "issue": "Query references shop_docpart_prices without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/admin/epc-site-health.php",
+                            "table": "shop_docpart_prices_data",
+                            "issue": "Query references shop_docpart_prices_data without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/content/files/leak.php",
+                            "table": "shop_docpart_prices",
+                            "issue": "Query references shop_docpart_prices without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/content/files/leak.php",
+                            "table": "shop_docpart_prices_data",
+                            "issue": "Query references shop_docpart_prices_data without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/mention.php",
+                            "table": "shop_docpart_prices",
+                            "issue": "Query references shop_docpart_prices without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/mention.php",
+                            "table": "shop_docpart_prices_data",
+                            "issue": "Query references shop_docpart_prices_data without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/prices_only.php",
+                            "table": "shop_docpart_prices",
+                            "issue": "Query references shop_docpart_prices without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/shop.php",
+                            "table": "shop_docpart_prices",
+                            "issue": "Query references shop_docpart_prices without price_id/site_key scope"
+                        },
+                        {
+                            "file": "/shop.php",
+                            "table": "shop_docpart_prices_data",
+                            "issue": "Query references shop_docpart_prices_data without price_id/site_key scope"
+                        }
+                    ],
+                    "passed": 4,
+                    "enforcement_pct": 30.8
+                },
+                [
+                    {
+                        "site_key": "acme",
+                        "actor": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                        "dlen": 2000,
+                        "ip": "203.0.113.9"
+                    },
+                    {
+                        "site_key": "beta",
+                        "actor": "ops",
+                        "dlen": 6,
+                        "ip": "203.0.113.9"
+                    }
+                ],
+                {
+                    "name": "Commerce query scoping",
+                    "status": "WARN",
+                    "details": [],
+                    "total_files_scanned": 8,
+                    "files_with_target_table": 5,
+                    "properly_scoped": 1,
+                    "unscoped": [
+                        {
+                            "file": "admin/epc-site-health.php",
+                            "admin": true,
+                            "risk": "low"
+                        },
+                        {
+                            "file": "content/files/leak.php",
+                            "admin": false,
+                            "risk": "HIGH"
+                        },
+                        {
+                            "file": "shop.php",
+                            "admin": false,
+                            "risk": "HIGH"
+                        },
+                        {
+                            "file": "sitekey.php",
+                            "admin": false,
+                            "risk": "HIGH"
+                        }
+                    ],
+                    "high_risk_count": 3,
+                    "message": "3 file(s) query shop_docpart_prices_data without price_id filter (non-admin)"
+                }
+            ]
+        }
+    ]
+}

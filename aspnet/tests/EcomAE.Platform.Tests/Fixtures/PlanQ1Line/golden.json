@@ -1,0 +1,62 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "empty",
+            "output": "",
+            "result": [
+                0,
+                "Empty article",
+                0,
+                "Empty article"
+            ]
+        },
+        {
+            "name": "addkey",
+            "output": "",
+            "result": [
+                0,
+                1,
+                0,
+                "Pad",
+                [
+                    "umapi",
+                    "warehouse"
+                ],
+                "KEY99",
+                "abc"
+            ]
+        },
+        {
+            "name": "crosshtml",
+            "output": "",
+            "result": [
+                "Bosch",
+                "Mann",
+                1,
+                "BOSCH",
+                [
+                    "crossbase"
+                ]
+            ]
+        },
+        {
+            "name": "collect",
+            "output": "",
+            "result": [
+                1,
+                "OC47",
+                1,
+                2,
+                0,
+                0,
+                [
+                    "ACME",
+                    "BOSCH",
+                    "FEBI"
+                ],
+                "prices"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,363 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "map",
+            "output": "",
+            "result": [
+                "20260607ssftoggle1",
+                [
+                    "control/communications",
+                    "control/notifications_settings",
+                    "control/notifications_settings/notification",
+                    "control/config",
+                    "control/cp-guideline",
+                    "control/portal/industry_settings",
+                    "control/portal/epc_tax_toolkit_manage",
+                    "control/portal/epc_visual_page_editor",
+                    "control/portal/epc_pos_tenant_manage",
+                    "control/portal/epc_platform_governance",
+                    "control/portal/epc_platform_health_checkup",
+                    "shop/statistics/web_tracker",
+                    "control/portal/epc_web_tracker",
+                    "control/portal/epc_power_bi",
+                    "control/portal/epc_power_bi_guide",
+                    "control/portal/epc_api_documentation_guide",
+                    "control/portal/epc_platform_failover_guide",
+                    "control/portal/epc_auto_price_engine",
+                    "control/portal/epc_auto_price_guide",
+                    "control/portal/epc_erp_only_onboard_guide",
+                    "control/portal/epc_custom_shipping_guide",
+                    "control/portal/epc_api_clients_manage",
+                    "control/portal/epc_integrations_hub",
+                    "control/portal/epc_integrations_guide",
+                    "control/portal/epc_social_media_hub",
+                    "control/portal/epc_marketing_broadcast",
+                    "shop/marketing/marketing",
+                    "shop/payments/payments",
+                    "control/portal/epc_mobile_apps",
+                    "control/portal/epc_tenant_features",
+                    "control/portal/epc_tenant_email_settings",
+                    "shop/tenant_hub/tenant_hub",
+                    "shop/pos/terminal",
+                    "shop/orders/items",
+                    "shop/orders/items/edit",
+                    "shop/orders/oms-guide",
+                    "shop/orders/orders",
+                    "shop/finance/account_operations",
+                    "shop/orders/statuses",
+                    "shop/orders/order",
+                    "shop/channels/channels",
+                    "shop/logistics/carriers",
+                    "shop/logistics/storages",
+                    "shop/logistics/storages/storage",
+                    "shop/quote-requests",
+                    "shop/bulk_upload",
+                    "shop/parts_agent_chats",
+                    "shop/accessories",
+                    "shop/crosses",
+                    "shop/prices",
+                    "shop/prices/price",
+                    "shop/prices/guide",
+                    "shop/prices/multivendor",
+                    "shop/catalogue/sku_media",
+                    "filemanager",
+                    "shop/catalogue/catalogue_editor",
+                    "shop/prices/upload",
+                    "shop/prices/prices_edit",
+                    "shop/document_control/document_control"
+                ],
+                {
+                    "control/communications": {
+                        "css": [
+                            "/content/general_pages/epc_comms_notify_css.php?v=20260607ssftoggle1cn1"
+                        ],
+                        "js": [
+                            "/cp/content/control/epc_comms_notify.js?v=20260607ssftoggle1cn1"
+                        ]
+                    },
+                    "control/config": {
+                        "css": [
+                            "/content/general_pages/epc_config_edit_css.php?v=20260607ssftoggle1cfg6"
+                        ],
+                        "js": [
+                            "/cp/content/control/epc_config_edit.js?v=20260607ssftoggle1cfg6",
+                            "/cp/content/control/epc_config_edit_status.js?v=20260607ssftoggle1cfg6"
+                        ]
+                    },
+                    "control/portal/epc_auto_price_engine": {
+                        "css": [
+                            "/content/general_pages/epc_auto_price_engine_css.php?v=20260607ssftoggle1disc1"
+                        ],
+                        "js": [
+                            "/content/general_pages/epc_auto_price_shell_js.php?v=20260607ssftoggle1disc1",
+                            "/cp/content/control/portal/epc_auto_price_discover.js?v=20260607ssftoggle1disc1",
+                            "/cp/content/control/portal/epc_auto_price_imports.js?v=20260607ssftoggle1disc1",
+                            "/cp/content/control/portal/epc_auto_price_product_lines.js?v=20260607ssftoggle1disc1",
+                            "/cp/content/control/portal/epc_auto_price_sources.js?v=20260607ssftoggle1disc1",
+                            "/cp/content/control/portal/epc_auto_price_compare.js?v=20260607ssftoggle1disc1"
+                        ]
+                    },
+                    "control/portal/epc_power_bi": {
+                        "css": [
+                            "/content/general_pages/epc_portal_settings_css.php?v=20260607ssftoggle1",
+                            "/content/general_pages/epc_portal_module_pages_css.php?v=20260607ssftoggle1"
+                        ],
+                        "js": []
+                    },
+                    "control/portal/epc_api_documentation_guide": {
+                        "css": [
+                            "/content/general_pages/epc_portal_settings_css.php?v=20260607ssftoggle1",
+                            "/content/general_pages/epc_portal_module_pages_css.php?v=20260607ssftoggle1"
+                        ]
+                    },
+                    "control/portal/epc_visual_page_editor": {
+                        "css": [
+                            "/content/general_pages/epc_visual_page_editor_css.php?v=20260607ssftoggle1vpe1"
+                        ]
+                    },
+                    "filemanager": {
+                        "css": [
+                            "/cp/lib/elfinder/css/elfinder.min.css",
+                            "/cp/lib/elfinder/css/theme.css",
+                            "/cp/content/filemanager/epc_filemanager.css?v=20260607ssftoggle1fm5"
+                        ],
+                        "js": [
+                            "/lib/jquery_browser/jquery.browser.js",
+                            "/cp/lib/elfinder/js/elfinder.min.js",
+                            "/cp/content/filemanager/epc_filemanager_config.php?v=20260607ssftoggle1fm5",
+                            "/cp/content/filemanager/epc_filemanager.js?v=20260607ssftoggle1fm5"
+                        ]
+                    },
+                    "shop/orders/orders": {
+                        "css": [
+                            "/lib/datetimepicker/jquery.datetimepicker.css",
+                            "/lib/multiple_select/multiple-select.css",
+                            "/cp/content/users/statistics/assets/modal.css",
+                            "/content/general_pages/epc_orders_cp_css.php?v=20260607ssftoggle1omsAlt1"
+                        ],
+                        "js": [
+                            "/lib/datetimepicker/jquery.datetimepicker.js",
+                            "/lib/multiple_select/jquery.multiple.select.js",
+                            "/cp/content/users/statistics/assets/main.js",
+                            "/cp/content/shop/order_process/orders_config.php?v=20260607ssftoggle1omsAlt1",
+                            "/cp/content/shop/order_process/orders_cp.js?v=20260607ssftoggle1omsAlt1",
+                            "/cp/content/shop/order_process/epc_orders_fulfillment.js?v=20260607ssftoggle1omsAlt1",
+                            "/cp/content/shop/order_process/epc_orders_supplier_fulfillment.js?v=20260607ssftoggle1omsAlt1"
+                        ]
+                    },
+                    "shop/finance/account_operations": {
+                        "css": [
+                            "/lib/datetimepicker/jquery.datetimepicker.css",
+                            "/cp/content/users/statistics/assets/modal.css",
+                            "/cp/content/shop/finance/epc_account_operations.css?v=20260607ssftoggle1aoFix3"
+                        ],
+                        "js": [
+                            "/lib/datetimepicker/jquery.datetimepicker.js",
+                            "/cp/content/users/statistics/assets/main.js",
+                            "/cp/content/shop/finance/account_operations_cp.js?v=20260607ssftoggle1aoFix3"
+                        ]
+                    }
+                },
+                {
+                    "control/communications": {
+                        "css": [
+                            "/content/general_pages/epc_comms_notify_css.php?v=20260607ssftoggle1cn1"
+                        ],
+                        "js": [
+                            "/ops/content/control/epc_comms_notify.js?v=20260607ssftoggle1cn1"
+                        ]
+                    },
+                    "filemanager": {
+                        "css": [
+                            "/ops/lib/elfinder/css/elfinder.min.css",
+                            "/ops/lib/elfinder/css/theme.css",
+                            "/ops/content/filemanager/epc_filemanager.css?v=20260607ssftoggle1fm5"
+                        ],
+                        "js": [
+                            "/lib/jquery_browser/jquery.browser.js",
+                            "/ops/lib/elfinder/js/elfinder.min.js",
+                            "/ops/content/filemanager/epc_filemanager_config.php?v=20260607ssftoggle1fm5",
+                            "/ops/content/filemanager/epc_filemanager.js?v=20260607ssftoggle1fm5"
+                        ]
+                    }
+                },
+                {
+                    "control/communications": {
+                        "css": [
+                            "/content/general_pages/epc_comms_notify_css.php?v=20260607ssftoggle1cn1"
+                        ],
+                        "js": [
+                            "//content/control/epc_comms_notify.js?v=20260607ssftoggle1cn1"
+                        ]
+                    },
+                    "shop/orders/items": {
+                        "css": [
+                            "/lib/datetimepicker/jquery.datetimepicker.css",
+                            "/lib/multiple_select/multiple-select.css",
+                            "//content/users/statistics/assets/modal.css",
+                            "/content/general_pages/epc_orders_cp_css.php?v=20260607ssftoggle1omsForms2"
+                        ],
+                        "js": [
+                            "/lib/datetimepicker/jquery.datetimepicker.js",
+                            "/lib/multiple_select/jquery.multiple.select.js",
+                            "//content/users/statistics/assets/main.js",
+                            "//content/shop/order_process/orders_items_config.php?v=20260607ssftoggle1omsForms2",
+                            "//content/shop/order_process/orders_items_cp.js?v=20260607ssftoggle1omsForms2"
+                        ]
+                    }
+                },
+                {
+                    "css": [
+                        "/lib/datetimepicker/jquery.datetimepicker.css",
+                        "/lib/multiple_select/multiple-select.css",
+                        "/cp/content/users/statistics/assets/modal.css",
+                        "/content/general_pages/epc_orders_cp_css.php?v=20260607ssftoggle1omsAlt1"
+                    ],
+                    "js": [
+                        "/lib/datetimepicker/jquery.datetimepicker.js",
+                        "/lib/multiple_select/jquery.multiple.select.js",
+                        "/cp/content/users/statistics/assets/main.js",
+                        "/cp/content/shop/order_process/orders_config.php?v=20260607ssftoggle1omsAlt1",
+                        "/cp/content/shop/order_process/orders_cp.js?v=20260607ssftoggle1omsAlt1",
+                        "/cp/content/shop/order_process/epc_orders_fulfillment.js?v=20260607ssftoggle1omsAlt1",
+                        "/cp/content/shop/order_process/epc_orders_supplier_fulfillment.js?v=20260607ssftoggle1omsAlt1"
+                    ]
+                },
+                {
+                    "css": [
+                        "/lib/datetimepicker/jquery.datetimepicker.css",
+                        "/lib/multiple_select/multiple-select.css",
+                        "/cp/content/users/statistics/assets/modal.css",
+                        "/content/general_pages/epc_orders_cp_css.php?v=20260607ssftoggle1omsAlt1"
+                    ],
+                    "js": [
+                        "/lib/datetimepicker/jquery.datetimepicker.js",
+                        "/lib/multiple_select/jquery.multiple.select.js",
+                        "/cp/content/users/statistics/assets/main.js",
+                        "/cp/content/shop/order_process/orders_config.php?v=20260607ssftoggle1omsAlt1&order_id=7&status_id=0",
+                        "/cp/content/shop/order_process/orders_cp.js?v=20260607ssftoggle1omsAlt1",
+                        "/cp/content/shop/order_process/epc_orders_fulfillment.js?v=20260607ssftoggle1omsAlt1",
+                        "/cp/content/shop/order_process/epc_orders_supplier_fulfillment.js?v=20260607ssftoggle1omsAlt1"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "resolve",
+            "output": "",
+            "result": [
+                {
+                    "css": [],
+                    "js": []
+                },
+                {
+                    "css": [],
+                    "js": {
+                        "/content/shop/finance/erp-shell-nav.js?v=nav1": true
+                    }
+                },
+                {
+                    "css": [],
+                    "js": {
+                        "/content/shop/finance/erp-shell-nav.js?v=nav1": true
+                    }
+                },
+                {
+                    "css": [],
+                    "js": []
+                },
+                {
+                    "css": {
+                        "/content/general_pages/epc_comms_notify_css.php?v=20260607ssftoggle1cn1": true
+                    },
+                    "js": {
+                        "/cp/content/control/epc_comms_notify.js?v=20260607ssftoggle1cn1": true
+                    }
+                },
+                {
+                    "css": {
+                        "/lib/datetimepicker/jquery.datetimepicker.css": true,
+                        "/cp/content/users/statistics/assets/modal.css": true,
+                        "/cp/content/shop/finance/epc_account_operations.css?v=20260607ssftoggle1aoFix3": true
+                    },
+                    "js": {
+                        "/lib/datetimepicker/jquery.datetimepicker.js": true,
+                        "/cp/content/users/statistics/assets/main.js": true,
+                        "/cp/content/shop/finance/account_operations_cp.js?v=20260607ssftoggle1aoFix3": true
+                    }
+                },
+                {
+                    "css": {
+                        "/content/general_pages/epc_visual_page_editor_css.php?v=20260607ssftoggle1vpe1": true
+                    },
+                    "js": []
+                },
+                {
+                    "css": {
+                        "/content/general_pages/epc_comms_notify_css.php?v=20260607ssftoggle1cn1": true,
+                        "https://cdn.example/o'x.css": true
+                    },
+                    "js": {
+                        "/cp/content/control/epc_comms_notify.js?v=20260607ssftoggle1cn1": true,
+                        "https://cdn.example/o'x.js": true
+                    }
+                },
+                {
+                    "css": {
+                        "/content/general_pages/epc_comms_notify_css.php?v=20260607ssftoggle1cn1": true
+                    },
+                    "js": {
+                        "/cp/content/control/epc_comms_notify.js?v=20260607ssftoggle1cn1": true
+                    }
+                },
+                "/content/shop/finance/erp-shell-nav.js?v=nav1"
+            ]
+        },
+        {
+            "name": "head",
+            "output": "",
+            "result": [
+                "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_comms_notify_css.php?v=20260607ssftoggle1cn1\" />\n",
+                "",
+                "",
+                "<link rel=\"stylesheet\" href=\"https://cdn.example/o&#039;x.css\" />\n",
+                "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_visual_page_editor_css.php?v=20260607ssftoggle1vpe1\" />\n"
+            ]
+        },
+        {
+            "name": "scripts",
+            "output": "",
+            "result": [
+                "injectedver1",
+                {
+                    "discover": "discover",
+                    "discovery": "discover",
+                    "taxonomy": "product_lines",
+                    "disc_sources": "uae_sources",
+                    "market_sources": "uae_sources",
+                    "settings": "rules",
+                    "dashboard": "discover",
+                    "my_imports": "imports",
+                    "imports": "imports",
+                    "custom_tab": "custom_tab",
+                    "missing": "discover"
+                },
+                "<script>window.EPC_APAI_SHELL={\"active\":true,\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\",\"backend\":\"cp\",\"siteKey\":\"acme1\",\"tab\":\"discover\",\"discoverInlined\":true};</script>\n<script>window.EPC_APAI_DISCOVER={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"acme1\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":true};window.EPC_APAI_SOURCES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"acme1\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_PRODUCT_LINES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"acme1\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_IMPORTS={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"acme1\",\"tab\":\"discover\",\"filter\":\"new\",\"active\":false,\"backend\":\"cp\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\"};</script>\n<script src=\"/content/general_pages/epc_auto_price_shell_js.php?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_discover.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_imports.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_product_lines.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_sources.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_compare.js?v=injectedver1disc1\"></script>\n",
+                "<script>window.EPC_APAI_SHELL={\"active\":true,\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\",\"backend\":\"cp\",\"siteKey\":\"beta_2\",\"tab\":\"product_lines\"};</script>\n<script>window.EPC_APAI_DISCOVER={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"beta_2\",\"tab\":\"product_lines\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_SOURCES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"beta_2\",\"tab\":\"product_lines\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_PRODUCT_LINES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"beta_2\",\"tab\":\"product_lines\",\"backend\":\"cp\",\"active\":true};window.EPC_APAI_IMPORTS={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"beta_2\",\"tab\":\"product_lines\",\"filter\":\"price_changes\",\"active\":false,\"backend\":\"cp\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\"};</script>\n<script src=\"/content/general_pages/epc_auto_price_shell_js.php?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_discover.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_imports.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_product_lines.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_sources.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_compare.js?v=injectedver1disc1\"></script>\n",
+                "<script>window.EPC_APAI_SHELL={\"active\":true,\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\",\"backend\":\"cp\",\"siteKey\":\"\",\"tab\":\"discover\",\"discoverInlined\":true};</script>\n<script>window.EPC_APAI_DISCOVER={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":true};window.EPC_APAI_SOURCES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_PRODUCT_LINES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_IMPORTS={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"filter\":\"duplicates\",\"active\":false,\"backend\":\"cp\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\"};</script>\n<script src=\"/content/general_pages/epc_auto_price_shell_js.php?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_discover.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_imports.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_product_lines.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_sources.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_compare.js?v=injectedver1disc1\"></script>\n",
+                "<script>window.EPC_APAI_SHELL={\"active\":true,\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\",\"backend\":\"cp\",\"siteKey\":\"acme1\",\"tab\":\"discover\",\"discoverInlined\":true};</script>\n<script>window.EPC_APAI_DISCOVER={\"ajaxUrl\":\"//control/portal/ajax_auto_price\",\"siteKey\":\"acme1\",\"tab\":\"discover\",\"backend\":\"\",\"active\":true};window.EPC_APAI_SOURCES={\"ajaxUrl\":\"//control/portal/ajax_auto_price\",\"siteKey\":\"acme1\",\"tab\":\"discover\",\"backend\":\"\",\"active\":false};window.EPC_APAI_PRODUCT_LINES={\"ajaxUrl\":\"//control/portal/ajax_auto_price\",\"siteKey\":\"acme1\",\"tab\":\"discover\",\"backend\":\"\",\"active\":false};window.EPC_APAI_IMPORTS={\"ajaxUrl\":\"//control/portal/ajax_auto_price\",\"siteKey\":\"acme1\",\"tab\":\"discover\",\"filter\":\"new\",\"active\":false,\"backend\":\"\",\"pageBase\":\"//control/portal/epc_auto_price_engine\"};</script>\n<script src=\"/content/general_pages/epc_auto_price_shell_js.php?v=injectedver1disc1\"></script>\n<script src=\"//content/control/portal/epc_auto_price_discover.js?v=injectedver1disc1\"></script>\n<script src=\"//content/control/portal/epc_auto_price_imports.js?v=injectedver1disc1\"></script>\n<script src=\"//content/control/portal/epc_auto_price_product_lines.js?v=injectedver1disc1\"></script>\n<script src=\"//content/control/portal/epc_auto_price_sources.js?v=injectedver1disc1\"></script>\n<script src=\"//content/control/portal/epc_auto_price_compare.js?v=injectedver1disc1\"></script>\n",
+                "<script>window.EPC_APAI_SHELL={\"active\":true,\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\",\"backend\":\"cp\",\"siteKey\":\"epartscart\",\"tab\":\"discover\",\"discoverInlined\":true};</script>\n<script>window.EPC_APAI_DISCOVER={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":true};window.EPC_APAI_SOURCES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_PRODUCT_LINES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_IMPORTS={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"filter\":\"new\",\"active\":false,\"backend\":\"cp\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\"};</script>\n<script src=\"/content/general_pages/epc_auto_price_shell_js.php?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_discover.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_imports.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_product_lines.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_sources.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_compare.js?v=injectedver1disc1\"></script>\n",
+                "<script>window.EPC_APAI_SHELL={\"active\":true,\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\",\"backend\":\"cp\",\"siteKey\":\"electronicae\",\"tab\":\"discover\",\"discoverInlined\":true};</script>\n<script>window.EPC_APAI_DISCOVER={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":true};window.EPC_APAI_SOURCES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_PRODUCT_LINES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_IMPORTS={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"filter\":\"new\",\"active\":false,\"backend\":\"cp\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\"};</script>\n<script src=\"/content/general_pages/epc_auto_price_shell_js.php?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_discover.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_imports.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_product_lines.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_sources.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_compare.js?v=injectedver1disc1\"></script>\n",
+                "<script>window.EPC_APAI_SHELL={\"active\":true,\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\",\"backend\":\"cp\",\"siteKey\":\"\",\"tab\":\"discover\",\"discoverInlined\":true};</script>\n<script>window.EPC_APAI_DISCOVER={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":true};window.EPC_APAI_SOURCES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_PRODUCT_LINES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_IMPORTS={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"\",\"tab\":\"discover\",\"filter\":\"new\",\"active\":false,\"backend\":\"cp\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\"};</script>\n<script src=\"/content/general_pages/epc_auto_price_shell_js.php?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_discover.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_imports.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_product_lines.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_sources.js?v=injectedver1disc1\"></script>\n<script src=\"/cp/content/control/portal/epc_auto_price_compare.js?v=injectedver1disc1\"></script>\n",
+                "<script src=\"/cp/content/control/portal/epc_visual_page_editor_config.php?v=injectedver1vpe1&amp;site_key=acme1&amp;page_key=homepage\"></script>\n<script src=\"/cp/content/control/portal/epc_visual_page_editor.js?v=injectedver1vpe1\"></script>\n",
+                "<script src=\"/cp/content/control/portal/epc_visual_page_editor_config.php?v=injectedver1vpe1&amp;site_key=acme1&amp;page_key=my-page\"></script>\n<script src=\"/cp/content/control/portal/epc_visual_page_editor.js?v=injectedver1vpe1\"></script>\n",
+                "<script src=\"/cp/content/control/portal/epc_visual_page_editor_config.php?v=injectedver1vpe1&amp;site_key=acme1&amp;page_key=my-page\"></script>\n<script src=\"/cp/content/control/portal/epc_visual_page_editor.js?v=injectedver1vpe1\"></script>\n",
+                "<script src=\"/cp/content/control/epc_comms_notify.js?v=injectedver1cn1\"></script>\n<script src=\"https://cdn.example/o&#039;x.js\"></script>\n",
+                "",
+                "<script>window.EPC_APAI_DISCOVER={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"acme1\",\"tab\":\"imports\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_SOURCES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"acme1\",\"tab\":\"imports\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_PRODUCT_LINES={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"acme1\",\"tab\":\"imports\",\"backend\":\"cp\",\"active\":false};window.EPC_APAI_IMPORTS={\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"siteKey\":\"acme1\",\"tab\":\"imports\",\"filter\":\"new\",\"active\":true,\"backend\":\"cp\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\"};</script>\n",
+                "<script>window.EPC_APAI_SHELL={\"active\":true,\"ajaxUrl\":\"/cp/control/portal/ajax_auto_price\",\"pageBase\":\"/cp/control/portal/epc_auto_price_engine\",\"backend\":\"cp\",\"siteKey\":\"acme1\",\"tab\":\"discover\",\"discoverInlined\":true};</script>\n"
+            ]
+        }
+    ]
+}

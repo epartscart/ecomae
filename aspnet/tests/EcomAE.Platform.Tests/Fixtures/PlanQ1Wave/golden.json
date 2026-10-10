@@ -1,0 +1,226 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "pure",
+            "output": "",
+            "result": [
+                "JBSWY3DP",
+                "Hello",
+                "120699",
+                "otpauth://totp/ECOM%20AE:ops%40ecomae.com?secret=SECRET&issuer=ECOM%20AE&digits=6&period=30&algorithm=SHA1",
+                "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=otpauth%3A%2F%2Ftotp%2FECOM%2520AE%3Aops%2540ecomae.com%3Fsecret%3DJBSWY3DPEHPK3PXP%26issuer%3DECOM%2520AE%26digits%3D6%26period%3D30%26algorithm%3DSHA1",
+                false,
+                {
+                    "granted": true,
+                    "reason": "tab_not_sensitive"
+                },
+                {
+                    "ok": false,
+                    "error": "Unknown MFA action"
+                },
+                true,
+                false
+            ]
+        },
+        {
+            "name": "enroll",
+            "output": "",
+            "result": [
+                {
+                    "ok": true,
+                    "secret": "SECRET",
+                    "qr_uri": "otpauth://totp/ECOM%20AE:ops%40ecomae.com?secret=SECRET&issuer=ECOM%20AE&digits=6&period=30&algorithm=SHA1",
+                    "backup_codes": [
+                        "CODE",
+                        "CODE",
+                        "CODE",
+                        "CODE",
+                        "CODE",
+                        "CODE",
+                        "CODE",
+                        "CODE"
+                    ],
+                    "message": "Scan the QR code with your authenticator app, then enter a code to confirm."
+                },
+                {
+                    "ok": false,
+                    "error": "Invalid code. Check your authenticator app and try again."
+                },
+                {
+                    "ok": true,
+                    "message": "TOTP enrollment confirmed. MFA is now active on your account."
+                },
+                {
+                    "ok": false,
+                    "error": "TOTP already enrolled. Disable first to re-enroll."
+                },
+                {
+                    "ok": true,
+                    "message": "MFA verified."
+                },
+                [
+                    {
+                        "user_id": 7,
+                        "action": "enroll_start",
+                        "success": 1
+                    },
+                    {
+                        "user_id": 7,
+                        "action": "enroll_confirm_fail",
+                        "success": 0
+                    },
+                    {
+                        "user_id": 7,
+                        "action": "enroll_confirmed",
+                        "success": 1
+                    },
+                    {
+                        "user_id": 7,
+                        "action": "verify_ok",
+                        "success": 1
+                    }
+                ],
+                {
+                    "enrolled": true,
+                    "methods": [
+                        {
+                            "method": "totp",
+                            "confirmed": 1,
+                            "label": "TOTP (2026-10-10)",
+                            "last_used_at": "2026-10-10 00:00:00",
+                            "created_at": "2026-10-10 00:00:00"
+                        }
+                    ],
+                    "backup_codes_left": 8,
+                    "session_verified": false
+                }
+            ]
+        },
+        {
+            "name": "policy",
+            "output": "",
+            "result": [
+                {
+                    "require_mfa_for_roles": [
+                        "super_admin",
+                        "finance_admin",
+                        "finance_user"
+                    ],
+                    "require_mfa_for_paths": [
+                        "/cp/shop/finance/",
+                        "/cp/content/shop/finance/"
+                    ],
+                    "grace_period_hours": 72
+                },
+                true,
+                {
+                    "require_mfa_for_roles": [
+                        "finance_user"
+                    ],
+                    "require_mfa_for_paths": [
+                        "/cp/shop/finance/"
+                    ],
+                    "grace_period_hours": 12
+                },
+                {
+                    "ok": true,
+                    "message": "MFA policy updated"
+                },
+                {
+                    "require_mfa_for_roles": [
+                        "super_admin",
+                        "finance_admin",
+                        "finance_user"
+                    ],
+                    "require_mfa_for_paths": [
+                        "/cp/shop/finance/",
+                        "/cp/content/shop/finance/"
+                    ],
+                    "grace_period_hours": 4
+                },
+                true,
+                true,
+                true,
+                {
+                    "granted": false,
+                    "reason": "mfa_enrollment_required",
+                    "redirect": "/cp/mfa/enroll",
+                    "grace_hours": 72
+                },
+                {
+                    "granted": false,
+                    "reason": "mfa_required_for_finance",
+                    "redirect": "/cp/mfa/enroll"
+                }
+            ]
+        },
+        {
+            "name": "ajax",
+            "output": "",
+            "result": [
+                {
+                    "ok": true,
+                    "secret": "SECRET",
+                    "qr_uri": "otpauth://totp/ECOM%20AE:?secret=SECRET&issuer=ECOM%20AE&digits=6&period=30&algorithm=SHA1",
+                    "backup_codes": [
+                        "CODE",
+                        "CODE",
+                        "CODE",
+                        "CODE",
+                        "CODE",
+                        "CODE",
+                        "CODE",
+                        "CODE"
+                    ],
+                    "message": "Scan the QR code with your authenticator app, then enter a code to confirm."
+                },
+                {
+                    "ok": true,
+                    "message": "TOTP enrollment confirmed. MFA is now active on your account."
+                },
+                {
+                    "ok": true,
+                    "message": "MFA verified."
+                },
+                true,
+                {
+                    "enrolled": true,
+                    "methods": [
+                        {
+                            "method": "totp",
+                            "confirmed": 1,
+                            "label": "TOTP (2026-10-10)",
+                            "last_used_at": "2026-10-10 00:00:00",
+                            "created_at": "2026-10-10 00:00:00"
+                        }
+                    ],
+                    "backup_codes_left": 8,
+                    "session_verified": true
+                },
+                {
+                    "ok": true,
+                    "message": "MFA has been disabled."
+                },
+                [
+                    {
+                        "action": "enroll_start",
+                        "success": 1
+                    },
+                    {
+                        "action": "enroll_confirmed",
+                        "success": 1
+                    },
+                    {
+                        "action": "verify_ok",
+                        "success": 1
+                    },
+                    {
+                        "action": "disabled",
+                        "success": 1
+                    }
+                ]
+            ]
+        }
+    ]
+}

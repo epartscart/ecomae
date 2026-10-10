@@ -8,10 +8,12 @@ Sources: `docs/migration/ASPNET_MIGRATION_TRACKER.md`, `docs/migration/inventory
 
 - Weighted migration headline: still about **20.4% done / 79.6% pending** (Phase A 24/24, B-F open). Page-level slices do not move it.
 - Accepted ERP processes: **0/15**. Formal interactive acceptance for CP, ERP, BOS and storefront: **0**. Nothing in this report is production acceptance.
-- PHP file gap (files that nothing in ASP.NET references): **876 on 2026-10-07 to 749 today** (275,485 lines still unreferenced). Functions not named anywhere in ASP.NET: **8,152 to 7,866 of 9,870**.
+- PHP file gap (files that nothing in ASP.NET references): **876 on 2026-10-07 to 424 today** (199,285 lines still unreferenced). Functions not named anywhere in ASP.NET: **8,152 to 6,036 of 9,870**.
 - "Mentioned" in the inventory is a lead, not parity. Parity is claimed only where a PHP 8.3 runtime golden exists, and each tracker checkpoint says what is and is not golden-covered.
-- Last verified state: full ASP.NET suite **5,918 / 5,918 passing**, 0 build warnings, 0 errors. Throwaway test schemas left over: 0. Production counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
+- Last verified state: PlanQ1Mere after Reed / Loch / Bight / Road / Reach / Sound. Cart module, customer-balance module, search-string module, spare-parts page + search ajax, warehouse search, storefront geo picker, and CP guideline have PHP 8.3 goldens. Targeted Mere / Reed / Loch / Bight / Road / Reach / Sound + area **5 / 5** each. Last full suite after Foam **6344 / 6344**; Mere suite pending while leftovers continue. Production update paste is `docs/migration/PRODUCTION_UPDATE_PASTE.md` (from `main` only). 2026-10-10 CloudPanel publish of `main` `b7f1554bf` was healthy (`/health` `/ready` 200); smoke capture blocked on missing keys — do not invent them. Throwaway test schemas left over: 0. Production counts unchanged (`docpart.users` 2, `ecomae.users` 2).
 - Method for every slice: read the PHP, build a PHP 8.3 harness that runs the real script on a throwaway MariaDB schema, record a golden, make ASP.NET equal it, document intentional deviations (usually security hardening), run the full suite, update tracker and inventory ratchet, open a PR.
+- Executable next queue (not a progress narrative): `docs/migration/CURSOR_NON_ERP_NEXT_PLAN.md`. Refresh buckets with `scripts/php_non_erp_gap_buckets.py`.
+- Owner clarification 2026-10-10: Cursor owns UI/UX, design, presentation, graphics, and functionality testing on storefront / CP / BOS / CRM / marketing / tenants. Devin owns the same concerns on ERP finance screens and the 15 ERP processes. Overall structure is shared (one SoR / one auth / one workflow). About 1000 tenants (site-only, ERP-only, mixed); some have 1000+ users. Each tenant owns its users, profiles, sessions, credentials, and documents. Super-CP may pick a tenant; a tenant operator never sees another tenant.
 
 ## 2. What Cursor built (non-ERP), by area
 
@@ -37,24 +39,23 @@ Gap files from the inventory (files nothing in ASP.NET references), grouped by t
 
 | Plan step | Area | Gap files | Lines |
 |---|---|---:|---:|
-| 1 | Storefront: parts search and `content/shop/docpart` (part search pages, parts agent, demand intelligence, garage, fitment, crosses, multivendor/commerce price ingest) | 44 | 37,164 |
-| 1 | Storefront: catalogue (`printProducts.php`, `printProducts_2.php`, `printProductBlock`, compare, bookmarks, SKU media, text search, tree lists, `modules/shop/catalogue`) | 43 | 11,400 |
-| 1 | Storefront: other shop (tenant hub, usefull, POS, marketing, channels, workshop, customer mgmt, crm, geo, logistics, print docs) | 35 | 8,782 |
-| 1 | Storefront: modules (login, menu, bread crumbs, slider, news, lang, cart, balance, search string, geo, ucats) | 18 | 3,156 |
-| 1 | Storefront: users/login/plugins (`dp_user.php`, `epc_registration_enhanced.php` render half, `profileform.php`, session security, plugins) | 11 | 2,969 |
-| 1 | Storefront: front templates `expan`, `modex`, `limo` | 3 | 2,689 |
-| 1 | Storefront: `content/shop/order_process/orders_background.php`. Already ported (`StorefrontOrdersBackground`, golden-verified) but still counted as a gap on purpose: the CP helper of the same name is not ported and a path mention would falsely close both | 1 | 56 |
-| 3 | CP shop core: orders (`order_card.php`, `orders_items.php` and modals, guides), catalogue `product.php`, price upload page bodies | 50 | 14,700 |
-| 3 | CP shop smaller sets (logistics, crosses, data transfer, document control, channels, marketing, tenant hub, POS, payments, demand countries, synonyms, accessories, statistics) | 46 | 8,755 |
-| 3 | CP other (users, lang, packs, file manager, requests, 2FA/auth plugins, CP modules) | 28 | 4,551 |
-| 4 | CP control and portal (auto-price shell, social hub, auth settings, tax toolkit, industry kit, marketing broadcast, visual page editor, fleet dashboard, governance, POS tenant mgmt, BOC panels, version control) | 58 | 11,418 |
-| 5 | Marketing, platform, BOS and industries (`content/general_pages`, ecomae.com pages and router, free tools, portal demo, web tracker, auth/MFA/SMTP/OAuth, API v1, Power BI, BOS unified, 28 industry templates) | 196 | 78,679 |
-| 6 | Price engine (`epc_auto_price_engine.php` 6,768 lines, discovery adapters; must stay on the existing importer) | 23 | 16,789 |
-| 8 | Core and root (`core/dp_*.php`, root CP includes, mailer, license manager, eparts catalogue) | 27 | 8,186 |
+| 1 | Storefront: catalogue (`content/shop/catalogue` + `modules/shop/catalogue`) | 30 | 8,978 |
+| 1 | Storefront: modules (other `modules/*`) | 13 | 2,802 |
+| 1 | Storefront: other shop (remaining `content/shop/*` except docpart, catalogue, finance, price_engine) | 10 | 4,189 |
+| 1 | Storefront: parts/docpart (`content/shop/docpart`) | 16 | 26,316 |
+| 1 | Storefront: templates `expan` / `modex` / `limo` | 3 | 2,689 |
+| 1 | Storefront: users/plugins (`content/users`, `plugins`) | 2 | 2,084 |
+| 3 | CP other (users, requests, 2FA/auth plugins, CP modules, leftover `cp/*`) | 10 | 3,274 |
+| 3 | CP shop core (`order_process`, catalogue product, `prices_upload`) | 24 | 12,698 |
+| 3 | CP shop smaller (rest of `cp/content/shop` except finance) | 22 | 7,537 |
+| 4 | CP control/portal (`cp/content/control`, including portal) | 37 | 8,848 |
+| 5 | Marketing, BOS and industries (everything else non-ERP: `content/general_pages`, industry templates, social, OEM API, cron, deploy) | 70 | 36,111 |
+| 6 | Price engine (`content/shop/price_engine` only; `epc_auto_price_engine.php` is 6,768 lines) | 18 | 16,113 |
 | 7 | **ERP (Devin): finance libraries and CP finance pages** | 166 | 66,191 |
-| | **Total** | **749** | **275,485** |
+| 8 | Core/root (`core/dp_*.php`, root PHP, `lib/DocpartMailer`) | 3 | 1,455 |
+| | **Total (measured now)** | **424** | **199,285** |
 
-Non-ERP total is 583 files (209,294 lines). Biggest single blocks: `content/general_pages` (about 79k lines) and `content/shop/docpart` (about 37k lines).
+This table is generated by `scripts/php_non_erp_gap_buckets.py` from `/tmp/gap_inv.json` and **sums to the inventory**. Non-ERP **258 / 133,094**; ERP finance (Devin, unchanged) **166 / 66,191**. Biggest remaining non-ERP blocks: `content/general_pages` and `content/shop/docpart`. The “unnamed functions” count is unmentioned identifiers (PHP already named them); ready-to-build twins are in `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md` (48 ≤200-line non-ERP PHP functions still waiting). Storefront `orders_background.php` stays a gap on purpose (CP helper of the same basename is not ported). Professional shell, Super-CP ERP modules, tenant intro, country profile, tenant hub helpers, integrations helpers, the ePartsCart and Electronicae storefront helpers, Super-CP platform modules, public REST API v1, the social media hub panel, the marketing broadcast panel, the CP guideline, the storefront geo picker, warehouse spare-parts search, the spare-parts page + search ajax, the search-string module, the customer-balance module, and the storefront cart module are closed; remaining ready ≤200 rows are still mostly Q2/Q3. `part_search_page.php` stays open (user kernel + sibling pages). Completing every leftover non-ERP file still requires the catalogue-list kernel, APE, leftover HTML page bodies, and leftover parents — those cannot close by mention-only.
 
 Beyond gap files, these are open for every surface regardless of file counts:
 - Same-to-same PHP vs ASP.NET dual samples per tenant host, human acceptance, and the three combined browser regression rounds.
@@ -66,9 +67,9 @@ Beyond gap files, these are open for every surface regardless of file counts:
 
 ## 4. In progress right now
 
-- Open PR #2069: catalogue count verified against PHP (183 golden cases; ASP.NET fixes for price filter, loose comparison, `products_ids_str`, search quirks).
-- Running next: PHP-parity for the catalogue list and page data plane (sort modes, pagination, id ordering). Then the product block markup (`printProductBlock`), then `printProducts.php` and `printProducts_2.php` shells.
-- After the catalogue: `part_search_page.php` and the parts agent (`content/shop/docpart`), then the remaining storefront modules and templates, then the CP shop pages (step 3).
+- PlanQ1Mere (this slice): storefront cart module against PHP 8.3 goldens after Reed / Loch / Bight / Road / Reach / Sound. CloudPanel 2026-10-10 publish of `main` `b7f1554bf` is live; this branch is not. Finance-path files stay Devin.
+- Remaining 258 non-ERP files cannot close in one leftover. Ready ≤200 rows are still Q2/Q3 (industry templates, `*_h` guides, APE, OEM catalog, `printProducts*`). Those are not closed by mention-only. Next unused class: Tarn (`modules/login/module.php`).
+- After those named helpers: `printProducts.php` / `printProducts_2.php` shells once the catalogue list kernel is in, then `part_search_page.php` and the parts agent.
 
 ## 5. ERP handoff notes for Devin
 
@@ -77,6 +78,7 @@ Beyond gap files, these are open for every surface regardless of file counts:
 - Storefront code that calls into finance data: order payment (`ajax_create_operation`) reads and writes `shop_users_accounting`; order print and Document Control print read ERP context. If you change those tables or services, run the storefront suites too (`StorefrontPhpShopTests`, `ShopOrderProtocolTests`, `StorefrontOrderPrintTests`).
 - Housekeeping: the order-payment test fixture was missing the `order` column on `shop_orders_items_statuses_ref` and failed on `main` after PR #2068. Fixed on PR #2069.
 - ERP gap still on your side: 166 finance PHP files (about 66k lines), the write side of the 118 mapped ERP tabs, the ERP portal half of `epc_erp_access.php`, and the deferred findings in the ERP restart note. ERP accepted processes remain 0/15.
+- Owner split for UI/UX, design, presentation, graphics, and ERP functionality testing is yours for finance screens and the 15 processes. Cursor does not take ERP chrome. Tenant isolation (site-only / ERP-only / mixed, including 1000-user tenants) still means ERP rows stay on that tenant ledger only.
 
 ## 6. Open questions that still need the owner
 

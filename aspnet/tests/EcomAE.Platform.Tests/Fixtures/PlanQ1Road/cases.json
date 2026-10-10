@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "brands" },
+    { "name": "urls" },
+    { "name": "search" },
+    { "name": "tenant" }
+  ]
+}

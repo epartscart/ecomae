@@ -1,0 +1,331 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "seo_pure",
+            "output": "",
+            "result": [
+                [
+                    "biomass-bioenergy",
+                    "foo-bar",
+                    "",
+                    "",
+                    "auto-price"
+                ],
+                [
+                    {
+                        "key": "atelier",
+                        "label": "Atelier",
+                        "tone": "warm"
+                    },
+                    {
+                        "key": "ledger",
+                        "label": "Ledger",
+                        "tone": "ink"
+                    },
+                    {
+                        "key": "mosaic",
+                        "label": "Mosaic",
+                        "tone": "bright"
+                    },
+                    {
+                        "key": "ledger",
+                        "label": "Ledger",
+                        "tone": "ink"
+                    }
+                ],
+                28,
+                "technology",
+                "food",
+                [
+                    "energy.ecomae.com",
+                    "construction.ecomae.com",
+                    "professional.ecomae.com",
+                    "food.ecomae.com",
+                    "technology.ecomae.com",
+                    "homeliving.ecomae.com",
+                    "retail.ecomae.com",
+                    "retail.ecomae.com"
+                ],
+                [
+                    "https://automotive.ecomae.com",
+                    "https://technology.ecomae.com",
+                    "https://unknownkey.ecomae.com",
+                    "https://retail.ecomae.com"
+                ],
+                {
+                    "label": "Biomass & bioenergy",
+                    "slug": "biomass-bioenergy"
+                },
+                {
+                    "label": "Keep Alpha",
+                    "slug": "keep-alpha"
+                },
+                null,
+                null,
+                {
+                    "label": "Biomass & bioenergy",
+                    "slug": "biomass-bioenergy"
+                },
+                null,
+                "energy.ecomae.com",
+                [
+                    true,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    true,
+                    false
+                ],
+                "https://energy.ecomae.com",
+                "http://jewellery.ecomae.com",
+                "https://jewellery.ecomae.com",
+                "https://jewellery.ecomae.com",
+                ""
+            ]
+        },
+        {
+            "name": "seo_parse",
+            "output": "",
+            "result": [
+                [
+                    "Injected Sub",
+                    "Keep Alpha",
+                    "Keep Beta & bio",
+                    "Zero"
+                ],
+                [
+                    "Injected Sub",
+                    "Keep Alpha",
+                    "Keep Beta & bio",
+                    "Zero"
+                ],
+                [],
+                [],
+                [
+                    "Cat A",
+                    "Cat B"
+                ],
+                [
+                    "X",
+                    "Y's"
+                ],
+                [],
+                [],
+                [],
+                [
+                    [
+                        "https://keeptest.ecomae.com/",
+                        "0.85",
+                        "weekly"
+                    ],
+                    [
+                        "https://keeptest.ecomae.com/injected-sub",
+                        "0.7",
+                        "monthly"
+                    ],
+                    [
+                        "https://keeptest.ecomae.com/keep-alpha",
+                        "0.7",
+                        "monthly"
+                    ],
+                    [
+                        "https://keeptest.ecomae.com/keep-beta-bio",
+                        "0.7",
+                        "monthly"
+                    ],
+                    [
+                        "https://keeptest.ecomae.com/zero",
+                        "0.7",
+                        "monthly"
+                    ],
+                    [
+                        "https://emptytpl.ecomae.com/",
+                        "0.85",
+                        "weekly"
+                    ],
+                    [
+                        "https://emptytpl.ecomae.com/only-fallback",
+                        "0.7",
+                        "monthly"
+                    ]
+                ]
+            ]
+        },
+        {
+            "name": "boc_pure",
+            "output": "",
+            "result": [
+                [
+                    [
+                        "command",
+                        "lifecycle",
+                        "reliability",
+                        "supply",
+                        "commerce",
+                        "finance",
+                        "growth",
+                        "identity",
+                        "platform",
+                        "knowledge"
+                    ],
+                    [
+                        "shop",
+                        "catalogue",
+                        "logistics",
+                        "erp",
+                        "professional"
+                    ],
+                    [
+                        "cp_marketing",
+                        "cp_seo",
+                        "erp_finance",
+                        "uae_tax",
+                        "insights_erp",
+                        "fulfillment_queue"
+                    ],
+                    [
+                        "command",
+                        "lifecycle",
+                        "reliability"
+                    ]
+                ],
+                [
+                    "https://www.acme.test/cp/shop/orders",
+                    "https://www.ecomae.com/shop/x",
+                    "https://www.ecomae.com/cp/demo/demo_y/a",
+                    "https://www.ecomae.com/cp/client-erp/erp1/erp",
+                    "/cp/x",
+                    "https://shop.example/cp/y"
+                ],
+                {
+                    "command": {
+                        "group": {
+                            "label": "Command"
+                        },
+                        "areas": {
+                            "home": {
+                                "path": "control",
+                                "hint": ""
+                            }
+                        }
+                    },
+                    "commerce": {
+                        "group": {
+                            "label": "Commerce"
+                        },
+                        "areas": {
+                            "api": {
+                                "path": "control/api",
+                                "hint": "API"
+                            }
+                        }
+                    }
+                },
+                {
+                    "command": {
+                        "group": {
+                            "label": "Command"
+                        },
+                        "areas": {
+                            "home": {
+                                "path": "control",
+                                "hint": ""
+                            }
+                        }
+                    },
+                    "shop": {
+                        "group": {
+                            "label": "Shop · Acme"
+                        },
+                        "areas": {
+                            "orders": {
+                                "path": "shop/orders",
+                                "hint": "OMS · Acme",
+                                "url_override": "https://www.acme.test/cp/shop/orders"
+                            }
+                        }
+                    },
+                    "commerce": {
+                        "group": {
+                            "label": "Commerce · Acme"
+                        },
+                        "areas": {
+                            "cp_marketing": {
+                                "path": "shop/marketing",
+                                "hint": "Mkt · Acme",
+                                "url_override": "https://www.acme.test/cp/shop/marketing"
+                            }
+                        }
+                    },
+                    "growth": {
+                        "group": {
+                            "label": "Growth · Acme"
+                        },
+                        "areas": {
+                            "cp_seo": {
+                                "path": "shop/seo",
+                                "hint": "· Acme",
+                                "url_override": "https://www.acme.test/cp/shop/seo"
+                            }
+                        }
+                    }
+                },
+                "/cp/shop/x",
+                "https://t/cp/x",
+                "/cp/shop/x",
+                "/cp/shop/x",
+                "Platform · All tenants",
+                "Tenant · Acme"
+            ]
+        },
+        {
+            "name": "boc_html",
+            "output": "",
+            "result": [
+                [],
+                [
+                    {
+                        "site_key": "acme",
+                        "hostname": "acme.test",
+                        "label": "Acme's Co",
+                        "type": "commerce",
+                        "cp_url": "https://www.acme.test/cp/",
+                        "status": "live"
+                    },
+                    {
+                        "site_key": "demo_x",
+                        "hostname": "demo.test",
+                        "label": "Demo X",
+                        "type": "demo",
+                        "cp_url": "https://www.ecomae.com/cp/demo/demo_x/",
+                        "status": "on"
+                    },
+                    {
+                        "site_key": "erp1",
+                        "hostname": "erp.test",
+                        "label": "erp1",
+                        "type": "erp_only",
+                        "cp_url": "https://www.ecomae.com/cp/client-erp/erp1/",
+                        "status": "on"
+                    }
+                ],
+                null,
+                null,
+                {
+                    "site_key": "acme",
+                    "hostname": "acme.test",
+                    "label": "Acme's Co",
+                    "type": "commerce",
+                    "cp_url": "https://www.acme.test/cp/"
+                },
+                "<div class=\"epc-boc__tenant-switch\" data-epc-boc-tenant-switch=\"1\"><button type=\"button\" class=\"epc-boc__tenant-switch-btn\" data-boc-tenant-toggle=\"1\" aria-expanded=\"false\"><i class=\"fa fa-building\"></i> <span class=\"epc-boc__tenant-switch-label\">Acme&#039;s Co</span> <i class=\"fa fa-caret-down\"></i></button><div class=\"epc-boc__tenant-switch-panel\" hidden><div class=\"epc-boc__tenant-switch-head\">Operate as tenant CP</div><a class=\"epc-boc__tenant-switch-item\" href=\"/cp/control?epc_boc_exit_tenant=1\"><i class=\"fa fa-globe\"></i> Platform fleet (ecomae)</a><a class=\"epc-boc__tenant-switch-item is-active\" href=\"/cp/control?epc_boc_tenant=acme\"><i class=\"fa fa-external-link\"></i> Acme&#039;s Co<small>acme.test · commerce</small></a><a class=\"epc-boc__tenant-switch-open\" href=\"https://www.acme.test/cp/\" target=\"_blank\" rel=\"noopener\">Open full tenant CP ↗</a><a class=\"epc-boc__tenant-switch-item\" href=\"/cp/control?epc_boc_tenant=demo_x\"><i class=\"fa fa-external-link\"></i> Demo X<small>demo.test · demo</small></a><a class=\"epc-boc__tenant-switch-item\" href=\"/cp/control?epc_boc_tenant=erp1\"><i class=\"fa fa-external-link\"></i> erp1<small>erp.test · erp_only</small></a></div></div>",
+                "<div class=\"epc-boc__tenant-switch\" data-epc-boc-tenant-switch=\"1\"><button type=\"button\" class=\"epc-boc__tenant-switch-btn\" data-boc-tenant-toggle=\"1\" aria-expanded=\"false\"><i class=\"fa fa-building\"></i> <span class=\"epc-boc__tenant-switch-label\">Select tenant CP</span> <i class=\"fa fa-caret-down\"></i></button><div class=\"epc-boc__tenant-switch-panel\" hidden><div class=\"epc-boc__tenant-switch-head\">Operate as tenant CP</div><a class=\"epc-boc__tenant-switch-item is-active\" href=\"/cp/control?epc_boc_exit_tenant=1\"><i class=\"fa fa-globe\"></i> Platform fleet (ecomae)</a><a class=\"epc-boc__tenant-switch-item\" href=\"/cp/control?epc_boc_tenant=acme\"><i class=\"fa fa-external-link\"></i> Acme&#039;s Co<small>acme.test · commerce</small></a><a class=\"epc-boc__tenant-switch-item\" href=\"/cp/control?epc_boc_tenant=demo_x\"><i class=\"fa fa-external-link\"></i> Demo X<small>demo.test · demo</small></a><a class=\"epc-boc__tenant-switch-item\" href=\"/cp/control?epc_boc_tenant=erp1\"><i class=\"fa fa-external-link\"></i> erp1<small>erp.test · erp_only</small></a></div></div>",
+                "",
+                "Platform · All tenants"
+            ]
+        }
+    ]
+}

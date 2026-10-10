@@ -1,0 +1,285 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "themes",
+            "output": "",
+            "result": [
+                [
+                    "auto_parts",
+                    "tax_advisory",
+                    "electronics",
+                    "fashion",
+                    "jewellery"
+                ],
+                {
+                    "industry": "jewellery",
+                    "theme": "jewellery_retail_kiyasha",
+                    "label": "Kiyasha jewellery luxury",
+                    "primary": "#b8860b",
+                    "accent": "#92400e",
+                    "bg_from": "#1c1917",
+                    "bg_to": "#292524",
+                    "cp_sidebar": "#1c1917",
+                    "cp_accent": "#d4af37",
+                    "hero_type": "jewellery"
+                },
+                {
+                    "auto_parts": {
+                        "industry": "auto_parts",
+                        "theme": "automotive_spareparts_pro",
+                        "label": "Automotive spare parts pro",
+                        "primary": "#2563eb",
+                        "accent": "#ef4444",
+                        "bg_from": "#0f172a",
+                        "bg_to": "#111827",
+                        "cp_sidebar": "#1e293b",
+                        "cp_accent": "#3b82f6",
+                        "hero_type": "piston"
+                    },
+                    "AUTO_PARTS": {
+                        "industry": "auto_parts",
+                        "theme": "automotive_spareparts_pro",
+                        "label": "Automotive spare parts pro",
+                        "primary": "#2563eb",
+                        "accent": "#ef4444",
+                        "bg_from": "#0f172a",
+                        "bg_to": "#111827",
+                        "cp_sidebar": "#1e293b",
+                        "cp_accent": "#3b82f6",
+                        "hero_type": "piston"
+                    },
+                    "Acme-1!": {
+                        "industry": "auto_parts",
+                        "theme": "automotive_spareparts_pro",
+                        "label": "Automotive spare parts pro",
+                        "primary": "#2563eb",
+                        "accent": "#ef4444",
+                        "bg_from": "#0f172a",
+                        "bg_to": "#111827",
+                        "cp_sidebar": "#1e293b",
+                        "cp_accent": "#3b82f6",
+                        "hero_type": "piston"
+                    },
+                    "jewellery": {
+                        "industry": "jewellery",
+                        "theme": "jewellery_retail_kiyasha",
+                        "label": "Kiyasha jewellery luxury",
+                        "primary": "#b8860b",
+                        "accent": "#92400e",
+                        "bg_from": "#1c1917",
+                        "bg_to": "#292524",
+                        "cp_sidebar": "#1c1917",
+                        "cp_accent": "#d4af37",
+                        "hero_type": "jewellery"
+                    },
+                    "nope": {
+                        "industry": "auto_parts",
+                        "theme": "automotive_spareparts_pro",
+                        "label": "Automotive spare parts pro",
+                        "primary": "#2563eb",
+                        "accent": "#ef4444",
+                        "bg_from": "#0f172a",
+                        "bg_to": "#111827",
+                        "cp_sidebar": "#1e293b",
+                        "cp_accent": "#3b82f6",
+                        "hero_type": "piston"
+                    },
+                    "fashion": {
+                        "industry": "fashion",
+                        "theme": "fashion_retail_namshi",
+                        "label": "Namshi fashion & beauty",
+                        "primary": "#ec4899",
+                        "accent": "#be185d",
+                        "bg_from": "#fdf2f8",
+                        "bg_to": "#fce7f3",
+                        "cp_sidebar": "#831843",
+                        "cp_accent": "#ec4899",
+                        "hero_type": "fashion"
+                    },
+                    "electronics": {
+                        "industry": "electronics",
+                        "theme": "electronics_retail_virgin",
+                        "label": "Virgin-style electronics retail",
+                        "primary": "#e10a0a",
+                        "accent": "#000000",
+                        "bg_from": "#0a0a0a",
+                        "bg_to": "#1a1a1a",
+                        "cp_sidebar": "#111111",
+                        "cp_accent": "#e10a0a",
+                        "hero_type": "electronics"
+                    },
+                    "tax_advisory": {
+                        "industry": "tax_advisory",
+                        "theme": "consulting_primeinvest",
+                        "label": "Prime Invest consulting",
+                        "primary": "#1e40af",
+                        "accent": "#d4af37",
+                        "bg_from": "#0f172a",
+                        "bg_to": "#1e3a5f",
+                        "cp_sidebar": "#191919",
+                        "cp_accent": "#227a40",
+                        "hero_type": "consultancy"
+                    },
+                    "": {
+                        "industry": "auto_parts",
+                        "theme": "automotive_spareparts_pro",
+                        "label": "Automotive spare parts pro",
+                        "primary": "#2563eb",
+                        "accent": "#ef4444",
+                        "bg_from": "#0f172a",
+                        "bg_to": "#111827",
+                        "cp_sidebar": "#1e293b",
+                        "cp_accent": "#3b82f6",
+                        "hero_type": "piston"
+                    }
+                },
+                {
+                    "auto_parts": "epartscart",
+                    "AUTO_PARTS": "epartscart",
+                    "Acme-1!": "",
+                    "jewellery": "thejewellerytrend",
+                    "nope": "",
+                    "fashion": "stylenlook",
+                    "electronics": "electronicae",
+                    "tax_advisory": "taxofinca",
+                    "": ""
+                },
+                {
+                    "auto_parts": [
+                        "Orders",
+                        "Prices",
+                        "Procurement",
+                        "Logistics"
+                    ],
+                    "AUTO_PARTS": [
+                        "Orders",
+                        "Prices",
+                        "Procurement",
+                        "Logistics"
+                    ],
+                    "Acme-1!": [
+                        "Orders",
+                        "Catalogue",
+                        "Finance",
+                        "Settings"
+                    ],
+                    "jewellery": [
+                        "Gallery",
+                        "Enquiries",
+                        "Certificates",
+                        "CRM"
+                    ],
+                    "nope": [
+                        "Orders",
+                        "Catalogue",
+                        "Finance",
+                        "Settings"
+                    ],
+                    "fashion": [
+                        "Collections",
+                        "Orders",
+                        "Campaigns",
+                        "Stock"
+                    ],
+                    "electronics": [
+                        "Catalogue",
+                        "Orders",
+                        "RMA",
+                        "Stock"
+                    ],
+                    "tax_advisory": [
+                        "Clients",
+                        "VAT",
+                        "Documents",
+                        "ERP"
+                    ],
+                    "": [
+                        "Orders",
+                        "Catalogue",
+                        "Finance",
+                        "Settings"
+                    ]
+                },
+                9624,
+                ".epm-tenant-showcase{margin:28px 0 36px}\n.epm-tenant-showcase__head{margin-botto",
+                "-electronics *,.epm-mk-fashion *,.epm-mk-jewellery *{animation:none!important}\n}"
+            ]
+        },
+        {
+            "name": "rows",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "key": "epartscart",
+                        "industry": "auto_parts",
+                        "theme": "automotive_spareparts_pro",
+                        "label": "Automotive spare parts pro",
+                        "name": "eParts Cart"
+                    },
+                    {
+                        "key": "taxofinca",
+                        "industry": "tax_advisory",
+                        "theme": "consulting_primeinvest",
+                        "label": "Prime Invest consulting",
+                        "name": "O'Brien tax"
+                    },
+                    {
+                        "key": "unknown_tn",
+                        "industry": "auto_parts",
+                        "theme": "automotive_spareparts_pro",
+                        "label": "Automotive spare parts pro",
+                        "name": "Ghost"
+                    }
+                ],
+                [],
+                "Fashion!",
+                "fashion"
+            ]
+        },
+        {
+            "name": "shots",
+            "output": "",
+            "result": [
+                "",
+                "",
+                "",
+                "/epc-ecomae-tenant-asset.php?f=tenant-epartscart-storefront.webp",
+                "/epc-ecomae-tenant-asset.php?f=tenant-electronicae-storefront.png",
+                "<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Storefront</em></div>\n\t\t<div class=\"epm-mini-hero epm-mini-hero--live\">\n\t\t<img src=\"/epc-ecomae-tenant-asset.php?f=tenant-epartscart-storefront.webp\" alt=\"Storefront — live storefront\" loading=\"lazy\" width=\"640\" height=\"360\" />\n\t</div>\n\t</div>\n\t",
+                "<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Store o&#039;front</em></div>\n\t<div class=\"epm-mini-hero\" style=\"--mk-primary:#b8860b;--mk-accent:#92400e;background:linear-gradient(135deg,#1c1917,#292524)\">\n\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--jewellery\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 44 40\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<circle cx=\"22\" cy=\"22\" r=\"14\" fill=\"none\" stroke=\"#b8860b\" stroke-width=\"4\"/>\n\t\t<path class=\"epm-mk-logo__spark\" d=\"M22 6 L24 12 L30 12 L25 16 L27 22 L22 18 L17 22 L19 16 L14 12 L20 12 Z\" fill=\"#92400e\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">Kiyasha jewellery luxury</span>\n</span>\n\t\t</div>\n\t\t<div class=\"epm-mk-jewellery\" aria-hidden=\"true\">\n\t\t<span class=\"epm-mk-jewellery__ring\"></span>\n\t\t<span class=\"epm-mk-jewellery__gem\"></span>\n\t</div>\n\t\t<div class=\"epm-mini-hero__copy\">\n\t\t<strong>Kiyasha jewellery luxury</strong>\n\t\t<small>Industry-themed storefront hero</small>\n\t</div>\n</div>\n\t</div>\n\t",
+                "<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Storefront</em></div>\n\t\t<div class=\"epm-mini-hero epm-mini-hero--live\">\n\t\t<img src=\"/epc-ecomae-tenant-asset.php?f=tenant-electronicae-storefront.png\" alt=\"Storefront — live storefront\" loading=\"lazy\" width=\"640\" height=\"360\" />\n\t</div>\n\t</div>\n\t"
+            ]
+        },
+        {
+            "name": "html",
+            "output": "",
+            "result": [
+                {
+                    "auto_parts": "<span class=\"epm-mk-logo epm-mk-logo--parts\" aria-hidden=\"true\">\n\t<span class=\"epm-mk-logo__text\">eparts</span>\n\t<svg viewBox=\"0 0 88 40\" xmlns=\"http://www.w3.org/2000/svg\" class=\"epm-mk-logo__cart\" aria-hidden=\"true\">\n\t\t<path fill=\"#2563eb\" d=\"M8 8h44c3 0 5 2 5 5l-4 16H18L8 8z\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"22\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"44\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<rect x=\"30\" y=\"14\" width=\"10\" height=\"8\" rx=\"2\" fill=\"#e2e8f0\"/>\n\t</svg>\n</span>\n\t\t",
+                    "tax_advisory": "<span class=\"epm-mk-logo epm-mk-logo--consult\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 48 36\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"4\" y=\"18\" width=\"8\" height=\"14\" rx=\"2\" fill=\"#d4af37\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"18\" y=\"10\" width=\"8\" height=\"22\" rx=\"2\" fill=\"#1e40af\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"32\" y=\"14\" width=\"8\" height=\"18\" rx=\"2\" fill=\"#d4af37\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">Prime Invest consulting</span>\n</span>\n\t\t",
+                    "electronics": "<span class=\"epm-mk-logo epm-mk-logo--electronics\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 40 36\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<rect x=\"6\" y=\"8\" width=\"28\" height=\"20\" rx=\"4\" fill=\"#111\" stroke=\"#e10a0a\" stroke-width=\"2\"/>\n\t\t<circle class=\"epm-mk-logo__pulse\" cx=\"20\" cy=\"18\" r=\"5\" fill=\"#e10a0a\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">Virgin-style electronics retail</span>\n</span>\n\t\t",
+                    "fashion": "<span class=\"epm-mk-logo epm-mk-logo--fashion\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 36 40\" xmlns=\"http://www.w3.org/2000/svg\" class=\"epm-mk-logo__hanger\" aria-hidden=\"true\">\n\t\t<path d=\"M18 4c-2 0-3 1.5-3 3.5S16 11 18 11s3-1.5 3-3.5S20 4 18 4z\" fill=\"#be185d\"/>\n\t\t<path d=\"M18 11 L6 28 L30 28 Z\" fill=\"#ec4899\" opacity=\".9\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">O&#039;Name</span>\n</span>\n\t\t",
+                    "jewellery": "<span class=\"epm-mk-logo epm-mk-logo--jewellery\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 44 40\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<circle cx=\"22\" cy=\"22\" r=\"14\" fill=\"none\" stroke=\"#b8860b\" stroke-width=\"4\"/>\n\t\t<path class=\"epm-mk-logo__spark\" d=\"M22 6 L24 12 L30 12 L25 16 L27 22 L22 18 L17 22 L19 16 L14 12 L20 12 Z\" fill=\"#92400e\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">Kiyasha jewellery luxury</span>\n</span>\n\t\t",
+                    "nope": "<span class=\"epm-mk-logo epm-mk-logo--parts\" aria-hidden=\"true\">\n\t<span class=\"epm-mk-logo__text\">eparts</span>\n\t<svg viewBox=\"0 0 88 40\" xmlns=\"http://www.w3.org/2000/svg\" class=\"epm-mk-logo__cart\" aria-hidden=\"true\">\n\t\t<path fill=\"#2563eb\" d=\"M8 8h44c3 0 5 2 5 5l-4 16H18L8 8z\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"22\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"44\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<rect x=\"30\" y=\"14\" width=\"10\" height=\"8\" rx=\"2\" fill=\"#e2e8f0\"/>\n\t</svg>\n</span>\n\t\t"
+                },
+                {
+                    "auto_parts": "<div class=\"epm-mini-hero\" style=\"--mk-primary:#2563eb;--mk-accent:#ef4444;background:linear-gradient(135deg,#0f172a,#111827)\">\n\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--parts\" aria-hidden=\"true\">\n\t<span class=\"epm-mk-logo__text\">eparts</span>\n\t<svg viewBox=\"0 0 88 40\" xmlns=\"http://www.w3.org/2000/svg\" class=\"epm-mk-logo__cart\" aria-hidden=\"true\">\n\t\t<path fill=\"#2563eb\" d=\"M8 8h44c3 0 5 2 5 5l-4 16H18L8 8z\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"22\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"44\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<rect x=\"30\" y=\"14\" width=\"10\" height=\"8\" rx=\"2\" fill=\"#e2e8f0\"/>\n\t</svg>\n</span>\n\t\t</div>\n\t\t<div class=\"epm-mk-piston\" aria-hidden=\"true\">\n\t\t<div class=\"epm-mk-piston__cyl\"><span class=\"epm-mk-piston__p\"></span></div>\n\t\t<div class=\"epm-mk-piston__cyl\"><span class=\"epm-mk-piston__p\"></span></div>\n\t\t<div class=\"epm-mk-piston__cyl\"><span class=\"epm-mk-piston__p\"></span></div>\n\t</div>\n\t\t<div class=\"epm-mini-hero__copy\">\n\t\t<strong>Automotive spare parts pro</strong>\n\t\t<small>Industry-themed storefront hero</small>\n\t</div>\n</div>\n\t",
+                    "tax_advisory": "<div class=\"epm-mini-hero\" style=\"--mk-primary:#1e40af;--mk-accent:#d4af37;background:linear-gradient(135deg,#0f172a,#1e3a5f)\">\n\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--consult\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 48 36\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"4\" y=\"18\" width=\"8\" height=\"14\" rx=\"2\" fill=\"#d4af37\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"18\" y=\"10\" width=\"8\" height=\"22\" rx=\"2\" fill=\"#1e40af\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"32\" y=\"14\" width=\"8\" height=\"18\" rx=\"2\" fill=\"#d4af37\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">Prime Invest consulting</span>\n</span>\n\t\t</div>\n\t\t<div class=\"epm-mk-consult\" aria-hidden=\"true\">\n\t\t<span class=\"epm-mk-consult__bar\"></span><span class=\"epm-mk-consult__bar\"></span><span class=\"epm-mk-consult__bar\"></span><span class=\"epm-mk-consult__bar\"></span>\n\t</div>\n\t\t<div class=\"epm-mini-hero__copy\">\n\t\t<strong>Prime Invest consulting</strong>\n\t\t<small>Industry-themed storefront hero</small>\n\t</div>\n</div>\n\t",
+                    "electronics": "<div class=\"epm-mini-hero\" style=\"--mk-primary:#e10a0a;--mk-accent:#000000;background:linear-gradient(135deg,#0a0a0a,#1a1a1a)\">\n\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--electronics\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 40 36\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<rect x=\"6\" y=\"8\" width=\"28\" height=\"20\" rx=\"4\" fill=\"#111\" stroke=\"#e10a0a\" stroke-width=\"2\"/>\n\t\t<circle class=\"epm-mk-logo__pulse\" cx=\"20\" cy=\"18\" r=\"5\" fill=\"#e10a0a\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">Virgin-style electronics retail</span>\n</span>\n\t\t</div>\n\t\t<div class=\"epm-mk-electronics\" aria-hidden=\"true\">\n\t\t<span class=\"epm-mk-electronics__chip\"></span>\n\t\t<span class=\"epm-mk-electronics__wave\"><span></span><span></span><span></span><span></span></span>\n\t</div>\n\t\t<div class=\"epm-mini-hero__copy\">\n\t\t<strong>Virgin-style electronics retail</strong>\n\t\t<small>Industry-themed storefront hero</small>\n\t</div>\n</div>\n\t",
+                    "fashion": "<div class=\"epm-mini-hero\" style=\"--mk-primary:#ec4899;--mk-accent:#be185d;background:linear-gradient(135deg,#fdf2f8,#fce7f3)\">\n\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--fashion\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 36 40\" xmlns=\"http://www.w3.org/2000/svg\" class=\"epm-mk-logo__hanger\" aria-hidden=\"true\">\n\t\t<path d=\"M18 4c-2 0-3 1.5-3 3.5S16 11 18 11s3-1.5 3-3.5S20 4 18 4z\" fill=\"#be185d\"/>\n\t\t<path d=\"M18 11 L6 28 L30 28 Z\" fill=\"#ec4899\" opacity=\".9\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">Namshi fashion &amp; beauty</span>\n</span>\n\t\t</div>\n\t\t<div class=\"epm-mk-fashion\" aria-hidden=\"true\">\n\t\t<span class=\"epm-mk-fashion__chip\">New in</span>\n\t\t<span class=\"epm-mk-fashion__dress\"></span>\n\t\t<span class=\"epm-mk-fashion__chip\">Beauty</span>\n\t</div>\n\t\t<div class=\"epm-mini-hero__copy\">\n\t\t<strong>Namshi fashion &amp; beauty</strong>\n\t\t<small>Industry-themed storefront hero</small>\n\t</div>\n</div>\n\t",
+                    "jewellery": "<div class=\"epm-mini-hero\" style=\"--mk-primary:#b8860b;--mk-accent:#92400e;background:linear-gradient(135deg,#1c1917,#292524)\">\n\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--jewellery\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 44 40\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<circle cx=\"22\" cy=\"22\" r=\"14\" fill=\"none\" stroke=\"#b8860b\" stroke-width=\"4\"/>\n\t\t<path class=\"epm-mk-logo__spark\" d=\"M22 6 L24 12 L30 12 L25 16 L27 22 L22 18 L17 22 L19 16 L14 12 L20 12 Z\" fill=\"#92400e\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">Kiyasha jewellery luxury</span>\n</span>\n\t\t</div>\n\t\t<div class=\"epm-mk-jewellery\" aria-hidden=\"true\">\n\t\t<span class=\"epm-mk-jewellery__ring\"></span>\n\t\t<span class=\"epm-mk-jewellery__gem\"></span>\n\t</div>\n\t\t<div class=\"epm-mini-hero__copy\">\n\t\t<strong>Kiyasha jewellery luxury</strong>\n\t\t<small>Industry-themed storefront hero</small>\n\t</div>\n</div>\n\t"
+                },
+                "<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>CP o&#039;panel</em></div>\n\t<div class=\"epm-mini-cp\">\n\t\t<div class=\"epm-mini-cp__side\" style=\"background:#1c1917\">\n\t\t\t<strong>Modules</strong>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item is-active\" style=\"background:#d4af37;color:#fff\">Gallery</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Enquiries</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Certificates</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">CRM</span>\n\t\t\t\t\t</div>\n\t\t<div class=\"epm-mini-cp__main\">\n\t\t\t<div class=\"epm-mini-cp__kpi\">\n\t\t\t\t<span><b>24</b>Today</span>\n\t\t\t\t<span><b>AED</b>Revenue</span>\n\t\t\t\t<span><b>Live</b>Status</span>\n\t\t\t</div>\n\t\t\t<div class=\"epm-mini-cp__rows\">\n\t\t\t\t<span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\t",
+                "<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Client CP</em></div>\n\t<div class=\"epm-mini-cp\">\n\t\t<div class=\"epm-mini-cp__side\" style=\"background:#1e293b\">\n\t\t\t<strong>Modules</strong>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item is-active\" style=\"background:#3b82f6;color:#fff\">Orders</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Catalogue</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Finance</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Settings</span>\n\t\t\t\t\t</div>\n\t\t<div class=\"epm-mini-cp__main\">\n\t\t\t<div class=\"epm-mini-cp__kpi\">\n\t\t\t\t<span><b>24</b>Today</span>\n\t\t\t\t<span><b>AED</b>Revenue</span>\n\t\t\t\t<span><b>Live</b>Status</span>\n\t\t\t</div>\n\t\t\t<div class=\"epm-mini-cp__rows\">\n\t\t\t\t<span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\t",
+                "<article class=\"epm-tenant-card\" data-industry=\"auto_parts\">\n\t<div class=\"epm-tenant-card__head\">\n\t\t\t\t<img class=\"epm-tenant-card__logo\" src=\"/logos/x.png\" alt=\"O&#039;Parts logo\" loading=\"lazy\" />\n\t\t\t\t<div class=\"epm-tenant-card__meta\">\n\t\t\t<h3>O&#039;Parts</h3>\n\t\t\t<p>Flagship o&#039;biz</p>\n\t\t</div>\n\t\t<span class=\"epm-tenant-card__theme\">Automotive spare parts pro</span>\n\t</div>\n\t<div class=\"epm-tenant-card__previews\">\n\t\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Storefront</em></div>\n\t\t<div class=\"epm-mini-hero epm-mini-hero--live\">\n\t\t<img src=\"/epc-ecomae-tenant-asset.php?f=tenant-epartscart-storefront.png\" alt=\"Storefront — live storefront\" loading=\"lazy\" width=\"640\" height=\"360\" />\n\t</div>\n\t</div>\n\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Control panel</em></div>\n\t<div class=\"epm-mini-cp\">\n\t\t<div class=\"epm-mini-cp__side\" style=\"background:#1e293b\">\n\t\t\t<strong>Modules</strong>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item is-active\" style=\"background:#3b82f6;color:#fff\">Orders</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Prices</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Procurement</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Logistics</span>\n\t\t\t\t\t</div>\n\t\t<div class=\"epm-mini-cp__main\">\n\t\t\t<div class=\"epm-mini-cp__kpi\">\n\t\t\t\t<span><b>24</b>Today</span>\n\t\t\t\t<span><b>AED</b>Revenue</span>\n\t\t\t\t<span><b>Live</b>Status</span>\n\t\t\t</div>\n\t\t\t<div class=\"epm-mini-cp__rows\">\n\t\t\t\t<span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\t\t</div>\n\t<div class=\"epm-cta\" style=\"margin-top:4px\">\n\t\t<a class=\"epm-btn epm-btn--primary epm-btn--sm\" href=\"https://www.epartscart.com/\" target=\"_blank\" rel=\"noopener\">Visit site <i class=\"fa fa-external-link\"></i></a>\n\t\t<a class=\"epm-btn epm-btn--outline epm-btn--sm\" href=\"https://www.epartscart.com/cp/\" target=\"_blank\" rel=\"noopener\">Open /cp/</a>\n\t</div>\n</article>\n\t",
+                "<article class=\"epm-tenant-card\" data-industry=\"tax_advisory\">\n\t<div class=\"epm-tenant-card__head\">\n\t\t\t\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--consult\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 48 36\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"4\" y=\"18\" width=\"8\" height=\"14\" rx=\"2\" fill=\"#d4af37\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"18\" y=\"10\" width=\"8\" height=\"22\" rx=\"2\" fill=\"#1e40af\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"32\" y=\"14\" width=\"8\" height=\"18\" rx=\"2\" fill=\"#d4af37\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">taxofinca</span>\n</span>\n\t\t</div>\n\t\t\t\t<div class=\"epm-tenant-card__meta\">\n\t\t\t<h3>taxofinca</h3>\n\t\t\t<p>Advisory</p>\n\t\t</div>\n\t\t<span class=\"epm-tenant-card__theme\">Prime Invest consulting</span>\n\t</div>\n\t<div class=\"epm-tenant-card__previews\">\n\t\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Storefront</em></div>\n\t<div class=\"epm-mini-hero\" style=\"--mk-primary:#1e40af;--mk-accent:#d4af37;background:linear-gradient(135deg,#0f172a,#1e3a5f)\">\n\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--consult\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 48 36\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"4\" y=\"18\" width=\"8\" height=\"14\" rx=\"2\" fill=\"#d4af37\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"18\" y=\"10\" width=\"8\" height=\"22\" rx=\"2\" fill=\"#1e40af\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"32\" y=\"14\" width=\"8\" height=\"18\" rx=\"2\" fill=\"#d4af37\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">Prime Invest consulting</span>\n</span>\n\t\t</div>\n\t\t<div class=\"epm-mk-consult\" aria-hidden=\"true\">\n\t\t<span class=\"epm-mk-consult__bar\"></span><span class=\"epm-mk-consult__bar\"></span><span class=\"epm-mk-consult__bar\"></span><span class=\"epm-mk-consult__bar\"></span>\n\t</div>\n\t\t<div class=\"epm-mini-hero__copy\">\n\t\t<strong>Prime Invest consulting</strong>\n\t\t<small>Industry-themed storefront hero</small>\n\t</div>\n</div>\n\t</div>\n\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Control panel</em></div>\n\t<div class=\"epm-mini-cp\">\n\t\t<div class=\"epm-mini-cp__side\" style=\"background:#191919\">\n\t\t\t<strong>Modules</strong>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item is-active\" style=\"background:#227a40;color:#fff\">Clients</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">VAT</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Documents</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">ERP</span>\n\t\t\t\t\t</div>\n\t\t<div class=\"epm-mini-cp__main\">\n\t\t\t<div class=\"epm-mini-cp__kpi\">\n\t\t\t\t<span><b>24</b>Today</span>\n\t\t\t\t<span><b>AED</b>Revenue</span>\n\t\t\t\t<span><b>Live</b>Status</span>\n\t\t\t</div>\n\t\t\t<div class=\"epm-mini-cp__rows\">\n\t\t\t\t<span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\t\t</div>\n\t<div class=\"epm-cta\" style=\"margin-top:4px\">\n\t\t<a class=\"epm-btn epm-btn--primary epm-btn--sm\" href=\"#\" target=\"_blank\" rel=\"noopener\">Visit site <i class=\"fa fa-external-link\"></i></a>\n\t\t<a class=\"epm-btn epm-btn--outline epm-btn--sm\" href=\"#\" target=\"_blank\" rel=\"noopener\">Open /cp/</a>\n\t</div>\n</article>\n\t",
+                "<section class=\"epm-tenant-showcase\" id=\"tenant-showcase\" aria-labelledby=\"epm-tenant-showcase-title\">\n\t<div class=\"epm-wrap\">\n\t\t<div class=\"epm-tenant-showcase__head\">\n\t\t\t<div class=\"epm-badge\"><i class=\"fa fa-paint-brush\"></i> Live tenant themes</div>\n\t\t\t<h2 class=\"epm-section-title\" id=\"epm-tenant-showcase-title\" style=\"margin-top:8px\">Industry storefronts in production</h2>\n\t\t\t<p class=\"epm-section-lead\" style=\"max-width:860px;margin-bottom:0\">eParts Cart uses a live capture from <a href=\"https://www.epartscart.com/\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--epm-cyan)\">epartscart.com</a> (piston hero, AI Parts Expert, automotive theme). Other tenants show animated industry heroes until storefront screenshots are added. CP cards use tenant colours, not generic gray mocks.</p>\n\t\t</div>\n\t\t<div class=\"epm-tenant-showcase__grid\">\n\t\t\t<article class=\"epm-tenant-card\" data-industry=\"auto_parts\">\n\t<div class=\"epm-tenant-card__head\">\n\t\t\t\t<img class=\"epm-tenant-card__logo\" src=\"/logos/epartscart.png\" alt=\"eParts Cart logo\" loading=\"lazy\" />\n\t\t\t\t<div class=\"epm-tenant-card__meta\">\n\t\t\t<h3>eParts Cart</h3>\n\t\t\t<p>Flagship</p>\n\t\t</div>\n\t\t<span class=\"epm-tenant-card__theme\">Automotive spare parts pro</span>\n\t</div>\n\t<div class=\"epm-tenant-card__previews\">\n\t\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Storefront</em></div>\n\t\t<div class=\"epm-mini-hero epm-mini-hero--live\">\n\t\t<img src=\"/epc-ecomae-tenant-asset.php?f=tenant-epartscart-storefront.png\" alt=\"Storefront — live storefront\" loading=\"lazy\" width=\"640\" height=\"360\" />\n\t</div>\n\t</div>\n\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Control panel</em></div>\n\t<div class=\"epm-mini-cp\">\n\t\t<div class=\"epm-mini-cp__side\" style=\"background:#1e293b\">\n\t\t\t<strong>Modules</strong>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item is-active\" style=\"background:#3b82f6;color:#fff\">Orders</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Prices</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Procurement</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Logistics</span>\n\t\t\t\t\t</div>\n\t\t<div class=\"epm-mini-cp__main\">\n\t\t\t<div class=\"epm-mini-cp__kpi\">\n\t\t\t\t<span><b>24</b>Today</span>\n\t\t\t\t<span><b>AED</b>Revenue</span>\n\t\t\t\t<span><b>Live</b>Status</span>\n\t\t\t</div>\n\t\t\t<div class=\"epm-mini-cp__rows\">\n\t\t\t\t<span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\t\t</div>\n\t<div class=\"epm-cta\" style=\"margin-top:4px\">\n\t\t<a class=\"epm-btn epm-btn--primary epm-btn--sm\" href=\"https://www.epartscart.com/\" target=\"_blank\" rel=\"noopener\">Visit site <i class=\"fa fa-external-link\"></i></a>\n\t\t<a class=\"epm-btn epm-btn--outline epm-btn--sm\" href=\"https://www.epartscart.com/cp/\" target=\"_blank\" rel=\"noopener\">Open /cp/</a>\n\t</div>\n</article>\n\t<article class=\"epm-tenant-card\" data-industry=\"tax_advisory\">\n\t<div class=\"epm-tenant-card__head\">\n\t\t\t\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--consult\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 48 36\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"4\" y=\"18\" width=\"8\" height=\"14\" rx=\"2\" fill=\"#d4af37\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"18\" y=\"10\" width=\"8\" height=\"22\" rx=\"2\" fill=\"#1e40af\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"32\" y=\"14\" width=\"8\" height=\"18\" rx=\"2\" fill=\"#d4af37\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">O&#039;Brien tax</span>\n</span>\n\t\t</div>\n\t\t\t\t<div class=\"epm-tenant-card__meta\">\n\t\t\t<h3>O&#039;Brien tax</h3>\n\t\t\t<p>Advisory</p>\n\t\t</div>\n\t\t<span class=\"epm-tenant-card__theme\">Prime Invest consulting</span>\n\t</div>\n\t<div class=\"epm-tenant-card__previews\">\n\t\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Storefront</em></div>\n\t<div class=\"epm-mini-hero\" style=\"--mk-primary:#1e40af;--mk-accent:#d4af37;background:linear-gradient(135deg,#0f172a,#1e3a5f)\">\n\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--consult\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 48 36\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"4\" y=\"18\" width=\"8\" height=\"14\" rx=\"2\" fill=\"#d4af37\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"18\" y=\"10\" width=\"8\" height=\"22\" rx=\"2\" fill=\"#1e40af\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"32\" y=\"14\" width=\"8\" height=\"18\" rx=\"2\" fill=\"#d4af37\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">Prime Invest consulting</span>\n</span>\n\t\t</div>\n\t\t<div class=\"epm-mk-consult\" aria-hidden=\"true\">\n\t\t<span class=\"epm-mk-consult__bar\"></span><span class=\"epm-mk-consult__bar\"></span><span class=\"epm-mk-consult__bar\"></span><span class=\"epm-mk-consult__bar\"></span>\n\t</div>\n\t\t<div class=\"epm-mini-hero__copy\">\n\t\t<strong>Prime Invest consulting</strong>\n\t\t<small>Industry-themed storefront hero</small>\n\t</div>\n</div>\n\t</div>\n\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Control panel</em></div>\n\t<div class=\"epm-mini-cp\">\n\t\t<div class=\"epm-mini-cp__side\" style=\"background:#191919\">\n\t\t\t<strong>Modules</strong>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item is-active\" style=\"background:#227a40;color:#fff\">Clients</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">VAT</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Documents</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">ERP</span>\n\t\t\t\t\t</div>\n\t\t<div class=\"epm-mini-cp__main\">\n\t\t\t<div class=\"epm-mini-cp__kpi\">\n\t\t\t\t<span><b>24</b>Today</span>\n\t\t\t\t<span><b>AED</b>Revenue</span>\n\t\t\t\t<span><b>Live</b>Status</span>\n\t\t\t</div>\n\t\t\t<div class=\"epm-mini-cp__rows\">\n\t\t\t\t<span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\t\t</div>\n\t<div class=\"epm-cta\" style=\"margin-top:4px\">\n\t\t<a class=\"epm-btn epm-btn--primary epm-btn--sm\" href=\"https://www.taxofinca.com/\" target=\"_blank\" rel=\"noopener\">Visit site <i class=\"fa fa-external-link\"></i></a>\n\t\t<a class=\"epm-btn epm-btn--outline epm-btn--sm\" href=\"https://www.taxofinca.com/cp/\" target=\"_blank\" rel=\"noopener\">Open /cp/</a>\n\t</div>\n</article>\n\t<article class=\"epm-tenant-card\" data-industry=\"auto_parts\">\n\t<div class=\"epm-tenant-card__head\">\n\t\t\t\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--parts\" aria-hidden=\"true\">\n\t<span class=\"epm-mk-logo__text\">eparts</span>\n\t<svg viewBox=\"0 0 88 40\" xmlns=\"http://www.w3.org/2000/svg\" class=\"epm-mk-logo__cart\" aria-hidden=\"true\">\n\t\t<path fill=\"#2563eb\" d=\"M8 8h44c3 0 5 2 5 5l-4 16H18L8 8z\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"22\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"44\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<rect x=\"30\" y=\"14\" width=\"10\" height=\"8\" rx=\"2\" fill=\"#e2e8f0\"/>\n\t</svg>\n</span>\n\t\t</div>\n\t\t\t\t<div class=\"epm-tenant-card__meta\">\n\t\t\t<h3>Ghost</h3>\n\t\t\t<p></p>\n\t\t</div>\n\t\t<span class=\"epm-tenant-card__theme\">Automotive spare parts pro</span>\n\t</div>\n\t<div class=\"epm-tenant-card__previews\">\n\t\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Storefront</em></div>\n\t<div class=\"epm-mini-hero\" style=\"--mk-primary:#2563eb;--mk-accent:#ef4444;background:linear-gradient(135deg,#0f172a,#111827)\">\n\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--parts\" aria-hidden=\"true\">\n\t<span class=\"epm-mk-logo__text\">eparts</span>\n\t<svg viewBox=\"0 0 88 40\" xmlns=\"http://www.w3.org/2000/svg\" class=\"epm-mk-logo__cart\" aria-hidden=\"true\">\n\t\t<path fill=\"#2563eb\" d=\"M8 8h44c3 0 5 2 5 5l-4 16H18L8 8z\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"22\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"44\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<rect x=\"30\" y=\"14\" width=\"10\" height=\"8\" rx=\"2\" fill=\"#e2e8f0\"/>\n\t</svg>\n</span>\n\t\t</div>\n\t\t<div class=\"epm-mk-piston\" aria-hidden=\"true\">\n\t\t<div class=\"epm-mk-piston__cyl\"><span class=\"epm-mk-piston__p\"></span></div>\n\t\t<div class=\"epm-mk-piston__cyl\"><span class=\"epm-mk-piston__p\"></span></div>\n\t\t<div class=\"epm-mk-piston__cyl\"><span class=\"epm-mk-piston__p\"></span></div>\n\t</div>\n\t\t<div class=\"epm-mini-hero__copy\">\n\t\t<strong>Automotive spare parts pro</strong>\n\t\t<small>Industry-themed storefront hero</small>\n\t</div>\n</div>\n\t</div>\n\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Control panel</em></div>\n\t<div class=\"epm-mini-cp\">\n\t\t<div class=\"epm-mini-cp__side\" style=\"background:#1e293b\">\n\t\t\t<strong>Modules</strong>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item is-active\" style=\"background:#3b82f6;color:#fff\">Orders</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Prices</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Procurement</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Logistics</span>\n\t\t\t\t\t</div>\n\t\t<div class=\"epm-mini-cp__main\">\n\t\t\t<div class=\"epm-mini-cp__kpi\">\n\t\t\t\t<span><b>24</b>Today</span>\n\t\t\t\t<span><b>AED</b>Revenue</span>\n\t\t\t\t<span><b>Live</b>Status</span>\n\t\t\t</div>\n\t\t\t<div class=\"epm-mini-cp__rows\">\n\t\t\t\t<span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\t\t</div>\n\t<div class=\"epm-cta\" style=\"margin-top:4px\">\n\t\t<a class=\"epm-btn epm-btn--primary epm-btn--sm\" href=\"#\" target=\"_blank\" rel=\"noopener\">Visit site <i class=\"fa fa-external-link\"></i></a>\n\t\t<a class=\"epm-btn epm-btn--outline epm-btn--sm\" href=\"#\" target=\"_blank\" rel=\"noopener\">Open /cp/</a>\n\t</div>\n</article>\n\t\t\t</div>\n\t\t\t</div>\n</section>\n\t",
+                "<section class=\"epm-tenant-showcase epm-tenant-showcase--home\" id=\"tenant-showcase\" aria-labelledby=\"epm-tenant-showcase-title\">\n\t<div class=\"epm-wrap\">\n\t\t<div class=\"epm-tenant-showcase__head\">\n\t\t\t<div class=\"epm-badge\"><i class=\"fa fa-paint-brush\"></i> Live tenant themes</div>\n\t\t\t<h2 class=\"epm-section-title\" id=\"epm-tenant-showcase-title\" style=\"margin-top:8px\">Industry storefronts in production</h2>\n\t\t\t<p class=\"epm-section-lead\" style=\"max-width:860px;margin-bottom:0\">eParts Cart uses a live capture from <a href=\"https://www.epartscart.com/\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--epm-cyan)\">epartscart.com</a> (piston hero, AI Parts Expert, automotive theme). Other tenants show animated industry heroes until storefront screenshots are added. CP cards use tenant colours, not generic gray mocks.</p>\n\t\t</div>\n\t\t<div class=\"epm-tenant-showcase__grid\">\n\t\t\t<article class=\"epm-tenant-card\" data-industry=\"auto_parts\">\n\t<div class=\"epm-tenant-card__head\">\n\t\t\t\t<img class=\"epm-tenant-card__logo\" src=\"/logos/epartscart.png\" alt=\"eParts Cart logo\" loading=\"lazy\" />\n\t\t\t\t<div class=\"epm-tenant-card__meta\">\n\t\t\t<h3>eParts Cart</h3>\n\t\t\t<p>Flagship</p>\n\t\t</div>\n\t\t<span class=\"epm-tenant-card__theme\">Automotive spare parts pro</span>\n\t</div>\n\t<div class=\"epm-tenant-card__previews\">\n\t\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Storefront</em></div>\n\t\t<div class=\"epm-mini-hero epm-mini-hero--live\">\n\t\t<img src=\"/epc-ecomae-tenant-asset.php?f=tenant-epartscart-storefront.png\" alt=\"Storefront — live storefront\" loading=\"lazy\" width=\"640\" height=\"360\" />\n\t</div>\n\t</div>\n\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Control panel</em></div>\n\t<div class=\"epm-mini-cp\">\n\t\t<div class=\"epm-mini-cp__side\" style=\"background:#1e293b\">\n\t\t\t<strong>Modules</strong>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item is-active\" style=\"background:#3b82f6;color:#fff\">Orders</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Prices</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Procurement</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Logistics</span>\n\t\t\t\t\t</div>\n\t\t<div class=\"epm-mini-cp__main\">\n\t\t\t<div class=\"epm-mini-cp__kpi\">\n\t\t\t\t<span><b>24</b>Today</span>\n\t\t\t\t<span><b>AED</b>Revenue</span>\n\t\t\t\t<span><b>Live</b>Status</span>\n\t\t\t</div>\n\t\t\t<div class=\"epm-mini-cp__rows\">\n\t\t\t\t<span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\t\t</div>\n\t<div class=\"epm-cta\" style=\"margin-top:4px\">\n\t\t<a class=\"epm-btn epm-btn--primary epm-btn--sm\" href=\"https://www.epartscart.com/\" target=\"_blank\" rel=\"noopener\">Visit site <i class=\"fa fa-external-link\"></i></a>\n\t\t<a class=\"epm-btn epm-btn--outline epm-btn--sm\" href=\"https://www.epartscart.com/cp/\" target=\"_blank\" rel=\"noopener\">Open /cp/</a>\n\t</div>\n</article>\n\t<article class=\"epm-tenant-card\" data-industry=\"tax_advisory\">\n\t<div class=\"epm-tenant-card__head\">\n\t\t\t\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--consult\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 48 36\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"4\" y=\"18\" width=\"8\" height=\"14\" rx=\"2\" fill=\"#d4af37\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"18\" y=\"10\" width=\"8\" height=\"22\" rx=\"2\" fill=\"#1e40af\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"32\" y=\"14\" width=\"8\" height=\"18\" rx=\"2\" fill=\"#d4af37\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">O&#039;Brien tax</span>\n</span>\n\t\t</div>\n\t\t\t\t<div class=\"epm-tenant-card__meta\">\n\t\t\t<h3>O&#039;Brien tax</h3>\n\t\t\t<p>Advisory</p>\n\t\t</div>\n\t\t<span class=\"epm-tenant-card__theme\">Prime Invest consulting</span>\n\t</div>\n\t<div class=\"epm-tenant-card__previews\">\n\t\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Storefront</em></div>\n\t<div class=\"epm-mini-hero\" style=\"--mk-primary:#1e40af;--mk-accent:#d4af37;background:linear-gradient(135deg,#0f172a,#1e3a5f)\">\n\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--consult\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 48 36\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"4\" y=\"18\" width=\"8\" height=\"14\" rx=\"2\" fill=\"#d4af37\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"18\" y=\"10\" width=\"8\" height=\"22\" rx=\"2\" fill=\"#1e40af\"/>\n\t\t<rect class=\"epm-mk-logo__bar\" x=\"32\" y=\"14\" width=\"8\" height=\"18\" rx=\"2\" fill=\"#d4af37\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">Prime Invest consulting</span>\n</span>\n\t\t</div>\n\t\t<div class=\"epm-mk-consult\" aria-hidden=\"true\">\n\t\t<span class=\"epm-mk-consult__bar\"></span><span class=\"epm-mk-consult__bar\"></span><span class=\"epm-mk-consult__bar\"></span><span class=\"epm-mk-consult__bar\"></span>\n\t</div>\n\t\t<div class=\"epm-mini-hero__copy\">\n\t\t<strong>Prime Invest consulting</strong>\n\t\t<small>Industry-themed storefront hero</small>\n\t</div>\n</div>\n\t</div>\n\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Control panel</em></div>\n\t<div class=\"epm-mini-cp\">\n\t\t<div class=\"epm-mini-cp__side\" style=\"background:#191919\">\n\t\t\t<strong>Modules</strong>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item is-active\" style=\"background:#227a40;color:#fff\">Clients</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">VAT</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Documents</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">ERP</span>\n\t\t\t\t\t</div>\n\t\t<div class=\"epm-mini-cp__main\">\n\t\t\t<div class=\"epm-mini-cp__kpi\">\n\t\t\t\t<span><b>24</b>Today</span>\n\t\t\t\t<span><b>AED</b>Revenue</span>\n\t\t\t\t<span><b>Live</b>Status</span>\n\t\t\t</div>\n\t\t\t<div class=\"epm-mini-cp__rows\">\n\t\t\t\t<span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\t\t</div>\n\t<div class=\"epm-cta\" style=\"margin-top:4px\">\n\t\t<a class=\"epm-btn epm-btn--primary epm-btn--sm\" href=\"https://www.taxofinca.com/\" target=\"_blank\" rel=\"noopener\">Visit site <i class=\"fa fa-external-link\"></i></a>\n\t\t<a class=\"epm-btn epm-btn--outline epm-btn--sm\" href=\"https://www.taxofinca.com/cp/\" target=\"_blank\" rel=\"noopener\">Open /cp/</a>\n\t</div>\n</article>\n\t<article class=\"epm-tenant-card\" data-industry=\"auto_parts\">\n\t<div class=\"epm-tenant-card__head\">\n\t\t\t\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--parts\" aria-hidden=\"true\">\n\t<span class=\"epm-mk-logo__text\">eparts</span>\n\t<svg viewBox=\"0 0 88 40\" xmlns=\"http://www.w3.org/2000/svg\" class=\"epm-mk-logo__cart\" aria-hidden=\"true\">\n\t\t<path fill=\"#2563eb\" d=\"M8 8h44c3 0 5 2 5 5l-4 16H18L8 8z\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"22\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"44\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<rect x=\"30\" y=\"14\" width=\"10\" height=\"8\" rx=\"2\" fill=\"#e2e8f0\"/>\n\t</svg>\n</span>\n\t\t</div>\n\t\t\t\t<div class=\"epm-tenant-card__meta\">\n\t\t\t<h3>Ghost</h3>\n\t\t\t<p></p>\n\t\t</div>\n\t\t<span class=\"epm-tenant-card__theme\">Automotive spare parts pro</span>\n\t</div>\n\t<div class=\"epm-tenant-card__previews\">\n\t\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Storefront</em></div>\n\t<div class=\"epm-mini-hero\" style=\"--mk-primary:#2563eb;--mk-accent:#ef4444;background:linear-gradient(135deg,#0f172a,#111827)\">\n\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--parts\" aria-hidden=\"true\">\n\t<span class=\"epm-mk-logo__text\">eparts</span>\n\t<svg viewBox=\"0 0 88 40\" xmlns=\"http://www.w3.org/2000/svg\" class=\"epm-mk-logo__cart\" aria-hidden=\"true\">\n\t\t<path fill=\"#2563eb\" d=\"M8 8h44c3 0 5 2 5 5l-4 16H18L8 8z\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"22\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<circle class=\"epm-mk-logo__wheel\" cx=\"44\" cy=\"32\" r=\"6\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n\t\t<rect x=\"30\" y=\"14\" width=\"10\" height=\"8\" rx=\"2\" fill=\"#e2e8f0\"/>\n\t</svg>\n</span>\n\t\t</div>\n\t\t<div class=\"epm-mk-piston\" aria-hidden=\"true\">\n\t\t<div class=\"epm-mk-piston__cyl\"><span class=\"epm-mk-piston__p\"></span></div>\n\t\t<div class=\"epm-mk-piston__cyl\"><span class=\"epm-mk-piston__p\"></span></div>\n\t\t<div class=\"epm-mk-piston__cyl\"><span class=\"epm-mk-piston__p\"></span></div>\n\t</div>\n\t\t<div class=\"epm-mini-hero__copy\">\n\t\t<strong>Automotive spare parts pro</strong>\n\t\t<small>Industry-themed storefront hero</small>\n\t</div>\n</div>\n\t</div>\n\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Control panel</em></div>\n\t<div class=\"epm-mini-cp\">\n\t\t<div class=\"epm-mini-cp__side\" style=\"background:#1e293b\">\n\t\t\t<strong>Modules</strong>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item is-active\" style=\"background:#3b82f6;color:#fff\">Orders</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Prices</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Procurement</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Logistics</span>\n\t\t\t\t\t</div>\n\t\t<div class=\"epm-mini-cp__main\">\n\t\t\t<div class=\"epm-mini-cp__kpi\">\n\t\t\t\t<span><b>24</b>Today</span>\n\t\t\t\t<span><b>AED</b>Revenue</span>\n\t\t\t\t<span><b>Live</b>Status</span>\n\t\t\t</div>\n\t\t\t<div class=\"epm-mini-cp__rows\">\n\t\t\t\t<span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\t\t</div>\n\t<div class=\"epm-cta\" style=\"margin-top:4px\">\n\t\t<a class=\"epm-btn epm-btn--primary epm-btn--sm\" href=\"#\" target=\"_blank\" rel=\"noopener\">Visit site <i class=\"fa fa-external-link\"></i></a>\n\t\t<a class=\"epm-btn epm-btn--outline epm-btn--sm\" href=\"#\" target=\"_blank\" rel=\"noopener\">Open /cp/</a>\n\t</div>\n</article>\n\t\t\t</div>\n\t\t\t\t<div class=\"epm-cta\" style=\"margin-top:18px\">\n\t\t\t<a class=\"epm-btn epm-btn--primary\" href=\"https://www.ecomae.com/platform/customer-results\"><i class=\"fa fa-trophy\"></i> Full customer results</a>\n\t\t\t<a class=\"epm-btn epm-btn--outline\" href=\"https://www.ecomae.com/platform/industries\"><i class=\"fa fa-industry\"></i> Browse industries</a>\n\t\t</div>\n\t\t\t</div>\n</section>\n\t",
+                "<div class=\"epm-area__shots\" style=\"margin-bottom:32px\">\n\t<figure class=\"epm-preview\">\n\t\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Storefront — Auto parts</em></div>\n\t\t<div class=\"epm-mini-hero epm-mini-hero--live\">\n\t\t<img src=\"/epc-ecomae-tenant-asset.php?f=tenant-epartscart-storefront.png\" alt=\"Storefront — Auto parts — live storefront\" loading=\"lazy\" width=\"640\" height=\"360\" />\n\t</div>\n\t</div>\n\t\t\t<figcaption><strong>Storefront — Auto parts</strong><p>Live storefront capture from production — e.g. epartscart.com hero, search, and piston animation.</p></figcaption>\n\t</figure>\n\t<figure class=\"epm-preview\">\n\t\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Client CP — Auto parts</em></div>\n\t<div class=\"epm-mini-cp\">\n\t\t<div class=\"epm-mini-cp__side\" style=\"background:#1e293b\">\n\t\t\t<strong>Modules</strong>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item is-active\" style=\"background:#3b82f6;color:#fff\">Orders</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Prices</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Procurement</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Logistics</span>\n\t\t\t\t\t</div>\n\t\t<div class=\"epm-mini-cp__main\">\n\t\t\t<div class=\"epm-mini-cp__kpi\">\n\t\t\t\t<span><b>24</b>Today</span>\n\t\t\t\t<span><b>AED</b>Revenue</span>\n\t\t\t\t<span><b>Live</b>Status</span>\n\t\t\t</div>\n\t\t\t<div class=\"epm-mini-cp__rows\">\n\t\t\t\t<span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\t\t\t<figcaption><strong>Client CP — Auto parts</strong><p>Industry-themed sidebar and module packs — not a generic login screen.</p></figcaption>\n\t</figure>\n</div>\n\t",
+                "<div class=\"epm-area__shots\" style=\"margin-bottom:32px\">\n\t<figure class=\"epm-preview\">\n\t\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Storefront — Fashion o&#039;shop</em></div>\n\t<div class=\"epm-mini-hero\" style=\"--mk-primary:#ec4899;--mk-accent:#be185d;background:linear-gradient(135deg,#fdf2f8,#fce7f3)\">\n\t<div class=\"epm-mini-logo\"><span class=\"epm-mk-logo epm-mk-logo--fashion\" aria-hidden=\"true\">\n\t<svg viewBox=\"0 0 36 40\" xmlns=\"http://www.w3.org/2000/svg\" class=\"epm-mk-logo__hanger\" aria-hidden=\"true\">\n\t\t<path d=\"M18 4c-2 0-3 1.5-3 3.5S16 11 18 11s3-1.5 3-3.5S20 4 18 4z\" fill=\"#be185d\"/>\n\t\t<path d=\"M18 11 L6 28 L30 28 Z\" fill=\"#ec4899\" opacity=\".9\"/>\n\t</svg>\n\t<span class=\"epm-mk-logo__text\">Namshi fashion &amp; beauty</span>\n</span>\n\t\t</div>\n\t\t<div class=\"epm-mk-fashion\" aria-hidden=\"true\">\n\t\t<span class=\"epm-mk-fashion__chip\">New in</span>\n\t\t<span class=\"epm-mk-fashion__dress\"></span>\n\t\t<span class=\"epm-mk-fashion__chip\">Beauty</span>\n\t</div>\n\t\t<div class=\"epm-mini-hero__copy\">\n\t\t<strong>Namshi fashion &amp; beauty</strong>\n\t\t<small>Industry-themed storefront hero</small>\n\t</div>\n</div>\n\t</div>\n\t\t\t<figcaption><strong>Storefront — Fashion o&#039;shop</strong><p>Animated industry hero with tenant brand colours — marketing preview until a screenshot is added.</p></figcaption>\n\t</figure>\n\t<figure class=\"epm-preview\">\n\t\t<div class=\"epm-mini-browser\">\n\t<div class=\"epm-mini-browser__bar\"><span></span><span></span><span></span><em>Client CP — Fashion o&#039;shop</em></div>\n\t<div class=\"epm-mini-cp\">\n\t\t<div class=\"epm-mini-cp__side\" style=\"background:#831843\">\n\t\t\t<strong>Modules</strong>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item is-active\" style=\"background:#ec4899;color:#fff\">Collections</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Orders</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Campaigns</span>\n\t\t\t\t\t\t<span class=\"epm-mini-cp__item\">Stock</span>\n\t\t\t\t\t</div>\n\t\t<div class=\"epm-mini-cp__main\">\n\t\t\t<div class=\"epm-mini-cp__kpi\">\n\t\t\t\t<span><b>24</b>Today</span>\n\t\t\t\t<span><b>AED</b>Revenue</span>\n\t\t\t\t<span><b>Live</b>Status</span>\n\t\t\t</div>\n\t\t\t<div class=\"epm-mini-cp__rows\">\n\t\t\t\t<span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span><span class=\"epm-mini-cp__row\"></span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\t\t\t<figcaption><strong>Client CP — Fashion o&#039;shop</strong><p>Industry-themed sidebar and module packs — not a generic login screen.</p></figcaption>\n\t</figure>\n</div>\n\t"
+            ]
+        }
+    ]
+}

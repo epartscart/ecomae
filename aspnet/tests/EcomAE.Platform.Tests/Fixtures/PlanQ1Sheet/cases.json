@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "norm" },
+    { "name": "count" },
+    { "name": "annotate" },
+    { "name": "import" }
+  ]
+}

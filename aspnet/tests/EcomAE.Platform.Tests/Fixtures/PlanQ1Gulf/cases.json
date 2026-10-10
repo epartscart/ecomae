@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "names" },
+    { "name": "price" },
+    { "name": "info" },
+    { "name": "board" }
+  ]
+}

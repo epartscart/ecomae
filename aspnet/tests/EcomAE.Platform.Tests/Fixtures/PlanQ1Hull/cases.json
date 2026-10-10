@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "providers",
+      "eval": "return hull_run_providers();"
+    },
+    {
+      "name": "state",
+      "eval": "return hull_run_state();"
+    },
+    {
+      "name": "google",
+      "eval": "return hull_run_google();"
+    },
+    {
+      "name": "login_html",
+      "eval": "return hull_run_login_html();"
+    }
+  ]
+}

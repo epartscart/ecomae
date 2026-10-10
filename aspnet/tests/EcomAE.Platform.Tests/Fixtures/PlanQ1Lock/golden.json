@@ -1,0 +1,262 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "cons_pure",
+            "output": "",
+            "result": [
+                28,
+                [
+                    "automotive",
+                    "healthcare_medical",
+                    "food_beverage",
+                    "fashion_apparel",
+                    "jewellery_luxury",
+                    "electronics_technology",
+                    "construction_realestate",
+                    "manufacturing_industrial",
+                    "professional_services",
+                    "education_training",
+                    "hospitality_travel",
+                    "beauty_wellness",
+                    "retail_ecommerce",
+                    "agriculture_farming",
+                    "logistics_transport",
+                    "energy_utilities",
+                    "financial_services",
+                    "it_software",
+                    "media_entertainment",
+                    "sports_fitness",
+                    "home_living",
+                    "wholesale_trading",
+                    "rental_leasing",
+                    "nonprofit_government",
+                    "cleaning_maintenance",
+                    "pet_animal",
+                    "printing_signage",
+                    "security_safety"
+                ],
+                "automotive",
+                [
+                    "parts_catalog",
+                    "workshop",
+                    "fleet"
+                ],
+                "#dc2626",
+                [
+                    "automotive",
+                    "jewellery_luxury",
+                    "manufacturing_industrial",
+                    "home_living",
+                    "pet_animal",
+                    "retail_ecommerce",
+                    "it_software",
+                    "financial_services",
+                    "retail_ecommerce",
+                    "professional_services",
+                    "retail_ecommerce",
+                    "jewellery_luxury"
+                ],
+                [
+                    "automotive",
+                    "retail",
+                    "jewellery"
+                ],
+                "Automotive & Vehicles",
+                "retail",
+                [
+                    "retail_ecommerce",
+                    2,
+                    [
+                        "zzz",
+                        "Unknown Y"
+                    ]
+                ]
+            ]
+        },
+        {
+            "name": "cons_db",
+            "output": "",
+            "result": [
+                {
+                    "parts_catalog": true,
+                    "workshop": true,
+                    "dealership": false,
+                    "detailing": false,
+                    "insurance": false,
+                    "auction": false,
+                    "rental": false,
+                    "logistics": false,
+                    "manufacturing": false,
+                    "tyres": false,
+                    "glass": false,
+                    "ev_charging": false,
+                    "fleet": true
+                },
+                true,
+                {
+                    "parts_catalog": true,
+                    "workshop": false,
+                    "dealership": true,
+                    "detailing": false,
+                    "insurance": false,
+                    "auction": false,
+                    "rental": false,
+                    "logistics": false,
+                    "manufacturing": false,
+                    "tyres": false,
+                    "glass": false,
+                    "ev_charging": false,
+                    "fleet": true
+                },
+                {
+                    "parts_catalog": false,
+                    "workshop": false,
+                    "dealership": false,
+                    "detailing": false,
+                    "insurance": false,
+                    "auction": false,
+                    "rental": false,
+                    "logistics": false,
+                    "manufacturing": false,
+                    "tyres": false,
+                    "glass": false,
+                    "ev_charging": false,
+                    "fleet": false
+                },
+                {
+                    "retail": true,
+                    "gold": true,
+                    "diamond": false,
+                    "watches": false,
+                    "custom_design": true,
+                    "repair": false,
+                    "wholesale": false,
+                    "manufacturing": false,
+                    "auction": false,
+                    "antique": false,
+                    "bridal": false,
+                    "certification": false
+                }
+            ]
+        },
+        {
+            "name": "router_pure",
+            "output": "",
+            "result": [
+                {
+                    "style": "parallax_dark",
+                    "colors": {
+                        "primary": "#dc2626",
+                        "accent": "#f97316",
+                        "bg_from": "#0b1220",
+                        "bg_to": "#1e3a5f"
+                    },
+                    "icon": "fa-car",
+                    "group_label": "Automotive & Vehicles",
+                    "template_key": "automotive"
+                },
+                {
+                    "style": "parallax_dark",
+                    "colors": {
+                        "primary": "#111111",
+                        "accent": "#222222",
+                        "bg_from": "#0b1220",
+                        "bg_to": "#1e3a5f"
+                    },
+                    "icon": "fa-car",
+                    "group_label": "Automotive & Vehicles",
+                    "template_key": "automotive"
+                },
+                {
+                    "style": "parallax_dark",
+                    "colors": {
+                        "primary": "#dc2626",
+                        "accent": "#222222",
+                        "bg_from": "#0b1220",
+                        "bg_to": "#1e3a5f"
+                    },
+                    "icon": "fa-car",
+                    "group_label": "Automotive & Vehicles",
+                    "template_key": "automotive"
+                },
+                [
+                    "dashboard",
+                    "gl",
+                    "ar",
+                    "ap",
+                    "inventory",
+                    "reports",
+                    "setup",
+                    "catalog",
+                    "cross_reference",
+                    "vin_lookup",
+                    "fleet_booking",
+                    "availability",
+                    "contracts"
+                ],
+                [
+                    "dashboard",
+                    "gl",
+                    "ar",
+                    "ap",
+                    "inventory",
+                    "reports",
+                    "setup",
+                    "work_orders",
+                    "bom",
+                    "routing",
+                    "raw_materials",
+                    "wip",
+                    "finished_goods"
+                ],
+                [
+                    "dashboard",
+                    "settings",
+                    "users",
+                    "content",
+                    "analytics",
+                    "section_workshop",
+                    "section_fleet"
+                ],
+                {
+                    "total_industries": 1154,
+                    "groups_count": 28,
+                    "templates_before": 1154,
+                    "templates_after": 28,
+                    "reduction_pct": 97.6,
+                    "php_files_saved": 3378,
+                    "css_files_saved": 1126,
+                    "db_queries_saved_per_load": 2252,
+                    "memory_reduction_est": "~563 MB less opcache"
+                }
+            ]
+        },
+        {
+            "name": "router_files",
+            "output": "",
+            "result": [
+                "DOC/content/general_pages/industry_templates/automotive_hero.php",
+                "DOC/content/general_pages/industry_templates/automotive.php",
+                "DOC/content/general_pages/epc_generic_commerce_package.php",
+                "/retail.php",
+                [
+                    {
+                        "name": "A",
+                        "sub_area": "parts_catalog"
+                    },
+                    {
+                        "name": "C",
+                        "sub_area": ""
+                    }
+                ],
+                [
+                    {
+                        "name": "C",
+                        "sub_area": ""
+                    }
+                ]
+            ]
+        }
+    ]
+}

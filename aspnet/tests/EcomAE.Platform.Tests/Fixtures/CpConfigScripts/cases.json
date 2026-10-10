@@ -1,0 +1,846 @@
+{
+ "schema": [
+  "CREATE TABLE `sessions` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `session` VARCHAR(64) NOT NULL, `user_id` INT NOT NULL, `type` INT NOT NULL DEFAULT 0, `csrf_guard_key` VARCHAR(64) NOT NULL DEFAULT '') DEFAULT CHARSET=utf8mb4",
+  "CREATE TABLE `shop_orders_items` (`id` INT NOT NULL PRIMARY KEY, `order_id` INT NOT NULL) DEFAULT CHARSET=utf8mb4"
+ ],
+ "base": [
+  "INSERT INTO `sessions` (`session`,`user_id`,`type`,`csrf_guard_key`) VALUES ('adm-ok',7,1,'Kéy/\"\\\\é<>&''x'), ('adm-empty',8,1,''), ('cust-only',7,0,'custkey'), ('adm-tab',9,1,'a\tb\nc d')",
+  "INSERT INTO `shop_orders_items` (`id`,`order_id`) VALUES (1,4242),(10,510),(11,501),(12,0),(13,777),(2147483647,99)"
+ ],
+ "cases": [
+  {
+   "script": "storage_toggle",
+   "name": "storage_toggle_no_cookies",
+   "cookie": {},
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "storage_toggle",
+   "name": "storage_toggle_admin_ok",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "storage_toggle",
+   "name": "storage_toggle_session_without_user",
+   "cookie": {
+    "admin_session": "adm-ok"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "storage_toggle",
+   "name": "storage_toggle_user_without_session",
+   "cookie": {
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "storage_toggle",
+   "name": "storage_toggle_wrong_user",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "8"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "storage_toggle",
+   "name": "storage_toggle_unknown_session",
+   "cookie": {
+    "admin_session": "nope",
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "storage_toggle",
+   "name": "storage_toggle_customer_session_type0",
+   "cookie": {
+    "admin_session": "cust-only",
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "storage_toggle",
+   "name": "storage_toggle_empty_csrf",
+   "cookie": {
+    "admin_session": "adm-empty",
+    "admin_u_id": "8"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "storage_toggle",
+   "name": "storage_toggle_control_chars_csrf",
+   "cookie": {
+    "admin_session": "adm-tab",
+    "admin_u_id": "9"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "storage_toggle",
+   "name": "storage_toggle_user_id_numeric_prefix_coercion",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7abc"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "storage_toggle",
+   "name": "storage_toggle_empty_cookie_values",
+   "cookie": {
+    "admin_session": "",
+    "admin_u_id": ""
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "upload_history",
+   "name": "upload_history_no_cookies",
+   "cookie": {},
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "upload_history",
+   "name": "upload_history_admin_ok",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "upload_history",
+   "name": "upload_history_session_without_user",
+   "cookie": {
+    "admin_session": "adm-ok"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "upload_history",
+   "name": "upload_history_user_without_session",
+   "cookie": {
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "upload_history",
+   "name": "upload_history_wrong_user",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "8"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "upload_history",
+   "name": "upload_history_unknown_session",
+   "cookie": {
+    "admin_session": "nope",
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "upload_history",
+   "name": "upload_history_customer_session_type0",
+   "cookie": {
+    "admin_session": "cust-only",
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "upload_history",
+   "name": "upload_history_empty_csrf",
+   "cookie": {
+    "admin_session": "adm-empty",
+    "admin_u_id": "8"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "upload_history",
+   "name": "upload_history_control_chars_csrf",
+   "cookie": {
+    "admin_session": "adm-tab",
+    "admin_u_id": "9"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "upload_history",
+   "name": "upload_history_user_id_numeric_prefix_coercion",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7abc"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "upload_history",
+   "name": "upload_history_empty_cookie_values",
+   "cookie": {
+    "admin_session": "",
+    "admin_u_id": ""
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "commerce",
+   "name": "commerce_no_cookies",
+   "cookie": {},
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "commerce",
+   "name": "commerce_admin_ok",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "commerce",
+   "name": "commerce_session_without_user",
+   "cookie": {
+    "admin_session": "adm-ok"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "commerce",
+   "name": "commerce_user_without_session",
+   "cookie": {
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "commerce",
+   "name": "commerce_wrong_user",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "8"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "commerce",
+   "name": "commerce_unknown_session",
+   "cookie": {
+    "admin_session": "nope",
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "commerce",
+   "name": "commerce_customer_session_type0",
+   "cookie": {
+    "admin_session": "cust-only",
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "commerce",
+   "name": "commerce_empty_csrf",
+   "cookie": {
+    "admin_session": "adm-empty",
+    "admin_u_id": "8"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "commerce",
+   "name": "commerce_control_chars_csrf",
+   "cookie": {
+    "admin_session": "adm-tab",
+    "admin_u_id": "9"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "commerce",
+   "name": "commerce_user_id_numeric_prefix_coercion",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7abc"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "commerce",
+   "name": "commerce_empty_cookie_values",
+   "cookie": {
+    "admin_session": "",
+    "admin_u_id": ""
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_no_cookies",
+   "cookie": {},
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_ok",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_session_without_user",
+   "cookie": {
+    "admin_session": "adm-ok"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_user_without_session",
+   "cookie": {
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_wrong_user",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "8"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_unknown_session",
+   "cookie": {
+    "admin_session": "nope",
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_customer_session_type0",
+   "cookie": {
+    "admin_session": "cust-only",
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_empty_csrf",
+   "cookie": {
+    "admin_session": "adm-empty",
+    "admin_u_id": "8"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_control_chars_csrf",
+   "cookie": {
+    "admin_session": "adm-tab",
+    "admin_u_id": "9"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_user_id_numeric_prefix_coercion",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7abc"
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_empty_cookie_values",
+   "cookie": {
+    "admin_session": "",
+    "admin_u_id": ""
+   },
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_11",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=11",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_12",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=12",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_13",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=13",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_999",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=999",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_abc",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=abc",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq__minus_3",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=-3",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_7x",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=7x",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_1e1",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=1e1",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_11_dot_9",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=11.9",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_pct2011",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=%2011",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_11pct20",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=11%20",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_0x1A",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=0x1A",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_1_and_id_eq_11",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=1&id=11",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_11_and_id_lb__rb__eq_3",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=11&id[]=3",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_lb__rb__eq_3",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id[]=3",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_lb_a_rb__lb_b_rb__eq_3",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id[a][b]=3",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_11_and_id_lb__eq_3",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=11&id[=3",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_pct2B11",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=%2B11",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_9999999999999999999",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=9999999999999999999",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq__minus_9999999999999999999",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=-9999999999999999999",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_1e30",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=1e30",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_2147483647",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=2147483647",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_0",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=0",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_11abc",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=11abc",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq__dot_5e1",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=.5e1",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_1_dot_",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=1.",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_pct0A11",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=%0A11",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_0011",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=0011",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_1_plus_1",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=1+1",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_ID_eq_11",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "ID=11",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_11_and_other_eq_1",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=11&other=1",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_pct2011x",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=%2011x",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_1e",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=1e",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq__minus_0",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=-0",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_99999999999",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=99999999999",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_92233720368547758070",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=92233720368547758070",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_9223372036854775807",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=9223372036854775807",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_admin_query_id_eq_9223372036854775808",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "id=9223372036854775808",
+   "setup": []
+  },
+  {
+   "script": "order_item_edit",
+   "name": "order_item_edit_anonymous_with_item",
+   "cookie": {},
+   "query": "id=11",
+   "setup": []
+  },
+  {
+   "script": "multivendor_sample",
+   "name": "multivendor_sample_no_cookies",
+   "cookie": {},
+   "query": "",
+   "setup": []
+  },
+  {
+   "script": "multivendor_sample",
+   "name": "multivendor_sample_admin",
+   "cookie": {
+    "admin_session": "adm-ok",
+    "admin_u_id": "7"
+   },
+   "query": "",
+   "setup": []
+  }
+ ]
+}

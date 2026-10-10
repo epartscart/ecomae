@@ -1,0 +1,74 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "name",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "status": false,
+                        "message": "Incorrect name"
+                    },
+                    0,
+                    0
+                ],
+                [
+                    {
+                        "status": false,
+                        "message": "Incorrect name"
+                    },
+                    0,
+                    0
+                ],
+                [
+                    {
+                        "status": false,
+                        "tmp_folder_name": "{doc}/cp/tmp_prices/ok_name 1",
+                        "message": "t5348"
+                    },
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "name": "missing",
+            "output": "",
+            "result": [
+                {
+                    "status": false,
+                    "tmp_folder_name": "{doc}/cp/tmp_prices/gone_dir",
+                    "message": "t5348"
+                },
+                0,
+                0
+            ]
+        },
+        {
+            "name": "delete",
+            "output": "",
+            "result": [
+                {
+                    "status": true,
+                    "tmp_folder_name": "{doc}/cp/tmp_prices/ok_dir",
+                    "message": "t5347"
+                },
+                1,
+                1
+            ]
+        },
+        {
+            "name": "nodb",
+            "output": "",
+            "result": [
+                {
+                    "status": false,
+                    "message": "No DB Connect"
+                },
+                1,
+                1
+            ]
+        }
+    ]
+}

@@ -1,0 +1,72 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "sec_static",
+            "output": "",
+            "result": [
+                "secret",
+                "ops",
+                "app",
+                false,
+                [
+                    "ecomae.admin",
+                    "admin@ecomae.com",
+                    "hello@ecomae.com"
+                ],
+                true,
+                true,
+                false,
+                false,
+                {
+                    "ok": false,
+                    "error": "Nope"
+                }
+            ]
+        },
+        {
+            "name": "sec_flow",
+            "output": "",
+            "result": [
+                true,
+                false,
+                false,
+                {
+                    "role": "tenant",
+                    "tenant_key": "siteA",
+                    "allowed": true,
+                    "reason": "tenant_site_key"
+                },
+                {
+                    "role": "provider",
+                    "tenant_key": "",
+                    "allowed": true,
+                    "reason": "admin_table"
+                },
+                {
+                    "role": "provider",
+                    "tenant_key": "",
+                    "allowed": true,
+                    "reason": "backend_group"
+                },
+                {
+                    "role": "provider",
+                    "tenant_key": "",
+                    "allowed": true,
+                    "reason": "allowlist"
+                },
+                {
+                    "role": "guest",
+                    "tenant_key": "",
+                    "allowed": false,
+                    "reason": "not_operator"
+                },
+                true,
+                true,
+                false,
+                false,
+                true
+            ]
+        }
+    ]
+}

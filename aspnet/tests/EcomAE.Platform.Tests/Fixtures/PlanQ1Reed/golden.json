@@ -1,0 +1,41 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "guest",
+            "output": "",
+            "result": [
+                "\t<div class=\"epc-balance-panel epc-balance-panel--login\">\n\t\t<div class=\"epc-balance-panel__icon\"><i class=\"fa fa-lock\" aria-hidden=\"true\"></i></div>\n\t\t<div class=\"epc-balance-panel__content\">\n\t\t\t<span class=\"epc-balance-panel__eyebrow\">Secure customer area</span>\n\t\t\t<h2>Login required to view balance</h2>\n\t\t\t<p>Your balance is private account information. Please log in or register below to see your available credit, payments and account status.</p>\n\t\t\t<div class=\"epc-balance-panel__chips\">\n\t\t\t\t<span><i class=\"fa fa-shield\" aria-hidden=\"true\"></i> Protected account data</span>\n\t\t\t\t<span><i class=\"fa fa-user\" aria-hidden=\"true\"></i> Customer only</span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n\t",
+                "\t<div class=\"epc-balance-panel epc-balance-panel--login\">\n\t\t<div class=\"epc-balance-panel__icon\"><i class=\"fa fa-lock\" aria-hidden=\"true\"></i></div>\n\t\t<div class=\"epc-balance-panel__content\">\n\t\t\t<span class=\"epc-balance-panel__eyebrow\">Secure customer area</span>\n\t\t\t<h2>Login required to view balance</h2>\n\t\t\t<p>Your balance is private account information. Please log in or register below to see your available credit, payments and account status.</p>\n\t\t\t<div class=\"epc-balance-panel__chips\">\n\t\t\t\t<span><i class=\"fa fa-shield\" aria-hidden=\"true\"></i> Protected account data</span>\n\t\t\t\t<span><i class=\"fa fa-user\" aria-hidden=\"true\"></i> Customer only</span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n\t"
+            ]
+        },
+        {
+            "name": "signed",
+            "output": "",
+            "result": [
+                "    <div class=\"epc-balance-panel epc-balance-panel--active\">\n        <div class=\"epc-balance-panel__icon\"><i class=\"fa fa-credit-card\" aria-hidden=\"true\"></i></div>\n        <div class=\"epc-balance-panel__content\">\n            <span class=\"epc-balance-panel__eyebrow\">Customer account</span>\n            <h2>Balance</h2>\n                    <div class=\"epc-balance-panel__amount\">0.00 د.إ</div>\n            <p>Your available account balance is shown here after login.</p>\n        </div>\n    </div>\n    ",
+                "    <div class=\"epc-balance-panel epc-balance-panel--active\">\n        <div class=\"epc-balance-panel__icon\"><i class=\"fa fa-credit-card\" aria-hidden=\"true\"></i></div>\n        <div class=\"epc-balance-panel__content\">\n            <span class=\"epc-balance-panel__eyebrow\">Customer account</span>\n            <h2>Balance</h2>\n                    <div class=\"epc-balance-panel__amount\">7.50 د.إ</div>\n            <p>Your available account balance is shown here after login.</p>\n        </div>\n    </div>\n    ",
+                "    <div class=\"epc-balance-panel epc-balance-panel--active\">\n        <div class=\"epc-balance-panel__icon\"><i class=\"fa fa-credit-card\" aria-hidden=\"true\"></i></div>\n        <div class=\"epc-balance-panel__content\">\n            <span class=\"epc-balance-panel__eyebrow\">Customer account</span>\n            <h2>Balance</h2>\n                    <div class=\"epc-balance-panel__amount\">0.00 د.إ</div>\n            <p>Your available account balance is shown here after login.</p>\n        </div>\n    </div>\n    "
+            ]
+        },
+        {
+            "name": "currency",
+            "output": "",
+            "result": [
+                "    <div class=\"epc-balance-panel epc-balance-panel--active\">\n        <div class=\"epc-balance-panel__icon\"><i class=\"fa fa-credit-card\" aria-hidden=\"true\"></i></div>\n        <div class=\"epc-balance-panel__content\">\n            <span class=\"epc-balance-panel__eyebrow\">Customer account</span>\n            <h2>رصيد</h2>\n                    <div class=\"epc-balance-panel__amount\">د.إ 12.50</div>\n            <p>Your available account balance is shown here after login.</p>\n        </div>\n    </div>\n    ",
+                "    <div class=\"epc-balance-panel epc-balance-panel--active\">\n        <div class=\"epc-balance-panel__icon\"><i class=\"fa fa-credit-card\" aria-hidden=\"true\"></i></div>\n        <div class=\"epc-balance-panel__content\">\n            <span class=\"epc-balance-panel__eyebrow\">Customer account</span>\n            <h2>رصيد</h2>\n                    <div class=\"epc-balance-panel__amount\">12.50 د.إ</div>\n            <p>Your available account balance is shown here after login.</p>\n        </div>\n    </div>\n    ",
+                "    <div class=\"epc-balance-panel epc-balance-panel--active\">\n        <div class=\"epc-balance-panel__icon\"><i class=\"fa fa-credit-card\" aria-hidden=\"true\"></i></div>\n        <div class=\"epc-balance-panel__content\">\n            <span class=\"epc-balance-panel__eyebrow\">Customer account</span>\n            <h2>رصيد</h2>\n                    <div class=\"epc-balance-panel__amount\">12.50</div>\n            <p>Your available account balance is shown here after login.</p>\n        </div>\n    </div>\n    ",
+                "    <div class=\"epc-balance-panel epc-balance-panel--active\">\n        <div class=\"epc-balance-panel__icon\"><i class=\"fa fa-credit-card\" aria-hidden=\"true\"></i></div>\n        <div class=\"epc-balance-panel__content\">\n            <span class=\"epc-balance-panel__eyebrow\">Customer account</span>\n            <h2>رصيد</h2>\n                    <div class=\"epc-balance-panel__amount\">12.50 AED</div>\n            <p>Your available account balance is shown here after login.</p>\n        </div>\n    </div>\n    ",
+                "    <div class=\"epc-balance-panel epc-balance-panel--active\">\n        <div class=\"epc-balance-panel__icon\"><i class=\"fa fa-credit-card\" aria-hidden=\"true\"></i></div>\n        <div class=\"epc-balance-panel__content\">\n            <span class=\"epc-balance-panel__eyebrow\">Customer account</span>\n            <h2>رصيد</h2>\n                    <div class=\"epc-balance-panel__amount\">12.50</div>\n            <p>Your available account balance is shown here after login.</p>\n        </div>\n    </div>\n    "
+            ]
+        },
+        {
+            "name": "tenant",
+            "output": "",
+            "result": [
+                "    <div class=\"epc-balance-panel epc-balance-panel--active\">\n        <div class=\"epc-balance-panel__icon\"><i class=\"fa fa-credit-card\" aria-hidden=\"true\"></i></div>\n        <div class=\"epc-balance-panel__content\">\n            <span class=\"epc-balance-panel__eyebrow\">Customer account</span>\n            <h2>Balance</h2>\n                    <div class=\"epc-balance-panel__amount\">100.00 د.إ</div>\n            <p>Your available account balance is shown here after login.</p>\n        </div>\n    </div>\n    ",
+                "    <div class=\"epc-balance-panel epc-balance-panel--active\">\n        <div class=\"epc-balance-panel__icon\"><i class=\"fa fa-credit-card\" aria-hidden=\"true\"></i></div>\n        <div class=\"epc-balance-panel__content\">\n            <span class=\"epc-balance-panel__eyebrow\">Customer account</span>\n            <h2>Balance</h2>\n                    <div class=\"epc-balance-panel__amount\">$ 5.00</div>\n            <p>Your available account balance is shown here after login.</p>\n        </div>\n    </div>\n    "
+            ]
+        }
+    ]
+}

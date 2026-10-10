@@ -1,0 +1,910 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "acc_tax",
+            "output": "",
+            "result": {
+                "car-care": {
+                    "label": "Car Care",
+                    "icon": "fa-shower",
+                    "subs": {
+                        "car-covers": {
+                            "label": "Car Covers",
+                            "keywords": [
+                                "cover",
+                                "car cover",
+                                "body cover"
+                            ]
+                        },
+                        "air-fresheners": {
+                            "label": "Air Fresheners",
+                            "keywords": [
+                                "freshener",
+                                "perfume",
+                                "aroma"
+                            ]
+                        },
+                        "microfiber": {
+                            "label": "Microfiber Cloth",
+                            "keywords": [
+                                "microfiber",
+                                "cloth"
+                            ]
+                        },
+                        "wax-polish": {
+                            "label": "Wax & Polish",
+                            "keywords": [
+                                "wax",
+                                "polish",
+                                "compound"
+                            ]
+                        },
+                        "shampoo": {
+                            "label": "Car Shampoo",
+                            "keywords": [
+                                "shampoo",
+                                "wash",
+                                "soap"
+                            ]
+                        },
+                        "coolant": {
+                            "label": "Coolants",
+                            "keywords": [
+                                "coolant",
+                                "antifreeze"
+                            ]
+                        },
+                        "cleaners": {
+                            "label": "Cleaners",
+                            "keywords": [
+                                "cleaner",
+                                "cleaning",
+                                "detail"
+                            ]
+                        }
+                    }
+                },
+                "interior": {
+                    "label": "Interior",
+                    "icon": "fa-car",
+                    "subs": {
+                        "floor-mats": {
+                            "label": "Floor Mats",
+                            "keywords": [
+                                "floor mat",
+                                "mat",
+                                "carpet"
+                            ]
+                        },
+                        "sun-shades": {
+                            "label": "Sun Shades",
+                            "keywords": [
+                                "sun shade",
+                                "shade",
+                                "visor"
+                            ]
+                        },
+                        "dash-covers": {
+                            "label": "Dash Covers",
+                            "keywords": [
+                                "dash",
+                                "dashboard"
+                            ]
+                        },
+                        "steering": {
+                            "label": "Steering Covers",
+                            "keywords": [
+                                "steering"
+                            ]
+                        },
+                        "seat": {
+                            "label": "Seat Accessories",
+                            "keywords": [
+                                "seat",
+                                "cushion",
+                                "pillow"
+                            ]
+                        },
+                        "organizers": {
+                            "label": "Organizers",
+                            "keywords": [
+                                "organizer",
+                                "holder",
+                                "console"
+                            ]
+                        }
+                    }
+                },
+                "exterior": {
+                    "label": "Exterior",
+                    "icon": "fa-road",
+                    "subs": {
+                        "wipers": {
+                            "label": "Wipers",
+                            "keywords": [
+                                "wiper",
+                                "blade"
+                            ]
+                        },
+                        "mirrors": {
+                            "label": "Side Mirrors",
+                            "keywords": [
+                                "mirror"
+                            ]
+                        },
+                        "mud-flaps": {
+                            "label": "Mud Flaps",
+                            "keywords": [
+                                "mud",
+                                "flap",
+                                "guard"
+                            ]
+                        },
+                        "stickers": {
+                            "label": "Stickers & Logos",
+                            "keywords": [
+                                "sticker",
+                                "emblem",
+                                "logo"
+                            ]
+                        },
+                        "bumpers": {
+                            "label": "Bumpers",
+                            "keywords": [
+                                "bumper"
+                            ]
+                        },
+                        "grills": {
+                            "label": "Grills",
+                            "keywords": [
+                                "grill",
+                                "grille"
+                            ]
+                        }
+                    }
+                },
+                "lights-electrical": {
+                    "label": "Lights & Electrical",
+                    "icon": "fa-lightbulb-o",
+                    "subs": {
+                        "headlights": {
+                            "label": "Headlights",
+                            "keywords": [
+                                "headlight",
+                                "head lamp"
+                            ]
+                        },
+                        "bulbs": {
+                            "label": "Bulbs & LED",
+                            "keywords": [
+                                "bulb",
+                                "led",
+                                "lamp"
+                            ]
+                        },
+                        "fog": {
+                            "label": "Fog Lights",
+                            "keywords": [
+                                "fog"
+                            ]
+                        },
+                        "spark-glow": {
+                            "label": "Spark & Glow Plugs",
+                            "keywords": [
+                                "spark plug",
+                                "glow plug",
+                                "ignition"
+                            ]
+                        },
+                        "sensors": {
+                            "label": "Sensors",
+                            "keywords": [
+                                "sensor",
+                                "switch"
+                            ]
+                        },
+                        "batteries": {
+                            "label": "Batteries",
+                            "keywords": [
+                                "battery",
+                                "accumulator"
+                            ]
+                        }
+                    }
+                },
+                "brakes": {
+                    "label": "Brakes",
+                    "icon": "fa-stop-circle",
+                    "subs": {
+                        "pads": {
+                            "label": "Brake Pads",
+                            "keywords": [
+                                "brake pad",
+                                "pad"
+                            ]
+                        },
+                        "discs": {
+                            "label": "Brake Discs",
+                            "keywords": [
+                                "brake disc",
+                                "rotor",
+                                "disc"
+                            ]
+                        },
+                        "shoes": {
+                            "label": "Brake Shoes",
+                            "keywords": [
+                                "brake shoe",
+                                "shoe"
+                            ]
+                        },
+                        "fluid": {
+                            "label": "Brake Fluid",
+                            "keywords": [
+                                "brake fluid"
+                            ]
+                        }
+                    }
+                },
+                "engine-mechanical": {
+                    "label": "Engine & Mechanical",
+                    "icon": "fa-cogs",
+                    "subs": {
+                        "filters": {
+                            "label": "Filters",
+                            "keywords": [
+                                "filter",
+                                "oil filter",
+                                "air filter",
+                                "cabin",
+                                "fuel filter"
+                            ]
+                        },
+                        "belts": {
+                            "label": "Belts",
+                            "keywords": [
+                                "belt",
+                                "timing"
+                            ]
+                        },
+                        "gaskets": {
+                            "label": "Gaskets",
+                            "keywords": [
+                                "gasket",
+                                "seal"
+                            ]
+                        },
+                        "pistons": {
+                            "label": "Pistons",
+                            "keywords": [
+                                "piston"
+                            ]
+                        },
+                        "bearings": {
+                            "label": "Bearings",
+                            "keywords": [
+                                "bearing"
+                            ]
+                        },
+                        "pumps": {
+                            "label": "Pumps",
+                            "keywords": [
+                                "pump",
+                                "fuel pump",
+                                "water pump"
+                            ]
+                        },
+                        "joints": {
+                            "label": "Joints",
+                            "keywords": [
+                                "joint",
+                                "ball joint",
+                                "propshaft"
+                            ]
+                        },
+                        "engine": {
+                            "label": "Engine Parts",
+                            "keywords": [
+                                "engine",
+                                "valve",
+                                "cylinder",
+                                "radiator",
+                                "thermostat"
+                            ]
+                        }
+                    }
+                },
+                "oils-lubricants": {
+                    "label": "Oils & Lubricants",
+                    "icon": "fa-tint",
+                    "subs": {
+                        "engine-oil": {
+                            "label": "Engine Oil",
+                            "keywords": [
+                                "engine oil",
+                                "motor oil",
+                                "0w",
+                                "5w",
+                                "10w"
+                            ]
+                        },
+                        "gear-oil": {
+                            "label": "Gear Oil",
+                            "keywords": [
+                                "gear oil",
+                                "transmission oil",
+                                "atf"
+                            ]
+                        },
+                        "grease": {
+                            "label": "Grease",
+                            "keywords": [
+                                "grease",
+                                "lubricant"
+                            ]
+                        }
+                    }
+                },
+                "tools-gadgets": {
+                    "label": "Tools & Gadgets",
+                    "icon": "fa-wrench",
+                    "subs": {
+                        "chargers": {
+                            "label": "Chargers",
+                            "keywords": [
+                                "charger",
+                                "jump"
+                            ]
+                        },
+                        "scanners": {
+                            "label": "Scanners",
+                            "keywords": [
+                                "scanner",
+                                "diagnostic",
+                                "obd"
+                            ]
+                        },
+                        "tools": {
+                            "label": "Hand Tools",
+                            "keywords": [
+                                "tool",
+                                "socket",
+                                "wrench",
+                                "jack"
+                            ]
+                        }
+                    }
+                },
+                "tyres-wheels": {
+                    "label": "Tyres & Wheels",
+                    "icon": "fa-circle-o",
+                    "subs": {
+                        "tyres": {
+                            "label": "Tyres",
+                            "keywords": [
+                                "tyre",
+                                "tire"
+                            ]
+                        },
+                        "rims": {
+                            "label": "Rims & Wheels",
+                            "keywords": [
+                                "rim",
+                                "wheel",
+                                "alloy"
+                            ]
+                        }
+                    }
+                },
+                "ev-hybrid": {
+                    "label": "EV & Hybrid",
+                    "icon": "fa-bolt",
+                    "subs": {
+                        "ev-chargers": {
+                            "label": "EV Chargers",
+                            "keywords": [
+                                "ev charger",
+                                "wallbox",
+                                "type 2"
+                            ]
+                        },
+                        "hybrid": {
+                            "label": "Hybrid Parts",
+                            "keywords": [
+                                "hybrid",
+                                "inverter"
+                            ]
+                        }
+                    }
+                },
+                "other": {
+                    "label": "Other Parts",
+                    "icon": "fa-cubes",
+                    "subs": {
+                        "general": {
+                            "label": "General",
+                            "keywords": []
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "acc_classify_pad",
+            "output": "",
+            "result": {
+                "category": "brakes",
+                "subcategory": "pads",
+                "category_label": "Brakes",
+                "subcategory_label": "Brake Pads"
+            }
+        },
+        {
+            "name": "acc_classify_disc",
+            "output": "",
+            "result": {
+                "category": "brakes",
+                "subcategory": "discs",
+                "category_label": "Brakes",
+                "subcategory_label": "Brake Discs"
+            }
+        },
+        {
+            "name": "acc_classify_none",
+            "output": "",
+            "result": {
+                "category": "other",
+                "subcategory": "general",
+                "category_label": "Other Parts",
+                "subcategory_label": "General"
+            }
+        },
+        {
+            "name": "acc_regions",
+            "output": "",
+            "result": {
+                "S-UAE": "Dubai / Sharjah stock",
+                "R-UAE": "Ras Al Khaimah stock",
+                "RK-UAE": "Ras Al Khaimah stock",
+                "FJ-UAE": "Fujairah stock",
+                "L-UAE": "UAE local stock",
+                "APAI": "Catalogue stock"
+            }
+        },
+        {
+            "name": "syn_norm",
+            "output": "",
+            "result": [
+                "BOSCH",
+                "HE SAID 'X'",
+                ""
+            ]
+        },
+        {
+            "name": "syn_names",
+            "output": "",
+            "result": [
+                [
+                    ""
+                ],
+                [
+                    "BOSCH",
+                    "BOSCH-K"
+                ],
+                [
+                    "FEBI"
+                ]
+            ]
+        },
+        {
+            "name": "syn_eq",
+            "output": "",
+            "result": [
+                true,
+                false,
+                true
+            ]
+        },
+        {
+            "name": "syn_canon",
+            "output": "",
+            "result": [
+                "BOSCH",
+                "FEBI",
+                ""
+            ]
+        },
+        {
+            "name": "syn_maps",
+            "output": "",
+            "result": [
+                {
+                    "BOSCH": [
+                        "BOSCH",
+                        "BOSCH-K"
+                    ],
+                    "BOSCH-K": [
+                        "BOSCH",
+                        "BOSCH-K"
+                    ],
+                    "FEBI": [
+                        "FEBI"
+                    ]
+                },
+                {
+                    "BOSCH": "BOSCH",
+                    "FEBI": "FEBI",
+                    "BOSCH-K": "BOSCH"
+                }
+            ]
+        },
+        {
+            "name": "tdp_sections",
+            "output": "",
+            "result": [
+                {
+                    "id": "scope",
+                    "title": "1. Scope & Applicability",
+                    "content": "This policy applies to all data stored, processed, or transmitted by or on behalf of any tenant registered on the ecomae platform. It covers all tenant databases, backups, logs, exports, and any derived data. Every person or system that accesses tenant data must comply with this policy."
+                },
+                {
+                    "id": "classification",
+                    "title": "2. Data Classification",
+                    "content": "All tenant data is classified into four levels:",
+                    "items": [
+                        "Highly Confidential — Financial records (GL, AP, AR, cash/bank, payroll, tax filings). Requires encryption at rest and in transit. Access logged and reviewed.",
+                        "Confidential — Business operations (orders, customers, vendors, HR records, inventory, pricing). Access restricted to authorized personnel.",
+                        "Internal — Operational data (products, CMS content, settings, marketing campaigns). Standard access controls.",
+                        "Public — Storefront catalogue data visible to end users. No access restrictions."
+                    ]
+                },
+                {
+                    "id": "isolation",
+                    "title": "3. Database Isolation",
+                    "content": "Each tenant operates on a dedicated MySQL database. Cross-tenant queries are architecturally prohibited. The platform registry database (ecomae) contains only tenant metadata (name, status, hostname, industry) — never business data. Tenant database credentials are stored encrypted in the platform registry and are never exposed in URLs, logs, or error messages.",
+                    "controls": [
+                        "Each tenant gets a unique database name, user, and password.",
+                        "Tenant DB users have privileges scoped to their own database only.",
+                        "No SQL joins, unions, or subqueries span multiple tenant databases.",
+                        "Platform code connects to one tenant DB at a time via epc_portal_tenant_control_tenant_pdo_connect().",
+                        "Provider console iterates tenants sequentially — never holds multiple tenant connections simultaneously."
+                    ]
+                },
+                {
+                    "id": "access_control",
+                    "title": "4. Access Control",
+                    "content": "Access to tenant data follows the principle of least privilege:",
+                    "controls": [
+                        "Guest users: No access to any tenant data.",
+                        "Tenant users: Read + write access to their own tenant only. Cannot see, query, or export other tenants' data.",
+                        "Provider (platform operator): Metadata + read access to all tenants for support/monitoring. Write access requires explicit authorization. Delete access requires two-factor confirmation.",
+                        "Cross-tenant access attempts are logged as security violations and trigger alerts.",
+                        "Session tokens are scoped to a single tenant context. Switching tenants in BOS creates a new scoped session."
+                    ]
+                },
+                {
+                    "id": "audit",
+                    "title": "5. Audit Trail",
+                    "content": "All access to tenant data is logged in the platform audit system (epc_tdp_audit_log):",
+                    "controls": [
+                        "Every tenant DB connection is logged with actor ID, IP address, user agent, and timestamp.",
+                        "All mutating operations (create, update, delete) are logged with the full payload (sensitive fields redacted).",
+                        "Security violations (cross-tenant attempts, permission denials) are logged separately in epc_tdp_violations.",
+                        "Audit logs are retained for 7 years (2555 days) per legal/tax requirements.",
+                        "Audit logs themselves are append-only — no deletion or modification permitted."
+                    ]
+                },
+                {
+                    "id": "encryption",
+                    "title": "6. Encryption & Transport Security",
+                    "content": "All tenant data is protected in transit and at rest:",
+                    "controls": [
+                        "All HTTP traffic is served over TLS 1.2+ (enforced by Cloudflare and server SSL).",
+                        "Database connections use localhost (127.0.0.1) — no unencrypted network transit.",
+                        "Database credentials in the platform registry are stored as plain text in MySQL but protected by DB-level access control. Future: migrate to AES-256 encrypted storage.",
+                        "Backups are stored on the same server with restricted file permissions (0600).",
+                        "API tokens and webhook secrets are never logged or displayed after creation."
+                    ]
+                },
+                {
+                    "id": "retention",
+                    "title": "7. Data Retention",
+                    "content": "Data retention periods are enforced uniformly across all tenants:",
+                    "items": [
+                        "ERP financial records: 7 years (legal requirement in most jurisdictions).",
+                        "Platform audit logs: 7 years.",
+                        "Security violation logs: 7 years.",
+                        "Customer PII: 5 years after last activity.",
+                        "Session/login logs: 90 days.",
+                        "Temporary exports: 7 days (auto-deleted)."
+                    ]
+                },
+                {
+                    "id": "breach",
+                    "title": "8. Incident Response & Breach Notification",
+                    "content": "In the event of a data breach or unauthorized access:",
+                    "controls": [
+                        "Immediately isolate the affected tenant database(s).",
+                        "Review epc_tdp_violations and epc_tdp_audit_log for the scope of the breach.",
+                        "Notify the affected tenant within 72 hours with: what data was accessed, when, by whom, and remediation steps.",
+                        "If personal data of end customers was exposed, notify per applicable data protection law (e.g., GDPR Article 33, UAE PDPL).",
+                        "Rotate all affected credentials (DB passwords, API keys, session tokens).",
+                        "Document the incident, root cause, and corrective actions in a post-incident report."
+                    ]
+                },
+                {
+                    "id": "tenant_rights",
+                    "title": "9. Tenant Data Rights",
+                    "content": "Each tenant retains full ownership of their data:",
+                    "controls": [
+                        "Right to export: Tenants can export all their data at any time via ERP export functions.",
+                        "Right to deletion: Tenants can request full deletion of their database and all backups. Executed within 30 days.",
+                        "Right to portability: Data is stored in standard MySQL format, exportable as SQL dump or CSV.",
+                        "Right to audit: Tenants can request an audit report of all access to their data.",
+                        "Platform provider will never sell, share, or use tenant data for purposes other than providing the platform service."
+                    ]
+                },
+                {
+                    "id": "compliance",
+                    "title": "10. Regulatory Compliance",
+                    "content": "The platform supports compliance with applicable data protection regulations based on each tenant's registration country. Compliance addenda are auto-applied via epc_country_profile():",
+                    "items": [
+                        "UAE: Federal Decree-Law No. 45/2021 (PDPL) — data localization, consent management, DPO requirements.",
+                        "EU/EEA: GDPR — lawful basis, data minimization, right to erasure, DPA requirements.",
+                        "UK: UK GDPR + Data Protection Act 2018.",
+                        "Saudi Arabia: PDPL (2023) — data classification, cross-border transfer restrictions.",
+                        "India: DPDP Act 2023 — consent, purpose limitation, data fiduciary obligations.",
+                        "General: SOC 2 Type II controls alignment for all tenants regardless of jurisdiction."
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "tdp_html",
+            "output": "",
+            "result": "<div class=\"epc-tdp-policy\"><div class=\"epc-tdp-policy__header\"><h2><i class=\"fa fa-shield\" style=\"color: #3b82f6;\"></i> Tenant Data Protection Policy</h2><p class=\"text-muted\">Version 1.0.0 &mdash; Last updated: October 2026</p></div><div class=\"epc-tdp-policy__section\" id=\"tdp-scope\"><h3>1. Scope &amp; Applicability</h3><p>This policy applies to all data stored, processed, or transmitted by or on behalf of any tenant registered on the ecomae platform. It covers all tenant databases, backups, logs, exports, and any derived data. Every person or system that accesses tenant data must comply with this policy.</p></div><div class=\"epc-tdp-policy__section\" id=\"tdp-classification\"><h3>2. Data Classification</h3><p>All tenant data is classified into four levels:</p><ul class=\"epc-tdp-policy__list\"><li>Highly Confidential — Financial records (GL, AP, AR, cash/bank, payroll, tax filings). Requires encryption at rest and in transit. Access logged and reviewed.</li><li>Confidential — Business operations (orders, customers, vendors, HR records, inventory, pricing). Access restricted to authorized personnel.</li><li>Internal — Operational data (products, CMS content, settings, marketing campaigns). Standard access controls.</li><li>Public — Storefront catalogue data visible to end users. No access restrictions.</li></ul></div><div class=\"epc-tdp-policy__section\" id=\"tdp-isolation\"><h3>3. Database Isolation</h3><p>Each tenant operates on a dedicated MySQL database. Cross-tenant queries are architecturally prohibited. The platform registry database (ecomae) contains only tenant metadata (name, status, hostname, industry) — never business data. Tenant database credentials are stored encrypted in the platform registry and are never exposed in URLs, logs, or error messages.</p><div class=\"epc-tdp-policy__controls\"><strong>Controls:</strong><ul><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Each tenant gets a unique database name, user, and password.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Tenant DB users have privileges scoped to their own database only.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>No SQL joins, unions, or subqueries span multiple tenant databases.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Platform code connects to one tenant DB at a time via epc_portal_tenant_control_tenant_pdo_connect().</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Provider console iterates tenants sequentially — never holds multiple tenant connections simultaneously.</li></ul></div></div><div class=\"epc-tdp-policy__section\" id=\"tdp-access_control\"><h3>4. Access Control</h3><p>Access to tenant data follows the principle of least privilege:</p><div class=\"epc-tdp-policy__controls\"><strong>Controls:</strong><ul><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Guest users: No access to any tenant data.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Tenant users: Read + write access to their own tenant only. Cannot see, query, or export other tenants&#039; data.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Provider (platform operator): Metadata + read access to all tenants for support/monitoring. Write access requires explicit authorization. Delete access requires two-factor confirmation.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Cross-tenant access attempts are logged as security violations and trigger alerts.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Session tokens are scoped to a single tenant context. Switching tenants in BOS creates a new scoped session.</li></ul></div></div><div class=\"epc-tdp-policy__section\" id=\"tdp-audit\"><h3>5. Audit Trail</h3><p>All access to tenant data is logged in the platform audit system (epc_tdp_audit_log):</p><div class=\"epc-tdp-policy__controls\"><strong>Controls:</strong><ul><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Every tenant DB connection is logged with actor ID, IP address, user agent, and timestamp.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>All mutating operations (create, update, delete) are logged with the full payload (sensitive fields redacted).</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Security violations (cross-tenant attempts, permission denials) are logged separately in epc_tdp_violations.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Audit logs are retained for 7 years (2555 days) per legal/tax requirements.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Audit logs themselves are append-only — no deletion or modification permitted.</li></ul></div></div><div class=\"epc-tdp-policy__section\" id=\"tdp-encryption\"><h3>6. Encryption &amp; Transport Security</h3><p>All tenant data is protected in transit and at rest:</p><div class=\"epc-tdp-policy__controls\"><strong>Controls:</strong><ul><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>All HTTP traffic is served over TLS 1.2+ (enforced by Cloudflare and server SSL).</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Database connections use localhost (127.0.0.1) — no unencrypted network transit.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Database credentials in the platform registry are stored as plain text in MySQL but protected by DB-level access control. Future: migrate to AES-256 encrypted storage.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Backups are stored on the same server with restricted file permissions (0600).</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>API tokens and webhook secrets are never logged or displayed after creation.</li></ul></div></div><div class=\"epc-tdp-policy__section\" id=\"tdp-retention\"><h3>7. Data Retention</h3><p>Data retention periods are enforced uniformly across all tenants:</p><ul class=\"epc-tdp-policy__list\"><li>ERP financial records: 7 years (legal requirement in most jurisdictions).</li><li>Platform audit logs: 7 years.</li><li>Security violation logs: 7 years.</li><li>Customer PII: 5 years after last activity.</li><li>Session/login logs: 90 days.</li><li>Temporary exports: 7 days (auto-deleted).</li></ul></div><div class=\"epc-tdp-policy__section\" id=\"tdp-breach\"><h3>8. Incident Response &amp; Breach Notification</h3><p>In the event of a data breach or unauthorized access:</p><div class=\"epc-tdp-policy__controls\"><strong>Controls:</strong><ul><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Immediately isolate the affected tenant database(s).</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Review epc_tdp_violations and epc_tdp_audit_log for the scope of the breach.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Notify the affected tenant within 72 hours with: what data was accessed, when, by whom, and remediation steps.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>If personal data of end customers was exposed, notify per applicable data protection law (e.g., GDPR Article 33, UAE PDPL).</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Rotate all affected credentials (DB passwords, API keys, session tokens).</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Document the incident, root cause, and corrective actions in a post-incident report.</li></ul></div></div><div class=\"epc-tdp-policy__section\" id=\"tdp-tenant_rights\"><h3>9. Tenant Data Rights</h3><p>Each tenant retains full ownership of their data:</p><div class=\"epc-tdp-policy__controls\"><strong>Controls:</strong><ul><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Right to export: Tenants can export all their data at any time via ERP export functions.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Right to deletion: Tenants can request full deletion of their database and all backups. Executed within 30 days.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Right to portability: Data is stored in standard MySQL format, exportable as SQL dump or CSV.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Right to audit: Tenants can request an audit report of all access to their data.</li><li><i class=\"fa fa-check-circle\" style=\"color: #10b981; margin-right: 6px;\"></i>Platform provider will never sell, share, or use tenant data for purposes other than providing the platform service.</li></ul></div></div><div class=\"epc-tdp-policy__section\" id=\"tdp-compliance\"><h3>10. Regulatory Compliance</h3><p>The platform supports compliance with applicable data protection regulations based on each tenant&#039;s registration country. Compliance addenda are auto-applied via epc_country_profile():</p><ul class=\"epc-tdp-policy__list\"><li>UAE: Federal Decree-Law No. 45/2021 (PDPL) — data localization, consent management, DPO requirements.</li><li>EU/EEA: GDPR — lawful basis, data minimization, right to erasure, DPA requirements.</li><li>UK: UK GDPR + Data Protection Act 2018.</li><li>Saudi Arabia: PDPL (2023) — data classification, cross-border transfer restrictions.</li><li>India: DPDP Act 2023 — consent, purpose limitation, data fiduciary obligations.</li><li>General: SOC 2 Type II controls alignment for all tenants regardless of jurisdiction.</li></ul></div></div>"
+        },
+        {
+            "name": "cfg_groups",
+            "output": "",
+            "result": {
+                "13": {
+                    "icon": "fa-search",
+                    "blurb": "SEO titles and catalog API keys used by search and OEM catalogues.",
+                    "tone": "sky",
+                    "frontend": "Site title / description / keywords appear in browser tabs and search results. Catalog APIs power storefront part lookup."
+                },
+                "1": {
+                    "icon": "fa-globe",
+                    "blurb": "Storefront contacts, footer offices, WhatsApp, cookies, and CP folder.",
+                    "tone": "teal",
+                    "frontend": "Phone, WhatsApp, footer address/locations, cookie banner, and SSL notice show on the public site."
+                },
+                "7": {
+                    "icon": "fa-cloud-download",
+                    "blurb": "Where the control panel checks for product updates.",
+                    "tone": "slate",
+                    "frontend": "No direct storefront effect — CP / updates only."
+                },
+                "12": {
+                    "icon": "fa-user-plus",
+                    "blurb": "Customer registration and login rules.",
+                    "tone": "indigo",
+                    "frontend": "Affects sign-up / login forms: password length, phone mask, and code-based auth."
+                },
+                "3": {
+                    "icon": "fa-envelope",
+                    "blurb": "SMTP used for order and account e-mails from the site.",
+                    "tone": "amber",
+                    "frontend": "Customers receive order and account e-mails from these sender / SMTP settings."
+                },
+                "4": {
+                    "icon": "fa-shopping-cart",
+                    "blurb": "Checkout currency, balances, and payment behaviour.",
+                    "tone": "rose",
+                    "frontend": "Controls price display, guest checkout, partial payment, and balance rules on the storefront."
+                },
+                "6": {
+                    "icon": "fa-inbox",
+                    "blurb": "Mailbox used to receive supplier price-list files.",
+                    "tone": "slate",
+                    "frontend": "No direct storefront effect — price upload pipeline only."
+                },
+                "11": {
+                    "icon": "fa-th-large",
+                    "blurb": "Catalogue pagination and product URL style.",
+                    "tone": "emerald",
+                    "frontend": "Changes how product lists and product page URLs appear to customers."
+                },
+                "9": {
+                    "icon": "fa-list",
+                    "blurb": "Article / spare-parts search results layout and sorting.",
+                    "tone": "violet",
+                    "frontend": "Directly shapes the part-search results table, filters, sorting, and warehouse wait time."
+                },
+                "14": {
+                    "icon": "fa-undo",
+                    "blurb": "Customer return / refund rules.",
+                    "tone": "orange",
+                    "frontend": "Enables refund requests and shows withholding / notification text to customers when returns are used."
+                }
+            }
+        },
+        {
+            "name": "cfg_group_for",
+            "output": "",
+            "result": [
+                {
+                    "icon": "fa-list",
+                    "blurb": "Article / spare-parts search results layout and sorting.",
+                    "tone": "violet",
+                    "frontend": "Directly shapes the part-search results table, filters, sorting, and warehouse wait time."
+                },
+                {
+                    "icon": "fa-cog",
+                    "blurb": "Configuration group for this site.",
+                    "tone": "slate",
+                    "frontend": ""
+                }
+            ]
+        },
+        {
+            "name": "cfg_effect",
+            "output": "",
+            "result": [
+                "Currency used for storefront prices and checkout.",
+                ""
+            ]
+        },
+        {
+            "name": "cfg_label",
+            "output": "",
+            "result": [
+                "Frontend phone number",
+                "Caption"
+            ]
+        },
+        {
+            "name": "order_check",
+            "output": "",
+            "result": [
+                {
+                    "step": "Retail / wholesale registration",
+                    "where": "/cp/users/customer_approvals",
+                    "test": "Register test wholesale user → status Pending → approve + set dealing currency"
+                },
+                {
+                    "step": "Checkout blocked until approved",
+                    "where": "Storefront checkout",
+                    "test": "Pending user can browse/cart but cannot complete checkout"
+                },
+                {
+                    "step": "Place test order",
+                    "where": "Storefront → cart → checkout",
+                    "test": "Order appears in CP orders list; customer redirected to order page"
+                },
+                {
+                    "step": "Manager e-mail (new_order_to_manager)",
+                    "where": "/cp/control/notifications",
+                    "test": "Admin + office managers receive order summary with CP link"
+                },
+                {
+                    "step": "Customer e-mail (new_order_to_user)",
+                    "where": "Same notification settings",
+                    "test": "Customer inbox receives confirmation with line items"
+                },
+                {
+                    "step": "Supplier LPO (lpo_to_supplier)",
+                    "where": "/cp/shop/logistics/storages",
+                    "test": "One e-mail per warehouse with lines; LPO # = order ID; log on order card"
+                },
+                {
+                    "step": "Process in CP",
+                    "where": "/cp/shop/orders/order?order_id=",
+                    "test": "Change line statuses, record payment, message customer"
+                }
+            ]
+        },
+        {
+            "name": "order_snap",
+            "output": "",
+            "result": {
+                "backend": "cp",
+                "domain": "https://x.test",
+                "notifications": [
+                    {
+                        "id": 1,
+                        "name": "new_order_to_manager",
+                        "caption": "Mgr",
+                        "email_on": 1,
+                        "sms_on": 0,
+                        "email_subject": "New order"
+                    },
+                    {
+                        "id": 2,
+                        "name": "new_order_to_user",
+                        "caption": "User",
+                        "email_on": 1,
+                        "sms_on": 0,
+                        "email_subject": "Thanks"
+                    }
+                ],
+                "storages": [],
+                "storages_lpo_ready": 0,
+                "storages_total": 0,
+                "order_stats": {
+                    "total": 1,
+                    "today": 0,
+                    "last_7_days": 0
+                },
+                "pending_trade_approvals": 1,
+                "recent_lpo_logs": [
+                    {
+                        "order_id": 10,
+                        "text": "Supplier LPO sent",
+                        "time": 1700000100
+                    }
+                ],
+                "order_statuses": [
+                    {
+                        "id": 1,
+                        "name": "Created",
+                        "for_created": 1,
+                        "for_paid": 0,
+                        "for_finish": 0,
+                        "to_manager_email": 1,
+                        "to_customer_email": 1
+                    }
+                ],
+                "item_statuses": [
+                    {
+                        "id": 2,
+                        "name": "Packed",
+                        "for_created": 0,
+                        "for_finish": 0,
+                        "to_manager_email": 0,
+                        "to_customer_email": 0
+                    }
+                ],
+                "checklist": [
+                    {
+                        "step": "Retail / wholesale registration",
+                        "where": "/cp/users/customer_approvals",
+                        "test": "Register test wholesale user → status Pending → approve + set dealing currency"
+                    },
+                    {
+                        "step": "Checkout blocked until approved",
+                        "where": "Storefront checkout",
+                        "test": "Pending user can browse/cart but cannot complete checkout"
+                    },
+                    {
+                        "step": "Place test order",
+                        "where": "Storefront → cart → checkout",
+                        "test": "Order appears in CP orders list; customer redirected to order page"
+                    },
+                    {
+                        "step": "Manager e-mail (new_order_to_manager)",
+                        "where": "/cp/control/notifications",
+                        "test": "Admin + office managers receive order summary with CP link"
+                    },
+                    {
+                        "step": "Customer e-mail (new_order_to_user)",
+                        "where": "Same notification settings",
+                        "test": "Customer inbox receives confirmation with line items"
+                    },
+                    {
+                        "step": "Supplier LPO (lpo_to_supplier)",
+                        "where": "/cp/shop/logistics/storages",
+                        "test": "One e-mail per warehouse with lines; LPO # = order ID; log on order card"
+                    },
+                    {
+                        "step": "Process in CP",
+                        "where": "/cp/shop/orders/order?order_id=",
+                        "test": "Change line statuses, record payment, message customer"
+                    }
+                ]
+            }
+        }
+    ]
+}

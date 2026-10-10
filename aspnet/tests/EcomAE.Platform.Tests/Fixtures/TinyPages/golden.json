@@ -1,0 +1,232 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "users_agreement",
+            "output": "{4039}",
+            "vars": [],
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "cata_bridge_config",
+            "output": "",
+            "vars": [],
+            "result": {
+                "bridge": false,
+                "use_cata_first": false,
+                "cata_sync": false,
+                "cata_api": "/api/eparts_cata_proxy.php",
+                "partsapi_api": "/api/partsapi_proxy.php"
+            },
+            "headers": []
+        },
+        {
+            "name": "eparts_url_empty",
+            "output": "",
+            "vars": [],
+            "result": {
+                "vin": "VIN",
+                "url": "/en/eparts-product"
+            },
+            "headers": []
+        },
+        {
+            "name": "eparts_url_slash",
+            "output": "",
+            "vars": [],
+            "result": "/en/eparts-product",
+            "headers": []
+        },
+        {
+            "name": "eparts_url_params",
+            "output": "",
+            "vars": [],
+            "result": "/ar/eparts-product?article=OC+90&name=%D0%B6+%26+x&empty=",
+            "headers": []
+        },
+        {
+            "name": "ucatalog_index_plain",
+            "output": "<!-- UCatalog -->\r\n<div id=\"UCatalog_container\"></div>\r\n\r\n<link href=\"/api/UCatalog/style.css\" rel=\"stylesheet\" type=\"text/css\"/>\r\n<script src=\"/api/UCatalog/api.js\"></script>\r\n\r\n<link href=\"/lib/Lightbox/css/lightbox.css\" rel=\"stylesheet\" type=\"text/css\"/>\r\n<script type=\"text/javascript\" src=\"/lib/Lightbox/js/lightbox.js\"></script>\r\n\r\n",
+            "vars": [],
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "ucatalog_index_garage",
+            "output": "<!-- UCatalog -->\r\n<div id=\"UCatalog_container\"></div>\r\n\r\n<link href=\"/api/UCatalog/style.css\" rel=\"stylesheet\" type=\"text/css\"/>\r\n<script src=\"/api/UCatalog/api.js\"></script>\r\n\r\n<link href=\"/lib/Lightbox/css/lightbox.css\" rel=\"stylesheet\" type=\"text/css\"/>\r\n<script type=\"text/javascript\" src=\"/lib/Lightbox/js/lightbox.js\"></script>\r\n\r\n<script>\r\njQuery(document).ready(function () {\r\n\tUCatalog_get_garage(12);\r\n\t\r\n\t//Удалить параметр из адреса\r\n\tlet url = new URL(document.location);\r\n\tlet searchParams = url.searchParams;\r\n\tsearchParams.delete(\"UCatalog_get_garage\");\r\n\twindow.history.pushState({}, '', url.toString());\r\n});\r\n</script>\r\n",
+            "vars": [],
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "ucatalog_index_garage_raw",
+            "output": "<!-- UCatalog -->\r\n<div id=\"UCatalog_container\"></div>\r\n\r\n<link href=\"/api/UCatalog/style.css\" rel=\"stylesheet\" type=\"text/css\"/>\r\n<script src=\"/api/UCatalog/api.js\"></script>\r\n\r\n<link href=\"/lib/Lightbox/css/lightbox.css\" rel=\"stylesheet\" type=\"text/css\"/>\r\n<script type=\"text/javascript\" src=\"/lib/Lightbox/js/lightbox.js\"></script>\r\n\r\n<script>\r\njQuery(document).ready(function () {\r\n\tUCatalog_get_garage(1, 'x');\r\n\t\r\n\t//Удалить параметр из адреса\r\n\tlet url = new URL(document.location);\r\n\tlet searchParams = url.searchParams;\r\n\tsearchParams.delete(\"UCatalog_get_garage\");\r\n\twindow.history.pushState({}, '', url.toString());\r\n});\r\n</script>\r\n",
+            "vars": [],
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "pos_footer_unknown",
+            "output": "",
+            "vars": [],
+            "result": "",
+            "headers": []
+        },
+        {
+            "name": "pos_footer_terminal",
+            "output": "",
+            "vars": [],
+            "result": "<script src=\"/content/shop/pos/epc_pos_terminal_js.php?v=20260722posui1\"></script>\n",
+            "headers": []
+        },
+        {
+            "name": "pos_footer_tenant",
+            "output": "",
+            "vars": [],
+            "result": "<script src=\"/content/shop/pos/epc_pos_tenant_manage_js.php?v=20260722posui1\"></script>\n",
+            "headers": []
+        },
+        {
+            "name": "commerce_default_backend",
+            "output": "<div class=\"col-lg-12\"><div class=\"alert alert-info\" style=\"margin-top:16px;\"><h3 style=\"margin-top:0;\">Commerce data upload removed</h3><p>Use <strong>Multi-vendor upload</strong> instead — one file for many vendors, with warehouses created automatically.</p><p><a class=\"btn btn-success\" href=\"/cp/shop/prices/multivendor\"><i class=\"fa fa-upload\"></i> Open Multi-vendor upload</a> <a class=\"btn btn-default\" href=\"/cp/shop/prices\"><i class=\"fa fa-list\"></i> Price lists</a></p></div></div>",
+            "vars": [],
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "commerce_custom_backend",
+            "output": "<div class=\"col-lg-12\"><div class=\"alert alert-info\" style=\"margin-top:16px;\"><h3 style=\"margin-top:0;\">Commerce data upload removed</h3><p>Use <strong>Multi-vendor upload</strong> instead — one file for many vendors, with warehouses created automatically.</p><p><a class=\"btn btn-success\" href=\"/CP&amp;x/shop/prices/multivendor\"><i class=\"fa fa-upload\"></i> Open Multi-vendor upload</a> <a class=\"btn btn-default\" href=\"/CP&amp;x/shop/prices\"><i class=\"fa fa-list\"></i> Price lists</a></p></div></div>",
+            "vars": [],
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "modal_hidden",
+            "output": "",
+            "vars": [],
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "modal_shown",
+            "output": "    <button class=\"btn btn-xs btn-info btn-circle\" onclick=\"showCustomerModalInfo(42)\">\r\n        <i class=\"fa fa-info\"></i>\r\n    </button>\r\n    <div class=\"customer-modal-info-wrapper\" id=\"customer-modal-info-42\" onclick=\"closeCustomerModalInfo(42)\">\r\n    </div>\r\n",
+            "vars": [],
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "modal_string_id",
+            "output": "    <button class=\"btn btn-xs btn-info btn-circle\" onclick=\"showCustomerModalInfo(7)\">\r\n        <i class=\"fa fa-info\"></i>\r\n    </button>\r\n    <div class=\"customer-modal-info-wrapper\" id=\"customer-modal-info-7\" onclick=\"closeCustomerModalInfo(7)\">\r\n    </div>\r\n",
+            "vars": [],
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "docpart_href_no_license",
+            "output": "",
+            "vars": {
+                "docpart_href": "https://docpart.net/",
+                "docpart_title": "{4037}"
+            },
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "docpart_href_odd_license",
+            "output": "",
+            "vars": {
+                "docpart_href": "https://docpart.net/",
+                "docpart_title": "{4037}"
+            },
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "docpart_href_even_license",
+            "output": "",
+            "vars": {
+                "docpart_href": "https://docpart.net/",
+                "docpart_title": "{4037}"
+            },
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "error_pages_absent",
+            "output": "",
+            "vars": {
+                "DP_Content": {
+                    "value": null,
+                    "title_tag": null,
+                    "description_tag": null,
+                    "keywords_tag": null,
+                    "author_tag": null,
+                    "content_type": null,
+                    "content": null
+                }
+            },
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "error_pages_404",
+            "output": "",
+            "vars": {
+                "DP_Content": {
+                    "value": "{2220}",
+                    "title_tag": "{2221}",
+                    "description_tag": "{2222}",
+                    "keywords_tag": "{2223}",
+                    "author_tag": "{2224}",
+                    "content_type": "{2225}",
+                    "content": "{2226}"
+                }
+            },
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "logout_module",
+            "output": "\n<div id=\"logout_form_container\">\n        \n    <div>{3995}, Ada <b>!</div>\n    <form id=\"logout_form\" method=\"POST\" name=\"logout_form\">\n        <input type=\"hidden\" name=\"csrf_guard_key\" value=\"k\"&x\" />\n\t\t<input type=\"hidden\" name=\"logout\" value=\"logout\" />\n        <a href=\"javascript:void(0);\" onclick=\"document.forms['logout_form'].submit();\">{3996}</a>\n    </form>\n</div>",
+            "vars": [],
+            "result": null,
+            "headers": []
+        },
+        {
+            "name": "edit_mode_jsonp_frontend",
+            "output": "",
+            "vars": [],
+            "result": "jQuery123(\"frontend\")",
+            "headers": []
+        },
+        {
+            "name": "edit_mode_jsonp_unicode",
+            "output": "",
+            "vars": [],
+            "result": "cb(\"back\\/end \\u0436\")",
+            "headers": []
+        },
+        {
+            "name": "edit_mode_jsonp_missing",
+            "output": "",
+            "vars": [],
+            "result": "(null)",
+            "headers": []
+        },
+        {
+            "name": "edit_mode_csrf_1",
+            "output": "",
+            "vars": [],
+            "result": "{\"error\":\"Error! CSRF 1\",\"message\":\"Error! CSRF 1\",\"status\":false}",
+            "headers": []
+        },
+        {
+            "name": "edit_mode_no_db",
+            "output": "",
+            "vars": [],
+            "result": "{\"status\":false,\"message\":\"No DB connect\"}",
+            "headers": []
+        }
+    ]
+}

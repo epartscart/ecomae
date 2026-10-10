@@ -1,0 +1,120 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "norm",
+            "output": "",
+            "result": [
+                "order desk",
+                "a b",
+                "",
+                "Payments",
+                "Portal",
+                "ERP / Finance"
+            ]
+        },
+        {
+            "name": "image",
+            "output": "",
+            "result": [
+                "/content/general_pages/epc_brochure_process_photo.php?t=Brake+pad&a=Shop+%2F+OMS&i=fa-stop",
+                "default",
+                "Operations",
+                "/content/general_pages/epc_brochure_process_photo.php?t=Brake+pad&a=Shop+%2F+OMS&i=fa-stop",
+                "/content/general_pages/epc_brochure_process_photo.php?t=Process&a=Portal&i=fa-cube"
+            ]
+        },
+        {
+            "name": "pool",
+            "output": "",
+            "result": [
+                7,
+                "/content/general_pages/marketing_screens/pf_workforce.png",
+                "/content/general_pages/marketing_screens/ecomae-brochure-cover.jpg",
+                22,
+                "Super CP / Platform",
+                "/svg/platform/chapter-platform",
+                "fa-cloud",
+                "/svg/settings/chapter-settings"
+            ]
+        },
+        {
+            "name": "visuals",
+            "output": "",
+            "result": [
+                "/cat/platform.jpg",
+                "/cat/default.jpg",
+                "Industry packs, branding, and site settings."
+            ]
+        },
+        {
+            "name": "caps",
+            "output": "",
+            "result": [
+                4,
+                3,
+                [
+                    "order desk",
+                    "treasury pulse",
+                    "fleet host"
+                ],
+                "fa-inbox",
+                "cap-orders",
+                0
+            ]
+        },
+        {
+            "name": "erp",
+            "output": "",
+            "result": [
+                0,
+                2,
+                "General ledger · Journals",
+                "Books — Journals",
+                "/cp/shop/finance/erp?area=gl&tab=journals",
+                "erp-gl-journals",
+                "Cash",
+                "ERP area: Cash",
+                "/cp/shop/finance/erp?area=cash",
+                "erp-cash"
+            ]
+        },
+        {
+            "name": "live",
+            "output": "",
+            "result": [
+                [
+                    "Shop / OMS",
+                    "ERP / Modules",
+                    "ERP / Finance",
+                    "Super CP / Platform"
+                ],
+                6,
+                4,
+                1700000000,
+                [
+                    "curated inventory",
+                    "capabilities catalog (3)",
+                    "capability append",
+                    "ERP nav live (2 tabs)",
+                    "unique topic photos (1)"
+                ],
+                "Order desk",
+                "A longer summary that should replace short does",
+                "fa-inbox",
+                "cap-orders",
+                "Zed last",
+                "fa-shopping-cart",
+                "fn-894c8667c9",
+                "Cash",
+                "/cp/shop/finance/erp?area=cash",
+                "General ledger · Journals",
+                "Treasury pulse",
+                "both",
+                "Fleet host",
+                "super",
+                0
+            ]
+        }
+    ]
+}

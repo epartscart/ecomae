@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "dedupe" },
+    { "name": "filter" },
+    { "name": "css" },
+    { "name": "html" }
+  ]
+}

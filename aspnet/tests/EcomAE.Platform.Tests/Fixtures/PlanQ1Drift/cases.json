@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "enroll",
+      "eval": "return drift_run_enroll();"
+    },
+    {
+      "name": "verify",
+      "eval": "return drift_run_verify();"
+    },
+    {
+      "name": "settings",
+      "eval": "return drift_run_settings();"
+    },
+    {
+      "name": "methods",
+      "eval": "return drift_run_methods();"
+    }
+  ]
+}

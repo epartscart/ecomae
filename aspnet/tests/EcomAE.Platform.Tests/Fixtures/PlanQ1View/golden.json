@@ -1,0 +1,67 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "cp_pure",
+            "output": "",
+            "result": [
+                {
+                    "content_id": 0,
+                    "menu_item_id": 0
+                },
+                {
+                    "content_id": 0,
+                    "menu_item_id": 0
+                }
+            ]
+        },
+        {
+            "name": "cp_db",
+            "output": "",
+            "result": [
+                "Parent content not found for SKU media CP route",
+                4,
+                42,
+                true,
+                42,
+                "shop/catalogue/sku_media",
+                3,
+                4,
+                "epc_sku_media_manager",
+                "epc_sku_media_manager",
+                "sku_media",
+                "/<backend_dir>/content/shop/catalogue/epc_sku_media_manager.php",
+                1,
+                [
+                    2,
+                    5
+                ],
+                "SKU photos & specs",
+                "Фото и характеристики SKU",
+                "SKU photos & specs"
+            ]
+        },
+        {
+            "name": "sf_html",
+            "output": "",
+            "result": [
+                "",
+                "<div class=\"epc-sku-storefront__specs\"><section class=\"epc-sku-storefront__group\"><h3><i class=\"fa fa-cogs\"></i> Tech&#039;s</h3><table><tbody><tr><th scope=\"row\">Sealed</th><td>Yes</td></tr><tr><th scope=\"row\">Note</th><td><b>x</b></td></tr><tr><th scope=\"row\">Q</th><td>a &amp; b</td></tr></tbody></table></section><section class=\"epc-sku-storefront__group\"><h3><i class=\"fa fa-list\"></i> Empty</h3><table><tbody></tbody></table></section></div>"
+            ]
+        },
+        {
+            "name": "sf_render",
+            "output": "",
+            "result": [
+                "<link rel=\"stylesheet\" href=\"/content/shop/catalogue/epc_sku_media.css?v=MTIME\">",
+                "<div class=\"epc-sku-storefront\" id=\"epcSkuGal1\"><div class=\"epc-sku-storefront__gallery\"><div><div class=\"epc-sku-storefront__main\"><img id=\"epcSkuGal1_main\" src=\"/content/files/images/sku_media/b.png\" alt=\"side\"></div><div class=\"epc-sku-storefront__caption\" id=\"epcSkuGal1_cap\">B</div></div><div class=\"epc-sku-storefront__thumbs\" role=\"list\"><button type=\"button\" class=\" is-active\" data-src=\"/content/files/images/sku_media/b.png\" data-alt=\"side\" data-cap=\"B\" aria-label=\"Photo 1\"><img src=\"/content/files/images/sku_media/b.png\" alt=\"\"></button><button type=\"button\" class=\"\" data-src=\"/content/files/images/sku_media/a.png\" data-alt=\"front\" data-cap=\"A\" aria-label=\"Photo 2\"><img src=\"/content/files/images/sku_media/a.png\" alt=\"\"></button></div></div><script>(function(){var r=document.getElementById(\"epcSkuGal1\");if(!r)return;var m=document.getElementById(\"epcSkuGal1_main\");var c=document.getElementById(\"epcSkuGal1_cap\");r.querySelectorAll(\".epc-sku-storefront__thumbs button\").forEach(function(b){b.addEventListener(\"click\",function(){r.querySelectorAll(\".epc-sku-storefront__thumbs button\").forEach(function(x){x.classList.remove(\"is-active\")});b.classList.add(\"is-active\");if(m){m.src=b.getAttribute(\"data-src\");m.alt=b.getAttribute(\"data-alt\")||\"\";}if(c){c.textContent=b.getAttribute(\"data-cap\")||\"\";}});});})();</script><div class=\"epc-sku-storefront__specs\"><section class=\"epc-sku-storefront__group\"><h3><i class=\"fa fa-list\"></i> Technical</h3><table><tbody><tr><th scope=\"row\">Height</th><td>12.5 mm</td></tr></tbody></table></section></div></div>",
+                "<div class=\"epc-sku-storefront\" id=\"epcSkuGal1\"><div class=\"epc-sku-storefront__specs\"><section class=\"epc-sku-storefront__group\"><h3><i class=\"fa fa-list\"></i> Technical</h3><table><tbody><tr><th scope=\"row\">Height</th><td>12.5 mm</td></tr></tbody></table></section></div></div>",
+                null,
+                1,
+                2,
+                1,
+                "Technical"
+            ]
+        }
+    ]
+}

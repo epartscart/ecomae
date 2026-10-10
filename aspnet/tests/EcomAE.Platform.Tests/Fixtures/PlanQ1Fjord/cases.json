@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "gates" },
+    { "name": "hub" },
+    { "name": "compose" },
+    { "name": "history" }
+  ]
+}

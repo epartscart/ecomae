@@ -1,0 +1,72 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "names",
+            "output": "",
+            "result": [
+                "AE",
+                "AE",
+                "PK",
+                "XX",
+                ""
+            ]
+        },
+        {
+            "name": "defaults",
+            "output": "",
+            "result": [
+                {
+                    "company_country_code": "US",
+                    "company_currency": "USD",
+                    "erp_date_format": "m/d/Y"
+                },
+                {
+                    "company_country_code": "GB",
+                    "company_currency": "GBP",
+                    "erp_date_format": "d/m/Y"
+                },
+                {
+                    "company_country_code": "AE",
+                    "company_currency": "AED",
+                    "erp_date_format": "d/m/Y"
+                },
+                {
+                    "company_country_code": "PK",
+                    "company_currency": "PKR",
+                    "erp_date_format": "d/m/Y"
+                }
+            ]
+        },
+        {
+            "name": "apply",
+            "output": "",
+            "result": [
+                0,
+                [
+                    "Invalid site key or country code"
+                ],
+                0,
+                1,
+                "PK",
+                "Pakistan",
+                "PK",
+                "www.acme.test",
+                "",
+                0,
+                0,
+                "PK",
+                0,
+                1
+            ]
+        },
+        {
+            "name": "market",
+            "output": "",
+            "result": [
+                "Pakistan",
+                "United Arab Emirates"
+            ]
+        }
+    ]
+}

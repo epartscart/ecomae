@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "lang" },
+    { "name": "register" },
+    { "name": "install" },
+    { "name": "connect" }
+  ]
+}

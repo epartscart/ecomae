@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "pure" },
+    { "name": "config" },
+    { "name": "db" },
+    { "name": "html" }
+  ]
+}

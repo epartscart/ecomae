@@ -1,0 +1,180 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "logistics_maps",
+            "output": "",
+            "result": [
+                "a&amp;b&lt;&#039;x&#039;&gt;",
+                "1,234.50",
+                "0.00",
+                "0.00",
+                {
+                    "logisticsUrl": "/cp/shop/logistics",
+                    "carriersUrl": "/cp/shop/logistics/carriers",
+                    "guideUrl": "/cp/shop/logistics/guide",
+                    "obtainModesUrl": "/cp/shop/logistics/sposoby-polucheniya",
+                    "ordersUrl": "/cp/shop/orders/orders",
+                    "stockUrl": "/cp/shop/logistics/stock",
+                    "demoJsonUrl": "/epc-logistics-demo.php?token=epartscart-deploy-2026",
+                    "setupUrl": "/epc-logistics-setup.php?token=epartscart-deploy-2026"
+                }
+            ]
+        },
+        {
+            "name": "logistics_seed",
+            "output": "",
+            "result": [
+                20,
+                20,
+                20,
+                5,
+                1,
+                1,
+                0,
+                1,
+                [
+                    "dhl",
+                    "fedex",
+                    "ups",
+                    "tnt",
+                    "aramex",
+                    "smsa",
+                    "naqel",
+                    "emirates_post",
+                    "imile",
+                    "dpd",
+                    "gls",
+                    "postnl",
+                    "royal_mail",
+                    "chronopost",
+                    "usps",
+                    "canada_post",
+                    "sf_express",
+                    "jt_express",
+                    "yamato",
+                    "bluedart"
+                ],
+                1,
+                "JD014600012345678901",
+                "shipped",
+                42,
+                1700000000,
+                1,
+                true,
+                3,
+                "epc_carriers",
+                20
+            ]
+        },
+        {
+            "name": "tax_tree",
+            "output": "",
+            "result": [
+                13,
+                [
+                    "computers",
+                    "tv-video",
+                    "cell-phones",
+                    "camera-photo",
+                    "headphones",
+                    "wearables",
+                    "smart-home",
+                    "gaming",
+                    "car-electronics",
+                    "office-electronics",
+                    "portable-audio",
+                    "pc-components",
+                    "electronics-accessories"
+                ],
+                "Computers & Accessories",
+                "541966",
+                10,
+                5,
+                "computers-laptops",
+                "electronics-accessories"
+            ]
+        },
+        {
+            "name": "tax_db",
+            "output": "",
+            "result": [
+                97,
+                97,
+                "computers-laptops",
+                "Laptops",
+                2,
+                true,
+                true,
+                13,
+                "computers",
+                13,
+                5,
+                [
+                    "computers",
+                    "computers-laptops"
+                ],
+                2,
+                9
+            ]
+        },
+        {
+            "name": "social_pack",
+            "output": "",
+            "result": [
+                [
+                    "linkedin",
+                    "instagram",
+                    "facebook",
+                    "x",
+                    "tiktok"
+                ],
+                "LinkedIn",
+                20,
+                4,
+                4,
+                4,
+                4,
+                4,
+                [],
+                4,
+                "Carousel — 5 slides",
+                "9:16 vertical (1080×1920 recommended)",
+                7,
+                "guide-connect",
+                "Post 1 — One cloud",
+                true,
+                true,
+                "🧵 Why UAE spare-parts teams move to o"
+            ]
+        },
+        {
+            "name": "worldclass",
+            "output": "",
+            "result": [
+                "<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\"name\":\"Acme & Co\",\"url\":\"https://shop.example\",\"logo\":\"https://shop.example/favicon.svg\",\"telephone\":\"+971 4 000\",\"email\":\"hi@acme.test\",\"address\":{\"streetAddress\":\"Sheikh Zayed\",\"addressLocality\":\"Dubai\",\"addressCountry\":\"AE\",\"@type\":\"PostalAddress\"},\"sameAs\":[\"https://fb.example/acme\",\"https://x.example/acme\"]}</script>",
+                "<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"WebSite\",\"name\":\"Acme <Co>\",\"url\":\"https://shop.example\",\"potentialAction\":{\"@type\":\"SearchAction\",\"target\":\"https://shop.example/en/shop/search?search_string={search_term_string}\",\"query-input\":\"required name=search_term_string\"}}</script>",
+                [
+                    {
+                        "platform": "facebook",
+                        "url": "https://fb.example/acme",
+                        "icon": "fa-facebook",
+                        "label": "Facebook"
+                    },
+                    {
+                        "platform": "twitter",
+                        "url": "https://x.example/acme",
+                        "icon": "fa-twitter",
+                        "label": "Twitter"
+                    }
+                ],
+                "<section class=\"epc-wc-newsletter\" id=\"epc_wc_newsletter_electronics\" style=\"background:#f8fafc;padding:48px 0;text-align:center;\"><div class=\"container\"><h2 style=\"font-size:24px;font-weight:700;margin:0 0 8px;color:#1e293b;\">Stay plugged in</h2><p style=\"color:#64748b;margin:0 0 20px;font-size:15px;\">Get the latest tech deals, launches and exclusive offers delivered to your inbox.</p><form class=\"epc-wc-newsletter__form\" style=\"max-width:480px;margin:0 auto;display:flex;gap:8px;\" onsubmit=\"return epcWcNewsletterSubmit(this)\"><input type=\"email\" name=\"email\" required placeholder=\"Enter your email\" style=\"flex:1;padding:12px 16px;border:1px solid #cbd5e1;border-radius:6px;font-size:15px;outline:none;\" /><button type=\"submit\" style=\"padding:12px 24px;background:#0ea5e9;color:#fff;border:none;border-radius:6px;font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap;\">Subscribe</button></form><p class=\"epc-wc-newsletter__note\" style=\"color:#94a3b8;font-size:12px;margin:12px 0 0;\">No spam. Unsubscribe anytime.</p></div></section>",
+                "<section class=\"epc-wc-newsletter\" id=\"epc_wc_newsletter_\" style=\"background:#fff;padding:48px 0;text-align:center;\"><div class=\"container\"><h2 style=\"font-size:24px;font-weight:700;margin:0 0 8px;color:#1e293b;\">Stay updated</h2><p style=\"color:#64748b;margin:0 0 20px;font-size:15px;\">Subscribe for the latest updates and exclusive offers.</p><form class=\"epc-wc-newsletter__form\" style=\"max-width:480px;margin:0 auto;display:flex;gap:8px;\" onsubmit=\"return epcWcNewsletterSubmit(this)\"><input type=\"email\" name=\"email\" required placeholder=\"Enter your email\" style=\"flex:1;padding:12px 16px;border:1px solid #cbd5e1;border-radius:6px;font-size:15px;outline:none;\" /><button type=\"submit\" style=\"padding:12px 24px;background:#abc;color:#fff;border:none;border-radius:6px;font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap;\">Subscribe</button></form><p class=\"epc-wc-newsletter__note\" style=\"color:#94a3b8;font-size:12px;margin:12px 0 0;\">No spam. Unsubscribe anytime.</p></div></section>",
+                "<div class=\"epc-wc-trust\" style=\"padding:24px 0;background:#fff;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;\"><div class=\"container\"><div style=\"display:flex;justify-content:center;flex-wrap:wrap;gap:32px;\"><div style=\"display:flex;align-items:center;gap:8px;color:#475569;font-size:14px;font-weight:500;\"><i class=\"fa fa-gem\" style=\"font-size:20px;color:#0ea5e9;\"></i><span>Certified Authentic</span></div><div style=\"display:flex;align-items:center;gap:8px;color:#475569;font-size:14px;font-weight:500;\"><i class=\"fa fa-shield\" style=\"font-size:20px;color:#0ea5e9;\"></i><span>Secure Payment</span></div><div style=\"display:flex;align-items:center;gap:8px;color:#475569;font-size:14px;font-weight:500;\"><i class=\"fa fa-gift\" style=\"font-size:20px;color:#0ea5e9;\"></i><span>Gift Wrapping</span></div><div style=\"display:flex;align-items:center;gap:8px;color:#475569;font-size:14px;font-weight:500;\"><i class=\"fa fa-certificate\" style=\"font-size:20px;color:#0ea5e9;\"></i><span>Hallmarked Gold</span></div></div></div></div>",
+                "<div class=\"epc-wc-trust\" style=\"padding:24px 0;background:#fff;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;\"><div class=\"container\"><div style=\"display:flex;justify-content:center;flex-wrap:wrap;gap:32px;\"><div style=\"display:flex;align-items:center;gap:8px;color:#475569;font-size:14px;font-weight:500;\"><i class=\"fa fa-shield\" style=\"font-size:20px;color:#0ea5e9;\"></i><span>Secure Checkout</span></div><div style=\"display:flex;align-items:center;gap:8px;color:#475569;font-size:14px;font-weight:500;\"><i class=\"fa fa-truck\" style=\"font-size:20px;color:#0ea5e9;\"></i><span>Fast Delivery</span></div><div style=\"display:flex;align-items:center;gap:8px;color:#475569;font-size:14px;font-weight:500;\"><i class=\"fa fa-undo\" style=\"font-size:20px;color:#0ea5e9;\"></i><span>Easy Returns</span></div><div style=\"display:flex;align-items:center;gap:8px;color:#475569;font-size:14px;font-weight:500;\"><i class=\"fa fa-certificate\" style=\"font-size:20px;color:#0ea5e9;\"></i><span>UAE Registered</span></div></div></div></div>",
+                "<div id=\"epc_wc_cookie\" style=\"display:none;position:fixed;bottom:0;left:0;right:0;background:#1e293b;color:#e2e8f0;padding:14px 20px;z-index:99999;font-size:14px;\"><div class=\"container\" style=\"display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;\"><p style=\"margin:0;flex:1;min-width:200px;\">We use cookies to enhance your experience. By continuing to browse, you agree to our use of cookies.</p><div style=\"display:flex;gap:8px;\"><button onclick=\"epcWcCookieAccept()\" style=\"padding:8px 20px;background:#0ea5e9;color:#fff;border:none;border-radius:4px;font-weight:600;cursor:pointer;\">Accept</button><button onclick=\"epcWcCookieDecline()\" style=\"padding:8px 20px;background:transparent;color:#94a3b8;border:1px solid #475569;border-radius:4px;cursor:pointer;\">Decline</button></div></div></div><script>(function(){var c=document.getElementById(\"epc_wc_cookie\");if(!c)return;if(!document.cookie.match(/(?:^|; )epc_cookie_consent=/)){c.style.display=\"block\";}})();function epcWcCookieAccept(){document.cookie=\"epc_cookie_consent=accepted;max-age=\"+(365*86400)+\";path=/;SameSite=Lax\";var c=document.getElementById(\"epc_wc_cookie\");if(c)c.style.display=\"none\";}function epcWcCookieDecline(){document.cookie=\"epc_cookie_consent=declined;max-age=\"+(365*86400)+\";path=/;SameSite=Lax\";var c=document.getElementById(\"epc_wc_cookie\");if(c)c.style.display=\"none\";}</script>",
+                "<script>\nfunction epcWcNewsletterSubmit(form){\n\tvar email=form.querySelector(\"input[name=email]\");\n\tif(!email||!email.value)return false;\n\tvar btn=form.querySelector(\"button[type=submit]\");\n\tif(btn){btn.textContent=\"Subscribing...\";btn.disabled=true;}\n\tvar xhr=new XMLHttpRequest();\n\txhr.open(\"POST\",\"/ajax_newsletter_subscribe.php\",true);\n\txhr.setRequestHeader(\"Content-Type\",\"application/x-www-form-urlencoded\");\n\txhr.onload=function(){\n\t\tif(btn){btn.textContent=\"Subscribed!\";btn.style.background=\"#22c55e\";}\n\t\temail.value=\"\";email.placeholder=\"Thank you!\";\n\t\tsetTimeout(function(){if(btn){btn.textContent=\"Subscribe\";btn.disabled=false;btn.style.background=\"\";}email.placeholder=\"Enter your email\";},4000);\n\t};\n\txhr.onerror=function(){if(btn){btn.textContent=\"Subscribe\";btn.disabled=false;}};\n\txhr.send(\"email=\"+encodeURIComponent(email.value)+\"&action=subscribe\");\n\treturn false;\n}\n</script>"
+            ]
+        }
+    ]
+}
