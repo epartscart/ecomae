@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-bight (spare-parts page + search ajax)
+
+Not complete.
+
+- Ratchet 429 to 427. Two files now have PHP 8.3 goldens and ASP.NET twins: `PhpPlanQ1Bight` `content/general_pages/epc_epartscart_spare_parts.php` and `content/shop/epc_spare_parts_search.php` (missing-DB gate, brand select, inline warehouse result, ajax JSON, tenant city isolation; leftover automotive-data injected and not named). GET does not mint a session.
+- Area functionality gained spare-parts page isolation (`Acme City` stays off the Beta Town result).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Bight` (4). Bight + area **5 / 5**. Last full suite after Foam **6344 / 6344**; Bight suite pending while leftovers continue. Content mentioned 594 to 596 of 952. Unnamed PHP functions 6,039 to 6,037. Ready ≤200-line non-ERP functions stay 48. The weighted headline stays about 20.4%. Non-ERP pending: 261 files / 133,374 lines (was 263 / 133,595). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-10 — plan Q1-road (warehouse spare-parts search)
 
 Not complete.

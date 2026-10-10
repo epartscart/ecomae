@@ -694,8 +694,6 @@ syncUrl	SyncUrl	content/general_pages/epc_epartscart_accessories.php	js	837	gap	
 toggleSaved	ToggleSaved	content/general_pages/epc_epartscart_accessories.php	js	837	gap	browser-js
 updateSavedBar	UpdateSavedBar	content/general_pages/epc_epartscart_accessories.php	js	837	gap	browser-js
 epc_ep_pl_href	EpcEpPlHref	content/general_pages/epc_epartscart_home_product_lines.php	php	81	gap	ready
-fmtPrice	FmtPrice	content/general_pages/epc_epartscart_spare_parts.php	js	184	gap	browser-js
-runSearch	RunSearch	content/general_pages/epc_epartscart_spare_parts.php	js	184	gap	browser-js
 epc_marketplace_browse	EpcMarketplaceBrowse	content/general_pages/epc_marketplace.php	php	245	mentioned	partial-file
 epc_marketplace_builtin_apps	EpcMarketplaceBuiltinApps	content/general_pages/epc_marketplace.php	php	245	mentioned	partial-file
 epc_marketplace_categories	EpcMarketplaceCategories	content/general_pages/epc_marketplace.php	php	245	mentioned	partial-file

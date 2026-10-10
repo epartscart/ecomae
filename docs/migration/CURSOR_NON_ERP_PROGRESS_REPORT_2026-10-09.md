@@ -8,9 +8,9 @@ Sources: `docs/migration/ASPNET_MIGRATION_TRACKER.md`, `docs/migration/inventory
 
 - Weighted migration headline: still about **20.4% done / 79.6% pending** (Phase A 24/24, B-F open). Page-level slices do not move it.
 - Accepted ERP processes: **0/15**. Formal interactive acceptance for CP, ERP, BOS and storefront: **0**. Nothing in this report is production acceptance.
-- PHP file gap (files that nothing in ASP.NET references): **876 on 2026-10-07 to 429 today** (199,786 lines still unreferenced). Functions not named anywhere in ASP.NET: **8,152 to 6,039 of 9,870**.
+- PHP file gap (files that nothing in ASP.NET references): **876 on 2026-10-07 to 427 today** (199,565 lines still unreferenced). Functions not named anywhere in ASP.NET: **8,152 to 6,037 of 9,870**.
 - "Mentioned" in the inventory is a lead, not parity. Parity is claimed only where a PHP 8.3 runtime golden exists, and each tracker checkpoint says what is and is not golden-covered.
-- Last verified state: PlanQ1Road after Reach / Sound / Fjord. Warehouse spare-parts search, storefront geo picker, CP guideline, and marketing broadcast panel have PHP 8.3 goldens. Targeted Road / Reach / Sound / Fjord + area **5 / 5** each. Last full suite after Foam **6344 / 6344**; Road suite pending while leftovers continue. Production update paste is `docs/migration/PRODUCTION_UPDATE_PASTE.md` (from `main` only). 2026-10-10 CloudPanel publish of `main` `b7f1554bf` was healthy (`/health` `/ready` 200); smoke capture blocked on missing keys — do not invent them. Throwaway test schemas left over: 0. Production counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+- Last verified state: PlanQ1Bight after Road / Reach / Sound. Spare-parts page + search ajax, warehouse search, storefront geo picker, and CP guideline have PHP 8.3 goldens. Targeted Bight / Road / Reach / Sound + area **5 / 5** each. Last full suite after Foam **6344 / 6344**; Bight suite pending while leftovers continue. Production update paste is `docs/migration/PRODUCTION_UPDATE_PASTE.md` (from `main` only). 2026-10-10 CloudPanel publish of `main` `b7f1554bf` was healthy (`/health` `/ready` 200); smoke capture blocked on missing keys — do not invent them. Throwaway test schemas left over: 0. Production counts unchanged (`docpart.users` 2, `ecomae.users` 2).
 - Method for every slice: read the PHP, build a PHP 8.3 harness that runs the real script on a throwaway MariaDB schema, record a golden, make ASP.NET equal it, document intentional deviations (usually security hardening), run the full suite, update tracker and inventory ratchet, open a PR.
 - Executable next queue (not a progress narrative): `docs/migration/CURSOR_NON_ERP_NEXT_PLAN.md`. Refresh buckets with `scripts/php_non_erp_gap_buckets.py`.
 - Owner clarification 2026-10-10: Cursor owns UI/UX, design, presentation, graphics, and functionality testing on storefront / CP / BOS / CRM / marketing / tenants. Devin owns the same concerns on ERP finance screens and the 15 ERP processes. Overall structure is shared (one SoR / one auth / one workflow). About 1000 tenants (site-only, ERP-only, mixed); some have 1000+ users. Each tenant owns its users, profiles, sessions, credentials, and documents. Super-CP may pick a tenant; a tenant operator never sees another tenant.
@@ -41,7 +41,7 @@ Gap files from the inventory (files nothing in ASP.NET references), grouped by t
 |---|---|---:|---:|
 | 1 | Storefront: catalogue (`content/shop/catalogue` + `modules/shop/catalogue`) | 30 | 8,978 |
 | 1 | Storefront: modules (other `modules/*`) | 16 | 3,082 |
-| 1 | Storefront: other shop (remaining `content/shop/*` except docpart, catalogue, finance, price_engine) | 11 | 4,226 |
+| 1 | Storefront: other shop (remaining `content/shop/*` except docpart, catalogue, finance, price_engine) | 10 | 4,189 |
 | 1 | Storefront: parts/docpart (`content/shop/docpart`) | 16 | 26,316 |
 | 1 | Storefront: templates `expan` / `modex` / `limo` | 3 | 2,689 |
 | 1 | Storefront: users/plugins (`content/users`, `plugins`) | 2 | 2,084 |
@@ -49,13 +49,13 @@ Gap files from the inventory (files nothing in ASP.NET references), grouped by t
 | 3 | CP shop core (`order_process`, catalogue product, `prices_upload`) | 24 | 12,698 |
 | 3 | CP shop smaller (rest of `cp/content/shop` except finance) | 22 | 7,537 |
 | 4 | CP control/portal (`cp/content/control`, including portal) | 37 | 8,848 |
-| 5 | Marketing, BOS and industries (everything else non-ERP: `content/general_pages`, industry templates, social, OEM API, cron, deploy) | 71 | 36,295 |
+| 5 | Marketing, BOS and industries (everything else non-ERP: `content/general_pages`, industry templates, social, OEM API, cron, deploy) | 70 | 36,111 |
 | 6 | Price engine (`content/shop/price_engine` only; `epc_auto_price_engine.php` is 6,768 lines) | 18 | 16,113 |
 | 7 | **ERP (Devin): finance libraries and CP finance pages** | 166 | 66,191 |
 | 8 | Core/root (`core/dp_*.php`, root PHP, `lib/DocpartMailer`) | 3 | 1,455 |
-| | **Total (measured now)** | **429** | **199,786** |
+| | **Total (measured now)** | **427** | **199,565** |
 
-This table is generated by `scripts/php_non_erp_gap_buckets.py` from `/tmp/gap_inv.json` and **sums to the inventory**. Non-ERP **263 / 133,595**; ERP finance (Devin, unchanged) **166 / 66,191**. Biggest remaining non-ERP blocks: `content/general_pages` and `content/shop/docpart`. The “unnamed functions” count is unmentioned identifiers (PHP already named them); ready-to-build twins are in `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md` (48 ≤200-line non-ERP PHP functions still waiting). Storefront `orders_background.php` stays a gap on purpose (CP helper of the same basename is not ported). Professional shell, Super-CP ERP modules, tenant intro, country profile, tenant hub helpers, integrations helpers, the ePartsCart and Electronicae storefront helpers, Super-CP platform modules, public REST API v1, the social media hub panel, the marketing broadcast panel, the CP guideline, the storefront geo picker, and warehouse spare-parts search are closed; remaining ready ≤200 rows are still mostly Q2/Q3. `part_search_page.php` stays open (user kernel + sibling pages). Completing every leftover non-ERP file still requires the catalogue-list kernel, APE, leftover HTML page bodies, and leftover parents — those cannot close by mention-only.
+This table is generated by `scripts/php_non_erp_gap_buckets.py` from `/tmp/gap_inv.json` and **sums to the inventory**. Non-ERP **261 / 133,374**; ERP finance (Devin, unchanged) **166 / 66,191**. Biggest remaining non-ERP blocks: `content/general_pages` and `content/shop/docpart`. The “unnamed functions” count is unmentioned identifiers (PHP already named them); ready-to-build twins are in `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md` (48 ≤200-line non-ERP PHP functions still waiting). Storefront `orders_background.php` stays a gap on purpose (CP helper of the same basename is not ported). Professional shell, Super-CP ERP modules, tenant intro, country profile, tenant hub helpers, integrations helpers, the ePartsCart and Electronicae storefront helpers, Super-CP platform modules, public REST API v1, the social media hub panel, the marketing broadcast panel, the CP guideline, the storefront geo picker, warehouse spare-parts search, and the spare-parts page + search ajax are closed; remaining ready ≤200 rows are still mostly Q2/Q3. `part_search_page.php` stays open (user kernel + sibling pages). Completing every leftover non-ERP file still requires the catalogue-list kernel, APE, leftover HTML page bodies, and leftover parents — those cannot close by mention-only.
 
 Beyond gap files, these are open for every surface regardless of file counts:
 - Same-to-same PHP vs ASP.NET dual samples per tenant host, human acceptance, and the three combined browser regression rounds.
@@ -67,8 +67,8 @@ Beyond gap files, these are open for every surface regardless of file counts:
 
 ## 4. In progress right now
 
-- PlanQ1Road (this slice): warehouse spare-parts search against PHP 8.3 goldens after Reach / Sound / Fjord. CloudPanel 2026-10-10 publish of `main` `b7f1554bf` is live; this branch is not. Finance-path files stay Devin.
-- Remaining 263 non-ERP files cannot close in one leftover. Ready ≤200 rows are still Q2/Q3 (industry templates, `*_h` guides, APE, OEM catalog, `printProducts*`). Those are not closed by mention-only. Next unused class: Bight (`epc_epartscart_spare_parts.php`).
+- PlanQ1Bight (this slice): spare-parts page + search ajax against PHP 8.3 goldens after Road / Reach / Sound. CloudPanel 2026-10-10 publish of `main` `b7f1554bf` is live; this branch is not. Finance-path files stay Devin.
+- Remaining 261 non-ERP files cannot close in one leftover. Ready ≤200 rows are still Q2/Q3 (industry templates, `*_h` guides, APE, OEM catalog, `printProducts*`). Those are not closed by mention-only. Next unused class: Loch (`search_string.php`).
 - After those named helpers: `printProducts.php` / `printProducts_2.php` shells once the catalogue list kernel is in, then `part_search_page.php` and the parts agent.
 
 ## 5. ERP handoff notes for Devin
