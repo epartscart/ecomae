@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Bow (`--max-gap 450` passed; current gap **449**).
+after PlanQ1Beam (`--max-gap 449` passed; current gap **448**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 449
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 448
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -20,7 +20,7 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 1 | Storefront: catalogue | 30 | 8,978 |
 | 1 | Storefront: modules | 17 | 3,321 |
 | 1 | Storefront: other shop | 14 | 4,999 |
-| 1 | Storefront: parts/docpart | 21 | 31,689 |
+| 1 | Storefront: parts/docpart | 20 | 31,173 |
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 2 | 2,084 |
 | 3 | CP other | 10 | 3,274 |
@@ -31,11 +31,11 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **449** | **213,080** |
+| | **Total** | **448** | **212,564** |
 
-- Non-ERP (Cursor): **283 files / 146,889 lines**
+- Non-ERP (Cursor): **282 files / 146,373 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,359** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **57**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,344** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **57**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -387,9 +387,13 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Aft`, 4 cases): empty domain/h
 
 ### Q1 bow — done (`PhpPlanQ1Bow`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Bow`, 4 cases): infer rules, map+slice, catalog/cards/find/detail, fetch+cached UMAPI group on throwaway `ecomae_cpw_bow_*`. Article-match and demand-intelligence parents stay injected (do not write those leftover unique basenames). GET does not mint a session. Next unused class after Bow: Beam.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Bow`, 4 cases): infer rules, map+slice, catalog/cards/find/detail, fetch+cached UMAPI group on throwaway `ecomae_cpw_bow_*`. Demand-intelligence parent stays injected. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 283 files.
+### Q1 beam — done (`PhpPlanQ1Beam`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Beam`, 4 cases): normalize + SQL expr + CHPU URL, match-clause/probe, collect/resolve/storage price ids, warehouse brands + UMAPI fallback. Stock, pricing, synonym, and UMAPI parents stay injected. GET does not mint a session. Next unused class after Beam: Draft.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 282 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -433,6 +437,7 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6ac | `epc_cp_full_brochure.php` | Closed in Starboard. |
 | 6ad | `epc_marketing_strategies_data.php` | Closed in Aft. |
 | 6ae | `epc_product_family.php` | Closed in Bow. |
+| 6af | `docpart_article_match.php` | Closed in Beam. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
