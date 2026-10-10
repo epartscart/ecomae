@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Tide (`--max-gap 490` passed; current gap **489**).
+after PlanQ1Reef (`--max-gap 489` passed; current gap **488**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 489
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 488
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -24,18 +24,18 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 3 | 2,192 |
 | 3 | CP other | 12 | 3,578 |
-| 3 | CP shop core (orders, catalogue, price upload) | 28 | 13,248 |
+| 3 | CP shop core (orders, catalogue, price upload) | 27 | 12,897 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
 | 5 | Marketing/BOS/industries | 102 | 52,669 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 4 | 1,678 |
-| | **Total** | **489** | **228,164** |
+| | **Total** | **488** | **227,813** |
 
-- Non-ERP (Cursor): **323 files / 161,973 lines**
+- Non-ERP (Cursor): **322 files / 161,622 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,716** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,703** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -199,7 +199,11 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Wave`, 4 cases): TOTP base32 /
 
 ### Q1 tide — done (`PhpPlanQ1Tide`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Tide`, 4 cases): valid modes / health / env / splash, default+read/write config (`empty('0')` badge; poll clamp 30–300), mode file + JSON mirror, current-status TTL (stale rebuild vs cached; autoProbe with a valid mirror returns the mirror), local probe host short-circuit (HTTP injected, never a live primary), probe-authorized (token `hash_equals`; leftover deploy-auth / portal paths concatenated). GET does not mint a session. Next unused class after Tide.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Tide`, 4 cases): valid modes / health / env / splash, default+read/write config (`empty('0')` badge; poll clamp 30–300), mode file + JSON mirror, current-status TTL (stale rebuild vs cached; autoProbe with a valid mirror returns the mirror), local probe host short-circuit (HTTP injected, never a live primary), probe-authorized (token `hash_equals`; leftover deploy-auth / portal paths concatenated). GET does not mint a session.
+
+### Q1 reef — done (`PhpPlanQ1Reef`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Reef`, 4 cases): platform/large-host gates (`isset` cleaner flag), listing rows with denormalized QTY then live COUNT fallback + persist, index helper (static once; invalid ident no-op), pyprices health (`empty('0')` status; HTTP injected). Leftover platform-hostname parent stays injected/unmentioned. GET does not mint a session. Next unused class after Reef.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -241,6 +245,7 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_commerce_isolation.php` | Closed in Peak |
 | `epc_auth_mfa.php` | Closed in Wave |
 | `epc_platform_failover.php` | Closed in Tide |
+| `epc_prices_manager_perf.php` | Closed in Reef |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)
