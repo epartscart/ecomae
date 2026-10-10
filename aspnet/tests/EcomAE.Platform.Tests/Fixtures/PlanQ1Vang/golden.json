@@ -1,0 +1,92 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "lang",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "str_key": "epc_pos_terminal_cp",
+                        "description": "POS Terminal"
+                    }
+                ],
+                [
+                    {
+                        "str_key": "epc_pos_terminal_cp",
+                        "lang_code": "en",
+                        "value": "POS O'term"
+                    },
+                    {
+                        "str_key": "epc_pos_terminal_cp",
+                        "lang_code": "ru",
+                        "value": "Касса"
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "register",
+            "output": "",
+            "result": [
+                11,
+                11,
+                1,
+                {
+                    "url": "shop/pos",
+                    "content": "/cp/pos2.php",
+                    "title_tag": "POS O'hub",
+                    "alias": "pos_folder",
+                    "value": "epc_cp_group_pos",
+                    "parent": 10,
+                    "level": 2,
+                    "published_flag": 1
+                },
+                [
+                    1,
+                    2,
+                    3
+                ]
+            ]
+        },
+        {
+            "name": "install",
+            "output": "",
+            "result": [
+                1,
+                1,
+                1,
+                44,
+                {
+                    "portal": {
+                        "portal": 1
+                    },
+                    "pos": 1
+                },
+                [
+                    "control/config",
+                    "control/portal/epc_pos_tenant_manage",
+                    "control/portal/epc_tenant_control_center",
+                    "shop",
+                    "shop/pos",
+                    "shop/pos/terminal"
+                ],
+                [
+                    7,
+                    9
+                ],
+                1
+            ]
+        },
+        {
+            "name": "connect",
+            "output": "",
+            "result": [
+                1,
+                1,
+                1,
+                1
+            ]
+        }
+    ]
+}

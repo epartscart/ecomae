@@ -588,6 +588,23 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void PosCpInstall_WalkinAndMenu_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Vang.Reset();
+        PhpPlanQ1Vang.EnsureWalkin = _ => 11;
+        PhpPlanQ1Vang.PortalMenu = _ => new Dictionary<string, object?>(StringComparer.Ordinal) { ["acme"] = 1 };
+        PhpPlanQ1Vang.PosMenu = _ => new Dictionary<string, object?>(StringComparer.Ordinal) { ["pos"] = "acme" };
+        Assert.Equal(11, PhpPlanQ1Vang.EnsureWalkin(null!));
+        PhpPlanQ1Vang.EnsureWalkin = _ => 22;
+        PhpPlanQ1Vang.PortalMenu = _ => new Dictionary<string, object?>(StringComparer.Ordinal) { ["beta"] = 1 };
+        Assert.Equal(22, PhpPlanQ1Vang.EnsureWalkin(null!));
+        Assert.Contains("beta", PhpPlanQ1Vang.PortalMenu(null!).Keys);
+        Assert.DoesNotContain("acme", PhpPlanQ1Vang.PortalMenu(null!).Keys);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Vang.PosCpInstallPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Vang.PosCpInstallPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -632,6 +649,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Luff.DemoAutopartsBootstrapPath,
             PhpPlanQ1Clew.SeoShippingExportPath,
             PhpPlanQ1Tack.ProductExistLimitPath,
+            PhpPlanQ1Vang.PosCpInstallPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,

@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Luff (`--max-gap 469` passed; current gap **468**).
+after PlanQ1Clew/Tack/Vang (`--max-gap 468` passed; current gap **465**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 468
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 465
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -19,7 +19,7 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 |---|---|---:|---:|
 | 1 | Storefront: catalogue | 30 | 8,978 |
 | 1 | Storefront: modules | 18 | 3,446 |
-| 1 | Storefront: other shop | 17 | 6,022 |
+| 1 | Storefront: other shop | 16 | 5,799 |
 | 1 | Storefront: parts/docpart | 25 | 33,260 |
 | 1 | Storefront: templates | 3 | 2,689 |
 | 1 | Storefront: users/plugins | 3 | 2,192 |
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 27 | 12,897 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 84 | 43,132 |
+| 5 | Marketing/BOS/industries | 82 | 42,913 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **468** | **217,821** |
+| | **Total** | **465** | **217,379** |
 
-- Non-ERP (Cursor): **302 files / 151,630 lines**
+- Non-ERP (Cursor): **299 files / 151,188 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,439** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **59**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,434** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **59**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -311,9 +311,21 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Sprit`, 4 cases): brand saniti
 
 ### Q1 luff — done (`PhpPlanQ1Luff`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Luff`, 4 cases): preset path / empty / invalid JSON / custom tables (`shop_offices\`x` kept), verify missing-table catch + geo id=3 + office city `stripos` + hours LIKE `%`/`_` escape, apply incremental vs force clone + home `modules_array` + verify fail, missing source PDO + clone errors. Leftover clone parents stay injected. GET does not mint a session. Next unused class after Luff: Clew.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Luff`, 4 cases): preset path / empty / invalid JSON / custom tables (`shop_offices\`x` kept), verify missing-table catch + geo id=3 + office city `stripos` + hours LIKE `%`/`_` escape, apply incremental vs force clone + home `modules_array` + verify fail, missing source PDO + clone errors. Leftover clone parents stay injected. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 302 files.
+### Q1 clew — done (`PhpPlanQ1Clew`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Clew`, 4 cases): en/ar/ru copy, unknown lang falls back to en, no PDO → AE, ENT_QUOTES `&#039;`. Leftover SEO parents stay injected. GET does not mint a session.
+
+### Q1 tack — done (`PhpPlanQ1Tack`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Tack`, 4 cases): reset, below-limit + storage sum, category-mismatch skip, empty `IN ()` skipped (PHP would emit invalid SQL). GET does not mint a session.
+
+### Q1 vang — done (`PhpPlanQ1Vang`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Vang`, 4 cases): lang upsert, content register + group walk, install + super access copy, setup-connect empty/fallback/fail. Leftover POS helper parents stay injected. Leftover tenant-manage page basename is concatenated. GET does not mint a session. Next unused class after Vang: Sheet.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 299 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -338,6 +350,9 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6j | `epc_whatsapp_share.php` | Closed in Gaff. |
 | 6k | `epc_marketing_brochure.php` | Closed in Sprit. |
 | 6l | `epc_demo_autoparts_bootstrap.php` | Closed in Luff. |
+| 6m | `epc_seo_shipping_export.php` | Closed in Clew. |
+| 6n | `product_exist_limit.php` | Closed in Tack. |
+| 6o | `epc_pos_cp_install.php` | Closed in Vang. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
