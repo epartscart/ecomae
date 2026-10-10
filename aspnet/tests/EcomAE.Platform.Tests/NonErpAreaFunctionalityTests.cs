@@ -558,6 +558,36 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void ShippingExport_CopyAndCountry_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Clew.Reset();
+        PhpPlanQ1Clew.CurrentLang = () => "en";
+        PhpPlanQ1Clew.TenantCountry = () => "AE";
+        PhpPlanQ1Clew.ShippingPhrase = _ => "acme-ship";
+        var acme = PhpPlanQ1Clew.EpcSeoShippingExportRenderHtml();
+        PhpPlanQ1Clew.TenantCountry = () => "OM";
+        PhpPlanQ1Clew.ShippingPhrase = _ => "beta-ship";
+        var beta = PhpPlanQ1Clew.EpcSeoShippingExportRenderHtml();
+        Assert.Contains("acme-ship", acme, StringComparison.Ordinal);
+        Assert.Contains("Tenant country profile: AE", acme, StringComparison.Ordinal);
+        Assert.Contains("beta-ship", beta, StringComparison.Ordinal);
+        Assert.Contains("Tenant country profile: OM", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("beta-ship", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("acme-ship", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Clew.SeoShippingExportPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ProductExistLimit_Statuses_StayOnTheInjectedCatalogue()
+    {
+        PhpPlanQ1Tack.Reset();
+        Assert.Contains("product_exist_limit.php", PhpPlanQ1Tack.ProductExistLimitPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Tack.ProductExistLimitPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Tack.ProductExistLimitPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -600,6 +630,8 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Gaff.WhatsappSharePath,
             PhpPlanQ1Sprit.MarketingBrochurePath,
             PhpPlanQ1Luff.DemoAutopartsBootstrapPath,
+            PhpPlanQ1Clew.SeoShippingExportPath,
+            PhpPlanQ1Tack.ProductExistLimitPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
