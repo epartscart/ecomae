@@ -659,6 +659,25 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void OrderStaffSummary_ProfileAndCrm_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Throat.Reset();
+        PhpPlanQ1Throat.ProfileHtml = (_, _) => "acme-profile";
+        PhpPlanQ1Throat.CrmUserId = _ => 11;
+        var acme = PhpPlanQ1Throat.EpcOrderStaffSummaryRenderHtml(new Dictionary<string, object?> { ["id"] = 1 }, 1, 3, 10, 5, 5, 50);
+        PhpPlanQ1Throat.ProfileHtml = (_, _) => "beta-profile";
+        PhpPlanQ1Throat.CrmUserId = _ => 22;
+        var beta = PhpPlanQ1Throat.EpcOrderStaffSummaryRenderHtml(new Dictionary<string, object?> { ["id"] = 1 }, 1, 4, 10, 5, 5, 50);
+        Assert.Contains("acme-profile", acme, StringComparison.Ordinal);
+        Assert.Contains("<strong>11</strong>", acme, StringComparison.Ordinal);
+        Assert.Contains("beta-profile", beta, StringComparison.Ordinal);
+        Assert.Contains("<strong>22</strong>", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("beta-profile", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Throat.OrderStaffSummaryPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -707,6 +726,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Sheet.CpCrossHelpersPath,
             PhpPlanQ1Halyard.DelTmpFolderPath,
             PhpPlanQ1Cringle.BreadCrumbsHelperPath,
+            PhpPlanQ1Throat.OrderStaffSummaryPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,

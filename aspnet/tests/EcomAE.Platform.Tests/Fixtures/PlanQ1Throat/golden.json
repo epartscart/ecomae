@@ -1,0 +1,60 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "empty",
+            "output": "",
+            "result": [
+                [
+                    0,
+                    "",
+                    ""
+                ],
+                [
+                    0,
+                    "",
+                    ""
+                ]
+            ]
+        },
+        {
+            "name": "nocrm",
+            "output": "",
+            "result": [
+                [
+                    991,
+                    "<style>\n.epc-order-staff { margin-bottom: 18px; padding: 14px 16px; background: ",
+                    "0%)</div>\n\t\t<div>VAT 5% on sale: <strong>5.00 AED</strong></div>\n\t</div>\n</div>\n"
+                ],
+                0,
+                1
+            ]
+        },
+        {
+            "name": "crm",
+            "output": "",
+            "result": [
+                [
+                    1045,
+                    "<style>\n.epc-order-staff { margin-bottom: 18px; padding: 14px 16px; background: ",
+                    "0%)</div>\n\t\t<div>VAT 5% on sale: <strong>0.53 AED</strong></div>\n\t</div>\n</div>\n"
+                ],
+                1
+            ]
+        },
+        {
+            "name": "fmt",
+            "output": "",
+            "result": [
+                [
+                    933,
+                    "<style>\n.epc-order-staff { margin-bottom: 18px; padding: 14px 16px; background: ",
+                    "%)</div>\n\t\t<div>VAT 5% on sale: <strong>61.73 AED</strong></div>\n\t</div>\n</div>\n"
+                ],
+                1,
+                1,
+                1
+            ]
+        }
+    ]
+}

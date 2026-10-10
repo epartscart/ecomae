@@ -6309,7 +6309,6 @@ privSwapBackMagicQuotes	PrivSwapBackMagicQuotes	lib/PclZip/pclzip.lib.php	vendor
 privWriteCentralFileHeader	PrivWriteCentralFileHeader	lib/PclZip/pclzip.lib.php	vendor	5695	third-party	third-party
 privWriteCentralHeader	PrivWriteCentralHeader	lib/PclZip/pclzip.lib.php	vendor	5695	third-party	third-party
 privWriteFileHeader	PrivWriteFileHeader	lib/PclZip/pclzip.lib.php	vendor	5695	third-party	third-party
-get_alternative_bread_crumbs	GetAlternativeBreadCrumbs	modules/bread_crumbs/helper.php	php	125	gap	ready
 remove_tmp_files	RemoveTmpFiles	modules/debug/interface.php	php	131	ops-script	skip
 scan_dir_v2	ScanDirV2	modules/debug/interface.php	php	131	ops-script	skip
 epc_menu_filter_storefront_hidden	EpcMenuFilterStorefrontHidden	modules/menu/menu_required.php	php	313	gap	later

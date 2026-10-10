@@ -4,13 +4,13 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 
 | Class | Count | What to do |
 |---|---:|---|
-| Real PHP (non-ERP), gap file ≤200 lines | 58 | Build next — listed below |
+| Real PHP (non-ERP), gap file ≤200 lines | 57 | Build next — listed below |
 | Real PHP (non-ERP), larger gap file | 1431 | Build with the parent kernel |
 | Real PHP already on a mentioned file | 867 | Finish leftover helpers on that twin |
 | JS functions written inside PHP templates | 1360 | Port as browser JS, not C# methods |
 | Vendor (PHPExcel, PclZip, …) | 255 | Do not port |
 | ERP finance (Devin) | 2031 | Leave for Devin |
-| **Total unmentioned** | **6424** | |
+| **Total unmentioned** | **6423** | |
 
 ## Ready to build (non-ERP PHP, gap file ≤200 lines)
 
@@ -71,7 +71,6 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 | `epc_pbig_h` | `EpcPbigH` | `cp/content/control/portal/epc_power_bi_guide.php` | 159 |
 | `epc_emod_cp_h` | `EpcEmodCpH` | `cp/content/shop/eparts-mod/eparts_mod_cp.php` | 155 |
 | `epc_wa_guide_h` | `EpcWaGuideH` | `cp/content/shop/order_process/whatsapp_guide.php` | 166 |
-| `get_alternative_bread_crumbs` | `GetAlternativeBreadCrumbs` | `modules/bread_crumbs/helper.php` | 125 |
 | `printCatalogueNode` | `PrintCatalogueNode` | `modules/shop/catalogue/printCatalogueNode.php` | 121 |
 | `getHtmlOfTopMenuCatalogue` | `GetHtmlOfTopMenuCatalogue` | `modules/shop/catalogue/top_menu_catalog.php` | 155 |
 
