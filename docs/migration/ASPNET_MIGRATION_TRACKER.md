@@ -362,7 +362,7 @@ Not complete.
 Not complete.
 
 - Ratchet 489 to 488. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Reef`): `cp/content/shop/prices_upload/epc_prices_manager_perf.php` (host gates / listing QTY fallback / index helper / pyprices health). HTTP stays injected. Leftover platform-hostname parent stays unmentioned.
-- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Reef` (4). Reef parity 4 of 4. Full platform suite pending this revision (was **6119 / 6119** after Tide). Inventory cp-page 259 to 260 of 523. Unnamed PHP functions 6,716 to 6,703. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 322 files / 161,622 lines (was 323 / 161,973). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Reef` (4). Reef parity 4 of 4. PlanQ1 suites 165 of 165. Full platform suite **6123 / 6123** after Reef (was 6119 after Tide). Inventory cp-page 259 to 260 of 523. Unnamed PHP functions 6,716 to 6,703. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 322 files / 161,622 lines (was 323 / 161,973). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
 ### Checkpoint 2026-10-10 — plan Q1-tide (platform failover helpers)
 
