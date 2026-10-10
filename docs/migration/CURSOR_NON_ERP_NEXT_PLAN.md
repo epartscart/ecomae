@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Reef (`--max-gap 489` passed; current gap **488**).
+after PlanQ1Drift (`--max-gap 488` passed; current gap **486**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 488
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 486
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 27 | 12,897 |
 | 3 | CP shop smaller | 23 | 7,804 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 102 | 52,669 |
+| 5 | Marketing/BOS/industries | 100 | 51,941 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 4 | 1,678 |
-| | **Total** | **488** | **227,813** |
+| | **Total** | **486** | **227,085** |
 
-- Non-ERP (Cursor): **322 files / 161,622 lines**
+- Non-ERP (Cursor): **320 files / 160,894 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,703** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,677** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **65**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -203,7 +203,15 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Tide`, 4 cases): valid modes /
 
 ### Q1 reef — done (`PhpPlanQ1Reef`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Reef`, 4 cases): platform/large-host gates (`isset` cleaner flag), listing rows with denormalized QTY then live COUNT fallback + persist, index helper (static once; invalid ident no-op), pyprices health (`empty('0')` status; HTTP injected). Leftover platform-hostname parent stays injected/unmentioned. GET does not mint a session. Next unused class after Reef.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Reef`, 4 cases): platform/large-host gates (`isset` cleaner flag), listing rows with denormalized QTY then live COUNT fallback + persist, index helper (static once; invalid ident no-op), pyprices health (`empty('0')` status; HTTP injected). Leftover platform-hostname parent stays injected/unmentioned. GET does not mint a session.
+
+### Q1 surf — done (`PhpPlanQ1Surf`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Surf`, 4 cases): compact money / vendor-warehouse-channel rollups (`empty('0')` ok/web), defensive collectors (missing table → zeros), injected fleet walk, tile/RAG/YN/hero + three control-room renderers. Leftover registry list/connect and marketplace channel ids stay injected/unmentioned. Kernel escape/classify/type-label mentioned; kernel file stays open. GET does not mint a session.
+
+### Q1 drift — done (`PhpPlanQ1Drift`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Drift`, 4 cases): enroll/verify/settings HTML (`empty` backup and methods; ENT_QUOTES `&#039;`) plus the four JS helpers. QR generation is injected from the already-closed MFA helpers. GET does not mint a session. Next unused class after Drift.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -246,6 +254,8 @@ After each file: regenerate inventory with `--max-gap` = previous gap count; lef
 | `epc_auth_mfa.php` | Closed in Wave |
 | `epc_platform_failover.php` | Closed in Tide |
 | `epc_prices_manager_perf.php` | Closed in Reef |
+| `epc_boc_advanced.php` | Closed in Surf |
+| `epc_mfa_ui.php` | Closed in Drift |
 | `addContentToDump` (`get_content_records.php`) | `DP_ContentRecord` dump page |
 
 ### Q3 — do not mention-only (false close)

@@ -357,6 +357,20 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-drift (MFA UI renderers)
+
+Not complete.
+
+- Ratchet 487 to 486. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Drift`): `content/general_pages/epc_mfa_ui.php` (enroll / verify / settings HTML plus the four JS helpers). QR generation stays injected from the already-closed MFA helpers.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Drift` (4). Drift parity 4 of 4. Inventory content 550 to 551 of 952. Unnamed PHP functions 6,680 to 6,677. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 320 files / 160,894 lines (was 321 / 161,138). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+
+### Checkpoint 2026-10-10 — plan Q1-surf (BOC advanced control)
+
+Not complete.
+
+- Ratchet 488 to 487. One file now has PHP 8.3 goldens and an ASP.NET twin (`PhpPlanQ1Surf`): `content/general_pages/epc_boc_advanced.php` (money / vendor-warehouse-channel rollups / defensive collectors / fleet walk / control-room renderers). Leftover registry list/connect and marketplace channel ids stay injected/unmentioned.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Surf` (4). Surf parity 4 of 4. Inventory content 549 to 550 of 952. Unnamed PHP functions 6,703 to 6,680. Ready ≤200-line non-ERP functions stay 65. The weighted headline stays about 20.4%. Non-ERP pending: 321 files / 161,138 lines (was 322 / 161,622). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
+
 ### Checkpoint 2026-10-10 — plan Q1-reef (CP prices manager performance helpers)
 
 Not complete.
