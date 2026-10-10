@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "pure",
+      "eval": "return bay_run_pure($GLOBALS['db_link']);"
+    },
+    {
+      "name": "config",
+      "eval": "return bay_run_config($GLOBALS['db_link']);"
+    },
+    {
+      "name": "embed",
+      "eval": "return bay_run_embed($GLOBALS['db_link']);"
+    },
+    {
+      "name": "datasets",
+      "eval": "return bay_run_datasets($GLOBALS['db_link']);"
+    }
+  ]
+}

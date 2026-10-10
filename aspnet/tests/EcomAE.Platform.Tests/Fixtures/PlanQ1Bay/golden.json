@@ -1,0 +1,1057 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "pure",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "id": "catalog",
+                        "name": "Dataset catalog",
+                        "description": "Lists all Power BI–ready endpoints for this tenant.",
+                        "path": "https://www.ecomae.com/epc-api/v1/powerbi/catalog",
+                        "formats": [
+                            "json"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "manual"
+                    },
+                    {
+                        "id": "kpis",
+                        "name": "ERP KPI snapshot",
+                        "description": "Flat KPI rows (revenue, AR, AP, cash, VAT) for cards and scorecards.",
+                        "path": "https://www.ecomae.com/epc-api/v1/powerbi/kpis",
+                        "formats": [
+                            "json",
+                            "csv"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "scheduled"
+                    },
+                    {
+                        "id": "orders",
+                        "name": "Recent orders",
+                        "description": "Successfully created shop orders (tabular).",
+                        "path": "https://www.ecomae.com/epc-api/v1/powerbi/orders",
+                        "formats": [
+                            "json",
+                            "csv"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "scheduled",
+                        "params": {
+                            "limit": "1–200 (default 100)"
+                        }
+                    },
+                    {
+                        "id": "sales",
+                        "name": "Sales register",
+                        "description": "Completed order sales ex-VAT with paid/due amounts.",
+                        "path": "https://www.ecomae.com/epc-api/v1/powerbi/sales",
+                        "formats": [
+                            "json",
+                            "csv"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "scheduled",
+                        "params": {
+                            "from": "YYYY-MM-DD",
+                            "to": "YYYY-MM-DD"
+                        }
+                    },
+                    {
+                        "id": "stock",
+                        "name": "Inventory stock",
+                        "description": "On-hand qty, average cost, and stock value by SKU/warehouse.",
+                        "path": "https://www.ecomae.com/epc-api/v1/powerbi/stock",
+                        "formats": [
+                            "json",
+                            "csv"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "scheduled"
+                    },
+                    {
+                        "id": "gl",
+                        "name": "GL trial balance",
+                        "description": "Chart-of-accounts trial balance lines.",
+                        "path": "https://www.ecomae.com/epc-api/v1/powerbi/gl",
+                        "formats": [
+                            "json",
+                            "csv"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "scheduled",
+                        "params": {
+                            "to": "YYYY-MM-DD optional as-of date"
+                        }
+                    },
+                    {
+                        "id": "metrics",
+                        "name": "BI metric snapshots",
+                        "description": "Latest materialized KPI snapshots from the BI metrics engine (when computed).",
+                        "path": "https://www.ecomae.com/epc-api/v1/powerbi/metrics",
+                        "formats": [
+                            "json",
+                            "csv"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "scheduled"
+                    }
+                ],
+                [
+                    {
+                        "id": "catalog",
+                        "name": "Dataset catalog",
+                        "description": "Lists all Power BI–ready endpoints for this tenant.",
+                        "path": "https://shop.example/epc-api/v1/powerbi/catalog",
+                        "formats": [
+                            "json"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "manual"
+                    },
+                    {
+                        "id": "kpis",
+                        "name": "ERP KPI snapshot",
+                        "description": "Flat KPI rows (revenue, AR, AP, cash, VAT) for cards and scorecards.",
+                        "path": "https://shop.example/epc-api/v1/powerbi/kpis",
+                        "formats": [
+                            "json",
+                            "csv"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "scheduled"
+                    },
+                    {
+                        "id": "orders",
+                        "name": "Recent orders",
+                        "description": "Successfully created shop orders (tabular).",
+                        "path": "https://shop.example/epc-api/v1/powerbi/orders",
+                        "formats": [
+                            "json",
+                            "csv"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "scheduled",
+                        "params": {
+                            "limit": "1–200 (default 100)"
+                        }
+                    },
+                    {
+                        "id": "sales",
+                        "name": "Sales register",
+                        "description": "Completed order sales ex-VAT with paid/due amounts.",
+                        "path": "https://shop.example/epc-api/v1/powerbi/sales",
+                        "formats": [
+                            "json",
+                            "csv"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "scheduled",
+                        "params": {
+                            "from": "YYYY-MM-DD",
+                            "to": "YYYY-MM-DD"
+                        }
+                    },
+                    {
+                        "id": "stock",
+                        "name": "Inventory stock",
+                        "description": "On-hand qty, average cost, and stock value by SKU/warehouse.",
+                        "path": "https://shop.example/epc-api/v1/powerbi/stock",
+                        "formats": [
+                            "json",
+                            "csv"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "scheduled"
+                    },
+                    {
+                        "id": "gl",
+                        "name": "GL trial balance",
+                        "description": "Chart-of-accounts trial balance lines.",
+                        "path": "https://shop.example/epc-api/v1/powerbi/gl",
+                        "formats": [
+                            "json",
+                            "csv"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "scheduled",
+                        "params": {
+                            "to": "YYYY-MM-DD optional as-of date"
+                        }
+                    },
+                    {
+                        "id": "metrics",
+                        "name": "BI metric snapshots",
+                        "description": "Latest materialized KPI snapshots from the BI metrics engine (when computed).",
+                        "path": "https://shop.example/epc-api/v1/powerbi/metrics",
+                        "formats": [
+                            "json",
+                            "csv"
+                        ],
+                        "scope": "read:bi",
+                        "refresh": "scheduled"
+                    }
+                ],
+                [
+                    {
+                        "title": "Step 1 — What Power BI does on ECOM AE",
+                        "body": "Power BI reads live ERP/commerce data from your tenant database through the public API. You build charts in Microsoft Power BI Desktop or Service; ECOM AE only supplies the data. No Azure AD is required for Desktop refresh. Native ERP dashboards in CP continue to work as before.",
+                        "tips": [
+                            "Each API key is locked to one site_key — tenants never see each other’s data.",
+                            "Phase A = Web connector (JSON/CSV). Azure secure embed is Phase B when you supply Microsoft credentials."
+                        ]
+                    },
+                    {
+                        "title": "Step 2 — Open the Power BI page in CP",
+                        "body": "In Control Panel go to <strong>Portal → Power BI</strong> (<code>/cp/control/portal/epc_power_bi</code>). Super CP operators can pick any tenant; tenant CP users see only their own site_key. Also open <strong>Portal → Integrations hub</strong> and confirm the Power BI feature is enabled.",
+                        "tips": [
+                            "If the menu item is missing, run <code>epc-power-bi-setup.php</code> on the platform host once."
+                        ]
+                    },
+                    {
+                        "title": "Step 3 — Issue a tenant API key",
+                        "body": "Go to <strong>Portal → API documentation guide</strong> (Super CP) and issue a key for the tenant, or ask a platform operator. The key needs scope <code>read:bi</code> (existing <code>read:erp</code> or <code>read:*</code> keys also work). Copy the plain key once — only the SHA-256 hash is stored in the database.",
+                        "tips": [
+                            "Never paste live keys into tickets, chat, or marketing pages.",
+                            "Revoke by setting <code>active = 0</code> on the key row if compromised."
+                        ]
+                    },
+                    {
+                        "title": "Step 4 — Smoke-test the dataset URL",
+                        "body": "From a terminal, confirm the key returns data before opening Power BI:",
+                        "tips": [
+                            "curl -s -H \"X-API-Key: YOUR_KEY\" https://www.ecomae.com/epc-api/v1/powerbi/catalog",
+                            "curl -s -H \"X-API-Key: YOUR_KEY\" \"https://www.ecomae.com/epc-api/v1/powerbi/kpis?format=csv\"",
+                            "Expect HTTP 401 without the header. CSV is easiest for Power BI Web connector."
+                        ]
+                    },
+                    {
+                        "title": "Step 5 — Connect Power BI Desktop",
+                        "body": "Open <strong>Power BI Desktop → Get data → Web → Advanced</strong>. Paste a dataset URL (example below). Under HTTP request header parameters add <code>X-API-Key</code> = your tenant key. Load the table, build visuals, then save the <code>.pbix</code>.",
+                        "tips": [
+                            "KPI cards: https://www.ecomae.com/epc-api/v1/powerbi/kpis?format=csv",
+                            "Orders: …/powerbi/orders?format=csv&amp;limit=200",
+                            "Sales (date range): …/powerbi/sales?format=csv&amp;from=2026-01-01&amp;to=2026-07-17",
+                            "Stock: …/powerbi/stock?format=csv",
+                            "GL trial balance: …/powerbi/gl?format=csv"
+                        ]
+                    },
+                    {
+                        "title": "Step 6 — Publish &amp; schedule refresh",
+                        "body": "Publish the report to Power BI Service (app.powerbi.com). Open the dataset → <strong>Settings → Data source credentials</strong> and keep the same <code>X-API-Key</code> header. Turn on scheduled refresh (e.g. hourly or daily).",
+                        "tips": [
+                            "If refresh fails with 401, the key was revoked or lacks read:bi / read:erp.",
+                            "If refresh fails with 503, the tenant DB was unavailable — retry or contact platform ops."
+                        ]
+                    },
+                    {
+                        "title": "Step 7 — Save workspace IDs in CP (optional)",
+                        "body": "On <strong>Portal → Power BI</strong>, paste your Power BI <em>Workspace ID</em>, <em>Report ID</em>, and <em>Dataset ID</em> (from the report URL in the browser). Click <strong>Save config</strong>. This does not call Microsoft yet — it stores IDs for operators and for future Azure embed.",
+                        "tips": [
+                            "Workspace GUID is in the Power BI Service URL path after /groups/.",
+                            "Register named reports with Add report for a tidy inventory per tenant."
+                        ]
+                    },
+                    {
+                        "title": "Step 8 — Optional URL embed in CP",
+                        "body": "Set <strong>Embed mode = URL iframe</strong> and paste a share / publish-to-web link that starts with <code>https://app.powerbi.com/</code> (or <code>*.powerbi.com</code> / <code>*.powerbi.us</code>). Save — the preview iframe appears on the same CP page. Publish-to-web is public; prefer secure share links for sensitive finance data.",
+                        "tips": [
+                            "Non-powerbi.com hosts are rejected automatically.",
+                            "Embed mode = Azure stays blocked until you provide Azure AD app credentials (Step 9)."
+                        ]
+                    },
+                    {
+                        "title": "Step 9 — Later: Azure secure embed (needs your credentials)",
+                        "body": "When you want in-app embed without publish-to-web, create an Azure AD app in your Microsoft tenant, grant Power BI API permissions, and have Power BI Pro / Premium / Embedded capacity. Send the client id/secret and Azure tenant ID to platform ops. We already store workspace/report IDs; token minting activates when those secrets are configured.",
+                        "tips": [
+                            "Until then, use Desktop + Service refresh (Steps 5–6) — that path is fully live."
+                        ]
+                    }
+                ],
+                {
+                    "version": "1.0.0",
+                    "available_now": {
+                        "web_connector_json": true,
+                        "web_connector_csv": true,
+                        "api_key_auth": true,
+                        "tenant_isolation": true,
+                        "workspace_config_storage": true,
+                        "url_embed_iframe": true,
+                        "native_erp_dashboard": true,
+                        "metabase_embed_parallel": true
+                    },
+                    "needs_customer_credentials": {
+                        "azure_ad_app": "Azure AD application (client id/secret) in their Microsoft tenant",
+                        "power_bi_pro_or_embedded": "Power BI Pro / Premium / Embedded capacity for secure embed tokens",
+                        "workspace_access": "Workspace + report IDs from their Power BI service"
+                    },
+                    "not_in_scope_phase_a": [
+                        "azure_embed_token_generation",
+                        "power_bi_rest_admin_apis",
+                        "row_level_security_via_azure"
+                    ],
+                    "connect_guide": [
+                        "1. Issue a tenant API key with scope read:bi (or read:erp / read:*).",
+                        "2. In Power BI Desktop → Get data → Web → Advanced.",
+                        "3. URL example: https://www.ecomae.com/epc-api/v1/powerbi/kpis?format=csv",
+                        "4. HTTP header: X-API-Key = <tenant key>.",
+                        "5. Schedule refresh in Power BI Service with the same header."
+                    ]
+                },
+                [
+                    true,
+                    true,
+                    true,
+                    false,
+                    false,
+                    false,
+                    true,
+                    true,
+                    true
+                ],
+                [
+                    false,
+                    true,
+                    true,
+                    false
+                ],
+                [
+                    100,
+                    1768435200,
+                    100,
+                    1768435200,
+                    1768435200
+                ],
+                {
+                    "headers": [],
+                    "body_b64": "77u/YSxiCjEsdHdvCiJ4LHkiLCJzYXkgIiJoaSIiIgoxLAosMAo="
+                },
+                {
+                    "headers": [
+                        "site_key",
+                        "metric",
+                        "value",
+                        "period_from",
+                        "period_to",
+                        "unit"
+                    ],
+                    "rows": [],
+                    "meta": {
+                        "source": "unavailable"
+                    }
+                },
+                {
+                    "headers": [
+                        "site_key",
+                        "order_id",
+                        "order_time",
+                        "user_id",
+                        "paid",
+                        "paid_type",
+                        "status_name"
+                    ],
+                    "rows": [],
+                    "meta": {
+                        "error": "orders_unavailable"
+                    }
+                },
+                {
+                    "headers": [
+                        "error"
+                    ],
+                    "rows": [],
+                    "meta": {
+                        "error": "export_unavailable"
+                    }
+                },
+                {
+                    "headers": [
+                        "site_key",
+                        "metric_key",
+                        "value",
+                        "previous_value",
+                        "change_pct",
+                        "period_start",
+                        "computed_at"
+                    ],
+                    "rows": [],
+                    "meta": {
+                        "error": "bi_unavailable"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "config",
+            "output": "",
+            "result": [
+                {
+                    "ok": true,
+                    "site_key": "acmesite"
+                },
+                {
+                    "ok": true,
+                    "site_key": "tenant_01-x"
+                },
+                {
+                    "ok": true,
+                    "site_key": "tenant_01-x"
+                },
+                {
+                    "ok": true,
+                    "site_key": ""
+                },
+                {
+                    "id": 1,
+                    "site_key": "acmesite",
+                    "workspace_id": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+                    "azure_tenant_id": "tid",
+                    "default_report_id": "rid",
+                    "default_dataset_id": "did",
+                    "embed_url": "https://app.powerbi.com/x",
+                    "embed_mode": "none",
+                    "notes": "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+                    "active": 1
+                },
+                null,
+                {
+                    "id": 2,
+                    "site_key": "tenant_01-x",
+                    "workspace_id": "ws-2b",
+                    "azure_tenant_id": "",
+                    "default_report_id": "",
+                    "default_dataset_id": "",
+                    "embed_url": "",
+                    "embed_mode": "azure",
+                    "notes": "updated",
+                    "active": 1
+                },
+                {
+                    "id": 4,
+                    "site_key": "",
+                    "workspace_id": "",
+                    "azure_tenant_id": "",
+                    "default_report_id": "",
+                    "default_dataset_id": "",
+                    "embed_url": "",
+                    "embed_mode": "none",
+                    "notes": "",
+                    "active": 1
+                },
+                null,
+                [
+                    {
+                        "id": 2,
+                        "site_key": "acmesite",
+                        "report_id": "r0",
+                        "report_name": "Report",
+                        "dataset_id": "d0",
+                        "category": "finance",
+                        "embed_url": "",
+                        "active": 1
+                    },
+                    {
+                        "id": 1,
+                        "site_key": "acmesite",
+                        "report_id": "r1",
+                        "report_name": "Zed",
+                        "dataset_id": "d1",
+                        "category": "ops",
+                        "embed_url": "https://app.powerbi.com/r1",
+                        "active": 1
+                    }
+                ],
+                [
+                    {
+                        "id": 3,
+                        "site_key": "other",
+                        "report_id": "hidden",
+                        "report_name": "Hidden",
+                        "dataset_id": "",
+                        "category": "ops",
+                        "embed_url": "",
+                        "active": 1
+                    }
+                ],
+                {
+                    "configs": [
+                        {
+                            "site_key": "acmesite",
+                            "workspace_id": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+                            "embed_mode": "none",
+                            "active": 1
+                        },
+                        {
+                            "site_key": "tenant_01-x",
+                            "workspace_id": "ws-2b",
+                            "embed_mode": "azure",
+                            "active": 1
+                        },
+                        {
+                            "site_key": "",
+                            "workspace_id": "",
+                            "embed_mode": "none",
+                            "active": 1
+                        }
+                    ],
+                    "reports_per_tenant": {
+                        "acmesite": 2,
+                        "other": 1
+                    },
+                    "capabilities": {
+                        "version": "1.0.0",
+                        "available_now": {
+                            "web_connector_json": true,
+                            "web_connector_csv": true,
+                            "api_key_auth": true,
+                            "tenant_isolation": true,
+                            "workspace_config_storage": true,
+                            "url_embed_iframe": true,
+                            "native_erp_dashboard": true,
+                            "metabase_embed_parallel": true
+                        },
+                        "needs_customer_credentials": {
+                            "azure_ad_app": "Azure AD application (client id/secret) in their Microsoft tenant",
+                            "power_bi_pro_or_embedded": "Power BI Pro / Premium / Embedded capacity for secure embed tokens",
+                            "workspace_access": "Workspace + report IDs from their Power BI service"
+                        },
+                        "not_in_scope_phase_a": [
+                            "azure_embed_token_generation",
+                            "power_bi_rest_admin_apis",
+                            "row_level_security_via_azure"
+                        ],
+                        "connect_guide": [
+                            "1. Issue a tenant API key with scope read:bi (or read:erp / read:*).",
+                            "2. In Power BI Desktop → Get data → Web → Advanced.",
+                            "3. URL example: https://www.ecomae.com/epc-api/v1/powerbi/kpis?format=csv",
+                            "4. HTTP header: X-API-Key = <tenant key>.",
+                            "5. Schedule refresh in Power BI Service with the same header."
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "embed",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "error": "Power BI not configured. Save workspace/report IDs or an embed URL in CP → Power BI.",
+                    "phase": "config_missing"
+                },
+                {
+                    "ok": true,
+                    "url": "https://app.powerbi.com/plat",
+                    "mode": "url",
+                    "workspace_id": "plat-ws",
+                    "report_id": "plat-r"
+                },
+                {
+                    "ok": true,
+                    "url": "https://app.powerbi.com/plat",
+                    "mode": "url",
+                    "workspace_id": "plat-ws",
+                    "report_id": "plat-r"
+                },
+                {
+                    "ok": false,
+                    "error": "No embed URL saved. Use Power BI publish-to-web / secure share link, or connect Desktop to /epc-api/v1/powerbi/* datasets.",
+                    "phase": "url_missing",
+                    "workspace_id": "a-ws",
+                    "datasets": [
+                        {
+                            "id": "catalog",
+                            "name": "Dataset catalog",
+                            "description": "Lists all Power BI–ready endpoints for this tenant.",
+                            "path": "https://www.ecomae.com/epc-api/v1/powerbi/catalog",
+                            "formats": [
+                                "json"
+                            ],
+                            "scope": "read:bi",
+                            "refresh": "manual"
+                        },
+                        {
+                            "id": "kpis",
+                            "name": "ERP KPI snapshot",
+                            "description": "Flat KPI rows (revenue, AR, AP, cash, VAT) for cards and scorecards.",
+                            "path": "https://www.ecomae.com/epc-api/v1/powerbi/kpis",
+                            "formats": [
+                                "json",
+                                "csv"
+                            ],
+                            "scope": "read:bi",
+                            "refresh": "scheduled"
+                        },
+                        {
+                            "id": "orders",
+                            "name": "Recent orders",
+                            "description": "Successfully created shop orders (tabular).",
+                            "path": "https://www.ecomae.com/epc-api/v1/powerbi/orders",
+                            "formats": [
+                                "json",
+                                "csv"
+                            ],
+                            "scope": "read:bi",
+                            "refresh": "scheduled",
+                            "params": {
+                                "limit": "1–200 (default 100)"
+                            }
+                        },
+                        {
+                            "id": "sales",
+                            "name": "Sales register",
+                            "description": "Completed order sales ex-VAT with paid/due amounts.",
+                            "path": "https://www.ecomae.com/epc-api/v1/powerbi/sales",
+                            "formats": [
+                                "json",
+                                "csv"
+                            ],
+                            "scope": "read:bi",
+                            "refresh": "scheduled",
+                            "params": {
+                                "from": "YYYY-MM-DD",
+                                "to": "YYYY-MM-DD"
+                            }
+                        },
+                        {
+                            "id": "stock",
+                            "name": "Inventory stock",
+                            "description": "On-hand qty, average cost, and stock value by SKU/warehouse.",
+                            "path": "https://www.ecomae.com/epc-api/v1/powerbi/stock",
+                            "formats": [
+                                "json",
+                                "csv"
+                            ],
+                            "scope": "read:bi",
+                            "refresh": "scheduled"
+                        },
+                        {
+                            "id": "gl",
+                            "name": "GL trial balance",
+                            "description": "Chart-of-accounts trial balance lines.",
+                            "path": "https://www.ecomae.com/epc-api/v1/powerbi/gl",
+                            "formats": [
+                                "json",
+                                "csv"
+                            ],
+                            "scope": "read:bi",
+                            "refresh": "scheduled",
+                            "params": {
+                                "to": "YYYY-MM-DD optional as-of date"
+                            }
+                        },
+                        {
+                            "id": "metrics",
+                            "name": "BI metric snapshots",
+                            "description": "Latest materialized KPI snapshots from the BI metrics engine (when computed).",
+                            "path": "https://www.ecomae.com/epc-api/v1/powerbi/metrics",
+                            "formats": [
+                                "json",
+                                "csv"
+                            ],
+                            "scope": "read:bi",
+                            "refresh": "scheduled"
+                        }
+                    ]
+                },
+                {
+                    "ok": false,
+                    "error": "Azure embed mode needs customer Azure AD app + Power BI capacity. Store IDs now; token minting ships when credentials are provided.",
+                    "phase": "needs_azure",
+                    "workspace_id": "a-ws",
+                    "report_id": "a-r",
+                    "azure_tenant_id": "a-t"
+                },
+                {
+                    "ok": false,
+                    "error": "Embed URL must be an https://*.powerbi.com link.",
+                    "phase": "url_invalid"
+                },
+                {
+                    "ok": true,
+                    "url": "https://app.powerbi.com/good",
+                    "mode": "url",
+                    "workspace_id": "a-ws",
+                    "report_id": "a-r"
+                },
+                {
+                    "ok": true,
+                    "url": "https://app.powerbi.com/from-report",
+                    "mode": "url",
+                    "workspace_id": "a-ws",
+                    "report_id": "a-r"
+                },
+                {
+                    "ok": false,
+                    "error": "Azure embed mode needs customer Azure AD app + Power BI capacity. Store IDs now; token minting ships when credentials are provided.",
+                    "phase": "needs_azure",
+                    "workspace_id": "a-ws",
+                    "report_id": "a-r",
+                    "azure_tenant_id": "a-t"
+                },
+                1,
+                2
+            ]
+        },
+        {
+            "name": "datasets",
+            "output": "",
+            "result": [
+                {
+                    "headers": [
+                        "site_key",
+                        "metric",
+                        "value",
+                        "period_from",
+                        "period_to",
+                        "unit"
+                    ],
+                    "rows": [
+                        [
+                            "alpha",
+                            "order_count",
+                            3,
+                            "2026-01-15",
+                            "",
+                            "count"
+                        ],
+                        [
+                            "alpha",
+                            "revenue_ex_vat",
+                            62.56,
+                            "2026-01-15",
+                            "",
+                            "currency"
+                        ],
+                        [
+                            "alpha",
+                            "profit_ex_vat",
+                            1.23,
+                            "2026-01-15",
+                            "",
+                            "currency"
+                        ],
+                        [
+                            "alpha",
+                            "receivable_due_orders",
+                            10.1,
+                            "2026-01-15",
+                            "",
+                            "currency"
+                        ],
+                        [
+                            "alpha",
+                            "customer_ledger_balance",
+                            0,
+                            "2026-01-15",
+                            "",
+                            "currency"
+                        ],
+                        [
+                            "alpha",
+                            "payable_balance",
+                            0,
+                            "2026-01-15",
+                            "",
+                            "currency"
+                        ],
+                        [
+                            "alpha",
+                            "cash_bank_total",
+                            0,
+                            "2026-01-15",
+                            "",
+                            "currency"
+                        ],
+                        [
+                            "alpha",
+                            "vat_net_payable",
+                            0,
+                            "2026-01-15",
+                            "",
+                            "currency"
+                        ]
+                    ],
+                    "meta": {
+                        "source": "epc_erp_dashboard",
+                        "period_from": "2026-01-15",
+                        "period_to": ""
+                    }
+                },
+                {
+                    "headers": [
+                        "site_key",
+                        "order_id",
+                        "order_time",
+                        "user_id",
+                        "paid",
+                        "paid_type",
+                        "status_name"
+                    ],
+                    "rows": [
+                        [
+                            "alpha",
+                            10,
+                            "2026-01-15T00:00:00+00:00",
+                            7,
+                            1,
+                            2,
+                            ""
+                        ],
+                        [
+                            "alpha",
+                            9,
+                            "1970-01-01T00:00:00+00:00",
+                            3,
+                            0,
+                            0,
+                            ""
+                        ],
+                        [
+                            "alpha",
+                            8,
+                            "2026-01-15T00:01:40+00:00",
+                            1,
+                            0,
+                            1,
+                            ""
+                        ],
+                        [
+                            "alpha",
+                            6,
+                            "2026-01-15T00:05:00+00:00",
+                            4,
+                            1,
+                            1,
+                            ""
+                        ]
+                    ],
+                    "meta": {
+                        "limit": 100,
+                        "count": 4
+                    }
+                },
+                {
+                    "headers": [
+                        "site_key",
+                        "order_id",
+                        "order_time",
+                        "user_id",
+                        "paid",
+                        "paid_type",
+                        "status_name"
+                    ],
+                    "rows": [
+                        [
+                            "alpha",
+                            10,
+                            "2026-01-15T00:00:00+00:00",
+                            7,
+                            1,
+                            2,
+                            ""
+                        ],
+                        [
+                            "alpha",
+                            9,
+                            "1970-01-01T00:00:00+00:00",
+                            3,
+                            0,
+                            0,
+                            ""
+                        ]
+                    ],
+                    "meta": {
+                        "limit": 2,
+                        "count": 2
+                    }
+                },
+                {
+                    "headers": [
+                        "site_key",
+                        "order_id",
+                        "order_time",
+                        "user_id",
+                        "paid",
+                        "paid_type",
+                        "status_name"
+                    ],
+                    "rows": [
+                        [
+                            "alpha",
+                            10,
+                            "2026-01-15T00:00:00+00:00",
+                            7,
+                            1,
+                            2,
+                            ""
+                        ]
+                    ],
+                    "meta": {
+                        "limit": 1,
+                        "count": 1
+                    }
+                },
+                {
+                    "headers": [
+                        "site_key",
+                        "order_id",
+                        "order_time",
+                        "user_id",
+                        "paid",
+                        "paid_type",
+                        "status_name"
+                    ],
+                    "rows": [
+                        [
+                            "alpha",
+                            10,
+                            "2026-01-15T00:00:00+00:00",
+                            7,
+                            1,
+                            2,
+                            ""
+                        ],
+                        [
+                            "alpha",
+                            9,
+                            "1970-01-01T00:00:00+00:00",
+                            3,
+                            0,
+                            0,
+                            ""
+                        ],
+                        [
+                            "alpha",
+                            8,
+                            "2026-01-15T00:01:40+00:00",
+                            1,
+                            0,
+                            1,
+                            ""
+                        ],
+                        [
+                            "alpha",
+                            6,
+                            "2026-01-15T00:05:00+00:00",
+                            4,
+                            1,
+                            1,
+                            ""
+                        ]
+                    ],
+                    "meta": {
+                        "limit": 200,
+                        "count": 4
+                    }
+                },
+                {
+                    "headers": [
+                        "sku",
+                        "qty"
+                    ],
+                    "rows": [
+                        [
+                            "A1",
+                            2
+                        ],
+                        [
+                            "B2",
+                            0
+                        ]
+                    ],
+                    "meta": {
+                        "type": "sales",
+                        "from": "2026-01-15",
+                        "to": "2026-01-16",
+                        "count": 2
+                    }
+                },
+                {
+                    "headers": [
+                        "sku",
+                        "qty"
+                    ],
+                    "rows": [
+                        [
+                            "A1",
+                            2
+                        ],
+                        [
+                            "B2",
+                            0
+                        ]
+                    ],
+                    "meta": {
+                        "type": "sales",
+                        "from": "",
+                        "to": "",
+                        "count": 2
+                    }
+                },
+                {
+                    "headers": [
+                        "error"
+                    ],
+                    "rows": [],
+                    "meta": {
+                        "error": "export boom"
+                    }
+                },
+                {
+                    "headers": [
+                        "site_key",
+                        "metric_key",
+                        "value",
+                        "previous_value",
+                        "change_pct",
+                        "period_start",
+                        "computed_at"
+                    ],
+                    "rows": [
+                        [
+                            "alpha",
+                            "revenue",
+                            12.5,
+                            10,
+                            25,
+                            "2026-01-01",
+                            "2026-01-15 00:00:00"
+                        ],
+                        [
+                            "alpha",
+                            "orders",
+                            3,
+                            0,
+                            0,
+                            "",
+                            ""
+                        ]
+                    ],
+                    "meta": {
+                        "count": 2
+                    }
+                },
+                {
+                    "headers": [
+                        "site_key",
+                        "metric_key",
+                        "value",
+                        "previous_value",
+                        "change_pct",
+                        "period_start",
+                        "computed_at"
+                    ],
+                    "rows": [],
+                    "meta": {
+                        "error": "bi_query_failed"
+                    }
+                }
+            ]
+        }
+    ]
+}
