@@ -629,6 +629,22 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void DelTmpFolder_NameAndRoot_StayOnTheInjectedTenant()
+    {
+        PhpPlanQ1Halyard.Reset();
+        PhpPlanQ1Halyard.DocumentRoot = "/tmp/acme";
+        var acme = PhpPlanQ1Halyard.EpcDelTmpFolderRun("gone");
+        PhpPlanQ1Halyard.DocumentRoot = "/tmp/beta";
+        var beta = PhpPlanQ1Halyard.EpcDelTmpFolderRun("gone");
+        Assert.Contains("/tmp/acme/", Convert.ToString(acme["tmp_folder_name"])!, StringComparison.Ordinal);
+        Assert.Contains("/tmp/beta/", Convert.ToString(beta["tmp_folder_name"])!, StringComparison.Ordinal);
+        Assert.DoesNotContain("/tmp/beta/", Convert.ToString(acme["tmp_folder_name"])!, StringComparison.Ordinal);
+        Assert.False((bool)PhpPlanQ1Halyard.EpcDelTmpFolderRun("Bad.Name")["status"]!);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Halyard.DelTmpFolderPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Halyard.DelTmpFolderPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -675,6 +691,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Tack.ProductExistLimitPath,
             PhpPlanQ1Vang.PosCpInstallPath,
             PhpPlanQ1Sheet.CpCrossHelpersPath,
+            PhpPlanQ1Halyard.DelTmpFolderPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,

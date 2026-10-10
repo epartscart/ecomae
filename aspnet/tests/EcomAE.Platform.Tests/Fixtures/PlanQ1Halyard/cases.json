@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "name" },
+    { "name": "missing" },
+    { "name": "delete" },
+    { "name": "nodb" }
+  ]
+}

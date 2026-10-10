@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-sheet / halyard (CP crosses, tmp-folder delete)
+
+Not complete.
+
+- Ratchet 465 to 463. Two files now have PHP 8.3 goldens and ASP.NET twins: `PhpPlanQ1Sheet` `cp/content/shop/crosses/epc_cp_cross_helpers.php` (normalize, pair, count, annotate, add/import; leftover docpart parents injected), `PhpPlanQ1Halyard` `cp/content/shop/prices_upload/for_pyprices/del_tmp_folder.php` (illegal name, missing dir, delete keeps `index.html`, no DB; shared PHP helper name not repeated). GET does not mint a session.
+- Area functionality gained CP cross pair isolation and tmp-folder root isolation.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Sheet` (4) and `Fixtures/PlanQ1Halyard` (4). Sheet/Halyard parity 8 of 8. Sheet-only full suite **6244 / 6244**. Full suite after Halyard is recorded with the suite log. CP pages mentioned 262 to 264 of 523. Unnamed PHP functions 6,434 to 6,424. Ready ≤200-line non-ERP functions 59 to 58. The weighted headline stays about 20.5%. Non-ERP pending: 297 files / 150,819 lines (was 299 / 151,188). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2, `docpart.sessions` 73).
+
 ### Checkpoint 2026-10-10 — plan Q1-clew / tack / vang (shipping-export, stock limit, POS install)
 
 Not complete.
