@@ -388,6 +388,31 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void BlockchainProofs_StayOnTheTenantAndSkipWhenOff()
+    {
+        PhpPlanQ1Boom.Reset();
+        PhpPlanQ1Boom.EpcBcBosRecordProof("acme", "invoice", "A1", new Dictionary<string, object?>(StringComparer.Ordinal) { ["n"] = 1 },
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["ts"] = "2026-10-10T08:00:00+00:00" });
+        PhpPlanQ1Boom.EpcBcBosRecordProof("beta", "invoice", "B1", new Dictionary<string, object?>(StringComparer.Ordinal) { ["n"] = 2 },
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["ts"] = "2026-10-10T08:00:00+00:00" });
+        var acme = PhpPlanQ1Boom.EpcBcBosListProofs("acme");
+        var beta = PhpPlanQ1Boom.EpcBcBosListProofs("beta");
+        Assert.Single(acme);
+        Assert.Single(beta);
+        Assert.Equal("acme", Convert.ToString(acme[0]["tenant_key"]));
+        Assert.Equal("beta", Convert.ToString(beta[0]["tenant_key"]));
+        Assert.NotEqual(Convert.ToString(acme[0]["proof_uid"]), Convert.ToString(beta[0]["proof_uid"]));
+        PhpPlanQ1Boom.ClientErpKey = () => "beta";
+        PhpPlanQ1Boom.TenantRows["beta"] = new Dictionary<string, object?>(StringComparer.Ordinal) { ["blockchain_mode"] = "off" };
+        var skipped = PhpPlanQ1Boom.EpcBcBosMaybeRecordDocument("invoice", "B2", new Dictionary<string, object?>(StringComparer.Ordinal) { ["n"] = 3 });
+        Assert.True((bool)skipped["ok"]!);
+        Assert.Equal("mode_off", Convert.ToString(skipped["reason"]));
+        Assert.Single(PhpPlanQ1Boom.EpcBcBosListProofs("beta"));
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Boom.BlockchainBosPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Boom.BlockchainBosPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -424,6 +449,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Helm.AuthSmtpPath,
             PhpPlanQ1Yard.ReadinessPath,
             PhpPlanQ1Spar.PartsApiPath,
+            PhpPlanQ1Boom.BlockchainBosPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
