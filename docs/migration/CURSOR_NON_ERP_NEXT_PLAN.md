@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Gulf (`--max-gap 437` passed; current gap **436**).
+after PlanQ1Haven (`--max-gap 436` passed; current gap **435**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 436
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 435
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 24 | 12,698 |
 | 3 | CP shop smaller | 22 | 7,537 |
 | 4 | CP control/portal | 40 | 10,296 |
-| 5 | Marketing/BOS/industries | 73 | 37,452 |
+| 5 | Marketing/BOS/industries | 72 | 36,897 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **436** | **202,868** |
+| | **Total** | **435** | **202,313** |
 
-- Non-ERP (Cursor): **270 files / 136,677 lines**
+- Non-ERP (Cursor): **269 files / 136,122 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,115** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **48**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,091** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **48**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -439,9 +439,13 @@ Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Cape`, 4 cases): ePartsCart st
 
 ### Q1 gulf — done (`PhpPlanQ1Gulf`)
 
-Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Gulf`, 4 cases): Super-CP `h` / backend / schema / price configs / info blocks / comm settings / tasks / platform users / tenant options / customer board / hero / operator-guide URL / empty state / Super-admin guard. Leftover portal / tenant-control / `dp_user` stay injected. Do not write leftover unique portal, operator-guide `.php`, or `dp_user` paths. GET does not mint a session. Next unused class after Gulf: Haven.
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Gulf`, 4 cases): Super-CP `h` / backend / schema / price configs / info blocks / comm settings / tasks / platform users / tenant options / customer board / hero / operator-guide URL / empty state / Super-admin guard. Leftover portal / tenant-control / `dp_user` stay injected. Do not write leftover unique portal, operator-guide `.php`, or `dp_user` paths. GET does not mint a session.
 
-Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 270 files.
+### Q1 haven — done (`PhpPlanQ1Haven`)
+
+Closed against PHP 8.3.6 goldens (`Fixtures/PlanQ1Haven`, 4 cases): Electronicae storefront active / site-key / lang href / line visual / image normalize / empty category / menu-tree extract / category subtree / product-line tiles / mega-nav / hero / product card / home sections. Leftover portal and APE stay injected and are not named. GET does not mint a session. Next unused class after Haven: Isle.
+
+Detailed area functionality: `NonErpAreaFunctionalityTests` plus `scripts/run_non_erp_area_functionality.sh` (auth, storefront commerce, CP/BOS, tenants/jobs/social, all PlanQ1). This is not human acceptance and does not close the remaining 269 files.
 
 ### Q1 next leftovers — honest schema/data twins still open
 
@@ -498,6 +502,7 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6ap | `epc_integrations_helpers.php` | Closed in Shoal. |
 | 6aq | `epc_epartscart_storefront.php` | Closed in Cape. |
 | 6ar | `epc_super_cp_platform.php` | Closed in Gulf. |
+| 6as | `epc_electronicae_storefront.php` | Closed in Haven. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 

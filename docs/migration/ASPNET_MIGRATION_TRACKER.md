@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-10 — plan Q1-haven (Electronicae storefront helper)
+
+Not complete.
+
+- Ratchet 436 to 435. One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Haven` `content/general_pages/epc_electronicae_storefront.php` (active/site-key/lang href, line visual, tiles/mega-nav/hero, product card, category subtree, menu-tree extract; leftover portal / APE injected and not named). GET does not mint a session. Do not write leftover unique portal or APE basenames.
+- Area functionality gained Electronicae tree extract plus lang-href isolation.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Haven` (4). Haven + area **5 / 5**. Last full suite after Foam **6344 / 6344**; Haven suite pending while continue-queue remains. Content mentioned 591 to 592 of 952. Unnamed PHP functions 6,115 to 6,091. Ready ≤200-line non-ERP functions stay 48. The weighted headline stays about 20.4%. Non-ERP pending: 269 files / 136,122 lines (was 270 / 136,677). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-10 — plan Q1-gulf (Super-CP platform modules)
 
 Not complete.
