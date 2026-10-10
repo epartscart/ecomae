@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "names" },
+    { "name": "post" },
+    { "name": "validate" },
+    { "name": "db" }
+  ]
+}

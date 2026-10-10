@@ -1485,6 +1485,19 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void TenantIntro_SiteKeyAndFlagsStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Kelp.Reset();
+        var acme = PhpPlanQ1Kelp.EpcPortalSiteKeyFromHostname("www.acme-parts.com");
+        var beta = PhpPlanQ1Kelp.EpcPortalSiteKeyFromHostname("www.beta-trading.com");
+        Assert.Equal("acme_parts", acme);
+        Assert.Equal("beta_trading", beta);
+        Assert.NotEqual(acme, beta);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Kelp.PortalTenantIntroPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Kelp.PortalTenantIntroPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1554,6 +1567,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Foam.AccessoriesDbPath,
             PhpPlanQ1Spray.ProfessionalShellPath,
             PhpPlanQ1Brine.PortalErpModulesPath,
+            PhpPlanQ1Kelp.PortalTenantIntroPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
