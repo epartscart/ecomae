@@ -882,6 +882,21 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void AccessoriesCatalog_CachePath_StaysOnTheInjectedTenant()
+    {
+        PhpPlanQ1Stem.Reset();
+        PhpPlanQ1Stem.DocumentRoot = "/shop/acme";
+        var acme = PhpPlanQ1Stem.EpcAccCachePath();
+        PhpPlanQ1Stem.DocumentRoot = "/shop/beta";
+        var beta = PhpPlanQ1Stem.EpcAccCachePath();
+        Assert.Contains("epc_acc_catalog_v1_", acme, StringComparison.Ordinal);
+        Assert.NotEqual(acme, beta);
+        Assert.DoesNotContain("beta", Path.GetFileName(acme), StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Stem.AccessoriesCatalogPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Stem.AccessoriesCatalogPath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -939,6 +954,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Wind.PriceUploadDiagnosticsPath,
             PhpPlanQ1Sail.TenantTemplatesCatalogPath,
             PhpPlanQ1Line.ArticleBrandsPath,
+            PhpPlanQ1Stem.AccessoriesCatalogPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
