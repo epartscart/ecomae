@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "gates" },
+    { "name": "helpers" },
+    { "name": "menu" },
+    { "name": "page" }
+  ]
+}

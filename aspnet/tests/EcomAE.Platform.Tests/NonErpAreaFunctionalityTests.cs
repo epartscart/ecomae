@@ -1706,6 +1706,58 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void CpGuideline_MenuCaptionStaysOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Sound.Reset();
+        PhpPlanQ1Sound.UserSession = new Dictionary<string, object?>(StringComparer.Ordinal) { ["user_id"] = 21 };
+        PhpPlanQ1Sound.Backend = () => "cp";
+        PhpPlanQ1Sound.IsSuperCp = () => true;
+        PhpPlanQ1Sound.Today = () => "2026-10-10";
+        PhpPlanQ1Sound.QueryGroups = () =>
+        [
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["id"] = 1, ["caption"] = "Acme Shop", ["order"] = 1 }
+        ];
+        PhpPlanQ1Sound.QueryItems = () =>
+        [
+            new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["id"] = 21, ["items_group"] = 1, ["caption"] = "price_mgmt",
+                ["url"] = "/<backend>/shop/price-management", ["fontawesome_class"] = "fa-tags", ["show_anyway"] = 0
+            }
+        ];
+        PhpPlanQ1Sound.TranslateByKey = key => key == "price_mgmt" ? "Acme prices" : key;
+        var acme = PhpPlanQ1Sound.Capture(PhpPlanQ1Sound.EpcCpgRenderPage);
+        PhpPlanQ1Sound.IsSuperCp = () => false;
+        PhpPlanQ1Sound.Backend = () => "beta";
+        PhpPlanQ1Sound.TranslateByKey = key => key;
+        PhpPlanQ1Sound.QueryGroups = () =>
+        [
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["id"] = 1, ["caption"] = "Beta Users", ["order"] = 1 }
+        ];
+        PhpPlanQ1Sound.QueryItems = () =>
+        [
+            new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["id"] = 31, ["items_group"] = 1, ["caption"] = "Other page",
+                ["url"] = "/<backend>/users/other", ["fontawesome_class"] = "fa-user", ["show_anyway"] = 0
+            }
+        ];
+        var beta = PhpPlanQ1Sound.Capture(PhpPlanQ1Sound.EpcCpgRenderPage);
+        Assert.Contains("Acme Shop", acme, StringComparison.Ordinal);
+        Assert.Contains("Acme prices", acme, StringComparison.Ordinal);
+        Assert.Contains("Super CP", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("Beta Users", acme, StringComparison.Ordinal);
+        Assert.Contains("Beta Users", beta, StringComparison.Ordinal);
+        Assert.Contains("Other page", beta, StringComparison.Ordinal);
+        Assert.Contains("Control panel", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("Acme Shop", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("Acme prices", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Sound.CpGuidelinePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Sound.CpGuidelinePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("dp_user.php", PhpPlanQ1Sound.CpGuidelinePath, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -1785,6 +1837,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Isle.ApiV1Path,
             PhpPlanQ1Atoll.SocialMediaHubPanelPath,
             PhpPlanQ1Fjord.MarketingBroadcastPanelPath,
+            PhpPlanQ1Sound.CpGuidelinePath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
