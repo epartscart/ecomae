@@ -919,6 +919,54 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void FullBrochure_FilteredBundle_StaysOnTheInjectedTenant()
+    {
+        PhpPlanQ1Starboard.Reset();
+        PhpPlanQ1Starboard.LiveInventory = () => new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["areas"] = new Dictionary<string, List<Dictionary<string, object?>>>(StringComparer.Ordinal)
+            {
+                ["Shop / OMS"] =
+                [
+                    new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = "Acme desk", ["does"] = "A", ["url"] = "/a", ["scope"] = "client" }
+                ]
+            },
+            ["meta"] = new Dictionary<string, object?>(StringComparer.Ordinal) { ["generated_at"] = 1L, ["sources"] = new List<string>(), ["total"] = 1, ["area_count"] = 1 }
+        };
+        var acme = PhpPlanQ1Starboard.EpcCpBrochureFilteredBundle("client");
+        PhpPlanQ1Starboard.LiveInventory = () => new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["areas"] = new Dictionary<string, List<Dictionary<string, object?>>>(StringComparer.Ordinal)
+            {
+                ["Shop / OMS"] =
+                [
+                    new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = "Beta desk", ["does"] = "B", ["url"] = "/b", ["scope"] = "client" }
+                ]
+            },
+            ["meta"] = new Dictionary<string, object?>(StringComparer.Ordinal) { ["generated_at"] = 1L, ["sources"] = new List<string>(), ["total"] = 1, ["area_count"] = 1 }
+        };
+        var beta = PhpPlanQ1Starboard.EpcCpBrochureFilteredBundle("client");
+        var acmeName = ((Dictionary<string, List<Dictionary<string, object?>>>)acme["areas"]!)["Shop / OMS"][0]["name"];
+        var betaName = ((Dictionary<string, List<Dictionary<string, object?>>>)beta["areas"]!)["Shop / OMS"][0]["name"];
+        Assert.Equal("Acme desk", acmeName);
+        Assert.Equal("Beta desk", betaName);
+        Assert.DoesNotContain("Beta", Convert.ToString(acmeName), StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Starboard.FullBrochurePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Starboard.FullBrochurePath, StringComparison.Ordinal);
+        PhpPlanQ1Starboard.Reset();
+        PhpPlanQ1Starboard.HeadersSent = false;
+        PhpPlanQ1Starboard.LiveInventory = () => new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["areas"] = new Dictionary<string, List<Dictionary<string, object?>>>(StringComparer.Ordinal),
+            ["meta"] = new Dictionary<string, object?>(StringComparer.Ordinal) { ["generated_at"] = 1L, ["sources"] = new List<string>(), ["total"] = 0, ["area_count"] = 0 }
+        };
+        PhpPlanQ1Starboard.EpcCpFullBrochureRenderAndExit(new Dictionary<string, object?> { ["brand"] = "ecomae" });
+        Assert.True(PhpPlanQ1Starboard.ExitCalled);
+        Assert.Contains("Content-Type: text/html; charset=utf-8", PhpPlanQ1Starboard.ResponseHeaders);
+        Assert.Contains("Cache-Control: no-store, no-cache, must-revalidate, max-age=0", PhpPlanQ1Starboard.ResponseHeaders);
+    }
+
+    [Fact]
     public void PartsApi_KeysAndHostGate_StayOnTheConfiguredSurface()
     {
         PhpPlanQ1Spar.Reset();
@@ -978,6 +1026,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Line.ArticleBrandsPath,
             PhpPlanQ1Stem.AccessoriesCatalogPath,
             PhpPlanQ1Port.BrochureLivePath,
+            PhpPlanQ1Starboard.FullBrochurePath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,

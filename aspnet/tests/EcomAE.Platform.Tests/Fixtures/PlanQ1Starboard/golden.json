@@ -1,0 +1,69 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "dedupe",
+            "output": "",
+            "result": [
+                3,
+                [
+                    "No url",
+                    "Order desk",
+                    "Zed"
+                ]
+            ]
+        },
+        {
+            "name": "filter",
+            "output": "",
+            "result": [
+                4,
+                "client",
+                2,
+                [
+                    "Shop / OMS"
+                ],
+                [
+                    "Order desk",
+                    "Shared desk"
+                ],
+                2,
+                [
+                    "Fleet host",
+                    "Shared desk"
+                ],
+                "client",
+                3,
+                0
+            ]
+        },
+        {
+            "name": "css",
+            "output": "",
+            "result": [
+                9652,
+                "BASECSS:ecomae@import ur",
+                1
+            ]
+        },
+        {
+            "name": "html",
+            "output": "",
+            "result": [
+                18327,
+                "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\"",
+                1,
+                1,
+                1,
+                0,
+                0,
+                16744,
+                1,
+                1,
+                1,
+                1,
+                0
+            ]
+        }
+    ]
+}
