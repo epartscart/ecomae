@@ -202,11 +202,61 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void Cp_AuthGate_CountsExactlyOneSession_AndNeverMintsOnGet()
+    {
+        PhpPlanQ1Keel.Reset();
+        var store = new PhpPlanQ1Keel.GateStore();
+        store.Sessions.Add(new PhpPlanQ1Keel.SessionRow { Session = "acme-op", Type = 1, UserId = 7 });
+        store.Sessions.Add(new PhpPlanQ1Keel.SessionRow { Session = "beta-op", Type = 1, UserId = 9 });
+        store.Sessions.Add(new PhpPlanQ1Keel.SessionRow { Session = "dup", Type = 1, UserId = 7 });
+        store.Sessions.Add(new PhpPlanQ1Keel.SessionRow { Session = "dup", Type = 1, UserId = 7 });
+        PhpPlanQ1Keel.Store = store;
+        PhpPlanQ1Keel.Cookies = new(StringComparer.Ordinal) { ["admin_session"] = "acme-op", ["admin_u_id"] = "7" };
+        Assert.True(PhpPlanQ1Keel.EpcCpAuthGateIsAdmin());
+        PhpPlanQ1Keel.Cookies["admin_session"] = "beta-op";
+        Assert.False(PhpPlanQ1Keel.EpcCpAuthGateIsAdmin());
+        PhpPlanQ1Keel.Cookies = new(StringComparer.Ordinal) { ["admin_session"] = "dup", ["admin_u_id"] = "7" };
+        Assert.False(PhpPlanQ1Keel.EpcCpAuthGateIsAdmin());
+        PhpPlanQ1Keel.Reset();
+        PhpPlanQ1Keel.Server["REQUEST_URI"] = "/cp/";
+        PhpPlanQ1Keel.Server["REQUEST_METHOD"] = "GET";
+        var cookiesBefore = PhpPlanQ1Keel.Cookies.Count;
+        var guest = PhpPlanQ1Keel.EpcCpAuthGateRun();
+        Assert.Equal("redirect", Convert.ToString(guest["action"]));
+        Assert.Equal("/cp/control", Convert.ToString(guest["location"]));
+        Assert.Equal(cookiesBefore, PhpPlanQ1Keel.Cookies.Count);
+        Assert.False(PhpPlanQ1Keel.EpcCpAuthGateIsAdmin());
+        PhpPlanQ1Keel.IsErpOnlyTenant = true;
+        PhpPlanQ1Keel.ErpShellUrlPresent = false;
+        PhpPlanQ1Keel.IsPlatformHostname = false;
+        Assert.Equal("/cp/shop/finance/erp?epc_erp_shell=1", PhpPlanQ1Keel.EpcCpAuthGateErpOnlyLanding());
+        PhpPlanQ1Keel.IsPlatformHostname = true;
+        PhpPlanQ1Keel.Store = store;
+        PhpPlanQ1Keel.Cookies = new(StringComparer.Ordinal) { ["admin_session"] = "acme-op", ["admin_u_id"] = "7" };
+        PhpPlanQ1Keel.Server["REQUEST_URI"] = "/cp/";
+        PhpPlanQ1Keel.Server["REQUEST_METHOD"] = "GET";
+        PhpPlanQ1Keel.Server["QUERY_STRING"] = "tab=1";
+        var platform = PhpPlanQ1Keel.EpcCpAuthGateRun();
+        Assert.Equal("/cp/control?tab=1", Convert.ToString(platform["location"]));
+        PhpPlanQ1Keel.Reset();
+        PhpPlanQ1Keel.Server["REQUEST_URI"] = "/cp/shop/tenant_hub/x";
+        PhpPlanQ1Keel.Server["QUERY_STRING"] = "a=1";
+        var hub = PhpPlanQ1Keel.EpcCpAuthGateRun();
+        Assert.Equal("/cp/control?a=1", Convert.ToString(hub["location"]));
+        Assert.Empty(PhpPlanQ1Keel.Cookies);
+        var ajax = PhpPlanQ1Keel.EpcCpAuthGateMfaAjax();
+        Assert.Equal("json", Convert.ToString(ajax["action"]));
+        Assert.Contains("Not authenticated", Convert.ToString(ajax["body"]), StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", Convert.ToString(ajax["body"]), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CoveredAreas_AreCursorOwnedNotErp()
     {
         var paths = new[]
         {
             PhpPlanQ1Hull.AuthSocialPath,
+            PhpPlanQ1Keel.AuthGatePath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
             PhpPlanQ1Quay.TenantPdoPath,
