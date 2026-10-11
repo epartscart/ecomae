@@ -43,6 +43,17 @@
         <div class="kpi"><div class="lbl">Total incl. VAT</div><div class="val">@_totalInclVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
+    @if (_agingTotal > 0)
+    {
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="AR aging">
+            <div class="kpi"><div class="lbl">AR open</div><div class="val">@_agingTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">0–30 days</div><div class="val">@_aging0To30.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">31–60 days</div><div class="val">@_aging31To60.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">61–90 days</div><div class="val">@_aging61To90.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">90+ days</div><div class="val">@_aging90Plus.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        </div>
+    }
+
     @if (_openedDetail is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
@@ -183,6 +194,11 @@
     private IReadOnlyList<ErpInvoiceDigest> _visible = [];
     private int _open;
     private decimal _totalInclVat;
+    private decimal _agingTotal;
+    private decimal _aging0To30;
+    private decimal _aging31To60;
+    private decimal _aging61To90;
+    private decimal _aging90Plus;
     private int _limit = 100;
     private string _status = "all";
     private string _source = "n/a";
@@ -308,6 +324,13 @@
         }
         _open = _invoices.Count(IsOpenInvoice);
         _totalInclVat = _visible.Sum(i => i.TotalInclVat);
+        var nowUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var openAr = _invoices.Where(i => i.AmountDue > 0 && !i.Status.Contains("cancel", StringComparison.OrdinalIgnoreCase) && !string.Equals(i.Status, "void", StringComparison.OrdinalIgnoreCase));
+        _aging0To30 = openAr.Where(i => nowUnix - i.IssueDate <= 30L * 86400).Sum(i => i.AmountDue);
+        _aging31To60 = openAr.Where(i => nowUnix - i.IssueDate > 30L * 86400 && nowUnix - i.IssueDate <= 60L * 86400).Sum(i => i.AmountDue);
+        _aging61To90 = openAr.Where(i => nowUnix - i.IssueDate > 60L * 86400 && nowUnix - i.IssueDate <= 90L * 86400).Sum(i => i.AmountDue);
+        _aging90Plus = openAr.Where(i => nowUnix - i.IssueDate > 90L * 86400).Sum(i => i.AmountDue);
+        _agingTotal = _aging0To30 + _aging31To60 + _aging61To90 + _aging90Plus;
         _source = result.Source;
         _message = result.Message;
     }
