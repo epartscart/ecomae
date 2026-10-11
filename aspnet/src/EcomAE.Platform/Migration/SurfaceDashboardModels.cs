@@ -442,7 +442,9 @@ public sealed record ErpPurchaseDigest(
     decimal TotalAmount,
     string Status,
     long OrderId,
-    IReadOnlyList<ErpDocumentLineDigest> Lines);
+    IReadOnlyList<ErpDocumentLineDigest> Lines,
+    decimal PaidAmount,
+    decimal AmountDue);
 
 public sealed record ErpPurchaseListResult(
     IReadOnlyList<ErpPurchaseDigest> Purchases,
