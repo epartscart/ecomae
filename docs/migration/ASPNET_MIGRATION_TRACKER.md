@@ -212,7 +212,7 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: the country list `content/users/epc_countries.php`. Retired: `content/users/epc_reg_fields_compliance.php`, which nothing includes or calls.
    - Done: the e-invoice schema `content/shop/finance/epc_einvoice_schema.php`. Partly done: the validation and save half of `epc_registration_enhanced.php` (the render half remains) and the `customer_vat_type` sync of `epc_uae_customer_vat.php`. See the checkpoint below.
    - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `epc_session_security.php`, the agreement module.
-   - `content/shop/catalogue` (41 files): `printProducts.php`, `printProducts_2.php`, the remaining product pages, compare, bookmarks, SKU media, the text search algorithm, the tree lists. Done: `printProduct_Info.php` and `product_page_for_customer.php` (see the checkpoint below).
+   - `content/shop/catalogue` (41 files): remaining product pages, SKU media, the tree lists. Done: `printProduct_Info.php`, `product_page_for_customer.php`, `printProducts.php`, `printProducts_2.php`, `printCategories.php`, `set_cookie_products_style.php`, `text_search_algorithm.php`, `compare/compare.php`, `bookmarks/bookmarks.php`.
    - `content/shop/docpart` (44 files): `part_search_page.php` and `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest.
    - `modules/*`: login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats).
    - Front templates `expan`, `modex` and `limo`; `core/dp_core.php` and `dp_helper.php` behaviour; plugins (metadata handler, phone/tablet, error pages, shop cart).
@@ -233,9 +233,9 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Retired: `content/shop/document_control/epc_document_control_cp_install.php` (PHP CP CMS installer; reason in `inventory/PHP_RETIRED.tsv`).
    - Moved to step 7: the ERP portal half of `epc_erp_access.php` (`epc_erp_portal_*`, tab rights `epc_erp_user_allowed_tabs` / `epc_erp_user_can_access_tab`). Only the ERP shell (`erp_main.php`) and the `/erp` portal pages use it.
 3. **Control Panel shop pages.**
-   - `cp/content/shop/order_process` (20 files): `order_card.php`, `orders_items.php` and its add, edit and reload modals, the orders detail pane, the fulfilment, OMS and WhatsApp guides, `epc_order_whatsapp_share.php`.
-   - `cp/content/shop/catalogue/product.php` and its includes.
-   - `cp/content/shop/prices_upload` page bodies: `upload_file.php`, `price_review.php`, the download manager, update history, multivendor and commerce upload. These must reuse the existing price importer.
+   - `cp/content/shop/order_process` (20 files): done on the `/cp/orders` workspace (`order_card.php`, `orders_items.php` add/edit/reload, detail pane, fulfilment/OMS/WhatsApp guides, `epc_order_whatsapp_share.php`). OMS write ajax stay unmapped (ERP lock).
+   - `cp/content/shop/catalogue/product.php` and its includes: done on `/cp/product-catalogue-app`. Multipart image bytes stay Classic.
+   - `cp/content/shop/prices_upload` page bodies: done on `/cp/prices-upload-app` (`upload_file.php`, `price_review.php`, the download manager, update history, multivendor and commerce upload). These reuse the existing price importer.
    - Smaller sets: logistics, crosses, data transfer, document control, channels, marketing, tenant hub, POS, payments, demand countries, manufacturer synonyms, eparts catalogue and mod, accessories, statistics.
    - `cp/content/users`, `cp/content/lang`, `cp/content/packs_control`, the file manager, `cp/content/requests`, the content structure dumps.
    - The CP plugins `2fa` and `authentication`; CP modules (bread crumbs, left menu, SSL check, logout).
@@ -331,7 +331,7 @@ Not complete.
 - `StorefrontMyOrders` and `StorefrontMyOrdersItems` now consume that common loader instead of maintaining separate reference queries. The helper is read-only.
 - Evidence: PHP 8.3 ran the authoritative helper for empty and populated/duplicate/null cases on isolated databases. The golden records include all fields and before/after row counts. The loader plus both consumer regression suites passed 16 of 16; the full suite passed 5,914 of 5,914 after a clean build with 0 warnings and 0 errors.
 - All four customer order-list route aliases return 200 with fake cookies. `docpart.sessions` stayed 73 before and after. Post-test invariants: `ecomae_cpw_%` = 0, `docpart.users` = 2, `ecomae.users` = 2.
-- Next storefront gap: `content/shop/catalogue/printProducts.php`.
+- Next storefront gap: remaining `content/shop/catalogue` leftovers (SKU media, tree lists, special searches, product description/spec includes). Closed on this branch: `printProducts.php`, `printProducts_2.php`, `printCategories.php`, `set_cookie_products_style.php`, `text_search_algorithm.php`, `compare/compare.php`, `bookmarks/bookmarks.php`.
 
 ### Checkpoint 2026-10-09 — storefront product information (`printProduct_Info.php`) like PHP
 

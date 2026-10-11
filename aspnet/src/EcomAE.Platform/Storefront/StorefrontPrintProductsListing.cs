@@ -47,7 +47,8 @@ public static class StorefrontPrintProductsListing
         string? categoryUrl,
         string? search,
         string sort,
-        int style)
+        int style,
+        int page = 1)
     {
         var parts = new List<string>();
         if (categoryId > 0)
@@ -66,6 +67,11 @@ public static class StorefrontPrintProductsListing
 
         parts.Add("sort=" + Uri.EscapeDataString(NormalizeSort(sort, false)));
         parts.Add("s=" + NormalizeStyle(style.ToString(CultureInfo.InvariantCulture)).ToString(CultureInfo.InvariantCulture));
+        if (page > 1)
+        {
+            parts.Add("page=" + page.ToString(CultureInfo.InvariantCulture));
+        }
+
         var path = string.IsNullOrWhiteSpace(basePath) ? "/storefront/own-catalog-app" : basePath;
         return path + "?" + string.Join('&', parts);
     }

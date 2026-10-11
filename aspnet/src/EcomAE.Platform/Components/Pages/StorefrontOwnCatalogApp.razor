@@ -10,6 +10,7 @@
 @using EcomAE.Platform.Storefront
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject NavigationManager Nav
+@inject IHttpContextAccessor Http
 
 <PageTitle>Own catalog · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -26,7 +27,17 @@
         .epc-own-cat__grid--style-2 { display:flex; flex-direction:column; gap:.55rem; }
         .epc-own-cat__grid--style-3 { display:block; }
         .epc-own-cat__grid--style-3 .epc-own-cat__card { display:grid; grid-template-columns:2fr 1fr auto; gap:.75rem; align-items:center; }
-        @@media (max-width:720px){ .epc-own-cat__grid--style-3 .epc-own-cat__card { grid-template-columns:1fr; } }
+        .epc-own-cat__tiles { display:flex; flex-wrap:wrap; gap:.75rem; margin:0 0 1rem; padding:0 4px; }
+        .epc-own-cat__tile { width:calc(33.333% - .5rem); min-width:9rem; text-decoration:none; color:inherit; background:#fff; border:1px solid #e2e8f0; border-radius:.45rem; overflow:hidden; }
+        .epc-own-cat__tile:hover { border-color:#93c5fd; box-shadow:0 4px 14px rgba(37,99,235,.12); }
+        .epc-own-cat__tile-img { height:7rem; background:#f8fafc center / contain no-repeat; }
+        .epc-own-cat__tile-name { padding:.55rem .7rem; font-weight:700; font-size:.86rem; background:#0f172a; color:#fff; }
+        .epc-own-cat__pager { display:flex; flex-wrap:wrap; gap:.35rem; margin:1rem 0 .5rem; }
+        .epc-own-cat__pager a, .epc-own-cat__more { display:inline-flex; align-items:center; padding:.35rem .7rem; border:1px solid #cbd5e1; border-radius:.35rem; text-decoration:none; font-weight:700; font-size:.8rem; color:#0f172a; background:#fff; }
+        .epc-own-cat__pager a.is-active { border-color:#2563eb; background:#eff6ff; color:#1d4ed8; }
+        .epc-own-cat__pager a.is-disabled { opacity:.45; pointer-events:none; }
+        .epc-own-cat__more { margin:.25rem 0 0; background:#2563eb; color:#fff; border-color:#2563eb; }
+        @@media (max-width:720px){ .epc-own-cat__grid--style-3 .epc-own-cat__card { grid-template-columns:1fr; } .epc-own-cat__tile { width:calc(50% - .4rem); } }
     </style>
 </HeadContent>
 
@@ -77,8 +88,30 @@
                         </ul>
                     }
                 </aside>
-                <div class="epc-own-cat__main">
+                <div class="epc-own-cat__main"
+                     data-print-products="@StorefrontPrintProducts.PrintProductsPath"
+                     data-print-categories="@StorefrontPrintProducts.PrintCategoriesPath"
+                     data-catalogue-page="@StorefrontPhpAjax.CataloguePagePath"
+                     data-style-cookie="@StorefrontPhpAjax.CatalogueStyleCookiePath">
                     <h2>@(string.IsNullOrEmpty(_categoryValue) ? (string.IsNullOrEmpty(_search) ? "Select a category" : "Search results") : _categoryValue)</h2>
+                    @if (_childTiles.Count > 0)
+                    {
+                        <div class="row epc-own-cat__tiles" id="printCategories">
+                            @foreach (var tile in _childTiles)
+                            {
+                                var href = string.IsNullOrWhiteSpace(tile.Href)
+                                    ? StorefrontSurfaceLinks.ForOwnCatalogCategory(tile.Url, tile.Id)
+                                    : tile.Href;
+                                var img = string.IsNullOrWhiteSpace(tile.Image)
+                                    ? "/content/files/images/no_image.png"
+                                    : "/content/files/images/catalogue_images/" + tile.Image;
+                                <a class="new-cat-block new-cat-block-catalog epc-own-cat__tile" href="@href">
+                                    <div class="new-cat-block-catalog-img epc-own-cat__tile-img" style="background-image:url('@img')"></div>
+                                    <div class="new-cat-block-text navbar-inverse epc-own-cat__tile-name">@tile.Value</div>
+                                </a>
+                            }
+                        </div>
+                    }
                     <div class="epc-own-cat__meta">
                         @if (_products.Count > 0)
                         {
@@ -102,9 +135,9 @@
                             </div>
                             <div class="showRestyle_name">View</div>
                             <div class="showRestyle_wrap">
-                                <a class="showRestyle @(_style == 1 ? "is-active" : null)" href="@ListingHref(_sort, 1)" id="showRestyle_1">Grid</a>
-                                <a class="showRestyle @(_style == 2 ? "is-active" : null)" href="@ListingHref(_sort, 2)" id="showRestyle_2">List</a>
-                                <a class="showRestyle @(_style == 3 ? "is-active" : null)" href="@ListingHref(_sort, 3)" id="showRestyle_3">Table</a>
+                                <a class="showRestyle @(_style == 1 ? "is-active" : null)" href="@ListingHref(_sort, 1)" id="showRestyle_1" data-style="1" onclick="return window.epcShowRestyle && epcShowRestyle(this)">Grid</a>
+                                <a class="showRestyle @(_style == 2 ? "is-active" : null)" href="@ListingHref(_sort, 2)" id="showRestyle_2" data-style="2" onclick="return window.epcShowRestyle && epcShowRestyle(this)">List</a>
+                                <a class="showRestyle @(_style == 3 ? "is-active" : null)" href="@ListingHref(_sort, 3)" id="showRestyle_3" data-style="3" onclick="return window.epcShowRestyle && epcShowRestyle(this)">Table</a>
                             </div>
                         </div>
                     }
@@ -123,7 +156,7 @@
                     }
                     else if (_products.Count > 0)
                     {
-                        <div class="epc-own-cat__grid epc-own-cat__grid--style-@_style">
+                        <div class="epc-own-cat__grid epc-own-cat__grid--style-@_style" id="products_area">
                             @foreach (var p in _products)
                             {
                                 var href = StorefrontSurfaceLinks.ForProduct(p.Id);
@@ -138,6 +171,16 @@
                                 </article>
                             }
                         </div>
+                        <div class="epc-own-cat__pager" id="bottom_pagination_div">
+                            @foreach (var link in _pager)
+                            {
+                                <a class="btn btn-default @(link.Active ? "is-active" : null) @(link.Disabled ? "is-disabled" : null)" href="@link.Href">@link.Label</a>
+                            }
+                        </div>
+                        @if (_hasMore)
+                        {
+                            <a class="epc-own-cat__more" id="bottom_show_more_btn" href="@ListingHref(_sort, _style, _page + 1)">Show more</a>
+                        }
                     }
                 </div>
             </div>
@@ -147,7 +190,9 @@
 
 @code {
     private IReadOnlyList<StorefrontCatalogueCategoryNode> _tree = [];
+    private IReadOnlyList<StorefrontCatalogueCategoryNode> _childTiles = [];
     private IReadOnlyList<StorefrontProductDigest> _products = [];
+    private IReadOnlyList<StorefrontPrintProducts.PagerLink> _pager = [];
     private string _search = "";
     private string _categoryUrl = "";
     private string _categoryValue = "";
@@ -155,6 +200,8 @@
     private string _productsMessage = "";
     private int _categoryId;
     private int _style = 1;
+    private int _page = 1;
+    private bool _hasMore;
     private string _sort = StorefrontPrintProductsListing.SortNameAsc;
     private bool _loadedProducts;
 
@@ -181,8 +228,11 @@
         _sort = StorefrontPrintProductsListing.NormalizeSort(
             query.TryGetValue("sort", out var sort) ? sort.ToString() : null,
             priceSourced: false);
-        _style = StorefrontPrintProductsListing.NormalizeStyle(
-            query.TryGetValue("s", out var style) ? style.ToString() : null);
+        _page = StorefrontPrintProducts.NormalizePage(
+            query.TryGetValue("page", out var page) ? page.ToString() : null);
+        _style = StorefrontPrintProducts.ResolveStyle(
+            query.TryGetValue("s", out var style) ? style.ToString() : null,
+            Http.HttpContext?.Request.Cookies[StorefrontPrintProducts.StyleCookieName]);
 
         try
         {
@@ -201,17 +251,20 @@
             _treeError = "Catalogue tree is temporarily unavailable.";
         }
 
+        _childTiles = StorefrontPrintProducts.CustomerCategoryTiles(_tree, _categoryId, _categoryUrl);
+
         if (_categoryId > 0 || _categoryUrl.Length > 0 || _search.Length > 0)
         {
             try
             {
                 var products = await Dashboards.ListStorefrontCatalogueProductsAsync(
-                    _categoryId, _categoryUrl, _search, 48);
+                    _categoryId, _categoryUrl, _search, StorefrontPrintProducts.LoadLimit(_page));
                 _loadedProducts = true;
                 _products = StorefrontPrintProductsListing.SortByName(products.Rows, _sort, ProductCaption);
                 _categoryId = products.CategoryId;
                 _categoryUrl = products.CategoryUrl;
                 _categoryValue = products.CategoryValue;
+                _hasMore = _products.Count == StorefrontPrintProducts.LoadLimit(_page);
                 _productsMessage = string.IsNullOrWhiteSpace(products.Message)
                     ? (products.Count == 0 ? "No products in this category." : "")
                     : products.Message;
@@ -223,6 +276,8 @@
                 _productsMessage = "Products are temporarily unavailable.";
             }
         }
+
+        _pager = StorefrontPrintProducts.Pagination(ListingHref(_sort, _style), _page, _products.Count, _hasMore);
     }
 
     private RenderFragment RenderNode(StorefrontCatalogueCategoryNode node) => builder =>
@@ -262,6 +317,16 @@
             ? (string.IsNullOrWhiteSpace(product.Alias) ? ("#" + product.Id.ToString(CultureInfo.InvariantCulture)) : product.Alias)
             : product.Caption;
 
-    private string ListingHref(string sort, int style)
-        => StorefrontPrintProductsListing.ListingHref("/storefront/own-catalog-app", _categoryId, _categoryUrl, _search, sort, style);
+    private string ListingHref(string sort, int style, int page = 1)
+        => StorefrontPrintProductsListing.ListingHref("/storefront/own-catalog-app", _categoryId, _categoryUrl, _search, sort, style, page);
 }
+
+<script>
+function epcShowRestyle(link) {
+    var style = link && link.getAttribute('data-style');
+    if (!style) { return true; }
+    fetch('@StorefrontPhpAjax.CatalogueStyleCookiePath?products_style=' + encodeURIComponent(style), { credentials: 'same-origin' })
+        .finally(function () { window.location.href = link.getAttribute('href'); });
+    return false;
+}
+</script>
