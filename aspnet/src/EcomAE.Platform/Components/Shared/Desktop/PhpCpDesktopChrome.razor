@@ -519,7 +519,9 @@ else
         var host = Http.HttpContext?.Request.Host.Host;
         _brand = LoginHostBrand.Resolve(host, "cp");
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
-        _hideCpMegaMenu = _showBos && IsSuperHome(_currentPath);
+        // Super CP has its own BOC mega-menu on home. Inner Super pages keep the header
+        // switchers only — never the tenant shop mega-menu (repeats + wrong links).
+        _hideCpMegaMenu = _showBos;
         // Tenant industry (epartscart → auto_parts) drives jewellery menu filtering.
         if (!_showBos && !string.IsNullOrWhiteSpace(host))
         {
@@ -553,11 +555,6 @@ else
         _showErp = SurfaceChromePolicy.ShowErpSwitcher(session, SurfaceChromePolicy.ModeOf(ctx));
         _navGroups = await NavMenu.BuildAsync(host, session, ctx.RequestAborted);
     }
-
-    private static bool IsSuperHome(string path)
-        => path.Equals("/cp", StringComparison.OrdinalIgnoreCase)
-           || path.Equals("/cp/app", StringComparison.OrdinalIgnoreCase)
-           || path.Equals("/cp/control", StringComparison.OrdinalIgnoreCase);
 
     private bool GroupIsActive(CpNavGroup group) => group.Items.Any(i => PathIsActive(i.Url));
 
