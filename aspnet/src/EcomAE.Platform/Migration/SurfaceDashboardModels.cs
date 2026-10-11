@@ -4434,11 +4434,56 @@ public sealed record CpJewelleryMastersCurrencyDigest(
     decimal ConvRate,
     string Status);
 
+public sealed record CpJewelleryMastersDiamondDigest(
+    long Id,
+    long CompanyId,
+    string ItemCode,
+    string Description,
+    string Color,
+    string Clarity,
+    string Type,
+    string Brand,
+    string Currency,
+    decimal CurrencyRate);
+
+public sealed record CpJewelleryMastersDesignDigest(
+    long Id,
+    long CompanyId,
+    string DesignCode,
+    string Description,
+    string Category,
+    string Brand,
+    decimal CostAmount,
+    decimal Price1Lc);
+
+public sealed record CpJewelleryMastersPearlDigest(
+    long Id,
+    long CompanyId,
+    string Code,
+    string Description,
+    string Size,
+    string Color,
+    decimal Rate);
+
+public sealed record CpJewelleryMastersColorStoneDigest(
+    long Id,
+    long CompanyId,
+    string Code,
+    string Description,
+    string Color,
+    string Shape,
+    string Size,
+    decimal Rate);
+
 public sealed record CpJewelleryMastersDigestResult(
     CpJewelleryMastersSummary Summary,
     IReadOnlyList<CpJewelleryMastersKaratDigest> Karats,
     IReadOnlyList<CpJewelleryMastersRateTypeDigest> RateTypes,
     IReadOnlyList<CpJewelleryMastersCurrencyDigest> Currencies,
+    IReadOnlyList<CpJewelleryMastersDiamondDigest> Diamonds,
+    IReadOnlyList<CpJewelleryMastersDesignDigest> Designs,
+    IReadOnlyList<CpJewelleryMastersPearlDigest> Pearls,
+    IReadOnlyList<CpJewelleryMastersColorStoneDigest> ColorStones,
     int Count,
     string Source,
     string Message);

@@ -526,6 +526,67 @@
                         </tr>
                     }
                 }
+                else if (_tab == "jw_diamond" && _diamonds.Count > 0)
+                {
+                    @foreach (var (row, i) in _diamonds.Select((r, i) => (r, i)))
+                    {
+                        <tr>
+                            <td>@((i + 1).ToString(CultureInfo.InvariantCulture))</td>
+                            <td><strong>@(string.IsNullOrWhiteSpace(row.ItemCode) ? "—" : row.ItemCode)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Description) ? "—" : row.Description)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Color) ? "—" : row.Color)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Clarity) ? "—" : row.Clarity)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Type) ? "—" : row.Type)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Brand) ? "—" : row.Brand)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Currency) ? "—" : row.Currency)</td>
+                            <td>@row.CurrencyRate.ToString("N5", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                }
+                else if (_tab == "jw_design" && _designs.Count > 0)
+                {
+                    @foreach (var (row, i) in _designs.Select((r, i) => (r, i)))
+                    {
+                        <tr>
+                            <td>@((i + 1).ToString(CultureInfo.InvariantCulture))</td>
+                            <td><strong>@(string.IsNullOrWhiteSpace(row.DesignCode) ? "—" : row.DesignCode)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Description) ? "—" : row.Description)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Category) ? "—" : row.Category)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Brand) ? "—" : row.Brand)</td>
+                            <td>@row.CostAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@row.Price1Lc.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                }
+                else if (_tab == "jw_pearl" && _pearls.Count > 0)
+                {
+                    @foreach (var (row, i) in _pearls.Select((r, i) => (r, i)))
+                    {
+                        <tr>
+                            <td>@((i + 1).ToString(CultureInfo.InvariantCulture))</td>
+                            <td><strong>@(string.IsNullOrWhiteSpace(row.Code) ? "—" : row.Code)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Description) ? "—" : row.Description)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Size) ? "—" : row.Size)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Color) ? "—" : row.Color)</td>
+                            <td>@row.Rate.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                }
+                else if (_tab == "jw_color_stone" && _colorStones.Count > 0)
+                {
+                    @foreach (var (row, i) in _colorStones.Select((r, i) => (r, i)))
+                    {
+                        <tr>
+                            <td>@((i + 1).ToString(CultureInfo.InvariantCulture))</td>
+                            <td><strong>@(string.IsNullOrWhiteSpace(row.Code) ? "—" : row.Code)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Description) ? "—" : row.Description)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Color) ? "—" : row.Color)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Shape) ? "—" : row.Shape)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Size) ? "—" : row.Size)</td>
+                            <td>@row.Rate.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                }
                 else if (_tab == "jw_karat" && _rows.Count > 0)
                 {
                     @foreach (var row in _karatDisplay)
@@ -550,7 +611,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Karat, rate-type and currency rows bind from <code>epc_jewel_karat_master</code>, <code>epc_jewel_rate_type</code> and <code>epc_jewel_currency</code>. Karat, rate-type, currency, diamond, design, pearl, color-stone, barcode generate, tag create/sell, and gold-scheme create/enroll/pay are live when confirmed. Seed and gold-rate refresh stay Classic.
+        Source: @_source. Karat, rate-type, currency, diamond, design, pearl and color-stone rows bind from the master tables <code>epc_jewel_karat_master</code>, <code>epc_jewel_rate_type</code> and <code>epc_jewel_currency</code>. Karat, rate-type, currency, diamond, design, pearl, color-stone, barcode generate, tag create/sell, and gold-scheme create/enroll/pay are live when confirmed. Seed and gold-rate refresh stay Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -567,6 +628,10 @@
     private IReadOnlyList<CpJewelleryMastersKaratDigest> _rows = [];
     private IReadOnlyList<CpJewelleryMastersRateTypeDigest> _rateTypes = [];
     private IReadOnlyList<CpJewelleryMastersCurrencyDigest> _currencies = [];
+    private IReadOnlyList<CpJewelleryMastersDiamondDigest> _diamonds = [];
+    private IReadOnlyList<CpJewelleryMastersDesignDigest> _designs = [];
+    private IReadOnlyList<CpJewelleryMastersPearlDigest> _pearls = [];
+    private IReadOnlyList<CpJewelleryMastersColorStoneDigest> _colorStones = [];
     private IReadOnlyList<KaratRow> _karatDisplay = [];
     private string _source = "n/a";
     private string _message = "";
@@ -620,6 +685,10 @@
         _rows = result.Karats;
         _rateTypes = result.RateTypes;
         _currencies = result.Currencies;
+        _diamonds = result.Diamonds;
+        _designs = result.Designs;
+        _pearls = result.Pearls;
+        _colorStones = result.ColorStones;
         _karatDisplay = _rows.Select((r, i) => new KaratRow((i + 1).ToString(CultureInfo.InvariantCulture), r)).ToList();
         _source = result.Source;
         _message = result.Message;

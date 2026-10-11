@@ -5501,6 +5501,54 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Jewellery diamond masters.</summary>
+    public const string SelectCpJewelleryMastersDiamonds = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`item_code`,'') AS item_code,
+               IFNULL(`description`,'') AS description, IFNULL(`color`,'') AS color,
+               IFNULL(`clarity`,'') AS clarity, IFNULL(`type`,'') AS type,
+               IFNULL(`brand`,'') AS brand, IFNULL(`currency`,'') AS currency,
+               IFNULL(`currency_rate`,0) AS currency_rate
+        FROM `epc_jewel_diamond_master`
+        WHERE @companyId = 0 OR `company_id` = @companyId
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Jewellery design masters.</summary>
+    public const string SelectCpJewelleryMastersDesigns = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`design_code`,'') AS design_code,
+               IFNULL(`description`,'') AS description, IFNULL(`category`,'') AS category,
+               IFNULL(`brand`,'') AS brand, IFNULL(`cost_amount`,0) AS cost_amount,
+               IFNULL(`price1_lc`,0) AS price1_lc
+        FROM `epc_jewel_design`
+        WHERE @companyId = 0 OR `company_id` = @companyId
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Jewellery pearl masters.</summary>
+    public const string SelectCpJewelleryMastersPearls = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`code`,'') AS code,
+               IFNULL(`description`,'') AS description, IFNULL(`size`,'') AS size,
+               IFNULL(`color`,'') AS color, IFNULL(`rate`,0) AS rate
+        FROM `epc_jewel_pearl_master`
+        WHERE @companyId = 0 OR `company_id` = @companyId
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Jewellery color-stone masters.</summary>
+    public const string SelectCpJewelleryMastersColorStones = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`code`,'') AS code,
+               IFNULL(`description`,'') AS description, IFNULL(`color`,'') AS color,
+               IFNULL(`shape`,'') AS shape, IFNULL(`size`,'') AS size,
+               IFNULL(`rate`,0) AS rate
+        FROM `epc_jewel_color_stone_master`
+        WHERE @companyId = 0 OR `company_id` = @companyId
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>Jewellery currency masters.</summary>
     public const string SelectCpJewelleryMastersCurrencies = """
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`curr_code`,'') AS curr_code,
