@@ -28447,6 +28447,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpLazySchema.EnsureMultiEntityAsync(connection, cancellationToken).ConfigureAwait(false);
             var groups = new List<ErpEntityGroupDigest>();
             await using (var command = connection.CreateCommand())
             {

@@ -291,4 +291,28 @@ public sealed class ErpFreshTenantAcceptanceFixTests
         Assert.True(EcomAE.Platform.Middleware.AdminSurfaceAuthGateMiddleware.IsControlPanelPath("/cp/orders"));
         Assert.False(EcomAE.Platform.Middleware.AdminSurfaceAuthGateMiddleware.IsControlPanelPath("/erp/fin-advanced-app"));
     }
+
+    [Theory]
+    [InlineData("epc_entity_groups")]
+    [InlineData("epc_entity_members")]
+    [InlineData("epc_intercompany_txns")]
+    public void Multi_entity_schema_is_lazily_ensured_like_php(string table)
+    {
+        var lazy = Read("aspnet/src/EcomAE.Platform/Erp/ErpLazySchema.cs");
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `" + table + "`", lazy);
+        foreach (var file in new[]
+                 {
+                     "aspnet/src/EcomAE.Platform/Erp/ErpMultiEntityWriteService.cs",
+                     "aspnet/src/EcomAE.Platform/Erp/ErpConsolidatedTrialBalanceReadService.cs",
+                 })
+        {
+            Assert.Contains("ErpLazySchema.EnsureMultiEntityAsync(connection, cancellationToken)", Read(file));
+        }
+
+        var reporter = Read("aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs");
+        var list = reporter.IndexOf("ListErpMultiEntityAsync(", StringComparison.Ordinal);
+        var ensure = reporter.IndexOf("ErpLazySchema.EnsureMultiEntityAsync(connection, cancellationToken)", list, StringComparison.Ordinal);
+        var select = reporter.IndexOf("LegacySurfaceDashboardSql.SelectErpEntityGroups", list, StringComparison.Ordinal);
+        Assert.True(ensure > list && ensure < select);
+    }
 }
