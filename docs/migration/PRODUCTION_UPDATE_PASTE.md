@@ -127,3 +127,32 @@ bash scripts/cloudpanel_capture_final_gate_artifacts.sh
 
 Login `https://www.ecomae.com/CP/` first if the admin session probe fails.
 Do **not** remove PHP.
+
+## 7. Disk / incoming-traffic check (2026-10-11)
+
+CloudPanel Overview on `srv1672837` showed **incoming 118.3 MB** (red line) and
+**disk 60 GB**. That is not a proven attack from here:
+
+- Incoming card is red by default in CloudPanel; outgoing is blue. 118 MB in /
+  78 MB out is modest. CPU was 28%, memory 33%.
+- `https://www.ecomae.com/health` and `/ready` were HTTP **200** (`Healthy` /
+  `{"status":"ready"}`) when probed at origin `31.97.216.247` with SNI.
+  Homepage ~100 KB in 0.7s. Bare `http://31.97.216.247/` 502 is Pingora
+  without a Host header, not a down origin.
+- SSH from this agent is denied. Leftover Cursor `ecomae_cpw_*` tests used
+  the local agent MariaDB only (0 leftover there). They did not write
+  production.
+
+Likely disk fill (confirm on the box, then cut): CloudPanel **snapshots
+(4 on Overview)**, stacked `/var/www/ecomae-aspnet/releases/*` publishes,
+nginx/mysql logs, MySQL datadir. Tracker already notes many parallel
+PHP-FPM versions — **do not prune those**.
+
+Read-only report as root:
+
+```bash
+bash /opt/ecomae-aspnet-source/scripts/cloudpanel_disk_load_diagnose.sh
+```
+
+If the source tree is not there yet, copy the script from git first. The
+script deletes nothing.
