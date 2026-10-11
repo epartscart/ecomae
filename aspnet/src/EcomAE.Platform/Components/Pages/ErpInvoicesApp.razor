@@ -104,6 +104,26 @@
                 Fields="@InvoiceWorkspaceFields"
                 Lines="@InvoiceWorkspaceLines"
                 HeaderActions="@InvoiceHeaderActions" />
+            @if (_openedAttachments.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Attachments</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>File</th><th>Category</th><th>Reference</th><th class="text-right">Size</th><th class="text-right">Uploaded</th><th>By</th></tr></thead>
+                    <tbody>
+                        @foreach (var at in _openedAttachments)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(at.FileName) ? "—" : at.FileName)</td>
+                                <td>@(string.IsNullOrWhiteSpace(at.DocCategory) ? "—" : at.DocCategory)</td>
+                                <td>@(string.IsNullOrWhiteSpace(at.ReferenceNo) ? "—" : at.ReferenceNo)</td>
+                                <td class="text-right">@(at.FileSize > 0 ? at.FileSize.ToString("N0", CultureInfo.InvariantCulture) + " B" : "—")</td>
+                                <td class="text-right">@FormatTime(at.UploadedAt)</td>
+                                <td>@(at.UploadedBy > 0 ? at.UploadedBy.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
             @if (_openedSettlements.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Settlement history</p>
@@ -272,6 +292,7 @@
     private ErpInvoiceDetail? _openedDetail;
     private IReadOnlyList<ErpInvoiceDigest> _openedSiblings = [];
     private IReadOnlyList<ErpInvoiceSettlementRow> _openedSettlements = [];
+    private IReadOnlyList<ErpDocumentAttachmentRow> _openedAttachments = [];
     private RenderFragment? InvoiceHeaderActions => _isAdmin && _openedDetail is not null && _openedDetail.Id > 0
         ? @<div>
             <strong>Invoice lifecycle actions</strong>
@@ -343,6 +364,7 @@
             _openedDimensionLinks = await DimensionLinks.LoadAsync("invoice", _openedId, ctx.RequestAborted);
             _openedSiblings = detail.Siblings;
             _openedSettlements = detail.Settlements;
+            _openedAttachments = detail.Attachments;
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
                 _message = detail.Message;
