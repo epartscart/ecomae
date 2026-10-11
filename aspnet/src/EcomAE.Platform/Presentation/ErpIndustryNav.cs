@@ -27,7 +27,8 @@ public static class ErpIndustryNav
         string? CountryCode,
         bool IsSuperErp,
         IReadOnlySet<string>? DisabledTabIds = null,
-        IReadOnlySet<string>? EnabledModuleIds = null);
+        IReadOnlySet<string>? EnabledModuleIds = null,
+        ErpCompanyDigest? Company = null);
 
     private static readonly HashSet<string> JewelleryTabIds = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -54,6 +55,22 @@ public static class ErpIndustryNav
             || name.Contains("jewel", StringComparison.Ordinal)
             || code is "jw" or "jewellery";
     }
+
+    public static bool IsFitOutIndustry(string? industryCode)
+    {
+        var code = (industryCode ?? string.Empty).Trim().ToLowerInvariant();
+        return code.Contains("fitout", StringComparison.Ordinal)
+            || code.Contains("fit_out", StringComparison.Ordinal)
+            || code.Contains("fit-out", StringComparison.Ordinal)
+            || code.Contains("construction", StringComparison.Ordinal);
+    }
+
+    /// <summary>Fit-out modules are allowed by the host industry or by the active company (pack, code or name), like the route gate.</summary>
+    public static bool ShowFitOutModules(string? hostIndustryCode, ErpCompanyDigest? company)
+        => IsFitOutIndustry(hostIndustryCode) || IsFitOutCompany(company);
+
+    public static bool IsFitOutTab(PhpModuleCatalog.ModuleLink tab)
+        => string.Equals(TabKey(tab), "project_accounting", StringComparison.OrdinalIgnoreCase);
 
     public static bool IsFitOutCompany(ErpCompanyDigest? company)
     {
@@ -247,14 +264,18 @@ public static class ErpIndustryNav
         PhpModuleCatalog.ModuleLink tab,
         ErpNavAudience audience)
     {
-        if (!audience.IsSuperErp
-            && IsJewelleryTab(tab)
+        if (IsJewelleryTab(tab)
             && !IsJewelleryFromHostOrPack(
                 audience.IndustryCode,
                 audience.IndustryCode,
-                null))
+                audience.Company))
         {
             return new(false, "industry", "Jewellery module requires the jewellery industry pack.");
+        }
+
+        if (IsFitOutTab(tab) && !ShowFitOutModules(audience.IndustryCode, audience.Company))
+        {
+            return new(false, "industry", "Project accounting requires the fit-out / construction industry pack.");
         }
 
         if (audience.DisabledTabIds is { Count: > 0 }

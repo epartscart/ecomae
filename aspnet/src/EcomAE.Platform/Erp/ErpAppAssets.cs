@@ -16,6 +16,15 @@ public static class ErpAppAssets
         "erp-purchase-orders.js",
     };
 
+    public const string StylePrefix = "/platform-assets/css";
+
+    private static readonly HashSet<string> StyleAllow = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "epc-enterprise-design-system.css",
+        "erp-document-workspace.css",
+        "erp-finance-voucher-workspace.css",
+    };
+
     public static void Map(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet(PathPrefix + "/{fileName}.js", (IWebHostEnvironment env, string fileName) =>
@@ -37,6 +46,27 @@ public static class ErpAppAssets
             }
 
             return Results.File(path, "application/javascript; charset=utf-8");
+        });
+
+        endpoints.MapGet(StylePrefix + "/{fileName}.css", (IWebHostEnvironment env, string fileName) =>
+        {
+            var file = fileName + ".css";
+            if (!StyleAllow.Contains(file))
+            {
+                return Results.NotFound(new { ok = false, error = "unknown-erp-asset", file });
+            }
+
+            var webRoot = string.IsNullOrWhiteSpace(env.WebRootPath)
+                ? Path.Combine(env.ContentRootPath, "wwwroot")
+                : env.WebRootPath;
+            var root = Path.GetFullPath(Path.Combine(webRoot, "css"));
+            var path = Path.GetFullPath(Path.Combine(root, file));
+            if (!path.StartsWith(root, StringComparison.Ordinal) || !File.Exists(path))
+            {
+                return Results.NotFound(new { ok = false, error = "missing-erp-asset", file });
+            }
+
+            return Results.File(path, "text/css; charset=utf-8");
         });
     }
 }

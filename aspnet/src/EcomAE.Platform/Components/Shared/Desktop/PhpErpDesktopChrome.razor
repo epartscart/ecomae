@@ -516,7 +516,8 @@
                 countryCode,
                 _showBos,
                 DisabledTabIds: tenantRules.DisabledTabIds,
-                EnabledModuleIds: tenantRules.EnabledModuleIds));
+                EnabledModuleIds: tenantRules.EnabledModuleIds,
+                Company: active));
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _signedIn = session.Kind == LegacySessionKind.Admin || IsAdmin;
