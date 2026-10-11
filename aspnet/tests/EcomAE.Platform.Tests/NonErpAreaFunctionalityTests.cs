@@ -2547,6 +2547,25 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.Equal("cp/content/control/portal/epc_super_cp_customer_board.php", PhpPlanQ1Hike.CustomerBoardPath);
     }
 
+    [Fact]
+    public void FreeToolsPublicPage_HubAndToolStayOnTheConfiguredHost()
+    {
+        PhpPlanQ1Hill.Reset();
+        var catalog = PhpPlanQ1Hill.EpcFreeToolsCatalog();
+        var acme = PhpPlanQ1Hill.EpcFreeToolsRenderHub(catalog, "https://acme.example/");
+        var beta = PhpPlanQ1Hill.EpcFreeToolsRenderHub(catalog, "https://beta.example/");
+        var vat = PhpPlanQ1Hill.EpcFreeToolsRenderTool("vat", catalog["vat"], "https://acme.example/");
+        Assert.Contains("https://acme.example/platform/free-tools/vat", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("https://beta.example/", acme, StringComparison.Ordinal);
+        Assert.Contains("https://beta.example/platform/free-tools/vat", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("https://acme.example/", beta, StringComparison.Ordinal);
+        Assert.Contains("data-eft-tool=\"vat\"", vat, StringComparison.Ordinal);
+        Assert.Contains("Create free account", vat, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Hill.FreeToolsPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Hill.FreeToolsPath, StringComparison.Ordinal);
+        Assert.Equal("content/general_pages/epc_ecomae_free_tools.php", PhpPlanQ1Hill.FreeToolsPath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2653,6 +2672,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Howe.MobileAppsPath,
             PhpPlanQ1Hunt.TenantEmailSettingsPath,
             PhpPlanQ1Hike.CustomerBoardPath,
+            PhpPlanQ1Hill.FreeToolsPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
