@@ -2193,6 +2193,35 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.Equal("epartscart", PhpPlanQ1Delta.SiteKey);
     }
 
+    [Fact]
+    public void CpBrochurePage_BrandAndBaseStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Eddy.Reset();
+        PhpPlanQ1Eddy.HasConfig = true;
+        PhpPlanQ1Eddy.BackendDir = "acme";
+        PhpPlanQ1Eddy.IsSuperCp = () => false;
+        var acme = PhpPlanQ1Eddy.EpcCpBrochurePage();
+        PhpPlanQ1Eddy.BackendDir = "beta";
+        PhpPlanQ1Eddy.IsSuperCp = () => true;
+        PhpPlanQ1Eddy.Query = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["scope"] = "client",
+            ["print"] = "1"
+        };
+        var beta = PhpPlanQ1Eddy.EpcCpBrochurePage();
+        Assert.Contains("brand=epartscart", acme, StringComparison.Ordinal);
+        Assert.Contains("base_path=/acme/control/cp_brochure", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("brand=ecomae", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("/beta/", acme, StringComparison.Ordinal);
+        Assert.Contains("brand=ecomae", beta, StringComparison.Ordinal);
+        Assert.Contains("base_path=/beta/control/cp_brochure", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("brand=epartscart", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("/acme/", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Eddy.CpBrochurePagePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Eddy.CpBrochurePagePath, StringComparison.Ordinal);
+        Assert.Equal("cp/content/control/epc_cp_brochure_page.php", PhpPlanQ1Eddy.CpBrochurePagePath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2289,6 +2318,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Firth.ElectronicaeHomeProductLinesPath,
             PhpPlanQ1Creek.EpartscartHomeProductLinesPath,
             PhpPlanQ1Delta.EpartscartHomeNewArrivalsPath,
+            PhpPlanQ1Eddy.CpBrochurePagePath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
