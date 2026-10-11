@@ -213,6 +213,15 @@
                     {
                         <tr><td colspan="6" class="text-muted">No pending approvals.</td></tr>
                     }
+                    else
+                    {
+                        <tr style="font-weight:600;background:#f2f6fa">
+                            <td>Total</td>
+                            <td></td>
+                            <td>@_requests.Pending.Sum(r => r.Amount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td colspan="3" class="text-muted">@_requests.Pending.Count pending</td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
@@ -241,6 +250,15 @@
                     @if (_requests.History.Count == 0)
                     {
                         <tr><td colspan="6" class="text-muted">No approval requests yet.</td></tr>
+                    }
+                    else
+                    {
+                        <tr style="font-weight:600;background:#f2f6fa">
+                            <td>Total</td>
+                            <td></td>
+                            <td>@_requests.History.Sum(r => r.Amount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td colspan="3" class="text-muted">@_requests.History.Count requests</td>
+                        </tr>
                     }
                 </tbody>
             </table>
