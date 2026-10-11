@@ -52,6 +52,7 @@ public sealed class ErpCollectionsDunningRunWriteService : IErpCollectionsDunnin
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpCreditSchema.EnsureCollectionsAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_coll_dunning", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_coll_dunning", "run_id", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_coll_dunning", "message", cancellationToken).ConfigureAwait(false))

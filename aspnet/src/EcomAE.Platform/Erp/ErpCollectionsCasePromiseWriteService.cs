@@ -52,6 +52,7 @@ public sealed class ErpCollectionsCasePromiseWriteService : IErpCollectionsCaseP
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpCreditSchema.EnsureCollectionsAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_coll_cases", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_coll_cases", "promise_amount", cancellationToken).ConfigureAwait(false)
             || !await TableExistsAsync(connection, "epc_coll_activity", cancellationToken).ConfigureAwait(false)

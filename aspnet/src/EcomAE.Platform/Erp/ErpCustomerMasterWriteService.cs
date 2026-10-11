@@ -94,6 +94,7 @@ public sealed class ErpCustomerMasterWriteService : IErpCustomerMasterWriteServi
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpCreditSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_credit_profiles", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Credit profile tables are not provisioned");
