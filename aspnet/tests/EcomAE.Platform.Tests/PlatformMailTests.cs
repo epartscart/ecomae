@@ -79,6 +79,7 @@ public class PlatformMailTests
         Assert.Contains("Tenant steps", guide);
         Assert.Contains("ERP customer steps", guide);
         Assert.Contains("Publish Cloudflare DNS", guide);
+        Assert.Contains("purelymail.com", guide);
         Assert.Contains("Compose and send", guide);
         Assert.Contains("own inbox", guide);
         Assert.Contains("never Gmail", guide);
