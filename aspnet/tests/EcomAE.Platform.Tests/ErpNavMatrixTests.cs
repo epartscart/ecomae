@@ -228,4 +228,17 @@ public sealed class ErpNavMatrixTests
         Assert.False(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", company));
         Assert.False(IndustrySpecificRoutePolicy.Allows("fitout", "auto_parts", company));
     }
+
+    [Fact]
+    public void DirectoryTabsHideJewelleryForNonJewelleryTenant()
+    {
+        var all = ErpIndustryNav.DirectoryTabs(jewelleryCompany: true);
+        var core = ErpIndustryNav.DirectoryTabs(jewelleryCompany: false);
+
+        Assert.Equal(PhpModuleCatalog.ErpTabs.Count, all.Count);
+        Assert.True(core.Count < all.Count);
+        Assert.DoesNotContain(core, ErpIndustryNav.IsJewelleryTab);
+        Assert.Contains(all, ErpIndustryNav.IsJewelleryTab);
+        Assert.Contains(core, t => t.Id == "finance/coa");
+    }
 }

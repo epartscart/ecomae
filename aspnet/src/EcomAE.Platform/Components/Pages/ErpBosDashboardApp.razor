@@ -677,8 +677,8 @@
         PhpWorkspaceBase="/erp/app" />
     <PhpHybridModuleDirectory
         Title="Complete ERP module directory"
-        Subtitle="@($"{PhpModuleCatalog.ErpTabCount} ERP modules")"
-        Links="@PhpModuleCatalog.ErpTabs"
+        Subtitle="@($"{_directoryTabs.Count} ERP modules")"
+        Links="@_directoryTabs"
         PhpWorkspaceBase="/erp/app" />
 </PhpErpDesktopChrome>
 
@@ -815,6 +815,7 @@
     private bool _hasFullErpAccess;
     private bool _isSuperHost;
     private bool _jewellery;
+    private IReadOnlyList<PhpModuleCatalog.ModuleLink> _directoryTabs = PhpModuleCatalog.ErpTabs;
     private bool _fitOut;
     private long _activeCompanyId;
     private string _companyLabel = "MAIN";
@@ -997,6 +998,7 @@
         _fin = ErpNetsuiteDashboardCatalog.ResolveFinancials(_profile, _cur, _currency);
         var days = ErpNetsuiteDashboardCatalog.PeriodDaysInclusive(_periodFrom, _periodTo);
         _opKpis = ErpNetsuiteDashboardCatalog.OperationalKpis(_profile, _cur, days);
+        _directoryTabs = ErpIndustryNav.DirectoryTabs(_jewellery);
         _controls = ErpNetsuiteDashboardCatalog.IndustryControls(_industryCode, _jewellery);
         _controlDone = _controls.Count(c => _controlState.TryGetValue(c.Code, out var flag) && flag != 0);
         _workspaceGroups = ErpCapabilityCatalog.Groups.Where(WorkspaceVisible).ToArray();
