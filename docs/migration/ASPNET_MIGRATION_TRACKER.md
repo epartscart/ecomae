@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-11 — plan Q1-holm (BOC command-center wrapper)
+
+Not complete.
+
+- Ratchet 416 to 415. One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Holm` `cp/content/control/portal/epc_boc_command_center.php` (`epc_boc_h`, `epc_boc_nav`, `epc_boc_nav_for_user`; empty / gates / live / tenant isolation; leftover unique portal, leftover unique console parent, leftover unique user helper, leftover hub helpers, Super-CP host check, and the command-center body stay unnamed). Tenant CP is denied and does not see a backend path. Super-CP live render stays on the configured `backend_dir`. Empty name falls back to `Operator`. Empty `backend_dir` becomes `/`. GET does not mint a session.
+- Area functionality gained command-center isolation (`COMMAND:/acme` stays off the Beta Town Super-CP `COMMAND:/beta` surface).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Holm` (4). Holm + area **6 / 6**. Last full suite after Foam **6344 / 6344**; Holm suite pending while leftovers continue. CP-page mentioned 273 to 274 of 523. Unnamed PHP functions stay 6,032 (page defines none; command-center body stays unnamed on the leftover console parent). Ready ≤200-line non-ERP functions stay 46. The weighted headline stays about 20.4%. Non-ERP pending: 249 files / 132,485 lines (was 250 / 132,526). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-11 — plan Q1-gill (BOC channel-control wrapper)
 
 Not complete.
