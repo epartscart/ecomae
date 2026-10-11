@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Tarn (`--max-gap 424` passed; current gap **423**).
+after PlanQ1Beck (`--max-gap 423` passed; current gap **422**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 423
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 422
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -18,7 +18,7 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | Plan step | Area | Gap files | Lines |
 |---|---|---:|---:|
 | 1 | Storefront: catalogue | 30 | 8,978 |
-| 1 | Storefront: modules | 12 | 2,702 |
+| 1 | Storefront: modules | 11 | 2,600 |
 | 1 | Storefront: other shop | 10 | 4,189 |
 | 1 | Storefront: parts/docpart | 16 | 26,316 |
 | 1 | Storefront: templates | 3 | 2,689 |
@@ -31,9 +31,9 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **423** | **199,185** |
+| | **Total** | **422** | **199,083** |
 
-- Non-ERP (Cursor): **257 files / 132,994 lines**
+- Non-ERP (Cursor): **256 files / 132,892 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
 - Functions unmentioned: **6,036** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **48**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
@@ -558,7 +558,8 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6bb | `modules/shop/balance/module.php` | Closed in Reed. |
 | 6bc | `modules/shop/cart/cart.php` | Closed in Mere (full path; sibling order-process cart stays a separate file). |
 | 6bd | `modules/login/module.php` | Closed in Tarn (full path). |
-| 6be | `modules/slider/slider.php` | Next (`PhpPlanQ1Beck`). Path 102/0. Tenant slider rows stay isolated. |
+| 6be | `modules/slider/slider.php` | Closed in Beck (full path). |
+| 6bf | `epc_electronicae_home_product_lines.php` | Next (`PhpPlanQ1Firth`). Path 70/1. Haven storefront helpers already ported; leftover unique page function `epc_el_pl_href`. Tenant tiles stay isolated. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
