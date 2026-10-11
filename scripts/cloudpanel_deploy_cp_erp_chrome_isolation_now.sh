@@ -39,15 +39,22 @@ grep -q 'ShowErpSwitcher' aspnet/src/EcomAE.Platform/Presentation/SurfaceChromeP
 grep -q 'id="epc_boc_topnav"' aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpBocTopnav.razor
 printf 'OK source markers (isolation + industry alias) present\n'
 
+dump_platform_journal() {
+  printf '\n---- journalctl ecomae-platform (last 80; secrets redacted) ----\n'
+  journalctl -u ecomae-platform.service -n 80 --no-pager 2>/dev/null \
+    | sed -E 's/([Pp]assword|[Ss]ecret|[Tt]oken|[Pp]wd)=[^[:space:]]*/\1=***/g' || true
+}
+trap dump_platform_journal ERR
+
 printf '\n---- publish ASP.NET (%s) ----\n' "$BRANCH"
+# First publish of this binary can JIT past the old 60s prove window; /health
+# used to run tenant-DB middleware and 500 → automatic rollback to main.
+export ECOMAE_HEALTH_WAIT_SECONDS="${ECOMAE_HEALTH_WAIT_SECONDS:-180}"
+export ECOMAE_HEALTH_POLL_SECONDS="${ECOMAE_HEALTH_POLL_SECONDS:-3}"
 ECOMAE_BRANCH="$BRANCH" \
 ECOMAE_REPO="$REPO" \
 ECOMAE_EMERGENCY_PUBLISH="${ECOMAE_EMERGENCY_PUBLISH:-1}" \
   bash scripts/cloudpanel_find_and_redeploy.sh
-
-if [[ -f scripts/wait_for_aspnet_health.sh ]]; then
-  bash scripts/wait_for_aspnet_health.sh || true
-fi
 
 if [[ -f scripts/cloudpanel_sync_secret_succession_from_php.sh ]]; then
   ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES \
