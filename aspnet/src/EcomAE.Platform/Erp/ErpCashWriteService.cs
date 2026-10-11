@@ -269,45 +269,60 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await AssertAccountAsync(connection, input.AccountId, cancellationToken).ConfigureAwait(false);
 
-        var voucherNo = input.VoucherNo.Trim();
-        if (voucherNo.Length == 0 && input.Direction && string.Equals(counterpartyType, "customer", StringComparison.Ordinal))
-        {
-            voucherNo = await _vouchers.NextAsync(connection, null, "RV", cancellationToken).ConfigureAwait(false);
-        }
-        else if (voucherNo.Length == 0 && !input.Direction && string.Equals(counterpartyType, "supplier", StringComparison.Ordinal))
-        {
-            voucherNo = await _vouchers.NextAsync(connection, null, "PV", cancellationToken).ConfigureAwait(false);
-        }
+        await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await _vouchers.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        long cashEntryId;
+        long journalId;
+        string voucherNo = input.VoucherNo.Trim();
 
-        var reference = input.Reference.Trim();
-        if (reference.Length == 0 && voucherNo.Length > 0)
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
-            reference = voucherNo;
+            if (voucherNo.Length == 0 && input.Direction && string.Equals(counterpartyType, "customer", StringComparison.Ordinal))
+            {
+                voucherNo = await _vouchers.NextAsync(connection, transaction, "RV", cancellationToken).ConfigureAwait(false);
+            }
+            else if (voucherNo.Length == 0 && !input.Direction && string.Equals(counterpartyType, "supplier", StringComparison.Ordinal))
+            {
+                voucherNo = await _vouchers.NextAsync(connection, transaction, "PV", cancellationToken).ConfigureAwait(false);
+            }
+
+            var reference = input.Reference.Trim();
+            if (reference.Length == 0 && voucherNo.Length > 0)
+            {
+                reference = voucherNo;
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_erp_cash_bank_entries` (`account_id`, `time`, `entry_type`, `direction`, `amount`,"
+                    + " `counterparty_type`, `counterparty_id`, `order_id`, `reference`, `note`, `voucher_no`, `admin_id`)"
+                    + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"),
+                cancellationToken,
+                input.AccountId,
+                time,
+                entryType,
+                input.Direction ? 1 : 0,
+                amount,
+                counterpartyType,
+                input.CounterpartyId,
+                input.OrderId,
+                reference,
+                input.Note.Trim(),
+                voucherNo.Length > 0 ? voucherNo : null,
+                adminId).ConfigureAwait(false);
+            cashEntryId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+
+            journalId = await _gl.PostCashEntryAsync(connection, cashEntryId, adminId, cancellationToken, transaction).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
-
-        await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional(
-                "INSERT INTO `epc_erp_cash_bank_entries` (`account_id`, `time`, `entry_type`, `direction`, `amount`,"
-                + " `counterparty_type`, `counterparty_id`, `order_id`, `reference`, `note`, `voucher_no`, `admin_id`)"
-                + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"),
-            cancellationToken,
-            input.AccountId,
-            time,
-            entryType,
-            input.Direction ? 1 : 0,
-            amount,
-            counterpartyType,
-            input.CounterpartyId,
-            input.OrderId,
-            reference,
-            input.Note.Trim(),
-            voucherNo.Length > 0 ? voucherNo : null,
-            adminId).ConfigureAwait(false);
-        var cashEntryId = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
-
-        var journalId = await TryPostCashEntryAsync(connection, cashEntryId, adminId, cancellationToken).ConfigureAwait(false);
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
         await LogAsync(connection, adminId, "cash_entry", cashEntryId, "Cash/bank entry saved", voucherNo, amount, cancellationToken).ConfigureAwait(false);
         return new ErpCashEntryResult(cashEntryId, voucherNo, journalId, 0);
     }
@@ -358,32 +373,53 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         var isAdvance = !hasAllocation && (input.IsAdvance ?? true);
         var time = input.Time > 0 ? input.Time : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         await ErpGlPostingService.AssertPostingPeriodOpenAsync(connection, null, time, cancellationToken).ConfigureAwait(false);
-        var voucherNo = await _vouchers.NextAsync(connection, null, "RV", cancellationToken).ConfigureAwait(false);
-        var reference = input.Reference.Trim().Length > 0 ? input.Reference.Trim() : voucherNo;
-        var note = input.Note.Trim().Length > 0
-            ? input.Note.Trim()
-            : (isAdvance ? "Customer advance receipt " : "Customer receipt ") + voucherNo;
+        await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await _vouchers.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        string voucherNo;
+        string note;
+        long cashEntryId;
+        long journalId;
 
-        await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional(
-                "INSERT INTO `epc_erp_cash_bank_entries` (`account_id`, `time`, `entry_type`, `direction`, `amount`,"
-                + " `counterparty_type`, `counterparty_id`, `reference`, `note`, `voucher_no`, `sales_order_id`,"
-                + " `sales_invoice_id`, `is_advance`, `admin_id`) VALUES (?,?,'receipt',1,?,'customer',?,?,?,?,?,?,?,?)"),
-            cancellationToken,
-            input.AccountId,
-            time,
-            amount,
-            input.UserId,
-            reference,
-            note,
-            voucherNo,
-            input.SalesOrderId,
-            input.SalesInvoiceId,
-            isAdvance ? 1 : 0,
-            adminId).ConfigureAwait(false);
-        var cashEntryId = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            voucherNo = await _vouchers.NextAsync(connection, transaction, "RV", cancellationToken).ConfigureAwait(false);
+            var reference = input.Reference.Trim().Length > 0 ? input.Reference.Trim() : voucherNo;
+            note = input.Note.Trim().Length > 0
+                ? input.Note.Trim()
+                : (isAdvance ? "Customer advance receipt " : "Customer receipt ") + voucherNo;
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_erp_cash_bank_entries` (`account_id`, `time`, `entry_type`, `direction`, `amount`,"
+                    + " `counterparty_type`, `counterparty_id`, `reference`, `note`, `voucher_no`, `sales_order_id`,"
+                    + " `sales_invoice_id`, `is_advance`, `admin_id`) VALUES (?,?,'receipt',1,?,'customer',?,?,?,?,?,?,?,?)"),
+                cancellationToken,
+                input.AccountId,
+                time,
+                amount,
+                input.UserId,
+                reference,
+                note,
+                voucherNo,
+                input.SalesOrderId,
+                input.SalesInvoiceId,
+                isAdvance ? 1 : 0,
+                adminId).ConfigureAwait(false);
+            cashEntryId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+
+            journalId = isAdvance
+                ? 0L
+                : await _gl.PostCashEntryAsync(connection, cashEntryId, adminId, cancellationToken, transaction).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
 
         var ledgerId = await CustomerSettlementAsync(
             connection,
@@ -433,7 +469,6 @@ public sealed class ErpCashWriteService : IErpCashWriteService
             return new ErpCashEntryResult(cashEntryId, voucherNo, advanceJournalId, ledgerId, true, 0m, amount);
         }
 
-        var journalId = await TryPostCashEntryAsync(connection, cashEntryId, adminId, cancellationToken).ConfigureAwait(false);
         await LogAsync(connection, adminId, "receipt_voucher", cashEntryId, "Customer receipt posted", voucherNo, amount, cancellationToken).ConfigureAwait(false);
         return new ErpCashEntryResult(
             cashEntryId,
@@ -496,23 +531,28 @@ public sealed class ErpCashWriteService : IErpCashWriteService
             }
         }
 
-        var voucherNo = input.Reference.Trim();
-        if (!voucherNo.StartsWith("PV-", StringComparison.Ordinal))
-        {
-            voucherNo = await _vouchers.NextAsync(connection, null, "PV", cancellationToken).ConfigureAwait(false);
-        }
+        await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await _vouchers.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var isAdvance = allocation.Count == 0 && input.IsAdvance;
-        var note = input.Note.Trim().Length > 0
-            ? input.Note.Trim()
-            : allocation.Count > 0
-                ? "Supplier payment " + voucherNo
-                : isAdvance ? "Supplier advance payment" : "Supplier payment";
+        string voucherNo;
+        string note;
         long cashEntryId;
+        long journalId;
         var allocated = 0m;
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            voucherNo = input.Reference.Trim();
+            if (!voucherNo.StartsWith("PV-", StringComparison.Ordinal))
+            {
+                voucherNo = await _vouchers.NextAsync(connection, transaction, "PV", cancellationToken).ConfigureAwait(false);
+            }
+            note = input.Note.Trim().Length > 0
+                ? input.Note.Trim()
+                : allocation.Count > 0
+                    ? "Supplier payment " + voucherNo
+                    : isAdvance ? "Supplier advance payment" : "Supplier payment";
             await ErpDb.ExecuteAsync(
                 connection,
                 transaction,
@@ -590,6 +630,9 @@ public sealed class ErpCashWriteService : IErpCashWriteService
                     isAdvance ? "settlement" : "payment").ConfigureAwait(false);
             }
 
+            journalId = isAdvance
+                ? 0L
+                : await _gl.PostCashEntryAsync(connection, cashEntryId, adminId, cancellationToken, transaction).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch
@@ -613,7 +656,6 @@ public sealed class ErpCashWriteService : IErpCashWriteService
             return new ErpCashEntryResult(cashEntryId, voucherNo, advanceJournalId, 0, true, 0m, amount);
         }
 
-        var journalId = await TryPostCashEntryAsync(connection, cashEntryId, adminId, cancellationToken).ConfigureAwait(false);
         await LogAsync(connection, adminId, "payment_voucher", cashEntryId, "Supplier payment posted", voucherNo, amount, cancellationToken).ConfigureAwait(false);
         return new ErpCashEntryResult(
             cashEntryId,
@@ -648,15 +690,19 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         await AssertAccountAsync(connection, input.FromAccountId, cancellationToken).ConfigureAwait(false);
         await AssertAccountAsync(connection, input.ToAccountId, cancellationToken).ConfigureAwait(false);
 
-        var voucherNo = await _vouchers.NextAsync(connection, null, "TV", cancellationToken).ConfigureAwait(false);
+        await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await _vouchers.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var time = input.Time > 0 ? input.Time : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var note = input.Note.Trim().Length > 0 ? input.Note.Trim() : "Transfer " + voucherNo;
+        string voucherNo;
+        string note;
         long outEntryId;
         long inEntryId;
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            voucherNo = await _vouchers.NextAsync(connection, transaction, "TV", cancellationToken).ConfigureAwait(false);
+            note = input.Note.Trim().Length > 0 ? input.Note.Trim() : "Transfer " + voucherNo;
             await ErpDb.ExecuteAsync(
                 connection,
                 transaction,
@@ -702,6 +748,9 @@ public sealed class ErpCashWriteService : IErpCashWriteService
                 inEntryId,
                 outEntryId).ConfigureAwait(false);
 
+            await _gl.PostCashEntryAsync(connection, outEntryId, adminId, cancellationToken, transaction).ConfigureAwait(false);
+            await _gl.PostCashEntryAsync(connection, inEntryId, adminId, cancellationToken, transaction).ConfigureAwait(false);
+
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch
@@ -710,8 +759,6 @@ public sealed class ErpCashWriteService : IErpCashWriteService
             throw;
         }
 
-        await TryPostCashEntryAsync(connection, outEntryId, adminId, cancellationToken).ConfigureAwait(false);
-        await TryPostCashEntryAsync(connection, inEntryId, adminId, cancellationToken).ConfigureAwait(false);
         await LogAsync(connection, adminId, "transfer_voucher", outEntryId, "Cash transfer posted", voucherNo, amount, cancellationToken).ConfigureAwait(false);
         return new ErpTransferVoucherResult(voucherNo, outEntryId, inEntryId);
     }
@@ -1172,23 +1219,6 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         }
 
         return ledgerId;
-    }
-
-    private async Task<long> TryPostCashEntryAsync(DbConnection connection, long cashEntryId, int adminId, CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await _gl.PostCashEntryAsync(connection, cashEntryId, adminId, cancellationToken).ConfigureAwait(false);
-        }
-        catch (ErpWriteException)
-        {
-            // PHP posts the cash entry then swallows GL failures (missing COA, closed period).
-            return 0L;
-        }
-        catch (DbException)
-        {
-            return 0L;
-        }
     }
 
     /// <summary>PHP wraps the advance journals in try/catch as well — the cash entry stands either way.</summary>

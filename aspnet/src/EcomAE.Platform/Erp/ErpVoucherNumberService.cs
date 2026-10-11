@@ -11,6 +11,9 @@ namespace EcomAE.Platform.Erp;
 public interface IErpVoucherNumberService
 {
     Task<string> NextAsync(DbConnection connection, DbTransaction? transaction, string voucherType, CancellationToken cancellationToken = default);
+
+    /// <summary>Creates the sequence table out of band; call before opening the document transaction.</summary>
+    Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpVoucherNumberService : IErpVoucherNumberService
@@ -28,6 +31,9 @@ public sealed class ErpVoucherNumberService : IErpVoucherNumberService
         ["EST"] = "EST-",
         ["QUO"] = "QUO-",
     };
+
+    public Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken = default)
+        => EnsureSequenceSchemaAsync(connection, null, cancellationToken);
 
     public async Task<string> NextAsync(DbConnection connection, DbTransaction? transaction, string voucherType, CancellationToken cancellationToken = default)
     {

@@ -11,10 +11,18 @@ namespace EcomAE.Platform.Erp;
 public interface IErpIntegrityService
 {
     Task<IReadOnlyList<ErpIntegrityScanRow>> ScanAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ErpIntegrityAccountingRow>> ScanAccountingAsync(CancellationToken cancellationToken = default);
     Task<ErpIntegrityApplyResult> ApplyFksAsync(CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpIntegrityScanRow(string Child, string Col, string Parent, string Pcol, long Orphans, string Status);
+
+/// <summary>
+/// Posting-integrity check result: <paramref name="Check"/> names the invariant,
+/// <paramref name="Issues"/> the offending row count, <paramref name="Variance"/> the signed
+/// sub-ledger-minus-control drift for balance checks (0 for count checks).
+/// </summary>
+public sealed record ErpIntegrityAccountingRow(string Check, string Label, long Issues, decimal Variance, string Status);
 
 public sealed record ErpIntegrityApplyResult(IReadOnlyList<string> Applied, IReadOnlyList<string> Skipped, IReadOnlyList<string> Errors);
 
@@ -62,6 +70,103 @@ public sealed class ErpIntegrityService : IErpIntegrityService
             rows.Add(new ErpIntegrityScanRow(rel.Child, rel.Col, rel.Parent, rel.Pcol, orphans, status));
         }
         return rows;
+    }
+
+    /// <summary>
+    /// Posting invariants the orphan scan cannot see: journals whose lines do not balance,
+    /// committed cash entries without a GL journal, and sub-ledger vs control-account drift
+    /// (AR→1100, AP→2000, cash→1000/1010). A check reports <c>missing</c> when its
+    /// tables are absent so a fresh tenant is not flagged dirty.
+    /// </summary>
+    public async Task<IReadOnlyList<ErpIntegrityAccountingRow>> ScanAccountingAsync(CancellationToken cancellationToken = default)
+    {
+        var rows = new List<ErpIntegrityAccountingRow>(5);
+        if (!_connections.IsConfigured) return rows;
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        if (await TableExistsAsync(connection, "epc_erp_gl_journals", cancellationToken).ConfigureAwait(false)
+            && await TableExistsAsync(connection, "epc_erp_gl_lines", cancellationToken).ConfigureAwait(false))
+        {
+            var unbalanced = await InfoScalarAsync(
+                connection,
+                "SELECT COUNT(*) FROM (SELECT j.`id` FROM `epc_erp_gl_journals` j"
+                + " JOIN `epc_erp_gl_lines` l ON l.`journal_id` = j.`id` WHERE j.`active` = 1"
+                + " GROUP BY j.`id` HAVING ROUND(SUM(l.`debit`),2) <> ROUND(SUM(l.`credit`),2)) u",
+                cancellationToken).ConfigureAwait(false);
+            rows.Add(new("gl_unbalanced", "Active journals whose lines do not balance", unbalanced, 0m, unbalanced == 0 ? "clean" : "dirty"));
+
+            if (await TableExistsAsync(connection, "epc_erp_cash_bank_entries", cancellationToken).ConfigureAwait(false))
+            {
+                if (await ColumnTypeAsync(connection, "epc_erp_cash_bank_entries", "is_advance", cancellationToken).ConfigureAwait(false) is null
+                    || await ColumnTypeAsync(connection, "epc_erp_cash_bank_entries", "gl_journal_id", cancellationToken).ConfigureAwait(false) is null)
+                {
+                    rows.Add(new("cash_entries_missing_journal", "Committed cash/bank entries with no GL journal", 0, 0m, "missing"));
+                }
+                else
+                {
+                    var orphans = await InfoScalarAsync(
+                        connection,
+                        "SELECT COUNT(*) FROM `epc_erp_cash_bank_entries` e WHERE e.`active` = 1 AND e.`is_advance` = 0"
+                        + " AND (e.`gl_journal_id` IS NULL OR e.`gl_journal_id` = 0)",
+                        cancellationToken).ConfigureAwait(false);
+                    rows.Add(new("cash_entries_missing_journal", "Committed cash/bank entries with no GL journal", orphans, 0m, orphans == 0 ? "clean" : "dirty"));
+                }
+
+                await AddControlCheckAsync(connection, rows, "cash_control_1000_1010", "Cash/bank sub-ledger vs control accounts 1000+1010",
+                    "SELECT IFNULL(SUM(CASE WHEN `direction` = 1 THEN `amount` ELSE -`amount` END),0) FROM `epc_erp_cash_bank_entries` WHERE `active` = 1",
+                    "('1000','1010')", cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        if (await TableExistsAsync(connection, "epc_erp_gl_journals", cancellationToken).ConfigureAwait(false)
+            && await TableExistsAsync(connection, "epc_erp_gl_lines", cancellationToken).ConfigureAwait(false)
+            && await TableExistsAsync(connection, "epc_erp_coa_accounts", cancellationToken).ConfigureAwait(false))
+        {
+            if (await TableExistsAsync(connection, "shop_users_accounting", cancellationToken).ConfigureAwait(false))
+            {
+                await AddControlCheckAsync(connection, rows, "ar_control_1100", "Customer AR sub-ledger vs control account 1100",
+                    "SELECT IFNULL(SUM(CASE WHEN `income` = 1 THEN `amount` ELSE -`amount` END),0) FROM `shop_users_accounting` WHERE `active` = 1",
+                    "('1100')", cancellationToken).ConfigureAwait(false);
+            }
+
+            if (await TableExistsAsync(connection, "epc_erp_supplier_accounting", cancellationToken).ConfigureAwait(false))
+            {
+                await AddControlCheckAsync(connection, rows, "ap_control_2000", "Supplier AP sub-ledger vs control account 2000",
+                    "SELECT IFNULL(SUM(CASE WHEN `is_credit` = 1 THEN `amount` ELSE -`amount` END),0) FROM `epc_erp_supplier_accounting` WHERE `active` = 1",
+                    "('2000')", cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        return rows;
+    }
+
+    private static async Task AddControlCheckAsync(
+        DbConnection connection,
+        List<ErpIntegrityAccountingRow> rows,
+        string check,
+        string label,
+        string subLedgerSql,
+        string codes,
+        CancellationToken cancellationToken)
+    {
+        var sub = await InfoDecimalAsync(connection, subLedgerSql, cancellationToken).ConfigureAwait(false);
+        var control = await InfoDecimalAsync(
+            connection,
+            "SELECT IFNULL(SUM(l.`debit` - l.`credit`),0) FROM `epc_erp_gl_lines` l"
+            + " JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1"
+            + " JOIN `epc_erp_coa_accounts` a ON a.`id` = l.`coa_id` WHERE a.`code` IN " + codes,
+            cancellationToken).ConfigureAwait(false);
+        var variance = Math.Round(sub - control, 2, MidpointRounding.AwayFromZero);
+        rows.Add(new(check, label, variance == 0m ? 0L : 1L, variance, variance == 0m ? "clean" : "dirty"));
+    }
+
+    private static async Task<decimal> InfoDecimalAsync(DbConnection connection, string sql, CancellationToken ct)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional(sql);
+        var scalar = await command.ExecuteScalarAsync(ct).ConfigureAwait(false);
+        return scalar is null or DBNull ? 0m : Convert.ToDecimal(scalar);
     }
 
     public async Task<ErpIntegrityApplyResult> ApplyFksAsync(CancellationToken cancellationToken = default)
