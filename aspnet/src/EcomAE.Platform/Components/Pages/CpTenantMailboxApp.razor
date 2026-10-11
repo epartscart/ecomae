@@ -1,0 +1,252 @@
+@page "/cp/mailbox-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Mail
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IMailboxInboxService Inbox
+@inject IPlatformMailService Mail
+
+<PageTitle>Mailbox · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                <span class="label label-primary">Tenant CP</span> Mailbox
+                <a class="btn btn-xs btn-default pull-right" href="/erp/mailbox-app">ERP mailbox</a>
+                <a class="btn btn-xs btn-default pull-right" href="/cp/tenant-email-app" style="margin-right:.4rem">Outgoing SMTP</a>
+            </div>
+            <div class="panel-body">
+                <p>
+                    This tenant’s login and ops mail only — isolated by <code>site_key=@_siteKey</code>
+                    on domain <code>@_tenantDomain</code>.
+                    Signed-in login email: <strong>@(string.IsNullOrWhiteSpace(_loginEmail) ? "not signed in" : _loginEmail)</strong>.
+                    Shop tenants create as many <code>name@@_tenantDomain</code> mailboxes as they need.
+                    <code>ecomae.com</code> mailboxes are ERP customers only.
+                    This page never shows another tenant’s inbox.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <MailboxVisualGuide Audience="@(_isSuper ? "erp" : "tenant")" Domain="@(_isSuper ? PurelymailDns.FirstDomain : _tenantDomain)" />
+    </div>
+
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-info" role="status">Sign in with a Control Panel admin session to read this tenant’s mailbox.</div></div>
+    }
+
+    <div class="col-lg-12">
+        <div class="well well-sm">
+            <strong>Mailboxes for @_siteKey:</strong> @_boxes.Count.ToString(CultureInfo.InvariantCulture)
+            @if (_isSuper)
+            {
+                <text> · Super CP can also open <a href="/cp/super-mail-app">platform mail setup</a></text>
+            }
+        </div>
+    </div>
+
+    @if (_isAdmin && !_isSuper && !string.IsNullOrWhiteSpace(_tenantDomain))
+    {
+        <div class="col-lg-12">
+            <form method="post" action="/cp/mailbox/write" class="well">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="action" value="create_staff" />
+                <input type="hidden" name="returnUrl" value="/cp/mailbox-app" />
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>New mailbox on @_tenantDomain</label>
+                            <input type="text" class="form-control" name="local_part" placeholder="ops" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Mailbox + CP password</label>
+                            <input type="password" class="form-control" name="password" autocomplete="new-password" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary btn-block">Create mailbox and CP user</button>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-muted">Creates <code>local@@_tenantDomain</code> on Purelymail and a Control Panel login with the same address. Other tenant domains are refused.</p>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <form method="post" action="/cp/mailbox/write" class="well">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="action" value="setup_business" />
+                <input type="hidden" name="returnUrl" value="/cp/mailbox-app" />
+                <p>Create info, hello, support, sales, accounts, orders, billing on <code>@_tenantDomain</code>.</p>
+                <button type="submit" class="btn btn-default">Create standard business mailboxes</button>
+            </form>
+        </div>
+    }
+
+    @if (_boxes.Count == 0)
+    {
+        <div class="col-lg-12">
+            <div class="alert alert-warning" role="status">
+                No mailbox is assigned to this tenant yet. Create one above, or ask Super CP to add the domain.
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="col-lg-12">
+            <table class="table table-striped">
+                <thead><tr><th>Mailbox</th><th>SMTP</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var box in _boxes)
+                {
+                    var smtp = Mail.SmtpFor(box.Address);
+                    <tr>
+                        <td>
+                            @box.Address
+                            @if (box.FirstWorking)
+                            {
+                                <span class="label label-success">first working</span>
+                            }
+                        </td>
+                        <td>@smtp.Host:@smtp.Port @smtp.Encryption · @smtp.Username</td>
+                        <td><a href="/cp/mailbox-app?address=@Uri.EscapeDataString(box.Address)">Open inbox</a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+
+    @if (_isAdmin && !string.IsNullOrWhiteSpace(_opened))
+    {
+        <div class="col-lg-12">
+            <form method="post" action="/cp/mailbox/write" class="well">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="action" value="send" />
+                <input type="hidden" name="address" value="@_opened" />
+                <input type="hidden" name="returnUrl" value="/cp/mailbox-app?address=@Uri.EscapeDataString(_opened)" />
+                <h4>Compose from @_opened</h4>
+                <div class="form-group">
+                    <label>To</label>
+                    <input type="email" class="form-control" name="to" />
+                </div>
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" class="form-control" name="subject" />
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea class="form-control" name="body" rows="6"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+        </div>
+    }
+
+    @if (_messages.Count > 0 || !string.IsNullOrWhiteSpace(_opened))
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Inbox · @_opened</div>
+                <div class="panel-body" style="overflow:auto">
+                    <table class="table">
+                        <thead><tr><th>When</th><th>From</th><th>Subject</th><th>Excerpt</th></tr></thead>
+                        <tbody>
+                        @if (_messages.Count == 0)
+                        {
+                            <tr><td colspan="4">No messages yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in _messages)
+                            {
+                                <tr>
+                                    <td>@row.ReceivedUtc.ToString("u", CultureInfo.InvariantCulture)</td>
+                                    <td>@row.From</td>
+                                    <td>@row.Subject</td>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Body) ? row.Excerpt : row.Body)</td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private bool _isSuper;
+    private string _siteKey = "tenant";
+    private string _opened = "";
+    private string _loginEmail = "";
+    private string _tenantDomain = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private IReadOnlyList<PlatformMailbox> _boxes = [];
+    private IReadOnlyList<MailboxMessage> _messages = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isSuper = SuperCpHostGate.IsAllowed(ctx);
+        _siteKey = PlatformMailNormalize.SiteKey(ctx.Request.Query["site_key"].ToString(), _isSuper, ctx.Request.Host.Host);
+        _tenantDomain = PlatformMailNormalize.Domain(ctx.Request.Host.Host);
+        _loginEmail = session.Email ?? "";
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
+        _boxes = Inbox.ListForCaller(_siteKey, superCp: false, _loginEmail, ownInboxOnly: _isSuper);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _opened = Inbox.PreferLoginAddress(_boxes, _loginEmail, _isSuper ? _loginEmail : ctx.Request.Query["address"].ToString());
+
+        if (string.IsNullOrWhiteSpace(_opened))
+        {
+            return;
+        }
+
+        var read = await Inbox.ReadAsync(_siteKey, superCp: false, _opened, 40, ctx.RequestAborted, _loginEmail, ownInboxOnly: _isSuper);
+        _messages = read.Messages;
+        if (read.Ok)
+        {
+            _flashOk = read.Message;
+        }
+        else
+        {
+            _flashErr = read.Message;
+        }
+    }
+}

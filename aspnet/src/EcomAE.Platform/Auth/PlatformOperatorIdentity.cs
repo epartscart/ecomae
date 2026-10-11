@@ -28,4 +28,9 @@ public static class PlatformOperatorIdentity
 
     public static IReadOnlyList<string> LookupEmails(string? contact)
         => IsAlias(contact) ? [CanonicalEmail, LegacyEmail] : [(contact ?? string.Empty).Trim()];
+
+    public static LegacyAdminIdentity WithCanonicalEmail(LegacyAdminIdentity identity)
+        => IsAlias(identity.Email)
+            ? identity with { Email = CanonicalEmail }
+            : identity;
 }

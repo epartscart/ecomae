@@ -68,6 +68,7 @@ public static class PlatformHostPolicy
         "ai-class",
         "mfa",
         "industry",
+        "mail-app",
     };
 
     /// <summary>First path segment under <c>/ip/</c> that is product Intelligence Platform.</summary>

@@ -1,4 +1,5 @@
 using EcomAE.Platform.Configuration;
+using EcomAE.Platform.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -75,12 +76,13 @@ public sealed class CachingLegacySessionStore : ILegacySessionStore, ILegacySess
         var key = ScopeKey("admin-id", userId, string.Empty);
         if (_cache.TryGetValue(key, out LegacyAdminIdentity? cached) && cached is not null)
         {
-            return cached;
+            return Canonicalize(cached);
         }
 
         var identity = await _inner.GetAdminIdentityAsync(userId, cancellationToken).ConfigureAwait(false);
         if (identity is not null)
         {
+            identity = Canonicalize(identity);
             _cache.Set(key, identity, TimeSpan.FromSeconds(Math.Clamp(_options.IdentityTtlSeconds, 5, 300)));
         }
 
@@ -132,5 +134,13 @@ public sealed class CachingLegacySessionStore : ILegacySessionStore, ILegacySess
 
         var tokenHash = string.IsNullOrEmpty(token) ? "-" : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(token)))[..16];
         return $"sess:{kind}:{host}:{db}:{userId}:{tokenHash}";
+    }
+
+    private LegacyAdminIdentity Canonicalize(LegacyAdminIdentity identity)
+    {
+        var host = _http.HttpContext?.Request.Host.Host;
+        return PlatformHostPolicy.IsSuperCpHost(host)
+            ? PlatformOperatorIdentity.WithCanonicalEmail(identity)
+            : identity;
     }
 }

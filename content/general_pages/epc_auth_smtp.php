@@ -132,8 +132,15 @@ function epc_auth_smtp_effective_config(): array
 function epc_auth_smtp_recommended_presets(): array
 {
 	return array(
+		'purelymail_tls' => array(
+			'label' => 'Shop domain mailbox (Purelymail TLS 587)',
+			'smtp_host' => 'smtp.purelymail.com',
+			'smtp_port' => '587',
+			'smtp_encryption' => 'tls',
+			'note' => 'Use orders@ / info@ / sales@ on the tenant domain. Username equals From. Never Gmail.',
+		),
 		'gmail_tls' => array(
-			'label' => 'Gmail (TLS 587)',
+			'label' => 'Gmail (TLS 587) — legacy, do not use for tenant shops',
 			'smtp_host' => 'smtp.gmail.com',
 			'smtp_port' => '587',
 			'smtp_encryption' => 'tls',
