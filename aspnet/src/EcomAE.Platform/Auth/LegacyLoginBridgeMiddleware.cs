@@ -130,7 +130,11 @@ public sealed class LegacyLoginBridgeMiddleware
                 return;
             }
 
-            LegacyLoginCookieWriter.Apply(context.Response, outcome.Success, remember);
+            LegacyLoginCookieWriter.Apply(
+                context.Response,
+                outcome.Success,
+                remember,
+                LegacyLoginCookieWriter.RequestIsHttps(context.Request));
             var dest = string.IsNullOrWhiteSpace(redirect) ? outcome.Success.RedirectPath : redirect;
             if (!dest.StartsWith('/') || dest.StartsWith("//", StringComparison.Ordinal))
             {

@@ -71,6 +71,11 @@ builder.Services.AddSingleton<ILegacySessionStore>(sp =>
         : inner;
 });
 builder.Services.AddSingleton<ILegacySessionValidator, DbBackedLegacySessionValidator>();
+builder.Services.AddSingleton<ILegacySessionInvalidator>(sp =>
+{
+    var store = sp.GetRequiredService<ILegacySessionStore>();
+    return store as ILegacySessionInvalidator ?? new NoopLegacySessionInvalidator();
+});
 builder.Services.AddSingleton<EcomAE.Platform.Storefront.IStorefrontPriceAccess, EcomAE.Platform.Storefront.StorefrontPriceAccess>();
 builder.Services.AddSingleton<ILegacySessionParityReporter, LegacySessionParityReporter>();
 builder.Services.AddSingleton<LegacyLogoutService>();
@@ -1867,7 +1872,11 @@ app.MapPost(EcomAeRoutes.LegacyAdminLogin, async (HttpContext context, ILegacyAd
             }, statusCode: 401);
         }
 
-        LegacyLoginCookieWriter.Apply(context.Response, outcome.Success, remember);
+        LegacyLoginCookieWriter.Apply(
+            context.Response,
+            outcome.Success,
+            remember,
+            LegacyLoginCookieWriter.RequestIsHttps(context.Request));
         var dest = string.IsNullOrWhiteSpace(redirect) ? outcome.Success.RedirectPath : redirect;
         if (!dest.StartsWith('/') || dest.StartsWith("//", StringComparison.Ordinal))
         {

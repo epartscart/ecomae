@@ -6,14 +6,17 @@ namespace EcomAE.Platform.Auth;
 /// <summary>
 /// PHP-compatible logout: clear admin/customer cookies and best-effort DELETE from <c>sessions</c>.
 /// Mirrors <c>epc_cp_perform_logout</c> + storefront session cookie clear.
+/// Works on Super hosts and every tenant host.
 /// </summary>
 public sealed class LegacyLogoutService
 {
     private readonly ITenantDbConnectionFactory _connections;
+    private readonly ILegacySessionInvalidator _sessions;
 
-    public LegacyLogoutService(ITenantDbConnectionFactory connections)
+    public LegacyLogoutService(ITenantDbConnectionFactory connections, ILegacySessionInvalidator? sessions = null)
     {
         _connections = connections;
+        _sessions = sessions ?? new NoopLegacySessionInvalidator();
     }
 
     public async Task LogoutAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
@@ -23,17 +26,19 @@ public sealed class LegacyLogoutService
         var customerSession = httpContext.Request.Cookies["session"] ?? string.Empty;
         var customerUser = ParseInt(httpContext.Request.Cookies["u_id"]);
 
+        _sessions.Forget(httpContext.Request.Host.Host, adminSession, adminUser, customerSession, customerUser);
+
         if (_connections.IsConfigured)
         {
             try
             {
                 await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-                if (!string.IsNullOrWhiteSpace(adminSession) && adminUser > 0)
+                if (!string.IsNullOrWhiteSpace(adminSession))
                 {
                     await DeleteSessionRowAsync(connection, adminSession, adminUser, cancellationToken).ConfigureAwait(false);
                 }
 
-                if (!string.IsNullOrWhiteSpace(customerSession) && customerUser > 0)
+                if (!string.IsNullOrWhiteSpace(customerSession))
                 {
                     await DeleteSessionRowAsync(connection, customerSession, customerUser, cancellationToken).ConfigureAwait(false);
                 }
@@ -44,7 +49,10 @@ public sealed class LegacyLogoutService
             }
         }
 
-        LegacyLoginCookieWriter.ClearAll(httpContext.Response);
+        var https = LegacyLoginCookieWriter.RequestIsHttps(httpContext.Request);
+        LegacyLoginCookieWriter.ClearAll(httpContext.Response, httpContext.Request.Host.Host, https);
+        httpContext.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate";
+        httpContext.Response.Headers.Pragma = "no-cache";
     }
 
     public static string RedirectForSurface(string? surface, string? returnUrl)
@@ -75,9 +83,18 @@ public sealed class LegacyLogoutService
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = "DELETE FROM `sessions` WHERE `session` = @session AND `user_id` = @userId";
-        AddParameter(command, "@session", sessionToken);
-        AddParameter(command, "@userId", userId);
+        if (userId > 0)
+        {
+            command.CommandText = "DELETE FROM `sessions` WHERE `session` = @session AND `user_id` = @userId";
+            AddParameter(command, "@session", sessionToken);
+            AddParameter(command, "@userId", userId);
+        }
+        else
+        {
+            command.CommandText = "DELETE FROM `sessions` WHERE `session` = @session";
+            AddParameter(command, "@session", sessionToken);
+        }
+
         await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
 
