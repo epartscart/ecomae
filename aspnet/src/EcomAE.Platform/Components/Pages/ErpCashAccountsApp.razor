@@ -131,6 +131,13 @@
                                 <td>@(f.CustodianUserId > 0 ? f.CustodianUserId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             </tr>
                         }
+                        <tr style="font-weight:600;background:#f2f6fa">
+                            <td>Total</td>
+                            <td class="text-right">@_floats.Sum(f => f.FloatAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td></td>
+                            <td class="text-right">@_floats.Sum(f => f.AccountBalance).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-muted">@_floats.Count floats</td>
+                        </tr>
                     }
                 </tbody>
             </table>

@@ -115,6 +115,13 @@
                             <td class="text-right">@w.Cost.ToString("N2", CultureInfo.InvariantCulture)</td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td class="text-right">@_byWarehouse.Sum(w => w.Lines)</td>
+                        <td class="text-right">@_byWarehouse.Sum(w => w.QtyIn).ToString("N3", CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_byWarehouse.Sum(w => w.QtyOut).ToString("N3", CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_byWarehouse.Sum(w => w.Cost).ToString("N2", CultureInfo.InvariantCulture)</td>
+                    </tr>
                 </tbody>
             </table>
             </div>
@@ -132,6 +139,12 @@
                             <td class="text-right">@r.Cost.ToString("N2", CultureInfo.InvariantCulture)</td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td class="text-right">@_byItem.Sum(r => r.Lines)</td>
+                        <td class="text-right">@_byItem.Sum(r => r.NetQty).ToString("N3", CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_byItem.Sum(r => r.Cost).ToString("N2", CultureInfo.InvariantCulture)</td>
+                    </tr>
                 </tbody>
             </table>
             </div>
@@ -171,6 +184,13 @@
                             <td>@m.Reference</td>
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "movement_id", m.Id)">Open</a></td>
                         </tr>
+                    }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td colspan="6">Total</td>
+                        <td>@_movements.Sum(m => m.Qty).ToString("N3", CultureInfo.InvariantCulture)</td>
+                        <td>@_movements.Sum(m => m.SignedQty).ToString("N3", CultureInfo.InvariantCulture)</td>
+                        <td colspan="4" class="text-muted">@_movements.Count movements</td>
+                    </tr>
                     }
                 }
             </tbody>

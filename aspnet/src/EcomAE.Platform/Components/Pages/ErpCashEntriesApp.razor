@@ -274,6 +274,16 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/cash-entries-app", "entry_id", e.Id)">Open</a></td>
                         </tr>
                     }
+                    var totalIn = _entries.Where(e => e.Direction == 1).Sum(e => e.Amount);
+                    var totalOut = _entries.Where(e => e.Direction != 1).Sum(e => e.Amount);
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>@((totalIn - totalOut).ToString("N2", CultureInfo.InvariantCulture))</td>
+                        <td colspan="4" class="text-muted">In @totalIn.ToString("N2", CultureInfo.InvariantCulture) · Out @totalOut.ToString("N2", CultureInfo.InvariantCulture) · @_entries.Count entries</td>
+                    </tr>
                 }
             </tbody>
         </table>

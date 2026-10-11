@@ -200,6 +200,12 @@
                             <td>@row.ExpiryDate</td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="4"></td>
+                        <td>@_stock.Sum(r => r.QtyOnHand).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td colspan="4" class="text-muted">@_stock.Sum(r => r.QtyOnHand * r.AvgUnitCost).ToString("N2", CultureInfo.InvariantCulture) value · @_stock.Count rows</td>
+                    </tr>
                 }
             </tbody>
         </table>
