@@ -19566,8 +19566,8 @@ public sealed class ErpModule : ISurfaceModule
                 LiveWriteFormBinder.Text(form, "resource_type"),
                 LiveWriteFormBinder.Text(form, "title"),
                 LiveWriteFormBinder.Text(form, "description"),
-                (double)LiveWriteFormBinder.Dec(form, "qty"),
-                (double)LiveWriteFormBinder.Dec(form, "rate"),
+                LiveWriteFormBinder.Dec(form, "qty"),
+                LiveWriteFormBinder.Dec(form, "rate"),
                 LiveWriteFormBinder.Text(form, "voucher_ref"),
                 LiveWriteFormBinder.Text(form, "status"));
         }
@@ -26569,8 +26569,8 @@ public sealed class ErpModule : ISurfaceModule
         string? ResourceType = null,
         string? Title = null,
         string? Description = null,
-        double Qty = 0,
-        double Rate = 0,
+        decimal Qty = 0m,
+        decimal Rate = 0m,
         string? VoucherRef = null,
         string? Status = null);
     private sealed record ErpPmListingAttachBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

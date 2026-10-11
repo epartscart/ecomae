@@ -492,11 +492,11 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService, IErp
                 cancellationToken).ConfigureAwait(false);
             if (have == 0)
             {
-                var batches = new (string No, string Type, double Total, int Lines, string Status)[]
+                var batches = new (string No, string Type, decimal Total, int Lines, string Status)[]
                 {
-                    ("PAY-" + now.ToString(CultureInfo.InvariantCulture) + "-1", "sepa", 18450.00, 6, "processed"),
-                    ("PAY-" + now.ToString(CultureInfo.InvariantCulture) + "-2", "local", 7320.50, 3, "submitted"),
-                    ("PAY-" + now.ToString(CultureInfo.InvariantCulture) + "-3", "cheque", 2150.00, 1, "draft"),
+                    ("PAY-" + now.ToString(CultureInfo.InvariantCulture) + "-1", "sepa", 18450.00m, 6, "processed"),
+                    ("PAY-" + now.ToString(CultureInfo.InvariantCulture) + "-2", "local", 7320.50m, 3, "submitted"),
+                    ("PAY-" + now.ToString(CultureInfo.InvariantCulture) + "-3", "cheque", 2150.00m, 1, "draft"),
                 };
                 foreach (var b in batches)
                 {
@@ -516,12 +516,12 @@ public sealed class ErpPfDemoSyncWriteService : IErpPfDemoSyncWriteService, IErp
                 cancellationToken).ConfigureAwait(false);
             if (haveE == 0)
             {
-                var reports = new (string No, string Title, double Total, string Status)[]
+                var reports = new (string No, string Title, decimal Total, string Status)[]
                 {
-                    ("EXP-" + now.ToString(CultureInfo.InvariantCulture) + "-1", "Client visit — Abu Dhabi", 845.50, "paid"),
-                    ("EXP-" + now.ToString(CultureInfo.InvariantCulture) + "-2", "Trade show booth — DWTC", 3200.00, "approved"),
-                    ("EXP-" + now.ToString(CultureInfo.InvariantCulture) + "-3", "Courier & customs charges", 612.75, "submitted"),
-                    ("EXP-" + now.ToString(CultureInfo.InvariantCulture) + "-4", "Team training materials", 1480.00, "submitted"),
+                    ("EXP-" + now.ToString(CultureInfo.InvariantCulture) + "-1", "Client visit — Abu Dhabi", 845.50m, "paid"),
+                    ("EXP-" + now.ToString(CultureInfo.InvariantCulture) + "-2", "Trade show booth — DWTC", 3200.00m, "approved"),
+                    ("EXP-" + now.ToString(CultureInfo.InvariantCulture) + "-3", "Courier & customs charges", 612.75m, "submitted"),
+                    ("EXP-" + now.ToString(CultureInfo.InvariantCulture) + "-4", "Team training materials", 1480.00m, "submitted"),
                 };
                 foreach (var r in reports)
                 {

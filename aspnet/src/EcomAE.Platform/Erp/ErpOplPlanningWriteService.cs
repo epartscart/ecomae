@@ -42,8 +42,8 @@ public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
         _clock = clock ?? TimeProvider.System;
     }
 
-    private sealed record StockRow(long ItemId, long WarehouseId, string Sku, string Name, string Unit, string WarehouseName, double QtyOnHand, double AvgUnitCost);
-    private sealed record Params(long LeadTimeDays, double TargetServiceLevel, long ReviewPeriodDays, double MinOrderQty, double OrderMultiple, double ManualBuffer, string Supplier);
+    private sealed record StockRow(long ItemId, long WarehouseId, string Sku, string Name, string Unit, string WarehouseName, decimal QtyOnHand, decimal AvgUnitCost);
+    private sealed record Params(long LeadTimeDays, double TargetServiceLevel, long ReviewPeriodDays, decimal MinOrderQty, decimal OrderMultiple, decimal ManualBuffer, string Supplier);
 
     public async Task<ErpOplSeedResult> SeedDemoAsync(long warehouseId, CancellationToken cancellationToken = default)
     {
@@ -56,13 +56,13 @@ public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
             "DELETE FROM `epc_erp_inv_movements` WHERE `reference`='DEMO-DEMAND'", cancellationToken).ConfigureAwait(false);
 
         var stock = await StockReportAsync(connection, warehouseId, cancellationToken).ConfigureAwait(false);
-        var pos = new Dictionary<string, (long ItemId, long WarehouseId, double OnHand, double Cost)>(StringComparer.Ordinal);
+        var pos = new Dictionary<string, (long ItemId, long WarehouseId, decimal OnHand, decimal Cost)>(StringComparer.Ordinal);
         foreach (var s in stock)
         {
             var key = s.ItemId + ":" + s.WarehouseId;
             if (!pos.TryGetValue(key, out var p))
             {
-                p = (s.ItemId, s.WarehouseId, 0.0, s.AvgUnitCost);
+                p = (s.ItemId, s.WarehouseId, 0.0m, s.AvgUnitCost);
             }
             p.OnHand += s.QtyOnHand;
             if (s.AvgUnitCost > 0) p.Cost = s.AvgUnitCost;
@@ -78,24 +78,24 @@ public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
         {
             idx++;
             var rng = new Random((int)(p.ItemId * 7919 + p.WarehouseId));
-            var onHand = Math.Max(1.0, p.OnHand);
-            var cost = p.Cost > 0 ? p.Cost : 1.0;
+            var onHand = Math.Max(1.0m, p.OnHand);
+            var cost = p.Cost > 0 ? p.Cost : 1.0m;
             var pattern = patterns[idx % 4];
             var needsOrder = idx % 2 == 0;
             var baseDemand = needsOrder
-                ? onHand * (0.7 + NextRand(rng, 0, 60) / 100.0)
-                : onHand * (0.08 + NextRand(rng, 0, 18) / 100.0);
-            baseDemand = Math.Max(1.0, baseDemand);
+                ? onHand * (0.7m + NextRand(rng, 0, 60) / 100.0m)
+                : onHand * (0.08m + NextRand(rng, 0, 18) / 100.0m);
+            baseDemand = Math.Max(1.0m, baseDemand);
 
             for (var i = DemandMonths - 1; i >= 0; i--)
             {
                 var monthTs = now.AddMonths(-i);
                 var qty = pattern switch
                 {
-                    "smooth" => baseDemand * (0.85 + NextRand(rng, 0, 30) / 100.0),
-                    "erratic" => baseDemand * (0.3 + NextRand(rng, 0, 170) / 100.0),
-                    "intermittent" => NextRand(rng, 0, 100) < 55 ? baseDemand * (0.8 + NextRand(rng, 0, 60) / 100.0) : 0.0,
-                    _ => NextRand(rng, 0, 100) < 40 ? baseDemand * (1.0 + NextRand(rng, 0, 250) / 100.0) : 0.0,
+                    "smooth" => baseDemand * (0.85m + NextRand(rng, 0, 30) / 100.0m),
+                    "erratic" => baseDemand * (0.3m + NextRand(rng, 0, 170) / 100.0m),
+                    "intermittent" => NextRand(rng, 0, 100) < 55 ? baseDemand * (0.8m + NextRand(rng, 0, 60) / 100.0m) : 0.0m,
+                    _ => NextRand(rng, 0, 100) < 40 ? baseDemand * (1.0m + NextRand(rng, 0, 250) / 100.0m) : 0.0m,
                 };
                 qty = Math.Round(qty, qty < 5 ? 2 : 0);
                 if (qty <= 0) continue;
@@ -215,13 +215,13 @@ public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
 
         var posCreated = 0;
         var linesTotal = 0;
-        var valueTotal = 0.0;
+        var valueTotal = 0.0m;
         var writes = 0;
         var today = _clock.GetUtcNow().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         foreach (var (sid, lines) in groups)
         {
             var hasUnassigned = false;
-            var sumEx = 0.0;
+            var sumEx = 0.0m;
             var noteLines = new List<string>();
             foreach (var r in lines)
             {
@@ -252,7 +252,7 @@ public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
                 {
                     SupplierId = (int)sid,
                     Title = title,
-                    AmountExVat = (decimal)Math.Round(sumEx, 2),
+                    AmountExVat = Math.Round(sumEx, 2),
                     Status = "draft",
                     Notes = notes,
                 },
@@ -286,23 +286,23 @@ public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
             msg += string.Format(CultureInfo.InvariantCulture,
                 " {0} line{1} had no supplier set — grouped into a \"supplier to assign\" draft.", assignCount, assignCount == 1 ? "" : "s");
         }
-        return new(true, msg, posCreated, linesTotal, (decimal)Math.Round(valueTotal, 2), assignCount, writes);
+        return new(true, msg, posCreated, linesTotal, Math.Round(valueTotal, 2), assignCount, writes);
     }
 
-    private sealed record Recommendation(long ItemId, long WarehouseId, double Roq, double Value, string Supplier, string Status, string Sku, string Name, string WarehouseName, double UnitCost);
+    private sealed record Recommendation(long ItemId, long WarehouseId, decimal Roq, decimal Value, string Supplier, string Status, string Sku, string Name, string WarehouseName, decimal UnitCost);
 
     private async Task<List<Recommendation>> RecommendationsAsync(DbConnection connection, long warehouseId, bool onlyDue, string statusFilter, string search, CancellationToken cancellationToken)
     {
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var stock = await StockReportAsync(connection, warehouseId, cancellationToken).ConfigureAwait(false);
 
-        var agg = new Dictionary<string, (StockRow Row, double QtyOnHand, double CostQty, double Cost)>(StringComparer.Ordinal);
+        var agg = new Dictionary<string, (StockRow Row, decimal QtyOnHand, decimal CostQty, decimal Cost)>(StringComparer.Ordinal);
         foreach (var s in stock)
         {
             var key = s.ItemId + ":" + s.WarehouseId;
             if (!agg.TryGetValue(key, out var a))
             {
-                a = (s, 0.0, 0.0, 0.0);
+                a = (s, 0.0m, 0.0m, 0.0m);
             }
             a.QtyOnHand += s.QtyOnHand;
             a.CostQty += s.QtyOnHand;
@@ -345,7 +345,7 @@ public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
         return outList.Select(t => t.Rec).ToList();
     }
 
-    private sealed record Metrics(long ItemId, long WarehouseId, double Roq, double Value, string Supplier);
+    private sealed record Metrics(long ItemId, long WarehouseId, decimal Roq, decimal Value, string Supplier);
 
     private async Task<Metrics> ComputeAsync(DbConnection connection, StockRow stockRow, CancellationToken cancellationToken)
     {
@@ -371,7 +371,7 @@ public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
 
         var leadTimeDemand = add * lead;
         var safety = z * sigmaDaily * Math.Sqrt(lead);
-        if (p.ManualBuffer > safety) safety = p.ManualBuffer;
+        if (p.ManualBuffer > (decimal)safety) safety = (double)p.ManualBuffer;
         var orderLevel = leadTimeDemand + safety;
 
         var review = Math.Max(1, p.ReviewPeriodDays);
@@ -381,12 +381,12 @@ public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
         var effectiveStock = onHand;
 
         var rawRoq = 0.0;
-        if (effectiveStock <= orderLevel) rawRoq = targetStock - effectiveStock;
-        var roq = RoundToMultiple(rawRoq, p.MinOrderQty, p.OrderMultiple);
-        var value = Math.Round(roq * stockRow.AvgUnitCost, 2);
+        if ((double)effectiveStock <= orderLevel) rawRoq = targetStock - (double)effectiveStock;
+        var roq = RoundToMultiple(rawRoq, (double)p.MinOrderQty, (double)p.OrderMultiple);
+        var value = Math.Round((decimal)roq * stockRow.AvgUnitCost, 2);
         _ = cls;
 
-        return new Metrics(itemId, warehouseId, Math.Round(roq, 3), value, p.Supplier);
+        return new Metrics(itemId, warehouseId, Math.Round((decimal)roq, 3), value, p.Supplier);
     }
 
     private async Task<List<double>> DemandSeriesAsync(DbConnection connection, long itemId, long warehouseId, int months, CancellationToken cancellationToken)
@@ -448,12 +448,12 @@ public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
                 Convert.ToInt64(reader["lead_time_days"]),
                 Convert.ToDouble(reader["target_service_level"], CultureInfo.InvariantCulture),
                 Convert.ToInt64(reader["review_period_days"]),
-                Convert.ToDouble(reader["min_order_qty"], CultureInfo.InvariantCulture),
-                Convert.ToDouble(reader["order_multiple"], CultureInfo.InvariantCulture),
-                Convert.ToDouble(reader["manual_buffer"], CultureInfo.InvariantCulture),
+                Convert.ToDecimal(reader["min_order_qty"], CultureInfo.InvariantCulture),
+                Convert.ToDecimal(reader["order_multiple"], CultureInfo.InvariantCulture),
+                Convert.ToDecimal(reader["manual_buffer"], CultureInfo.InvariantCulture),
                 Convert.ToString(reader["supplier"], CultureInfo.InvariantCulture) ?? "");
         }
-        return new Params(30, 90.0, 30, 0.0, 0.0, 0.0, "");
+        return new Params(30, 90.0, 30, 0.0m, 0.0m, 0.0m, "");
     }
 
     private static double RoundToMultiple(double qty, double minQty, double multiple)
@@ -498,8 +498,8 @@ public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
                 Convert.ToString(reader["name"], CultureInfo.InvariantCulture) ?? "",
                 Convert.ToString(reader["unit"], CultureInfo.InvariantCulture) ?? "pcs",
                 Convert.ToString(reader["warehouse_name"], CultureInfo.InvariantCulture) ?? "",
-                Convert.ToDouble(reader["qty_on_hand"], CultureInfo.InvariantCulture),
-                Convert.ToDouble(reader["avg_unit_cost"], CultureInfo.InvariantCulture)));
+                Convert.ToDecimal(reader["qty_on_hand"], CultureInfo.InvariantCulture),
+                Convert.ToDecimal(reader["avg_unit_cost"], CultureInfo.InvariantCulture)));
         }
         return rows;
     }

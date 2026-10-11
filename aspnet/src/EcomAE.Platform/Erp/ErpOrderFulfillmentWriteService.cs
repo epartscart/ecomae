@@ -121,7 +121,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         {
             var sup = await ResolveLineSupplierAsync(c, item, cancellationToken).ConfigureAwait(false);
             if (sup.Id <= 0) continue;
-            var qty = Math.Max(0.0001, Num(item, "count_need"));
+            var qty = Math.Max(0.0001m, Num(item, "count_need"));
             var unitCost = Round(Num(item, "t2_price_purchase"), 4);
             var desc = Text(item, "t2_name");
             if (desc.Length == 0) desc = Text(item, "t2_article", "Line");
@@ -306,11 +306,11 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         if (status == "approved")
         {
             writes += await SyncReceivedQtyAsync(c, orderId, cancellationToken).ConfigureAwait(false);
-            var openQty = await ScalarDoubleAsync(
+            var openQty = await ScalarDecimalAsync(
                 c, null,
                 ErpDb.Positional("SELECT IFNULL(SUM(GREATEST(0, `qty` - `qty_received` - `qty_cancelled`)), 0) FROM `epc_erp_po_lines` WHERE `po_id` = ?"),
                 cancellationToken, poId).ConfigureAwait(false);
-            if (openQty <= 0.001)
+            if (openQty <= 0.001m)
             {
                 writes += await SetPoStatusAsync(c, poId, "received", adminId, cancellationToken).ConfigureAwait(false);
                 writes += await ErpDb.ExecuteAsync(
@@ -550,7 +550,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
             {
                 poLine = new PoLine(
                     Convert.ToInt64(r.GetValue(0)),
-                    Convert.ToDouble(r.GetValue(1), CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(r.GetValue(1), CultureInfo.InvariantCulture),
                     Convert.ToInt64(r.GetValue(2)),
                     Convert.ToInt64(r.GetValue(3)),
                     Convert.ToString(r.GetValue(4), CultureInfo.InvariantCulture) ?? string.Empty,
@@ -561,7 +561,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         if (poLine is null) return ErpFulfillmentResult.Fail("No open PO line found for this order item");
 
         var received = await ReceivedQtyAsync(c, orderItemId, cancellationToken).ConfigureAwait(false);
-        var remaining = Math.Round(Math.Max(0.0, poLine.Qty - received), 3);
+        var remaining = Math.Round(Math.Max(0.0m, poLine.Qty - received), 3);
         if (remaining <= 0) return ErpFulfillmentResult.Fail("Nothing left to reassign on this line");
 
         var swappedItem = item! with { StorageId = newStorageId };
@@ -584,7 +584,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         var oldPoId = poLine.PoId;
         var openCount = await ErpDb.LongAsync(
             c, null,
-            ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_po_lines` WHERE `po_id` = ? AND (`qty` - `qty_received` - `qty_cancelled`) > 0.001"),
+            ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_po_lines` WHERE `po_id` = ? AND (`qty` - `qty_received` - `qty_cancelled`) > 0.001m"),
             cancellationToken, oldPoId).ConfigureAwait(false);
         if (openCount == 0)
         {
@@ -684,10 +684,10 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
             throw new ErpWriteException("Guest orders need a customer user_id before ERP sales order bootstrap");
         }
 
-        var lines = new List<(long ItemId, long SupplierId, string Desc, double Qty, double Unit, double Net)>();
+        var lines = new List<(long ItemId, long SupplierId, string Desc, decimal Qty, decimal Unit, decimal Net)>();
         foreach (var item in items)
         {
-            var qty = Math.Max(0.0001, Num(item, "count_need"));
+            var qty = Math.Max(0.0001m, Num(item, "count_need"));
             var unit = Round(Num(item, "price"), 4);
             var net = Round2(qty * unit);
             if (net <= 0) continue;
@@ -712,7 +712,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
             ErpDb.Positional(
                 "INSERT INTO `epc_erp_sales_orders` (`so_no`,`shop_order_id`,`customer_user_id`,`contact_id`,`title`,`amount_ex_vat`,`vat_amount`,`total_amount`,`status`,`fulfillment_status`,`notes`,`admin_id`,`time_created`,`time_updated`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
             ct,
-            soNo, orderId, customerId, 0L, "Shop order #" + orderId, (double)tax.AmountExVat, (double)tax.VatAmount, (double)tax.TotalAmount,
+            soNo, orderId, customerId, 0L, "Shop order #" + orderId, (decimal)tax.AmountExVat, (decimal)tax.VatAmount, (decimal)tax.TotalAmount,
             "confirmed", "open", "Auto-linked from commerce order #" + orderId, adminId, now, now).ConfigureAwait(false);
         var soId = await ErpDb.LastInsertIdAsync(c, null, ct).ConfigureAwait(false);
 
@@ -745,7 +745,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
             ct, orderId, supplierId).ConfigureAwait(false);
         if (existingId > 0) return (existingId, 0);
 
-        var amountEx = Round2(lines.Sum(l => Convert.ToDouble(l["line_ex_vat"], CultureInfo.InvariantCulture)));
+        var amountEx = Round2(lines.Sum(l => Convert.ToDecimal(l["line_ex_vat"], CultureInfo.InvariantCulture)));
         if (amountEx <= 0 || supplierId <= 0) return (0, 0);
 
         var tax = await _tax.CalcPurchaseAsync(c, null, (decimal)amountEx, (int)supplierId, false, ct).ConfigureAwait(false);
@@ -757,7 +757,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
             ErpDb.Positional(
                 "INSERT INTO `epc_erp_purchase_orders` (`po_no`,`voucher_no`,`supplier_id`,`title`,`amount_ex_vat`,`vat_amount`,`total_amount`,`status`,`order_id`,`notes`,`admin_id`,`time_created`,`time_updated`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"),
             ct,
-            poNo, poNo, supplierId, "PO for order #" + orderId + " — " + supplierName, (double)tax.AmountExVat, (double)tax.VatAmount, (double)tax.TotalAmount,
+            poNo, poNo, supplierId, "PO for order #" + orderId + " — " + supplierName, (decimal)tax.AmountExVat, (decimal)tax.VatAmount, (decimal)tax.TotalAmount,
             "draft", orderId, "Customer order ref #" + orderId, adminId, now, now).ConfigureAwait(false);
         var poId = await ErpDb.LastInsertIdAsync(c, null, ct).ConfigureAwait(false);
 
@@ -770,7 +770,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
                 ErpDb.Positional(
                     "INSERT INTO `epc_erp_po_lines` (`po_id`,`shop_order_item_id`,`supplier_id`,`storage_id`,`line_no`,`description`,`qty`,`unit_cost_ex_vat`,`line_ex_vat`,`time_updated`) VALUES (?,?,?,?,?,?,?,?,?,?)"),
                 ct, poId, Convert.ToInt64(l["shop_order_item_id"]), supplierId, Convert.ToInt64(l["storage_id"]), lineNo++,
-                d.Length > 255 ? d[..255] : d, Convert.ToDouble(l["qty"]), Convert.ToDouble(l["unit_cost_ex_vat"]), Convert.ToDouble(l["line_ex_vat"]), now).ConfigureAwait(false);
+                d.Length > 255 ? d[..255] : d, Convert.ToDecimal(l["qty"]), Convert.ToDecimal(l["unit_cost_ex_vat"]), Convert.ToDecimal(l["line_ex_vat"]), now).ConfigureAwait(false);
         }
 
         await _audit.LogAsync(
@@ -795,7 +795,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         var writes = 0;
         foreach (var l in lines)
         {
-            var lineEx = Round2(Convert.ToDouble(l["line_ex_vat"], CultureInfo.InvariantCulture));
+            var lineEx = Round2(Convert.ToDecimal(l["line_ex_vat"], CultureInfo.InvariantCulture));
             if (lineEx <= 0) continue;
             var d = Convert.ToString(l["description"], CultureInfo.InvariantCulture) ?? "Line";
             writes += await ErpDb.ExecuteAsync(
@@ -804,17 +804,17 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
                     "INSERT INTO `epc_erp_po_lines` (`po_id`,`shop_order_item_id`,`supplier_id`,`storage_id`,`line_no`,`item_code`,`description`,`qty`,`unit_cost_ex_vat`,`line_ex_vat`,`time_updated`) VALUES (?,?,?,?,?,?,?,?,?,?,?)"),
                 ct, poId, Convert.ToInt64(l["shop_order_item_id"]), po.SupplierId, Convert.ToInt64(l["storage_id"]), ++lineNo,
                 Convert.ToString(l.GetValueOrDefault("item_code"), CultureInfo.InvariantCulture) ?? string.Empty,
-                d.Length > 255 ? d[..255] : d, Convert.ToDouble(l["qty"]), Convert.ToDouble(l["unit_cost_ex_vat"]), lineEx, Now()).ConfigureAwait(false);
+                d.Length > 255 ? d[..255] : d, Convert.ToDecimal(l["qty"]), Convert.ToDecimal(l["unit_cost_ex_vat"]), lineEx, Now()).ConfigureAwait(false);
             amountAdd += (decimal)lineEx;
         }
         if (amountAdd > 0)
         {
-            var newEx = Round2(po.AmountExVat + (double)amountAdd);
+            var newEx = Round2(po.AmountExVat + (decimal)amountAdd);
             var tax = await _tax.CalcPurchaseAsync(c, null, (decimal)newEx, (int)po.SupplierId, false, ct).ConfigureAwait(false);
             writes += await ErpDb.ExecuteAsync(
                 c, null,
                 ErpDb.Positional("UPDATE `epc_erp_purchase_orders` SET `amount_ex_vat` = ?, `vat_amount` = ?, `total_amount` = ?, `time_updated` = ? WHERE `id` = ?"),
-                ct, newEx, (double)tax.VatAmount, (double)tax.TotalAmount, Now(), poId).ConfigureAwait(false);
+                ct, newEx, (decimal)tax.VatAmount, (decimal)tax.TotalAmount, Now(), poId).ConfigureAwait(false);
         }
         return writes;
     }
@@ -822,21 +822,21 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
     private async Task<int> SyncReceivedQtyAsync(DbConnection c, long orderId, CancellationToken ct)
     {
         var writes = 0;
-        var lines = new List<(long Id, long ItemId, double Qty)>();
+        var lines = new List<(long Id, long ItemId, decimal Qty)>();
         await using (var r = await ExecReaderAsync(
             c, "SELECT pl.`id`, pl.`shop_order_item_id`, pl.`qty` FROM `epc_erp_po_lines` pl INNER JOIN `epc_erp_purchase_orders` po ON po.`id` = pl.`po_id` WHERE po.`order_id` = ?",
             ct, orderId).ConfigureAwait(false))
         {
             while (await r.ReadAsync(ct).ConfigureAwait(false))
             {
-                lines.Add((Convert.ToInt64(r.GetValue(0)), Convert.ToInt64(r.GetValue(1)), Convert.ToDouble(r.GetValue(2), CultureInfo.InvariantCulture)));
+                lines.Add((Convert.ToInt64(r.GetValue(0)), Convert.ToInt64(r.GetValue(1)), Convert.ToDecimal(r.GetValue(2), CultureInfo.InvariantCulture)));
             }
         }
         foreach (var l in lines)
         {
             if (l.ItemId <= 0) continue;
             var received = await ReceivedQtyAsync(c, l.ItemId, ct).ConfigureAwait(false);
-            var cancelled = Math.Max(0.0, l.Qty - received);
+            var cancelled = Math.Max(0.0m, l.Qty - received);
             writes += await ErpDb.ExecuteAsync(
                 c, null,
                 ErpDb.Positional("UPDATE `epc_erp_po_lines` SET `qty_received` = ?, `qty_cancelled` = ?, `time_updated` = ? WHERE `id` = ?"),
@@ -864,14 +864,14 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         }
         foreach (var (poId, status) in pos)
         {
-            var qtyTotal = await ScalarDoubleAsync(c, null, ErpDb.Positional("SELECT IFNULL(SUM(`qty`),0) FROM `epc_erp_po_lines` WHERE `po_id` = ?"), ct, poId).ConfigureAwait(false);
-            var qtyRecv = await ScalarDoubleAsync(c, null, ErpDb.Positional("SELECT IFNULL(SUM(`qty_received`),0) FROM `epc_erp_po_lines` WHERE `po_id` = ?"), ct, poId).ConfigureAwait(false);
-            var openQty = await ScalarDoubleAsync(c, null, ErpDb.Positional("SELECT IFNULL(SUM(GREATEST(0, `qty` - `qty_received` - `qty_cancelled`)), 0) FROM `epc_erp_po_lines` WHERE `po_id` = ?"), ct, poId).ConfigureAwait(false);
+            var qtyTotal = await ScalarDecimalAsync(c, null, ErpDb.Positional("SELECT IFNULL(SUM(`qty`),0) FROM `epc_erp_po_lines` WHERE `po_id` = ?"), ct, poId).ConfigureAwait(false);
+            var qtyRecv = await ScalarDecimalAsync(c, null, ErpDb.Positional("SELECT IFNULL(SUM(`qty_received`),0) FROM `epc_erp_po_lines` WHERE `po_id` = ?"), ct, poId).ConfigureAwait(false);
+            var openQty = await ScalarDecimalAsync(c, null, ErpDb.Positional("SELECT IFNULL(SUM(GREATEST(0, `qty` - `qty_received` - `qty_cancelled`)), 0) FROM `epc_erp_po_lines` WHERE `po_id` = ?"), ct, poId).ConfigureAwait(false);
 
             var newStatus = status;
-            if (qtyTotal > 0 && openQty <= 0.001 && qtyRecv > 0) newStatus = "received";
-            else if (qtyRecv > 0 && openQty > 0.001) newStatus = "partial";
-            else if (qtyRecv > 0 && openQty <= 0.001) newStatus = "received";
+            if (qtyTotal > 0 && openQty <= 0.001m && qtyRecv > 0) newStatus = "received";
+            else if (qtyRecv > 0 && openQty > 0.001m) newStatus = "partial";
+            else if (qtyRecv > 0 && openQty <= 0.001m) newStatus = "received";
             else if (newStatus == "draft") newStatus = "approved";
 
             if (!string.Equals(newStatus, status, StringComparison.Ordinal))
@@ -1154,8 +1154,8 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         return await r.ReadAsync(ct).ConfigureAwait(false) ? new ItemRow(r) : null;
     }
 
-    private async Task<double> ReceivedQtyAsync(DbConnection c, long orderItemId, CancellationToken ct)
-        => await ScalarDoubleAsync(
+    private async Task<decimal> ReceivedQtyAsync(DbConnection c, long orderItemId, CancellationToken ct)
+        => await ScalarDecimalAsync(
             c, null,
             ErpDb.Positional("SELECT IFNULL(SUM(`count_reserved` + `count_issued`), 0) FROM `shop_orders_items_details` WHERE `order_item_id` = ?"),
             ct, orderItemId).ConfigureAwait(false);
@@ -1172,8 +1172,8 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
                 Convert.ToString(r.GetValue(2), CultureInfo.InvariantCulture) ?? string.Empty,
                 Convert.ToString(r.GetValue(3), CultureInfo.InvariantCulture) ?? string.Empty,
                 Convert.ToInt64(r.GetValue(4)),
-                Convert.ToDouble(r.GetValue(5), CultureInfo.InvariantCulture),
-                Convert.ToDouble(r.GetValue(6), CultureInfo.InvariantCulture))
+                Convert.ToDecimal(r.GetValue(5), CultureInfo.InvariantCulture),
+                Convert.ToDecimal(r.GetValue(6), CultureInfo.InvariantCulture))
             : null;
     }
 
@@ -1190,7 +1190,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
                 Convert.ToInt64(r.GetValue(3)),
                 Convert.ToInt64(r.GetValue(4)),
                 Convert.ToString(r.GetValue(5), CultureInfo.InvariantCulture) ?? string.Empty,
-                Convert.ToDouble(r.GetValue(6), CultureInfo.InvariantCulture),
+                Convert.ToDecimal(r.GetValue(6), CultureInfo.InvariantCulture),
                 Convert.ToString(r.GetValue(7), CultureInfo.InvariantCulture) ?? string.Empty)
             : null;
     }
@@ -1246,14 +1246,14 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         return true;
     }
 
-    private static async Task<double> ScalarDoubleAsync(DbConnection c, DbTransaction? tx, string sql, CancellationToken ct, params object[] args)
+    private static async Task<decimal> ScalarDecimalAsync(DbConnection c, DbTransaction? tx, string sql, CancellationToken ct, params object[] args)
     {
         var command = c.CreateCommand();
         command.CommandText = sql;
         if (tx is not null) command.Transaction = tx;
         ErpDb.AddParameters(command, args);
         var v = await command.ExecuteScalarAsync(ct).ConfigureAwait(false);
-        return v is null or DBNull ? 0.0 : Convert.ToDouble(v, CultureInfo.InvariantCulture);
+        return v is null or DBNull ? 0.0m : Convert.ToDecimal(v, CultureInfo.InvariantCulture);
     }
 
     private static async Task<DbDataReader> ExecReaderAsync(DbConnection c, string sql, CancellationToken ct, params object[] args)
@@ -1295,13 +1295,13 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
 
     private static long Id(ItemRow item) => item.Id;
 
-    private static double Num(ItemRow item, string key) => item[key];
+    private static decimal Num(ItemRow item, string key) => item[key];
 
     private static string Text(ItemRow item, string key, string fallback = "") => item.Text(key, fallback);
 
-    private static double Round(double v, int digits) => Math.Round(v, digits, MidpointRounding.AwayFromZero);
+    private static decimal Round(decimal v, int digits) => Math.Round(v, digits, MidpointRounding.AwayFromZero);
 
-    private static double Round2(double v) => Math.Round(v, 2, MidpointRounding.AwayFromZero);
+    private static decimal Round2(decimal v) => Math.Round(v, 2, MidpointRounding.AwayFromZero);
 
     private static long Now() => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
@@ -1312,30 +1312,30 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         public ItemRow(DbDataReader r)
         {
             Id = Convert.ToInt64(r.GetValue(0));
-            QtyNeed = Convert.ToDouble(r.GetValue(1), CultureInfo.InvariantCulture);
-            Price = Convert.ToDouble(r.GetValue(2), CultureInfo.InvariantCulture);
+            QtyNeed = Convert.ToDecimal(r.GetValue(1), CultureInfo.InvariantCulture);
+            Price = Convert.ToDecimal(r.GetValue(2), CultureInfo.InvariantCulture);
             StorageId = Convert.ToInt64(r.GetValue(3));
             Name = ReadText(r, 4);
             Article = ReadText(r, 5);
-            PricePurchase = Convert.ToDouble(r.GetValue(6), CultureInfo.InvariantCulture);
+            PricePurchase = Convert.ToDecimal(r.GetValue(6), CultureInfo.InvariantCulture);
             JsonParams = ReadText(r, 7);
         }
 
         public long Id { get; }
-        public double QtyNeed { get; }
-        public double Price { get; }
+        public decimal QtyNeed { get; }
+        public decimal Price { get; }
         public long StorageId { get; init; }
         public string Name { get; }
         public string Article { get; }
-        public double PricePurchase { get; }
+        public decimal PricePurchase { get; }
         public string JsonParams { get; }
 
-        public double this[string key] => key switch
+        public decimal this[string key] => key switch
         {
             "count_need" => QtyNeed,
             "price" => Price,
             "t2_price_purchase" => PricePurchase,
-            _ => 0.0,
+            _ => 0.0m,
         };
 
         public string Text(string key, string fallback) => key switch
@@ -1346,9 +1346,9 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         };
     }
 
-    private sealed record SalesOrderRow(long Id, string SoNo, string Status, string FulfillmentStatus, long SalesInvoiceId, double AmountExVat, double TotalAmount);
+    private sealed record SalesOrderRow(long Id, string SoNo, string Status, string FulfillmentStatus, long SalesInvoiceId, decimal AmountExVat, decimal TotalAmount);
 
-    private sealed record Po(long Id, string PoNo, long SupplierId, long OrderId, long PurchaseId, string Status, double AmountExVat, string VoucherNo);
+    private sealed record Po(long Id, string PoNo, long SupplierId, long OrderId, long PurchaseId, string Status, decimal AmountExVat, string VoucherNo);
 
-    private sealed record PoLine(long Id, double Qty, long SupplierId, long PoId, string Status, long PurchaseId, string PoNo);
+    private sealed record PoLine(long Id, decimal Qty, long SupplierId, long PoId, string Status, long PurchaseId, string PoNo);
 }
