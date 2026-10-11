@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Hike (this slice; `--max-gap 410` still current until Hike ratchets).
+after PlanQ1Hike (`--max-gap 410` passed; current gap **409**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 410
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 409
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -26,14 +26,14 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP other | 10 | 3,274 |
 | 3 | CP shop core (orders, catalogue, price upload) | 24 | 12,698 |
 | 3 | CP shop smaller | 22 | 7,537 |
-| 4 | CP control/portal | 28 | 8,262 |
+| 4 | CP control/portal | 27 | 8,097 |
 | 5 | Marketing/BOS/industries | 67 | 35,874 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **410** | **198,260** |
+| | **Total** | **409** | **198,095** |
 
-- Non-ERP (Cursor): **244 files / 132,069 lines**
+- Non-ERP (Cursor): **243 files / 131,904 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
 - Functions unmentioned: **6,031** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **46**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
@@ -570,7 +570,7 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6bn | `epc_boc_audit_log.php` | Closed in Horn. Super-CP / admin / PDO gates, GET area sanitize, table render; leftover unique portal, leftover unique kernel parent, leftover unique user helper, and Super-CP host stay injected unnamed. |
 | 6bo | `epc_mobile_apps.php` | Closed in Howe. Admin gate, Super vs tenant form (Firebase/push Super-only), storefront URL `www.` replace is a no-op; leftover unique portal, leftover unique page-frame parent, leftover unique user helper, leftover portal-db parent, Super-CP host, and portal host stay injected unnamed. Helpers already closed in Shoal are stubbed, not included. |
 | 6bp | `epc_tenant_email_settings.php` | Closed in Hunt. Super-CP banner first (does not return), then admin deny, then `email_smtp` feature deny, then tenant SMTP form + test send. PHP `??` for host/port/enc/from; `empty()` for host line / use_tenant_smtp / saved password. Leftover unique portal, leftover unique page-frame parent, leftover unique user helper, leftover portal-db parent, and Super-CP host stay injected unnamed. Helpers already closed in Shoal/Helm are stubbed, not included. |
-| 6bq | `epc_super_cp_customer_board.php` | This slice (`PhpPlanQ1Hike`). Super-CP / admin / PDO gates, then KPI + filter + table + pagination. Gulf helpers are stubbed, not included. Leftover unique portal, leftover unique operator-guide page, leftover unique user helper, and leftover portal PDO stay injected unnamed. |
+| 6bq | `epc_super_cp_customer_board.php` | Closed in Hike. Super-CP / admin / PDO gates, then KPI + filter + table + pagination. Gulf helpers are stubbed, not included. Leftover unique portal, leftover unique operator-guide page, leftover unique user helper, and leftover portal PDO stay injected unnamed. |
 | 6br | unique small CP page after Hike | Next unused class: Hill. Skip `*_h` guides, APE, catalogue, and `epc_free_tools_admin.php` (needs leftover unique console + free-tools parents). |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
