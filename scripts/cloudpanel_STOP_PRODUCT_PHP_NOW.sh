@@ -224,10 +224,10 @@ PACK_TEMPLATE = r'''
     location = /erp/logout {
         proxy_pass http://127.0.0.1:5100/erp/logout;
         proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header Cookie \$http_cookie;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Cookie $http_cookie;
         proxy_set_header X-EcomAE-Route-Cutover stop-product-php-erp-logout;
     }
     location ^~ /erp/ {
