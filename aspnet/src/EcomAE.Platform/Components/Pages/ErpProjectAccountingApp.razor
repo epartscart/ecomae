@@ -547,6 +547,12 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "prja_budget_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td colspan="2">Total</td>
+                        <td class="text-right">@_budgets.Sum(r => r.CostBudget).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_budgets.Sum(r => r.RevenueBudget).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td></td>
+                    </tr>
                 }
             </tbody>
         </table>
@@ -571,6 +577,11 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "prja_txn_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td colspan="4">Total</td>
+                        <td class="text-right">@_txns.Sum(r => r.Amount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td></td>
+                    </tr>
                 }
             </tbody>
         </table>
@@ -616,6 +627,13 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "prja_rec_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td colspan="3">Total</td>
+                        <td class="text-right">@_recs.Sum(r => r.RecognizedRevenue).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_recs.Sum(r => r.RecognizedCost).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_recs.Sum(r => r.Wip).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td></td>
+                    </tr>
                 }
             </tbody>
         </table>
