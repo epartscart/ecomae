@@ -69,3 +69,25 @@ functional progress.
 O2C locks only when the SO and SI pages pass the field/line/action/
 permission/DB/browser/visual bars, the four report surfaces exist, the
 extended cycle evidence is recorded, and the owner-side gates land.
+
+## Progress (2026-10-11, later)
+
+Merged since this plan:
+
+- #2079 SO list: VAT + invoice link per row (item 2 linkage).
+- #2080 SI list: Paid/Due AR columns (item 2 AR state).
+- #2081 SI page: AR aging KPI strip (item 3 AR aging).
+- #2082 SO page: open-order backlog KPIs (item 3 backlog).
+- #2083 SO page: sales-by-customer summary (item 3).
+- #2084 SO page: sales-by-item summary (item 3 — Reports items done).
+- #2085 Extended O2C cycle evidence: draft→confirm→invoice→partial
+  receipt→over-payment cap→settled→invoiced-cancel refusal (item 5).
+- #2086 SI detail: settlement history readback (item 2).
+- #2088 SO detail: audit trail readback (item 1 audit tab).
+- #2089 Cash entries: advance badge, voucher, invoice link (item 4).
+
+Open in wave 2: attachments readback on document workspaces, print
+surface, per-line discount/tax beyond the PHP `parse_lines` contract
+(PHP has no per-line discount/tax — ASP.NET is already at parity),
+receipt form open-balance readback inline, per-page UX screenshots
+(item 6 — feeds the owner human-acceptance gate).
