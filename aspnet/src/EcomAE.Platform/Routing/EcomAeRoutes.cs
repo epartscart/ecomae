@@ -991,6 +991,12 @@ public static class EcomAeRoutes
     public const string ErpWithholdingTxnsRecord = "/erp/withholding/txns/record";
     /// <summary>Live PHP epc_wht_certificate_issue twin.</summary>
     public const string ErpWithholdingTxnsCertificate = "/erp/withholding/txns/certificate";
+    /// <summary>Operations editor app — PHP operations_editor / operation_create_edit twin.</summary>
+    public const string ErpOperationsEditorApp = "/erp/operations-editor-app";
+    /// <summary>Live PHP operation_create_edit save twin.</summary>
+    public const string ErpOperationsSave = "/erp/operations/save";
+    /// <summary>Live PHP operations_editor delete_operations twin.</summary>
+    public const string ErpOperationsDelete = "/erp/operations/delete";
     /// <summary>Department workflow board from <c>epc_erp_workflow_tasks</c> (not process-flow cases).</summary>
     public const string ErpWorkflowTasks = "/erp/workflow-tasks";
     public const string ErpWorkflowApp = "/erp/workflow-app";
