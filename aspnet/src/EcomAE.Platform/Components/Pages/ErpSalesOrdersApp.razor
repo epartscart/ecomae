@@ -171,6 +171,28 @@
         <div class="kpi"><div class="lbl">Aged 30d+</div><div class="val">@_backlogAged</div></div>
     </div>
 
+    @if (_byCustomer.Count > 0)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .4rem"><strong>Sales by customer</strong> <span class="text-muted">(page window, top 10 by value)</span></p>
+            <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Customer</th><th class="text-right">Orders</th><th class="text-right">Invoiced</th><th class="text-right">Open backlog</th><th class="text-right">Order value</th></tr></thead>
+                <tbody>
+                    @foreach (var c in _byCustomer)
+                    {
+                        <tr>
+                            <td>user @c.CustomerUserId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@c.Orders</td>
+                            <td class="text-right">@c.Invoiced</td>
+                            <td class="text-right">@c.Backlog</td>
+                            <td class="text-right">@c.Total.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
     @if (_openedDetail is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
@@ -493,6 +515,8 @@
     private int _backlogCount;
     private decimal _backlogAmount;
     private int _backlogAged;
+    private sealed record SoCustomerRow(int CustomerUserId, int Orders, int Invoiced, int Backlog, decimal Total);
+    private IReadOnlyList<SoCustomerRow> _byCustomer = [];
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
@@ -582,6 +606,17 @@
         _backlogCount = backlog.Count;
         _backlogAmount = backlog.Sum(o => o.TotalAmount);
         _backlogAged = backlog.Count(o => nowUnix - o.TimeCreated > 30L * 86400);
+        _byCustomer = _orders
+            .GroupBy(o => o.CustomerUserId)
+            .Select(g => new SoCustomerRow(
+                g.Key,
+                g.Count(),
+                g.Count(o => o.SalesInvoiceId > 0),
+                g.Count(o => o.SalesInvoiceId <= 0 && !string.Equals(o.Status, "closed", StringComparison.OrdinalIgnoreCase) && !o.Status.Contains("cancel", StringComparison.OrdinalIgnoreCase)),
+                g.Sum(o => o.TotalAmount)))
+            .OrderByDescending(c => c.Total)
+            .Take(10)
+            .ToList();
         _source = result.Source;
         _message = result.Message;
     }
