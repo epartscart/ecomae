@@ -1,6 +1,7 @@
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Middleware;
 
@@ -47,14 +48,19 @@ public sealed class IndustrySpecificRouteGateMiddleware(
                 return null;
             }
 
+            var host = context.Request.Host.Host;
+            var companies = ErpIndustryNav.EnsureSwitchableCompanies(
+                (await _dashboards.BuildErpCompaniesDigestAsync(50, context.RequestAborted)).Companies,
+                PlatformHostPolicy.IsSuperCpHost(host),
+                ErpHostContext.Resolve(host).BrandLabel);
             if (requested is > 0)
             {
-                return await _dashboards.BuildErpCompanyDigestAsync(requested.Value, context.RequestAborted);
+                return companies.FirstOrDefault(c => c.Id == requested.Value)
+                    ?? await _dashboards.BuildErpCompanyDigestAsync(requested.Value, context.RequestAborted);
             }
 
             // PHP epc_erp_active_company_id: no ?company= → lowest-id legal entity.
-            var companies = await _dashboards.BuildErpCompaniesDigestAsync(50, context.RequestAborted);
-            return companies.Companies.FirstOrDefault();
+            return companies.FirstOrDefault();
         }
         catch
         {

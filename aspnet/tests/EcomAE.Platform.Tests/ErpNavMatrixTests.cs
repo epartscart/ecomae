@@ -255,6 +255,26 @@ public sealed class ErpNavMatrixTests
     }
 
     [Fact]
+    public void SuperHostSwitchableFallbackCompanyIsAllowedByRouteGate()
+    {
+        // Super ERP: DB has only MAIN + JEWEL; the switcher merges the FITOUT fallback
+        // (id 3). The route gate must resolve ?company=3 from that same merged list.
+        var db = new List<ErpCompanyDigest>
+        {
+            new(1, "MAIN", "Main Company", "AED", "", "automotive_workshop", true),
+            new(2, "JEWEL", "Jewellery Co", "AED", "AE", "jewellery_diamond", true),
+        };
+
+        var merged = ErpIndustryNav.EnsureSwitchableCompanies(db, isSuperCpHost: true, "Platform");
+        var fitOut = merged.FirstOrDefault(c => c.Id == 3);
+
+        Assert.NotNull(fitOut);
+        Assert.True(IndustrySpecificRoutePolicy.Allows("fitout", "auto_parts", fitOut));
+        Assert.False(IndustrySpecificRoutePolicy.Allows("fitout", "auto_parts", merged.First(c => c.Id == 1)));
+        Assert.Null(ErpIndustryNav.EnsureSwitchableCompanies(db, isSuperCpHost: false, "Tenant").FirstOrDefault(c => c.Id == 3));
+    }
+
+    [Fact]
     public void SharedHostAllowsTrustedFitOutCompanyPack()
     {
         var company = new ErpCompanyDigest(3, "FITOUT", "Fit-out Company", "AED", "AE", "fitout_contracting", true);
