@@ -2725,7 +2725,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     Convert.ToInt32(reader["direction"] is DBNull ? 0 : reader["direction"], CultureInfo.InvariantCulture),
                     Convert.ToDecimal(reader["amount"] is DBNull ? 0m : reader["amount"], CultureInfo.InvariantCulture),
                     Convert.ToString(reader["reference"] is DBNull ? string.Empty : reader["reference"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    Convert.ToString(reader["note"] is DBNull ? string.Empty : reader["note"], CultureInfo.InvariantCulture) ?? string.Empty));
+                    Convert.ToString(reader["note"] is DBNull ? string.Empty : reader["note"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["voucher_no"] is DBNull ? string.Empty : reader["voucher_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToInt32(reader["is_advance"] is DBNull ? 0 : reader["is_advance"], CultureInfo.InvariantCulture) == 1,
+                    Convert.ToInt64(reader["sales_invoice_id"] is DBNull ? 0 : reader["sales_invoice_id"], CultureInfo.InvariantCulture)));
             }
 
             activity?.SetTag("ecomae.row_count", rows.Count);

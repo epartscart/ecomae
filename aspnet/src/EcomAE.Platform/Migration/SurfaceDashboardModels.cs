@@ -639,7 +639,10 @@ public sealed record ErpCashEntryDigest(
     int Direction,
     decimal Amount,
     string Reference,
-    string Note);
+    string Note,
+    string VoucherNo = "",
+    bool IsAdvance = false,
+    long SalesInvoiceId = 0);
 
 public sealed record ErpCashEntryListResult(
     IReadOnlyList<ErpCashEntryDigest> Entries,
