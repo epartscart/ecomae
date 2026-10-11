@@ -12773,6 +12773,40 @@ public sealed class ErpModule : ISurfaceModule
                 : Results.Content(html, "text/html; charset=utf-8");
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpSalesOrderPrint, async (
+            HttpContext context,
+            long id,
+            ILegacySessionValidator validator,
+            IErpO2cDocumentPrintService print,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for sales-order print.");
+            }
+
+            var html = await print.RenderSalesOrderAsync(id, cancellationToken);
+            return html is null ? Results.NotFound() : Results.Content(html, "text/html; charset=utf-8");
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpInvoicePrint, async (
+            HttpContext context,
+            long id,
+            ILegacySessionValidator validator,
+            IErpO2cDocumentPrintService print,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for invoice print.");
+            }
+
+            var html = await print.RenderInvoiceAsync(id, cancellationToken);
+            return html is null ? Results.NotFound() : Results.Content(html, "text/html; charset=utf-8");
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpRfqs, async (
             HttpContext context,
             int? limit,
