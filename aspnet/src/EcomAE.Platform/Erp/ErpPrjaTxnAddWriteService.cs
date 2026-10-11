@@ -54,7 +54,6 @@ public sealed class ErpPrjaTxnAddWriteService : IErpPrjaTxnAddWriteService
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
-        var companyId = request.CompanyId < 0 ? 0 : request.CompanyId;
         var category = request.Category is null ? "general" : Clip(request.Category, 60);
         var description = Clip(request.Description ?? string.Empty, 200);
         var amount = decimal.Round(request.Amount, 2, MidpointRounding.AwayFromZero);
@@ -62,6 +61,8 @@ public sealed class ErpPrjaTxnAddWriteService : IErpPrjaTxnAddWriteService
         var txnDate = request.TxnDate > 0 ? request.TxnDate : now;
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureProjectAccountingAsync(connection, cancellationToken).ConfigureAwait(false);
+        var companyId = await ErpLazySchema.ResolveActiveCompanyIdAsync(connection, request.CompanyId, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_prja_txn", "txn_type", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_prja_txn", "amount", cancellationToken).ConfigureAwait(false))
         {

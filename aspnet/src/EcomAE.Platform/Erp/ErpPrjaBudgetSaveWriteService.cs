@@ -43,11 +43,12 @@ public sealed class ErpPrjaBudgetSaveWriteService : IErpPrjaBudgetSaveWriteServi
         var category = Clip(string.IsNullOrWhiteSpace(request.Category) ? "general" : request.Category.Trim(), 60);
         var cost = decimal.Round(request.CostBudget, 2, MidpointRounding.AwayFromZero);
         var revenue = decimal.Round(request.RevenueBudget, 2, MidpointRounding.AwayFromZero);
-        var companyId = request.CompanyId < 0 ? 0 : request.CompanyId;
         var projectId = request.ProjectId < 0 ? 0 : request.ProjectId;
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureProjectAccountingAsync(connection, cancellationToken).ConfigureAwait(false);
+        var companyId = await ErpLazySchema.ResolveActiveCompanyIdAsync(connection, request.CompanyId, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_prja_budget", "category", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_prja_budget", "cost_budget", cancellationToken).ConfigureAwait(false))
         {

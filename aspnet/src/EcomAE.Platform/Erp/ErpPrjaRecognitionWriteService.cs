@@ -50,6 +50,7 @@ public sealed class ErpPrjaRecognitionWriteService : IErpPrjaRecognitionWriteSer
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
 
         await ErpLazySchema.EnsureProjectAccountingAsync(connection, cancellationToken).ConfigureAwait(false);
+        var companyId = await ErpLazySchema.ResolveActiveCompanyIdAsync(connection, request.CompanyId, cancellationToken).ConfigureAwait(false);
         if (!await RequiredTablesExistAsync(connection, cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Project accounting tables are not provisioned.");
@@ -101,7 +102,7 @@ public sealed class ErpPrjaRecognitionWriteService : IErpPrjaRecognitionWriteSer
             ErpDb.Positional(
                 "INSERT INTO `epc_prja_recognition` (`company_id`,`project_id`,`method`,`as_of`,`pct_complete`,`recognized_revenue`,`recognized_cost`,`wip`,`detail_json`,`time_created`) VALUES (?,?,?,?,?,?,?,?,?,?)"),
             cancellationToken,
-            Math.Max(0, request.CompanyId),
+            companyId,
             request.ProjectId,
             method,
             asOf,

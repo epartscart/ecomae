@@ -26491,6 +26491,7 @@ public sealed class ErpModule : ISurfaceModule
                 repairs = seeded.Repairs,
                 gl_entries = seeded.GlEntries,
                 compliance = seeded.Compliance,
+                skipped_repairs = seeded.SkippedRepairs,
                 errors = seeded.Errors,
             },
             session = SessionPayload(session),
