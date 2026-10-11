@@ -96,6 +96,9 @@
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Period Close KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_periods.Count</div></div>
+        <div class="kpi"><div class="lbl">Open</div><div class="val">@_openCount</div></div>
+        <div class="kpi"><div class="lbl">Soft closed</div><div class="val">@_softClosedCount</div></div>
+        <div class="kpi"><div class="lbl">Locked</div><div class="val">@_lockedCount</div></div>
         <div class="kpi"><div class="lbl">Digest source</div><div class="val">@_source</div></div>
         <div class="kpi"><div class="lbl">Session</div><div class="val">@(_isAdmin ? "live" : "guest")</div></div>
     </div>
@@ -190,7 +193,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.YearMonth) ? "—" : row.YearMonth)</td>
                             <td><span class="label label-default">@row.Status</span></td>
                             <td>@(row.SoftClosed ? "yes" : "no")</td>
-                            <td>@(row.Locked ? "yes" : "no")</td>
+                            <td style="@(row.Locked ? "color:#b3261e;font-weight:600" : "")">@(row.Locked ? "yes" : "no")</td>
                             <td>@FormatTime(row.TimeUpdated)</td>
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "period_id", row.Id)">Open</a></td>
                         </tr>
@@ -212,6 +215,9 @@
     private const string _listHref = "/erp/period-close-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpFiscalPeriodDigest> _periods = [];
+    private int _openCount;
+    private int _softClosedCount;
+    private int _lockedCount;
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
@@ -249,6 +255,9 @@
 
         var result = await Dashboards.ListErpFiscalPeriodsAsync(_limit, ctx.RequestAborted);
         _periods = result.Periods;
+        _openCount = _periods.Count(r => string.Equals(r.Status, "open", StringComparison.OrdinalIgnoreCase));
+        _softClosedCount = _periods.Count(r => r.SoftClosed);
+        _lockedCount = _periods.Count(r => r.Locked);
         _source = result.Source;
         _message = result.Message;
 
