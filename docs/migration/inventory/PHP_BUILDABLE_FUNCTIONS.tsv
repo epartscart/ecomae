@@ -328,8 +328,6 @@ epc_boc_brand	EpcBocBrand	content/general_pages/epc_boc_kernel.php	php	609	menti
 epc_boc_can	EpcBocCan	content/general_pages/epc_boc_kernel.php	php	609	mentioned	partial-file
 epc_boc_fleet	EpcBocFleet	content/general_pages/epc_boc_kernel.php	php	609	mentioned	partial-file
 epc_boc_fleet_summary	EpcBocFleetSummary	content/general_pages/epc_boc_kernel.php	php	609	mentioned	partial-file
-epc_boc_nav	EpcBocNav	content/general_pages/epc_boc_kernel.php	php	609	mentioned	partial-file
-epc_boc_nav_for_user	EpcBocNavForUser	content/general_pages/epc_boc_kernel.php	php	609	mentioned	partial-file
 epc_bos_active_tenant_key	EpcBosActiveTenantKey	content/general_pages/epc_bos_unified.php	php	695	gap	later
 epc_bos_auto_parts_items	EpcBosAutoPartsItems	content/general_pages/epc_bos_unified.php	php	695	gap	later
 epc_bos_catalogue_items	EpcBosCatalogueItems	content/general_pages/epc_bos_unified.php	php	695	gap	later
