@@ -40,9 +40,9 @@
                 Title="@OpenedCaption"
                 DocumentNumber="@_opened.Id.ToString(CultureInfo.InvariantCulture)"
                 PartyLabel="From warehouse"
-                Party="@_opened.FromWarehouseId.ToString(CultureInfo.InvariantCulture)"
+                Party="@(string.IsNullOrWhiteSpace(_opened.FromWarehouseName) ? _opened.FromWarehouseId.ToString(CultureInfo.InvariantCulture) : _opened.FromWarehouseName)"
                 ReferenceLabel="To warehouse"
-                Reference="@_opened.ToWarehouseId.ToString(CultureInfo.InvariantCulture)"
+                Reference="@(string.IsNullOrWhiteSpace(_opened.ToWarehouseName) ? _opened.ToWarehouseId.ToString(CultureInfo.InvariantCulture) : _opened.ToWarehouseName)"
                 Status="@_opened.Status"
                 ApprovalState="@TransferState"
                 CompanyContext="@(_opened.CompanyId > 0 ? _opened.CompanyId.ToString(CultureInfo.InvariantCulture) : "Tenant / company")"
@@ -82,8 +82,8 @@
                         {
                             <tr>
                                 <td>@(string.IsNullOrWhiteSpace(sib.TransferNo) ? "—" : sib.TransferNo)</td>
-                                <td>@sib.FromWarehouseId.ToString(CultureInfo.InvariantCulture)</td>
-                                <td>@sib.ToWarehouseId.ToString(CultureInfo.InvariantCulture)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.FromWarehouseName) ? sib.FromWarehouseId.ToString(CultureInfo.InvariantCulture) : sib.FromWarehouseName)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.ToWarehouseName) ? sib.ToWarehouseId.ToString(CultureInfo.InvariantCulture) : sib.ToWarehouseName)</td>
                                 <td>@(string.IsNullOrWhiteSpace(sib.Status) ? "—" : sib.Status)</td>
                                 <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "transfer_id", sib.Id)">Open</a></td>
                             </tr>
@@ -125,8 +125,8 @@
                         <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.TransferNo) ? row.TransferNo : "—")</td>
-                            <td>@row.FromWarehouseId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.ToWarehouseId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.FromWarehouseName) ? row.FromWarehouseId.ToString(CultureInfo.InvariantCulture) : row.FromWarehouseName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.ToWarehouseName) ? row.ToWarehouseId.ToString(CultureInfo.InvariantCulture) : row.ToWarehouseName)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Reason) ? row.Reason : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
                             <td>@row.TotalItems.ToString(CultureInfo.InvariantCulture)</td>
@@ -169,8 +169,8 @@
             new("Transfer number", _opened.TransferNo, "General"),
             new("Reason", _opened.Reason, "General"),
             new("Company", _opened.CompanyId > 0 ? _opened.CompanyId.ToString(CultureInfo.InvariantCulture) : "Tenant", "General"),
-            new("From warehouse", _opened.FromWarehouseId.ToString(CultureInfo.InvariantCulture), "Movement"),
-            new("To warehouse", _opened.ToWarehouseId.ToString(CultureInfo.InvariantCulture), "Movement"),
+            new("From warehouse", string.IsNullOrWhiteSpace(_opened.FromWarehouseName) ? _opened.FromWarehouseId.ToString(CultureInfo.InvariantCulture) : _opened.FromWarehouseName, "Movement"),
+            new("To warehouse", string.IsNullOrWhiteSpace(_opened.ToWarehouseName) ? _opened.ToWarehouseId.ToString(CultureInfo.InvariantCulture) : _opened.ToWarehouseName, "Movement"),
             new("Items", _opened.TotalItems.ToString(CultureInfo.InvariantCulture), "Movement"),
             new("Quantity", _opened.TotalQty.ToString("0.###", CultureInfo.InvariantCulture), "Movement"),
             new("Shipped", _opened.ShippedAt, "Lifecycle"),

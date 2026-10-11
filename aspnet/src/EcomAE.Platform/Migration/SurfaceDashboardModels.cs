@@ -3138,7 +3138,9 @@ public sealed record ErpStockTransferDigest(
     string ShippedAt,
     string ReceivedAt,
     long CreatedBy,
-    long TimeCreated);
+    long TimeCreated,
+    string FromWarehouseName,
+    string ToWarehouseName);
 
 public sealed record ErpStockTransfersDigestResult(
     ErpStockTransfersSummary Summary,
@@ -3163,7 +3165,9 @@ public sealed record ErpStockTransferDetail(
     long ReceivedBy,
     long TimeCreated,
     int NotesLen,
-    string NotesExcerpt);
+    string NotesExcerpt,
+    string FromWarehouseName,
+    string ToWarehouseName);
 
 public sealed record ErpStockTransferDetailResult(
     ErpStockTransferDetail? Transfer,
