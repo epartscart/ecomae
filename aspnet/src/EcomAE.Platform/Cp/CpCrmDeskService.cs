@@ -1599,17 +1599,22 @@ public sealed class CpCrmDeskService : ICpCrmDeskService
     {
         try
         {
-            await using var c = connection.CreateCommand();
-            c.CommandText = ErpDb.Positional("SELECT IFNULL(`email`,''), IFNULL(`phone`,'') FROM `users` WHERE `user_id` = ? LIMIT 1");
-            ErpDb.AddParameters(c, userId);
-            await using var r = await c.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            if (!await r.ReadAsync(cancellationToken).ConfigureAwait(false))
+            string email;
+            string phone;
+            await using (var c = connection.CreateCommand())
             {
-                return null;
+                c.CommandText = ErpDb.Positional("SELECT IFNULL(`email`,''), IFNULL(`phone`,'') FROM `users` WHERE `user_id` = ? LIMIT 1");
+                ErpDb.AddParameters(c, userId);
+                await using var r = await c.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (!await r.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return null;
+                }
+
+                email = S(r, 0);
+                phone = S(r, 1);
             }
 
-            var email = S(r, 0);
-            var phone = S(r, 1);
             var group = await UserGroupNameAsync(connection, userId, cancellationToken).ConfigureAwait(false);
             return new CustomerProfile(email, email, phone, group);
         }
