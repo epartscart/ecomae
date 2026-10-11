@@ -172,6 +172,12 @@
                                 <td class="text-right">@entry.Credit.ToString("N2", CultureInfo.InvariantCulture)</td>
                             </tr>
                         }
+                        <tr style="font-weight:600;background:#f2f6fa">
+                            <td>Total</td>
+                            <td colspan="3"></td>
+                            <td class="text-right">@_openedStatement.Sum(e => e.Debit).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_openedStatement.Sum(e => e.Credit).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
                     </tbody>
                 </table>
                 <p class="text-muted" style="margin:.7rem 0 0">Source: PHP <code>epc_erp_supplier_accounting</code>; inactive rows are excluded.</p>
@@ -215,6 +221,12 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/payables-app", "supplier_id", s.Id)">Ledger</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td></td>
+                        <td>@_suppliers.Sum(s => s.Balance).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="text-muted">@_suppliers.Count suppliers</td>
+                    </tr>
                 }
             </tbody>
         </table>

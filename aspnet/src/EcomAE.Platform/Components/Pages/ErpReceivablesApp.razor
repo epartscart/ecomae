@@ -147,6 +147,15 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/receivables-app", "customer_id", r.UserId)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td></td>
+                        <td>@_rows.Sum(r => r.Balance).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@_rows.Sum(r => r.OrderReceivableDue).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@_rows.Sum(r => r.OrderCount).ToString(CultureInfo.InvariantCulture)</td>
+                        <td>@_rows.Sum(r => r.CompleteOrderCount).ToString(CultureInfo.InvariantCulture)</td>
+                        <td class="text-muted">@_rows.Count customers</td>
+                    </tr>
                 }
             </tbody>
         </table>

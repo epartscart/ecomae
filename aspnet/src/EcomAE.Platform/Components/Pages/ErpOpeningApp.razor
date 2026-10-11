@@ -157,6 +157,14 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "batch_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="3"></td>
+                        <td class="text-right">@_batches.Sum(r => r.LineCount).ToString(CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_batches.Sum(r => r.DebitTotal).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_batches.Sum(r => r.CreditTotal).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="text-muted">@_batches.Count batches</td>
+                    </tr>
                 }
             </tbody>
         </table>
