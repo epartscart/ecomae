@@ -18286,7 +18286,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToDecimal(reader["fix_qty_gms"] is DBNull ? 0 : reader["fix_qty_gms"], CultureInfo.InvariantCulture),
                         Convert.ToDecimal(reader["fix_amount"] is DBNull ? 0 : reader["fix_amount"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture) ?? string.Empty));
+                        Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["fix_rate"] is DBNull ? 0 : reader["fix_rate"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["reference_voc"] is DBNull ? string.Empty : reader["reference_voc"], CultureInfo.InvariantCulture) ?? string.Empty));
                 }
             }
 
@@ -18377,7 +18379,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToDecimal(reader["fix_qty_gms"] is DBNull ? 0 : reader["fix_qty_gms"], CultureInfo.InvariantCulture),
                         Convert.ToDecimal(reader["fix_amount"] is DBNull ? 0 : reader["fix_amount"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture) ?? string.Empty));
+                        Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["fix_rate"] is DBNull ? 0 : reader["fix_rate"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["reference_voc"] is DBNull ? string.Empty : reader["reference_voc"], CultureInfo.InvariantCulture) ?? string.Empty));
                 }
             }
 
