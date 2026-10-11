@@ -58,6 +58,8 @@ public sealed class TenantHostHomeRoutingTests
     [Theory]
     [InlineData("industries.ecomae.com", "/")]
     [InlineData("www.industries.ecomae.com", "/")]
+    [InlineData("industry.ecomae.com", "/")]
+    [InlineData("www.industry.ecomae.com", "/")]
     [InlineData("industries.ecomae.com", "/platform/industries")]
     [InlineData("industries.ecomae.com", "/industries")]
     [InlineData("INDUSTRIES.ECOMAE.COM", "/storefront/app")]

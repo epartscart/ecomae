@@ -96,61 +96,7 @@
 
 
 <div class="epc-boc epc-boc--topnav epc-premium-shell" style="display:flex!important;flex-direction:column!important;position:fixed!important;inset:0!important;z-index:4000!important;overflow:auto!important;width:100%!important;float:none!important;background:#f3f6fa!important;isolation:isolate!important;">
-    <nav class="epc-boc__topnav" id="epc_boc_topnav" aria-label="Business Operation Control" data-epc-surface="super-cp">
-        <div class="epc-boc__topnav-inner">
-            @* Brand short-name is "BOS" in PHP BOC, but the home stays Super CP (/cp) — not product Super BOS (/bos). *@
-            <a class="epc-boc__topnav-brand" href="/cp" title="Super CP — Business Operation Control">
-                <PhpEcomaeAnimatedLogo Variant="compact" ShowWordmark="true" />
-                <span>BOS</span><small class="epc-boc__topnav-brand-sub">Control</small>
-            </a>
-            <ul class="epc-boc__topnav-list" role="menubar">
-                @foreach (var (group, areas) in PhpSuperCpBocNav.Nav())
-                {
-                    var isActive = group.Key == "command";
-                    <li class="epc-boc__topnav-item @(isActive ? "is-active" : "")" data-boc-group="@group.Key" role="none">
-                        <button type="button" class="epc-boc__topnav-btn" role="menuitem" aria-haspopup="true" aria-expanded="false" data-boc-topnav-toggle="@group.Key">
-                            <i class="fa @group.Icon" aria-hidden="true"></i>
-                            <span class="epc-boc__topnav-label">@group.Label</span>
-                            <i class="fa fa-angle-down epc-boc__topnav-caret" aria-hidden="true"></i>
-                        </button>
-                        <div class="epc-boc__topnav-panel" role="menu" hidden data-boc-topnav-panel="@group.Key">
-                            <div class="epc-boc__topnav-panel-hd">
-                                <div class="epc-boc__topnav-panel-title"><i class="fa @group.Icon"></i> @group.Label</div>
-                            </div>
-                            <div class="epc-boc__topnav-cols">
-                                @foreach (var (chunk, ci) in Chunk(areas, 7))
-                                {
-                                    <div class="epc-boc__topnav-col">
-                                        <div class="epc-boc__topnav-col-hd"><i class="fa fa-sitemap"></i> @ColTitle(ci, areas.Count)</div>
-                                        <ul class="epc-boc__topnav-links">
-                                            @foreach (var area in chunk)
-                                            {
-                                                <li class="@(area.Key == "command_center" ? "is-active" : "")">
-                                                    <a href="@area.Href" title="@area.Hint"><i class="fa @area.Icon"></i> @area.Label</a>
-                                                </li>
-                                            }
-                                        </ul>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    </li>
-                }
-            </ul>
-            <div class="epc-boc__topnav-actions">
-                <a class="epc-boc__topnav-bos" href="/bos" title="Open product Super BOS — Fleet Command (black shell)"><i class="fa fa-server"></i> Super BOS</a>
-                @if (_showErp)
-                {
-                    <a class="epc-boc__topnav-erp" href="/erp" title="Leave Super CP and open the ERP workspace" data-epc-erp-switcher="1"><i class="fa fa-university"></i> ERP</a>
-                    <a class="epc-boc__topnav-erp" href="/erp/fleet-app" title="Leave Super CP and open Super ERP fleet" data-epc-erp-switcher="1"><i class="fa fa-sitemap"></i> Fleet ERP</a>
-                }
-                <a class="epc-boc__topnav-erp" href="/cp/super-mail-app" title="Platform mail"><i class="fa fa-inbox"></i> Mail</a>
-                <span class="epc-boc__scope" title="Platform fleet vs active tenant CP"><i class="fa fa-globe"></i> All units · Fleet</span>
-                <span class="epc-boc__env"><i class="fa fa-circle" style="font-size:7px;vertical-align:middle;color:#16a34a"></i> Production</span>
-                <span class="epc-boc__avatar" title="Operator">OP</span>
-            </div>
-        </div>
-    </nav>
+    <PhpSuperCpBocTopnav />
 
     <div class="epc-boc__main" style="display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-width:0!important;width:auto!important;float:none!important;">
         <div class="epc-boc__canvas">
@@ -404,29 +350,4 @@
         return (int)Math.Round(_healthy * 100.0 / Math.Max(1, _tenants.Count == 0 ? 1 : _tenants.Count));
     }
 
-    private static IEnumerable<(IReadOnlyList<PhpSuperCpBocNav.BocArea> Chunk, int Index)> Chunk(IReadOnlyList<PhpSuperCpBocNav.BocArea> areas, int size)
-    {
-        var index = 0;
-        for (var i = 0; i < areas.Count; i += size)
-        {
-            yield return (areas.Skip(i).Take(size).ToList(), index++);
-        }
-    }
-
-    private static string ColTitle(int index, int total)
-    {
-        if (total <= 7)
-        {
-            return "Modules";
-        }
-
-        return index switch
-        {
-            0 => "Modules",
-            1 => "More",
-            2 => "Also",
-            3 => "More tools",
-            _ => "Extra"
-        };
-    }
 }

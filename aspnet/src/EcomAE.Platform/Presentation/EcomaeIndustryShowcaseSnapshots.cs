@@ -30,7 +30,7 @@ public static class EcomaeIndustryShowcaseSnapshots
 
         if (!normalized.EndsWith(".ecomae.com", StringComparison.Ordinal)
             || normalized is "www.ecomae.com" or "ecomae.com" or "cp.ecomae.com" or "lifeos.ecomae.com"
-            || normalized is "industries.ecomae.com")
+            || normalized is "industries.ecomae.com" or "industry.ecomae.com")
         {
             return false;
         }
@@ -47,14 +47,14 @@ public static class EcomaeIndustryShowcaseSnapshots
     }
 
     /// <summary>
-    /// <c>industries.ecomae.com</c> (and www) is the industries directory, not one of the
-    /// 28 <c>{slug}.ecomae.com</c> hubs. It serves the same page as www
-    /// <c>/platform/industries</c>.
+    /// <c>industries.ecomae.com</c> / <c>industry.ecomae.com</c> (and www) is the
+    /// industries directory, not one of the 28 <c>{slug}.ecomae.com</c> hubs.
+    /// It serves the same page as www <c>/platform/industries</c>.
     /// </summary>
     public static bool IsIndustriesDirectoryHost(string? host)
     {
         var normalized = NormalizeHost(host);
-        return normalized is "industries.ecomae.com";
+        return normalized is "industries.ecomae.com" or "industry.ecomae.com";
     }
 
     /// <summary>Home and the public industries aliases on the directory host.</summary>

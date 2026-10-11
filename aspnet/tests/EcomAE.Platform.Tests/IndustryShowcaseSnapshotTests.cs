@@ -53,6 +53,65 @@ public sealed class IndustryShowcaseSnapshotTests
     }
 
     [Fact]
+    public void HtmlFor_BeautySkincareFacials_MatchesLivePattern()
+    {
+        var html = EcomaeIndustryShowcaseSnapshots.HtmlFor("beauty.ecomae.com", "/skincare-facials");
+        Assert.False(string.IsNullOrWhiteSpace(html));
+        Assert.Contains("Skincare", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ecomae-chrome-surface", html, StringComparison.Ordinal);
+        Assert.Contains("skincare-facials", html, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void EveryRenderedIndustrySnapshot_IsRoutableLikeBeautySkincare()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        string? repo = null;
+        while (dir is not null)
+        {
+            var candidate = Path.Combine(dir.FullName, "content", "general_pages", "epc_rendered_industry");
+            if (Directory.Exists(candidate))
+            {
+                repo = candidate;
+                break;
+            }
+
+            dir = dir.Parent;
+        }
+
+        Assert.False(string.IsNullOrWhiteSpace(repo));
+        var files = Directory.GetFiles(repo!, "*.html");
+        Assert.True(files.Length >= 700, "expected the full 700+ industrial page set, got " + files.Length);
+
+        var missing = new List<string>();
+        foreach (var file in files)
+        {
+            var name = Path.GetFileNameWithoutExtension(file);
+            string host;
+            string path;
+            var split = name.IndexOf("__", StringComparison.Ordinal);
+            if (split < 0)
+            {
+                host = name + ".ecomae.com";
+                path = "/";
+            }
+            else
+            {
+                host = name[..split] + ".ecomae.com";
+                path = "/" + name[(split + 2)..];
+            }
+
+            var html = EcomaeIndustryShowcaseSnapshots.HtmlFor(host, path);
+            if (string.IsNullOrWhiteSpace(html))
+            {
+                missing.Add(name);
+            }
+        }
+
+        Assert.True(missing.Count == 0, "unroutable industry snapshots: " + string.Join(", ", missing.Take(20)));
+    }
+
+    [Fact]
     public void HtmlFor_AutomotiveSub_ContainsDealership()
     {
         var html = EcomaeIndustryShowcaseSnapshots.HtmlFor(

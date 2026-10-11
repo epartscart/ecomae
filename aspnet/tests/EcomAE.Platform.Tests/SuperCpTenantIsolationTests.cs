@@ -128,7 +128,10 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Contains("epc-boc__platform-banner", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__fleet-grid", text, StringComparison.Ordinal);
         Assert.Contains("epc-premium-shell", text, StringComparison.Ordinal);
-        Assert.Contains("PhpSuperCpBocNav.Nav()", text, StringComparison.Ordinal);
+        Assert.Contains("PhpSuperCpBocTopnav", text, StringComparison.Ordinal);
+        var boc = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpBocTopnav.razor"));
+        Assert.Contains("PhpSuperCpBocNav.Nav()", boc, StringComparison.Ordinal);
+        Assert.Contains("epc_boc_topnav", boc, StringComparison.Ordinal);
         // Fleet console must not query tenant shop digests.
         Assert.DoesNotContain("ListCpOrdersAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpProductCatalogueDigestAsync", text, StringComparison.Ordinal);

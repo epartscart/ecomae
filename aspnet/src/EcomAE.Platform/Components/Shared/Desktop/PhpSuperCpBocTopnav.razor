@@ -1,0 +1,137 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
+@*
+  Super CP red BOC mega-menu. Used on Super home and every inner Super CP page
+  so operators never get a half-chrome / leftover left rail.
+*@
+<HeadContent>
+<style>
+    .epc-boc__topnav { background:linear-gradient(135deg,#b91c1c,#7f1d1d); color:#fff; }
+    .epc-boc__topnav-inner { display:flex; align-items:center; gap:6px; padding:0 14px; flex-wrap:wrap; }
+    .epc-boc__topnav-brand { color:#fff; font-weight:900; display:inline-flex; gap:8px; align-items:center; padding:10px 12px; text-decoration:none; }
+    .epc-boc__topnav-list { display:flex; list-style:none; margin:0; padding:0; flex-wrap:wrap; }
+    .epc-boc__topnav-item { position:static; display:flex; align-items:stretch; }
+    .epc-boc__topnav-btn { background:transparent; border:0; color:rgba(255,255,255,.92); font-weight:700; padding:12px 10px; cursor:pointer; }
+    .epc-boc__topnav-item.is-active > .epc-boc__topnav-btn { color:#fff; box-shadow:inset 0 -3px 0 #fff; }
+    .epc-boc__topnav-panel { position:fixed; z-index:50; background:#fff; color:#111; border:1px solid #f3c1c1; border-radius:0 0 12px 12px; box-shadow:0 16px 40px rgba(198,40,40,.14); padding:12px 14px; min-width:320px; max-width:min(1100px,calc(100vw - 16px)); overflow:auto; }
+    .epc-boc__topnav-cols { display:flex; gap:18px; }
+    .epc-boc__topnav-links { list-style:none; margin:0; padding:0; min-width:210px; }
+    .epc-boc__topnav-links a { display:block; padding:6px 4px; color:#1f2937; text-decoration:none; font-size:13px; font-weight:600; }
+    .epc-boc__topnav-links a:hover { color:#b91c1c; }
+    .epc-boc__topnav-col-hd { color:#64748b; font-size:11px; font-weight:800; text-transform:uppercase; margin:6px 0; }
+    .epc-boc__topnav-panel-hd { display:flex; justify-content:space-between; gap:14px; border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:8px; font-weight:800; }
+    .epc-boc__topnav-actions { margin-left:auto; display:flex; align-items:center; gap:10px; font-size:12px; flex-wrap:wrap; }
+    .epc-boc__topnav-brand-sub { font-size:10px; font-weight:700; opacity:.85; margin-left:2px; letter-spacing:.04em; text-transform:uppercase; }
+    .epc-boc__topnav-bos, .epc-boc__topnav-erp {
+        display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px;
+        color:#fff; text-decoration:none; font-weight:800; border:1px solid rgba(255,255,255,.28);
+        background:rgba(0,0,0,.22);
+    }
+    .epc-boc__topnav-bos:hover, .epc-boc__topnav-erp:hover { background:rgba(0,0,0,.38); color:#fff; text-decoration:none; }
+    .epc-boc__topnav-bos { border-color:rgba(14,165,233,.55); background:rgba(14,165,233,.22); }
+    .epc-boc__avatar { background:rgba(255,255,255,.2); border-radius:999px; padding:6px 9px; font-weight:800; }
+</style>
+<link rel="stylesheet" href="/content/general_pages/epc_boc_console_css.php?v=20260722tenant1" />
+</HeadContent>
+
+<nav class="epc-boc__topnav" id="epc_boc_topnav" aria-label="Business Operation Control" data-epc-surface="super-cp">
+    <div class="epc-boc__topnav-inner">
+        <a class="epc-boc__topnav-brand" href="/cp" title="Super CP — Business Operation Control">
+            <PhpEcomaeAnimatedLogo Variant="compact" ShowWordmark="true" />
+            <span>BOS</span><small class="epc-boc__topnav-brand-sub">Control</small>
+        </a>
+        <ul class="epc-boc__topnav-list" role="menubar">
+            @foreach (var (group, areas) in PhpSuperCpBocNav.Nav())
+            {
+                var isActive = group.Key == ActiveGroup;
+                <li class="epc-boc__topnav-item @(isActive ? "is-active" : "")" data-boc-group="@group.Key" role="none">
+                    <button type="button" class="epc-boc__topnav-btn" role="menuitem" aria-haspopup="true" aria-expanded="false" data-boc-topnav-toggle="@group.Key">
+                        <i class="fa @group.Icon" aria-hidden="true"></i>
+                        <span class="epc-boc__topnav-label">@group.Label</span>
+                        <i class="fa fa-angle-down epc-boc__topnav-caret" aria-hidden="true"></i>
+                    </button>
+                    <div class="epc-boc__topnav-panel" role="menu" hidden data-boc-topnav-panel="@group.Key">
+                        <div class="epc-boc__topnav-panel-hd">
+                            <div class="epc-boc__topnav-panel-title"><i class="fa @group.Icon"></i> @group.Label</div>
+                        </div>
+                        <div class="epc-boc__topnav-cols">
+                            @foreach (var (chunk, ci) in Chunk(areas, 7))
+                            {
+                                <div class="epc-boc__topnav-col">
+                                    <div class="epc-boc__topnav-col-hd"><i class="fa fa-sitemap"></i> @ColTitle(ci, areas.Count)</div>
+                                    <ul class="epc-boc__topnav-links">
+                                        @foreach (var area in chunk)
+                                        {
+                                            <li>
+                                                <a href="@area.Href" title="@area.Hint"><i class="fa @area.Icon"></i> @area.Label</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </li>
+            }
+        </ul>
+        <div class="epc-boc__topnav-actions">
+            <a class="epc-boc__topnav-bos" href="/bos" title="Open product Super BOS — Fleet Command (black shell)"><i class="fa fa-server"></i> Super BOS</a>
+            @if (_showErp)
+            {
+                <a class="epc-boc__topnav-erp" href="/erp" title="Leave Super CP and open the ERP workspace" data-epc-erp-switcher="1"><i class="fa fa-university"></i> ERP</a>
+                <a class="epc-boc__topnav-erp" href="/erp/fleet-app" title="Leave Super CP and open Super ERP fleet" data-epc-erp-switcher="1"><i class="fa fa-sitemap"></i> Fleet ERP</a>
+            }
+            <a class="epc-boc__topnav-erp" href="/cp/super-mail-app" title="Platform mail"><i class="fa fa-inbox"></i> Mail</a>
+            <span class="epc-boc__scope" title="Platform fleet vs active tenant CP"><i class="fa fa-globe"></i> All units · Fleet</span>
+            <span class="epc-boc__env"><i class="fa fa-circle" style="font-size:7px;vertical-align:middle;color:#16a34a"></i> Production</span>
+            <span class="epc-boc__avatar" title="Operator">OP</span>
+        </div>
+    </div>
+</nav>
+
+@code {
+    [Parameter] public string ActiveGroup { get; set; } = "command";
+
+    private bool _showErp;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _showErp = SurfaceChromePolicy.ShowErpSwitcher(session, SurfaceChromePolicy.ModeOf(ctx));
+    }
+
+    private static IEnumerable<(IReadOnlyList<PhpSuperCpBocNav.BocArea> Chunk, int Index)> Chunk(IReadOnlyList<PhpSuperCpBocNav.BocArea> areas, int size)
+    {
+        var index = 0;
+        for (var i = 0; i < areas.Count; i += size)
+        {
+            yield return (areas.Skip(i).Take(size).ToList(), index++);
+        }
+    }
+
+    private static string ColTitle(int index, int total)
+    {
+        if (total <= 7)
+        {
+            return "Modules";
+        }
+
+        return index switch
+        {
+            0 => "Modules",
+            1 => "More",
+            2 => "Also",
+            3 => "More tools",
+            _ => "Extra"
+        };
+    }
+}
