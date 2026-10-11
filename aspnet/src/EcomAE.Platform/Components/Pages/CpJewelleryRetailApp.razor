@@ -144,6 +144,18 @@
                                     <td>@line.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 </tr>
                             }
+                            <tr style="font-weight:600;background:#f2f6fa">
+                                <td colspan="4">Total</td>
+                                <td>@_opened.LineItems.Sum(l => l.Pcs)</td>
+                                <td>@_opened.LineItems.Sum(l => l.GrossWeight).ToString("N4", CultureInfo.InvariantCulture)</td>
+                                <td></td>
+                                <td>@_opened.LineItems.Sum(l => l.PureWeight).ToString("N4", CultureInfo.InvariantCulture)</td>
+                                <td>@_opened.LineItems.Sum(l => l.MetalAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@_opened.LineItems.Sum(l => l.MakingAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@_opened.LineItems.Sum(l => l.StoneAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@_opened.LineItems.Sum(l => l.DiscountAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@_opened.LineItems.Sum(l => l.TotalAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
