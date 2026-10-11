@@ -813,16 +813,7 @@ internal static class ErpLazySchema
                 ct).ConfigureAwait(false);
             if (count > 1)
             {
-                // Auto-created MAIN rows that raced in within the same second are one logical company:
-                // keep the lowest id active (PHP epc_erp_active_company_id picks the first active row).
-                await ErpDb.TryExecuteAsync(c,
-                    "UPDATE `epc_erp_pm_legal_entities` d" +
-                    " JOIN (SELECT MIN(`id`) AS keep_id, `time_created` FROM `epc_erp_pm_legal_entities`" +
-                    "       WHERE `code`='MAIN' AND `note`='Auto-created default company' AND `active`=1" +
-                    "       GROUP BY `time_created`) k" +
-                    "   ON d.`code`='MAIN' AND d.`note`='Auto-created default company' AND d.`active`=1" +
-                    "  AND d.`time_created`=k.`time_created` AND d.`id`<>k.keep_id" +
-                    " SET d.`active`=0, d.`time_updated`=UNIX_TIMESTAMP()", ct).ConfigureAwait(false);
+                await DeactivateUnusedRacedDefaultCompaniesAsync(c, ct).ConfigureAwait(false);
             }
 
             if (count > 0)
@@ -917,9 +908,16 @@ internal static class ErpLazySchema
         }
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var locked = false;
         try
         {
-            await ErpDb.TryExecuteAsync(c, "SELECT GET_LOCK('epc_erp_pm_legal_entities_main', 5)", ct).ConfigureAwait(false);
+            locked = await ErpDb.LongAsync(c, null,
+                "SELECT COALESCE(GET_LOCK('epc_erp_pm_legal_entities_main', 5), 0)", ct).ConfigureAwait(false) == 1;
+            if (!locked)
+            {
+                return; // another request is seeding the default company; it will exist on the next ensure
+            }
+
             await ErpDb.ExecuteAsync(c, null,
                 "INSERT INTO `epc_erp_pm_legal_entities`" +
                 " (`code`,`name`,`country_code`,`currency_code`,`trn`,`note`,`active`,`time_created`,`time_updated`)" +
@@ -938,9 +936,75 @@ internal static class ErpLazySchema
         }
         finally
         {
-            await ErpDb.TryExecuteAsync(c, "SELECT RELEASE_LOCK('epc_erp_pm_legal_entities_main')", ct).ConfigureAwait(false);
+            if (locked)
+            {
+                await ErpDb.TryExecuteAsync(c, "SELECT RELEASE_LOCK('epc_erp_pm_legal_entities_main')", ct).ConfigureAwait(false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Auto-created MAIN rows that raced in on a fresh tenant are one logical company. Keep the lowest id
+    /// (PHP epc_erp_active_company_id picks the first active row) and deactivate the others — but only when
+    /// no company-scoped table references them, so existing records never become unreachable.
+    /// </summary>
+    private static async Task DeactivateUnusedRacedDefaultCompaniesAsync(DbConnection c, CancellationToken ct)
+    {
+        var ids = new List<long>();
+        await using (var command = c.CreateCommand())
+        {
+            command.CommandText =
+                "SELECT `id` FROM `epc_erp_pm_legal_entities`" +
+                " WHERE `code`='MAIN' AND `note`='Auto-created default company' AND `active`=1 ORDER BY `id`";
+            await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                ids.Add(reader.GetInt64(0));
+            }
         }
 
+        if (ids.Count < 2)
+        {
+            return;
+        }
+
+        var scopedTables = new List<string>();
+        await using (var command = c.CreateCommand())
+        {
+            command.CommandText =
+                "SELECT `TABLE_NAME` FROM information_schema.COLUMNS" +
+                " WHERE `TABLE_SCHEMA` = DATABASE() AND `COLUMN_NAME` = 'company_id'" +
+                " AND `TABLE_NAME` <> 'epc_erp_pm_legal_entities'";
+            await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                scopedTables.Add(reader.GetString(0));
+            }
+        }
+
+        foreach (var duplicateId in ids.Skip(1))
+        {
+            var referenced = false;
+            foreach (var table in scopedTables)
+            {
+                var rows = await ErpDb.LongAsync(c, null,
+                    "SELECT COUNT(*) FROM `" + table.Replace("`", "``") + "` WHERE `company_id` = @p0",
+                    ct, duplicateId).ConfigureAwait(false);
+                if (rows > 0)
+                {
+                    referenced = true;
+                    break;
+                }
+            }
+
+            if (!referenced)
+            {
+                await ErpDb.TryExecuteAsync(c,
+                    "UPDATE `epc_erp_pm_legal_entities` SET `active`=0, `time_updated`=UNIX_TIMESTAMP()" +
+                    " WHERE `id`=" + duplicateId.ToString(System.Globalization.CultureInfo.InvariantCulture) +
+                    " AND `code`='MAIN' AND `note`='Auto-created default company'", ct).ConfigureAwait(false);
+            }
+        }
     }
 
     /// <summary>
