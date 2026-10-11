@@ -678,14 +678,14 @@ body.epc-erp-cp-shell .table-responsive {
     }
 
     .epc-cp-shell .epc-cp-header-bar a,
-    .epc-erp-cp-shell .epc-erp-topbar a,
+    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn),
     .epc-erp-cp-shell .epc-erp-topbar__nav,
     .epc-erp-cp-shell .epc-erp-topbar__user {
         color: rgba(255, 255, 255, .9);
     }
 
     .epc-cp-shell .epc-cp-header-bar a:hover,
-    .epc-erp-cp-shell .epc-erp-topbar a:hover {
+    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn):hover {
         color: #fff;
     }
 
@@ -771,6 +771,7 @@ body.epc-erp-cp-shell .table-responsive {
         background: linear-gradient(135deg, #1769aa, #0e83b5);
         border-color: #125989;
         box-shadow: 0 4px 10px rgba(23, 105, 170, .2);
+        color: #fff;
         font-weight: 700;
     }
 
@@ -1040,7 +1041,7 @@ body.epc-erp-cp-shell .table-responsive {
 
     .epc-module-visual-frame {
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
         align-items: center;
         gap: 13px;
         margin: 0 0 14px;
