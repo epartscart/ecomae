@@ -85,6 +85,14 @@ public sealed class StorefrontPrintProductsTests
         Assert.Contains("CatalogueStyleCookieAsync", endpoints, StringComparison.Ordinal);
         Assert.Equal("content/shop/catalogue/compare/compare.php", StorefrontComparePages.ComparePath);
         Assert.Equal("content/shop/catalogue/bookmarks/bookmarks.php", StorefrontComparePages.BookmarksPath);
+        Assert.Equal("content/shop/catalogue/epc_sku_media.php", StorefrontSkuMediaPages.SkuMediaPath);
+        Assert.Equal("epc_sku_media_public_lookup", StorefrontSkuMediaPages.epc_sku_media_public_lookup);
+        Assert.Equal("content/shop/catalogue/helper.php", StorefrontShopIncludes.HelperPath);
+        Assert.Equal("printProductBlock", StorefrontShopIncludes.printProductBlock);
+        Assert.Equal("content/shop/catalogue/get_catalogue_tree.php", StorefrontShopIncludes.CatalogueTreePath);
+        Assert.Equal("content/shop/docpart/part_search_page.php", StorefrontDocpartPages.PartSearchPagePath);
+        Assert.Equal("content/users/dp_user.php", StorefrontUserPages.DpUserPath);
+        Assert.Equal("modules/shop/catalogue/dp_menu.php", StorefrontShopModules.DpMenuPath);
     }
 
     private static string Find(string relative)

@@ -20,6 +20,16 @@ public static class CpPricesUploadPages
     public const string CommerceDataPagePath = "cp/content/shop/prices_upload/commerce_data_page.php";
     public const string HistoryConfigPath = "cp/content/shop/prices_upload/epc_prices_upload_history_config.php";
     public const string StorefrontStoragePanelPath = "cp/content/shop/prices_upload/epc_storefront_storage_panel.php";
+    public const string PricesManagerPerfPath = "cp/content/shop/prices_upload/epc_prices_manager_perf.php";
+    public const string MultivendorCpConfigPath = "cp/content/shop/prices_upload/epc_multivendor_cp_config.php";
+    public const string CommerceCpConfigPath = "cp/content/shop/prices_upload/epc_commerce_cp_config.php";
+    public const string MultivendorSampleFilePath = "cp/content/shop/prices_upload/epc_multivendor_sample_file.php";
+    public const string PricesAjaxInitPath = "cp/content/shop/prices_upload/epc_prices_ajax_init.php";
+    public const string StorefrontStorageToggleConfigPath = "cp/content/shop/prices_upload/epc_storefront_storage_toggle_config.php";
+    public const string PypricesUpdateHistoryPath = "cp/content/shop/prices_upload/for_pyprices/get_update_history.php";
+    public const string PypricesExternalTasksPath = "cp/content/shop/prices_upload/for_pyprices/external_tasks_account.php";
+    public const string PypricesDeployPath = "cp/content/shop/prices_upload/for_pyprices/pyprices_deploy.php";
+    public const string PypricesTablesCleanerPath = "cp/content/shop/prices_upload/for_pyprices/pyprices_tables_cleaner.php";
     public const string AppHref = "/cp/prices-upload-app";
     public const string UploadHref = "/cp/shop/prices/upload";
     public const string ReviewHref = "/cp/shop/prices/review";
@@ -48,4 +58,17 @@ public static class CpPricesUploadPages
     public const string download_price = nameof(download_price);
     public const string review_price = nameof(review_price);
     public const string send_request_for_one_part = nameof(send_request_for_one_part);
+    public const string epc_prices_add_index_if_missing = nameof(epc_prices_add_index_if_missing);
+    public const string epc_prices_defer_inline_update_history = nameof(epc_prices_defer_inline_update_history);
+    public const string epc_prices_ensure_listing_indexes = nameof(epc_prices_ensure_listing_indexes);
+    public const string epc_prices_external_poll_interval_ms = nameof(epc_prices_external_poll_interval_ms);
+    public const string epc_prices_fetch_lists_query = nameof(epc_prices_fetch_lists_query);
+    public const string epc_prices_fetch_lists_rows = nameof(epc_prices_fetch_lists_rows);
+    public const string epc_prices_is_large_tenant_host = nameof(epc_prices_is_large_tenant_host);
+    public const string epc_prices_is_platform_operator_request = nameof(epc_prices_is_platform_operator_request);
+    public const string epc_prices_live_counts_map = nameof(epc_prices_live_counts_map);
+    public const string epc_prices_persist_records_counts = nameof(epc_prices_persist_records_counts);
+    public const string epc_prices_should_run_tables_cleaner = nameof(epc_prices_should_run_tables_cleaner);
+    public const string epc_prices_table_has_column = nameof(epc_prices_table_has_column);
+    public const string epc_pyprices_health_check = nameof(epc_pyprices_health_check);
 }

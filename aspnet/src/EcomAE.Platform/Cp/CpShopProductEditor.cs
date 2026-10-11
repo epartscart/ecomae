@@ -25,6 +25,7 @@ public static class CpShopProductEditor
     public const string SkuMediaConfigPath = "cp/content/shop/catalogue/epc_sku_media_cp_config.php";
     public const string DeleteProductsSubPath = "cp/content/shop/catalogue/delete_products_sub.php";
     public const string CopyPasteCategoriesJsPath = "cp/content/shop/catalogue/copy_paste_categories.js.php";
+    public const string CategoriesTemplatesJsPath = "cp/content/shop/catalogue/categories_templates/categories_templates.js.php";
     public const string AppHref = "/cp/product-catalogue-app";
     public const string ProductHref = "/cp/product-catalogue-app#product-save";
 
@@ -58,4 +59,9 @@ public static class CpShopProductEditor
     public const string sticker_save = nameof(sticker_save);
     public const string unselect_tree = nameof(unselect_tree);
     public const string unselect_tree_related = nameof(unselect_tree_related);
+    public const string open_templates_window = nameof(open_templates_window);
+    public const string onSelected_templates_tree = nameof(onSelected_templates_tree);
+    public const string create_template = nameof(create_template);
+    public const string delete_category_template = nameof(delete_category_template);
+    public const string template_to_buffer = nameof(template_to_buffer);
 }

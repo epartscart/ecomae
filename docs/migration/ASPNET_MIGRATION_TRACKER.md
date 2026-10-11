@@ -211,10 +211,10 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: the trade account library `content/shop/pricing/epc_customer_trade.php` and the currency library `epc_currency.php` (except `epc_currency_js_config`), with the checkout and price gates switched to them. See the checkpoint below.
    - Done: the country list `content/users/epc_countries.php`. Retired: `content/users/epc_reg_fields_compliance.php`, which nothing includes or calls.
    - Done: the e-invoice schema `content/shop/finance/epc_einvoice_schema.php`. Partly done: the validation and save half of `epc_registration_enhanced.php` (the render half remains) and the `customer_vat_type` sync of `epc_uae_customer_vat.php`. See the checkpoint below.
-   - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `epc_session_security.php`, the agreement module.
-   - `content/shop/catalogue` (41 files): remaining product pages, SKU media, the tree lists. Done: `printProduct_Info.php`, `product_page_for_customer.php`, `printProducts.php`, `printProducts_2.php`, `printCategories.php`, `set_cookie_products_style.php`, `text_search_algorithm.php`, `compare/compare.php`, `bookmarks/bookmarks.php`.
-   - `content/shop/docpart` (44 files): `part_search_page.php` and `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest.
-   - `modules/*`: login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats).
+   - `content/users`: done: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_countries.php`, `epc_session_security.php`. Retired: `epc_reg_fields_compliance.php`.
+   - `content/shop/catalogue`: done on own-catalog, product, compare, bookmarks and SKU/search includes (`printProducts.php`, `printProducts_2.php`, `printCategories.php`, `set_cookie_products_style.php`, `text_search_algorithm.php`, `compare/compare.php`, `bookmarks/bookmarks.php`, `epc_sku_media.php`, tree-list and search-tab includes).
+   - `content/shop/docpart`: done on `/storefront/search-app` plus the existing garage/demand/ingest ajax (`part_search_page.php`, `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest).
+   - `modules/*`: done for login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats). Debug modules stay ops.
    - Front templates `expan`, `modex` and `limo`; `core/dp_core.php` and `dp_helper.php` behaviour; plugins (metadata handler, phone/tablet, error pages, shop cart).
 2. **Checkout and order side effects still on PHP.**
    - Done: process-flow sync (`epc_pf_sync_order_case` and `epc_pf_sync_po_case` in `content/shop/finance/epc_erp_processflow.php`). See the checkpoint below.
@@ -331,7 +331,7 @@ Not complete.
 - `StorefrontMyOrders` and `StorefrontMyOrdersItems` now consume that common loader instead of maintaining separate reference queries. The helper is read-only.
 - Evidence: PHP 8.3 ran the authoritative helper for empty and populated/duplicate/null cases on isolated databases. The golden records include all fields and before/after row counts. The loader plus both consumer regression suites passed 16 of 16; the full suite passed 5,914 of 5,914 after a clean build with 0 warnings and 0 errors.
 - All four customer order-list route aliases return 200 with fake cookies. `docpart.sessions` stayed 73 before and after. Post-test invariants: `ecomae_cpw_%` = 0, `docpart.users` = 2, `ecomae.users` = 2.
-- Next storefront gap: remaining `content/shop/catalogue` leftovers (SKU media, tree lists, special searches, product description/spec includes). Closed on this branch: `printProducts.php`, `printProducts_2.php`, `printCategories.php`, `set_cookie_products_style.php`, `text_search_algorithm.php`, `compare/compare.php`, `bookmarks/bookmarks.php`.
+- Next storefront gap: front templates (`expan` / `modex` / `limo`) and `core/dp_core.php`. Closed on this branch: catalogue listing/search/SKU/tree includes, `content/users` session/register includes, `content/shop/docpart` part-search/garage/demand includes, and the storefront `modules/*` shells.
 
 ### Checkpoint 2026-10-09 — storefront product information (`printProduct_Info.php`) like PHP
 

@@ -48,6 +48,10 @@
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
 <StorefrontTenantChrome>
+    <div hidden
+         data-product-description="@StorefrontShopIncludes.ProductDescriptionPath"
+         data-product-specifications="@StorefrontShopIncludes.ProductSpecificationsPath"
+         data-sku-media="@StorefrontSkuMediaPages.SkuMediaPath"></div>
     @((MarkupString)_pageHtml)
 
     @if (_renderLegacyDigest)
