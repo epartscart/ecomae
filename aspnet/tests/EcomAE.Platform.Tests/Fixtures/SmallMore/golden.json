@@ -1,0 +1,463 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "levam_off",
+            "output": "",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "levam_on",
+            "output": "\t\t<style>\r\n\t\t/*Стили для адаптации самого каталога*/\r\n\t\t.oem_widget_std_block\r\n\t\t{\r\n\t\t\twidth:210px!important;\r\n\t\t}\r\n\t\t.oem_widget_left_sidebar2 + .w-100 + .pa-0 .oem_widget_std_block,\r\n\t\t.oem_widget_marks .oem_widget_std_block,\r\n\t\t.oem_widget_std_block\r\n\t\t{\r\n\t\t\theight:60px!important;\r\n\t\t\tpadding-top:0!important;\r\n\t\t\twidth:210px!important;\r\n\t\t}\r\n\t\t@media screen and (max-width: 600px)\r\n\t\t{\r\n\t\t\t.oem_widget_left_sidebar2 + .w-100 + .pa-0 .oem_widget_std_block,\r\n\t\t\t.oem_widget_marks .oem_widget_std_block,\r\n\t\t\t.oem_widget_std_block\r\n\t\t\t{\r\n\t\t\t\theight:60px!important;\r\n\t\t\t\tmin-height:60px!important;\r\n\t\t\t\tpadding-top:0!important;\r\n\t\t\t\twidth:190px!important;\r\n\t\t\t}\r\n\t\t}\r\n\t\t.oem_widget_left_sidebar2 + .w-100 + .pa-0 .v-responsive__sizer,\r\n\t\t.oem_widget_left_sidebar2 + .w-100 + .pa-0 .v-image__image,\r\n\t\t.oem_widget_left_sidebar2 + .w-100 + .pa-0 .v-image,\r\n\t\t.oem_widget_mark_block .v-image,\r\n\t\t.oem_widget_std_block .v-image,\r\n\t\t.oem_widget_top_car_image_wrap,\r\n\t\t.oem_widget_top_car_image\r\n\t\t{\r\n\t\t\tdisplay:none;\r\n\t\t\theight:0!important;\r\n\t\t\twidth:0!important;\r\n\t\t\tmargin-top:0!important;\r\n\t\t\tpadding:0!important;\r\n\t\t}\r\n\t\t.oem_widget_std_block_wrap_img\r\n\t\t{\r\n\t\t\theight:10px!important;\r\n\t\t}\r\n\t\t</style>\r\n\t\t<br>\r\n\t\t<script id=\"levam_oem_catalog\" src=\"https://widgets.levam.net/oem-widget/loader.js\" lang=\"ru\" code=\"AB&C\" async></script>\r\n\t\t",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "special_empty",
+            "output": "\r\n\r\n<ul class=\"cat_blocks\">\r\n</ul>\r\n\r\n\r\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "special_two",
+            "output": "\r\n\r\n\t<div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">\r\n\t<h2 class=\"section-title\">{4146}</h2>\r\n\t<ul class=\"cat_blocks\">\r\n\t<li>\r\n    \t<a href=\"/ar/oil\">\r\n    \t\t<span class=\"block_image\">\r\n\t\t\t\t<img src=\"/content/files/images/catalogue_images/oil.png\" onerror=\"this.src='/content/files/images/no_image.png'\" />\r\n\t\t\t</span>\r\n    \t\t<span class=\"block_caption\">{10}</span>\r\n    \t</a>\r\n    </li>\r\n\t\t<li>\r\n    \t<a href=\"/ar/a&b\">\r\n    \t\t<span class=\"block_image\">\r\n\t\t\t\t<img src=\"/content/files/images/catalogue_images/x\"y.png\" onerror=\"this.src='/content/files/images/no_image.png'\" />\r\n\t\t\t</span>\r\n    \t\t<span class=\"block_caption\">{11}</span>\r\n    \t</a>\r\n    </li>\r\n\t</ul>\r\n\r\n\r\n\t</div>\r\n\t",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "news_none",
+            "output": "<a href=\"/en/news\" class=\"all_news_link\">{4763}</a>",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "news_one",
+            "output": "\t<div class=\"media news_block\">\n\t\t<div class=\"media-body\">\n\t\t\t<h4 class=\"media-heading\"><a href=\"/en//n1\">{100}<br>{101}</a></h4>\n\t\t\t<small>14.11.2023</small>\n\t\t</div>\n\t</div>\n    <a href=\"/en//news\" class=\"all_news_link\">{4763}</a>",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "retail_tree",
+            "output": "",
+            "result": [
+                {
+                    "slug": "retail-home",
+                    "name": "Home & kitchen",
+                    "sort": 10,
+                    "children": [
+                        {
+                            "slug": "retail-home-appliances",
+                            "name": "Small appliances",
+                            "children": [
+                                {
+                                    "slug": "retail-home-appliances-coffee",
+                                    "name": "Coffee makers"
+                                },
+                                {
+                                    "slug": "retail-home-appliances-blenders",
+                                    "name": "Blenders & mixers"
+                                },
+                                {
+                                    "slug": "retail-home-appliances-airfryer",
+                                    "name": "Air fryers & ovens"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "retail-home-decor",
+                            "name": "Home décor",
+                            "children": [
+                                {
+                                    "slug": "retail-home-decor-lighting",
+                                    "name": "Lamps & lighting"
+                                },
+                                {
+                                    "slug": "retail-home-decor-rugs",
+                                    "name": "Rugs & carpets"
+                                },
+                                {
+                                    "slug": "retail-home-decor-wall",
+                                    "name": "Wall art & mirrors"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "retail-home-storage",
+                            "name": "Storage & organisation"
+                        },
+                        {
+                            "slug": "retail-home-bedding",
+                            "name": "Bedding & bath",
+                            "children": [
+                                {
+                                    "slug": "retail-home-bedding-sheets",
+                                    "name": "Sheets & duvet covers"
+                                },
+                                {
+                                    "slug": "retail-home-bedding-towels",
+                                    "name": "Towels & bath mats"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "slug": "retail-home-garden",
+                    "name": "Home & garden",
+                    "sort": 15,
+                    "children": [
+                        {
+                            "slug": "retail-garden-tools",
+                            "name": "Garden tools",
+                            "children": [
+                                {
+                                    "slug": "retail-garden-tools-hand",
+                                    "name": "Hand tools & trowels"
+                                },
+                                {
+                                    "slug": "retail-garden-tools-power",
+                                    "name": "Lawn mowers & trimmers"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "retail-garden-plants",
+                            "name": "Plants & seeds"
+                        },
+                        {
+                            "slug": "retail-garden-outdoor",
+                            "name": "Outdoor & patio",
+                            "children": [
+                                {
+                                    "slug": "retail-garden-outdoor-furniture",
+                                    "name": "Outdoor furniture"
+                                },
+                                {
+                                    "slug": "retail-garden-outdoor-bbq",
+                                    "name": "BBQ & grills"
+                                },
+                                {
+                                    "slug": "retail-garden-outdoor-umbrella",
+                                    "name": "Umbrellas & shade"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "retail-garden-watering",
+                            "name": "Watering & irrigation"
+                        },
+                        {
+                            "slug": "retail-garden-pots",
+                            "name": "Pots, planters & soil"
+                        }
+                    ]
+                },
+                {
+                    "slug": "retail-industrial",
+                    "name": "Industrial & trade",
+                    "sort": 18,
+                    "children": [
+                        {
+                            "slug": "retail-industrial-power-tools",
+                            "name": "Power tools",
+                            "children": [
+                                {
+                                    "slug": "retail-industrial-drills",
+                                    "name": "Drills & drivers"
+                                },
+                                {
+                                    "slug": "retail-industrial-saws",
+                                    "name": "Saws & grinders"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "retail-industrial-hand-tools",
+                            "name": "Hand tools & toolkits"
+                        },
+                        {
+                            "slug": "retail-industrial-safety",
+                            "name": "Safety & PPE",
+                            "children": [
+                                {
+                                    "slug": "retail-industrial-safety-gloves",
+                                    "name": "Gloves & workwear"
+                                },
+                                {
+                                    "slug": "retail-industrial-safety-helmets",
+                                    "name": "Helmets & goggles"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "retail-industrial-plumbing",
+                            "name": "Plumbing supplies"
+                        },
+                        {
+                            "slug": "retail-industrial-electrical",
+                            "name": "Electrical supplies",
+                            "children": [
+                                {
+                                    "slug": "retail-industrial-cables",
+                                    "name": "Cables & wiring"
+                                },
+                                {
+                                    "slug": "retail-industrial-switches",
+                                    "name": "Switches & sockets"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "retail-industrial-fasteners",
+                            "name": "Fasteners & hardware"
+                        },
+                        {
+                            "slug": "retail-industrial-paint",
+                            "name": "Paint & coatings"
+                        }
+                    ]
+                },
+                {
+                    "slug": "retail-office",
+                    "name": "Office & stationery",
+                    "sort": 20,
+                    "children": [
+                        {
+                            "slug": "retail-office-supplies",
+                            "name": "Office supplies",
+                            "children": [
+                                {
+                                    "slug": "retail-office-supplies-paper",
+                                    "name": "Paper & notebooks"
+                                },
+                                {
+                                    "slug": "retail-office-supplies-pens",
+                                    "name": "Pens & markers"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "retail-office-furniture",
+                            "name": "Office furniture",
+                            "children": [
+                                {
+                                    "slug": "retail-office-furniture-desks",
+                                    "name": "Desks & chairs"
+                                },
+                                {
+                                    "slug": "retail-office-furniture-storage",
+                                    "name": "Filing & storage"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "retail-office-tech",
+                            "name": "Office tech accessories"
+                        }
+                    ]
+                },
+                {
+                    "slug": "retail-health",
+                    "name": "Health & wellness",
+                    "sort": 30,
+                    "children": [
+                        {
+                            "slug": "retail-health-vitamins",
+                            "name": "Vitamins & supplements"
+                        },
+                        {
+                            "slug": "retail-health-personal",
+                            "name": "Personal care",
+                            "children": [
+                                {
+                                    "slug": "retail-health-skincare",
+                                    "name": "Skincare"
+                                },
+                                {
+                                    "slug": "retail-health-haircare",
+                                    "name": "Hair care"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "retail-health-fitness",
+                            "name": "Fitness & sports nutrition"
+                        }
+                    ]
+                },
+                {
+                    "slug": "retail-gifts",
+                    "name": "Gifts & lifestyle",
+                    "sort": 40,
+                    "children": [
+                        {
+                            "slug": "retail-gifts-hampers",
+                            "name": "Gift hampers"
+                        },
+                        {
+                            "slug": "retail-gifts-seasonal",
+                            "name": "Seasonal gifts"
+                        },
+                        {
+                            "slug": "retail-gifts-toys",
+                            "name": "Toys & games"
+                        }
+                    ]
+                }
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "favicon_auto",
+            "output": "",
+            "result": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect width=\"64\" height=\"64\" rx=\"14\" fill=\"#fff\"/><path d=\"M18 16h33c2.8 0 4.7 2.6 3.9 5.3L50 39H25L18 16Z\" fill=\"none\" stroke=\"#dc2626\" stroke-linejoin=\"round\" stroke-width=\"5\"/><path d=\"M18 16h-7l-4-5\" fill=\"none\" stroke=\"#dc2626\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"5\"/><path d=\"M25 25h22l-3 9H28Z\" fill=\"#dc2626\"/><circle cx=\"27\" cy=\"48\" r=\"7\" fill=\"#dc2626\"/><circle cx=\"27\" cy=\"48\" r=\"4\" fill=\"#fff\"/><circle cx=\"50\" cy=\"48\" r=\"7\" fill=\"#dc2626\"/><circle cx=\"50\" cy=\"48\" r=\"4\" fill=\"#fff\"/></svg>",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "favicon_electronics",
+            "output": "",
+            "result": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect width=\"64\" height=\"64\" rx=\"14\" fill=\"#1e40af\"/><rect x=\"16\" y=\"10\" width=\"32\" height=\"22\" rx=\"3\" fill=\"none\" stroke=\"#fff\" stroke-width=\"3\"/><line x1=\"32\" y1=\"32\" x2=\"32\" y2=\"38\" stroke=\"#fff\" stroke-width=\"3\" stroke-linecap=\"round\"/><line x1=\"24\" y1=\"38\" x2=\"40\" y2=\"38\" stroke=\"#fff\" stroke-width=\"3\" stroke-linecap=\"round\"/><circle cx=\"32\" cy=\"21\" r=\"5\" fill=\"none\" stroke=\"#60a5fa\" stroke-width=\"2\"/><circle cx=\"32\" cy=\"21\" r=\"1.5\" fill=\"#60a5fa\"/><rect x=\"14\" y=\"44\" width=\"10\" height=\"10\" rx=\"2\" fill=\"#3b82f6\"/><rect x=\"27\" y=\"44\" width=\"10\" height=\"10\" rx=\"2\" fill=\"#3b82f6\"/><rect x=\"40\" y=\"44\" width=\"10\" height=\"10\" rx=\"2\" fill=\"#3b82f6\"/><text x=\"19\" y=\"52\" font-size=\"7\" fill=\"#fff\" font-family=\"sans-serif\" font-weight=\"bold\">E</text><text x=\"30\" y=\"52\" font-size=\"7\" fill=\"#fff\" font-family=\"sans-serif\" font-weight=\"bold\">A</text><text x=\"43\" y=\"52\" font-size=\"7\" fill=\"#fff\" font-family=\"sans-serif\" font-weight=\"bold\">E</text></svg>",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "favicon_fashion",
+            "output": "",
+            "result": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect width=\"64\" height=\"64\" rx=\"14\" fill=\"#7c3aed\"/><path d=\"M32 8 L22 20 L26 20 L24 56 L40 56 L38 20 L42 20 Z\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><path d=\"M26 20 Q32 28 38 20\" fill=\"none\" stroke=\"#c4b5fd\" stroke-width=\"2\"/><circle cx=\"32\" cy=\"12\" r=\"2\" fill=\"#c4b5fd\"/><text x=\"18\" y=\"61\" font-size=\"7\" fill=\"#e9d5ff\" font-family=\"sans-serif\" letter-spacing=\"1\">SNL</text></svg>",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "favicon_jewellery",
+            "output": "",
+            "result": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect width=\"64\" height=\"64\" rx=\"14\" fill=\"#78350f\"/><polygon points=\"32,8 20,24 12,24 32,56 52,24 44,24\" fill=\"none\" stroke=\"#fbbf24\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><polygon points=\"32,8 26,24 38,24\" fill=\"#fbbf24\" opacity=\"0.3\"/><line x1=\"12\" y1=\"24\" x2=\"52\" y2=\"24\" stroke=\"#fbbf24\" stroke-width=\"2\"/><line x1=\"26\" y1=\"24\" x2=\"32\" y2=\"56\" stroke=\"#fbbf24\" stroke-width=\"1.5\" opacity=\"0.5\"/><line x1=\"38\" y1=\"24\" x2=\"32\" y2=\"56\" stroke=\"#fbbf24\" stroke-width=\"1.5\" opacity=\"0.5\"/><text x=\"15\" y=\"62\" font-size=\"5.5\" fill=\"#fde68a\" font-family=\"serif\" letter-spacing=\"0.5\">TJT</text></svg>",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "favicon_tax",
+            "output": "",
+            "result": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect width=\"64\" height=\"64\" rx=\"14\" fill=\"#0f766e\"/><rect x=\"14\" y=\"12\" width=\"36\" height=\"44\" rx=\"3\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.5\"/><line x1=\"22\" y1=\"22\" x2=\"42\" y2=\"22\" stroke=\"#5eead4\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"22\" y1=\"29\" x2=\"42\" y2=\"29\" stroke=\"#5eead4\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"22\" y1=\"36\" x2=\"36\" y2=\"36\" stroke=\"#5eead4\" stroke-width=\"2\" stroke-linecap=\"round\"/><path d=\"M34 42 L38 46 L46 36\" fill=\"none\" stroke=\"#2dd4bf\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><text x=\"14\" y=\"62\" font-size=\"5.5\" fill=\"#99f6e4\" font-family=\"sans-serif\" letter-spacing=\"0.5\">TCA</text></svg>",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "favicon_unknown",
+            "output": "",
+            "result": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect width=\"64\" height=\"64\" rx=\"14\" fill=\"#fff\"/><path d=\"M18 16h33c2.8 0 4.7 2.6 3.9 5.3L50 39H25L18 16Z\" fill=\"none\" stroke=\"#dc2626\" stroke-linejoin=\"round\" stroke-width=\"5\"/><path d=\"M18 16h-7l-4-5\" fill=\"none\" stroke=\"#dc2626\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"5\"/><path d=\"M25 25h22l-3 9H28Z\" fill=\"#dc2626\"/><circle cx=\"27\" cy=\"48\" r=\"7\" fill=\"#dc2626\"/><circle cx=\"27\" cy=\"48\" r=\"4\" fill=\"#fff\"/><circle cx=\"50\" cy=\"48\" r=\"7\" fill=\"#dc2626\"/><circle cx=\"50\" cy=\"48\" r=\"4\" fill=\"#fff\"/></svg>",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "favicon_links",
+            "output": "",
+            "result": "<link rel=\"icon\" type=\"image/svg+xml\" href=\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%230f766e%22%2F%3E%3Crect%20x%3D%2214%22%20y%3D%2212%22%20width%3D%2236%22%20height%3D%2244%22%20rx%3D%223%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.5%22%2F%3E%3Cline%20x1%3D%2222%22%20y1%3D%2222%22%20x2%3D%2242%22%20y2%3D%2222%22%20stroke%3D%22%235eead4%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2222%22%20y1%3D%2229%22%20x2%3D%2242%22%20y2%3D%2229%22%20stroke%3D%22%235eead4%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2222%22%20y1%3D%2236%22%20x2%3D%2236%22%20y2%3D%2236%22%20stroke%3D%22%235eead4%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M34%2042%20L38%2046%20L46%2036%22%20fill%3D%22none%22%20stroke%3D%22%232dd4bf%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Ctext%20x%3D%2214%22%20y%3D%2262%22%20font-size%3D%225.5%22%20fill%3D%22%2399f6e4%22%20font-family%3D%22sans-serif%22%20letter-spacing%3D%220.5%22%3ETCA%3C%2Ftext%3E%3C%2Fsvg%3E\"/>\n    <link rel=\"alternate icon\" href=\"/favicon.ico?v=20260621\"/>",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "auth_guest",
+            "output": "",
+            "result": [
+                "/en/",
+                "<span class=\"epc-auth-header-links\"><span class=\"epc-auth-header-links__group epc-auth-header-links__group--vendor\"><i class=\"fa fa-briefcase epc-auth-header-links__icon\" aria-hidden=\"true\"></i> <a class=\"epc-auth-header-links__vendor-login\" href=\"/en/vendor\" title=\"Vendor portal login\">Vendor login</a><span class=\"epc-auth-header-links__slash\" aria-hidden=\"true\">/</span><a class=\"epc-auth-header-links__vendor-register\" href=\"/en/vendor/register\" title=\"Vendor registration\">Register</a></span><span class=\"epc-auth-header-links__sep\" aria-hidden=\"true\">|</span><span class=\"epc-auth-header-links__group epc-auth-header-links__group--customer\"><i class=\"fa fa-user epc-auth-header-links__icon\" aria-hidden=\"true\"></i> <a class=\"epc-auth-header-links__login\" href=\"/en/users/login\" title=\"Customer login\">Customer login</a><span class=\"epc-auth-header-links__slash\" aria-hidden=\"true\">/</span><a class=\"epc-auth-header-links__signup\" href=\"/en/users/registration\" title=\"Customer registration\">register</a></span></span>"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "auth_user",
+            "output": "",
+            "result": "",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "auth_ar",
+            "output": "",
+            "result": [
+                "/ar/users/login",
+                "/ar/users/registration",
+                "/en/vendor",
+                "/en/garage/login"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "auth_styles",
+            "output": "",
+            "result": "<style>.epc-auth-header-links{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-weight:700}.epc-auth-header-links__group{display:inline-flex;align-items:center;gap:5px}.epc-auth-header-links__icon,.epc-auth-header-links__group > .fa{color:#ef4444;margin-right:2px;font-size:14px;line-height:1;width:1em;text-align:center}.epc-auth-header-links__sep{color:rgba(255,255,255,.35);font-weight:400;padding:0 2px}.epc-auth-header-links__slash{color:rgba(255,255,255,.45);padding:0 1px;font-weight:600}.epc-auth-header-links a{text-decoration:none;font-weight:700;color:inherit}.epc-auth-header-links a:hover{color:#fff;text-decoration:underline}.epc-auth-header-links__vendor-register,.epc-auth-header-links__signup{color:#fda4af}.epc-er-utility__actions .epc-auth-header-links{margin-left:6px}@media(max-width:991px){.epc-auth-header-links{flex-wrap:wrap;white-space:normal;row-gap:4px}}</style>",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "garage_guest",
+            "output": "<style>\n.epc-gl{--ink:#0b1220;--muted:#5b6578;--teal:#0e7490;font-family:\"DM Sans\",\"Source Sans 3\",\"Segoe UI\",sans-serif;color:var(--ink);max-width:920px;margin:0 auto 48px}\n.epc-gl__hero{margin:0 0 22px;padding:36px 28px;border-radius:18px;color:#f8fafc;\nbackground:radial-gradient(800px 240px at 90% -10%,rgba(125,211,252,.28),transparent 55%),linear-gradient(125deg,#0b1220 0%,#164e63 48%,#0e7490 100%);\nbox-shadow:0 18px 40px rgba(11,18,32,.22)}\n.epc-gl__hero h1{margin:0 0 8px;font-size:clamp(1.8rem,4vw,2.4rem);font-weight:800;letter-spacing:-.03em}\n.epc-gl__hero p{margin:0;opacity:.92;max-width:52ch;line-height:1.5}\n.epc-gl__grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}\n@media(max-width:800px){.epc-gl__grid{grid-template-columns:1fr}}\n.epc-gl__card{background:#fff;border:1px solid #d9e2e0;border-radius:16px;padding:22px;box-shadow:0 10px 28px rgba(15,23,42,.06)}\n.epc-gl__card h2{margin:0 0 10px;font-size:1.15rem;font-weight:800}\n.epc-gl__card p{color:var(--muted);line-height:1.5;margin:0 0 14px}\n.epc-gl__btn{display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:10px;background:var(--teal);color:#fff!important;font-weight:800;text-decoration:none!important;margin:0 8px 8px 0}\n.epc-gl__btn--ghost{background:#fff;color:var(--ink)!important;border:1px solid #c9d4d1}\n.epc-gl__list{margin:0;padding-left:18px;color:var(--muted);line-height:1.55}\n.epc-gl__ok{background:#ecfeff;border:1px solid #a5f3fc;border-radius:12px;padding:12px 14px;margin:0 0 14px;font-weight:700;color:#155e75}\n</style>\n\n<div class=\"epc-gl\">\n\t<header class=\"epc-gl__hero\">\n\t\t<h1>Garage Manager login</h1>\n\t\t<p>Staff portal for the full garage workflow — appointments, check-in, job cards, bays, technicians, parts &amp; labour, QC and handover.</p>\n\t</header>\n\n\t<div class=\"epc-gl__grid\">\n\t\t<div class=\"epc-gl__card\">\n\t\t\t<h2><i class=\"fa fa-wrench\"></i> Workshop staff</h2>\n\t\t\t\t\t\t\t<p>Sign in with your <strong>Control Panel / workshop</strong> staff account to run the garage end-to-end.</p>\n\t\t\t\t<a class=\"epc-gl__btn\" href=\"/cp/\"><i class=\"fa fa-sign-in\"></i> Staff CP login</a>\n\t\t\t\t<a class=\"epc-gl__btn epc-gl__btn--ghost\" href=\"/cp/shop/workshop/workshop\"><i class=\"fa fa-car\"></i> Workshop desk</a>\n\t\t\t\t<p style=\"margin-top:12px;font-size:13px\">After CP login, return here or open <em>Garage Manager</em> from the header.</p>\n\t\t\t\t\t</div>\n\t\t<div class=\"epc-gl__card\">\n\t\t\t<h2><i class=\"fa fa-users\"></i> Customers</h2>\n\t\t\t<p>Vehicle garage, notepad, and service booking — no staff login required.</p>\n\t\t\t<a class=\"epc-gl__btn epc-gl__btn--ghost\" href=\"/en/garazh\"><i class=\"fa fa-home\"></i> My Garage</a>\n\t\t\t<a class=\"epc-gl__btn epc-gl__btn--ghost\" href=\"/en/auto-workshop\"><i class=\"fa fa-calendar\"></i> Book / track service</a>\n\t\t\t<ul class=\"epc-gl__list\">\n\t\t\t\t<li>Save vehicles &amp; VIN</li>\n\t\t\t\t<li>Parts notepad per car</li>\n\t\t\t\t<li>Book service &amp; track job status</li>\n\t\t\t</ul>\n\t\t</div>\n\t</div>\n</div>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "garage_staff_stay",
+            "output": "<style>\n.epc-gl{--ink:#0b1220;--muted:#5b6578;--teal:#0e7490;font-family:\"DM Sans\",\"Source Sans 3\",\"Segoe UI\",sans-serif;color:var(--ink);max-width:920px;margin:0 auto 48px}\n.epc-gl__hero{margin:0 0 22px;padding:36px 28px;border-radius:18px;color:#f8fafc;\nbackground:radial-gradient(800px 240px at 90% -10%,rgba(125,211,252,.28),transparent 55%),linear-gradient(125deg,#0b1220 0%,#164e63 48%,#0e7490 100%);\nbox-shadow:0 18px 40px rgba(11,18,32,.22)}\n.epc-gl__hero h1{margin:0 0 8px;font-size:clamp(1.8rem,4vw,2.4rem);font-weight:800;letter-spacing:-.03em}\n.epc-gl__hero p{margin:0;opacity:.92;max-width:52ch;line-height:1.5}\n.epc-gl__grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}\n@media(max-width:800px){.epc-gl__grid{grid-template-columns:1fr}}\n.epc-gl__card{background:#fff;border:1px solid #d9e2e0;border-radius:16px;padding:22px;box-shadow:0 10px 28px rgba(15,23,42,.06)}\n.epc-gl__card h2{margin:0 0 10px;font-size:1.15rem;font-weight:800}\n.epc-gl__card p{color:var(--muted);line-height:1.5;margin:0 0 14px}\n.epc-gl__btn{display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:10px;background:var(--teal);color:#fff!important;font-weight:800;text-decoration:none!important;margin:0 8px 8px 0}\n.epc-gl__btn--ghost{background:#fff;color:var(--ink)!important;border:1px solid #c9d4d1}\n.epc-gl__list{margin:0;padding-left:18px;color:var(--muted);line-height:1.55}\n.epc-gl__ok{background:#ecfeff;border:1px solid #a5f3fc;border-radius:12px;padding:12px 14px;margin:0 0 14px;font-weight:700;color:#155e75}\n</style>\n\n<div class=\"epc-gl\">\n\t<header class=\"epc-gl__hero\">\n\t\t<h1>Garage Manager login</h1>\n\t\t<p>Staff portal for the full garage workflow — appointments, check-in, job cards, bays, technicians, parts &amp; labour, QC and handover.</p>\n\t</header>\n\n\t<div class=\"epc-gl__grid\">\n\t\t<div class=\"epc-gl__card\">\n\t\t\t<h2><i class=\"fa fa-wrench\"></i> Workshop staff</h2>\n\t\t\t\t\t\t\t<div class=\"epc-gl__ok\">You are signed in with workshop access.</div>\n\t\t\t\t<a class=\"epc-gl__btn\" href=\"/ar/garage/manager\"><i class=\"fa fa-th-large\"></i> Open Garage Manager</a>\n\t\t\t\t<a class=\"epc-gl__btn epc-gl__btn--ghost\" href=\"/cp/shop/workshop/workshop\"><i class=\"fa fa-desktop\"></i> CP workshop desk</a>\n\t\t\t\t\t</div>\n\t\t<div class=\"epc-gl__card\">\n\t\t\t<h2><i class=\"fa fa-users\"></i> Customers</h2>\n\t\t\t<p>Vehicle garage, notepad, and service booking — no staff login required.</p>\n\t\t\t<a class=\"epc-gl__btn epc-gl__btn--ghost\" href=\"/ar/garazh\"><i class=\"fa fa-home\"></i> My Garage</a>\n\t\t\t<a class=\"epc-gl__btn epc-gl__btn--ghost\" href=\"/ar/auto-workshop\"><i class=\"fa fa-calendar\"></i> Book / track service</a>\n\t\t\t<ul class=\"epc-gl__list\">\n\t\t\t\t<li>Save vehicles &amp; VIN</li>\n\t\t\t\t<li>Parts notepad per car</li>\n\t\t\t\t<li>Book service &amp; track job status</li>\n\t\t\t</ul>\n\t\t</div>\n\t</div>\n</div>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "mega_one",
+            "output": "<ul class=\"epc-frn-mega-menu__grid\">\n\t\t<li>\n\t\t<a href=\"/women\">\n\t\t\t<img src=\"/i.png\" alt=\"A\" width=\"48\" height=\"48\" loading=\"lazy\" decoding=\"async\" />\n\t\t\t<span>A&amp;B</span>\n\t\t</a>\n\t</li>\n\t\t<li>\n\t\t<a href=\"/en/sale\">\n\t\t\t<img src=\"/chip.png\" alt=\"Chip\" width=\"48\" height=\"48\" loading=\"lazy\" decoding=\"async\" />\n\t\t\t<span>Chip</span>\n\t\t</a>\n\t</li>\n\t</ul>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "hero_cpi_href",
+            "output": "",
+            "result": [
+                "/en/about",
+                "https://x.com"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "hero_frn",
+            "output": "<section class=\"epc-home-pro epc-frn-hero-banner\" style=\"position:relative;overflow:hidden\">\n\t<div class=\"epc-particles\" data-color=\"rgba(192,38,211,.2)\" data-count=\"16\"></div>\n\t<div class=\"container\">\n\t\t<div class=\"epc-home-pro__grid\">\n\t\t\t<div>\n\t\t\t\t<div class=\"epc-home-pro__eyebrow\"><i class=\"fa fa-heart\"></i>&nbsp; New &lt;b&gt;</div>\n\t\t\t\t<h2>Dress</h2>\n\t\t\t\t<p class=\"epc-home-pro__copy\">Runway</p>\n\t\t\t\t<div class=\"epc-home-pro__actions\">\n\t\t\t\t\t\t\t\t\t\t<a class=\"epc-home-pro__btn epc-home-pro__btn--primary\" href=\"/en/women\">\n\t\t\t\t\t\t<i class=\"fa fa-heart\"></i>\n\t\t\t\t\t\tShop\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t<div class=\"epc-home-pro__stats\">\n\t\t\t\t\t\t\t\t\t\t<div class=\"epc-home-pro__stat\">\n\t\t\t\t\t\t<strong>2k</strong>\n\t\t\t\t\t\t<span>SKUs</span>\n\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<div class=\"epc-home-pro__visual\" aria-label=\"Animated fashion runway visual\">\n\t\t\t\t<div class=\"epc-frn-hero-anim\" role=\"img\" aria-label=\"Dress sway with floating beauty chips\">\n\t\t\t\t\t<span class=\"epc-frn-hero-anim__chip\">New in</span>\n\t\t\t\t\t<span class=\"epc-frn-hero-anim__dress\" aria-hidden=\"true\"></span>\n\t\t\t\t\t<span class=\"epc-frn-hero-anim__runway\" aria-hidden=\"true\"></span>\n\t\t\t\t\t<span class=\"epc-frn-hero-anim__chip epc-frn-hero-anim__chip--alt\">Beauty</span>\n\t\t\t\t\t<div class=\"epc-frn-hero-anim__label\">Runway &amp; beauty motion</div>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"epc-home-pro__video-card\">\n\t\t\t\t\t<span class=\"epc-home-pro__play\"><i class=\"fa fa-play\"></i></span>\n\t\t\t\t\t<strong>Fashion runway loop</strong>\n\t\t\t\t\t<p>Dress sway, floating chips and smooth CSS motion — Namshi-inspired retail energy.</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</section>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "hero_jrk",
+            "output": "<section class=\"epc-home-pro epc-jrk-hero-banner\" style=\"position:relative;overflow:hidden\">\n\t<div class=\"epc-particles\" data-color=\"rgba(184,134,11,.35)\" data-count=\"20\"></div>\n\t<div class=\"container\">\n\t\t<div class=\"epc-home-pro__grid\">\n\t\t\t<div>\n\t\t\t\t<div class=\"epc-home-pro__eyebrow\"><i class=\"fa fa-diamond\"></i>&nbsp; Gold</div>\n\t\t\t\t<h2>Ring</h2>\n\t\t\t\t<p class=\"epc-home-pro__copy\">Sparkle</p>\n\t\t\t\t<div class=\"epc-home-pro__actions\">\n\t\t\t\t\t\t\t\t\t\t<a class=\"epc-home-pro__btn epc-home-pro__btn--ghost\" href=\"/en/rings\">\n\t\t\t\t\t\t<i class=\"fa fa-diamond\"></i>\n\t\t\t\t\t\tSee\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t<div class=\"epc-home-pro__stats\">\n\t\t\t\t\t\t\t\t\t\t<div class=\"epc-home-pro__stat\">\n\t\t\t\t\t\t<strong>1</strong>\n\t\t\t\t\t\t<span>Boutique</span>\n\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<div class=\"epc-home-pro__visual\" aria-label=\"Animated jewellery ring visual\">\n\t\t\t\t<div class=\"epc-jrk-hero-anim\" role=\"img\" aria-label=\"Glowing gold ring with sparkle\">\n\t\t\t\t\t<span class=\"epc-jrk-hero-anim__ring\" aria-hidden=\"true\"></span>\n\t\t\t\t\t<span class=\"epc-jrk-hero-anim__gem\" aria-hidden=\"true\"></span>\n\t\t\t\t\t<span class=\"epc-jrk-hero-anim__spark epc-jrk-hero-anim__spark--one\" aria-hidden=\"true\"></span>\n\t\t\t\t\t<span class=\"epc-jrk-hero-anim__spark epc-jrk-hero-anim__spark--two\" aria-hidden=\"true\"></span>\n\t\t\t\t\t<div class=\"epc-jrk-hero-anim__label\">Gold ring glow loop</div>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"epc-home-pro__video-card\">\n\t\t\t\t\t<span class=\"epc-home-pro__play\"><i class=\"fa fa-play\"></i></span>\n\t\t\t\t\t<strong>Luxury sparkle loop</strong>\n\t\t\t\t\t<p>Glowing gold ring with diamond sparkles — Kiyasha fine jewellery motion.</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</section>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "hero_cpi",
+            "output": "<section class=\"epc-home-pro epc-cpi-hero-banner\" style=\"position:relative;overflow:hidden\">\n\t<div class=\"epc-particles\" data-color=\"rgba(15,118,110,.2)\" data-count=\"14\"></div>\n\t<div class=\"container\">\n\t\t<div class=\"epc-home-pro__grid\">\n\t\t\t<div>\n\t\t\t\t<div class=\"epc-home-pro__eyebrow\"><i class=\"fa fa-line-chart\"></i>&nbsp; Tax</div>\n\t\t\t\t<h2>Advise</h2>\n\t\t\t\t<p class=\"epc-home-pro__copy\">Growth</p>\n\t\t\t\t<div class=\"epc-home-pro__actions\">\n\t\t\t\t\t\t\t\t\t\t<a class=\"epc-home-pro__btn epc-home-pro__btn--primary\" href=\"/en/contact\">\n\t\t\t\t\t\t<i class=\"fa fa-phone\"></i>\n\t\t\t\t\t\tTalk\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t<div class=\"epc-home-pro__stats\">\n\t\t\t\t\t\t\t\t\t\t<div class=\"epc-home-pro__stat\">\n\t\t\t\t\t\t<strong>20y</strong>\n\t\t\t\t\t\t<span>Years</span>\n\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<div class=\"epc-home-pro__visual\" aria-label=\"Animated advisory charts\">\n\t\t\t\t<div class=\"epc-cpi-hero-anim\" role=\"img\" aria-label=\"Growing performance charts\">\n\t\t\t\t\t<span class=\"epc-cpi-hero-anim__bar\" aria-hidden=\"true\"></span>\n\t\t\t\t\t<span class=\"epc-cpi-hero-anim__bar\" aria-hidden=\"true\"></span>\n\t\t\t\t\t<span class=\"epc-cpi-hero-anim__bar\" aria-hidden=\"true\"></span>\n\t\t\t\t\t<span class=\"epc-cpi-hero-anim__bar\" aria-hidden=\"true\"></span>\n\t\t\t\t\t<div class=\"epc-cpi-hero-anim__label\">Compliance &amp; growth charts</div>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"epc-home-pro__video-card\">\n\t\t\t\t\t<span class=\"epc-home-pro__play\"><i class=\"fa fa-play\"></i></span>\n\t\t\t\t\t<strong>Advisory growth loop</strong>\n\t\t\t\t\t<p>Animated blue &amp; gold performance bars — Prime Invest professional motion.</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</section>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "hero_er",
+            "output": "<section class=\"epc-home-pro epc-er-hero-banner\" style=\"position:relative;overflow:hidden\">\n\t<div class=\"epc-particles\" data-color=\"rgba(225,10,10,.25)\" data-count=\"18\"></div>\n\t<div class=\"container\">\n\t\t<div class=\"epc-home-pro__grid\">\n\t\t\t<div>\n\t\t\t\t<div class=\"epc-home-pro__eyebrow\"><i class=\"fa fa-microchip\"></i>&nbsp; Tech</div>\n\t\t\t\t<h2>Gadgets</h2>\n\t\t\t\t<p class=\"epc-home-pro__copy\">Wave</p>\n\t\t\t\t<div class=\"epc-home-pro__actions\">\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t<div class=\"epc-home-pro__stats\">\n\t\t\t\t\t\t\t\t\t\t<div class=\"epc-home-pro__stat\">\n\t\t\t\t\t\t<strong>9</strong>\n\t\t\t\t\t\t<span>Lines</span>\n\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<div class=\"epc-home-pro__visual\" aria-label=\"Animated tech chip visual\">\n\t\t\t\t<div class=\"epc-er-hero-anim\" role=\"img\" aria-label=\"Scanning chip with audio wave\">\n\t\t\t\t\t<span class=\"epc-er-hero-anim__chip\" aria-hidden=\"true\"></span>\n\t\t\t\t\t<span class=\"epc-er-hero-anim__wave\" aria-hidden=\"true\">\n\t\t\t\t\t\t<span></span><span></span><span></span><span></span>\n\t\t\t\t\t</span>\n\t\t\t\t\t<div class=\"epc-er-hero-anim__label\">Tech scan + wave loop</div>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"epc-home-pro__video-card\">\n\t\t\t\t\t<span class=\"epc-home-pro__play\"><i class=\"fa fa-play\"></i></span>\n\t\t\t\t\t<strong>Tech power animation</strong>\n\t\t\t\t\t<p>Scanning microchip with pulsing audio wave — Virgin Megastore retail motion.</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</section>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        }
+    ]
+}

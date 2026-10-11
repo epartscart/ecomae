@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "empty" },
+    { "name": "addkey" },
+    { "name": "crosshtml" },
+    { "name": "collect" }
+  ]
+}

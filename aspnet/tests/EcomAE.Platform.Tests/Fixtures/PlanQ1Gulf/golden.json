@@ -1,0 +1,329 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "names",
+            "output": "",
+            "result": [
+                "O&#039;Reilly &amp; Co",
+                "CP",
+                [
+                    "all",
+                    "catalog",
+                    "api",
+                    "channel",
+                    "price_list"
+                ],
+                [
+                    "homepage",
+                    "footer",
+                    "checkout",
+                    "cp_notice",
+                    "product_list",
+                    "login"
+                ],
+                [
+                    "onboarding",
+                    "support",
+                    "billing",
+                    "pricing",
+                    "content",
+                    "other"
+                ],
+                [
+                    "open",
+                    "in_progress",
+                    "done",
+                    "cancelled"
+                ],
+                [
+                    "low",
+                    "normal",
+                    "high",
+                    "urgent"
+                ],
+                {
+                    "notify_from_name": "ECOM AE Platform",
+                    "notify_from_email": "noreply@ecomae.com",
+                    "notify_reply_to": "support@ecomae.com",
+                    "notify_tenant_onboard": "1",
+                    "notify_tenant_dns_live": "1",
+                    "notify_demo_expiry": "1",
+                    "notify_task_assigned": "1",
+                    "notify_daily_digest": "0",
+                    "digest_hour_utc": "6"
+                },
+                "/CP/control/portal/epc_super_cp_operator_guide",
+                "Ada Lovelace",
+                "O'Reilly",
+                "solo@y.test"
+            ]
+        },
+        {
+            "name": "price",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "message": "Name is required"
+                },
+                1,
+                1,
+                {
+                    "ok": true,
+                    "id": 1
+                },
+                [
+                    {
+                        "name": "Gulf List",
+                        "scope": "tenant",
+                        "site_key": "acme_parts",
+                        "client_type": "api",
+                        "markup_percent": "8.00",
+                        "currency": "USD",
+                        "priority": 5,
+                        "active": 1
+                    },
+                    {
+                        "name": "Zeta",
+                        "scope": "platform",
+                        "site_key": "",
+                        "client_type": "catalog",
+                        "markup_percent": "1.00",
+                        "currency": "AED",
+                        "priority": 50,
+                        "active": 1
+                    }
+                ],
+                1,
+                1,
+                "ECOM AE Platform",
+                "0",
+                "1",
+                "0",
+                "1",
+                "9",
+                0
+            ]
+        },
+        {
+            "name": "info",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "message": "Block key and title are required"
+                },
+                {
+                    "ok": true,
+                    "id": 1
+                },
+                {
+                    "ok": false,
+                    "message": "Duplicate block key for this scope/locale"
+                },
+                [
+                    {
+                        "block_key": "foot",
+                        "title": "Footer",
+                        "scope": "platform",
+                        "site_key": "",
+                        "placement": "footer",
+                        "locale": "en",
+                        "active": 0,
+                        "sort_order": 1
+                    },
+                    {
+                        "block_key": "hero-banner",
+                        "title": "Hello",
+                        "scope": "tenant",
+                        "site_key": "acmeparts",
+                        "placement": "homepage",
+                        "locale": "en",
+                        "active": 1,
+                        "sort_order": 3
+                    }
+                ],
+                [
+                    {
+                        "block_key": "hero-banner",
+                        "title": "Hello",
+                        "scope": "tenant",
+                        "site_key": "acmeparts",
+                        "placement": "homepage",
+                        "locale": "en",
+                        "active": 1,
+                        "sort_order": 3
+                    }
+                ],
+                1,
+                {
+                    "ok": false,
+                    "message": "Title is required"
+                },
+                1,
+                [
+                    {
+                        "title": "Fix DNS",
+                        "assigned_email": "ops@ecomae.com",
+                        "site_key": "acmeparts",
+                        "category": "support",
+                        "status": "open",
+                        "priority": "urgent"
+                    }
+                ],
+                "open",
+                {
+                    "ok": true,
+                    "id": 1
+                },
+                1,
+                1
+            ]
+        },
+        {
+            "name": "board",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "site_key": "acme_parts",
+                        "label": "Acme Parts (acme_parts)",
+                        "hostname": "www.acme.test",
+                        "urls": {
+                            "cp": "https://www.acme.test/cp",
+                            "client_erp": "https://www.acme.test/cp"
+                        }
+                    },
+                    {
+                        "site_key": "beta",
+                        "label": " (beta)",
+                        "hostname": "www.beta.test",
+                        "urls": {
+                            "cp": "",
+                            "client_erp": ""
+                        }
+                    }
+                ],
+                [
+                    [
+                        10,
+                        "ada@ecomae.test",
+                        "Ada"
+                    ],
+                    [
+                        11,
+                        "zana@ecomae.test",
+                        "Zana"
+                    ]
+                ],
+                [
+                    {
+                        "source": "acme_parts",
+                        "source_label": "Acme Parts (acme_parts)",
+                        "hostname": "www.acme.test",
+                        "user_id": 21,
+                        "name": "Buyer",
+                        "email": "buyer@acme.test",
+                        "phone": "971",
+                        "time_reg": 50,
+                        "links": {
+                            "crm": "https://www.acme.test/cp/shop/customer_mgmt/customer_mgmt?tab=customers&user_id=21",
+                            "erp": "",
+                            "cp": "https://www.acme.test/cp"
+                        }
+                    }
+                ],
+                [
+                    [
+                        {
+                            "source": "platform",
+                            "email": "zana@ecomae.test",
+                            "name": "Zana Ops",
+                            "crm": "/cp/shop/customer_mgmt/customer_mgmt?tab=customers&user_id=11",
+                            "erp": "/cp/shop/finance/erp?epc_erp_shell=1&area=sales"
+                        },
+                        {
+                            "source": "acme_parts",
+                            "email": "buyer@acme.test",
+                            "name": "Buyer",
+                            "crm": "https://www.acme.test/cp/shop/customer_mgmt/customer_mgmt?tab=customers&user_id=21",
+                            "erp": "https://www.acme.test/cp/shop/finance/erp?epc_erp_shell=1&area=sales"
+                        },
+                        {
+                            "source": "platform",
+                            "email": "ada@ecomae.test",
+                            "name": "Ada",
+                            "crm": "/cp/shop/customer_mgmt/customer_mgmt?tab=customers&user_id=10",
+                            "erp": "/cp/shop/finance/erp?epc_erp_shell=1&area=sales"
+                        }
+                    ],
+                    3,
+                    {
+                        "platform": 2,
+                        "tenants_scanned": 1,
+                        "tenants_with_hits": 1
+                    }
+                ],
+                [
+                    [
+                        {
+                            "source": "platform",
+                            "email": "zana@ecomae.test",
+                            "name": "Zana Ops",
+                            "crm": "/cp/shop/customer_mgmt/customer_mgmt?tab=customers&user_id=11",
+                            "erp": "/cp/shop/finance/erp?epc_erp_shell=1&area=sales"
+                        },
+                        {
+                            "source": "acme_parts",
+                            "email": "buyer@acme.test",
+                            "name": "Buyer",
+                            "crm": "https://www.acme.test/cp/shop/customer_mgmt/customer_mgmt?tab=customers&user_id=21",
+                            "erp": "https://www.acme.test/cp/shop/finance/erp?epc_erp_shell=1&area=sales"
+                        },
+                        {
+                            "source": "platform",
+                            "email": "ada@ecomae.test",
+                            "name": "Ada",
+                            "crm": "/cp/shop/customer_mgmt/customer_mgmt?tab=customers&user_id=10",
+                            "erp": "/cp/shop/finance/erp?epc_erp_shell=1&area=sales"
+                        }
+                    ],
+                    3,
+                    {
+                        "platform": 2,
+                        "tenants_scanned": 1,
+                        "tenants_with_hits": 1
+                    }
+                ],
+                [
+                    [
+                        {
+                            "source": "platform",
+                            "email": "ada@ecomae.test",
+                            "name": "Ada",
+                            "crm": "/cp/shop/customer_mgmt/customer_mgmt?tab=customers&user_id=10",
+                            "erp": "/cp/shop/finance/erp?epc_erp_shell=1&area=sales"
+                        }
+                    ],
+                    1,
+                    {
+                        "platform": 1,
+                        "tenants_scanned": 0,
+                        "tenants_with_hits": 0
+                    }
+                ],
+                0,
+                "<div class=\"alert alert-warning\">This module is available on ECOM AE Super CP only.</div>",
+                0,
+                "<div class=\"alert alert-warning\">Please <a href=\"/cp/\">log in to Super CP</a>.</div>",
+                1,
+                "",
+                "<div class=\"epc-scp-panel__hero\">\n\t<div>\n\t\t<span class=\"epc-scp-dashboard__badge\">Badge</span>\n\t\t<h2 class=\"epc-scp-dashboard__title\">O&#039;Reilly</h2>\n\t\t<p class=\"epc-scp-dashboard__sub\">Sub &amp; more</p>\n\t</div>\n\t\t<div class=\"epc-scp-dashboard__hero-actions\">\n\t\t\t\t<a class=\"btn btn-sm btn-primary\" href=\"/cp/x?a=1&amp;b=2\">\n\t\t\t<i class=\"fa fa-eye\"></i> \t\t\tView\t\t</a>\n\t\t\t</div>\n\t</div>\n\t",
+                "",
+                "<div class=\"epc-scp-intro-panel\">\n\t<div class=\"epc-scp-intro-panel__body\">\n\t\t<strong>Operator workspace — Customer board</strong>\n\t\t<p>Search customers across the platform registry and every live tenant database. Use CRM and ERP links for support without logging into each client CP separately.</p>\n\t</div>\n\t<a class=\"btn btn-sm btn-default\" href=\"/cp/control/portal/epc_super_cp_operator_guide\"><i class=\"fa fa-book\"></i> Operator guide</a>\n</div>\n\t",
+                "<div class=\"epc-scp-empty-state\">\n\t<div class=\"epc-scp-empty-state__icon\"><i class=\"fa fa-inbox\"></i></div>\n\t<h4>Empty</h4>\n\t<p>Nothing</p>\n\t</div>\n\t"
+            ]
+        }
+    ]
+}

@@ -43,6 +43,8 @@ public sealed class AdminSurfaceAuthGateMiddlewareTests
     [InlineData("/cp/offline.html", false)]
     [InlineData("/cp/assets/app/icon-192.svg", false)]
     [InlineData("/cp/assets/app/icon-512.svg", false)]
+    [InlineData("/cp/content/filemanager/epc_filemanager_config.php", false)]
+    [InlineData("/cp/content/shop/order_process/orders_items_config.php", false)]
     public void RequiresAdminMatchesPhpControlWall(string path, bool required)
     {
         Assert.Equal(required, AdminSurfaceAuthGateMiddleware.RequiresAdmin(path));

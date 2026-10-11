@@ -1,0 +1,81 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "reset",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "id": 1,
+                        "min_limit_status": "0"
+                    },
+                    {
+                        "id": 2,
+                        "min_limit_status": "0"
+                    },
+                    {
+                        "id": 3,
+                        "min_limit_status": "0"
+                    },
+                    {
+                        "id": 4,
+                        "min_limit_status": "1"
+                    }
+                ],
+                1
+            ]
+        },
+        {
+            "name": "limit",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "id": 1,
+                        "min_limit_status": "1"
+                    },
+                    {
+                        "id": 2,
+                        "min_limit_status": "0"
+                    },
+                    {
+                        "id": 3,
+                        "min_limit_status": "0"
+                    },
+                    {
+                        "id": 4,
+                        "min_limit_status": "1"
+                    }
+                ],
+                1
+            ]
+        },
+        {
+            "name": "skip",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "id": 9,
+                        "min_limit_status": "0"
+                    }
+                ],
+                0
+            ]
+        },
+        {
+            "name": "empty",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "id": 5,
+                        "min_limit_status": "0"
+                    }
+                ],
+                0
+            ]
+        }
+    ]
+}

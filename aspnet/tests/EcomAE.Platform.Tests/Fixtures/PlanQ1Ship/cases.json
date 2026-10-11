@@ -1,0 +1,28 @@
+{
+  "cases": [
+    {
+      "name": "logistics_maps",
+      "eval": "$GLOBALS['DP_Config']=(object)array('backend_dir'=>'cp'); return array(epc_logistics_h(\"a&b<'x'>\"), epc_logistics_money(1234.5), epc_logistics_money(''), epc_logistics_money('-'), epc_logistics_configure_urls());"
+    },
+    {
+      "name": "logistics_seed",
+      "eval": "$db=$GLOBALS['db_link']; $db->exec('CREATE TABLE `shop_orders` (`id` INT PRIMARY KEY, `successfully_created` TINYINT, `time` INT)'); $db->exec(\"INSERT INTO `shop_orders` VALUES (42,1,1700000000),(7,0,1)\"); $db->exec('CREATE TABLE `shop_obtaining_modes` (`id` INT PRIMARY KEY, `handler` VARCHAR(64))'); $db->exec(\"INSERT INTO `shop_obtaining_modes` VALUES (3,'epc_carriers')\"); epc_channel_ensure_schema($db); epc_logistics_seed_sample_data($db); $dash=epc_logistics_dashboard($db); $car=epc_channel_list_carriers($db); $codes=array(); foreach($car as $row){ $codes[]=$row['code']; } $rep=epc_logistics_demo_report($db); $shipN=count($rep['shipments']); $track=$rep['shipments'][0]['tracking_number'] ?? ''; $st=$rep['shipments'][0]['status'] ?? ''; $oid=$rep['shipments'][0]['order_id'] ?? 0; $ot=$rep['shipments'][0]['order_time'] ?? ''; $logN=count($rep['sync_log']); $snap=epc_logistics_guide_snapshot($db); epc_logistics_seed_defaults($db); $dash2=epc_logistics_dashboard($db); return array($dash['carriers'], $dash['carriers_total'], $dash['catalog_count'], $dash['regions'], $dash['shipments'], $dash['shipments_shipped'], $dash['shipments_pending'], $dash['shop_orders'], $codes, $shipN, $track, $st, (int)$oid, (int)$ot, $logN, isset($snap['generated_at']), $snap['obtaining_mode_id'], $snap['obtaining_handler'], $dash2['carriers_total']);"
+    },
+    {
+      "name": "tax_tree",
+      "eval": "$t=epc_tax_seed_tree(); $slugs=array(); foreach($t as $n){ $slugs[]=$n['slug']; } $kids=0; foreach($t[0]['children'] as $c){ $kids++; } return array(count($t), $slugs, $t[0]['name'], $t[0]['amazon'], $t[0]['sort'], $kids, $t[0]['children'][0]['slug'], $t[count($t)-1]['slug']);"
+    },
+    {
+      "name": "tax_db",
+      "eval": "$db=$GLOBALS['db_link']; epc_tax_ensure_schema($db); $seed=epc_tax_seed($db); $n=epc_tax_count($db); $lap=epc_tax_by_slug($db,'computers-laptops'); $miss=epc_tax_by_slug($db,'nope'); $bad=epc_tax_by_id($db,0); $root=epc_tax_list_flat($db,0); $tree=epc_tax_list_tree($db,0); $crumb=epc_tax_breadcrumb($db,(int)$lap['id']); $crumbSlugs=array(); foreach($crumb as $c){ $crumbSlugs[]=$c['slug']; } $db->exec('CREATE TABLE `shop_catalogue_categories` (`id` INT PRIMARY KEY, `value` VARCHAR(80), `caption` VARCHAR(160), `published_flag` TINYINT)'); $db->exec(\"INSERT INTO `shop_catalogue_categories` VALUES (9,'computers','Computers & Accessories',1),(10,'hidden','Laptops',0)\"); $link=epc_tax_link_catalogue_categories($db); $comp=epc_tax_by_slug($db,'computers'); return array($seed['nodes'], $n, $lap['slug'], $lap['name_en'], $lap['level'], $miss===null, $bad===null, count($root), $root[0]['slug'], count($tree), count($tree[0]['children']), $crumbSlugs, $link, (int)$comp['catalogue_category_id']);"
+    },
+    {
+      "name": "social_pack",
+      "eval": "$p=epc_social_pack_platforms(); $brand=array('brand_name'=>'Acme Parts','handle'=>'acme.official','domain'=>'acmeparts.test','website'=>'https://acmeparts.test'); $adapted=epc_social_pack_posts_for_brand('x',$brand); return array(array_keys($p), $p['linkedin']['label'], count($p['linkedin']['hashtags']), count(epc_social_pack_posts('linkedin')), count(epc_social_pack_posts('instagram')), count(epc_social_pack_posts('facebook')), count(epc_social_pack_posts('x')), count(epc_social_pack_posts('tiktok')), epc_social_pack_posts('nope'), count(epc_social_instagram_reels_ideas()), epc_social_instagram_reels_ideas()[0]['title'], epc_social_tiktok_specs()['Aspect ratio'], count(epc_social_video_library()), epc_social_video_library()[0]['id'], $adapted[0]['title'], strpos($adapted[0]['caption'],'acmeparts.test')!==false, strpos($adapted[0]['caption'],'ecomae.com')===false, substr(epc_social_x_thread_starter(),0,40));"
+    },
+    {
+      "name": "worldclass",
+      "eval": "$GLOBALS['__portal_profile']=array('system_name'=>'Acme <Co>','domain_path'=>'https://shop.example/'); $GLOBALS['__portal_settings']=array('contact'=>array('company_name'=>'Acme & Co','phone'=>'+971 4 000','email'=>'hi@acme.test','address_line1'=>'Sheikh Zayed','city'=>'Dubai','country'=>'AE','social_facebook'=>'https://fb.example/acme','twitter_url'=>'https://x.example/acme')); $org=epc_storefront_json_ld_organization(); $ws=epc_storefront_json_ld_website(); $links=epc_storefront_social_links_data(); $nl=epc_storefront_newsletter_section('#0ea5e9','#f8fafc','electronics'); $nl2=epc_storefront_newsletter_section('#abc','#fff',''); $tr=epc_storefront_trust_badges('jewellery'); $tr2=epc_storefront_trust_badges(''); $ck=epc_storefront_cookie_consent(); $js=epc_storefront_newsletter_js(); return array($org,$ws,$links,$nl,$nl2,$tr,$tr2,$ck,$js);"
+    }
+  ]
+}

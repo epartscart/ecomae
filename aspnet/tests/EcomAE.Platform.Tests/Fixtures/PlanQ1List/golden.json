@@ -1,0 +1,139 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "pure",
+            "output": "",
+            "result": [
+                "CACHE",
+                "BOSCHAG",
+                "/(?:^|[^A-Z0-9])(BOSCH[-\\s]?AG)(?:[^A-Z0-9]|$)/i",
+                "commercial",
+                "motorbike",
+                "passenger",
+                "",
+                "Commercial vehicles",
+                "Other",
+                true,
+                false,
+                true,
+                false
+            ]
+        },
+        {
+            "name": "index",
+            "output": "",
+            "result": [
+                [
+                    [
+                        "Bosch",
+                        "BOSCH",
+                        1,
+                        5
+                    ],
+                    [
+                        "Mann",
+                        "MANN",
+                        1,
+                        4
+                    ]
+                ],
+                [
+                    "BOSCH",
+                    "MANN"
+                ],
+                [
+                    [
+                        "Toyota",
+                        "TOYOTA",
+                        [
+                            "passenger",
+                            "commercial"
+                        ],
+                        {
+                            "passenger": 10,
+                            "commercial": 11
+                        },
+                        "car",
+                        "JP",
+                        6
+                    ],
+                    [
+                        "Honda",
+                        "HONDA",
+                        [
+                            "motorbike"
+                        ],
+                        {
+                            "motorbike": 20
+                        },
+                        "bike",
+                        "JP",
+                        5
+                    ]
+                ],
+                {
+                    "passenger": 1,
+                    "commercial": 1,
+                    "motorbike": 1
+                },
+                1700000000
+            ]
+        },
+        {
+            "name": "match",
+            "output": "",
+            "result": [
+                "Bosch",
+                null,
+                "Toyota",
+                [
+                    "passenger",
+                    "commercial"
+                ],
+                "Toyota",
+                {
+                    "name": "Hilux",
+                    "ms_id": 5,
+                    "section": "commercial",
+                    "mfa_id": 11,
+                    "len": 5
+                },
+                null
+            ]
+        },
+        {
+            "name": "resolve",
+            "output": "",
+            "result": [
+                null,
+                null,
+                [
+                    "list",
+                    "",
+                    null,
+                    null,
+                    null
+                ],
+                [
+                    "stock_brand",
+                    "",
+                    "Bosch",
+                    null,
+                    null
+                ],
+                [
+                    "vehicle",
+                    "",
+                    null,
+                    "Toyota",
+                    "Hilux"
+                ],
+                null,
+                "Toyota",
+                "Bosch",
+                ""
+            ]
+        }
+    ]
+}

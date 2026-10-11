@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "pure",
+      "eval": "return peak_run_pure($GLOBALS['db_link'], $GLOBALS['__scan']);"
+    },
+    {
+      "name": "price",
+      "eval": "return peak_run_price($GLOBALS['db_link']);"
+    },
+    {
+      "name": "audit",
+      "eval": "return peak_run_audit($GLOBALS['db_link'], $GLOBALS['__scan'], $GLOBALS['__tenant_db'], $GLOBALS['__db_pass']);"
+    },
+    {
+      "name": "scan",
+      "eval": "return peak_run_scan($GLOBALS['db_link'], $GLOBALS['__scan']);"
+    }
+  ]
+}

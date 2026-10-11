@@ -1,0 +1,74 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "seed_pure",
+            "output": "",
+            "result": [
+                {
+                    "country": "AE",
+                    "currency": "AED",
+                    "tax_label": "VAT",
+                    "region": "gcc"
+                },
+                3.67,
+                1,
+                1,
+                92,
+                25,
+                3,
+                "demo-food-beverage-featured",
+                "DEMO-FOOD-BEVERAGE-001",
+                92,
+                21,
+                "elc-smartphones",
+                "elc-cameras",
+                26,
+                "ELC-IP16PM-256",
+                5299,
+                21,
+                "Abayas & Modest",
+                "women/abayas",
+                "Modest & Traditional",
+                "women/modest",
+                "Premium Open Abaya — Black with Gold Trim",
+                "Modest Long Dress — Black with Gold Trim",
+                16,
+                "GST Registration — New Business",
+                18,
+                24,
+                "JWL-GN-22K-15G",
+                3,
+                "demo-unknown-pack-featured",
+                1444
+            ]
+        },
+        {
+            "name": "seed_db",
+            "output": "",
+            "result": [
+                "electronics",
+                "electronicae",
+                "AED",
+                "gcc",
+                21,
+                26,
+                [],
+                21,
+                26,
+                21,
+                26,
+                26,
+                26,
+                1,
+                1,
+                true,
+                {
+                    "value": "Phones",
+                    "url": "phones",
+                    "order": 11
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,49 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "okredir",
+            "output": "",
+            "result": [
+                "11",
+                "t5585",
+                "",
+                "",
+                1
+            ]
+        },
+        {
+            "name": "oknored",
+            "output": "",
+            "result": [
+                "12",
+                "t5586",
+                "background-color:#f3fa37;color:#000;",
+                "<i class=\"pe-7s-info\"></i>",
+                1
+            ]
+        },
+        {
+            "name": "failredir",
+            "output": "",
+            "result": [
+                "21",
+                "t5587",
+                "background-color:#f3fa37;color:#000;",
+                "<i class=\"pe-7s-info\"></i>",
+                1
+            ]
+        },
+        {
+            "name": "failnored",
+            "output": "",
+            "result": [
+                "22",
+                "t5588",
+                "background-color:#F00;color:#FFF;",
+                "<i class=\"pe-7s-attention\"></i>",
+                1
+            ]
+        }
+    ]
+}

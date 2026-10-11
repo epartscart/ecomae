@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "url" },
+    { "name": "channels" },
+    { "name": "snap" },
+    { "name": "health" }
+  ]
+}

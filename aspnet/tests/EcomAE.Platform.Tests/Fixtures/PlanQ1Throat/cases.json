@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "empty" },
+    { "name": "nocrm" },
+    { "name": "crm" },
+    { "name": "fmt" }
+  ]
+}

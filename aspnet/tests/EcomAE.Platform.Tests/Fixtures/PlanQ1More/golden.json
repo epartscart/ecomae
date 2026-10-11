@@ -1,0 +1,334 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "cat_noprofile",
+            "output": "",
+            "result": null
+        },
+        {
+            "name": "cat_profile",
+            "output": "",
+            "result": [
+                null,
+                null,
+                "electronics",
+                "electronics",
+                "consulting",
+                "consulting",
+                "fashion",
+                "jewellery",
+                null,
+                null
+            ]
+        },
+        {
+            "name": "cat_title",
+            "output": "",
+            "result": [
+                "Shop by category",
+                "Our services",
+                "Shop by collection",
+                "Our collections",
+                "T3994",
+                "T3994"
+            ]
+        },
+        {
+            "name": "cat_title_plain",
+            "output": "",
+            "result": "Catalog of goods"
+        },
+        {
+            "name": "cat_unsplash",
+            "output": "",
+            "result": [
+                "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=400&h=400&q=80",
+                "/content/files/images/storefronts/catalog/photo-local.jpg",
+                "https://images.unsplash.com/photo-x?auto=format&fit=crop&w=400&h=1000&q=80"
+            ]
+        },
+        {
+            "name": "cat_cats",
+            "output": "",
+            "result": [
+                8,
+                {
+                    "label": "Phones",
+                    "href": "/ar/shop/search?q=phones",
+                    "image": "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&w=400&h=400&q=80",
+                    "alt": "Phones"
+                },
+                "/ar/shop/search?q=accessories",
+                6,
+                "/ar/#epc-cpi-services",
+                "ERP",
+                6,
+                "Women's fashion",
+                6,
+                "Earrings",
+                []
+            ]
+        },
+        {
+            "name": "cat_render",
+            "output": "",
+            "result": [
+                "\t<div class=\"row\" style=\"padding: 0px 4px; margin-top:-9px;\">\n\t\t\t<div class=\"col-xs-6 col-sm-4 col-md-4 col-lg-3 new-cat-block\">\n\t\t\t<a href=\"/en/shop/search?q=women\" class=\"ucats-h-1 new-cat-block-catalog\">\n\t\t\t\t<div class=\"new-cat-block-catalog-img\" style=\"background:url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&amp;fit=crop&amp;w=400&amp;h=400&amp;q=80') no-repeat; background-position: center; background-size: contain;\" role=\"img\" aria-label=\"Women&#039;s fashion\"></div>\n\t\t\t\t<div class=\"new-cat-block-text navbar-inverse\">Women</div>\n\t\t\t</a>\n\t\t</div>\n\t\t\t\t<div class=\"col-xs-6 col-sm-4 col-md-4 col-lg-3 new-cat-block\">\n\t\t\t<a href=\"/en/shop/search?q=men\" class=\"ucats-h-1 new-cat-block-catalog\">\n\t\t\t\t<div class=\"new-cat-block-catalog-img\" style=\"background:url('https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&amp;fit=crop&amp;w=400&amp;h=400&amp;q=80') no-repeat; background-position: center; background-size: contain;\" role=\"img\" aria-label=\"Men&#039;s fashion\"></div>\n\t\t\t\t<div class=\"new-cat-block-text navbar-inverse\">Men</div>\n\t\t\t</a>\n\t\t</div>\n\t\t\t\t<div class=\"col-xs-6 col-sm-4 col-md-4 col-lg-3 new-cat-block\">\n\t\t\t<a href=\"/en/shop/search?q=shoes\" class=\"ucats-h-1 new-cat-block-catalog\">\n\t\t\t\t<div class=\"new-cat-block-catalog-img\" style=\"background:url('https://images.unsplash.com/photo-1543163521-1bf539c55dd1?auto=format&amp;fit=crop&amp;w=400&amp;h=400&amp;q=80') no-repeat; background-position: center; background-size: contain;\" role=\"img\" aria-label=\"Footwear\"></div>\n\t\t\t\t<div class=\"new-cat-block-text navbar-inverse\">Shoes</div>\n\t\t\t</a>\n\t\t</div>\n\t\t\t\t<div class=\"col-xs-6 col-sm-4 col-md-4 col-lg-3 new-cat-block\">\n\t\t\t<a href=\"/en/shop/search?q=bags\" class=\"ucats-h-1 new-cat-block-catalog\">\n\t\t\t\t<div class=\"new-cat-block-catalog-img\" style=\"background:url('https://images.unsplash.com/photo-1584917865442-de89a762c4a6?auto=format&amp;fit=crop&amp;w=400&amp;h=400&amp;q=80') no-repeat; background-position: center; background-size: contain;\" role=\"img\" aria-label=\"Bags and leather goods\"></div>\n\t\t\t\t<div class=\"new-cat-block-text navbar-inverse\">Bags</div>\n\t\t\t</a>\n\t\t</div>\n\t\t\t\t<div class=\"col-xs-6 col-sm-4 col-md-4 col-lg-3 new-cat-block\">\n\t\t\t<a href=\"/en/shop/search?q=accessories\" class=\"ucats-h-1 new-cat-block-catalog\">\n\t\t\t\t<div class=\"new-cat-block-catalog-img\" style=\"background:url('https://images.unsplash.com/photo-1523381210434-271fa8a0a992?auto=format&amp;fit=crop&amp;w=400&amp;h=400&amp;q=80') no-repeat; background-position: center; background-size: contain;\" role=\"img\" aria-label=\"Fashion accessories\"></div>\n\t\t\t\t<div class=\"new-cat-block-text navbar-inverse\">Accessories</div>\n\t\t\t</a>\n\t\t</div>\n\t\t\t\t<div class=\"col-xs-6 col-sm-4 col-md-4 col-lg-3 new-cat-block\">\n\t\t\t<a href=\"/en/shop/search?q=new\" class=\"ucats-h-1 new-cat-block-catalog\">\n\t\t\t\t<div class=\"new-cat-block-catalog-img\" style=\"background:url('https://images.unsplash.com/photo-1483985988357-763728e1935b?auto=format&amp;fit=crop&amp;w=400&amp;h=400&amp;q=80') no-repeat; background-position: center; background-size: contain;\" role=\"img\" aria-label=\"New arrivals\"></div>\n\t\t\t\t<div class=\"new-cat-block-text navbar-inverse\">New arrivals</div>\n\t\t\t</a>\n\t\t</div>\n\t\t\t</div>\n\t",
+                "",
+                null
+            ]
+        },
+        {
+            "name": "lay_reg",
+            "output": "",
+            "result": [
+                [
+                    "electronics",
+                    "fashion",
+                    "jewellery",
+                    "tax_advisory",
+                    "consultancy"
+                ],
+                4,
+                "luxury_showcase",
+                true,
+                false,
+                [
+                    "hero_services",
+                    "service_cards",
+                    "pricing_tiers",
+                    "testimonials",
+                    "cta_consultation"
+                ]
+            ]
+        },
+        {
+            "name": "lay_for",
+            "output": "",
+            "result": [
+                [
+                    "editorial",
+                    "collection_grid",
+                    "minimal_boutique",
+                    "trend_feed"
+                ],
+                [],
+                "hero_carousel",
+                "editorial",
+                "luxury_showcase",
+                "professional_services",
+                "professional_services",
+                "hero_carousel",
+                "Product Showcase",
+                null,
+                [
+                    "hero_lifestyle",
+                    "collection_chips",
+                    "for_you_grid",
+                    "brand_filters",
+                    "trend_sections"
+                ],
+                []
+            ]
+        },
+        {
+            "name": "lay_active",
+            "output": "",
+            "result": [
+                "trend_feed",
+                "luxury_showcase",
+                "hero_carousel",
+                "brand_focused"
+            ]
+        },
+        {
+            "name": "lay_active_portal",
+            "output": "",
+            "result": "hero_carousel"
+        },
+        {
+            "name": "lay_js",
+            "output": "",
+            "result": [
+                [
+                    "electronics",
+                    "fashion",
+                    "jewellery",
+                    "tax_advisory",
+                    "consultancy"
+                ],
+                {
+                    "id": "hero_carousel",
+                    "label": "Hero Carousel",
+                    "desc": "Full-width sliding hero banner with deal sections below — Virgin Megastore style",
+                    "default": true,
+                    "sections": [
+                        "hero_carousel",
+                        "promo_strip",
+                        "featured_categories",
+                        "deal_sections",
+                        "brand_strip"
+                    ]
+                },
+                false,
+                true
+            ]
+        },
+        {
+            "name": "sub_detect_auto",
+            "output": "",
+            "result": [
+                "automotive",
+                true
+            ]
+        },
+        {
+            "name": "sub_detect_www",
+            "output": "",
+            "result": [
+                null,
+                false
+            ]
+        },
+        {
+            "name": "sub_detect_port",
+            "output": "",
+            "result": "printing"
+        },
+        {
+            "name": "sub_detect_empty",
+            "output": "",
+            "result": "homeliving"
+        },
+        {
+            "name": "sub_detect_other",
+            "output": "",
+            "result": null
+        },
+        {
+            "name": "sub_resolve",
+            "output": "",
+            "result": [
+                "construction",
+                "healthcare",
+                "automotive",
+                "food",
+                "homeliving",
+                "technology",
+                "retail",
+                "security",
+                "professional"
+            ]
+        },
+        {
+            "name": "sub_boot",
+            "output": "",
+            "result": [
+                true,
+                true,
+                "automotive",
+                "automotive",
+                "https://automotive.ecomae.com/",
+                "automotive"
+            ]
+        },
+        {
+            "name": "sub_boot_none",
+            "output": "",
+            "result": [
+                false,
+                "https://old/",
+                true
+            ]
+        },
+        {
+            "name": "dealer_tiers",
+            "output": "",
+            "result": [
+                "1.0.0",
+                {
+                    "bronze": {
+                        "discount": 5,
+                        "min_revenue": 0,
+                        "label": "Bronze"
+                    },
+                    "silver": {
+                        "discount": 10,
+                        "min_revenue": 50000,
+                        "label": "Silver"
+                    },
+                    "gold": {
+                        "discount": 15,
+                        "min_revenue": 200000,
+                        "label": "Gold"
+                    },
+                    "platinum": {
+                        "discount": 20,
+                        "min_revenue": 500000,
+                        "label": "Platinum"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "dealer_flow",
+            "output": "",
+            "result": [
+                true,
+                "DLR-ONE",
+                "DLR-TWO",
+                1,
+                "Acme",
+                15,
+                "gold",
+                {
+                    "ok": false,
+                    "error": "Dealer not active"
+                },
+                {
+                    "ok": true
+                },
+                true,
+                150,
+                850,
+                "DO-20261009-",
+                {
+                    "ok": true,
+                    "old_tier": "gold",
+                    "new_tier": "bronze",
+                    "ytd_revenue": 850
+                },
+                "gold",
+                "bronze",
+                {
+                    "ok": true
+                },
+                {
+                    "ok": false,
+                    "error": "No fields to update"
+                },
+                {
+                    "ok": true,
+                    "message": "Dealer suspended"
+                },
+                [],
+                "siteA",
+                1,
+                1,
+                "Acme LLC",
+                "suspended"
+            ]
+        },
+        {
+            "name": "social_css",
+            "output": "",
+            "result": [
+                7904,
+                ".epc-social-hub { --epc-social-cyan: #00ccff; --",
+                "\n\tflex-wrap: wrap;\n\tgap: 6px;\n}\n",
+                []
+            ]
+        }
+    ]
+}

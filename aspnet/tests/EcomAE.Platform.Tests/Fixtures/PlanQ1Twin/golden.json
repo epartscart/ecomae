@@ -1,0 +1,302 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "imp_static",
+            "output": "",
+            "result": [
+                "1.0.0",
+                [
+                    "products",
+                    "customers",
+                    "orders",
+                    "inventory",
+                    "gl_entries"
+                ],
+                [
+                    "sku",
+                    "product_name"
+                ],
+                "",
+                5,
+                "csv",
+                [
+                    "products",
+                    "customers",
+                    "invoices",
+                    "suppliers",
+                    "gl_entries",
+                    "employees"
+                ],
+                [
+                    "sku",
+                    "name"
+                ],
+                [
+                    {
+                        "row_number": 1,
+                        "field": "sku",
+                        "error_type": "required",
+                        "message": "Required field missing: sku"
+                    },
+                    {
+                        "row_number": 1,
+                        "field": "product_name",
+                        "error_type": "required",
+                        "message": "Required field missing: product_name"
+                    }
+                ],
+                [],
+                [
+                    {
+                        "row_number": 3,
+                        "field": "price",
+                        "value": "x",
+                        "error_type": "format",
+                        "message": "Price must be numeric"
+                    }
+                ],
+                [
+                    {
+                        "row_number": 4,
+                        "field": "email",
+                        "value": "nope",
+                        "error_type": "format",
+                        "message": "Invalid email format"
+                    }
+                ],
+                []
+            ]
+        },
+        {
+            "name": "imp_flow",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "error": "Unknown entity type: nope"
+                },
+                true,
+                1,
+                "sku",
+                {
+                    "ok": true,
+                    "processed": 3,
+                    "success": 1,
+                    "errors": 2,
+                    "skipped": 0
+                },
+                "importing",
+                1,
+                2,
+                1,
+                {
+                    "sku": "SKU"
+                },
+                4,
+                "sku",
+                "required",
+                [],
+                1,
+                "siteA",
+                1,
+                {
+                    "total": 2,
+                    "valid": 1,
+                    "invalid": 1,
+                    "errors": [
+                        {
+                            "row": 2,
+                            "errors": [
+                                {
+                                    "column": "sku",
+                                    "value": "",
+                                    "error": "SKU required"
+                                },
+                                {
+                                    "column": "price",
+                                    "value": "x",
+                                    "error": "Invalid price"
+                                },
+                                {
+                                    "column": "email",
+                                    "value": "nope",
+                                    "error": "Invalid email"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "ok": true
+                },
+                {
+                    "ok": true
+                },
+                true
+            ]
+        },
+        {
+            "name": "vault_flow",
+            "output": "",
+            "result": [
+                true,
+                "/Docs/",
+                "/Docs/Legal/",
+                1,
+                1,
+                {
+                    "ok": true,
+                    "document_id": 1,
+                    "version": 1
+                },
+                {
+                    "ok": true,
+                    "version": 2
+                },
+                {
+                    "ok": false,
+                    "error": "Document not found"
+                },
+                1,
+                [
+                    "alice@x.com"
+                ],
+                2,
+                2,
+                1,
+                2,
+                "Access request created",
+                true,
+                1,
+                1,
+                2,
+                0,
+                {
+                    "ok": true
+                },
+                {
+                    "ok": true
+                }
+            ]
+        },
+        {
+            "name": "lic_flow",
+            "output": "",
+            "result": [
+                1,
+                "professional",
+                [
+                    "erp",
+                    "cp"
+                ],
+                10,
+                1,
+                null,
+                false,
+                "invalid_key_format",
+                "not_found",
+                "missing_fingerprint",
+                "signing_unavailable",
+                "already_activated",
+                "signing_unavailable",
+                true,
+                "revoked",
+                "/etc/ecomae/license_signing_key.pem",
+                null,
+                null
+            ]
+        },
+        {
+            "name": "bi_static",
+            "output": "",
+            "result": [
+                "1.0.0",
+                10,
+                "revenue_daily",
+                "conversion_rate",
+                "SELECT COALESCE(SUM(total), 0) FROM orders WHERE status != 'cancelled' AND DATE(created_at) = :date",
+                "weekly"
+            ]
+        },
+        {
+            "name": "bi_flow",
+            "output": "",
+            "result": [
+                true,
+                0,
+                25,
+                true,
+                125,
+                5,
+                [
+                    "finance",
+                    "sales",
+                    "growth",
+                    "inventory",
+                    "operations"
+                ],
+                3,
+                "revenue_daily",
+                5,
+                2,
+                "siteA",
+                2,
+                2,
+                "siteA",
+                125
+            ]
+        },
+        {
+            "name": "ntf_static",
+            "output": "",
+            "result": [
+                "1.0.0",
+                [
+                    "system",
+                    "security",
+                    "order",
+                    "invoice",
+                    "inventory",
+                    "erp",
+                    "compliance",
+                    "tenant",
+                    "webhook",
+                    "deploy"
+                ],
+                "#ef4444",
+                "fa-shopping-cart"
+            ]
+        },
+        {
+            "name": "ntf_flow",
+            "output": "",
+            "result": [
+                0,
+                1,
+                1,
+                2,
+                [
+                    "All",
+                    "Hello"
+                ],
+                "info",
+                2,
+                1,
+                1,
+                0,
+                1,
+                true,
+                1,
+                "daily",
+                true,
+                1,
+                1,
+                1,
+                1,
+                1,
+                0
+            ]
+        }
+    ]
+}

@@ -1,0 +1,112 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "preset",
+            "output": "",
+            "result": [
+                "automotive_spareparts_pro.json",
+                "automotive_spareparts_pro",
+                {
+                    "location": "Dubai",
+                    "hours": "Mon-Fri from 9:00"
+                },
+                16,
+                "lang_languages",
+                "shop_storages_data",
+                [],
+                [],
+                [],
+                {
+                    "location": "O'man",
+                    "hours": "Sat-Sun"
+                },
+                [
+                    "shop_geo",
+                    "shop_offices`x"
+                ]
+            ]
+        },
+        {
+            "name": "verify",
+            "output": "",
+            "result": [
+                {
+                    "ok": 0,
+                    "location": 0,
+                    "hours": 0,
+                    "geo_dubai": 0,
+                    "geo_error": 1,
+                    "office_error": 1
+                },
+                {
+                    "ok": 0,
+                    "location": 0,
+                    "hours": 0,
+                    "geo_dubai": 0,
+                    "geo_error": 0,
+                    "office_error": 0
+                },
+                {
+                    "ok": 1,
+                    "location": 1,
+                    "hours": 1,
+                    "geo_dubai": 1,
+                    "geo_error": 0,
+                    "office_error": 0
+                },
+                {
+                    "ok": 1,
+                    "location": 1,
+                    "hours": 1,
+                    "geo_dubai": 0,
+                    "geo_error": 0,
+                    "office_error": 0
+                },
+                {
+                    "ok": 1,
+                    "location": 1,
+                    "hours": 1,
+                    "geo_dubai": 0,
+                    "geo_error": 0,
+                    "office_error": 0
+                }
+            ]
+        },
+        {
+            "name": "apply",
+            "output": "",
+            "result": [
+                0,
+                0,
+                "automotive_spareparts_pro.json",
+                1,
+                0,
+                0,
+                0,
+                "Auto-parts header bootstrap incomplete",
+                0,
+                14,
+                1,
+                1,
+                1,
+                16,
+                1
+            ]
+        },
+        {
+            "name": "fail",
+            "output": "",
+            "result": [
+                0,
+                "Storefront database PDO unavailable",
+                0,
+                [
+                    "clone failed"
+                ],
+                0,
+                "Auto-parts header bootstrap incomplete"
+            ]
+        }
+    ]
+}

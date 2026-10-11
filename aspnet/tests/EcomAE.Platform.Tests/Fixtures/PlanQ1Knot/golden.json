@@ -1,0 +1,45 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "none",
+            "output": "",
+            "result": [
+                "Keep",
+                "old-desc",
+                "old-kw",
+                ""
+            ]
+        },
+        {
+            "name": "url",
+            "output": "",
+            "result": [
+                "Title O'Brien",
+                "Title O'Brien",
+                "old-kw",
+                "https://cdn.example/t?q=brake&f=fixed"
+            ]
+        },
+        {
+            "name": "complex",
+            "output": "",
+            "result": [
+                "t77 AB12",
+                "old-desc",
+                "old-kw",
+                ""
+            ]
+        },
+        {
+            "name": "override",
+            "output": "",
+            "result": [
+                "URL title",
+                "URL desc",
+                "URL kw",
+                ""
+            ]
+        }
+    ]
+}

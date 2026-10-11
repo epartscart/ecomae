@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "pure",
+      "eval": "return boom_run_pure();"
+    },
+    {
+      "name": "record",
+      "eval": "return boom_run_record($GLOBALS['db_link']);"
+    },
+    {
+      "name": "anchor",
+      "eval": "return boom_run_anchor($GLOBALS['db_link']);"
+    },
+    {
+      "name": "fleet",
+      "eval": "return boom_run_fleet($GLOBALS['db_link']);"
+    }
+  ]
+}

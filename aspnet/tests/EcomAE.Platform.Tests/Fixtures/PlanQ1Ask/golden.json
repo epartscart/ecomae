@@ -1,0 +1,308 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "copilot_parse",
+            "output": "",
+            "result": [
+                {
+                    "intent": "revenue",
+                    "period": "month",
+                    "raw": "total revenue this month"
+                },
+                {
+                    "intent": "orders",
+                    "period": "day",
+                    "raw": "how many orders today"
+                },
+                {
+                    "intent": "top",
+                    "period": "week",
+                    "raw": "best sellers this week"
+                },
+                {
+                    "intent": "invoices",
+                    "period": "year",
+                    "raw": "invoices last year"
+                },
+                {
+                    "intent": "overdue",
+                    "period": "quarter",
+                    "raw": "overdue quarter"
+                },
+                {
+                    "intent": "unknown",
+                    "period": "month",
+                    "raw": "???"
+                },
+                {
+                    "ok": true,
+                    "sql": "SELECT SUM(total) AS `result` FROM `shop_orders` WHERE `site_key` = 'acme' AND `created_at` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
+                    "intent": "revenue",
+                    "period": "month",
+                    "metric": "SUM(total)"
+                },
+                {
+                    "ok": false,
+                    "error": "Could not understand query. Try: \"total revenue this month\" or \"how many orders today\""
+                },
+                {
+                    "ok": true,
+                    "sql": "SELECT COUNT(*) AS `result` FROM `shop_orders` WHERE `site_key` = 'O\\'Brien\\\\x' AND DATE(`created_at`) = CURDATE()",
+                    "intent": "orders",
+                    "period": "day",
+                    "metric": "COUNT(*)"
+                },
+                [
+                    "revenue",
+                    "orders",
+                    "customers",
+                    "products",
+                    "inventory",
+                    "invoices",
+                    "overdue",
+                    "top"
+                ]
+            ]
+        },
+        {
+            "name": "copilot_exec",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "error": "Could not understand query. Try: \"total revenue this month\" or \"how many orders today\""
+                },
+                {
+                    "ok": true,
+                    "intent": "revenue",
+                    "period": "month",
+                    "sql": "SELECT SUM(total) AS `result` FROM `shop_orders` WHERE `site_key` = 'acme' AND `created_at` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
+                    "answer": "Query generated for: revenue (month)",
+                    "chart": {
+                        "type": "metric",
+                        "label": "Revenue",
+                        "period": "month"
+                    }
+                },
+                {
+                    "ok": true,
+                    "intent": "orders",
+                    "period": "day",
+                    "sql": "SELECT COUNT(*) AS `result` FROM `shop_orders` WHERE `site_key` = 'beta' AND DATE(`created_at`) = CURDATE()",
+                    "answer": "Query generated for: orders (day)",
+                    "chart": {
+                        "type": "metric",
+                        "label": "Orders",
+                        "period": "day"
+                    }
+                },
+                [
+                    {
+                        "site_key": "acme",
+                        "user_id": 3,
+                        "query_text": "???",
+                        "intent": "unknown",
+                        "status": "refused",
+                        "error_message": "Could not understand query. Try: \"total revenue this month\" or \"how many orders today\"",
+                        "generated_sql": null
+                    },
+                    {
+                        "site_key": "acme",
+                        "user_id": 3,
+                        "query_text": "total revenue this month",
+                        "intent": "revenue",
+                        "status": "success",
+                        "error_message": null,
+                        "generated_sql": "SELECT SUM(total) AS `result` FROM `shop_orders` WHERE `site_key` = 'acme' AND `created_at` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)"
+                    },
+                    {
+                        "site_key": "beta",
+                        "user_id": 0,
+                        "query_text": "how many orders today",
+                        "intent": "orders",
+                        "status": "success",
+                        "error_message": null,
+                        "generated_sql": "SELECT COUNT(*) AS `result` FROM `shop_orders` WHERE `site_key` = 'beta' AND DATE(`created_at`) = CURDATE()"
+                    }
+                ],
+                [
+                    {
+                        "site_key": "acme",
+                        "queries": 2,
+                        "success": "1",
+                        "avg_ms": "0.0000"
+                    },
+                    {
+                        "site_key": "beta",
+                        "queries": 1,
+                        "success": "1",
+                        "avg_ms": "0.0000"
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "ai_pii",
+            "output": "",
+            "result": [
+                {
+                    "text": "hello",
+                    "pii_count": 0,
+                    "had_pii": false
+                },
+                {
+                    "text": "mail [REDACTED_EMAIL] and [REDACTED_PHONE_AE]",
+                    "pii_count": 2,
+                    "had_pii": true
+                },
+                {
+                    "text": "TRN [REDACTED_TRN_AE] card [REDACTED_CREDIT_CARD]",
+                    "pii_count": 2,
+                    "had_pii": true
+                },
+                {
+                    "text": "IBAN AE[REDACTED_TRN_AE]123456 passport [REDACTED_PASSPORT]",
+                    "pii_count": 2,
+                    "had_pii": true
+                },
+                "revenue",
+                "inventory",
+                "help",
+                {
+                    "ok": true,
+                    "intent": "classify",
+                    "category": "filter",
+                    "answer": "Classified as: Filter",
+                    "confidence": 0.85
+                },
+                {
+                    "ok": true,
+                    "intent": "classify",
+                    "category": "unknown",
+                    "answer": "Could not classify. Please provide more detail.",
+                    "confidence": 0
+                },
+                {
+                    "ok": true,
+                    "intent": "anomaly",
+                    "answer": "Anomaly detection processed.",
+                    "anomalies": [],
+                    "risk_score": 0
+                },
+                {
+                    "ok": true,
+                    "intent": "nl_report",
+                    "report_type": "vat",
+                    "answer": "Report query parsed. Generating vat report.",
+                    "tokens": 0
+                },
+                {
+                    "ok": true,
+                    "intent": "help",
+                    "answer": "Available modules: Dashboard, Sales, Invoices, GL, Inventory, HR, Payroll, VAT, Reports.",
+                    "tokens": 0
+                },
+                {
+                    "ok": false,
+                    "error": "Unknown AI service: nope"
+                }
+            ]
+        },
+        {
+            "name": "ai_query",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "error": "Query contains too much personal data. Please rephrase without names, emails, or account numbers."
+                },
+                {
+                    "ok": true,
+                    "intent": "revenue",
+                    "answer": "To check revenue, go to ERP → Dashboard. Revenue is calculated from completed orders ex. VAT.",
+                    "tokens": 0,
+                    "pii_stripped": 0
+                },
+                {
+                    "ok": true,
+                    "intent": "classify",
+                    "category": "brake",
+                    "answer": "Classified as: Brake",
+                    "confidence": 0.85,
+                    "pii_stripped": 0
+                },
+                {
+                    "ok": false,
+                    "error": "Unknown AI service: nope",
+                    "pii_stripped": 0
+                },
+                [
+                    {
+                        "service": "classify",
+                        "total": 1,
+                        "success": "1",
+                        "pii_events": "0",
+                        "avg_ms": "0.0000"
+                    },
+                    {
+                        "service": "copilot",
+                        "total": 2,
+                        "success": "1",
+                        "pii_events": "6",
+                        "avg_ms": "0.0000"
+                    },
+                    {
+                        "service": "nope",
+                        "total": 1,
+                        "success": "0",
+                        "pii_events": "0",
+                        "avg_ms": "0.0000"
+                    }
+                ],
+                [
+                    {
+                        "site_key": "s1",
+                        "user_id": 9,
+                        "service": "copilot",
+                        "intent": "",
+                        "input_text": "[BLOCKED]",
+                        "status": "pii_blocked",
+                        "error_message": "Too much PII detected",
+                        "pii_stripped": 6
+                    },
+                    {
+                        "site_key": "s1",
+                        "user_id": 9,
+                        "service": "copilot",
+                        "intent": "revenue",
+                        "input_text": "total revenue",
+                        "status": "success",
+                        "error_message": null,
+                        "pii_stripped": 0
+                    },
+                    {
+                        "site_key": "s1",
+                        "user_id": 1,
+                        "service": "classify",
+                        "intent": "classify",
+                        "input_text": "brake pad set",
+                        "status": "success",
+                        "error_message": null,
+                        "pii_stripped": 0
+                    },
+                    {
+                        "site_key": "s1",
+                        "user_id": 1,
+                        "service": "nope",
+                        "intent": "",
+                        "input_text": "x",
+                        "status": "error",
+                        "error_message": null,
+                        "pii_stripped": 0
+                    }
+                ]
+            ]
+        }
+    ]
+}

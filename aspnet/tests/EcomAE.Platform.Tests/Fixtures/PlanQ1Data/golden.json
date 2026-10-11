@@ -1,0 +1,148 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "jrk_data",
+            "output": "",
+            "result": [
+                16,
+                "/content/files/images/storefronts/jewellery/gold_rings.jpg",
+                "https://images.unsplash.com/photo-x?auto=format&fit=crop&w=800&q=82&h=200",
+                "Gold diamond engagement rings",
+                "",
+                4,
+                4,
+                6,
+                6,
+                9,
+                "Cartier",
+                "/content/files/images/storefronts/jewellery/luxury_flatlay.jpg",
+                8,
+                "JWL-3001",
+                "JWL-3006",
+                "/content/files/images/storefronts/jewellery/gold_rings.jpg",
+                "Gold diamond engagement rings",
+                "KEEP",
+                [
+                    "",
+                    "",
+                    "AED 2,500",
+                    "AED 3,501"
+                ],
+                "sale",
+                "new",
+                "hot",
+                "",
+                3,
+                7,
+                [
+                    "visa",
+                    "mastercard",
+                    "applepay",
+                    "tabby",
+                    "tamara"
+                ],
+                "Fine gold & diamond jewellery",
+                "Luxury pieces with a golden glow — bridal, diamonds, and heirloom craft.",
+                "Certified 18K and 22K gold, solitaires and bridal sets — insured UAE delivery with prices in AED.",
+                "Shop gold",
+                "18K"
+            ]
+        },
+        {
+            "name": "frn_data",
+            "output": "",
+            "result": [
+                20,
+                "/content/files/images/storefronts/fashion/skincare.jpg",
+                "https://images.unsplash.com/photo-x?auto=format&fit=crop&w=800&q=82&h=200",
+                "Skincare serum and moisturiser bottles",
+                "",
+                4,
+                4,
+                6,
+                6,
+                9,
+                "MAC",
+                "/content/files/images/storefronts/fashion/beauty_flatlay.jpg",
+                8,
+                "SLN-1001",
+                "SLN-1006",
+                "/content/files/images/storefronts/fashion/skincare.jpg",
+                "Skincare serum and moisturiser bottles",
+                "KEEP",
+                [
+                    "",
+                    "",
+                    "AED 89",
+                    "AED 3,501"
+                ],
+                "sale",
+                "new",
+                "hot",
+                "",
+                3,
+                7,
+                [
+                    "visa",
+                    "mastercard",
+                    "applepay",
+                    "tabby",
+                    "tamara"
+                ],
+                "Fashion & beauty retail",
+                "Curated style with runway energy — beauty that moves with you.",
+                "Discover trending looks, K-beauty essentials, and designer fragrances. Fast UAE delivery with prices in AED.",
+                "Shop For You",
+                "800+"
+            ]
+        },
+        {
+            "name": "er_data",
+            "output": "",
+            "result": [
+                27,
+                "/content/files/images/storefronts/electronics/laptop.jpg",
+                "https://images.unsplash.com/photo-x?auto=format&fit=crop&w=800&q=82&h=200",
+                "Laptop open on workspace",
+                "",
+                4,
+                4,
+                "/content/files/images/storefronts/electronics/gaming_setup.jpg",
+                9,
+                "ELC-2001",
+                "ELC-2006",
+                12,
+                8,
+                "/content/files/images/storefronts/electronics/laptop.jpg",
+                "Laptop open on workspace",
+                "KEEP",
+                [
+                    "",
+                    "",
+                    "AED 2,004",
+                    "AED 3,501"
+                ],
+                "sale",
+                "new",
+                "hot",
+                "",
+                3,
+                13,
+                [
+                    "visa",
+                    "mastercard",
+                    "paypal",
+                    "applepay",
+                    "tabby",
+                    "tamara"
+                ],
+                "Tech, gaming & lifestyle retail",
+                "Upgrade your setup with flagship tech — scanned, verified, ready to ship.",
+                "Phones, gaming, audio, tablets and smart home — official UAE warranty with prices in AED.",
+                "Shop gaming",
+                "UAE"
+            ]
+        }
+    ]
+}

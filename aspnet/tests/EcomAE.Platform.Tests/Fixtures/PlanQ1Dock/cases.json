@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "pure", "eval": "return dock_run_pure();" },
+    { "name": "save_types", "eval": "return dock_run_save_types($GLOBALS['db_link']);" },
+    { "name": "isolation", "eval": "return dock_run_isolation($GLOBALS['db_link']);" },
+    { "name": "creds", "eval": "return dock_run_creds($GLOBALS['db_link']);" }
+  ]
+}

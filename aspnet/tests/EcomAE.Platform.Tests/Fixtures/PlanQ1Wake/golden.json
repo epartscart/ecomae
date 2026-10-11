@@ -1,0 +1,57 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "norm",
+            "output": "",
+            "result": [
+                "cp/shop/foo",
+                "control",
+                "",
+                "login"
+            ]
+        },
+        {
+            "name": "resolve",
+            "output": "",
+            "result": [
+                "orders",
+                "Orders",
+                1,
+                1
+            ]
+        },
+        {
+            "name": "should",
+            "output": "",
+            "result": [
+                1,
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "name": "open",
+            "output": "",
+            "result": [
+                [
+                    1,
+                    "Shop desk",
+                    "/cp",
+                    "Operator",
+                    "Platform · All tenants",
+                    1,
+                    1
+                ],
+                1,
+                [
+                    1,
+                    1
+                ],
+                1
+            ]
+        }
+    ]
+}

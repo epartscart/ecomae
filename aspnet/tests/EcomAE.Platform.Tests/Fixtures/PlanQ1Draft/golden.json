@@ -1,0 +1,88 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "names",
+            "output": "",
+            "result": [
+                "",
+                "",
+                "FILTER",
+                "OIL FILTER",
+                "AIR FILTER",
+                "SPARK PLUG X",
+                "",
+                "FUEL FILTER",
+                "TOYOTA",
+                "BOSCH",
+                "AB",
+                "TOYOTA",
+                "HONDA",
+                "NISSAN",
+                "HYUNDAI",
+                "VAG",
+                "MERCEDES-BENZ",
+                "MAZDA",
+                "TOYOTA",
+                "TEIKIN",
+                "",
+                null
+            ]
+        },
+        {
+            "name": "partners",
+            "output": "",
+            "result": [
+                0,
+                0,
+                3,
+                [
+                    "Mann",
+                    "Bosch",
+                    "Febi"
+                ],
+                [
+                    "OC47X",
+                    "OC47",
+                    "HU712"
+                ],
+                0
+            ]
+        },
+        {
+            "name": "refs",
+            "output": "",
+            "result": [
+                1,
+                [
+                    "HU712"
+                ],
+                "Mann",
+                1,
+                [
+                    "HU-816"
+                ],
+                0
+            ]
+        },
+        {
+            "name": "persist",
+            "output": "",
+            "result": [
+                "ACME",
+                "BOSCH",
+                "FEBI",
+                "TOYOTA",
+                0,
+                1,
+                0,
+                1,
+                1,
+                1,
+                1,
+                0,
+                ""
+            ]
+        }
+    ]
+}

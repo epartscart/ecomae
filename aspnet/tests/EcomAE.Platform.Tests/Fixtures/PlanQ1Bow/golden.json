@@ -1,0 +1,92 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "infer",
+            "output": "",
+            "result": [
+                "Piston",
+                "Oil filter",
+                "Filter",
+                "Brake",
+                "Brake",
+                "Bearing",
+                "Engine",
+                "Uncategorized",
+                "Other parts",
+                "Custom group"
+            ]
+        },
+        {
+            "name": "map",
+            "output": "",
+            "result": [
+                2,
+                "Bosch",
+                "OC47",
+                "OC47",
+                "S-UAE",
+                10,
+                "HU712",
+                3,
+                1,
+                "Big",
+                "Ace",
+                0,
+                "Solo"
+            ]
+        },
+        {
+            "name": "catalog",
+            "output": "",
+            "result": [
+                4,
+                3,
+                4,
+                17,
+                [
+                    "Oil filter",
+                    "Brake",
+                    "Other parts"
+                ],
+                [
+                    2,
+                    1,
+                    1
+                ],
+                1,
+                2,
+                "Oil filter",
+                "Oil filter",
+                "Oil filter",
+                1,
+                1,
+                10,
+                2,
+                14
+            ]
+        },
+        {
+            "name": "fetch",
+            "output": "",
+            "result": [
+                0,
+                0,
+                2,
+                [
+                    "Bosch",
+                    "Febi"
+                ],
+                [
+                    13,
+                    2
+                ],
+                "OC47",
+                "Piston",
+                "Oil filter",
+                "CachedFam",
+                5
+            ]
+        }
+    ]
+}

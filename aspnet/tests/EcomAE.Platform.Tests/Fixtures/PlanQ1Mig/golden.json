@@ -1,0 +1,52 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "mig_static",
+            "output": "",
+            "result": [
+                "1.0.0",
+                8,
+                "001",
+                "create_epc_settings",
+                "008",
+                "create_epc_audit_log",
+                "b9d16fd86ffc363199819d56744b6182",
+                "7841fa592019ac6bc79a09536dde14f4"
+            ]
+        },
+        {
+            "name": "mig_flow",
+            "output": "",
+            "result": [
+                "000",
+                8,
+                8,
+                "create_epc_settings",
+                false,
+                "001",
+                7,
+                "002",
+                1,
+                "001",
+                false,
+                0,
+                2,
+                6,
+                "002",
+                "008",
+                true,
+                false,
+                null,
+                false,
+                "Migration not found: 999",
+                6,
+                "003",
+                false,
+                0,
+                false,
+                "orphaned"
+            ]
+        }
+    ]
+}

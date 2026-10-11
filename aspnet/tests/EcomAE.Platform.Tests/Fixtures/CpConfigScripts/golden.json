@@ -1,0 +1,436 @@
+{
+    "php": "8.3.6",
+    "source": "cp/content/shop/{prices_upload,order_process}/*_config.php + epc_multivendor_sample_file.php",
+    "results": [
+        {
+            "name": "storage_toggle_no_cookies",
+            "output": "window.EPC_STOREFRONT_STORAGE_TOGGLE={};",
+            "script": "storage_toggle"
+        },
+        {
+            "name": "storage_toggle_admin_ok",
+            "output": "window.EPC_STOREFRONT_STORAGE_TOGGLE={\"ajaxUrl\":\"/cp/content/shop/prices_upload/ajax_epc_storefront_storage_toggle.php\",\"csrfKey\":\"Kéy/\\\"\\\\é<>&'x\"};",
+            "script": "storage_toggle"
+        },
+        {
+            "name": "storage_toggle_session_without_user",
+            "output": "window.EPC_STOREFRONT_STORAGE_TOGGLE={};",
+            "script": "storage_toggle"
+        },
+        {
+            "name": "storage_toggle_user_without_session",
+            "output": "window.EPC_STOREFRONT_STORAGE_TOGGLE={};",
+            "script": "storage_toggle"
+        },
+        {
+            "name": "storage_toggle_wrong_user",
+            "output": "window.EPC_STOREFRONT_STORAGE_TOGGLE={};",
+            "script": "storage_toggle"
+        },
+        {
+            "name": "storage_toggle_unknown_session",
+            "output": "window.EPC_STOREFRONT_STORAGE_TOGGLE={};",
+            "script": "storage_toggle"
+        },
+        {
+            "name": "storage_toggle_customer_session_type0",
+            "output": "window.EPC_STOREFRONT_STORAGE_TOGGLE={};",
+            "script": "storage_toggle"
+        },
+        {
+            "name": "storage_toggle_empty_csrf",
+            "output": "window.EPC_STOREFRONT_STORAGE_TOGGLE={\"ajaxUrl\":\"/cp/content/shop/prices_upload/ajax_epc_storefront_storage_toggle.php\",\"csrfKey\":\"\"};",
+            "script": "storage_toggle"
+        },
+        {
+            "name": "storage_toggle_control_chars_csrf",
+            "output": "window.EPC_STOREFRONT_STORAGE_TOGGLE={\"ajaxUrl\":\"/cp/content/shop/prices_upload/ajax_epc_storefront_storage_toggle.php\",\"csrfKey\":\"a\\tb\\nc\\u2028d\"};",
+            "script": "storage_toggle"
+        },
+        {
+            "name": "storage_toggle_user_id_numeric_prefix_coercion",
+            "output": "window.EPC_STOREFRONT_STORAGE_TOGGLE={\"ajaxUrl\":\"/cp/content/shop/prices_upload/ajax_epc_storefront_storage_toggle.php\",\"csrfKey\":\"Kéy/\\\"\\\\é<>&'x\"};",
+            "script": "storage_toggle"
+        },
+        {
+            "name": "storage_toggle_empty_cookie_values",
+            "output": "window.EPC_STOREFRONT_STORAGE_TOGGLE={};",
+            "script": "storage_toggle"
+        },
+        {
+            "name": "upload_history_no_cookies",
+            "output": "window.EPC_PRICES_UPLOAD_HISTORY={};",
+            "script": "upload_history"
+        },
+        {
+            "name": "upload_history_admin_ok",
+            "output": "window.EPC_PRICES_UPLOAD_HISTORY={\"ajaxUrl\":\"/cp/content/shop/prices_upload/ajax_epc_price_upload_history.php\",\"csrfKey\":\"Kéy/\\\"\\\\é<>&'x\"};",
+            "script": "upload_history"
+        },
+        {
+            "name": "upload_history_session_without_user",
+            "output": "window.EPC_PRICES_UPLOAD_HISTORY={};",
+            "script": "upload_history"
+        },
+        {
+            "name": "upload_history_user_without_session",
+            "output": "window.EPC_PRICES_UPLOAD_HISTORY={};",
+            "script": "upload_history"
+        },
+        {
+            "name": "upload_history_wrong_user",
+            "output": "window.EPC_PRICES_UPLOAD_HISTORY={};",
+            "script": "upload_history"
+        },
+        {
+            "name": "upload_history_unknown_session",
+            "output": "window.EPC_PRICES_UPLOAD_HISTORY={};",
+            "script": "upload_history"
+        },
+        {
+            "name": "upload_history_customer_session_type0",
+            "output": "window.EPC_PRICES_UPLOAD_HISTORY={};",
+            "script": "upload_history"
+        },
+        {
+            "name": "upload_history_empty_csrf",
+            "output": "window.EPC_PRICES_UPLOAD_HISTORY={\"ajaxUrl\":\"/cp/content/shop/prices_upload/ajax_epc_price_upload_history.php\",\"csrfKey\":\"\"};",
+            "script": "upload_history"
+        },
+        {
+            "name": "upload_history_control_chars_csrf",
+            "output": "window.EPC_PRICES_UPLOAD_HISTORY={\"ajaxUrl\":\"/cp/content/shop/prices_upload/ajax_epc_price_upload_history.php\",\"csrfKey\":\"a\\tb\\nc\\u2028d\"};",
+            "script": "upload_history"
+        },
+        {
+            "name": "upload_history_user_id_numeric_prefix_coercion",
+            "output": "window.EPC_PRICES_UPLOAD_HISTORY={\"ajaxUrl\":\"/cp/content/shop/prices_upload/ajax_epc_price_upload_history.php\",\"csrfKey\":\"Kéy/\\\"\\\\é<>&'x\"};",
+            "script": "upload_history"
+        },
+        {
+            "name": "upload_history_empty_cookie_values",
+            "output": "window.EPC_PRICES_UPLOAD_HISTORY={};",
+            "script": "upload_history"
+        },
+        {
+            "name": "commerce_no_cookies",
+            "output": "window.EPC_COMMERCE_CP={};",
+            "script": "commerce"
+        },
+        {
+            "name": "commerce_admin_ok",
+            "output": "window.EPC_COMMERCE_CP={\"ajaxUrl\":\"/cp/content/shop/prices_upload/ajax_epc_commerce_ingest.php\",\"csrfKey\":\"Kéy/\\\"\\\\é<>&'x\",\"backend\":\"cp\",\"pricesUrl\":\"/cp/shop/prices\"};",
+            "script": "commerce"
+        },
+        {
+            "name": "commerce_session_without_user",
+            "output": "window.EPC_COMMERCE_CP={};",
+            "script": "commerce"
+        },
+        {
+            "name": "commerce_user_without_session",
+            "output": "window.EPC_COMMERCE_CP={};",
+            "script": "commerce"
+        },
+        {
+            "name": "commerce_wrong_user",
+            "output": "window.EPC_COMMERCE_CP={};",
+            "script": "commerce"
+        },
+        {
+            "name": "commerce_unknown_session",
+            "output": "window.EPC_COMMERCE_CP={};",
+            "script": "commerce"
+        },
+        {
+            "name": "commerce_customer_session_type0",
+            "output": "window.EPC_COMMERCE_CP={};",
+            "script": "commerce"
+        },
+        {
+            "name": "commerce_empty_csrf",
+            "output": "window.EPC_COMMERCE_CP={\"ajaxUrl\":\"/cp/content/shop/prices_upload/ajax_epc_commerce_ingest.php\",\"csrfKey\":\"\",\"backend\":\"cp\",\"pricesUrl\":\"/cp/shop/prices\"};",
+            "script": "commerce"
+        },
+        {
+            "name": "commerce_control_chars_csrf",
+            "output": "window.EPC_COMMERCE_CP={\"ajaxUrl\":\"/cp/content/shop/prices_upload/ajax_epc_commerce_ingest.php\",\"csrfKey\":\"a\\tb\\nc\\u2028d\",\"backend\":\"cp\",\"pricesUrl\":\"/cp/shop/prices\"};",
+            "script": "commerce"
+        },
+        {
+            "name": "commerce_user_id_numeric_prefix_coercion",
+            "output": "window.EPC_COMMERCE_CP={\"ajaxUrl\":\"/cp/content/shop/prices_upload/ajax_epc_commerce_ingest.php\",\"csrfKey\":\"Kéy/\\\"\\\\é<>&'x\",\"backend\":\"cp\",\"pricesUrl\":\"/cp/shop/prices\"};",
+            "script": "commerce"
+        },
+        {
+            "name": "commerce_empty_cookie_values",
+            "output": "window.EPC_COMMERCE_CP={};",
+            "script": "commerce"
+        },
+        {
+            "name": "order_item_edit_no_cookies",
+            "output": "window.EPC_OI_EDIT={};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_ok",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":0,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_session_without_user",
+            "output": "window.EPC_OI_EDIT={};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_user_without_session",
+            "output": "window.EPC_OI_EDIT={};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_wrong_user",
+            "output": "window.EPC_OI_EDIT={};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_unknown_session",
+            "output": "window.EPC_OI_EDIT={};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_customer_session_type0",
+            "output": "window.EPC_OI_EDIT={};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_empty_csrf",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":0,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_control_chars_csrf",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":0,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_user_id_numeric_prefix_coercion",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":0,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_empty_cookie_values",
+            "output": "window.EPC_OI_EDIT={};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_11",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":11,\"orderId\":501,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=501\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_12",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":12,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_13",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":13,\"orderId\":777,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=777\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_999",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":999,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_abc",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":0,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":0,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq__minus_3",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":-3,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_7x",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":7,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_1e1",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":10,\"orderId\":510,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=510\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_11_dot_9",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":11,\"orderId\":501,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=501\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_pct2011",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":11,\"orderId\":501,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=501\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_11pct20",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":11,\"orderId\":501,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=501\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_0x1A",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":0,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_1_and_id_eq_11",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":11,\"orderId\":501,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=501\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_11_and_id_lb__rb__eq_3",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":1,\"orderId\":4242,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=4242\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_lb__rb__eq_3",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":1,\"orderId\":4242,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=4242\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_lb_a_rb__lb_b_rb__eq_3",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":1,\"orderId\":4242,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=4242\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_11_and_id_lb__eq_3",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":11,\"orderId\":501,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=501\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_pct2B11",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":11,\"orderId\":501,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=501\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_9999999999999999999",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":9223372036854775807,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq__minus_9999999999999999999",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":-9223372036854775808,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_1e30",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":9223372036854775807,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_2147483647",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":2147483647,\"orderId\":99,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=99\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_0",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":0,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_11abc",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":11,\"orderId\":501,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=501\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq__dot_5e1",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":5,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_1_dot_",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":1,\"orderId\":4242,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=4242\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_pct0A11",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":11,\"orderId\":501,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=501\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_0011",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":11,\"orderId\":501,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=501\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_1_plus_1",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":1,\"orderId\":4242,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=4242\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_ID_eq_11",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":0,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_11_and_other_eq_1",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":11,\"orderId\":501,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=501\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_pct2011x",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":11,\"orderId\":501,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=501\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_1e",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":1,\"orderId\":4242,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=4242\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq__minus_0",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":0,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_99999999999",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":99999999999,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_92233720368547758070",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":9223372036854775807,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_9223372036854775807",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":9223372036854775807,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_admin_query_id_eq_9223372036854775808",
+            "output": "window.EPC_OI_EDIT={\"backend\":\"cp\",\"itemId\":9223372036854775807,\"orderId\":0,\"urls\":{\"order\":\"/cp/shop/orders/order?order_id=0\",\"items\":\"/cp/shop/orders/items\"}};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "order_item_edit_anonymous_with_item",
+            "output": "window.EPC_OI_EDIT={};",
+            "script": "order_item_edit"
+        },
+        {
+            "name": "multivendor_sample_no_cookies",
+            "output": "Brand,Article,Name,Qty,Price,\"Vendor full name\",\"Vendor short\",\"Data type\",Delivery,\"Engine code\",\"Country code\",Size,\"Cross reference\",\"OE number\",\"Other information\"\nTOYOTA,446610010,\"PAD KIT, DISC BRAKE\",8,103.51,\"S-UAE Trading LLC\",S-UAE,inventory,0,2JZGE,JP,\"15\"\"\",04465-YZZD2,044650K090,\"Ceramic; front\"\nAISIN,DT068,\"WATER PUMP\",3,45.00,\"R-UAE Spare Parts FZE\",R-UAE,inventory,0,1KZTE,TH,STD,16100-69355,1610069355,\nBOSCH,F026400039,FILTER,4,15.00,\"Gulf Parts Trading\",S-UAE,inventory,0,,DE,OE,0986AF0078,,\"Oil filter\"\nDENSO,0671007450,FILTER,12,18.00,\"S-UAE Trading LLC\",S-UAE,sales,0,3L,JP,,,,\nDENSO,0671007450,FILTER,5,22.50,\"S-UAE Trading LLC\",S-UAE,sales,0,3L,JP,,,,\nDENSO,0671007450,FILTER,2,29.90,\"S-UAE Trading LLC\",S-UAE,sales,0,3L,JP,,,,\n",
+            "script": "multivendor_sample"
+        },
+        {
+            "name": "multivendor_sample_admin",
+            "output": "Brand,Article,Name,Qty,Price,\"Vendor full name\",\"Vendor short\",\"Data type\",Delivery,\"Engine code\",\"Country code\",Size,\"Cross reference\",\"OE number\",\"Other information\"\nTOYOTA,446610010,\"PAD KIT, DISC BRAKE\",8,103.51,\"S-UAE Trading LLC\",S-UAE,inventory,0,2JZGE,JP,\"15\"\"\",04465-YZZD2,044650K090,\"Ceramic; front\"\nAISIN,DT068,\"WATER PUMP\",3,45.00,\"R-UAE Spare Parts FZE\",R-UAE,inventory,0,1KZTE,TH,STD,16100-69355,1610069355,\nBOSCH,F026400039,FILTER,4,15.00,\"Gulf Parts Trading\",S-UAE,inventory,0,,DE,OE,0986AF0078,,\"Oil filter\"\nDENSO,0671007450,FILTER,12,18.00,\"S-UAE Trading LLC\",S-UAE,sales,0,3L,JP,,,,\nDENSO,0671007450,FILTER,5,22.50,\"S-UAE Trading LLC\",S-UAE,sales,0,3L,JP,,,,\nDENSO,0671007450,FILTER,2,29.90,\"S-UAE Trading LLC\",S-UAE,sales,0,3L,JP,,,,\n",
+            "script": "multivendor_sample"
+        }
+    ]
+}

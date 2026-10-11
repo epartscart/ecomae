@@ -1,0 +1,415 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "brands",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "value": "555",
+                        "label": "555"
+                    },
+                    {
+                        "value": "Acura",
+                        "label": "Acura"
+                    },
+                    {
+                        "value": "Audi",
+                        "label": "Audi"
+                    },
+                    {
+                        "value": "BMW",
+                        "label": "BMW"
+                    },
+                    {
+                        "value": "Bosch",
+                        "label": "Bosch"
+                    },
+                    {
+                        "value": "Chevrolet",
+                        "label": "Chevrolet"
+                    },
+                    {
+                        "value": "Denso",
+                        "label": "Denso"
+                    },
+                    {
+                        "value": "Ford",
+                        "label": "Ford"
+                    },
+                    {
+                        "value": "GMC",
+                        "label": "GMC"
+                    },
+                    {
+                        "value": "Hino",
+                        "label": "Hino"
+                    },
+                    {
+                        "value": "Honda",
+                        "label": "Honda"
+                    },
+                    {
+                        "value": "Hyundai",
+                        "label": "Hyundai"
+                    },
+                    {
+                        "value": "Infiniti",
+                        "label": "Infiniti"
+                    },
+                    {
+                        "value": "Isuzu",
+                        "label": "Isuzu"
+                    },
+                    {
+                        "value": "JS ASAKASHI",
+                        "label": "JS ASAKASHI"
+                    },
+                    {
+                        "value": "Kia",
+                        "label": "Kia"
+                    },
+                    {
+                        "value": "Land Rover",
+                        "label": "Land Rover"
+                    },
+                    {
+                        "value": "Lexus",
+                        "label": "Lexus"
+                    },
+                    {
+                        "value": "Mercedes-Benz",
+                        "label": "Mercedes-Benz"
+                    },
+                    {
+                        "value": "Mitsubishi",
+                        "label": "Mitsubishi"
+                    },
+                    {
+                        "value": "NGK",
+                        "label": "NGK"
+                    },
+                    {
+                        "value": "Nissan",
+                        "label": "Nissan"
+                    },
+                    {
+                        "value": "Toyota",
+                        "label": "Toyota"
+                    },
+                    {
+                        "value": "Volkswagen",
+                        "label": "Volkswagen"
+                    }
+                ],
+                [
+                    {
+                        "value": "555",
+                        "label": "555"
+                    },
+                    {
+                        "value": "Acme Oils",
+                        "label": "Acme Oils"
+                    },
+                    {
+                        "value": "Acura",
+                        "label": "Acura"
+                    },
+                    {
+                        "value": "Audi",
+                        "label": "Audi"
+                    },
+                    {
+                        "value": "BMW",
+                        "label": "BMW"
+                    },
+                    {
+                        "value": "Bosch",
+                        "label": "Bosch"
+                    },
+                    {
+                        "value": "Chevrolet",
+                        "label": "Chevrolet"
+                    },
+                    {
+                        "value": "Denso",
+                        "label": "Denso"
+                    },
+                    {
+                        "value": "Ford",
+                        "label": "Ford"
+                    },
+                    {
+                        "value": "GMC",
+                        "label": "GMC"
+                    },
+                    {
+                        "value": "Hino",
+                        "label": "Hino"
+                    },
+                    {
+                        "value": "Honda",
+                        "label": "Honda"
+                    },
+                    {
+                        "value": "Hyundai",
+                        "label": "Hyundai"
+                    },
+                    {
+                        "value": "Infiniti",
+                        "label": "Infiniti"
+                    },
+                    {
+                        "value": "Isuzu",
+                        "label": "Isuzu"
+                    },
+                    {
+                        "value": "JS ASAKASHI",
+                        "label": "JS ASAKASHI"
+                    },
+                    {
+                        "value": "Kia",
+                        "label": "Kia"
+                    },
+                    {
+                        "value": "Land Rover",
+                        "label": "Land Rover"
+                    },
+                    {
+                        "value": "Lexus",
+                        "label": "Lexus"
+                    },
+                    {
+                        "value": "Mahindra",
+                        "label": "Mahindra"
+                    },
+                    {
+                        "value": "MANN FILTER",
+                        "label": "MANN FILTER"
+                    },
+                    {
+                        "value": "Mercedes-Benz",
+                        "label": "Mercedes-Benz"
+                    },
+                    {
+                        "value": "Mitsubishi",
+                        "label": "Mitsubishi"
+                    },
+                    {
+                        "value": "NGK",
+                        "label": "NGK"
+                    },
+                    {
+                        "value": "Nissan",
+                        "label": "Nissan"
+                    },
+                    {
+                        "value": "Toyota",
+                        "label": "Toyota"
+                    },
+                    {
+                        "value": "Volkswagen",
+                        "label": "Volkswagen"
+                    }
+                ],
+                1,
+                1,
+                0
+            ]
+        },
+        {
+            "name": "urls",
+            "output": "",
+            "result": [
+                "",
+                "",
+                "",
+                "/en/oil-filters/toyota/1310154101",
+                "/en/oil-filters/7",
+                "",
+                "",
+                0,
+                12.25,
+                0,
+                0
+            ]
+        },
+        {
+            "name": "search",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "message": "Enter a valid part number (at least 2 characters)."
+                },
+                {
+                    "ok": false,
+                    "message": "Enter a valid part number (at least 2 characters)."
+                },
+                {
+                    "ok": false,
+                    "message": "Select a brand."
+                },
+                {
+                    "ok": true,
+                    "brand": "Toyota",
+                    "article": "NO-SUCH",
+                    "brand_article_key": "toyota:NOSUCH",
+                    "in_warehouse": false,
+                    "qty": 0,
+                    "warehouse_cost": 0,
+                    "sell_price": 0,
+                    "currency": "AED",
+                    "warehouse_rows": [],
+                    "product_id": 0,
+                    "product_url": "",
+                    "parts_url": "/en/parts/Toyota/NO-SUCH",
+                    "redirect_url": "",
+                    "spare_parts_url": "/en/spare-parts/Toyota/NO-SUCH",
+                    "message": "Not in stock — contact us for availability."
+                },
+                {
+                    "ok": true,
+                    "brand": "Toyota",
+                    "article": "13101-54101",
+                    "brand_article_key": "toyota:1310154101",
+                    "in_warehouse": true,
+                    "qty": 3,
+                    "warehouse_cost": 12.5,
+                    "sell_price": 18.5,
+                    "currency": "AED",
+                    "warehouse_rows": [
+                        {
+                            "brand": "Toyota",
+                            "article": "13101 54101",
+                            "warehouse_cost": 12.5,
+                            "qty": 3,
+                            "warehouse": "Acme City",
+                            "price_list": "Acme list",
+                            "price_id": 4
+                        }
+                    ],
+                    "product_id": 7,
+                    "product_url": "/en/oil-filters/toyota/1310154101",
+                    "parts_url": "/en/parts/Toyota/13101-54101",
+                    "redirect_url": "/en/oil-filters/toyota/1310154101",
+                    "spare_parts_url": "/en/spare-parts/Toyota/13101-54101",
+                    "message": ""
+                },
+                {
+                    "ok": true,
+                    "brand": "VW",
+                    "article": "06D115562",
+                    "brand_article_key": "volkswagen:06D115562",
+                    "in_warehouse": true,
+                    "qty": 0,
+                    "warehouse_cost": 22,
+                    "sell_price": 22,
+                    "currency": "AED",
+                    "warehouse_rows": [
+                        {
+                            "brand": "Volkswagen",
+                            "article": "06D 115 562",
+                            "warehouse_cost": 22,
+                            "qty": 0,
+                            "warehouse": "Acme City",
+                            "price_list": "Acme list",
+                            "price_id": 4
+                        }
+                    ],
+                    "product_id": 0,
+                    "product_url": "",
+                    "parts_url": "/en/parts/VW/06D115562",
+                    "redirect_url": "",
+                    "spare_parts_url": "/en/spare-parts/VW/06D115562",
+                    "message": ""
+                },
+                {
+                    "ok": true,
+                    "brand": "Honda",
+                    "article": "13101-54101",
+                    "brand_article_key": "honda:1310154101",
+                    "in_warehouse": false,
+                    "qty": 0,
+                    "warehouse_cost": 0,
+                    "sell_price": 0,
+                    "currency": "AED",
+                    "warehouse_rows": [],
+                    "product_id": 0,
+                    "product_url": "",
+                    "parts_url": "/en/parts/Honda/13101-54101",
+                    "redirect_url": "",
+                    "spare_parts_url": "/en/spare-parts/Honda/13101-54101",
+                    "message": "Not in stock — contact us for availability."
+                },
+                {
+                    "ok": false,
+                    "message": "Warehouse lookup failed."
+                }
+            ]
+        },
+        {
+            "name": "tenant",
+            "output": "",
+            "result": [
+                {
+                    "ok": true,
+                    "brand": "Toyota",
+                    "article": "1310154101",
+                    "brand_article_key": "toyota:1310154101",
+                    "in_warehouse": true,
+                    "qty": 3,
+                    "warehouse_cost": 12.5,
+                    "sell_price": 12.5,
+                    "currency": "AED",
+                    "warehouse_rows": [
+                        {
+                            "brand": "Toyota",
+                            "article": "13101-54101",
+                            "warehouse_cost": 12.5,
+                            "qty": 3,
+                            "warehouse": "Acme City",
+                            "price_list": "Acme list",
+                            "price_id": 4
+                        }
+                    ],
+                    "product_id": 0,
+                    "product_url": "",
+                    "parts_url": "/en/parts/Toyota/1310154101",
+                    "redirect_url": "",
+                    "spare_parts_url": "/en/spare-parts/Toyota/1310154101",
+                    "message": ""
+                },
+                {
+                    "ok": true,
+                    "brand": "Toyota",
+                    "article": "1310154101",
+                    "brand_article_key": "toyota:1310154101",
+                    "in_warehouse": true,
+                    "qty": 1,
+                    "warehouse_cost": 9,
+                    "sell_price": 9,
+                    "currency": "AED",
+                    "warehouse_rows": [
+                        {
+                            "brand": "Toyota",
+                            "article": "13101-54101",
+                            "warehouse_cost": 9,
+                            "qty": 1,
+                            "warehouse": "Beta Town",
+                            "price_list": "Beta list",
+                            "price_id": 5
+                        }
+                    ],
+                    "product_id": 0,
+                    "product_url": "",
+                    "parts_url": "/en/parts/Toyota/1310154101",
+                    "redirect_url": "",
+                    "spare_parts_url": "/en/spare-parts/Toyota/1310154101",
+                    "message": ""
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,17 @@
+{
+  "cases": [
+    {
+      "name": "map"
+    },
+    {
+      "name": "resolve"
+    },
+    {
+      "name": "head"
+    },
+    {
+      "name": "scripts",
+      "ver_fn": true
+    }
+  ]
+}

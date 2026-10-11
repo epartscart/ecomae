@@ -1,0 +1,512 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "config",
+            "output": "",
+            "result": [
+                "",
+                "https://api.partsapi.ru",
+                "en",
+                false,
+                false,
+                "https://partsapi.ru/account/shop",
+                "https://partsapi.ru/account/shop?method=getMakes",
+                "/account/shop?method=Nope",
+                "/account/shop",
+                [
+                    "getMakes",
+                    "getCars",
+                    "getCrosses",
+                    ""
+                ],
+                [
+                    "CV",
+                    "Motorcycle",
+                    "PC",
+                    "commercial",
+                    "motorbike",
+                    "passenger"
+                ],
+                true,
+                false,
+                true,
+                false,
+                false,
+                [
+                    "https://parts.example",
+                    "platformkey99",
+                    "makeskey1",
+                    "platformkey99",
+                    "platformkey99",
+                    "de",
+                    "https://shop.example/makes",
+                    "https://partsapi.ru/account/shop?method=getModels",
+                    "https://partsapi.ru/account/shop?method=getCars",
+                    true,
+                    true
+                ],
+                [
+                    true,
+                    "",
+                    false
+                ],
+                "https://abs.example/x",
+                [
+                    "getMakes",
+                    "getModels",
+                    "getCars",
+                    "getSearchTree",
+                    "getArticles",
+                    "searchArticles",
+                    "PartSuggest",
+                    "getCrosses",
+                    "getCrossesWithBrand",
+                    "tecdocCrosses",
+                    "VINdecode"
+                ],
+                {
+                    "label": "Vehicle makes",
+                    "shop_url": "https://partsapi.ru/account/shop?method=getMakes"
+                },
+                {
+                    "method": "VINdecode",
+                    "label": "VIN decode",
+                    "shop_url": "https://partsapi.ru/account/shop?method=VINdecode"
+                }
+            ]
+        },
+        {
+            "name": "errors",
+            "output": "",
+            "result": [
+                5000,
+                "You have exceeded the number of requests",
+                "down; retry",
+                "x",
+                true,
+                true,
+                true,
+                false,
+                true,
+                false,
+                true,
+                false,
+                {
+                    "error_code": 0,
+                    "rate_limited": false,
+                    "service_error": false,
+                    "key_authenticated": false,
+                    "subscription_required": true
+                },
+                {
+                    "error_code": 0,
+                    "rate_limited": false,
+                    "service_error": false,
+                    "key_authenticated": true,
+                    "subscription_required": false
+                },
+                {
+                    "error_code": 5000,
+                    "rate_limited": true,
+                    "service_error": false,
+                    "key_authenticated": true,
+                    "subscription_required": false
+                },
+                "Subscribe to Vehicle models (getModels) at https://partsapi.ru/account/shop?method=getModels and add the method key to config.epc-partsapi.php under method_keys.",
+                "Subscribe to this API method (method) at https://partsapi.ru/account/shop and add the method key to config.epc-partsapi.php under method_keys.",
+                {
+                    "ok": false,
+                    "error": "Subscribe to Vehicle makes (getMakes) at https://partsapi.ru/account/shop?method=getMakes and add the method key to config.epc-partsapi.php under method_keys.",
+                    "http_status": 200,
+                    "elapsed_ms": 0,
+                    "method": "getMakes",
+                    "error_code": 5002,
+                    "rate_limited": false,
+                    "service_error": false,
+                    "subscription_required": true,
+                    "shop_url": "https://partsapi.ru/account/shop?method=getMakes"
+                },
+                {
+                    "ok": false,
+                    "error": "x",
+                    "http_status": 200,
+                    "elapsed_ms": 0,
+                    "method": "getMakes",
+                    "error_code": 0,
+                    "rate_limited": false,
+                    "service_error": false
+                },
+                false
+            ]
+        },
+        {
+            "name": "maps",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "a": 1
+                    }
+                ],
+                [
+                    {
+                        "a": 1
+                    },
+                    {
+                        "a": 2
+                    }
+                ],
+                [
+                    {
+                        "makeId": 1,
+                        "makeName": "VW"
+                    }
+                ],
+                [],
+                [
+                    "2010-01-01",
+                    "2015-12-31",
+                    "",
+                    "2012-01-01"
+                ],
+                [
+                    {
+                        "MFA_ID": 16,
+                        "MANUFACTURER": "VW",
+                        "makeId": 16,
+                        "makeName": "VW",
+                        "EPART_TYPES": [
+                            "PC"
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "MS_ID": 5,
+                        "MODEL_SERIES": "Golf",
+                        "modelId": 5,
+                        "modelName": "Golf",
+                        "MFA_ID": 16,
+                        "CI_FROM": "2010-01-01",
+                        "CI_TO": "2012-12-31"
+                    }
+                ],
+                [
+                    {
+                        "ID": 7,
+                        "carId": 7,
+                        "carName": "",
+                        "MODIFICATION": "Vehicle 7",
+                        "POWER_KW": "",
+                        "POWER_PS": "",
+                        "FUEL_TYPE": "",
+                        "CAPACITY": "",
+                        "PC_ID": 7,
+                        "PASSENGER_CAR": "Vehicle 7"
+                    }
+                ],
+                [
+                    {
+                        "ID": 8,
+                        "carId": 8,
+                        "carName": "Truck",
+                        "MODIFICATION": "Truck",
+                        "POWER_KW": "",
+                        "POWER_PS": "",
+                        "FUEL_TYPE": "",
+                        "CAPACITY": "",
+                        "CV_ID": 8,
+                        "COMMERCIAL_VEHICLE": "Truck"
+                    }
+                ],
+                [
+                    {
+                        "ID": 9,
+                        "carId": 9,
+                        "carName": "Bike",
+                        "MODIFICATION": "Bike",
+                        "POWER_KW": "",
+                        "POWER_PS": "",
+                        "FUEL_TYPE": "",
+                        "CAPACITY": "",
+                        "MTB_ID": 9,
+                        "MOTORBIKE": "Bike"
+                    }
+                ],
+                [
+                    {
+                        "CATEGORY_ID": 10,
+                        "CATEGORY_NAME": "Oil",
+                        "STR_ID": 10,
+                        "STR_LEVEL": "",
+                        "NODE_1_TEXT": "",
+                        "NODE_2_TEXT": "",
+                        "NODE_3_TEXT": "  Oil  "
+                    },
+                    {
+                        "CATEGORY_ID": 0,
+                        "CATEGORY_NAME": "Cat 0",
+                        "STR_ID": 0,
+                        "STR_LEVEL": "",
+                        "NODE_1_TEXT": "",
+                        "NODE_2_TEXT": "",
+                        "NODE_3_TEXT": ""
+                    },
+                    {
+                        "CATEGORY_ID": 3,
+                        "CATEGORY_NAME": "Cat 3",
+                        "STR_ID": 3,
+                        "STR_LEVEL": "",
+                        "NODE_1_TEXT": "",
+                        "NODE_2_TEXT": "",
+                        "NODE_3_TEXT": ""
+                    }
+                ],
+                [
+                    {
+                        "ART_ID": 1,
+                        "ART_ARTICLE_NR": "A1",
+                        "ART_SUP_BRAND": "VAG",
+                        "SUP_BRAND": "VAG",
+                        "PRODUCT_GROUP": "",
+                        "PT_ID": "",
+                        "SUP_ID": ""
+                    }
+                ],
+                [
+                    {
+                        "ART_ARTICLE_NR": "X1",
+                        "ART_SUP_BRAND": "VAG",
+                        "crossBrand": "VAG",
+                        "crossNumber": "X1"
+                    },
+                    {
+                        "ART_ARTICLE_NR": "P1",
+                        "ART_SUP_BRAND": "",
+                        "crossBrand": "",
+                        "crossNumber": "P1"
+                    }
+                ],
+                {
+                    "matchingManufacturers": [
+                        {
+                            "manuId": 16,
+                            "manuName": "VW"
+                        }
+                    ],
+                    "matchingModels": [
+                        {
+                            "modelId": 5,
+                            "modelName": "Golf",
+                            "manuId": 16
+                        }
+                    ],
+                    "matchingVehicles": [
+                        {
+                            "carId": 7,
+                            "manuId": 16,
+                            "modelId": 5,
+                            "carName": "G",
+                            "vehicleTypeDescription": "G",
+                            "linkageTargetId": 7
+                        },
+                        {
+                            "carId": 8,
+                            "manuId": 16,
+                            "modelId": 5,
+                            "carName": "VW Golf",
+                            "vehicleTypeDescription": "",
+                            "linkageTargetId": 8
+                        }
+                    ]
+                },
+                {
+                    "ok": true,
+                    "action": "manufacturers",
+                    "rows": 1,
+                    "data": [
+                        {
+                            "MFA_ID": 16,
+                            "MANUFACTURER": "VW",
+                            "makeId": 16,
+                            "makeName": "VW",
+                            "EPART_TYPES": [
+                                "PC"
+                            ]
+                        }
+                    ],
+                    "source": "partsapi_fallback",
+                    "elapsed_ms": 12
+                }
+            ]
+        },
+        {
+            "name": "call",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "http_status": 503,
+                    "error": "PartsAPI key is not configured for getMakes.",
+                    "data": null,
+                    "method": "getMakes"
+                },
+                {
+                    "ok": true,
+                    "http_status": 200,
+                    "error": "",
+                    "data": [
+                        {
+                            "makeId": 16,
+                            "makeName": "VW"
+                        }
+                    ],
+                    "method": "getMakes"
+                },
+                "https://api.partsapi.ru?method=getMakes&key=platformkey99&carType=PC&lang=en",
+                {
+                    "ok": false,
+                    "http_status": 502,
+                    "error": "Empty response from PartsAPI.",
+                    "data": null
+                },
+                {
+                    "ok": false,
+                    "http_status": 502,
+                    "error": "Failed to connect",
+                    "data": null
+                },
+                {
+                    "ok": false,
+                    "http_status": 200,
+                    "error": "Non-JSON response from PartsAPI.",
+                    "data": null
+                },
+                {
+                    "ok": false,
+                    "http_status": 400,
+                    "error": "bad request",
+                    "data": {
+                        "message": "bad request"
+                    },
+                    "method": "getMakes"
+                },
+                {
+                    "ok": false,
+                    "http_status": 200,
+                    "error": "Authorization key is invalid",
+                    "data": {
+                        "error_code": 5002,
+                        "message": "Authorization key is invalid"
+                    },
+                    "method": "getMakes"
+                },
+                {
+                    "ok": true,
+                    "action": "manufacturers",
+                    "rows": 1,
+                    "data": [
+                        {
+                            "MFA_ID": 16,
+                            "MANUFACTURER": "VW",
+                            "makeId": 16,
+                            "makeName": "VW",
+                            "EPART_TYPES": [
+                                "PC"
+                            ]
+                        }
+                    ],
+                    "source": "partsapi_fallback"
+                },
+                {
+                    "ok": true,
+                    "action": "models",
+                    "rows": 1,
+                    "data": [
+                        {
+                            "MS_ID": 5114,
+                            "MODEL_SERIES": "Golf",
+                            "modelId": 5114,
+                            "modelName": "Golf",
+                            "MFA_ID": 16,
+                            "CI_FROM": "2010-01-01",
+                            "CI_TO": "2015-12-31"
+                        }
+                    ],
+                    "source": "partsapi_fallback"
+                },
+                null,
+                {
+                    "ok": true,
+                    "action": "modifications",
+                    "rows": 1,
+                    "data": [
+                        {
+                            "ID": 58963,
+                            "carId": 58963,
+                            "carName": "1.6",
+                            "MODIFICATION": "1.6",
+                            "POWER_KW": "",
+                            "POWER_PS": "",
+                            "FUEL_TYPE": "",
+                            "CAPACITY": "",
+                            "CI_FROM": "2012-01-01",
+                            "PC_ID": 58963,
+                            "PASSENGER_CAR": "1.6"
+                        }
+                    ],
+                    "source": "partsapi_fallback"
+                },
+                {
+                    "ok": true,
+                    "data": {
+                        "matchingManufacturers": [
+                            {
+                                "manuId": 16,
+                                "manuName": "VW"
+                            }
+                        ],
+                        "matchingModels": [
+                            {
+                                "modelId": 5114,
+                                "modelName": "Golf",
+                                "manuId": 16
+                            }
+                        ],
+                        "matchingVehicles": [
+                            {
+                                "carId": 7,
+                                "manuId": 16,
+                                "modelId": 5114,
+                                "carName": "Golf 1.6",
+                                "vehicleTypeDescription": "Golf 1.6",
+                                "linkageTargetId": 7
+                            }
+                        ]
+                    },
+                    "source": "partsapi_fallback"
+                },
+                null,
+                null,
+                null,
+                null,
+                false,
+                false,
+                false,
+                false,
+                false,
+                "",
+                "https://api.partsapi.ru",
+                true,
+                true,
+                true,
+                false,
+                true,
+                true,
+                true,
+                "https://partsapi.ru/account/shop"
+            ]
+        }
+    ]
+}

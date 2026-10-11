@@ -1,0 +1,43 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "none",
+            "output": "",
+            "result": [
+                false,
+                false
+            ]
+        },
+        {
+            "name": "text",
+            "output": "",
+            "result": {
+                "step_caption": "O'Brien parts",
+                "step_url": "/catalogue?q=brake&lang=ar"
+            }
+        },
+        {
+            "name": "geturl",
+            "output": "",
+            "result": [
+                {
+                    "step_caption": "Pad <b>",
+                    "step_url": "/item"
+                },
+                {
+                    "step_caption": "Remote O'label",
+                    "step_url": "/ext?id=AB12"
+                },
+                "https://cdn.example/label?x=AB12&f=fixed"
+            ]
+        },
+        {
+            "name": "href",
+            "output": "",
+            "result": {
+                "step_url": "/empty"
+            }
+        }
+    ]
+}

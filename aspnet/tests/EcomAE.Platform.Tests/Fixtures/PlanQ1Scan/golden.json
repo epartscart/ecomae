@@ -1,0 +1,197 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "pure",
+            "output": "",
+            "result": [
+                "https://127.0.0.1:8443",
+                "clpctl",
+                false,
+                [
+                    "thejewellerytrend",
+                    "epartscart",
+                    "taxofinca",
+                    "electronicae",
+                    "stylenlook"
+                ],
+                [
+                    "www.ecomae.com",
+                    "ecomae.com",
+                    "cp.ecomae.com"
+                ],
+                [
+                    "www.thejewellerytrend.com",
+                    "thejewellerytrend.com",
+                    "www.epartscart.com",
+                    "epartscart.com",
+                    "www.taxofinca.com",
+                    "taxofinca.com",
+                    "www.electronicae.com",
+                    "electronicae.com",
+                    "www.stylenlook.com",
+                    "stylenlook.com"
+                ],
+                "www.ecomae.com.conf",
+                "cp.ecomae.com.conf",
+                {
+                    "crt": "/etc/nginx/ssl-certificates/www.demo.com.crt",
+                    "key": "/etc/nginx/ssl-certificates/www.demo.com.key"
+                },
+                null,
+                null,
+                {
+                    "crt": "/etc/nginx/ssl-certificates/www.demo.com.crt",
+                    "key": "/etc/nginx/ssl-certificates/www.demo.com.key"
+                },
+                "/home/alice/htdocs/shop.test",
+                [],
+                false,
+                {
+                    "ok": false,
+                    "log": [
+                        "Missing domain, site_user, or password"
+                    ]
+                },
+                {
+                    "ok": false,
+                    "log": [
+                        "clpctl not available — create site manually in CloudPanel UI"
+                    ]
+                },
+                {
+                    "ok": false,
+                    "log": [
+                        "clpctl not available"
+                    ]
+                },
+                {
+                    "ok": false,
+                    "log": [
+                        "empty domain"
+                    ]
+                },
+                true,
+                false,
+                1,
+                3,
+                true,
+                1,
+                1,
+                1,
+                1
+            ]
+        },
+        {
+            "name": "vhost",
+            "output": "",
+            "result": [
+                "server {\n  listen 80;\n  server_name extra.test;\n  return 301 https://www.epartscart.com$request_uri;\n}\nserver {\n  listen 443 ssl;\n  server_name www.stylenlook.com;\n  ssl_reject_handshake on;\n  return 444;\n}\nserver {\n  listen 443 ssl;\n  server_name keep.test;\n  ssl_reject_handshake on;\n  proxy_pass http://127.0.0.1:3000;\n}\n# EPC_TENANT_DIRECT_START\nserver {\n  server_name www.stylenlook.com;\n  root /old;\n}\n# EPC_TENANT_DIRECT_END\n",
+                "server {\n  listen 80;\n  server_name epartscart.com www.stylenlook.com extra.test;\n  return 301 https://www.epartscart.com$request_uri;\n}\nserver {\n  listen 443 ssl;\n  server_name www.stylenlook.com;\n\n  return 444;\n}\nserver {\n  listen 443 ssl;\n  server_name keep.test;\n  ssl_reject_handshake on;\n  proxy_pass http://127.0.0.1:3000;\n}\n# EPC_TENANT_DIRECT_START\nserver {\n  server_name www.stylenlook.com;\n  root /old;\n}\n# EPC_TENANT_DIRECT_END\n",
+                1,
+                "server {\n  listen 80;\n  server_name epartscart.com www.stylenlook.com extra.test;\n  return 301 https://www.epartscart.com$request_uri;\n}\n\nserver {\n  listen 443 ssl;\n  server_name keep.test;\n  ssl_reject_handshake on;\n  proxy_pass http://127.0.0.1:3000;\n}\n# EPC_TENANT_DIRECT_START\nserver {\n  server_name www.stylenlook.com;\n  root /old;\n}\n# EPC_TENANT_DIRECT_END\n",
+                1,
+                0,
+                "server {\n  listen 80;\n  server_name epartscart.com www.stylenlook.com extra.test;\n  return 301 https://www.epartscart.com$request_uri;\n}\nserver {\n  listen 443 ssl;\n  server_name www.stylenlook.com;\n  ssl_reject_handshake on;\n  return 444;\n}\nserver {\n  listen 443 ssl;\n  server_name keep.test;\n  ssl_reject_handshake on;\n  proxy_pass http://127.0.0.1:3000;\n}\n",
+                "server {\n  listen 80;\n  server_name extra.test;\n  return 301 https://www.epartscart.com$request_uri;\n}\nserver {\n  listen 443 ssl;\n  server_name www.stylenlook.com;\n  ssl_reject_handshake on;\n  return 444;\n}\nserver {\n  listen 443 ssl;\n  server_name keep.test;\n  ssl_reject_handshake on;\n  proxy_pass http://127.0.0.1:3000;\n}\n# EPC_TENANT_DIRECT_START\nserver {\n  server_name www.stylenlook.com;\n  root /old;\n}\n# EPC_TENANT_DIRECT_END\n",
+                [
+                    "stripped from server_name: epartscart.com, www.stylenlook.com",
+                    "stripped from server_name: www.stylenlook.com"
+                ],
+                "server {\n  listen 80;\n  server_name extra.test;\n  return 301 https://www.epartscart.com$request_uri;\n}\nserver {\n  listen 443 ssl;\n  server_name www.stylenlook.com;\n  ssl_reject_handshake on;\n  return 444;\n}\nserver {\n  listen 443 ssl;\n  server_name keep.test;\n  ssl_reject_handshake on;\n  proxy_pass http://127.0.0.1:3000;\n}\n# EPC_TENANT_DIRECT_START\nserver {\n  server_name www.stylenlook.com;\n  root /old;\n}\n# EPC_TENANT_DIRECT_END\n",
+                [
+                    "1: epartscart.com www.stylenlook.com extra.test",
+                    "2: www.stylenlook.com",
+                    "3: keep.test",
+                    "4: www.stylenlook.com"
+                ],
+                [
+                    [
+                        358,
+                        465
+                    ]
+                ],
+                false,
+                true,
+                "\n\nserver {\n  listen 443 ssl;\n  server_name keep.test;\n  ssl_reject_handshake on;\n  proxy_pass http://127.0.0.1:3000;\n}\n# EPC_TENANT_DIRECT_START\nserver {\n  server_name www.stylenlook.com;\n  root /old;\n}\n# EPC_TENANT_DIRECT_END\n",
+                2,
+                [
+                    "removed orphan tenant server block: epartscart.com",
+                    "removed orphan tenant server block: www.stylenlook.com"
+                ]
+            ]
+        },
+        {
+            "name": "provision",
+            "output": "",
+            "result": [
+                false,
+                {
+                    "ok": false,
+                    "log": [
+                        "empty sudo password"
+                    ]
+                },
+                {
+                    "ok": false,
+                    "log": [
+                        "no tenant groups"
+                    ]
+                },
+                {
+                    "ok": false,
+                    "log": [
+                        "no alias hosts"
+                    ]
+                },
+                {
+                    "ok": false,
+                    "log": [
+                        "missing fields"
+                    ]
+                },
+                true,
+                true
+            ]
+        },
+        {
+            "name": "snippets",
+            "output": "",
+            "result": [
+                "server {\n  listen 8080;\n  server_name www.ecomae.com extra.test www.stylenlook.com;\n}\nserver {\n  listen 80;\n  server_name www.ecomae.com extra.test www.stylenlook.com;\n}\n",
+                [
+                    "8080 backend +www.stylenlook.com",
+                    "8080 backend +www.stylenlook.com"
+                ],
+                "server {\n  listen 8080;\n  server_name www.ecomae.com;\n}\nserver {\n  listen 80;\n  server_name www.ecomae.com;\n}\n",
+                [
+                    "8080 backend -www.stylenlook.com",
+                    "8080 backend -extra.test",
+                    "8080 backend -www.stylenlook.com",
+                    "8080 backend -extra.test"
+                ],
+                "# EPC_TENANT_DIRECT_START\nserver {\n  listen 443 ssl;\n  server_name www.stylenlook.com;\n  root DOCROOT;\n  {{ssl_certificate}}\n  {{ssl_certificate_key}}\n  location ~ \\.php$ {\n    fastcgi_pass 127.0.0.1:9000;\n  }\n}\n# EPC_TENANT_DIRECT_END\nserver {\n  listen 443 ssl;\n  server_name keep.test;\n  ssl_certificate /old.crt;\n}\n",
+                0,
+                [],
+                0,
+                1,
+                1,
+                [
+                    "ssl paths for server_name www.stylenlook.com"
+                ],
+                true,
+                1,
+                [
+                    "removed server block: keep.test"
+                ],
+                {
+                    "vhost": "# EPC_TENANT_DIRECT_START\nserver {\n  listen 443 ssl;\n  server_name www.stylenlook.com;\n  {{root}}\n  {{ssl_certificate}}\n  {{ssl_certificate_key}}\n  location ~ \\.php$ {\n    fastcgi_pass 127.0.0.1:9000;\n  }\n}\n# EPC_TENANT_DIRECT_END\nserver {\n  listen 443 ssl;\n  server_name keep.test;\n  ssl_certificate /old.crt;\n}\n",
+                    "log": [
+                        "empty docroot"
+                    ],
+                    "patched": 0
+                }
+            ]
+        }
+    ]
+}

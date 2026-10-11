@@ -1,0 +1,857 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "cat_lang_general",
+            "output": "",
+            "vars": {
+                "manufacturer_lang": "(SELECT `str_key` FROM `lang_text_strings_translation` WHERE `value` IN (\"Производитель\", \"Manufacturer\") )",
+                "article_lang": "(SELECT `str_key` FROM `lang_text_strings_translation` WHERE `value` IN (\"Артикул\", \"Article\") )"
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "inputs_empty",
+            "output": "",
+            "vars": {
+                "value_for_input_search": "",
+                "value_for_input_search_string": ""
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "inputs_article_get",
+            "output": "",
+            "vars": {
+                "value_for_input_search": "ab12ЖяЁёx",
+                "value_for_input_search_string": ""
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "inputs_article_service_data",
+            "output": "",
+            "vars": {
+                "value_for_input_search": "OC901Ж",
+                "value_for_input_search_string": ""
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "inputs_article_get_beats_service_data",
+            "output": "",
+            "vars": {
+                "value_for_input_search": "A1",
+                "value_for_input_search_string": ""
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "inputs_search_string",
+            "output": "",
+            "vars": {
+                "value_for_input_search": "",
+                "value_for_input_search_string": "&lt;b&gt;&quot;x&quot; &amp; &#039;y&#039; &eacute; Ж &copy;"
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "inputs_both",
+            "output": "",
+            "vars": {
+                "value_for_input_search": "X9",
+                "value_for_input_search_string": "brake pad"
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tab_article_search_csrf",
+            "output": "<div class=\"search_tab_clar\">{4175}</div>\r\n<form role=\"form\" action=\"/ru/shop/part_search\" method=\"GET\">\r\n\t<input type=\"hidden\" name=\"csrf_guard_key\" value=\"K<1>&\"'\" />\r\n\t<div class=\"input-group\">\r\n\t\t<input value=\"AB&12\" type=\"text\" class=\"form-control\" placeholder=\"{4176}\" name=\"article\" />\r\n\t\t<span class=\"input-group-btn\">\r\n\t\t\t<button class=\"btn btn-ar btn-default\" type=\"submit\">{2763}</button>\r\n\t\t</span>\r\n\t</div>\r\n</form>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tab_article_search_guest",
+            "output": "<div class=\"search_tab_clar\">{4175}</div>\r\n<form role=\"form\" action=\"/ru/shop/part_search\" method=\"GET\">\r\n\t<input type=\"hidden\" name=\"csrf_guard_key\" value=\"\" />\r\n\t<div class=\"input-group\">\r\n\t\t<input value=\"AB&12\" type=\"text\" class=\"form-control\" placeholder=\"{4176}\" name=\"article\" />\r\n\t\t<span class=\"input-group-btn\">\r\n\t\t\t<button class=\"btn btn-ar btn-default\" type=\"submit\">{2763}</button>\r\n\t\t</span>\r\n\t</div>\r\n</form>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tab_name_search_csrf",
+            "output": "<div class=\"search_tab_clar\">{4177}</div>\r\n<form role=\"form\" action=\"/ru/shop/search\" method=\"GET\">\r\n\t<input type=\"hidden\" name=\"csrf_guard_key\" value=\"K<1>&\"'\" />\r\n\t<div class=\"input-group\">\r\n\t\t<input value=\"pad &amp; disc\" type=\"text\" class=\"form-control\" placeholder=\"{4178}\" name=\"search_string\" />\r\n\t\t<span class=\"input-group-btn\">\r\n\t\t\t<button class=\"btn btn-ar btn-default\" type=\"submit\">{2763}</button>\r\n\t\t</span>\r\n\t</div>\r\n</form>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tab_name_search_guest",
+            "output": "<div class=\"search_tab_clar\">{4177}</div>\r\n<form role=\"form\" action=\"/ru/shop/search\" method=\"GET\">\r\n\t<input type=\"hidden\" name=\"csrf_guard_key\" value=\"\" />\r\n\t<div class=\"input-group\">\r\n\t\t<input value=\"pad &amp; disc\" type=\"text\" class=\"form-control\" placeholder=\"{4178}\" name=\"search_string\" />\r\n\t\t<span class=\"input-group-btn\">\r\n\t\t\t<button class=\"btn btn-ar btn-default\" type=\"submit\">{2763}</button>\r\n\t\t</span>\r\n\t</div>\r\n</form>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tab_vin_search_neoriginal_csrf",
+            "output": "<div class=\"search_tab_clar\">{4189}</div>\r\n<form role=\"form\" action=\"/ru/originalnye-katalogi\" method=\"GET\">\r\n\t\r\n\t<input type=\"hidden\" name=\"csrf_guard_key\" value=\"K<1>&\"'\" />\r\n\t<input type=\"hidden\" name=\"VinAction\" value=\"Search\" />\r\n\t<input type=\"hidden\" name=\"language\" value=\"ru\" />\r\n\t\r\n\t<div class=\"input-group\">\r\n\t\t<input value=\"\" type=\"text\" class=\"form-control\" placeholder=\"{4191}\" name=\"vin\" />\r\n\t\t<span class=\"input-group-btn\">\r\n\t\t\t<button class=\"btn btn-ar btn-default\" type=\"submit\">{2763}</button>\r\n\t\t</span>\r\n\t</div>\r\n</form>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tab_vin_search_neoriginal_guest",
+            "output": "<div class=\"search_tab_clar\">{4189}</div>\r\n<form role=\"form\" action=\"/ru/originalnye-katalogi\" method=\"GET\">\r\n\t\r\n\t<input type=\"hidden\" name=\"csrf_guard_key\" value=\"\" />\r\n\t<input type=\"hidden\" name=\"VinAction\" value=\"Search\" />\r\n\t<input type=\"hidden\" name=\"language\" value=\"ru\" />\r\n\t\r\n\t<div class=\"input-group\">\r\n\t\t<input value=\"\" type=\"text\" class=\"form-control\" placeholder=\"{4191}\" name=\"vin\" />\r\n\t\t<span class=\"input-group-btn\">\r\n\t\t\t<button class=\"btn btn-ar btn-default\" type=\"submit\">{2763}</button>\r\n\t\t</span>\r\n\t</div>\r\n</form>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tab_vin_search_empty",
+            "output": "<div class=\"search_tab_clar\">{4189}</div>\r\n<div class=\"input-group\">\r\n\t<div class=\"search_tab_clar\">{4190}</div>\r\n</div>\r\n\r\n<div style=\"margin-top:15px; padding:15px; background:#e8f4fd; border:1px solid #bee5eb; border-radius:4px;\">\r\n\t<label style=\"font-weight:600; margin-bottom:8px; display:block; font-size:13px; color:#0c5460;\">Search by VIN / Frame Number</label>\r\n\t<form role=\"form\" action=\"/katalog-laximo\" method=\"GET\" style=\"display:flex; max-width:450px;\">\r\n\t\t<input value=\"vehicles\" type=\"hidden\" name=\"task\" />\r\n\t\t<input value=\"\" type=\"hidden\" name=\"c\" />\r\n\t\t<input value=\"FindVehicle\" type=\"hidden\" name=\"ft\" />\r\n\t\t<input value=\"\" type=\"text\" class=\"form-control\" placeholder=\"Enter VIN or Frame number\" name=\"identString\" style=\"flex:1; border:1px solid #ddd; padding:8px 12px; border-radius:4px 0 0 4px;\" />\r\n\t\t<input value=\"\" type=\"hidden\" name=\"ssd\" />\r\n\t\t<button class=\"btn btn-ar btn-default\" type=\"submit\" style=\"background:#337ab7; color:#fff; border:1px solid #337ab7; padding:8px 16px; border-radius:0 4px 4px 0; cursor:pointer;\">Search</button>\r\n\t</form>\r\n</div>\r\n",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tab_vin_search_vin",
+            "output": "<div class=\"search_tab_clar\">{4189}</div>\r\n<div class=\"input-group\">\r\n\t<div class=\"search_tab_clar\">{4190}</div>\r\n</div>\r\n\r\n<div style=\"margin-top:15px; padding:15px; background:#e8f4fd; border:1px solid #bee5eb; border-radius:4px;\">\r\n\t<label style=\"font-weight:600; margin-bottom:8px; display:block; font-size:13px; color:#0c5460;\">Search by VIN / Frame Number</label>\r\n\t<form role=\"form\" action=\"/katalog-laximo\" method=\"GET\" style=\"display:flex; max-width:450px;\">\r\n\t\t<input value=\"vehicles\" type=\"hidden\" name=\"task\" />\r\n\t\t<input value=\"\" type=\"hidden\" name=\"c\" />\r\n\t\t<input value=\"FindVehicle\" type=\"hidden\" name=\"ft\" />\r\n\t\t<input value=\"WVW&quot;&lt;ZZZ&gt;&#039;&amp;1\" type=\"text\" class=\"form-control\" placeholder=\"Enter VIN or Frame number\" name=\"identString\" style=\"flex:1; border:1px solid #ddd; padding:8px 12px; border-radius:4px 0 0 4px;\" />\r\n\t\t<input value=\"\" type=\"hidden\" name=\"ssd\" />\r\n\t\t<button class=\"btn btn-ar btn-default\" type=\"submit\" style=\"background:#337ab7; color:#fff; border:1px solid #337ab7; padding:8px 16px; border-radius:0 4px 4px 0; cursor:pointer;\">Search</button>\r\n\t</form>\r\n</div>\r\n",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tab_to_catalogue",
+            "output": "<div class=\"search_tab_clar\">{4188}:</div>\r\n<div id=\"tab_to_catalogue\">\r\n</div>\r\n\r\n\r\n<script>\r\njQuery.ajax({\r\n\ttype: \"GET\",\r\n\tasync: true,\r\n\turl: \"/content/shop/catalogue/search_tabs/tabs_content/to_catalogue/ajax_get_to_marks.php\"+\"?csrf_guard_key=K<1>&\"'\",\r\n\tdataType: \"text\",//Тип возвращаемого значения\r\n\tsuccess: function(answer)\r\n\t{\r\n\t\t//console.log(answer);\r\n\t\t\r\n\t\tdocument.getElementById(\"tab_to_catalogue\").innerHTML = answer;\r\n\t}\r\n});\r\n</script>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tab_to_catalogue_guest",
+            "output": "<div class=\"search_tab_clar\">{4188}:</div>\r\n<div id=\"tab_to_catalogue\">\r\n</div>\r\n\r\n\r\n<script>\r\njQuery.ajax({\r\n\ttype: \"GET\",\r\n\tasync: true,\r\n\turl: \"/content/shop/catalogue/search_tabs/tabs_content/to_catalogue/ajax_get_to_marks.php\"+\"?csrf_guard_key=\",\r\n\tdataType: \"text\",//Тип возвращаемого значения\r\n\tsuccess: function(answer)\r\n\t{\r\n\t\t//console.log(answer);\r\n\t\t\r\n\t\tdocument.getElementById(\"tab_to_catalogue\").innerHTML = answer;\r\n\t}\r\n});\r\n</script>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tab_laximo_catalog",
+            "output": "<link rel=\"stylesheet\" href=\"/api/Laximo/laximo.css\" type=\"text/css\" />\n<div id=\"Laximo_container\">\n    <div class=\"laximo-loading\">\n        <div class=\"spinner\"></div>\n        <p>Loading OEM catalog…</p>\n    </div>\n</div>\n<script src=\"/api/laximo_storefront.js?v=20260718nocat1\"></script>\n",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "aftermarket_both_parts_first",
+            "output": "<div class=\"search_tab_clar\">{4172}:</div>\r\n\r\n\r\n<div class=\"search_tab_car_catalogue\"><a href=\"https://aftermarket.catalogs-parts.com/#{client:hfiecq;page:models;lang:ru;catalog:pc}\" target=\"_blank\"><i class=\"fa fa-check\"></i> Catalogs <Parts></a></div><div class=\"search_tab_car_catalogue\"><a href=\"http://aftermarket.autocats.ru.com/pid/P1/clid/C2\" target=\"_blank\"><i class=\"fa fa-check\"></i> Ilcats</a></div>\r\n\r\n\r\n\r\n<p class=\"search_tab_car_catalogue_back\" style=\"text-decoration:none;\"><i class=\"fa fa-info-circle\"></i> {4174}</p>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "aftermarket_both_ilcats_first",
+            "output": "<div class=\"search_tab_clar\">{4172}:</div>\r\n\r\n\r\n<div class=\"search_tab_car_catalogue\"><a href=\"http://aftermarket.autocats.ru.com/pid/P1/clid/C2\" target=\"_blank\"><i class=\"fa fa-check\"></i> Ilcats</a></div><div class=\"search_tab_car_catalogue\"><a href=\"https://aftermarket.catalogs-parts.com/#{client:hfiecq;page:models;lang:ru;catalog:pc}\" target=\"_blank\"><i class=\"fa fa-check\"></i> Catalogs <Parts></a></div>\r\n\r\n\r\n\r\n<p class=\"search_tab_car_catalogue_back\" style=\"text-decoration:none;\"><i class=\"fa fa-info-circle\"></i> {4174}</p>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "aftermarket_equal_order_parts_first",
+            "output": "<div class=\"search_tab_clar\">{4172}:</div>\r\n\r\n\r\n<div class=\"search_tab_car_catalogue\"><a href=\"https://aftermarket.catalogs-parts.com/#{client:hfiecq;page:models;lang:ru;catalog:pc}\" target=\"_blank\"><i class=\"fa fa-check\"></i> Catalogs <Parts></a></div><div class=\"search_tab_car_catalogue\"><a href=\"http://aftermarket.autocats.ru.com/pid/P1/clid/C2\" target=\"_blank\"><i class=\"fa fa-check\"></i> Ilcats</a></div>\r\n\r\n\r\n\r\n<p class=\"search_tab_car_catalogue_back\" style=\"text-decoration:none;\"><i class=\"fa fa-info-circle\"></i> {4174}</p>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "aftermarket_only_ilcats",
+            "output": "<div class=\"search_tab_clar\">{4172}:</div>\r\n\r\n\r\n<div class=\"search_tab_car_catalogue\"><a href=\"http://aftermarket.autocats.ru.com/pid/P1/clid/C2\" target=\"_blank\"><i class=\"fa fa-check\"></i> Ilcats</a></div>\r\n\r\n\r\n\r\n<p class=\"search_tab_car_catalogue_back\" style=\"text-decoration:none;\"><i class=\"fa fa-info-circle\"></i> {4174}</p>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "aftermarket_none_on",
+            "output": "<div class=\"search_tab_clar\">{4172}:</div>\r\n\r\n\r\n<p class=\"search_tab_car_catalogue_back\" style=\"text-decoration:none;\"><i class=\"fa fa-wrench\"></i> {4173} \"{790}\"</p>\r\n\r\n\r\n\r\n<p class=\"search_tab_car_catalogue_back\" style=\"text-decoration:none;\"><i class=\"fa fa-info-circle\"></i> {4174}</p>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "aftermarket_show_not_exactly_on",
+            "output": "<div class=\"search_tab_clar\">{4172}:</div>\r\n\r\n\r\n<p class=\"search_tab_car_catalogue_back\" style=\"text-decoration:none;\"><i class=\"fa fa-wrench\"></i> {4173} \"{790}\"</p>\r\n\r\n\r\n\r\n<p class=\"search_tab_car_catalogue_back\" style=\"text-decoration:none;\"><i class=\"fa fa-info-circle\"></i> {4174}</p>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "shop_button",
+            "output": "<h1>{4409}</h1>\n\n<div class=\"cat-item\">\n\t<a href=\"/en/shop/cart\">\n\t\t{4410}\t</a>\n</div>\n\n<div class=\"cat-item\">\n\t<a href=\"/en/shop/orders\">\n\t\t{4411}\t</a>\n</div>\n",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "shop_button_no_lang",
+            "output": "<h1>{4409}</h1>\n\n<div class=\"cat-item\">\n\t<a href=\"/shop/cart\">\n\t\t{4410}\t</a>\n</div>\n\n<div class=\"cat-item\">\n\t<a href=\"/shop/orders\">\n\t\t{4411}\t</a>\n</div>\n",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "ucatalog_index",
+            "output": "<!-- UCatalog -->\r\n<div id=\"UCatalog_container\"></div>\r\n\r\n<link href=\"/api/UCatalog/style.css\" rel=\"stylesheet\" type=\"text/css\"/>\r\n<script src=\"/api/UCatalog/api.js\"></script>\r\n\r\n<link href=\"/lib/Lightbox/css/lightbox.css\" rel=\"stylesheet\" type=\"text/css\"/>\r\n<script type=\"text/javascript\" src=\"/lib/Lightbox/js/lightbox.js\"></script>\r\n\r\n",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "ucatalog_index_garage",
+            "output": "<!-- UCatalog -->\r\n<div id=\"UCatalog_container\"></div>\r\n\r\n<link href=\"/api/UCatalog/style.css\" rel=\"stylesheet\" type=\"text/css\"/>\r\n<script src=\"/api/UCatalog/api.js\"></script>\r\n\r\n<link href=\"/lib/Lightbox/css/lightbox.css\" rel=\"stylesheet\" type=\"text/css\"/>\r\n<script type=\"text/javascript\" src=\"/lib/Lightbox/js/lightbox.js\"></script>\r\n\r\n<script>\r\njQuery(document).ready(function () {\r\n\tUCatalog_get_garage(12);\r\n\t\r\n\t//Удалить параметр из адреса\r\n\tlet url = new URL(document.location);\r\n\tlet searchParams = url.searchParams;\r\n\tsearchParams.delete(\"UCatalog_get_garage\");\r\n\twindow.history.pushState({}, '', url.toString());\r\n});\r\n</script>\r\n",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "ucatalog_index_garage_zero",
+            "output": "<!-- UCatalog -->\r\n<div id=\"UCatalog_container\"></div>\r\n\r\n<link href=\"/api/UCatalog/style.css\" rel=\"stylesheet\" type=\"text/css\"/>\r\n<script src=\"/api/UCatalog/api.js\"></script>\r\n\r\n<link href=\"/lib/Lightbox/css/lightbox.css\" rel=\"stylesheet\" type=\"text/css\"/>\r\n<script type=\"text/javascript\" src=\"/lib/Lightbox/js/lightbox.js\"></script>\r\n\r\n<script>\r\njQuery(document).ready(function () {\r\n\tUCatalog_get_garage(0);\r\n\t\r\n\t//Удалить параметр из адреса\r\n\tlet url = new URL(document.location);\r\n\tlet searchParams = url.searchParams;\r\n\tsearchParams.delete(\"UCatalog_get_garage\");\r\n\twindow.history.pushState({}, '', url.toString());\r\n});\r\n</script>\r\n",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "users_guest",
+            "output": "\n\n\t<div class=\"panel panel-primary\">\n\t[[LOGIN_FORM users_node_page /en/users]]\t</div>\n    ",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "users_logged_in",
+            "output": "\n\n    \n    <div class=\"cat-item\">\n    \t<a href=\"/ru/users/profile\">\n    \t\t{4668}    \t</a>\n    </div>\n    \n    ",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "users_logged_in_no_lang",
+            "output": "\n\n    \n    <div class=\"cat-item\">\n    \t<a href=\"/users/profile\">\n    \t\t{4668}    \t</a>\n    </div>\n    \n    ",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "eparts_product_article",
+            "output": "<script>location = \"\\/en\\/shop\\/part_search?article=OC%2090\";</script><noscript><meta http-equiv=\"refresh\" content=\"0;url=/en/shop/part_search?article=OC%2090\"></noscript><p><a href=\"/en/shop/part_search?article=OC%2090\">Continue to part search</a></p>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "eparts_product_article_brand",
+            "output": "<script>location = \"\\/ru\\/shop\\/part_search?article=A%26B%2F1&brend=Bosch%20%D0%96\";</script><noscript><meta http-equiv=\"refresh\" content=\"0;url=/ru/shop/part_search?article=A%26B%2F1&amp;brend=Bosch%20%D0%96\"></noscript><p><a href=\"/ru/shop/part_search?article=A%26B%2F1&amp;brend=Bosch%20%D0%96\">Continue to part search</a></p>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "eparts_product_oem_manufacturer",
+            "output": "<script>location = \"\\/en\\/shop\\/part_search?article=OEM1&brend=MAN\";</script><noscript><meta http-equiv=\"refresh\" content=\"0;url=/en/shop/part_search?article=OEM1&amp;brend=MAN\"></noscript><p><a href=\"/en/shop/part_search?article=OEM1&amp;brend=MAN\">Continue to part search</a></p>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "eparts_product_article_wins_over_oem",
+            "output": "<script>location = \"\\/en\\/shop\\/part_search?article=A1\";</script><noscript><meta http-equiv=\"refresh\" content=\"0;url=/en/shop/part_search?article=A1\"></noscript><p><a href=\"/en/shop/part_search?article=A1\">Continue to part search</a></p>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "eparts_product_landing",
+            "output": "<div class=\"container\" style=\"padding:28px 16px;max-width:720px;\">\n\t<h1 style=\"margin:0 0 8px;font-size:28px;\">EParts product</h1>\n\t<p style=\"color:#64748b;margin:0 0 18px;\">Open the vehicle catalog to find OE / aftermarket parts, or browse by category.</p>\n\t<p style=\"display:flex;gap:10px;flex-wrap:wrap;\">\n\t\t<a class=\"btn btn-primary\" href=\"/en/eparts-cata\">EParts CATA</a>\n\t\t<a class=\"btn btn-default\" href=\"/en/eparts-mod\">Select a vehicle</a>\n\t\t<a class=\"btn btn-default\" href=\"/en/shop/part_search\">Part search</a>\n\t</p>\n</div>\n\t",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "eparts_product_landing_category",
+            "output": "<div class=\"container\" style=\"padding:28px 16px;max-width:720px;\">\n\t<h1 style=\"margin:0 0 8px;font-size:28px;\">EParts product</h1>\n\t<p style=\"color:#64748b;margin:0 0 18px;\">Open the vehicle catalog to find OE / aftermarket parts, or browse by category.</p>\n\t<p style=\"display:flex;gap:10px;flex-wrap:wrap;\">\n\t\t<a class=\"btn btn-primary\" href=\"/en/eparts-cata?category=oil%20filters%26x%3D1\">EParts CATA</a>\n\t\t<a class=\"btn btn-default\" href=\"/en/eparts-mod\">Select a vehicle</a>\n\t\t<a class=\"btn btn-default\" href=\"/en/shop/part_search\">Part search</a>\n\t</p>\n</div>\n\t",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "eparts_product_landing_blank_article",
+            "output": "<div class=\"container\" style=\"padding:28px 16px;max-width:720px;\">\n\t<h1 style=\"margin:0 0 8px;font-size:28px;\">EParts product</h1>\n\t<p style=\"color:#64748b;margin:0 0 18px;\">Open the vehicle catalog to find OE / aftermarket parts, or browse by category.</p>\n\t<p style=\"display:flex;gap:10px;flex-wrap:wrap;\">\n\t\t<a class=\"btn btn-primary\" href=\"/en/eparts-cata?category=c\">EParts CATA</a>\n\t\t<a class=\"btn btn-default\" href=\"/en/eparts-mod\">Select a vehicle</a>\n\t\t<a class=\"btn btn-default\" href=\"/en/shop/part_search\">Part search</a>\n\t</p>\n</div>\n\t",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "eparts_product_landing_unsafe_lang",
+            "output": "<div class=\"container\" style=\"padding:28px 16px;max-width:720px;\">\n\t<h1 style=\"margin:0 0 8px;font-size:28px;\">EParts product</h1>\n\t<p style=\"color:#64748b;margin:0 0 18px;\">Open the vehicle catalog to find OE / aftermarket parts, or browse by category.</p>\n\t<p style=\"display:flex;gap:10px;flex-wrap:wrap;\">\n\t\t<a class=\"btn btn-primary\" href=\"/en&quot;&gt;&lt;x/eparts-cata\">EParts CATA</a>\n\t\t<a class=\"btn btn-default\" href=\"/en&quot;&gt;&lt;x/eparts-mod\">Select a vehicle</a>\n\t\t<a class=\"btn btn-default\" href=\"/en&quot;&gt;&lt;x/shop/part_search\">Part search</a>\n\t</p>\n</div>\n\t",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "chose_car_empty",
+            "output": "\n\n\n\n\n<ul class=\"bs-glyphicons-list\">\n</ul>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "chose_car_rows",
+            "output": "\n\n\n\n\n<ul class=\"bs-glyphicons-list\">\n\t<li>\n\t\t<a href=\"/ru/shop/avtomobilnye-katalogi/vybor-kataloga?car_id=4\">\n\t\t\t<img src=\"/content/files/images/car_logos/vw.png\" /><br>\n\t\t\t<span class=\"glyphicon-class\">{10}</span>\n\t\t</a>\n\t</li>\n    \t<li>\n\t\t<a href=\"/ru/shop/avtomobilnye-katalogi/vybor-kataloga?car_id=1\">\n\t\t\t<img src=\"/content/files/images/car_logos/audi.png\" /><br>\n\t\t\t<span class=\"glyphicon-class\">{12}</span>\n\t\t</a>\n\t</li>\n    \t<li>\n\t\t<a href=\"/ru/shop/avtomobilnye-katalogi/vybor-kataloga?car_id=5\">\n\t\t\t<img src=\"/content/files/images/car_logos/opel.png\" /><br>\n\t\t\t<span class=\"glyphicon-class\">{2}</span>\n\t\t</a>\n\t</li>\n    \t<li>\n\t\t<a href=\"/ru/shop/avtomobilnye-katalogi/vybor-kataloga?car_id=2\">\n\t\t\t<img src=\"/content/files/images/car_logos/bmw.png\" /><br>\n\t\t\t<span class=\"glyphicon-class\">{3}</span>\n\t\t</a>\n\t</li>\n    </ul>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "news_module_two",
+            "output": "\t<div class=\"media news_block\">\n\t\t<div class=\"media-body\">\n\t\t\t<h4 class=\"media-heading\"><a href=\"/en/news/three\">{203}<br>{303}</a></h4>\n\t\t\t<small>16.11.2023</small>\n\t\t</div>\n\t</div>\n    \t<div class=\"media news_block\">\n\t\t<div class=\"media-body\">\n\t\t\t<h4 class=\"media-heading\"><a href=\"/en/news/two\">{202}<br>{302}</a></h4>\n\t\t\t<small>15.11.2023</small>\n\t\t</div>\n\t</div>\n    <a href=\"/en/news\" class=\"all_news_link\">{4763}</a>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "news_module_all",
+            "output": "\t<div class=\"media news_block\">\n\t\t<div class=\"media-body\">\n\t\t\t<h4 class=\"media-heading\"><a href=\"/news/three\">{203}<br>{303}</a></h4>\n\t\t\t<small>16.11.2023</small>\n\t\t</div>\n\t</div>\n    \t<div class=\"media news_block\">\n\t\t<div class=\"media-body\">\n\t\t\t<h4 class=\"media-heading\"><a href=\"/news/two\">{202}<br>{302}</a></h4>\n\t\t\t<small>15.11.2023</small>\n\t\t</div>\n\t</div>\n    \t<div class=\"media news_block\">\n\t\t<div class=\"media-body\">\n\t\t\t<h4 class=\"media-heading\"><a href=\"/news/one\">{201}<br>{301}</a></h4>\n\t\t\t<small>14.11.2023</small>\n\t\t</div>\n\t</div>\n    <a href=\"/news\" class=\"all_news_link\">{4763}</a>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "news_module_zero_limit",
+            "output": "<a href=\"/en/news\" class=\"all_news_link\">{4763}</a>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "news_module_missing_root",
+            "output": "<a href=\"/en/\" class=\"all_news_link\">{4763}</a>",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "product_description_content",
+            "output": "{BODY<b>}",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "product_description_empty_content",
+            "output": "{4147}",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "product_description_zero_content",
+            "output": "{4147}",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "product_description_no_row",
+            "output": "{4147}",
+            "vars": [],
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "currency_no",
+            "output": "",
+            "vars": {
+                "currency_indicator": "",
+                "currency_sign": "$"
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "currency_sign_before",
+            "output": "",
+            "vars": {
+                "currency_indicator": "$",
+                "currency_sign": "$"
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "currency_sign_after",
+            "output": "",
+            "vars": {
+                "currency_indicator": "$",
+                "currency_sign": "$"
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "currency_short_name_after",
+            "output": "",
+            "vars": {
+                "currency_indicator": "USD",
+                "currency_sign": "$"
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "currency_short_name_before",
+            "output": "",
+            "vars": {
+                "currency_indicator": "USD",
+                "currency_sign": "$"
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "currency_anything",
+            "output": "",
+            "vars": {
+                "currency_indicator": "USD",
+                "currency_sign": "$"
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "currency_missing_row_sign_before",
+            "output": "",
+            "vars": {
+                "currency_indicator": null
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "currency_missing_row_short",
+            "output": "",
+            "vars": {
+                "currency_indicator": null
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "currency_null_sign",
+            "output": "",
+            "vars": {
+                "currency_indicator": null
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "marketing_schema",
+            "output": "",
+            "vars": [],
+            "result": true,
+            "show_create": {
+                "epc_marketing_task_progress": "CREATE TABLE `epc_marketing_task_progress` (\n  `strategy_key` varchar(64) NOT NULL,\n  `task_key` varchar(128) NOT NULL,\n  `is_done` tinyint(1) NOT NULL DEFAULT 0,\n  `done_at` int(10) unsigned DEFAULT NULL,\n  `note` text DEFAULT NULL,\n  `updated_at` int(10) unsigned NOT NULL DEFAULT 0,\n  PRIMARY KEY (`strategy_key`,`task_key`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+                "epc_marketing_kpi_log": "CREATE TABLE `epc_marketing_kpi_log` (\n  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,\n  `strategy_key` varchar(64) NOT NULL DEFAULT '',\n  `kpi_key` varchar(128) NOT NULL,\n  `value_decimal` decimal(20,4) DEFAULT NULL,\n  `value_text` varchar(512) NOT NULL DEFAULT '',\n  `note` text DEFAULT NULL,\n  `recorded_at` int(10) unsigned NOT NULL,\n  `recorded_by` int(10) unsigned NOT NULL DEFAULT 0,\n  PRIMARY KEY (`id`),\n  KEY `kpi_key` (`kpi_key`),\n  KEY `recorded_at` (`recorded_at`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+                "epc_marketing_reviews": "CREATE TABLE `epc_marketing_reviews` (\n  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,\n  `strategy_key` varchar(64) NOT NULL,\n  `review_type` varchar(32) NOT NULL DEFAULT 'weekly',\n  `score` tinyint(3) unsigned NOT NULL DEFAULT 0,\n  `notes` text DEFAULT NULL,\n  `created_at` int(10) unsigned NOT NULL,\n  `created_by` int(10) unsigned NOT NULL DEFAULT 0,\n  PRIMARY KEY (`id`),\n  KEY `strategy_key` (`strategy_key`),\n  KEY `created_at` (`created_at`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
+            },
+            "headers": []
+        },
+        {
+            "name": "tax_advisory_seed_tree",
+            "output": "",
+            "vars": [],
+            "result": [
+                {
+                    "slug": "svc-accounting",
+                    "name": "Accounting & bookkeeping",
+                    "sort": 10,
+                    "children": [
+                        {
+                            "slug": "svc-accounting-monthly",
+                            "name": "Monthly bookkeeping packages",
+                            "children": [
+                                {
+                                    "slug": "svc-accounting-monthly-basic",
+                                    "name": "Basic SME package"
+                                },
+                                {
+                                    "slug": "svc-accounting-monthly-growth",
+                                    "name": "Growth / multi-entity package"
+                                },
+                                {
+                                    "slug": "svc-accounting-monthly-enterprise",
+                                    "name": "Enterprise / group reporting"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "svc-accounting-payroll",
+                            "name": "Payroll & WPS compliance"
+                        },
+                        {
+                            "slug": "svc-accounting-management",
+                            "name": "Management accounts & MIS"
+                        }
+                    ]
+                },
+                {
+                    "slug": "svc-audit",
+                    "name": "Audit & assurance",
+                    "sort": 20,
+                    "children": [
+                        {
+                            "slug": "svc-audit-statutory",
+                            "name": "Statutory audit (UAE mainland / free zone)"
+                        },
+                        {
+                            "slug": "svc-audit-internal",
+                            "name": "Internal audit & controls review"
+                        },
+                        {
+                            "slug": "svc-audit-due-diligence",
+                            "name": "Due diligence & transaction support"
+                        }
+                    ]
+                },
+                {
+                    "slug": "svc-tax",
+                    "name": "Tax advisory & filing",
+                    "sort": 30,
+                    "children": [
+                        {
+                            "slug": "svc-tax-vat",
+                            "name": "VAT registration & filing",
+                            "children": [
+                                {
+                                    "slug": "svc-tax-vat-registration",
+                                    "name": "VAT registration (FTA)"
+                                },
+                                {
+                                    "slug": "svc-tax-vat-return",
+                                    "name": "VAT return preparation & filing"
+                                },
+                                {
+                                    "slug": "svc-tax-vat-refund",
+                                    "name": "VAT refund & voluntary disclosure"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "svc-tax-corporate",
+                            "name": "Corporate tax (UAE CT)",
+                            "children": [
+                                {
+                                    "slug": "svc-tax-ct-registration",
+                                    "name": "Corporate tax registration"
+                                },
+                                {
+                                    "slug": "svc-tax-ct-return",
+                                    "name": "Corporate tax return & transfer pricing"
+                                },
+                                {
+                                    "slug": "svc-tax-ct-planning",
+                                    "name": "Tax planning & restructuring"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "svc-tax-withholding",
+                            "name": "Withholding tax & treaty advice"
+                        }
+                    ]
+                },
+                {
+                    "slug": "svc-advisory",
+                    "name": "Business advisory",
+                    "sort": 40,
+                    "children": [
+                        {
+                            "slug": "svc-advisory-company-setup",
+                            "name": "Company formation & licensing"
+                        },
+                        {
+                            "slug": "svc-advisory-cfo",
+                            "name": "Virtual CFO & financial advisory"
+                        },
+                        {
+                            "slug": "svc-advisory-esr",
+                            "name": "ESR / UBO / AML compliance support"
+                        },
+                        {
+                            "slug": "svc-advisory-immigration",
+                            "name": "PRO & immigration (corporate)"
+                        }
+                    ]
+                },
+                {
+                    "slug": "svc-consulting",
+                    "name": "Consultancy packages",
+                    "sort": 50,
+                    "children": [
+                        {
+                            "slug": "svc-consulting-retainer",
+                            "name": "Retainer advisory hours"
+                        },
+                        {
+                            "slug": "svc-consulting-project",
+                            "name": "Fixed-fee project engagements"
+                        },
+                        {
+                            "slug": "svc-consulting-training",
+                            "name": "Tax & finance training workshops"
+                        }
+                    ]
+                }
+            ],
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "docpart_manufacturer",
+            "output": "",
+            "vars": [],
+            "result": [
+                {
+                    "manufacturer": "Bosch",
+                    "manufacturer_id": 5,
+                    "manufacturer_show": "BOSCH",
+                    "name": "Brakepadx",
+                    "storage_id": 9,
+                    "office_id": 3,
+                    "synonyms_single_query": true,
+                    "params": {
+                        "k": "v"
+                    },
+                    "valid": true
+                },
+                {
+                    "manufacturer": "бош",
+                    "manufacturer_id": 0,
+                    "manufacturer_show": "БОШ",
+                    "name": "Колодки",
+                    "storage_id": 1,
+                    "office_id": 1,
+                    "synonyms_single_query": false,
+                    "params": null,
+                    "valid": true
+                },
+                {
+                    "manufacturer": " Bosch ",
+                    "manufacturer_id": 7,
+                    "manufacturer_show": " BOSCH ",
+                    "name": " pad ",
+                    "storage_id": 1,
+                    "office_id": 1,
+                    "synonyms_single_query": true,
+                    "params": null,
+                    "valid": true
+                },
+                {
+                    "manufacturer": "A",
+                    "manufacturer_id": 1,
+                    "manufacturer_show": "A",
+                    "name": "x",
+                    "storage_id": 1,
+                    "office_id": 1,
+                    "synonyms_single_query": false,
+                    "params": null,
+                    "valid": false
+                },
+                {
+                    "manufacturer": "",
+                    "manufacturer_id": 1,
+                    "manufacturer_show": "",
+                    "name": "x",
+                    "storage_id": 1,
+                    "office_id": 1,
+                    "synonyms_single_query": false,
+                    "params": null,
+                    "valid": false
+                },
+                {
+                    "manufacturer": "ßa",
+                    "manufacturer_id": 1,
+                    "manufacturer_show": "SSA",
+                    "name": "x",
+                    "storage_id": 1,
+                    "office_id": 1,
+                    "synonyms_single_query": false,
+                    "params": null,
+                    "valid": true
+                },
+                {
+                    "manufacturer": "😀",
+                    "manufacturer_id": 1,
+                    "manufacturer_show": "😀",
+                    "name": "x",
+                    "storage_id": 1,
+                    "office_id": 1,
+                    "synonyms_single_query": false,
+                    "params": null,
+                    "valid": false
+                },
+                {
+                    "manufacturer": "😀😀",
+                    "manufacturer_id": 1,
+                    "manufacturer_show": "😀😀",
+                    "name": "x",
+                    "storage_id": 1,
+                    "office_id": 1,
+                    "synonyms_single_query": false,
+                    "params": null,
+                    "valid": true
+                },
+                {
+                    "manufacturer": "A",
+                    "manufacturer_id": 1,
+                    "manufacturer_show": "A",
+                    "name": " x",
+                    "storage_id": 1,
+                    "office_id": 1,
+                    "synonyms_single_query": false,
+                    "params": null,
+                    "valid": false
+                },
+                {
+                    "manufacturer": "MaHLe",
+                    "manufacturer_id": 1,
+                    "manufacturer_show": "MAHLE",
+                    "name": " a",
+                    "storage_id": 1,
+                    "office_id": 1,
+                    "synonyms_single_query": true,
+                    "params": null,
+                    "valid": true
+                },
+                {
+                    "manufacturer": "Ab",
+                    "manufacturer_id": 1,
+                    "manufacturer_show": "AB",
+                    "name": "a ",
+                    "storage_id": 1,
+                    "office_id": 1,
+                    "synonyms_single_query": true,
+                    "params": null,
+                    "valid": true
+                },
+                {
+                    "manufacturer": "Ünal",
+                    "manufacturer_id": 1,
+                    "manufacturer_show": "ÜNAL",
+                    "name": "",
+                    "storage_id": 1,
+                    "office_id": 1,
+                    "synonyms_single_query": false,
+                    "params": null,
+                    "valid": true
+                }
+            ],
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tree_list_empty",
+            "output": "",
+            "vars": {
+                "tree_list_dump_JSON": "[]"
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tree_list_nested",
+            "output": "",
+            "vars": {
+                "tree_list_dump_JSON": "[{\"id\":2,\"$count\":0,\"$level\":1,\"value\":\"{11}\",\"value_lang_str_id\":\"11\",\"$parent\":0,\"image\":\"\",\"order\":1,\"open\":false,\"image_url\":\"\",\"is_new\":0,\"data\":[],\"alias\":\"body\",\"url\":\"\\/body\\/\\u00fc\"},{\"id\":1,\"$count\":2,\"$level\":1,\"value\":\"{10}\",\"value_lang_str_id\":\"10\",\"$parent\":0,\"image\":\"e.png\",\"order\":2,\"open\":true,\"image_url\":\"\",\"is_new\":0,\"data\":[{\"id\":3,\"$count\":1,\"$level\":2,\"value\":\"{12}\",\"value_lang_str_id\":\"12\",\"$parent\":1,\"image\":\"f.png\",\"order\":1,\"open\":true,\"image_url\":\"\",\"is_new\":0,\"data\":[{\"id\":5,\"$count\":0,\"$level\":3,\"value\":\"{14}\",\"value_lang_str_id\":\"14\",\"$parent\":3,\"image\":\"$parent\",\"order\":1,\"open\":true,\"image_url\":\"\",\"is_new\":0,\"data\":[],\"alias\":\"$level\",\"url\":\"$count\"}],\"alias\":\"filters\",\"url\":\"\"},{\"id\":4,\"$count\":0,\"$level\":2,\"value\":\"{13}\",\"value_lang_str_id\":\"13\",\"$parent\":1,\"image\":\"\",\"order\":2,\"open\":false,\"image_url\":\"\",\"is_new\":0,\"data\":[],\"alias\":\"oil\",\"url\":\"\\/oil\"}],\"alias\":\"engine\",\"url\":\"\\/engine\"}]"
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        },
+        {
+            "name": "tree_list_unicode_nulls",
+            "output": "",
+            "vars": {
+                "tree_list_dump_JSON": "[{\"id\":21,\"$count\":0,\"$level\":1,\"value\":\"{\\u0416\\\"\\u003C\\/x\\u003E&'\\u20ac\\ud83d\\ude00}\",\"value_lang_str_id\":\"\\u0416\\\"\\u003C\\/x\\u003E&'\\u20ac\\ud83d\\ude00\",\"$parent\":0,\"image\":null,\"order\":0,\"open\":false,\"image_url\":\"\",\"is_new\":0,\"data\":[],\"alias\":\"\\u0416\",\"url\":\"\\/\\u00fc\\/'\"}]"
+            },
+            "result": null,
+            "show_create": [],
+            "headers": []
+        }
+    ]
+}

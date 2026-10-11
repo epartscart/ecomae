@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "fields",
+      "eval": "return quay_run_fields();"
+    },
+    {
+      "name": "from_row",
+      "eval": "return quay_run_from_row($GLOBALS['__db_pass'], $GLOBALS['__tenant_db']);"
+    },
+    {
+      "name": "connect",
+      "eval": "return quay_run_connect($GLOBALS['__db_pass'], $GLOBALS['__tenant_db']);"
+    },
+    {
+      "name": "pool",
+      "eval": "return quay_run_pool($GLOBALS['__db_pass'], $GLOBALS['__db_a'], $GLOBALS['__db_b'], $GLOBALS['__db_c']);"
+    }
+  ]
+}

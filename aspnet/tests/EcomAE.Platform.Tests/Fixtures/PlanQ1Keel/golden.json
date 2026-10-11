@@ -1,0 +1,197 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "admin",
+            "output": "",
+            "result": [
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                true,
+                true,
+                false,
+                false,
+                false
+            ]
+        },
+        {
+            "name": "landing",
+            "output": "",
+            "result": [
+                "",
+                "/cp/shop/finance/erp?epc_erp_shell=1",
+                "//shop/finance/erp?epc_erp_shell=1",
+                "/panel/shop/finance/erp?epc_erp_shell=1",
+                "/erp-app"
+            ]
+        },
+        {
+            "name": "run",
+            "output": "",
+            "result": [
+                {
+                    "action": "redirect",
+                    "location": "/cp/control?next=1",
+                    "status": 302
+                },
+                {
+                    "action": "redirect",
+                    "location": "/cp/control",
+                    "status": 302
+                },
+                {
+                    "action": "redirect",
+                    "location": "/cp/control",
+                    "status": 302
+                },
+                {
+                    "action": "continue"
+                },
+                {
+                    "action": "redirect",
+                    "location": "/cp/control?a=1",
+                    "status": 302
+                },
+                {
+                    "action": "redirect",
+                    "location": "/cp/control",
+                    "status": 302
+                },
+                {
+                    "action": "redirect",
+                    "location": "/cp/control",
+                    "status": 302
+                },
+                {
+                    "action": "continue"
+                },
+                {
+                    "action": "redirect",
+                    "location": "/cp/control",
+                    "status": 302
+                },
+                {
+                    "action": "redirect",
+                    "location": "/cp/control",
+                    "status": 302
+                },
+                {
+                    "action": "redirect",
+                    "location": "/cp/control",
+                    "status": 302
+                },
+                {
+                    "action": "continue"
+                },
+                {
+                    "action": "continue"
+                },
+                {
+                    "action": "redirect",
+                    "location": "/cp/control",
+                    "status": 302
+                },
+                {
+                    "action": "redirect",
+                    "location": "/cp/control",
+                    "status": 302
+                },
+                {
+                    "action": "continue"
+                },
+                {
+                    "action": "redirect",
+                    "location": "/cp/shop/finance/erp?epc_erp_shell=1",
+                    "status": 302
+                },
+                {
+                    "action": "redirect",
+                    "location": "/cp/control?tab=1",
+                    "status": 302
+                },
+                {
+                    "action": "redirect",
+                    "location": "/platform-erp",
+                    "status": 302
+                },
+                {
+                    "action": "redirect",
+                    "location": "/client-erp/acme",
+                    "status": 302
+                },
+                {
+                    "action": "redirect",
+                    "location": "/demo/demo1/erp",
+                    "status": 302
+                },
+                {
+                    "action": "redirect",
+                    "location": "/demo/demo1/cp/control",
+                    "status": 302
+                },
+                {
+                    "action": "continue"
+                }
+            ]
+        },
+        {
+            "name": "mfa",
+            "output": "",
+            "result": [
+                {
+                    "called": false,
+                    "count": 0
+                },
+                {
+                    "called": false,
+                    "count": 0
+                },
+                {
+                    "called": true,
+                    "path": "/cp/control/portal/x",
+                    "user_id": 7
+                },
+                {
+                    "called": false,
+                    "count": 1
+                },
+                {
+                    "called": true,
+                    "path": "",
+                    "user_id": 7
+                },
+                {
+                    "action": "json",
+                    "content_type": "application/json; charset=utf-8",
+                    "body": "{\"ok\":false,\"error\":\"Not authenticated\"}"
+                },
+                {
+                    "action": "json",
+                    "content_type": "application/json; charset=utf-8",
+                    "body": "{\"ok\":false,\"error\":\"Not authenticated\"}"
+                },
+                {
+                    "action": "json",
+                    "content_type": "application/json; charset=utf-8",
+                    "body": "{\"ok\":false,\"error\":\"MFA module not available\"}"
+                },
+                {
+                    "action": "json",
+                    "content_type": "application/json; charset=utf-8",
+                    "body": "{\"ok\":true,\"user_id\":7,\"next\":\"\\/cp\\/mfa\"}"
+                },
+                {
+                    "action": "json",
+                    "content_type": "application/json; charset=utf-8",
+                    "body": "{\"ok\":true,\"user_id\":7,\"next\":\"\\/cp\\/mfa\"}"
+                },
+                2,
+                2
+            ]
+        }
+    ]
+}

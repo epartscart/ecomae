@@ -1,0 +1,82 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "norm",
+            "output": "",
+            "result": [
+                "",
+                "",
+                "OC47",
+                "FILTEROIL01",
+                "OC@47",
+                "UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`article`, ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '\"', ''), '.', ''), ',', ''), '#', ''), CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), ''))",
+                "UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`analog`, ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '\"', ''), '.', ''), ',', ''), '#', ''), CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), ''))",
+                "/en/parts/BOSCH/OC47",
+                "/en/parts/brands/OC47",
+                "/en/parts/JS%20ASAKASHI/FILTEROIL01",
+                "/en/parts/A---B/X1",
+                ""
+            ]
+        },
+        {
+            "name": "clause",
+            "output": "",
+            "result": [
+                "0",
+                "(UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`article`, ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '\"', ''), '.', ''), ',', ''), '#', ''), CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), '')) IN (?))",
+                1,
+                0,
+                "(UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`article`, ' ', ''), '-', ''), '_', ''), '`', ''), '/', ''), '''', ''), '\"', ''), '.', ''), ',', ''), '#', ''), CHAR(92), ''), CHAR(13,10), ''), CHAR(13), ''), CHAR(10), ''), CHAR(9), '')) IN (?))",
+                1,
+                0,
+                0,
+                "UPPER("
+            ]
+        },
+        {
+            "name": "collect",
+            "output": "",
+            "result": [
+                [],
+                [
+                    "OC-47"
+                ],
+                [
+                    "OC-47"
+                ],
+                [
+                    "OC47"
+                ],
+                [
+                    "OC47"
+                ],
+                [
+                    1,
+                    2
+                ],
+                []
+            ]
+        },
+        {
+            "name": "chpu",
+            "output": "",
+            "result": [
+                [
+                    "Bosch",
+                    "MANN"
+                ],
+                1,
+                "",
+                [
+                    "Bosch"
+                ],
+                "Bosch",
+                "/en/parts/BOSCH/OC47",
+                [],
+                "Bosch",
+                "Bosch"
+            ]
+        }
+    ]
+}

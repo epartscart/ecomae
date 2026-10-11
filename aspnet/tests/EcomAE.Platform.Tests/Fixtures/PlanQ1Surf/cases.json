@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "pure",
+      "eval": "return surf_run_pure();"
+    },
+    {
+      "name": "collect",
+      "eval": "return surf_run_collect($GLOBALS['db_link']);"
+    },
+    {
+      "name": "fleet",
+      "eval": "return surf_run_fleet();"
+    },
+    {
+      "name": "render",
+      "eval": "return surf_run_render();"
+    }
+  ]
+}

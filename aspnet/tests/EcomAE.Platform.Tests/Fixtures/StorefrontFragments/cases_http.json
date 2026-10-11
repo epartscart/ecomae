@@ -1,0 +1,178 @@
+[
+ {
+  "name": "1",
+  "query": "products_style=1"
+ },
+ {
+  "name": "2",
+  "query": "products_style=2"
+ },
+ {
+  "name": "3",
+  "query": "products_style=3"
+ },
+ {
+  "name": "4",
+  "query": "products_style=4"
+ },
+ {
+  "name": "0",
+  "query": "products_style=0"
+ },
+ {
+  "name": "abc",
+  "query": "products_style=abc"
+ },
+ {
+  "name": "2abc",
+  "query": "products_style=2abc"
+ },
+ {
+  "name": "space2",
+  "query": "products_style=%202"
+ },
+ {
+  "name": "3.9",
+  "query": "products_style=3.9"
+ },
+ {
+  "name": "neg1",
+  "query": "products_style=-1"
+ },
+ {
+  "name": "1e1",
+  "query": "products_style=1e1"
+ },
+ {
+  "name": "empty",
+  "query": "products_style="
+ },
+ {
+  "name": "arabic3",
+  "query": "products_style=%D9%A3"
+ },
+ {
+  "name": "array",
+  "query": "products_style[]=2"
+ },
+ {
+  "name": "missing",
+  "query": ""
+ },
+ {
+  "name": "repeat",
+  "query": "products_style=2&products_style=3"
+ },
+ {
+  "name": "03",
+  "query": "products_style=03"
+ },
+ {
+  "name": "plus2",
+  "query": "products_style=%2B2"
+ },
+ {
+  "name": "huge",
+  "query": "products_style=9999999999999999999"
+ },
+ {
+  "name": "1.9e0",
+  "query": "products_style=1.9e0"
+ },
+ {
+  "name": "hex",
+  "query": "products_style=0x2"
+ },
+ {
+  "name": "other_param",
+  "query": "x=1"
+ },
+ {
+  "name": "trailing_space",
+  "query": "products_style=2%20"
+ },
+ {
+  "name": "1e0",
+  "query": "products_style=1e0"
+ },
+ {
+  "name": "0.3e1",
+  "query": "products_style=0.3e1"
+ },
+ {
+  "name": "dot5e1",
+  "query": "products_style=.5e1"
+ },
+ {
+  "name": "1em1",
+  "query": "products_style=1e-1"
+ },
+ {
+  "name": "3e0abc",
+  "query": "products_style=3e0abc"
+ },
+ {
+  "name": "tab_space2",
+  "query": "products_style=%09%0A2"
+ },
+ {
+  "name": "array_empty",
+  "query": "products_style[]="
+ },
+ {
+  "name": "array_keyed",
+  "query": "products_style[a]=3"
+ },
+ {
+  "name": "array_then_scalar",
+  "query": "products_style[]=2&products_style=3"
+ },
+ {
+  "name": "scalar_then_array",
+  "query": "products_style=3&products_style[]=2"
+ },
+ {
+  "name": "encoded_key",
+  "query": "products%5Fstyle=2"
+ },
+ {
+  "name": "trailing_dot",
+  "query": "products_style=2."
+ },
+ {
+  "name": "minus0",
+  "query": "products_style=-0"
+ },
+ {
+  "name": "zero_pad_neg",
+  "query": "products_style=-02"
+ },
+ {
+  "name": "dotted_key",
+  "query": "products.style=2"
+ },
+ {
+  "name": "spaced_key",
+  "query": "products%20style=3"
+ },
+ {
+  "name": "leading_space_key",
+  "query": "%20products_style=1"
+ },
+ {
+  "name": "unclosed_bracket",
+  "query": "products_style[=2"
+ },
+ {
+  "name": "plus_key",
+  "query": "products+style=2"
+ },
+ {
+  "name": "nested_array",
+  "query": "products_style[a][b]=2"
+ },
+ {
+  "name": "case_key",
+  "query": "Products_Style=2"
+ }
+]

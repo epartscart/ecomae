@@ -1,0 +1,143 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "pure",
+            "output": "",
+            "result": [
+                [
+                    "O&#039;Brien &amp; Co",
+                    "&lt;x&gt;",
+                    ""
+                ],
+                [
+                    "971567607011",
+                    "",
+                    "",
+                    "0012"
+                ],
+                [
+                    "https://wa.me/97150?text=hello%20%2F%20path",
+                    "",
+                    ""
+                ],
+                [
+                    "EN\nAR",
+                    "AR",
+                    "EN",
+                    "",
+                    "O'Name\nعربي"
+                ],
+                [
+                    "Bosch 0 986 479 501 — O'filter ×2\nNGK BKR",
+                    "Bosch 0 986 479 501 — O'filter ×2\n…",
+                    ""
+                ]
+            ]
+        },
+        {
+            "name": "config",
+            "output": "",
+            "result": [
+                "971567607011",
+                "+971 56 760 7011",
+                "Store",
+                "971567607011",
+                "+971 56 760 7011",
+                "Store",
+                "971567607011",
+                "+971 50 000 0001",
+                "O'Store",
+                "971501112233",
+                "+971 56 760 7011",
+                "O'Brand",
+                "Hello Acme Parts, please quote:\n\nBosch 0986\nO'filter\nListed: 12.50 AED\n\nhttps://shop.example\nالسلام عليكم Acme Parts، أرجو تسعير:\n\nBosch 0986\nO'filter",
+                "Hello Acme Parts, please quote:\n\nBosch 0986\n\nhttps://shop.example\nالسلام عليكم Acme Parts، أرجو تسعير:\n\nBosch 0986",
+                "Hello Acme Parts, please assist with my cart:\n\nA ×1\nB ×2\n\nEstimated total: 10.00 AED\n\nhttps://shop.example/shop/cart\nمرحباً Acme Parts، أرجو المساعدة في سلة التسوق:\n\nA ×1\nB ×2",
+                "Hello Acme Parts, please assist with my cart:\n\n\n\nhttps://shop.example/shop/cart\nمرحباً Acme Parts، أرجو المساعدة في سلة التسوق:",
+                "Hello from Acme Parts.\n\nOrder #7 update: Packed.\n\nItems:\nBosch 0 986 479 501 — O'filter ×2\nNGK BKR\n\nTrack your order: https://shop.example/shop/orders\nتحديث طلب #7 من Acme Parts: Packed.\n\nBosch 0 986 479 501 — O'filter ×2\nNGK BKR\n\nhttps://shop.example/shop/orders",
+                "Hello from Acme Parts.\n\nYour order #7 — total 99.10 AED.\n\nItems:\nBosch 0 986 479 501 — O'filter ×2\nNGK BKR\n\nReply here if you have questions.\nمرحباً من Acme Parts.\n\nطلبكم رقم #7 — الإجمالي 99.10 درهم.\n\nالأصناف:\nBosch 0 986 479 501 — O'filter ×2\nNGK BKR\n\nردّوا على هذه الرسالة لأي استفسار.",
+                "[Acme Parts] Order #7 (staff o'role) — 99.10 AED\n\nBosch 0 986 479 501 — O'filter ×2\nNGK BKR\n\nCP: https://shop.example/cp/shop/orders/order?order_id=7\n[Acme Parts] طلب #7\n\nBosch 0 986 479 501 — O'filter ×2\nNGK BKR",
+                "LPO #7 — WH o'name\n\nPlease supply:\nBosch 0 986 479 501 ×2\n\nReference LPO 7 on invoice.\n— Acme Parts\nأمر شراء #7 — WH o'name\n\nBosch 0 986 479 501 ×2\n\nرقم LPO: 7"
+            ]
+        },
+        {
+            "name": "db",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "id": 1,
+                        "t2_manufacturer": "Bosch",
+                        "t2_article": "0986",
+                        "t2_article_show": "0 986",
+                        "t2_name": "O'item",
+                        "count_need": 2,
+                        "price": "12.50",
+                        "t2_storage_id": 7
+                    },
+                    {
+                        "id": 2,
+                        "t2_manufacturer": "NGK",
+                        "t2_article": "BKR",
+                        "t2_article_show": null,
+                        "t2_name": "",
+                        "count_need": 1,
+                        "price": "3.00",
+                        "t2_storage_id": 8
+                    }
+                ],
+                [],
+                "97150999",
+                "",
+                "",
+                "WH o'one",
+                "Warehouse #8",
+                "Warehouse",
+                [
+                    {
+                        "storage_id": 7,
+                        "storage_name": "WH o'one",
+                        "item_count": 2,
+                        "supplier_phone": "97150999",
+                        "target_label": "supplier",
+                        "href_prefix": "https://wa.me/97150999?t",
+                        "msg_has_quote": false
+                    }
+                ],
+                [
+                    {
+                        "order_id": 9,
+                        "user_id": 0,
+                        "is_manager": 0,
+                        "is_robot": 1,
+                        "text": "WhatsApp tracking template ready: Packed — https://wa.me/<digits>?text=<enc>"
+                    },
+                    {
+                        "order_id": 9,
+                        "user_id": 0,
+                        "is_manager": 0,
+                        "is_robot": 1,
+                        "text": "WhatsApp tracking template ready: Shipped — https://wa.me/<digits>?text=<enc>"
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "html",
+            "output": "",
+            "result": [
+                [
+                    "",
+                    "<a class=\"btn btn-sm epc-wa-share-btn extra\" href=\"https://wa.me/1?text=a&amp;b=1\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"Title o&#039;x\"><i class=\"fa fa-whatsapp\"></i> Chat o&#039;now</a>",
+                    "<a class=\"btn btn-sm epc-wa-share-btn \" href=\"https://wa.me/1\" target=\"_blank\" rel=\"noopener noreferrer\"><i class=\"fa fa-whatsapp\"></i> Go</a>"
+                ],
+                1410,
+                "<style>.epc-wa-share-btn{background:#25D366!important;border-color:#1da851!impor",
+                "font-weight:700;white-space:nowrap;line-height:1.3;}</style>",
+                "<script>\nwindow.epcWaShare = {\n\tsales: \"971567607011\",\n\tsalesDisplay: \"+971 50 O'x\",\n\tsite: \"O'Site\",\n\tdomain: \"https:\\/\\/shop.example\\/a\"};\nfunction epcWaOpen(digits, text) {\n\tdigits = String(digits || '').replace(/\\D/g, '');\n\tif (!digits) { return; }\n\twindow.open('https://wa.me/' + digits + '?text=' + encodeURIComponent(text || ''), '_blank', 'noopener,noreferrer');\n}\nfunction epcWaBilingual(en, ar) {\n\ten = (en || '').trim();\n\tar = (ar || '').trim();\n\tif (!en) { return ar; }\n\tif (!ar) { return en; }\n\treturn en + '\\n' + ar;\n}\nfunction epcWaShareProductHref(brand, article, name, price) {\n\tvar s = window.epcWaShare || {};\n\tvar digits = String(s.sales || '').replace(/\\D/g, '');\n\tif (!digits) { return ''; }\n\tvar en = 'Hello ' + (s.site || 'eParts Cart') + ', please quote:\\n\\n' + brand + ' ' + article;\n\tif (name) { en += '\\n' + name; }\n\tif (price !== undefined && price !== null && price !== '') { en += '\\nListed: ' + price + ' AED'; }\n\ten += '\\n\\n' + (s.domain || '');\n\tvar ar = 'السلام عليكم، أرجو تسعير:\\n\\n' + brand + ' ' + article;\n\tif (name) { ar += '\\n' + name; }\n\treturn 'https://wa.me/' + digits + '?text=' + encodeURIComponent(epcWaBilingual(en, ar));\n}\nfunction epcWaShareProduct(brand, article, name, price) {\n\tvar href = epcWaShareProductHref(brand, article, name, price);\n\tif (href) { window.open(href, '_blank', 'noopener,noreferrer'); }\n}\nfunction epcWaShareCart() {\n\tvar s = window.epcWaShare || {};\n\tif (typeof cart_records === 'undefined' || !cart_records || !cart_records.length) { return; }\n\tvar lines = [];\n\tvar total = 0;\n\tfor (var i = 0; i < cart_records.length && lines.length < 15; i++) {\n\t\tvar r = cart_records[i];\n\t\tvar line = (r.manufacturer || '') + ' ' + (r.article || '');\n\t\tif (r.name) { line += ' — ' + r.name; }\n\t\tif (r.count_need) { line += ' ×' + r.count_need; }\n\t\tlines.push(line.trim());\n\t\tif (r.price && r.count_need) { total += parseFloat(r.price) * parseInt(r.count_need, 10); }\n\t}\n\tvar en = 'Hello ' + (s.site || 'eParts Cart') + ', please assist with my cart:\\n\\n' + lines.join('\\n');\n\tif (total > 0) { en += '\\n\\nEstimated total: ' + total.toFixed(2) + ' AED'; }\n\ten += '\\n\\n' + (s.domain || '') + '/shop/cart';\n\tvar ar = 'مرحباً، أرجو المساعدة في سلة التسوق:\\n\\n' + lines.join('\\n');\n\tepcWaOpen(s.sales, epcWaBilingual(en, ar));\n}\nfunction epcWaShareBtnHTML(brand, article, name, price) {\n\tif (typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible) {\n\t\treturn '';\n\t}\n\tvar href = epcWaShareProductHref(brand, article, name, price);\n\tif (!href) { return ''; }\n\tvar disp = (window.epcWaShare && window.epcWaShare.salesDisplay) ? window.epcWaShare.salesDisplay : '';\n\tvar safeHref = href.replace(/&/g, '&amp;').replace(/\"/g, '&quot;');\n\tvar safeDisp = String(disp).replace(/\"/g, '&quot;');\n\treturn '<a class=\"btn btn-sm epc-wa-share-btn\" href=\"' + safeHref + '\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"WhatsApp ' + safeDisp + '\">'\n\t\t+ '<i class=\"fa fa-whatsapp\"></i> WhatsApp</a>';\n}\n</script>\n\t",
+                "<script>\nwindow.epcWaShare = {\n\tsales: \"97150\",\n\tsalesDisplay: \"+971 56 760 7011\",\n\tsite: \"Store\",\n\tdomain: \"https:\\/\\/www.epartscart.com\"};\nfunction epcWaOpen(digits, text) {\n\tdigits = String(digits || '').replace(/\\D/g, '');\n\tif (!digits) { return; }\n\twindow.open('https://wa.me/' + digits + '?text=' + encodeURIComponent(text || ''), '_blank', 'noopener,noreferrer');\n}\nfunction epcWaBilingual(en, ar) {\n\ten = (en || '').trim();\n\tar = (ar || '').trim();\n\tif (!en) { return ar; }\n\tif (!ar) { return en; }\n\treturn en + '\\n' + ar;\n}\nfunction epcWaShareProductHref(brand, article, name, price) {\n\tvar s = window.epcWaShare || {};\n\tvar digits = String(s.sales || '').replace(/\\D/g, '');\n\tif (!digits) { return ''; }\n\tvar en = 'Hello ' + (s.site || 'eParts Cart') + ', please quote:\\n\\n' + brand + ' ' + article;\n\tif (name) { en += '\\n' + name; }\n\tif (price !== undefined && price !== null && price !== '') { en += '\\nListed: ' + price + ' AED'; }\n\ten += '\\n\\n' + (s.domain || '');\n\tvar ar = 'السلام عليكم، أرجو تسعير:\\n\\n' + brand + ' ' + article;\n\tif (name) { ar += '\\n' + name; }\n\treturn 'https://wa.me/' + digits + '?text=' + encodeURIComponent(epcWaBilingual(en, ar));\n}\nfunction epcWaShareProduct(brand, article, name, price) {\n\tvar href = epcWaShareProductHref(brand, article, name, price);\n\tif (href) { window.open(href, '_blank', 'noopener,noreferrer'); }\n}\nfunction epcWaShareCart() {\n\tvar s = window.epcWaShare || {};\n\tif (typeof cart_records === 'undefined' || !cart_records || !cart_records.length) { return; }\n\tvar lines = [];\n\tvar total = 0;\n\tfor (var i = 0; i < cart_records.length && lines.length < 15; i++) {\n\t\tvar r = cart_records[i];\n\t\tvar line = (r.manufacturer || '') + ' ' + (r.article || '');\n\t\tif (r.name) { line += ' — ' + r.name; }\n\t\tif (r.count_need) { line += ' ×' + r.count_need; }\n\t\tlines.push(line.trim());\n\t\tif (r.price && r.count_need) { total += parseFloat(r.price) * parseInt(r.count_need, 10); }\n\t}\n\tvar en = 'Hello ' + (s.site || 'eParts Cart') + ', please assist with my cart:\\n\\n' + lines.join('\\n');\n\tif (total > 0) { en += '\\n\\nEstimated total: ' + total.toFixed(2) + ' AED'; }\n\ten += '\\n\\n' + (s.domain || '') + '/shop/cart';\n\tvar ar = 'مرحباً، أرجو المساعدة في سلة التسوق:\\n\\n' + lines.join('\\n');\n\tepcWaOpen(s.sales, epcWaBilingual(en, ar));\n}\nfunction epcWaShareBtnHTML(brand, article, name, price) {\n\tif (typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible) {\n\t\treturn '';\n\t}\n\tvar href = epcWaShareProductHref(brand, article, name, price);\n\tif (!href) { return ''; }\n\tvar disp = (window.epcWaShare && window.epcWaShare.salesDisplay) ? window.epcWaShare.salesDisplay : '';\n\tvar safeHref = href.replace(/&/g, '&amp;').replace(/\"/g, '&quot;');\n\tvar safeDisp = String(disp).replace(/\"/g, '&quot;');\n\treturn '<a class=\"btn btn-sm epc-wa-share-btn\" href=\"' + safeHref + '\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"WhatsApp ' + safeDisp + '\">'\n\t\t+ '<i class=\"fa fa-whatsapp\"></i> WhatsApp</a>';\n}\n</script>\n\t"
+            ]
+        }
+    ]
+}

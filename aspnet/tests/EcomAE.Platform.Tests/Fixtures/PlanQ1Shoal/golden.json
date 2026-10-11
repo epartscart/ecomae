@@ -1,0 +1,253 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "names",
+            "output": "",
+            "result": [
+                "O&#039;Reilly &amp; Co",
+                "cp",
+                [
+                    "identity",
+                    "commerce",
+                    "growth",
+                    "catalog",
+                    "data",
+                    "platform"
+                ],
+                "/cp/control/portal/epc_integrations_guide",
+                "/cp/control/portal/epc_integrations_guide#pos",
+                "/cp/x",
+                "https://e.com/g",
+                "/cp/control/portal/epc_integrations_guide#pos",
+                "/cp/control/portal/epc_integrations_guide#bar",
+                "/cp/control/portal/epc_integrations_guide",
+                18,
+                [
+                    "email_smtp",
+                    "oauth",
+                    "registration_enhanced",
+                    "whatsapp",
+                    "payment_gateways",
+                    "pos",
+                    "tax_toolkit",
+                    "custom_shipping",
+                    "social_media_hub",
+                    "marketing_broadcast",
+                    "web_tracker",
+                    "visual_page_editor",
+                    "auto_price_ai",
+                    "parts_agent",
+                    "api_integrations",
+                    "power_bi",
+                    "mobile_apps",
+                    "tenant_registry"
+                ],
+                1,
+                "",
+                [
+                    "whatsapp"
+                ],
+                "/cp/shop/finance/erp?area=custom_shipping&tab=custom_shipping&epc_erp_shell=1"
+            ]
+        },
+        {
+            "name": "flags",
+            "output": "",
+            "result": [
+                "CP",
+                "platform",
+                "acme_parts",
+                "unknown-host",
+                18,
+                1,
+                1,
+                1,
+                {
+                    "ok": true,
+                    "saved": 2
+                },
+                [
+                    {
+                        "feature_key": "oauth",
+                        "enabled": 1
+                    },
+                    {
+                        "feature_key": "pos",
+                        "enabled": 0
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "config",
+            "output": "",
+            "result": [
+                [],
+                {
+                    "ok": true
+                },
+                {
+                    "enabled": true,
+                    "app_name": "O'Reilly",
+                    "bundle_id": "",
+                    "deep_link_scheme": "",
+                    "deep_link_domain": "",
+                    "api_base_url": "",
+                    "play_store_url": "",
+                    "app_store_url": "",
+                    "pwa_enabled": true,
+                    "firebase_project_id": "",
+                    "push_enabled": false
+                },
+                {
+                    "api_base_url": "https://www.ecomae.com",
+                    "firebase_template": "",
+                    "capacitor_version": "6",
+                    "allow_push": true,
+                    "default_deep_link_scheme": "epartscart://"
+                },
+                1,
+                0,
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "name": "hub",
+            "output": "",
+            "result": [
+                18,
+                17,
+                "oauth",
+                [
+                    {
+                        "key": "email_smtp",
+                        "enabled": 1,
+                        "configure_url": "/cp/control/portal/epc_tenant_email_settings",
+                        "guide": "/cp/control/portal/epc_integrations_guide#email_smtp",
+                        "super_only": 0
+                    },
+                    {
+                        "key": "oauth",
+                        "enabled": 1,
+                        "configure_url": "/cp/control/portal/epc_integrations_hub",
+                        "guide": "/cp/control/portal/epc_integrations_guide#oauth",
+                        "super_only": 1
+                    },
+                    {
+                        "key": "registration_enhanced",
+                        "enabled": 1,
+                        "configure_url": "/cp/control/portal/epc_integrations_hub",
+                        "guide": "/cp/control/portal/epc_integrations_guide#registration_enhanced",
+                        "super_only": 1
+                    },
+                    {
+                        "key": "whatsapp",
+                        "enabled": 1,
+                        "configure_url": "/cp/shop/orders/whatsapp-guide",
+                        "guide": "/cp/shop/orders/whatsapp-guide",
+                        "super_only": 0
+                    },
+                    {
+                        "key": "payment_gateways",
+                        "enabled": 1,
+                        "configure_url": "/cp/shop/payments/payments",
+                        "guide": "/cp/control/portal/epc_integrations_guide#payment_gateways",
+                        "super_only": 0
+                    },
+                    {
+                        "key": "pos",
+                        "enabled": 0,
+                        "configure_url": "/cp/shop/pos/terminal",
+                        "guide": "/cp/control/portal/epc_integrations_guide#pos",
+                        "super_only": 0
+                    },
+                    {
+                        "key": "tax_toolkit",
+                        "enabled": 1,
+                        "configure_url": "/cp/control/portal/epc_integrations_hub",
+                        "guide": "/cp/control/portal/epc_integrations_guide#tax_toolkit",
+                        "super_only": 1
+                    },
+                    {
+                        "key": "custom_shipping",
+                        "enabled": 1,
+                        "configure_url": "/cp/shop/finance/erp?area=custom_shipping&tab=custom_shipping&epc_erp_shell=1",
+                        "guide": "/cp/control/portal/epc_custom_shipping_guide",
+                        "super_only": 0
+                    },
+                    {
+                        "key": "social_media_hub",
+                        "enabled": 1,
+                        "configure_url": "/cp/control/portal/epc_social_media_hub",
+                        "guide": "/cp/control/portal/epc_social_media_hub?tab=guide",
+                        "super_only": 0
+                    },
+                    {
+                        "key": "marketing_broadcast",
+                        "enabled": 1,
+                        "configure_url": "/cp/control/portal/epc_marketing_broadcast",
+                        "guide": "/cp/control/portal/epc_marketing_broadcast?tab=guide",
+                        "super_only": 0
+                    },
+                    {
+                        "key": "web_tracker",
+                        "enabled": 1,
+                        "configure_url": "/cp/control/portal/epc_web_tracker",
+                        "guide": "/cp/control/portal/epc_integrations_guide#web_tracker",
+                        "super_only": 0
+                    },
+                    {
+                        "key": "visual_page_editor",
+                        "enabled": 1,
+                        "configure_url": "/cp/control/portal/epc_visual_page_editor",
+                        "guide": "/cp/control/portal/epc_integrations_guide#visual_page_editor",
+                        "super_only": 0
+                    },
+                    {
+                        "key": "auto_price_ai",
+                        "enabled": 1,
+                        "configure_url": "/cp/control/portal/epc_auto_price_engine",
+                        "guide": "/cp/control/portal/epc_auto_price_guide",
+                        "super_only": 0
+                    },
+                    {
+                        "key": "parts_agent",
+                        "enabled": 1,
+                        "configure_url": "/cp/shop/parts_agent_chats",
+                        "guide": "/cp/control/portal/epc_integrations_guide#parts_agent",
+                        "super_only": 0
+                    },
+                    {
+                        "key": "api_integrations",
+                        "enabled": 1,
+                        "configure_url": "/cp/control/portal/epc_api_clients_manage",
+                        "guide": "/cp/control/portal/epc_integrations_guide#api_integrations",
+                        "super_only": 0
+                    },
+                    {
+                        "key": "power_bi",
+                        "enabled": 1,
+                        "configure_url": "/cp/control/portal/epc_power_bi",
+                        "guide": "/cp/control/portal/epc_power_bi_guide",
+                        "super_only": 0
+                    },
+                    {
+                        "key": "mobile_apps",
+                        "enabled": 1,
+                        "configure_url": "/cp/control/portal/epc_mobile_apps",
+                        "guide": "/cp/control/portal/epc_integrations_guide#mobile_apps",
+                        "super_only": 0
+                    }
+                ],
+                3,
+                3,
+                1,
+                2
+            ]
+        }
+    ]
+}

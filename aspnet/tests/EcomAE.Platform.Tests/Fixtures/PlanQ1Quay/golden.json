@@ -1,0 +1,128 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "fields",
+            "output": "",
+            "result": [
+                {
+                    "ok": 0,
+                    "err": "Missing DB connection fields"
+                },
+                {
+                    "ok": 0,
+                    "err": "Missing DB connection fields"
+                },
+                {
+                    "ok": 0,
+                    "err": "Missing DB connection fields"
+                },
+                {
+                    "ok": 0,
+                    "err": "Missing DB connection fields"
+                },
+                "Host.Example",
+                "0",
+                "from-global",
+                "from-global",
+                "from-file",
+                "127.0.0.1",
+                [
+                    1,
+                    1,
+                    0,
+                    0,
+                    1,
+                    0,
+                    1,
+                    0,
+                    1,
+                    1,
+                    1,
+                    0,
+                    0,
+                    0
+                ],
+                {
+                    "max": 24,
+                    "note": "Process-local pool; size is not globally exposed across PHP-FPM workers."
+                }
+            ]
+        },
+        {
+            "name": "from_row",
+            "output": "",
+            "result": [
+                {
+                    "ok": 0,
+                    "err": "Tenant DB credentials incomplete"
+                },
+                {
+                    "ok": 0,
+                    "err": "Tenant DB credentials incomplete"
+                },
+                {
+                    "ok": 0,
+                    "err": "SQLSTATE"
+                },
+                {
+                    "ok": 0,
+                    "err": "SQLSTATE"
+                },
+                {
+                    "ok": 0,
+                    "err": "SQLSTATE"
+                },
+                {
+                    "ok": 1,
+                    "err": ""
+                },
+                {
+                    "ok": 1,
+                    "err": ""
+                },
+                {
+                    "ok": 0,
+                    "err": "SQLSTATE"
+                }
+            ]
+        },
+        {
+            "name": "connect",
+            "output": "",
+            "result": [
+                {
+                    "ok": 1,
+                    "err": ""
+                },
+                {
+                    "reused": 1
+                },
+                {
+                    "ok": 0,
+                    "err": "SQLSTATE"
+                },
+                {
+                    "reconnected": 1
+                },
+                {
+                    "ok": 0,
+                    "err": "SQLSTATE"
+                }
+            ]
+        },
+        {
+            "name": "pool",
+            "output": "",
+            "result": {
+                "stats": {
+                    "max": 2,
+                    "note": "Process-local pool; size is not globally exposed across PHP-FPM workers."
+                },
+                "a_evicted": 1,
+                "b_reused": 1,
+                "c_reused": 1
+            }
+        }
+    ]
+}

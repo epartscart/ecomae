@@ -1,0 +1,618 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "boot_route",
+            "output": "",
+            "result": [
+                "control/users",
+                "",
+                "",
+                "other"
+            ]
+        },
+        {
+            "name": "boot_cookies",
+            "output": "",
+            "result": [
+                false,
+                true,
+                false,
+                false
+            ]
+        },
+        {
+            "name": "boot_login",
+            "output": "",
+            "result": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "name": "boot_init",
+            "output": "",
+            "result": [
+                true,
+                false,
+                false
+            ]
+        },
+        {
+            "name": "dep_token_default",
+            "output": "",
+            "result": "epartscart-deploy-2026"
+        },
+        {
+            "name": "dep_token_env",
+            "output": "",
+            "result": "secret-token"
+        },
+        {
+            "name": "dep_ip",
+            "output": "",
+            "result": [
+                "8.8.8.8",
+                "1.2.3.4",
+                "9.9.9.9",
+                "0.0.0.0"
+            ]
+        },
+        {
+            "name": "dep_allowed",
+            "output": "",
+            "result": [
+                [],
+                [
+                    "1.1.1.1",
+                    "2.2.2.2"
+                ]
+            ]
+        },
+        {
+            "name": "dep_lock",
+            "output": "",
+            "result": [
+                false,
+                true
+            ]
+        },
+        {
+            "name": "dep_redir",
+            "output": "",
+            "result": [
+                "/",
+                "/",
+                "/cp/users",
+                "/",
+                "/",
+                "/",
+                "/"
+            ]
+        },
+        {
+            "name": "bos_lists",
+            "output": "",
+            "result": [
+                [
+                    "login"
+                ],
+                [
+                    "tenant_list",
+                    "tenant_info",
+                    "switch_tenant",
+                    "fleet_health",
+                    "tenant_compliance",
+                    "system_health",
+                    "isolation_audit",
+                    "mfa_policy",
+                    "mfa_stats",
+                    "webhooks",
+                    "events",
+                    "design_tokens",
+                    "readiness_score",
+                    "notifications",
+                    "db_migrations",
+                    "cp_role_home",
+                    "credit_limit",
+                    "order_erp_pipeline",
+                    "po_approval",
+                    "rest_api_v2",
+                    "fulfillment_queue",
+                    "bi_metrics",
+                    "ai_classification",
+                    "tenant_config",
+                    "workflow_builder",
+                    "inventory_forecast",
+                    "multi_currency_gl",
+                    "sso_saml",
+                    "wps_payroll",
+                    "collections_dunning",
+                    "warranty_rma",
+                    "dealer_portal",
+                    "ai_copilot",
+                    "nl_reporting",
+                    "industry_packs",
+                    "multi_entity",
+                    "promotions_engine",
+                    "config_sandbox",
+                    "import_orchestrator",
+                    "document_vault",
+                    "subscription_billing",
+                    "soc2_compliance",
+                    "marketplace",
+                    "ai_service",
+                    "metabase_embed",
+                    "isolation_anomaly"
+                ]
+            ]
+        },
+        {
+            "name": "bos_action",
+            "output": "",
+            "result": [
+                "tenant_list",
+                "login",
+                "login",
+                ""
+            ]
+        },
+        {
+            "name": "ref_surface",
+            "output": "",
+            "result": [
+                "cp",
+                "",
+                ""
+            ]
+        },
+        {
+            "name": "ref_deep",
+            "output": "",
+            "result": [
+                "/CP/shop/orders?area=1",
+                "/erp",
+                "/bos/"
+            ]
+        },
+        {
+            "name": "ref_host",
+            "output": "",
+            "result": [
+                true,
+                true,
+                false
+            ]
+        },
+        {
+            "name": "ref_try",
+            "output": "",
+            "result": false
+        },
+        {
+            "name": "par_all",
+            "output": "",
+            "result": [
+                {
+                    "ecomae": {
+                        "host": "www.ecomae.com",
+                        "alt_hosts": [
+                            "ecomae.com",
+                            "cp.ecomae.com"
+                        ],
+                        "role": "platform_control",
+                        "industry": "platform",
+                        "db_hint": "ecomae",
+                        "label": "ecomae.com / CP — overall platform control"
+                    },
+                    "epartscart": {
+                        "host": "www.epartscart.com",
+                        "alt_hosts": [
+                            "epartscart.com"
+                        ],
+                        "role": "spare_parts",
+                        "industry": "auto_parts",
+                        "db_hint": "docpart",
+                        "label": "epartscart.com — spare parts only"
+                    },
+                    "electronicae": {
+                        "host": "www.electronicae.com",
+                        "alt_hosts": [],
+                        "role": "industry_storefront",
+                        "industry": "electronics",
+                        "db_hint": "docpart",
+                        "label": "electronicae.com — electronics"
+                    },
+                    "taxofinca": {
+                        "host": "www.taxofinca.com",
+                        "alt_hosts": [],
+                        "role": "industry_storefront",
+                        "industry": "tax_advisory",
+                        "db_hint": "docpart",
+                        "label": "taxofinca.com — tax advisory"
+                    },
+                    "stylenlook": {
+                        "host": "www.stylenlook.com",
+                        "alt_hosts": [],
+                        "role": "industry_storefront",
+                        "industry": "fashion",
+                        "db_hint": "docpart",
+                        "label": "stylenlook.com — fashion"
+                    },
+                    "thejewellerytrend": {
+                        "host": "www.thejewellerytrend.com",
+                        "alt_hosts": [],
+                        "role": "industry_storefront",
+                        "industry": "jewellery",
+                        "db_hint": "docpart",
+                        "label": "thejewellerytrend.com — jewellery"
+                    }
+                },
+                {
+                    "oms_orders_menu": {
+                        "label": "OMS · Orders — one Shop sidebar entry (no statuses/items rows)",
+                        "scope": "common",
+                        "industries": [
+                            "*"
+                        ],
+                        "applies_to_roles": [
+                            "platform_control",
+                            "spare_parts",
+                            "industry_storefront"
+                        ]
+                    },
+                    "cp_menu_full": {
+                        "label": "Full CP menu parity (Customers & accounts, Documents, Payments, Marketing, Integrations, …)",
+                        "scope": "common",
+                        "industries": [
+                            "*"
+                        ],
+                        "applies_to_roles": [
+                            "platform_control",
+                            "spare_parts",
+                            "industry_storefront"
+                        ]
+                    },
+                    "oms_daily_guide": {
+                        "label": "OMS daily guide route (/cp/shop/orders/oms-guide)",
+                        "scope": "common",
+                        "industries": [
+                            "*"
+                        ],
+                        "applies_to_roles": [
+                            "platform_control",
+                            "spare_parts",
+                            "industry_storefront"
+                        ]
+                    },
+                    "multivendor_upload": {
+                        "label": "Multivendor price upload CP (ajaxUrl always configured)",
+                        "scope": "common",
+                        "industries": [
+                            "*"
+                        ],
+                        "applies_to_roles": [
+                            "platform_control",
+                            "spare_parts",
+                            "industry_storefront"
+                        ],
+                        "files_only": true
+                    },
+                    "vehicle_catalog": {
+                        "label": "Vehicle / VIN catalog CP",
+                        "scope": "industry",
+                        "industries": [
+                            "auto_parts"
+                        ],
+                        "applies_to_roles": [
+                            "spare_parts"
+                        ]
+                    },
+                    "platform_governance": {
+                        "label": "Platform governance / tenant control",
+                        "scope": "platform",
+                        "industries": [
+                            "platform"
+                        ],
+                        "applies_to_roles": [
+                            "platform_control"
+                        ]
+                    }
+                },
+                true,
+                false,
+                false,
+                {
+                    "ecomae": "www.ecomae.com",
+                    "epartscart": "www.epartscart.com",
+                    "electronicae": "www.electronicae.com",
+                    "taxofinca": "www.taxofinca.com",
+                    "stylenlook": "www.stylenlook.com",
+                    "thejewellerytrend": "www.thejewellerytrend.com"
+                }
+            ]
+        },
+        {
+            "name": "meta_empty",
+            "output": "",
+            "result": [
+                [],
+                []
+            ]
+        },
+        {
+            "name": "meta_one",
+            "output": "",
+            "result": [
+                {
+                    "5": [
+                        {
+                            "price_id": 5,
+                            "storage_id": 10,
+                            "office_id": 1,
+                            "probability": 90,
+                            "color": "#f00",
+                            "rate": "1.0000",
+                            "additional_time": 2,
+                            "office_caption": "Dubai",
+                            "storage_caption": "WH",
+                            "markups": [
+                                {
+                                    "min_point": 0,
+                                    "max_point": 100,
+                                    "markup": "0.20000000"
+                                },
+                                {
+                                    "min_point": 100,
+                                    "max_point": 999,
+                                    "markup": "0.15000000"
+                                }
+                            ]
+                        },
+                        {
+                            "price_id": 5,
+                            "storage_id": 10,
+                            "office_id": 2,
+                            "probability": 90,
+                            "color": "#f00",
+                            "rate": "1.0000",
+                            "additional_time": 0,
+                            "office_caption": "Sharjah",
+                            "storage_caption": "WH",
+                            "markups": []
+                        }
+                    ]
+                },
+                [
+                    5
+                ]
+            ]
+        },
+        {
+            "name": "meta_mgr",
+            "output": "",
+            "result": [
+                {
+                    "5": [
+                        {
+                            "price_id": 5,
+                            "storage_id": 10,
+                            "office_id": 1,
+                            "probability": 90,
+                            "color": "#f00",
+                            "rate": "1.0000",
+                            "additional_time": 2,
+                            "office_caption": "Dubai",
+                            "storage_caption": "Warehouse",
+                            "markups": [
+                                {
+                                    "min_point": 0,
+                                    "max_point": 100,
+                                    "markup": "0.20000000"
+                                },
+                                {
+                                    "min_point": 100,
+                                    "max_point": 999,
+                                    "markup": "0.15000000"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                [
+                    5
+                ]
+            ]
+        },
+        {
+            "name": "cache_key",
+            "output": "",
+            "result": [
+                "Menu_Rows_v1",
+                "ok_1.2-A"
+            ]
+        },
+        {
+            "name": "cache_rw",
+            "output": "",
+            "result": [
+                null,
+                {
+                    "n": 2,
+                    "s": "ok"
+                },
+                {
+                    "n": 2,
+                    "s": "ok"
+                },
+                true,
+                null
+            ]
+        },
+        {
+            "name": "cache_menu",
+            "output": "",
+            "result": [
+                {
+                    "groups": [
+                        {
+                            "id": 1,
+                            "name": "Shop",
+                            "order": 1
+                        }
+                    ],
+                    "items": [
+                        {
+                            "id": 2,
+                            "name": "Orders",
+                            "order": 1,
+                            "group_id": 1
+                        }
+                    ]
+                },
+                1
+            ]
+        },
+        {
+            "name": "brand_catalog",
+            "output": "",
+            "result": [
+                {
+                    "electronicae": {
+                        "label": "Electronicae",
+                        "logo_url": "/content/files/images/ecomae-platform/assets/electronicae.png",
+                        "tagline": "TECH • GAMING • UAE",
+                        "accent": "#e10a0a",
+                        "glow": "rgba(225,10,10,.24)",
+                        "animation": "circuit"
+                    },
+                    "stylenlook": {
+                        "label": "Stylenlook",
+                        "logo_url": "/content/files/images/ecomae-platform/assets/stylenlook.png",
+                        "tagline": "FASHION & BEAUTY",
+                        "accent": "#ec4899",
+                        "glow": "rgba(236,72,153,.26)",
+                        "animation": "fashion"
+                    },
+                    "thejewellerytrend": {
+                        "label": "The Jewellery Trend",
+                        "logo_url": "/content/files/images/ecomae-platform/assets/thejewellerytrend.png",
+                        "tagline": "STYLE • SPARKLE • SHINE",
+                        "accent": "#d97706",
+                        "glow": "rgba(217,119,6,.32)",
+                        "animation": "sparkle"
+                    },
+                    "taxofinca": {
+                        "label": "TaxoFinca",
+                        "logo_url": "/content/files/images/ecomae-platform/assets/taxofinca.png",
+                        "tagline": "TAX & ACCOUNTING SOLUTIONS",
+                        "accent": "#227a40",
+                        "glow": "rgba(34,122,64,.24)",
+                        "animation": "advisory"
+                    }
+                },
+                "/content/general_pages/epc_portal_tenant_brand.css",
+                "20260528c"
+            ]
+        },
+        {
+            "name": "brand_key_profile",
+            "output": "",
+            "result": "electronicae"
+        },
+        {
+            "name": "brand_key_host",
+            "output": "",
+            "result": "stylenlook"
+        },
+        {
+            "name": "brand_key_none",
+            "output": "",
+            "result": null
+        },
+        {
+            "name": "brand_on_tax",
+            "output": "",
+            "result": true
+        },
+        {
+            "name": "brand_on_parts",
+            "output": "",
+            "result": false
+        },
+        {
+            "name": "brand_on_auto",
+            "output": "",
+            "result": false
+        },
+        {
+            "name": "brand_on_offhost",
+            "output": "",
+            "result": false
+        },
+        {
+            "name": "brand_markup",
+            "output": "",
+            "result": [
+                "<span class=\"epc-tenant-brand epc-tenant-brand--header epc-tenant-brand--circuit\" role=\"img\" aria-label=\"Electronicae — TECH • GAMING • UAE\" style=\"--etb-accent:#e10a0a;--etb-glow:rgba(225,10,10,.24)\">\n\t<span class=\"epc-tenant-brand__halo\" aria-hidden=\"true\"></span>\n\t<span class=\"epc-tenant-brand__logo-wrap\">\n\t\t<img class=\"epc-tenant-brand__logo\" src=\"/content/files/images/ecomae-platform/assets/electronicae.png\" alt=\"\" width=\"320\" height=\"96\" loading=\"lazy\" />\n\t</span>\n\t\t<span class=\"epc-tenant-brand__tagline\">TECH • GAMING • UAE</span>\n\t</span>\n\t",
+                "<span class=\"epc-tenant-brand epc-tenant-brand--compact epc-tenant-brand--circuit\" role=\"img\" aria-label=\"Electronicae — TECH • GAMING • UAE\" style=\"--etb-accent:#e10a0a;--etb-glow:rgba(225,10,10,.24)\">\n\t<span class=\"epc-tenant-brand__halo\" aria-hidden=\"true\"></span>\n\t<span class=\"epc-tenant-brand__logo-wrap\">\n\t\t<img class=\"epc-tenant-brand__logo\" src=\"/content/files/images/ecomae-platform/assets/electronicae.png\" alt=\"\" width=\"320\" height=\"96\" loading=\"lazy\" />\n\t</span>\n\t</span>\n\t",
+                "<span class=\"epc-tenant-brand epc-tenant-brand--header epc-tenant-brand--circuit\" role=\"img\" aria-label=\"Electronicae — TECH • GAMING • UAE\" style=\"--etb-accent:#e10a0a;--etb-glow:rgba(225,10,10,.24)\">\n\t<span class=\"epc-tenant-brand__halo\" aria-hidden=\"true\"></span>\n\t<span class=\"epc-tenant-brand__logo-wrap\">\n\t\t<img class=\"epc-tenant-brand__logo\" src=\"/content/files/images/ecomae-platform/assets/electronicae.png\" alt=\"\" width=\"320\" height=\"96\" loading=\"lazy\" />\n\t</span>\n\t\t<span class=\"epc-tenant-brand__tagline\">TECH • GAMING • UAE</span>\n\t</span>\n\t"
+            ]
+        },
+        {
+            "name": "brand_hero",
+            "output": "",
+            "result": [
+                "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_portal_tenant_brand.css?v=20260528c\" />\n",
+                "<section class=\"epc-tenant-brand-hero col-lg-12\" aria-label=\"Brand presentation\">\n\t<div class=\"epc-tenant-brand-hero__inner\">\n\t\t<span class=\"epc-tenant-brand epc-tenant-brand--hero epc-tenant-brand--circuit\" role=\"img\" aria-label=\"Electronicae — TECH • GAMING • UAE\" style=\"--etb-accent:#e10a0a;--etb-glow:rgba(225,10,10,.24)\">\n\t<span class=\"epc-tenant-brand__halo\" aria-hidden=\"true\"></span>\n\t<span class=\"epc-tenant-brand__logo-wrap\">\n\t\t<img class=\"epc-tenant-brand__logo\" src=\"/content/files/images/ecomae-platform/assets/electronicae.png\" alt=\"\" width=\"320\" height=\"96\" loading=\"eager\" />\n\t</span>\n\t\t<span class=\"epc-tenant-brand__tagline\">TECH • GAMING • UAE</span>\n\t</span>\n\t\t</div>\n</section>\n\t"
+            ]
+        },
+        {
+            "name": "gen_meta",
+            "output": "",
+            "result": [
+                "epc_genuine_manufacturers.json",
+                true,
+                "https://x.test/shop",
+                "https://y.test",
+                3,
+                {
+                    "passenger": 2,
+                    "commercial": 1,
+                    "motorbike": 1
+                },
+                [
+                    "Bosch",
+                    "Febi"
+                ],
+                null
+            ]
+        },
+        {
+            "name": "gen_index",
+            "output": "",
+            "result": [
+                {
+                    "brands": {
+                        "BOSCH": true,
+                        "BOSCH-K": true,
+                        "FEBI": true
+                    },
+                    "meta": {
+                        "source": "epart_catalog",
+                        "sections": {
+                            "passenger": 2,
+                            "commercial": 1,
+                            "motorbike": 1
+                        },
+                        "total": 2,
+                        "keys": 3,
+                        "catalog_url": "/catalog"
+                    }
+                },
+                true
+            ]
+        }
+    ]
+}

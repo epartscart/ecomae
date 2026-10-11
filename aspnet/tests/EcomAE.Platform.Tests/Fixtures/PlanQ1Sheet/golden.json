@@ -1,0 +1,107 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "norm",
+            "output": "",
+            "result": [
+                "AB12",
+                "",
+                "BOSCH",
+                "",
+                {
+                    "linked": false,
+                    "id": 0
+                },
+                {
+                    "linked": false,
+                    "id": 0
+                }
+            ]
+        },
+        {
+            "name": "count",
+            "output": "",
+            "result": [
+                2,
+                0,
+                0
+            ]
+        },
+        {
+            "name": "annotate",
+            "output": "",
+            "result": [
+                {
+                    "article": "xy-9",
+                    "brand": "VALEO",
+                    "brand_complete": true,
+                    "cp_linked": true,
+                    "cp_link_id": 17
+                },
+                {
+                    "article": "nobrand",
+                    "brand": "GATES",
+                    "brand_inferred": true,
+                    "brand_complete": true,
+                    "cp_linked": false,
+                    "cp_link_id": 0
+                },
+                {
+                    "article": "miss",
+                    "brand": "",
+                    "brand_complete": false,
+                    "cp_linked": false,
+                    "cp_link_id": 0
+                }
+            ]
+        },
+        {
+            "name": "import",
+            "output": "",
+            "result": [
+                {
+                    "inserted": 0,
+                    "skipped": 1,
+                    "already": 0,
+                    "reason": "invalid_article"
+                },
+                {
+                    "inserted": 0,
+                    "skipped": 1,
+                    "already": 0,
+                    "reason": "same_part_same_brand"
+                },
+                {
+                    "inserted": 0,
+                    "skipped": 0,
+                    "already": 1,
+                    "reason": "already_linked"
+                },
+                {
+                    "inserted": 1,
+                    "skipped": 0,
+                    "already": 0,
+                    "reason": ""
+                },
+                {
+                    "inserted": 0,
+                    "skipped": 1,
+                    "already": 0,
+                    "reason": "missing_brand"
+                },
+                {
+                    "inserted": 1,
+                    "already": 1,
+                    "skipped": 2,
+                    "processed": 2
+                },
+                {
+                    "ok": 1,
+                    "article": "AB12"
+                },
+                null
+            ]
+        }
+    ]
+}

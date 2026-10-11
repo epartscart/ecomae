@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "names" },
+    { "name": "auth" },
+    { "name": "shop" },
+    { "name": "dispatch" }
+  ]
+}

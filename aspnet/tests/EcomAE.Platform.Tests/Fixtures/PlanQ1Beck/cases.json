@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "off" },
+    { "name": "slides" },
+    { "name": "chrome" },
+    { "name": "tenant" }
+  ]
+}

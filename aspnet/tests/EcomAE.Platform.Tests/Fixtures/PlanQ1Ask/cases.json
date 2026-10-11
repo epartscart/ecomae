@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "copilot_parse",
+      "eval": "return array(epc_copilot_parse_intent('Total Revenue this MONTH'), epc_copilot_parse_intent('how many orders today'), epc_copilot_parse_intent('best sellers this week'), epc_copilot_parse_intent('invoices last year'), epc_copilot_parse_intent('overdue quarter'), epc_copilot_parse_intent('???'), epc_copilot_generate_sql(epc_copilot_parse_intent('total revenue this month'), 'acme'), epc_copilot_generate_sql(epc_copilot_parse_intent('???'), 'acme'), epc_copilot_generate_sql(epc_copilot_parse_intent('orders today'), \"O'Brien\\\\x\"), array_keys(epc_copilot_intents()));"
+    },
+    {
+      "name": "copilot_exec",
+      "eval": "$pdo=$GLOBALS['db_link']; $a=epc_copilot_execute($pdo,'acme','???',3); unset($a['exec_ms']); $b=epc_copilot_execute($pdo,'acme','total revenue this month',3); unset($b['exec_ms']); $c=epc_copilot_execute($pdo,'beta','how many orders today',0); unset($c['exec_ms']); $rows=$pdo->query('SELECT `site_key`,`user_id`,`query_text`,`intent`,`status`,`error_message`,`generated_sql` FROM `epc_copilot_queries` ORDER BY `id`')->fetchAll(PDO::FETCH_ASSOC); $fleet=epc_copilot_fleet_stats($pdo); return array($a,$b,$c,$rows,$fleet);"
+    },
+    {
+      "name": "ai_pii",
+      "eval": "return array(epc_ai_strip_pii('hello'), epc_ai_strip_pii('mail me@x.com and +971 50 1234567'), epc_ai_strip_pii('TRN 123456789012345 card 1234 5678 9012 3456'), epc_ai_strip_pii('IBAN AE070331234567890123456 passport A1234567'), epc_ai_detect_intent('Show revenue please'), epc_ai_detect_intent('stock levels'), epc_ai_detect_intent('zzz'), epc_ai_classify_parts('Need an oil filter'), epc_ai_classify_parts('widget'), epc_ai_detect_anomaly('x'), epc_ai_nl_report('vat return','s1'), epc_ai_copilot_respond('help me','s1'), epc_ai_route_query($GLOBALS['db_link'],'orders','nope','s1'));"
+    },
+    {
+      "name": "ai_query",
+      "eval": "$pdo=$GLOBALS['db_link']; $block=epc_ai_service_query($pdo,'a@b.com a@b.com a@b.com a@b.com a@b.com a@b.com','copilot','s1',9); unset($block['exec_ms']); $ok=epc_ai_service_query($pdo,'total revenue','copilot','s1',9); unset($ok['exec_ms']); $cls=epc_ai_service_query($pdo,'brake pad set','classify','s1',1); unset($cls['exec_ms']); $bad=epc_ai_service_query($pdo,'x','nope','s1',1); unset($bad['exec_ms']); $stats=epc_ai_service_stats($pdo); $rows=$pdo->query('SELECT `site_key`,`user_id`,`service`,`intent`,`input_text`,`status`,`error_message`,`pii_stripped` FROM `epc_ai_queries` ORDER BY `id`')->fetchAll(PDO::FETCH_ASSOC); return array($block,$ok,$cls,$bad,$stats,$rows);"
+    }
+  ]
+}

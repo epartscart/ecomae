@@ -1,0 +1,142 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "live_keys",
+            "output": "",
+            "result": [
+                44,
+                [
+                    "auto_parts",
+                    "electronics",
+                    "fashion",
+                    "jewellery",
+                    "food_beverage",
+                    "hospitality_travel",
+                    "education_training",
+                    "logistics_freight",
+                    "financial_services",
+                    "energy_utilities",
+                    "manufacturing_industrial",
+                    "media_entertainment",
+                    "printing_signage",
+                    "nonprofit_government",
+                    "rental",
+                    "construction_contracting",
+                    "agricultural_products",
+                    "automotive_full_vehicles",
+                    "it_hardware_accessories",
+                    "medical",
+                    "pharmacy_retail",
+                    "grocery_retail",
+                    "furniture_interiors",
+                    "building_materials",
+                    "fmcg_wholesale",
+                    "industrial_equipment",
+                    "perfume_cosmetics",
+                    "pet_services",
+                    "health",
+                    "beauty_skincare",
+                    "fitness_training",
+                    "clinics_telemedicine",
+                    "tax_advisory",
+                    "consultancy",
+                    "legal_services",
+                    "accounting_auditing",
+                    "hr_recruitment",
+                    "marketing_digital",
+                    "cleaning_facilities",
+                    "security_services",
+                    "vehicle_leasing",
+                    "machinery_rental",
+                    "it_services_saas_support",
+                    "nutrition_supplements"
+                ],
+                {
+                    "template_key": "automotive",
+                    "mode": "hub_root"
+                },
+                {
+                    "template_key": "professional",
+                    "mode": "sub",
+                    "sub_label": "Tax advisory & compliance"
+                },
+                "inject",
+                "Food supplements & nutrition",
+                [
+                    "Vitamins",
+                    "Protein & sports nutrition",
+                    "Herbal & Ayurveda",
+                    "Weight management",
+                    "Immunity & wellness",
+                    "Kids nutrition"
+                ]
+            ]
+        },
+        {
+            "name": "live_url",
+            "output": "",
+            "result": [
+                "https://automotive.ecomae.com/",
+                "https://professional.ecomae.com/tax-advisory-compliance",
+                "https://healthcare.ecomae.com/food-supplements-nutrition",
+                "https://food.ecomae.com/",
+                "https://technology.ecomae.com/it-hardware-distribution",
+                "",
+                "",
+                "https://printing.ecomae.com/"
+            ]
+        },
+        {
+            "name": "live_merge",
+            "output": "",
+            "result": [
+                [
+                    "Food supplements & nutrition"
+                ],
+                "https://images.unsplash.com/photo-1550572017-edd951aa8f72?w=1600&q=80",
+                [
+                    "Vitamins",
+                    "Protein & sports nutrition",
+                    "Herbal & Ayurveda",
+                    "Weight management",
+                    "Immunity & wellness",
+                    "Kids nutrition"
+                ],
+                [
+                    "Food supplements & nutrition",
+                    "Clinics"
+                ],
+                "KEEP",
+                {
+                    "sub_industries": [
+                        "Cars"
+                    ],
+                    "sub_industry_products": []
+                },
+                {
+                    "sub_industries": [
+                        "Z"
+                    ],
+                    "sub_industry_products": []
+                }
+            ]
+        },
+        {
+            "name": "live_audit",
+            "output": "",
+            "result": {
+                "ok": [
+                    "auto_parts",
+                    "tax_advisory",
+                    "nutrition_supplements",
+                    "printing_signage"
+                ],
+                "broken": {
+                    "medical": "sub label missing in template: Medical equipment supply",
+                    "unknown_x": "no live def"
+                }
+            }
+        }
+    ]
+}

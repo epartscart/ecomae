@@ -1,0 +1,574 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "pure",
+            "output": "",
+            "result": [
+                {
+                    "off": "Off",
+                    "anchor": "Blockchain anchor (recommended)",
+                    "network": "Network participant (roadmap)"
+                },
+                [
+                    "off",
+                    "anchor",
+                    "network",
+                    "off",
+                    "off"
+                ],
+                "local_merkle",
+                "custom_net",
+                "local_merkle",
+                "Blockchain BOS Enterprise System",
+                "Blockchain BOS",
+                "One unified Blockchain Business Operating System — ERP, commerce, compliance, workflows, intelligence and cryptographic proof on one cloud.",
+                [
+                    "{\"a\":{\"x\":3,\"y\":2},\"z\":1}",
+                    "[\"b\",\"a\"]",
+                    "[]",
+                    "{\"0\":\"a\",\"2\":\"b\"}",
+                    "{\"name\":\"café\",\"url\":\"https://x.com/a\"}"
+                ],
+                [
+                    false,
+                    false,
+                    true,
+                    true
+                ],
+                [
+                    "a116c9ed46d6207734a43317d30fd88f52ac8634c37d904bbf4e41d865f90475",
+                    "c2985c5ba6f7d2a55e768f92490ca09388e95bc4cccb9fdf11b15f4d42f93e73"
+                ],
+                "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+                "62af5c3cb8da3e4f25061e829ebeea5c7513c54949115b1acc225930a90154da",
+                "0bdf27bf7ec894ca7cadfe491ec1a3ece840f117989e8c5e9bd7086467bf6c38",
+                [
+                    {
+                        "sibling": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+                        "side": "right"
+                    },
+                    {
+                        "sibling": "d50c873877f38fcbc56dbe836b9d979912efcb587ed8eea919372d403b5c2bd4",
+                        "side": "right"
+                    }
+                ],
+                [
+                    {
+                        "sibling": "2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6",
+                        "side": "right"
+                    },
+                    {
+                        "sibling": "62af5c3cb8da3e4f25061e829ebeea5c7513c54949115b1acc225930a90154da",
+                        "side": "left"
+                    }
+                ],
+                true,
+                false,
+                "prf_aaaaaaaaaaaaaaaa_199cd224800",
+                "bat_bbbbbbbbbbbbbbbb_199cd224801",
+                [
+                    "/epc-blockchain-verify.php?proof=prf%20abc%2Fx",
+                    "/epc-blockchain-verify.php?proof=hash"
+                ],
+                "https://www.ecomae.com",
+                "http://shop.example",
+                "https://shop.example",
+                "https://shop.example",
+                "http://shop.example",
+                "https://brand.example",
+                "http://shop.example",
+                "http://shop.example/epc-blockchain-verify.php?proof=prf_1",
+                [
+                    [
+                        "invoice",
+                        "0"
+                    ],
+                    [
+                        "credit_note",
+                        "9"
+                    ],
+                    [
+                        "credit_note",
+                        "CN-1"
+                    ],
+                    [
+                        "invoice",
+                        "INV-7"
+                    ],
+                    [
+                        "invoice",
+                        "12"
+                    ]
+                ],
+                [
+                    "",
+                    "PINV-88",
+                    "PINV-4"
+                ],
+                [
+                    "",
+                    "<span class=\"label label-default\">No blockchain proof</span>",
+                    "<span class=\"label label-warning\">Blockchain proof pending</span> <a href=\"/epc-blockchain-verify.php?proof=prf_o%27brien\" target=\"_blank\" rel=\"noopener\" class=\"btn btn-default btn-xs\" style=\"margin-left:6px\"><i class=\"fa fa-external-link\"></i> Verify</a>",
+                    "<span class=\"label label-success\">Blockchain anchored</span> <a href=\"/epc-blockchain-verify.php?proof=prf_ok\" target=\"_blank\" rel=\"noopener\" class=\"btn btn-default btn-xs\" style=\"margin-left:6px\"><i class=\"fa fa-external-link\"></i> Verify</a> <small class=\"text-muted\"><code>prf_ok</code></small>"
+                ]
+            ]
+        },
+        {
+            "name": "record",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "error": "Platform DB unavailable"
+                },
+                {
+                    "ok": false,
+                    "error": "record_type required"
+                },
+                {
+                    "ok": true,
+                    "proof_uid": "prf_aaaaaaaaaaaaaaaa_199cd224800",
+                    "payload_hash": "8717084df553f333d1383d29b3116e4a2b3a806cbe900a91938ac9daec733480",
+                    "status": "pending"
+                },
+                {
+                    "ok": true,
+                    "proof_uid": "prf_bbbbbbbbbbbbbbbb_199cd224801",
+                    "payload_hash": "f1a077af787fbf2a83fbeb16cdcce0ff25a475868ca2fc52d2027537e4ead7eb",
+                    "status": "pending"
+                },
+                {
+                    "ok": true,
+                    "proof_uid": "prf_cccccccccccccccc_199cd224802",
+                    "payload_hash": "9a6eea87d8dbefc7689f53516db59c3b61ef3bd4fb7136f3d563779587fc4ec0",
+                    "status": "pending"
+                },
+                {
+                    "ok": true,
+                    "proof_uid": "prf_dddddddddddddddd_199cd224803",
+                    "payload_hash": "aba5235d85ace49356a1ae50a369500825d10b1ec99b5cdea048b5b5f447e164",
+                    "status": "pending"
+                },
+                {
+                    "ok": true,
+                    "proof_uid": "prf_eeeeeeeeeeeeeeee_199cd224804",
+                    "payload_hash": "082a492ac6cdfc17535292afb13b0ea4fce5fa9825ac0a054905c3705e23e551",
+                    "status": "pending"
+                },
+                {
+                    "ok": true,
+                    "proof_uid": "prf_ffffffffffffffff_199cd224805",
+                    "payload_hash": "0c45324270feb3f208ba7046c5891d7ff543b98d6c8d722d2c5a2c2619397fc9",
+                    "status": "pending"
+                },
+                {
+                    "ok": false,
+                    "skipped": true,
+                    "reason": "no_tenant"
+                },
+                {
+                    "ok": true,
+                    "skipped": true,
+                    "reason": "mode_off"
+                },
+                {
+                    "ok": true,
+                    "skipped": true,
+                    "reason": "mode_off"
+                },
+                {
+                    "ok": true,
+                    "proof_uid": "prf_1111111111111111_199cd224806",
+                    "payload_hash": "fc6713537a5a5ffb5e64d89acbcac6cf6c3df19ec8351ebbf394ee4c387d4f4f",
+                    "status": "pending"
+                },
+                {
+                    "ok": true,
+                    "proof_uid": "prf_2222222222222222_199cd224807",
+                    "payload_hash": "56cf2b061c449329c791de57ca9f19c3d39a9b6c2549b2e2bb8575ffb81a65a2",
+                    "status": "pending"
+                },
+                [
+                    "cme9",
+                    "",
+                    "from_erp",
+                    "hared_1",
+                    "site_x",
+                    "shared_row",
+                    "cookie_tn",
+                    "host_tn"
+                ],
+                "off",
+                "anchor",
+                "network",
+                "network",
+                "network",
+                "off",
+                [
+                    {
+                        "type": "blockchain_anchor_batch",
+                        "tenant": "acme1",
+                        "payload": {
+                            "reason": "proof_recorded",
+                            "proof_uid": "prf_cccccccccccccccc_199cd224802"
+                        },
+                        "opts": {
+                            "priority": 80,
+                            "dedupe": true,
+                            "delay_sec": 2
+                        }
+                    },
+                    {
+                        "type": "blockchain_anchor_batch",
+                        "tenant": "beta",
+                        "payload": {
+                            "reason": "proof_recorded",
+                            "proof_uid": "prf_1111111111111111_199cd224806"
+                        },
+                        "opts": {
+                            "priority": 80,
+                            "dedupe": true,
+                            "delay_sec": 2
+                        }
+                    }
+                ],
+                []
+            ]
+        },
+        {
+            "name": "anchor",
+            "output": "",
+            "result": [
+                {
+                    "ok": true,
+                    "proof_count": 0,
+                    "message": "nothing_pending"
+                },
+                {
+                    "ok": true,
+                    "proof_uid": "prf_aaaaaaaaaaaaaaaa_199cd224800",
+                    "payload_hash": "d323d92fe358cec598f6eb123e6373363beb1d03fe888892f4f400af6be42d97",
+                    "status": "pending"
+                },
+                {
+                    "ok": true,
+                    "proof_uid": "prf_bbbbbbbbbbbbbbbb_199cd224801",
+                    "payload_hash": "bfb0d207aa6d6100ae1b4191c831834368f4f1b7aa6654e51425203a47848559",
+                    "status": "pending"
+                },
+                {
+                    "ok": true,
+                    "proof_uid": "prf_cccccccccccccccc_199cd224802",
+                    "payload_hash": "36a8df2efe69030a9d8137b8c4402a711f08f2d85dc4a35f7481131ff5d271b2",
+                    "status": "pending"
+                },
+                {
+                    "ok": true,
+                    "valid": true,
+                    "hash_ok": true,
+                    "merkle_ok": false,
+                    "proof": {
+                        "proof_uid": "prf_aaaaaaaaaaaaaaaa_199cd224800",
+                        "tenant_key": "acme",
+                        "record_type": "invoice",
+                        "record_id": "A",
+                        "payload_hash": "d323d92fe358cec598f6eb123e6373363beb1d03fe888892f4f400af6be42d97",
+                        "status": "pending",
+                        "anchor_ref": "",
+                        "anchored_at": "",
+                        "created_at": "NOW"
+                    },
+                    "batch": null,
+                    "product": "ECOM AE Blockchain BOS Enterprise"
+                },
+                {
+                    "ok": true,
+                    "batch_uid": "bat_dddddddddddddddd_199cd224803",
+                    "merkle_root": "5a54820f682155ed6c9ad99f979ecd1c48ddc0ad9cb75d6feb4e79c62e272225",
+                    "proof_count": 2,
+                    "anchor_ref": "local_merkle:5a54820f682155ed6c9ad99f979ecd1c48ddc0ad9cb75d6feb4e79c62e272225",
+                    "anchor_network": "local_merkle"
+                },
+                {
+                    "ok": true,
+                    "valid": true,
+                    "hash_ok": true,
+                    "merkle_ok": true,
+                    "proof": {
+                        "proof_uid": "prf_aaaaaaaaaaaaaaaa_199cd224800",
+                        "tenant_key": "acme",
+                        "record_type": "invoice",
+                        "record_id": "A",
+                        "payload_hash": "d323d92fe358cec598f6eb123e6373363beb1d03fe888892f4f400af6be42d97",
+                        "status": "anchored",
+                        "anchor_ref": "local_merkle:5a54820f682155ed6c9ad99f979ecd1c48ddc0ad9cb75d6feb4e79c62e272225",
+                        "anchored_at": "NOW",
+                        "created_at": "NOW"
+                    },
+                    "batch": {
+                        "batch_uid": "bat_dddddddddddddddd_199cd224803",
+                        "merkle_root": "5a54820f682155ed6c9ad99f979ecd1c48ddc0ad9cb75d6feb4e79c62e272225",
+                        "proof_count": 2,
+                        "anchor_network": "local_merkle",
+                        "anchor_ref": "local_merkle:5a54820f682155ed6c9ad99f979ecd1c48ddc0ad9cb75d6feb4e79c62e272225",
+                        "anchored_at": "NOW"
+                    },
+                    "product": "ECOM AE Blockchain BOS Enterprise"
+                },
+                {
+                    "ok": true,
+                    "valid": true,
+                    "hash_ok": true,
+                    "merkle_ok": true,
+                    "proof": {
+                        "proof_uid": "prf_aaaaaaaaaaaaaaaa_199cd224800",
+                        "tenant_key": "acme",
+                        "record_type": "invoice",
+                        "record_id": "A",
+                        "payload_hash": "d323d92fe358cec598f6eb123e6373363beb1d03fe888892f4f400af6be42d97",
+                        "status": "anchored",
+                        "anchor_ref": "local_merkle:5a54820f682155ed6c9ad99f979ecd1c48ddc0ad9cb75d6feb4e79c62e272225",
+                        "anchored_at": "NOW",
+                        "created_at": "NOW"
+                    },
+                    "batch": {
+                        "batch_uid": "bat_dddddddddddddddd_199cd224803",
+                        "merkle_root": "5a54820f682155ed6c9ad99f979ecd1c48ddc0ad9cb75d6feb4e79c62e272225",
+                        "proof_count": 2,
+                        "anchor_network": "local_merkle",
+                        "anchor_ref": "local_merkle:5a54820f682155ed6c9ad99f979ecd1c48ddc0ad9cb75d6feb4e79c62e272225",
+                        "anchored_at": "NOW"
+                    },
+                    "product": "ECOM AE Blockchain BOS Enterprise"
+                },
+                {
+                    "ok": true,
+                    "result": {
+                        "ok": true,
+                        "batch_uid": "bat_eeeeeeeeeeeeeeee_199cd224804",
+                        "merkle_root": "36a8df2efe69030a9d8137b8c4402a711f08f2d85dc4a35f7481131ff5d271b2",
+                        "proof_count": 1,
+                        "anchor_ref": "local_merkle:36a8df2efe69030a9d8137b8c4402a711f08f2d85dc4a35f7481131ff5d271b2",
+                        "anchor_network": "local_merkle"
+                    }
+                },
+                {
+                    "ok": true,
+                    "valid": false,
+                    "error": "Proof not found"
+                },
+                {
+                    "ok": false,
+                    "error": "proof_uid or hash required"
+                },
+                {
+                    "proof_uid": "prf_aaaaaaaaaaaaaaaa_199cd224800",
+                    "tenant_key": "acme",
+                    "record_type": "invoice",
+                    "record_id": "A",
+                    "payload_hash": "d323d92fe358cec598f6eb123e6373363beb1d03fe888892f4f400af6be42d97",
+                    "status": "anchored",
+                    "batch_uid": "bat_dddddddddddddddd_199cd224803",
+                    "merkle_root": "5a54820f682155ed6c9ad99f979ecd1c48ddc0ad9cb75d6feb4e79c62e272225",
+                    "merkle_index": 0,
+                    "anchor_ref": "local_merkle:5a54820f682155ed6c9ad99f979ecd1c48ddc0ad9cb75d6feb4e79c62e272225",
+                    "anchored_at": "NOW"
+                },
+                {
+                    "ok": true,
+                    "valid": false,
+                    "hash_ok": true,
+                    "merkle_ok": true,
+                    "proof": {
+                        "proof_uid": "prf_aaaaaaaaaaaaaaaa_199cd224800",
+                        "tenant_key": "acme",
+                        "record_type": "invoice",
+                        "record_id": "A",
+                        "payload_hash": "d323d92fe358cec598f6eb123e6373363beb1d03fe888892f4f400af6be42d97",
+                        "status": "anchored",
+                        "anchor_ref": "local_merkle:5a54820f682155ed6c9ad99f979ecd1c48ddc0ad9cb75d6feb4e79c62e272225",
+                        "anchored_at": "NOW",
+                        "created_at": "NOW"
+                    },
+                    "batch": {
+                        "batch_uid": "bat_dddddddddddddddd_199cd224803",
+                        "merkle_root": "5a54820f682155ed6c9ad99f979ecd1c48ddc0ad9cb75d6feb4e79c62e272225",
+                        "proof_count": 2,
+                        "anchor_network": "local_merkle",
+                        "anchor_ref": "local_merkle:5a54820f682155ed6c9ad99f979ecd1c48ddc0ad9cb75d6feb4e79c62e272225",
+                        "anchored_at": "NOW"
+                    },
+                    "product": "ECOM AE Blockchain BOS Enterprise"
+                },
+                [
+                    "blockchain_anchor_batch"
+                ],
+                []
+            ]
+        },
+        {
+            "name": "fleet",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "proof_uid": "prf_bbbbbbbbbbbbbbbb_199cd224801",
+                        "tenant_key": "acme",
+                        "record_type": "grn",
+                        "record_id": "G1",
+                        "payload_hash": "d49aa145e738b2ead9d959a820a7fcf540951b5c822d839ff164836797f4b9b3",
+                        "status": "pending",
+                        "batch_uid": "",
+                        "merkle_root": "",
+                        "merkle_index": null,
+                        "anchor_ref": "",
+                        "anchored_at": ""
+                    },
+                    {
+                        "proof_uid": "prf_aaaaaaaaaaaaaaaa_199cd224800",
+                        "tenant_key": "acme",
+                        "record_type": "invoice",
+                        "record_id": "I1",
+                        "payload_hash": "05352facfbbbc6aa84e044270763f12b1c3b4a8ed3a4cab73550e24c330eb480",
+                        "status": "anchored",
+                        "batch_uid": "bat_dddddddddddddddd_199cd224803",
+                        "merkle_root": "05352facfbbbc6aa84e044270763f12b1c3b4a8ed3a4cab73550e24c330eb480",
+                        "merkle_index": 0,
+                        "anchor_ref": "local_merkle:05352facfbbbc6aa84e044270763f12b1c3b4a8ed3a4cab73550e24c330eb480",
+                        "anchored_at": "NOW"
+                    }
+                ],
+                [
+                    {
+                        "proof_uid": "prf_aaaaaaaaaaaaaaaa_199cd224800",
+                        "tenant_key": "acme",
+                        "record_type": "invoice",
+                        "record_id": "I1",
+                        "payload_hash": "05352facfbbbc6aa84e044270763f12b1c3b4a8ed3a4cab73550e24c330eb480",
+                        "status": "anchored",
+                        "batch_uid": "bat_dddddddddddddddd_199cd224803",
+                        "merkle_root": "05352facfbbbc6aa84e044270763f12b1c3b4a8ed3a4cab73550e24c330eb480",
+                        "merkle_index": 0,
+                        "anchor_ref": "local_merkle:05352facfbbbc6aa84e044270763f12b1c3b4a8ed3a4cab73550e24c330eb480",
+                        "anchored_at": "NOW"
+                    }
+                ],
+                [
+                    {
+                        "proof_uid": "prf_bbbbbbbbbbbbbbbb_199cd224801",
+                        "tenant_key": "acme",
+                        "record_type": "grn",
+                        "record_id": "G1",
+                        "payload_hash": "d49aa145e738b2ead9d959a820a7fcf540951b5c822d839ff164836797f4b9b3",
+                        "status": "pending",
+                        "batch_uid": "",
+                        "merkle_root": "",
+                        "merkle_index": null,
+                        "anchor_ref": "",
+                        "anchored_at": ""
+                    }
+                ],
+                [],
+                [
+                    {
+                        "proof_uid": "prf_cccccccccccccccc_199cd224802",
+                        "tenant_key": "beta",
+                        "record_type": "invoice",
+                        "record_id": "I9",
+                        "payload_hash": "91fe28af009360ef0e9fdd2b7e0b08e56ac5e663718a35ab91bc720dd32d9777",
+                        "status": "pending",
+                        "batch_uid": "",
+                        "merkle_root": "",
+                        "merkle_index": null,
+                        "anchor_ref": "",
+                        "anchored_at": ""
+                    },
+                    {
+                        "proof_uid": "prf_bbbbbbbbbbbbbbbb_199cd224801",
+                        "tenant_key": "acme",
+                        "record_type": "grn",
+                        "record_id": "G1",
+                        "payload_hash": "d49aa145e738b2ead9d959a820a7fcf540951b5c822d839ff164836797f4b9b3",
+                        "status": "pending",
+                        "batch_uid": "",
+                        "merkle_root": "",
+                        "merkle_index": null,
+                        "anchor_ref": "",
+                        "anchored_at": ""
+                    },
+                    {
+                        "proof_uid": "prf_aaaaaaaaaaaaaaaa_199cd224800",
+                        "tenant_key": "acme",
+                        "record_type": "invoice",
+                        "record_id": "I1",
+                        "payload_hash": "05352facfbbbc6aa84e044270763f12b1c3b4a8ed3a4cab73550e24c330eb480",
+                        "status": "anchored",
+                        "batch_uid": "bat_dddddddddddddddd_199cd224803",
+                        "merkle_root": "05352facfbbbc6aa84e044270763f12b1c3b4a8ed3a4cab73550e24c330eb480",
+                        "merkle_index": 0,
+                        "anchor_ref": "local_merkle:05352facfbbbc6aa84e044270763f12b1c3b4a8ed3a4cab73550e24c330eb480",
+                        "anchored_at": "NOW"
+                    }
+                ],
+                [
+                    {
+                        "proof_uid": "prf_cccccccccccccccc_199cd224802",
+                        "tenant_key": "beta",
+                        "record_type": "invoice",
+                        "record_id": "I9",
+                        "payload_hash": "91fe28af009360ef0e9fdd2b7e0b08e56ac5e663718a35ab91bc720dd32d9777",
+                        "status": "pending",
+                        "batch_uid": "",
+                        "merkle_root": "",
+                        "merkle_index": null,
+                        "anchor_ref": "",
+                        "anchored_at": ""
+                    }
+                ],
+                {
+                    "total": 3,
+                    "anchored": 1,
+                    "pending": 2,
+                    "tenants": 2
+                },
+                {
+                    "total": 2,
+                    "anchored": 1,
+                    "pending": 1,
+                    "mode": "anchor",
+                    "site_key": "acme"
+                },
+                {
+                    "total": 0,
+                    "anchored": 0,
+                    "pending": 0,
+                    "mode": "off",
+                    "site_key": "beta"
+                },
+                {
+                    "total": 0,
+                    "anchored": 0,
+                    "pending": 0,
+                    "mode": "off",
+                    "site_key": ""
+                },
+                "<span class=\"label label-success\">Blockchain anchored</span> <a href=\"/epc-blockchain-verify.php?proof=prf_aaaaaaaaaaaaaaaa_199cd224800\" target=\"_blank\" rel=\"noopener\" class=\"btn btn-default btn-xs\" style=\"margin-left:6px\"><i class=\"fa fa-external-link\"></i> Verify</a> <small class=\"text-muted\"><code>prf_aaaaaaaaaaaaaaaa_199cd224800</code></small>",
+                "",
+                "",
+                "",
+                "",
+                {
+                    "message": "",
+                    "extra": []
+                },
+                {
+                    "message": "",
+                    "extra": []
+                }
+            ]
+        }
+    ]
+}

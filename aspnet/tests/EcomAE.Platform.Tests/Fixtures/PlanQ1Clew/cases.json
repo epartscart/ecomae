@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "en" },
+    { "name": "ar" },
+    { "name": "ru" },
+    { "name": "edge" }
+  ]
+}

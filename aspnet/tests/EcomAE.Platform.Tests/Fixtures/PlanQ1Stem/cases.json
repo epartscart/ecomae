@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "path" },
+    { "name": "fetch" },
+    { "name": "build" },
+    { "name": "search" }
+  ]
+}

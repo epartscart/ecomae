@@ -1,0 +1,39 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "guest",
+            "output": "",
+            "result": [
+                "\n\n<div class=\"cart_module\" onclick=\"location = '/en/shop/cart';\">\n\t<div class=\"cart_module_positions\" id=\"cart_module_positions\"><b>Items</b> 0</div>\n\t<div class=\"cart_module_sum\" id=\"cart_module_sum\"><b>На сумму</b> 0.00 د.إ</div>\n</div>",
+                "\n\n<div class=\"cart_module\" onclick=\"location = '/en/shop/cart';\">\n\t<div class=\"cart_module_positions\" id=\"cart_module_positions\"><b>Items</b> 2</div>\n\t<div class=\"cart_module_sum\" id=\"cart_module_sum\"><b>На сумму</b> 25.50 د.إ</div>\n</div>"
+            ]
+        },
+        {
+            "name": "signed",
+            "output": "",
+            "result": [
+                "\n\n<div class=\"cart_module\" onclick=\"location = '/en/shop/cart';\">\n\t<div class=\"cart_module_positions\" id=\"cart_module_positions\"><b>Items</b> 0</div>\n\t<div class=\"cart_module_sum\" id=\"cart_module_sum\"><b>На сумму</b> 0.00 د.إ</div>\n</div>",
+                "\n\n<div class=\"cart_module\" onclick=\"location = '/en/shop/cart';\">\n\t<div class=\"cart_module_positions\" id=\"cart_module_positions\"><b>Items</b> 2</div>\n\t<div class=\"cart_module_sum\" id=\"cart_module_sum\"><b>На сумму</b> 25.50 د.إ</div>\n</div>"
+            ]
+        },
+        {
+            "name": "currency",
+            "output": "",
+            "result": [
+                "\n\n<div class=\"cart_module\" onclick=\"location = '/ar/shop/cart';\">\n\t<div class=\"cart_module_positions\" id=\"cart_module_positions\"><b>Позиции</b> 1</div>\n\t<div class=\"cart_module_sum\" id=\"cart_module_sum\"><b>На сумму</b> د.إ 12.50</div>\n</div>",
+                "\n\n<div class=\"cart_module\" onclick=\"location = '/ar/shop/cart';\">\n\t<div class=\"cart_module_positions\" id=\"cart_module_positions\"><b>Позиции</b> 1</div>\n\t<div class=\"cart_module_sum\" id=\"cart_module_sum\"><b>На сумму</b> 12.50 د.إ</div>\n</div>",
+                "\n\n<div class=\"cart_module\" onclick=\"location = '/ar/shop/cart';\">\n\t<div class=\"cart_module_positions\" id=\"cart_module_positions\"><b>Позиции</b> 1</div>\n\t<div class=\"cart_module_sum\" id=\"cart_module_sum\"><b>На сумму</b> 12.50 </div>\n</div>",
+                "\n\n<div class=\"cart_module\" onclick=\"location = '/ar/shop/cart';\">\n\t<div class=\"cart_module_positions\" id=\"cart_module_positions\"><b>Позиции</b> 1</div>\n\t<div class=\"cart_module_sum\" id=\"cart_module_sum\"><b>На сумму</b> 12.50 AED</div>\n</div>"
+            ]
+        },
+        {
+            "name": "tenant",
+            "output": "",
+            "result": [
+                "\n\n<div class=\"cart_module\" onclick=\"location = '/en/shop/cart';\">\n\t<div class=\"cart_module_positions\" id=\"cart_module_positions\"><b>Items</b> 1</div>\n\t<div class=\"cart_module_sum\" id=\"cart_module_sum\"><b>На сумму</b> 80.00 د.إ</div>\n</div>",
+                "\n\n<div class=\"cart_module\" onclick=\"location = '/ar/shop/cart';\">\n\t<div class=\"cart_module_positions\" id=\"cart_module_positions\"><b>Items</b> 1</div>\n\t<div class=\"cart_module_sum\" id=\"cart_module_sum\"><b>На сумму</b> $ 5.00</div>\n</div>"
+            ]
+        }
+    ]
+}

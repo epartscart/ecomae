@@ -1,0 +1,608 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "alias_path_null",
+            "output": "",
+            "result": "/",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "alias_path_empty",
+            "output": "",
+            "result": "/",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "alias_path_query",
+            "output": "",
+            "result": "/CP/shop/orders",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "alias_canonical_cp",
+            "output": "",
+            "result": "/cp/shop",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "alias_canonical_same",
+            "output": "",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "alias_canonical_home",
+            "output": "",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "alias_redirect_cli",
+            "output": "",
+            "result": false,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "alias_bos_tenant",
+            "output": "Not found.",
+            "result": true,
+            "headers": [],
+            "status": 404
+        },
+        {
+            "name": "alias_bos_super",
+            "output": "",
+            "result": false,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "moq_guest",
+            "output": "",
+            "result": 4,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "moq_retail",
+            "output": "",
+            "result": [
+                1,
+                4
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "moq_custom",
+            "output": "",
+            "result": 8,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "fashion_tree",
+            "output": "",
+            "result": [
+                {
+                    "slug": "fashion-men",
+                    "name": "Men",
+                    "sort": 10,
+                    "children": [
+                        {
+                            "slug": "fashion-men-shirts",
+                            "name": "Shirts & polos",
+                            "children": [
+                                {
+                                    "slug": "fashion-men-shirts-casual",
+                                    "name": "Casual shirts"
+                                },
+                                {
+                                    "slug": "fashion-men-shirts-formal",
+                                    "name": "Formal shirts"
+                                },
+                                {
+                                    "slug": "fashion-men-shirts-polo",
+                                    "name": "Polos & T-shirts"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "fashion-men-trousers",
+                            "name": "Trousers & jeans",
+                            "children": [
+                                {
+                                    "slug": "fashion-men-trousers-chinos",
+                                    "name": "Chinos & formal trousers"
+                                },
+                                {
+                                    "slug": "fashion-men-trousers-jeans",
+                                    "name": "Jeans & denim"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "fashion-men-outerwear",
+                            "name": "Jackets & outerwear"
+                        },
+                        {
+                            "slug": "fashion-men-footwear",
+                            "name": "Footwear",
+                            "children": [
+                                {
+                                    "slug": "fashion-men-footwear-sneakers",
+                                    "name": "Sneakers & casual"
+                                },
+                                {
+                                    "slug": "fashion-men-footwear-formal",
+                                    "name": "Formal shoes"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "fashion-men-activewear",
+                            "name": "Activewear & sportswear"
+                        }
+                    ]
+                },
+                {
+                    "slug": "fashion-women",
+                    "name": "Women",
+                    "sort": 20,
+                    "children": [
+                        {
+                            "slug": "fashion-women-dresses",
+                            "name": "Dresses & abayas",
+                            "children": [
+                                {
+                                    "slug": "fashion-women-dresses-casual",
+                                    "name": "Casual dresses"
+                                },
+                                {
+                                    "slug": "fashion-women-dresses-evening",
+                                    "name": "Evening & occasion"
+                                },
+                                {
+                                    "slug": "fashion-women-abayas",
+                                    "name": "Abayas & kaftans"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "fashion-women-tops",
+                            "name": "Tops & blouses"
+                        },
+                        {
+                            "slug": "fashion-women-trousers",
+                            "name": "Trousers & skirts"
+                        },
+                        {
+                            "slug": "fashion-women-footwear",
+                            "name": "Footwear",
+                            "children": [
+                                {
+                                    "slug": "fashion-women-footwear-heels",
+                                    "name": "Heels & pumps"
+                                },
+                                {
+                                    "slug": "fashion-women-footwear-flats",
+                                    "name": "Flats & sandals"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "fashion-women-activewear",
+                            "name": "Activewear & leggings"
+                        },
+                        {
+                            "slug": "fashion-women-lingerie",
+                            "name": "Lingerie & sleepwear"
+                        }
+                    ]
+                },
+                {
+                    "slug": "fashion-kids",
+                    "name": "Kids",
+                    "sort": 30,
+                    "children": [
+                        {
+                            "slug": "fashion-kids-boys",
+                            "name": "Boys",
+                            "children": [
+                                {
+                                    "slug": "fashion-kids-boys-tops",
+                                    "name": "Tops & T-shirts"
+                                },
+                                {
+                                    "slug": "fashion-kids-boys-bottoms",
+                                    "name": "Trousers & shorts"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "fashion-kids-girls",
+                            "name": "Girls",
+                            "children": [
+                                {
+                                    "slug": "fashion-kids-girls-dresses",
+                                    "name": "Dresses & sets"
+                                },
+                                {
+                                    "slug": "fashion-kids-girls-tops",
+                                    "name": "Tops & skirts"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "fashion-kids-footwear",
+                            "name": "Kids footwear"
+                        },
+                        {
+                            "slug": "fashion-kids-school",
+                            "name": "School uniforms"
+                        }
+                    ]
+                },
+                {
+                    "slug": "fashion-accessories",
+                    "name": "Accessories",
+                    "sort": 40,
+                    "children": [
+                        {
+                            "slug": "fashion-accessories-bags",
+                            "name": "Bags & wallets",
+                            "children": [
+                                {
+                                    "slug": "fashion-accessories-handbags",
+                                    "name": "Handbags & totes"
+                                },
+                                {
+                                    "slug": "fashion-accessories-wallets",
+                                    "name": "Wallets & card holders"
+                                }
+                            ]
+                        },
+                        {
+                            "slug": "fashion-accessories-sunglasses",
+                            "name": "Sunglasses"
+                        },
+                        {
+                            "slug": "fashion-accessories-belts",
+                            "name": "Belts & scarves"
+                        },
+                        {
+                            "slug": "fashion-accessories-watches",
+                            "name": "Fashion watches"
+                        }
+                    ]
+                }
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "mobile_off",
+            "output": "",
+            "result": [
+                false,
+                ""
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "mobile_on",
+            "output": "",
+            "result": [
+                true,
+                "\t<section class=\"epc-mobile-app-landing\" style=\"margin:1.5rem 0;padding:1.25rem 1.5rem;border:1px solid #fecaca;border-radius:12px;background:linear-gradient(135deg,#fff5f5,#ffffff);max-width:720px;\">\n\t\t<h2 style=\"margin:0 0 .5rem;font-size:1.15rem;color:#991b1b;\">eParts Cart mobile app — Phase 1</h2>\n\t\t<p style=\"margin:0 0 .75rem;color:#374151;line-height:1.5;\">\n\t\t\tInstall the native shell (Android APK / iOS build) or use <strong>Add to Home Screen</strong> in Chrome or Safari for a full-screen storefront at\n\t\t\t<a href=\"/en/\">eParts Cart</a>.\n\t\t</p>\n\t\t<ul style=\"margin:0;padding-left:1.25rem;color:#4b5563;line-height:1.6;font-size:.95rem;\">\n\t\t\t<li>Capacitor app loads <code>www.epartscart.com</code> — same catalog and checkout as the website.</li>\n\t\t\t<li>PWA manifest and service worker enable offline notice when the network drops.</li>\n\t\t\t<li>Phase 2: push notifications, barcode scan, white-label tenant apps.</li>\n\t\t</ul>\n\t</section>\n\t"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "social_disabled",
+            "output": "<div class=\"epc-cp-auth-modern epc-storefront-auth\">\n\t\t<button type=\"button\" class=\"btn btn-ar btn-block epc-cp-auth-google is-disabled\" disabled><i class=\"fa fa-google\"></i> Continue with Google</button>\n\t\t<button type=\"button\" class=\"btn btn-ar btn-block epc-cp-auth-google is-disabled\" disabled title=\"Coming soon\"><i class=\"fa fa-windows\"></i> Microsoft (soon)</button>\n\t<button type=\"button\" class=\"btn btn-ar btn-block epc-cp-auth-google is-disabled\" disabled title=\"Coming soon\"><i class=\"fa fa-facebook\"></i> Facebook (soon)</button>\n\t<p class=\"epc-cp-auth-hint\">First sign-in creates your customer account automatically.</p>\n</div>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "social_google",
+            "output": "<div class=\"epc-cp-auth-modern epc-storefront-auth\">\n\t\t<a class=\"btn btn-ar btn-block epc-cp-auth-google\" href=\"/epc-auth-google-start.php?context=storefront&amp;tenant_key=t%26x&amp;return_url=%2Far%2F%2F\"><i class=\"fa fa-google\"></i> Continue with Google</a>\n\t\t<button type=\"button\" class=\"btn btn-ar btn-block epc-cp-auth-google is-disabled\" disabled title=\"Coming soon\"><i class=\"fa fa-windows\"></i> Microsoft (soon)</button>\n\t<button type=\"button\" class=\"btn btn-ar btn-block epc-cp-auth-google is-disabled\" disabled title=\"Coming soon\"><i class=\"fa fa-facebook\"></i> Facebook (soon)</button>\n\t<p class=\"epc-cp-auth-hint\">First sign-in creates your customer account automatically.</p>\n</div>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "add_item_root",
+            "output": "",
+            "result": [
+                {
+                    "id": 1,
+                    "parent": 0,
+                    "count": 0,
+                    "data": []
+                }
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "add_item_nested",
+            "output": "",
+            "result": [
+                {
+                    "id": 1,
+                    "parent": 0,
+                    "count": 1,
+                    "data": [
+                        {
+                            "id": 2,
+                            "parent": 1,
+                            "count": 0,
+                            "data": []
+                        }
+                    ]
+                }
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "prices_init_nodb",
+            "output": "{\"status\":false,\"message\":\"No DB Connect\"}",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "mb_missing",
+            "output": "<div class=\"alert alert-danger\">Marketing broadcast panel missing. Deploy <code>cp/content/control/portal/epc_marketing_broadcast_panel.php</code>.</div>",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "mb_ok",
+            "output": "INCLUDED-mb",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "mb_config_empty_doc",
+            "output": "window.EPC_MB={};",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "mb_config_default",
+            "output": "window.EPC_MB={\"ajaxUrl\":\"/content/general_pages/ajax_epc_marketing_broadcast.php\",\"shopName\":\"Your shop\",\"shopUrl\":\"/\"};",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "data_transfer",
+            "output": "\r\n\r\n\r\n<div class=\"col-lg-12\">\r\n\t<div class=\"hpanel\">\r\n\t\t<div class=\"panel-heading hbuilt\">\r\n\t\t\t{3161}\t\t</div>\r\n\t\t<div class=\"panel-body\">\r\n\t\t\t<a class=\"panel_a\" href=\"/cp/shop/perenos-dannyx/eksport-kataloga-tovarov-v-xml-i-json\">\r\n\t\t\t\t<div class=\"panel_a_img\" style=\"background: url('/cp/templates/bootstrap_admin/images/catalogue_export.png') 0 0 no-repeat;\"></div>\r\n\t\t\t\t<div class=\"panel_a_caption\">{3229}</div>\r\n\t\t\t</a>\r\n\t\t\t\r\n\t\t\t<!--\r\n\t\t\t<a class=\"panel_a\" href=\"/cp/shop/perenos-dannyx/vygruzka-na-yandeksmarket\">\r\n\t\t\t\t<div class=\"panel_a_img\" style=\"background: url('/cp/templates/bootstrap_admin/images/yml.png') 0 0 no-repeat;\"></div>\r\n\t\t\t\t<div class=\"panel_a_caption\">{3230}</div>\r\n\t\t\t</a>\r\n\t\t\t-->\r\n\t\t\t\r\n\t\t\t<a class=\"panel_a\" href=\"/cp/shop/perenos-dannyx/import-kataloga-tovarov-iz-xml-i-json\">\r\n\t\t\t\t<div class=\"panel_a_img\" style=\"background: url('/cp/templates/bootstrap_admin/images/catalogue_import.png') 0 0 no-repeat;\"></div>\r\n\t\t\t\t<div class=\"panel_a_caption\">{3231}</div>\r\n\t\t\t</a>\r\n\t\t\t\r\n\t\t\t\r\n\t\t\t<a class=\"panel_a\" href=\"/cp/shop/perenos-dannyx/import-tovarov-v-katalog-iz-csv\">\r\n\t\t\t\t<div class=\"panel_a_img\" style=\"background: url('/cp/templates/bootstrap_admin/images/catalogue_import_csv.png') 0 0 no-repeat;\"></div>\r\n\t\t\t\t<div class=\"panel_a_caption\">{3232}</div>\r\n\t\t\t</a>\r\n\t\t\t\r\n\t\t\t\r\n\t\t\t<a class=\"panel_a\" href=\"/cp\">\r\n\t\t\t\t<div class=\"panel_a_img\" style=\"background: url('/cp/templates/bootstrap_admin/images/power_off.png') 0 0 no-repeat;\"></div>\r\n\t\t\t\t<div class=\"panel_a_caption\">{2116}</div>\r\n\t\t\t</a>\r\n\t\t</div>\r\n\t</div>\r\n</div>",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "ilcats",
+            "output": "",
+            "result": {
+                "apiClientId": 15652,
+                "apiKey": "2fc9e2385b7e5270ade11c165ca84c8b",
+                "apiDomain": "incar62.ru",
+                "apiStaticContentHost": "//static.ilcats.ru",
+                "apiImagesHost": "//images.ilcats.ru",
+                "apiVersion": "2.0",
+                "apiArticlePartLink": "http://incar62.ru/en/shop/part_search?article=<%API_URL_PART_NUMBER%>",
+                "apiArticlePartLinkTarget": 1,
+                "apiPartWBrandLink": "http://incar62.ru/en/shop/part_search?article=<%API_URL_PART_NUMBER%>",
+                "apiPartWBrandLinkTarget": 1,
+                "apiPartUsageTarget": 0,
+                "apiPartInfo": "INFO",
+                "apiClientIpAddress": "1.2.3.4",
+                "apiHttpCatalogsPath": "originalnye-katalogi",
+                "apiActiveLanguages": [
+                    "ru"
+                ]
+            },
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "cp_alert_none",
+            "output": "\n\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "cp_alert_all",
+            "output": "\n\t<div class=\"col-lg-12\" id=\"success_div\">\n\t\t<div class=\"alert alert-success fade in\">\n\t\t\t<button class=\"close\" onclick=\"clearAlert('success_div');\" data-dismiss=\"alert\"><span>×</span></button>\n\t\t\t<strong>{2383}</strong> ok &lt;b&gt;\t\t</div>\n\t</div>\n    \t<div class=\"col-lg-12\" id=\"danger_div\">\n\t\t<div class=\"alert alert-danger fade in\">\n\t\t\t<button class=\"close\" onclick=\"clearAlert('danger_div');\" data-dismiss=\"alert\"><span>×</span></button>\n\t\t\t<strong>{2384}</strong> bad &amp;\t\t</div>\n\t</div>\n    \t<div class=\"col-lg-12\" id=\"purple_div\">\n\t\t<div class=\"alert alert-purple fade in\">\n\t\t\t<button class=\"close\" onclick=\"clearAlert('purple_div');\" data-dismiss=\"alert\"><span>×</span></button>\n\t\t\t<strong>{2385}</strong> warn\t\t</div>\n\t</div>\n    \t<div class=\"col-lg-12\" id=\"info_div\">\n\t\t<div class=\"alert alert-info fade in\">\n\t\t\t<button class=\"close\" onclick=\"clearAlert('info_div');\" data-dismiss=\"alert\"><span>×</span></button>\n\t\t\t<strong>{2386}</strong> info\t\t</div>\n\t</div>\n    \n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "doc_guide",
+            "output": "\n<div class=\"well\">\n\t<h3><i class=\"fa fa-book\"></i> Document Control System — Guide</h3>\n\t<p>Industrial-grade English document management for e-world Commerce System. Replaces the legacy Russian print module with FTA-ready templates and attachment storage.</p>\n</div>\n\n<h4>1. Company profile</h4>\n<ol>\n\t<li>Open <strong>Company profile</strong> and enter legal name, full address, <strong>TRN</strong> (15-digit UAE VAT registration), phone, email, and bank IBAN.</li>\n\t<li>Upload your <strong>company logo</strong> (PNG/JPG). It appears on every printed document.</li>\n\t<li>Set the <strong>Legal footer</strong> — FTA retention notice, terms, and disclaimers shown on all documents.</li>\n\t<li>Optional: click <strong>Import from E-Invoicing</strong> to copy seller details already configured in ERP → E-Invoicing.</li>\n</ol>\n\n<h4>2. Document templates</h4>\n<p>Four default templates are pre-installed:</p>\n<ul>\n\t<li><strong>FTA Tax Invoice</strong> — mandatory fields for UAE VAT: supplier TRN, buyer TRN (if registered), invoice number &amp; date, line-level net/VAT/total, amount in words.</li>\n\t<li><strong>Packing Slip</strong> — warehouse picking list (no tax amounts).</li>\n\t<li><strong>Delivery Note</strong> — customer sign-off block for proof of delivery.</li>\n\t<li><strong>Payment Receipt</strong> — records amount received, method, and reference.</li>\n</ul>\n<p>Templates use HTML with placeholders such as <code>{{company_trn}}</code>, <code>{{lines_table}}</code>, <code>{{legal_footer}}</code>. Edit header, body, footer, and CSS directly — changes apply immediately to new prints.</p>\n\n<h4>3. Printing documents</h4>\n<ol>\n\t<li>Go to <strong>Print documents</strong>.</li>\n\t<li>Find the order and click the document type (opens in a new tab).</li>\n\t<li>Use the browser <strong>Print</strong> button or Ctrl+P. Save as PDF for email/archive.</li>\n</ol>\n<p>Invoice numbers prefer the e-invoice number from ERP if one exists; otherwise format <code>INV-000123</code>.</p>\n\n<h4>4. Supplier &amp; other attachments</h4>\n<ol>\n\t<li>Open <strong>Attachments</strong>.</li>\n\t<li>Enter order ID, choose category (e.g. <strong>Supplier purchase invoice</strong>), supplier name, reference, and upload PDF/image.</li>\n\t<li>Files are stored securely and linked to the order for audit trail (input VAT support).</li>\n</ol>\n\n<h4>5. FTA compliance checklist</h4>\n<table class=\"table table-bordered\">\n\t<thead><tr><th>Requirement</th><th>Where configured</th></tr></thead>\n\t<tbody>\n\t\t<tr><td>Supplier TRN on tax invoice</td><td>Company profile → TRN</td></tr>\n\t\t<tr><td>Buyer TRN (if VAT registered)</td><td>Customers → E-invoice buyer profile</td></tr>\n\t\t<tr><td>Unique invoice number &amp; date</td><td>Auto from order / e-invoice</td></tr>\n\t\t<tr><td>VAT rate &amp; amount</td><td>Finance → VAT settings (default 5%)</td></tr>\n\t\t<tr><td>Line item description &amp; value</td><td>Order lines</td></tr>\n\t\t<tr><td>5-year record retention</td><td>Legal footer + attachment storage</td></tr>\n\t</tbody>\n</table>\n\n<h4>6. Legacy module</h4>\n<p>The old Russian module (<code>/cp/shop/modul-pechati-dokumentov</code>) redirects to this panel. Russian TORG-12 / UPD forms remain in the database for reference but are not recommended for UAE operations.</p>\n\n<h4>7. Support &amp; deployment</h4>\n<p>Setup script (server): <code>/epc-document-control-cp-setup.php?token=…</code></p>\n<p>Designed by <strong>Electronic World Group</strong> for the <strong>e-world Commerce System</strong>.</p>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "manufacturer_ok",
+            "output": "",
+            "result": [
+                "knecht",
+                7,
+                "KNECHT",
+                "NameX",
+                2,
+                1,
+                true,
+                {
+                    "a": 1
+                },
+                true
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "manufacturer_short",
+            "output": "",
+            "result": false,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "autoxp_nodb",
+            "output": "No DB connect",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "admin_access_none",
+            "output": "{\"status\":false,\"error\":\"{2387}\",\"message\":\"{2387}\"}",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "admin_access_denied",
+            "output": "{\"status\":false,\"error\":\"{2388}\",\"message\":\"{2388}\"}",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "admin_access_ok",
+            "output": "",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "chose_car",
+            "output": "\n\n\n\n\n<ul class=\"bs-glyphicons-list\">\n\t<li>\n\t\t<a href=\"/en/shop/avtomobilnye-katalogi/vybor-kataloga?car_id=3\">\n\t\t\t<img src=\"/content/files/images/car_logos/bmw.png\" /><br>\n\t\t\t<span class=\"glyphicon-class\">{11}</span>\n\t\t</a>\n\t</li>\n    </ul>",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "health_not_super",
+            "output": "<div class=\"alert alert-warning\">Platform health checkup is available on <strong>Super CP</strong> (www.ecomae.com) only.</div>",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "health_super",
+            "output": "<div class=\"epc-portal-settings epc-phc\" id=\"epc_phc_root\">\n\t<div class=\"hpanel\">\n\t\t<div class=\"panel-heading\">\n\t\t\t<h2><i class=\"fas fa-heartbeat\"></i> Platform health checkup</h2>\n\t\t\t<p class=\"text-muted\">Tenant URLs, SSL, ERP DB isolation, nginx, backups, indexing, and VPS hints — run on demand for go-live and weekly ops.</p>\n\t\t</div>\n\t\t<div class=\"panel-body\">\n\t\t\t<div class=\"epc-phc__toolbar\">\n\t\t\t\t<button type=\"button\" class=\"btn btn-primary\" id=\"epc_phc_run\"><i class=\"fas fa-play\"></i> Run checkup</button>\n\t\t\t\t<button type=\"button\" class=\"btn btn-default\" id=\"epc_phc_export_csv\"><i class=\"fas fa-download\"></i> Export CSV</button>\n\t\t\t\t<span class=\"epc-phc__status\" id=\"epc_phc_last_run\">Last run: —</span>\n\t\t\t\t<span id=\"epc_phc_loading\"><i class=\"fas fa-spinner fa-spin\"></i> Running probes…</span>\n\t\t\t</div>\n\t\t\t<div id=\"epc_phc_results\">\n\t\t\t\t<p class=\"text-muted\">Click <strong>Run checkup</strong> to load the latest report from the platform API.</p>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "about_program",
+            "output": "\r\n<div class=\"col-lg-12\">\r\n\t<div class=\"hpanel\">\r\n\t\t<div class=\"panel-heading hbuilt\">\r\n\t\t\t{2492}\t\t</div>\r\n\t\t<div class=\"panel-body\">\r\n\t\t\t<div class=\"table-responsive\">\r\n\t\t\t\t<table cellpadding=\"1\" cellspacing=\"1\" class=\"table table-bordered table-striped\">\r\n\t\t\t\t\t<tbody>\r\n\t\t\t\t\t<tr>\r\n\t\t\t\t\t\t<td><b>{2493}</b></td>\r\n\t\t\t\t\t\t<td>1.0</td>\r\n\t\t\t\t\t\t<td><b>{2494}</b></td>\r\n\t\t\t\t\t\t<td>14.11.2023 22:13:20</td>\r\n\t\t\t\t\t</tr>\r\n\t\t\t\t\t<tr>\r\n\t\t\t\t\t\t<td><b>{2495}</b></td>\r\n\t\t\t\t\t\t<td>2.1</td>\r\n\t\t\t\t\t\t<td><b>{2494}</b></td>\r\n\t\t\t\t\t\t<td>14.11.2023 23:13:20</td>\r\n\t\t\t\t\t</tr>\r\n\t\t\t\t\t</tbody>\r\n\t\t\t\t</table>\r\n\t\t\t</div>\r\n\r\n\t\t</div>\r\n\t</div>\r\n</div>",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "auth_nodb",
+            "output": "No DB connect",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "auth_forbidden",
+            "output": "",
+            "result": "{\"status\":false,\"message\":\"Forbidden\"}",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "cleaner_week",
+            "output": "",
+            "result": 1790952123,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "page_lang",
+            "output": "\t<div class=\"col-lg-12\">\r\n\t\t<div class=\"hpanel\">\r\n\t\t\t<div class=\"panel-heading hbuilt\">\r\n\t\t\t\t{2113}\t\t\t</div>\r\n\t\t\t<div class=\"panel-body\">\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\t\t<a class=\"panel_a\" href=\"/cp/lang/configurator\"  >\n\t\t\t<div class=\"panel_a_img\" style=\"background-color: #8e44ad;width:96px;height:96px;display:table-cell;vertical-align:middle;\"><i class=\"fas fa-tasks\" style=\"color:#FFF;font-size:45px\"></i></div>\n\t\t\t<div class=\"panel_a_caption\">{2539}</div>\n\t\t</a>\n\t\t\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\t\t<a class=\"panel_a\" href=\"/cp/lang/editor\"  >\n\t\t\t<div class=\"panel_a_img\" style=\"background-color: #00b05a;width:96px;height:96px;display:table-cell;vertical-align:middle;\"><i class=\"fas fa-pencil-alt\" style=\"color:#FFF;font-size:45px\"></i></div>\n\t\t\t<div class=\"panel_a_caption\">{2528}</div>\n\t\t</a>\n\t\t\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t<a class=\"panel_a\" href=\"/cp\">\r\n\t\t\t\t\t<div class=\"panel_a_img\" style=\"background: url('/cp/templates/bootstrap_admin/images/power_off.png') 0 0 no-repeat;\"></div>\r\n\t\t\t\t\t<div class=\"panel_a_caption\">{2116}</div>\r\n\t\t\t\t</a>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</div>\r\n\t",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "lang_module_off",
+            "output": "\r\n\r\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "lang_module_on",
+            "output": "\r\n\r\n\t\t<div class=\"text-center\" style=\"padding:5px;border-top:1px solid #e4e5e7;\">\r\n\t\t\t{3993}:\r\n\t\t\t<select class=\"form-control\" onchange=\"lang_selected(this.value);\">\r\n\t\t\t\t\t\t\t\t\t<option value=\"en\"  selected=\"selected\" >EN | {1}</option>\r\n\t\t\t\t\t\t\t\t\t\t<option value=\"ar\" >AR | {2}</option>\r\n\t\t\t\t\t\t\t\t</select>\r\n\t\t</div>\r\n\t\t\r\n\t\t<script>\r\n\t\t//На случай, если модуль подключается в нескольких местах\r\n\t\tif( typeof lang_selected != 'function' )\r\n\t\t{\r\n\t\t\twindow.lang_selected = function(lang)\r\n\t\t\t{\r\n\t\t\t\t//Записать в куки язык\r\n\t\t\t\tvar date = new Date(new Date().getTime() + 15552000 * 1000);\r\n\t\t\t\tdocument.cookie = \"lang_cp=\"+lang+\"; path=/; expires=\" + date.toUTCString();\r\n\t\t\t\t\r\n\t\t\t\t//Перезагрузить страницу\r\n\t\t\t\tlocation = location;\r\n\t\t\t};\r\n\t\t}\r\n\t\t</script>\r\n\t\t\r\n\t\t",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "sf_lang_module_off",
+            "output": "\r\n\r\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "sf_lang_module_on",
+            "output": "\r\n\r\n\t\t<select onchange=\"lang_selected(this.value);\" style=\"border:0;width:40px;background:transparent;\" class=\"lang_select\">\r\n\t\t\t\t\t<option value=\"en\"  selected=\"selected\" >EN | {1}</option>\r\n\t\t\t\t\t\t<option value=\"ar\" >AR | {2}</option>\r\n\t\t\t\t\t</select>\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t<script>\r\n\t//На случай, если модуль подключается в нескольких местах\r\n\tif( typeof lang_selected != 'function' )\r\n\t{\r\n\t\twindow.lang_selected = function(lang)\r\n\t\t{\r\n\t\t\tlang = String(lang || '').toLowerCase().replace(/[^a-z\\-]/g, '');\r\n\t\t\tif (!lang) {\r\n\t\t\t\treturn;\r\n\t\t\t}\r\n\t\t\t//Записать в куки язык\r\n\t\t\tvar date = new Date(new Date().getTime() + 15552000 * 1000);\r\n\t\t\tdocument.cookie = \"lang=\"+lang+\"; path=/; expires=\" + date.toUTCString();\r\n\t\t\t\r\n\t\t\t//Перейти на URL этой же страницы, но, для другого языка\r\n\t\t\tvar page_url_with_lang_tag = '/<lang>/shop';\r\n\t\t\tvar target = '';\r\n\t\t\tif (page_url_with_lang_tag && page_url_with_lang_tag.indexOf('<lang>') !== -1) {\r\n\t\t\t\ttarget = page_url_with_lang_tag.replace('<lang>', lang);\r\n\t\t\t} else {\r\n\t\t\t\t// Fallback: swap first path segment when it looks like a language code\r\n\t\t\t\tvar path = window.location.pathname || '/';\r\n\t\t\t\tvar search = window.location.search || '';\r\n\t\t\t\tvar hash = window.location.hash || '';\r\n\t\t\t\tvar parts = path.split('/');\r\n\t\t\t\t// path like /en/parts/... → [\"\", \"en\", \"parts\", ...]\r\n\t\t\t\tif (parts.length > 1 && /^[a-z]{2}(?:-[a-zA-Z]+)?$/i.test(parts[1] || '')) {\r\n\t\t\t\t\tparts[1] = lang;\r\n\t\t\t\t\ttarget = parts.join('/') + search + hash;\r\n\t\t\t\t} else {\r\n\t\t\t\t\ttarget = '/' + lang + (path === '/' ? '/' : path) + search + hash;\r\n\t\t\t\t}\r\n\t\t\t}\r\n\t\t\tif (target) {\r\n\t\t\t\twindow.location.assign(target);\r\n\t\t\t}\r\n\t\t};\r\n\t}\r\n</script>\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "inserted_groups",
+            "output": "",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "industry_print_empty",
+            "output": "",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "industry_print_ok",
+            "output": "<div class=\"col-lg-12 epc-goods-catalog epc-goods-catalog--auto_parts\">\n\t<h2 class=\"section-title\">Parts &lt;b&gt;</h2>\n\tGRID</div>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        }
+    ]
+}

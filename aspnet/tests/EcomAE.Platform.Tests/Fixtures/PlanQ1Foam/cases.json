@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "names" },
+    { "name": "terms" },
+    { "name": "listings" },
+    { "name": "market" }
+  ]
+}

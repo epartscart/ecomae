@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "guest" },
+    { "name": "signed" },
+    { "name": "currency" },
+    { "name": "tenant" }
+  ]
+}

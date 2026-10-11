@@ -1,0 +1,12 @@
+{
+  "cases": [
+    {
+      "name": "mig_static",
+      "eval": "$r=epc_migrations_registry(); return array(EPC_MIGRATIONS_VERSION, count($r), $r[0]['version'], $r[0]['name'], $r[7]['version'], $r[7]['name'], md5($r[0]['up']), md5($r[7]['up']));"
+    },
+    {
+      "name": "mig_flow",
+      "eval": "$pdo=$GLOBALS['db_link']; $st0=epc_migrations_status($pdo); $dry0=epc_migrations_dry_run($pdo); $one=epc_migration_apply($pdo, epc_migrations_registry()[0]); $pend=epc_migrations_pending($pdo); $st1=epc_migrations_status($pdo); $run=epc_migrations_run_all($pdo); $st2=epc_migrations_status($pdo); $ver=epc_migrations_verify($pdo); $rb=epc_migration_rollback($pdo,'008'); $miss=epc_migration_rollback($pdo,'999'); $dry1=epc_migrations_dry_run($pdo); $again=epc_migrations_run_all($pdo); $pdo->exec(\"INSERT INTO `epc_migrations` (`version`,`name`,`checksum`) VALUES ('999','ghost','abc')\"); $ver2=epc_migrations_verify($pdo); return array($st0['current_version'],$st0['pending'],$dry0['count'],$dry0['statements'][0]['name'],$one['ok'],$one['version'],count($pend),$pend[0]['version'],$st1['applied'],$st1['current_version'],$run['ok'],$run['applied'],$st2['applied'],$st2['pending'],$st2['current_version'],$st2['latest_version'],$ver['ok'],$rb['ok'],$rb['rolled_back'],$miss['ok'],$miss['error'],$dry1['count'],$dry1['statements'][0]['version'],$again['ok'],$again['applied'],$ver2['ok'],$ver2['issues'][0]['issue']);"
+    }
+  ]
+}

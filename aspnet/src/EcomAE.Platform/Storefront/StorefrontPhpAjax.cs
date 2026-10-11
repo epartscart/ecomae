@@ -50,6 +50,7 @@ public static partial class StorefrontPhpAjax
     public const string CatalogueCountPath = "/content/shop/catalogue/ajax_get_products_count.php";
     public const string CatalogueListPath = "/content/shop/catalogue/ajax_get_products_list.php";
     public const string CataloguePagePath = "/content/shop/catalogue/ajax_get_products_page.php";
+    public const string ProductsStylePath = StorefrontProductsStyle.Path;
     public const string PickupTimingPath = "/content/shop/obtaining_modes/get_in_office/ajax_specify_office_info.php";
     public const string DemandMetaPath = "/content/shop/docpart/ajax_epc_demand_meta.php";
     public const string DemandShowcasePath = "/content/shop/docpart/ajax_epc_demand_showcase.php";

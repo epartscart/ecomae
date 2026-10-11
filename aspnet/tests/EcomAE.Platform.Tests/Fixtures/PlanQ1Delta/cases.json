@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "empty" },
+    { "name": "cards" },
+    { "name": "escape" },
+    { "name": "tenant" }
+  ]
+}

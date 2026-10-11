@@ -1,0 +1,173 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "providers",
+            "output": "",
+            "result": [
+                {
+                    "google": {
+                        "id": "google",
+                        "label": "Continue with Google",
+                        "icon": "fa-google",
+                        "enabled": false,
+                        "start_url": ""
+                    }
+                },
+                "https://www.ecomae.com/epc-auth-google-callback.php",
+                {
+                    "google": {
+                        "id": "google",
+                        "label": "Continue with Google",
+                        "icon": "fa-google",
+                        "enabled": false,
+                        "start_url": "/epc-auth-google-start.php"
+                    }
+                },
+                {
+                    "google": {
+                        "id": "google",
+                        "label": "Continue with Google",
+                        "icon": "fa-google",
+                        "enabled": true,
+                        "start_url": "/epc-auth-google-start.php"
+                    }
+                },
+                "https://www.ecomae.com/custom-callback.php"
+            ]
+        },
+        {
+            "name": "state",
+            "output": "",
+            "result": [
+                "eyJuIjoiYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJ0ayI6ImFjbWUiLCJrIjoibWl4ZWQiLCJyaCI6InNob3AuYWNtZS50ZXN0IiwicnAiOiJcL2NwXC8iLCJhbSI6ImNwIiwibHAiOiJlbiIsInQiOjE3NjAwMDAwMDB9.248a707c9ef3eff72286f730d801dd5e75a0a7800152aecd4d8400c4c41639f4",
+                {
+                    "n": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "tk": "acme",
+                    "k": "mixed",
+                    "rh": "shop.acme.test",
+                    "rp": "/cp/",
+                    "am": "cp",
+                    "lp": "en",
+                    "t": 1760000000
+                },
+                null,
+                null,
+                null,
+                "eyJuIjoiYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJ0ayI6ImJldGEiLCJrIjoibWl4ZWQiLCJyaCI6InNob3AuYWNtZS50ZXN0IiwicnAiOiJcL2NwXC8iLCJhbSI6InN0b3JlZnJvbnQiLCJscCI6ImVuIiwidCI6MTc2MDAwMDAwMH0.096c7a49effe71566942cb4e8df06cc3af2ee1b9a21156625df665b75b0297ba",
+                {
+                    "n": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "tk": "beta",
+                    "k": "mixed",
+                    "rh": "shop.acme.test",
+                    "rp": "/cp/",
+                    "am": "storefront",
+                    "lp": "en",
+                    "t": 1760000000
+                }
+            ]
+        },
+        {
+            "name": "google",
+            "output": "",
+            "result": [
+                "",
+                "https://accounts.google.com/o/oauth2/v2/auth?client_id=id.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fwww.ecomae.com%2Fepc-auth-google-callback.php&response_type=code&scope=openid+email+profile&state=eyJuIjoiYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJ0ayI6ImFjbWUiLCJrIjoibWl4ZWQiLCJyaCI6InNob3AuYWNtZS50ZXN0IiwicnAiOiJcL2NwXC8iLCJhbSI6ImNwIiwibHAiOiJlbiIsInQiOjE3NjAwMDAwMDB9.248a707c9ef3eff72286f730d801dd5e75a0a7800152aecd4d8400c4c41639f4&nonce=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&prompt=select_account&access_type=online",
+                {
+                    "ok": false,
+                    "message": "Malformed id_token"
+                },
+                {
+                    "ok": false,
+                    "message": "id_token audience mismatch"
+                },
+                {
+                    "ok": false,
+                    "message": "Google account email not verified"
+                },
+                {
+                    "ok": false,
+                    "message": "Google account email not verified"
+                },
+                {
+                    "ok": false,
+                    "message": "id_token issuer invalid"
+                },
+                {
+                    "ok": false,
+                    "message": "id_token expired"
+                },
+                {
+                    "ok": true,
+                    "email": "ops@acme.test",
+                    "name": "Ops User",
+                    "sub": "sub-9"
+                },
+                {
+                    "ok": false,
+                    "message": "Google OAuth not configured"
+                },
+                {
+                    "ok": false,
+                    "message": "Token exchange failed: timeout"
+                },
+                {
+                    "ok": false,
+                    "message": "Invalid token response from Google"
+                },
+                {
+                    "ok": true,
+                    "profile": {
+                        "ok": true,
+                        "email": "ops@acme.test",
+                        "name": "Ops",
+                        "sub": "1"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "login_html",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "message": "Tenant context lost"
+                },
+                {
+                    "ok": false,
+                    "message": "Tenant context lost"
+                },
+                {
+                    "ok": false,
+                    "message": "No CP access for this Google account on this workspace"
+                },
+                {
+                    "ok": false,
+                    "message": "session-denied"
+                },
+                {
+                    "ok": true,
+                    "redirect": "/cp/"
+                },
+                {
+                    "ok": false,
+                    "message": "Could not sign in with this Google account"
+                },
+                {
+                    "ok": true,
+                    "redirect": "/cp/"
+                },
+                "<div class=\"epc-cp-auth-modern\" id=\"epc_cp_auth_modern\" data-tenant-key=\"acme\" data-auth-context=\"cp\">\n<p class=\"epc-cp-auth-title\">Sign in to Ops &amp; Co</p>\n<div class=\"epc-oauth-buttons\">G</div><div class=\"epc-social-divider\"><span>Or</span></div>\n<div class=\"epc-cp-auth-tabs\" role=\"tablist\">\n  <button type=\"button\" class=\"epc-cp-auth-tab is-active\" data-tab=\"password\" role=\"tab\">Password</button>\n  <button type=\"button\" class=\"epc-cp-auth-tab\" data-tab=\"email_code\" role=\"tab\">Email code</button>\n</div>\n\n<div class=\"epc-cp-auth-pane is-active\" data-pane=\"password\">\n  <p class=\"epc-cp-auth-hint\">Sign in with your CP password below.</p>\n</div>\n\n<div class=\"epc-cp-auth-pane\" data-pane=\"email_code\">\n  <div class=\"form-group\">\n    <label class=\"control-label\" for=\"epc_auth_email\">Email</label>\n    <input type=\"email\" class=\"form-control\" id=\"epc_auth_email\" autocomplete=\"email\" placeholder=\"you@company.com\" />\n  </div>\n  <button type=\"button\" class=\"btn btn-block epc-cp-auth-continue-email\" id=\"epc_auth_send_code\">Continue with Email</button>\n  <p class=\"epc-cp-auth-msg\" id=\"epc_auth_otp_msg\" aria-live=\"polite\"></p>\n</div>\n</div>\n\nOTP<script>\n(function(){\nvar root=document.getElementById('epc_cp_auth_modern');\nif(!root)return;\nvar authContext=root.getAttribute('data-auth-context')||'cp';\nvar defaultTab=\"password\";\n\n// Tab switching\nroot.querySelectorAll('.epc-cp-auth-tab').forEach(function(btn){\n  btn.addEventListener('click',function(){\n    var t=btn.getAttribute('data-tab');\n    root.querySelectorAll('.epc-cp-auth-tab').forEach(function(b){b.classList.toggle('is-active',b===btn);});\n    root.querySelectorAll('.epc-cp-auth-pane').forEach(function(p){p.classList.toggle('is-active',p.getAttribute('data-pane')===t);});\n    var lf=document.getElementById('login_form');\n    if(lf)lf.style.display=(t==='password')?'':'none';\n  });\n});\nvar lf=document.getElementById('login_form');\nif(lf&&defaultTab!=='password')lf.style.display='none';\n\n// Send code → open modal\nvar sendBtn=document.getElementById('epc_auth_send_code');\nvar emailIn=document.getElementById('epc_auth_email');\nvar msgEl=document.getElementById('epc_auth_otp_msg');\nfunction showOtpMsg(t,ok){if(msgEl){msgEl.textContent=t;msgEl.className='epc-cp-auth-msg'+(ok?' is-ok':' is-err');}}\nif(sendBtn){\n  sendBtn.addEventListener('click',function(){\n    var em=(emailIn||{}).value||'';\n    em=em.trim();\n    if(!em||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(em)){\n      showOtpMsg('Please enter a valid email address.',false);return;\n    }\n    showOtpMsg('',true);\n    if(window.EpcOtpModal&&window.EpcOtpModal['epc_cp_otp_modal']){\n      window.EpcOtpModal['epc_cp_otp_modal'].open(em);\n    }\n  });\n}\nif(emailIn){\n  emailIn.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();if(sendBtn)sendBtn.click();}});\n}\n})();\n</script>\n",
+                "",
+                "<div class=\"epc-cp-auth-modern\" id=\"epc_cp_auth_modern\" data-tenant-key=\"beta\" data-auth-context=\"storefront\">\n<p class=\"epc-cp-auth-title\">Sign in to Store</p>\n<div class=\"epc-cp-auth-tabs\" role=\"tablist\">\n  <button type=\"button\" class=\"epc-cp-auth-tab is-active\" data-tab=\"email_code\" role=\"tab\">Email code</button>\n</div>\n\n\n<div class=\"epc-cp-auth-pane is-active\" data-pane=\"email_code\">\n  <div class=\"form-group\">\n    <label class=\"control-label\" for=\"epc_auth_email\">Email</label>\n    <input type=\"email\" class=\"form-control\" id=\"epc_auth_email\" autocomplete=\"email\" placeholder=\"you@company.com\" />\n  </div>\n  <button type=\"button\" class=\"btn btn-block epc-cp-auth-continue-email\" id=\"epc_auth_send_code\">Continue with Email</button>\n  <p class=\"epc-cp-auth-msg\" id=\"epc_auth_otp_msg\" aria-live=\"polite\"></p>\n</div>\n</div>\n\nOTP<script>\n(function(){\nvar root=document.getElementById('epc_cp_auth_modern');\nif(!root)return;\nvar authContext=root.getAttribute('data-auth-context')||'cp';\nvar defaultTab=\"email_code\";\n\n// Tab switching\nroot.querySelectorAll('.epc-cp-auth-tab').forEach(function(btn){\n  btn.addEventListener('click',function(){\n    var t=btn.getAttribute('data-tab');\n    root.querySelectorAll('.epc-cp-auth-tab').forEach(function(b){b.classList.toggle('is-active',b===btn);});\n    root.querySelectorAll('.epc-cp-auth-pane').forEach(function(p){p.classList.toggle('is-active',p.getAttribute('data-pane')===t);});\n    var lf=document.getElementById('login_form');\n    if(lf)lf.style.display=(t==='password')?'':'none';\n  });\n});\nvar lf=document.getElementById('login_form');\nif(lf&&defaultTab!=='password')lf.style.display='none';\n\n// Send code → open modal\nvar sendBtn=document.getElementById('epc_auth_send_code');\nvar emailIn=document.getElementById('epc_auth_email');\nvar msgEl=document.getElementById('epc_auth_otp_msg');\nfunction showOtpMsg(t,ok){if(msgEl){msgEl.textContent=t;msgEl.className='epc-cp-auth-msg'+(ok?' is-ok':' is-err');}}\nif(sendBtn){\n  sendBtn.addEventListener('click',function(){\n    var em=(emailIn||{}).value||'';\n    em=em.trim();\n    if(!em||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(em)){\n      showOtpMsg('Please enter a valid email address.',false);return;\n    }\n    showOtpMsg('',true);\n    if(window.EpcOtpModal&&window.EpcOtpModal['epc_cp_otp_modal']){\n      window.EpcOtpModal['epc_cp_otp_modal'].open(em);\n    }\n  });\n}\nif(emailIn){\n  emailIn.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();if(sendBtn)sendBtn.click();}});\n}\n})();\n</script>\n",
+                {
+                    "ok": true,
+                    "tenant_key": "beta",
+                    "auth_mode": "storefront",
+                    "return_host": "shop.beta.test"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,332 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "ssf_pure",
+            "output": "",
+            "result": [
+                " IFNULL(`storefront_temp_disabled`, 0) = 0 ",
+                " IFNULL(s.`storefront_temp_disabled`, 0) = 0 ",
+                "`price_id` IN (SELECT `id` FROM `shop_docpart_prices` WHERE  IFNULL(`storefront_temp_disabled`, 0) = 0 )",
+                "d.`price_id` IN (SELECT `id` FROM `shop_docpart_prices` WHERE  IFNULL(`storefront_temp_disabled`, 0) = 0 )"
+            ]
+        },
+        {
+            "name": "ssf_db",
+            "output": "",
+            "result": [
+                [
+                    "CW",
+                    "CAT WH",
+                    "CAFE",
+                    "OFF WH"
+                ],
+                [
+                    3,
+                    5
+                ],
+                [
+                    13
+                ],
+                [
+                    {
+                        "entity_type": "storage",
+                        "entity_id": 1,
+                        "name": "Main WH",
+                        "short_name": "MW",
+                        "type_label": "Warehouse",
+                        "price_id": 0,
+                        "storefront_disabled": false,
+                        "hidden": false
+                    },
+                    {
+                        "entity_type": "storage",
+                        "entity_id": 2,
+                        "name": "Price WH",
+                        "short_name": "PW",
+                        "type_label": "Price list warehouse",
+                        "price_id": 10,
+                        "storefront_disabled": false,
+                        "hidden": false
+                    },
+                    {
+                        "entity_type": "storage",
+                        "entity_id": 3,
+                        "name": "Cat WH",
+                        "short_name": "CW",
+                        "type_label": "Catalogue warehouse",
+                        "price_id": 0,
+                        "storefront_disabled": true,
+                        "hidden": false
+                    },
+                    {
+                        "entity_type": "storage",
+                        "entity_id": 4,
+                        "name": "Ext WH",
+                        "short_name": "EW",
+                        "type_label": "External supplier",
+                        "price_id": 11,
+                        "storefront_disabled": false,
+                        "hidden": true
+                    },
+                    {
+                        "entity_type": "storage",
+                        "entity_id": 5,
+                        "name": "Off WH",
+                        "short_name": "Cafe",
+                        "type_label": "Warehouse",
+                        "price_id": 0,
+                        "storefront_disabled": true,
+                        "hidden": false
+                    },
+                    {
+                        "entity_type": "price_list",
+                        "entity_id": 12,
+                        "name": "Unlinked C",
+                        "short_name": "",
+                        "type_label": "Price list (unlinked)",
+                        "price_id": 12,
+                        "storefront_disabled": false,
+                        "hidden": false,
+                        "row_count": 2
+                    },
+                    {
+                        "entity_type": "price_list",
+                        "entity_id": 13,
+                        "name": "Unlinked D",
+                        "short_name": "",
+                        "type_label": "Price list (unlinked)",
+                        "price_id": 13,
+                        "storefront_disabled": true,
+                        "hidden": false,
+                        "row_count": 0
+                    }
+                ],
+                {
+                    "ok": false,
+                    "message": "Invalid entity id"
+                },
+                {
+                    "ok": false,
+                    "message": "Storage not found"
+                },
+                {
+                    "ok": true,
+                    "storefront_disabled": 1,
+                    "entity_name": "Price WH"
+                },
+                {
+                    "ok": true,
+                    "storefront_disabled": 1,
+                    "entity_name": "Unlinked C"
+                },
+                true,
+                false,
+                false,
+                true,
+                true,
+                true,
+                false,
+                true,
+                [
+                    11
+                ],
+                [
+                    {
+                        "price_id": 11,
+                        "storage": "EW"
+                    },
+                    {
+                        "price_id": 11,
+                        "warehouse": "EW"
+                    }
+                ],
+                [
+                    {
+                        "protocol_version": 3,
+                        "office_storage_bunches": [
+                            {
+                                "storage_id": 1
+                            }
+                        ]
+                    },
+                    {
+                        "protocol_version": "server",
+                        "storage_id": 3
+                    },
+                    {
+                        "storage_id": 1
+                    }
+                ],
+                2
+            ]
+        },
+        {
+            "name": "sku_pure",
+            "output": "",
+            "result": [
+                "AB123",
+                "",
+                "BOSCH PARTS",
+                "",
+                [
+                    "product",
+                    "packaging",
+                    "detail",
+                    "diagram",
+                    "install",
+                    "datasheet",
+                    "other"
+                ],
+                [
+                    "text",
+                    "number",
+                    "bool",
+                    "list",
+                    "rich"
+                ],
+                9,
+                "technical",
+                "/content/files/images/sku_media/",
+                "/content/files/images/sku_media/a.png",
+                "/content/files/images/sku_media/x.png",
+                "",
+                "/en/parts/BOSCH/045110",
+                "/en/parts/brands/045110",
+                "",
+                "/en/parts/BOSCH/045110",
+                "Yes",
+                "No",
+                "Yes",
+                "a, b, c pcs",
+                "<b>x</b>",
+                "12.5 mm"
+            ]
+        },
+        {
+            "name": "sku_db",
+            "output": "",
+            "result": [
+                1,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                {
+                    "ok": false,
+                    "error": "Missing profile"
+                },
+                {
+                    "ok": false,
+                    "error": "Label required"
+                },
+                true,
+                "sku_N_T_HEX.png",
+                true,
+                {
+                    "profile": {
+                        "id": 1,
+                        "brand": "BOSCH",
+                        "article": "045110",
+                        "article_key": "045110",
+                        "title": "Linked",
+                        "status": "active",
+                        "storefront_url": "/en/parts/BOSCH/045110"
+                    },
+                    "photos": [
+                        {
+                            "id": 1,
+                            "alt": "front",
+                            "caption": "Front view",
+                            "photo_type": "detail",
+                            "is_primary": 1,
+                            "url": "/content/files/images/sku_media/sku_N_T_HEX.png"
+                        }
+                    ],
+                    "spec_groups": [
+                        {
+                            "name": "Technical",
+                            "code": "technical",
+                            "icon": "fa-list",
+                            "rows": [
+                                {
+                                    "label": "Sealed",
+                                    "value": "0",
+                                    "value_type": "bool",
+                                    "unit": "",
+                                    "display": "No"
+                                },
+                                {
+                                    "label": "Height",
+                                    "value": "12.5",
+                                    "value_type": "number",
+                                    "unit": "mm",
+                                    "display": "12.5 mm"
+                                },
+                                {
+                                    "label": "Fits",
+                                    "value": "a, b, ,c",
+                                    "value_type": "list",
+                                    "unit": "",
+                                    "display": "a, b, c"
+                                }
+                            ]
+                        }
+                    ],
+                    "storefront_url": "/en/parts/BOSCH/045110"
+                },
+                true,
+                "/content/files/images/sku_media/sku_N_T_HEX.png",
+                [
+                    {
+                        "name": "Technical",
+                        "icon": "fa-list",
+                        "rows": [
+                            {
+                                "label": "Sealed",
+                                "value": "No",
+                                "value_type": "bool"
+                            },
+                            {
+                                "label": "Height",
+                                "value": "12.5 mm",
+                                "value_type": "number"
+                            },
+                            {
+                                "label": "Fits",
+                                "value": "a, b, c",
+                                "value_type": "list"
+                            }
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "source": "profile",
+                        "brand": "BOSCH",
+                        "article": "045110",
+                        "title": "Linked",
+                        "warehouse": "MW",
+                        "has_profile": true,
+                        "status": "active",
+                        "product_id": 7
+                    }
+                ],
+                {
+                    "ok": false,
+                    "error": "No upload"
+                },
+                null,
+                null,
+                true,
+                true,
+                true,
+                true,
+                null,
+                []
+            ]
+        }
+    ]
+}

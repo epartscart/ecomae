@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "norm" },
+    { "name": "resolve" },
+    { "name": "should" },
+    { "name": "open" }
+  ]
+}

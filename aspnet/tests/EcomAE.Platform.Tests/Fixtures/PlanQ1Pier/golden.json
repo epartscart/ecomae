@@ -1,0 +1,209 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "enqueue",
+            "output": "",
+            "result": [
+                0,
+                1,
+                1,
+                2,
+                3,
+                {
+                    "id": 1,
+                    "job_type": "noop",
+                    "tenant_key": "alpha",
+                    "payload_json": "{\"n\":1}",
+                    "status": "queued",
+                    "priority": 10,
+                    "attempts": 0,
+                    "max_attempts": 5,
+                    "locked_by": null,
+                    "last_error": null,
+                    "result_json": null
+                },
+                {
+                    "id": 2,
+                    "job_type": "scan",
+                    "tenant_key": "beta",
+                    "payload_json": "[]",
+                    "status": "queued",
+                    "priority": 100,
+                    "attempts": 0,
+                    "max_attempts": 2,
+                    "locked_by": null,
+                    "last_error": null,
+                    "result_json": null
+                },
+                {
+                    "id": 3,
+                    "job_type": "scan",
+                    "tenant_key": "gamma",
+                    "payload_json": "{\"x\":\"y\"}",
+                    "status": "queued",
+                    "priority": 100,
+                    "attempts": 0,
+                    "max_attempts": 5,
+                    "locked_by": null,
+                    "last_error": null,
+                    "result_json": null
+                }
+            ]
+        },
+        {
+            "name": "claim",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "id": 2,
+                        "tenant_key": "beta",
+                        "status": "running",
+                        "locked_by": "w1",
+                        "priority": 10
+                    }
+                ],
+                {
+                    "id": 2,
+                    "job_type": "noop",
+                    "tenant_key": "beta",
+                    "payload_json": "{\"b\":1}",
+                    "status": "done",
+                    "priority": 10,
+                    "attempts": 1,
+                    "max_attempts": 5,
+                    "locked_by": "w1",
+                    "last_error": null,
+                    "result_json": "{\"ok\":true}"
+                },
+                [
+                    {
+                        "id": 1,
+                        "tenant_key": "alpha",
+                        "attempts": 1
+                    },
+                    {
+                        "id": 3,
+                        "tenant_key": "gamma",
+                        "attempts": 1
+                    }
+                ],
+                {
+                    "id": 1,
+                    "job_type": "noop",
+                    "tenant_key": "alpha",
+                    "payload_json": "{\"a\":1}",
+                    "status": "queued",
+                    "priority": 50,
+                    "attempts": 1,
+                    "max_attempts": 5,
+                    "locked_by": null,
+                    "last_error": "boom",
+                    "result_json": null
+                },
+                {
+                    "id": 3,
+                    "job_type": "noop",
+                    "tenant_key": "gamma",
+                    "payload_json": "[]",
+                    "status": "failed",
+                    "priority": 1,
+                    "attempts": 1,
+                    "max_attempts": 5,
+                    "locked_by": null,
+                    "last_error": "eeeeeeeeeeee",
+                    "result_json": null
+                }
+            ]
+        },
+        {
+            "name": "dispatch",
+            "output": "",
+            "result": [
+                {
+                    "ok": true,
+                    "result": {
+                        "echo": {
+                            "echo": 1
+                        }
+                    }
+                },
+                {
+                    "ok": true,
+                    "result": {
+                        "tenant": "alpha",
+                        "n": 7
+                    }
+                },
+                {
+                    "ok": false,
+                    "error": "Unknown job_type: nope"
+                },
+                {
+                    "ok": false,
+                    "error": "tenant_key required"
+                },
+                {
+                    "ok": false,
+                    "error": "Tenant not found"
+                },
+                {
+                    "ok": true,
+                    "result": {
+                        "tenant_key": "alpha",
+                        "dedicated_db": 1,
+                        "db_name": "alpha",
+                        "ping": "ok"
+                    }
+                },
+                {
+                    "ok": true,
+                    "result": {
+                        "tenant_key": "alpha",
+                        "dedicated_db": 1,
+                        "db_name": "alpha",
+                        "ping": "ok",
+                        "warmup": true
+                    }
+                },
+                {
+                    "ok": true,
+                    "result": {
+                        "anchored": 1,
+                        "tenant": "alpha"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "batch",
+            "output": "",
+            "result": [
+                {
+                    "claimed": 2,
+                    "done": 1,
+                    "failed": 1,
+                    "errors": [
+                        "#2 Unknown job_type: nope"
+                    ],
+                    "worker": "cron-test"
+                },
+                [
+                    {
+                        "job_type": "noop",
+                        "tenant_key": "alpha",
+                        "status": "done",
+                        "has_err": 0
+                    },
+                    {
+                        "job_type": "nope",
+                        "tenant_key": "beta",
+                        "status": "queued",
+                        "has_err": 1
+                    }
+                ]
+            ]
+        }
+    ]
+}

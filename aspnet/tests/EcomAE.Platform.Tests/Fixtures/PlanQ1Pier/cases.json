@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "enqueue", "eval": "return pier_run_enqueue($GLOBALS['db_link']);" },
+    { "name": "claim", "eval": "return pier_run_claim($GLOBALS['db_link']);" },
+    { "name": "dispatch", "eval": "return pier_run_dispatch($GLOBALS['db_link']);" },
+    { "name": "batch", "eval": "return pier_run_batch($GLOBALS['db_link']);" }
+  ]
+}

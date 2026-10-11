@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "none" },
+    { "name": "text" },
+    { "name": "geturl" },
+    { "name": "href" }
+  ]
+}

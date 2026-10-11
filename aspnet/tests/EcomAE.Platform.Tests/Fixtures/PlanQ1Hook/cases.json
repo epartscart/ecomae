@@ -1,0 +1,16 @@
+{
+  "cases": [
+    {
+      "name": "hook_crypto",
+      "eval": "$plain='shared-secret'; $enc=epc_webhooks_encrypt_secret($plain); $dec=epc_webhooks_decrypt_secret($enc); $empty=epc_webhooks_decrypt_secret(''); $bad=epc_webhooks_decrypt_secret('xxxx'); $ok=epc_webhooks_verify_signature('{\"a\":1}','s3','sha256='.hash_hmac('sha256','1700000000.{\"a\":1}','s3'),'1700000000'); $no=epc_webhooks_verify_signature('{\"a\":1}','s3','sha256=nope','1700000000'); $blank=epc_webhooks_verify_signature('x','','sha256=x'); return array($dec===$plain, $empty, strlen($enc)>20, $bad, $ok, $no, $blank);"
+    },
+    {
+      "name": "hook_reg",
+      "eval": "$pdo=$GLOBALS['db_link']; $a=epc_webhooks_register($pdo,array('url'=>'')); $b=epc_webhooks_register($pdo,array('url'=>'not-a-url')); $c=epc_webhooks_register($pdo,array('url'=>'http://example.com/hook')); $d=epc_webhooks_register($pdo,array('url'=>'https://example.com/hook','secret'=>'abc','events'=>array('order.placed'),'tenant_key'=>'siteA','description'=>'d1')); $list=epc_webhooks_list($pdo,'siteA'); $hasSecret=isset($list[0]['secret_hash'])||isset($list[0]['secret_encrypted']); $upd=epc_webhooks_update($pdo,(int)$d['webhook_id'],array('active'=>1,'description'=>'d2')); $noup=epc_webhooks_update($pdo,(int)$d['webhook_id'],array()); $badu=epc_webhooks_update($pdo,(int)$d['webhook_id'],array('url'=>'http://x.com')); $del=epc_webhooks_delete($pdo,(int)$d['webhook_id']); $list2=epc_webhooks_list($pdo,'siteA'); $stats=epc_webhooks_delivery_stats($pdo,24); $disp=epc_webhooks_dispatch($pdo,1,'order.placed',array('x'=>1),'siteA'); return array($a,$b,$c,$d['ok'],((int)$d['webhook_id'])>0?1:0,$list[0]['url']??null,$list[0]['events'],$hasSecret,$upd,$noup,$badu,$del,count($list2),$stats,$disp);"
+    },
+    {
+      "name": "evt_flow",
+      "eval": "$pdo=$GLOBALS['db_link']; $id=epc_event_emit($pdo,'order.placed',array('order_id'=>7,'total'=>12),'siteA',4,'user','order-placed-7'); $dup=epc_event_emit($pdo,'order.placed',array('order_id'=>7),'siteA',4,'user','order-placed-7'); $inv=epc_event_emit_invoice_posted($pdo,9,500.0,'siteA',3); $paid=epc_event_emit_invoice_paid($pdo,9,50.0,'siteA',3); $cn=epc_event_emit_credit_note($pdo,9,10.0,'siteA',3); $op=epc_event_emit_order_placed($pdo,8,20.0,'siteA',2); $sh=epc_event_emit_order_shipped($pdo,8,'TRK','siteA',0); $sb=epc_event_emit_stock_below($pdo,'SKU1',1,5,'siteA'); $sa=epc_event_emit_stock_adjusted($pdo,'SKU1',5,1,'sold','siteA',2); $pm=epc_event_emit_payment_received($pdo,11,30.0,'card','siteA',2); $vp=epc_event_emit_voucher_posted($pdo,12,'JV',40.0,'siteA',2); $pc=epc_event_emit_period_closed($pdo,'2026-10','siteA',2); $tn=epc_event_emit_tenant($pdo,'created','siteB',array('name'=>'B')); $list=epc_events_list($pdo,array('tenant_key'=>'siteA'),50,0); $cnt=epc_events_count($pdo,array('tenant_key'=>'siteA')); $sum=epc_events_type_summary($pdo, date('Y-m-d H:i:s', time()-3600)); $row=epc_events_list($pdo,array('event_type'=>'invoice.posted'))[0]; $p=json_decode($row['payload_json'], true); return array($id>0?1:0,$dup,$inv>0?1:0,$paid>0?1:0,$cn>0?1:0,$op>0?1:0,$sh>0?1:0,$sb>0?1:0,$sa>0?1:0,$pm>0?1:0,$vp>0?1:0,$pc>0?1:0,$tn>0?1:0,count($list),$cnt,count($sum),(int)$p['invoice_id'],$p['currency'],$p['_event_type'],$p['_tenant_key'],str_contains((string)$p['_timestamp'],'T')?1:0,(int)$row['actor_id'],$row['actor_type']);"
+    }
+  ]
+}

@@ -103,6 +103,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CataloguePagePath, ["GET", "POST"], CataloguePageAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.ProductsStylePath, ["GET", "POST"], ProductsStyleAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.PickupTimingPath, ["GET", "POST"], PickupTimingAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.DemandMetaPath, ["GET", "POST"], DemandMetaAsync)
@@ -1158,6 +1160,9 @@ public static class StorefrontPhpAjaxEndpoints
         var session = await StorefrontPhpAjax.ReadSessionAsync(connection, context.Request.Cookies["session"], cancellationToken).ConfigureAwait(false);
         return session.UserId;
     }
+
+    private static IResult ProductsStyleAsync(HttpContext context)
+        => StorefrontProductsStyle.Apply(context.Request, context.Response);
 
     private static Task<IResult> PickupTimingAsync(
         HttpContext context,

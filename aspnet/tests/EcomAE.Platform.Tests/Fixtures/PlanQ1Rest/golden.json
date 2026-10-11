@@ -1,0 +1,519 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "demand_maps",
+            "output": "",
+            "result": [
+                {
+                    "SD": "SDN",
+                    "DZ": "DZA",
+                    "KE": "KEN",
+                    "AE": "ARE",
+                    "EG": "EGY",
+                    "NG": "NGA",
+                    "SA": "SAU"
+                },
+                {
+                    "SDN": {
+                        "code": "SDN",
+                        "name": "Sudan",
+                        "iso2": "SD"
+                    },
+                    "DZA": {
+                        "code": "DZA",
+                        "name": "Algeria",
+                        "iso2": "DZ"
+                    },
+                    "KEN": {
+                        "code": "KEN",
+                        "name": "Kenya",
+                        "iso2": "KE"
+                    },
+                    "ARE": {
+                        "code": "ARE",
+                        "name": "United Arab Emirates",
+                        "iso2": "AE"
+                    },
+                    "EGY": {
+                        "code": "EGY",
+                        "name": "Egypt",
+                        "iso2": "EG"
+                    },
+                    "NGA": {
+                        "code": "NGA",
+                        "name": "Nigeria",
+                        "iso2": "NG"
+                    },
+                    "SAU": {
+                        "code": "SAU",
+                        "name": "Saudi Arabia",
+                        "iso2": "SA"
+                    }
+                },
+                true,
+                true,
+                false,
+                "",
+                "ARE",
+                "SDN",
+                "",
+                "",
+                "",
+                [
+                    "ARE",
+                    "DZA",
+                    "SDN"
+                ],
+                [],
+                "ARE,SDN"
+            ]
+        },
+        {
+            "name": "demand_csv_parse",
+            "output": "",
+            "result": [
+                {
+                    "brand": "Bosch",
+                    "article": "0986",
+                    "countries": [
+                        "KEN",
+                        "SDN"
+                    ]
+                },
+                {
+                    "brand": "ACME",
+                    "article": "AB-12",
+                    "countries": [
+                        "EGY"
+                    ]
+                },
+                {
+                    "brand": "X",
+                    "article": "1",
+                    "countries": [
+                        "NGA",
+                        "SAU"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "demand_csv_preview",
+            "output": "",
+            "result": [
+                {
+                    "status": true,
+                    "rows": [
+                        {
+                            "line": 2,
+                            "brand": "Bosch",
+                            "article": "0986",
+                            "countries": "KEN,SDN",
+                            "errors": []
+                        },
+                        {
+                            "line": 4,
+                            "brand": "ACME",
+                            "article": "AB12",
+                            "countries": "EGY",
+                            "errors": []
+                        }
+                    ]
+                },
+                {
+                    "status": false,
+                    "message": "File not found"
+                },
+                {
+                    "status": false,
+                    "message": "Empty CSV"
+                }
+            ]
+        },
+        {
+            "name": "demand_migrate",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "code": "SDN",
+                        "name": "Sudan",
+                        "sort_order": 10
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "demand_import",
+            "output": "",
+            "result": [
+                {
+                    "status": true,
+                    "stats": {
+                        "rows_read": 3,
+                        "rows_ok": 2,
+                        "rows_skipped": 1,
+                        "tags_inserted": 3,
+                        "tags_removed": 0,
+                        "errors": [
+                            "Line 3: invalid row"
+                        ]
+                    },
+                    "message": "Import finished"
+                },
+                [
+                    {
+                        "manufacturer": "Bosch",
+                        "article_norm": "0986",
+                        "country_code": "KEN",
+                        "source": "cp_csv_upload"
+                    },
+                    {
+                        "manufacturer": "Bosch",
+                        "article_norm": "0986",
+                        "country_code": "SDN",
+                        "source": "cp_csv_upload"
+                    },
+                    {
+                        "manufacturer": "Zed",
+                        "article_norm": "AB1",
+                        "country_code": "EGY",
+                        "source": "cp_csv_upload"
+                    }
+                ],
+                {
+                    "status": true,
+                    "stats": {
+                        "rows_read": 1,
+                        "rows_ok": 1,
+                        "rows_skipped": 0,
+                        "tags_inserted": 1,
+                        "tags_removed": 2,
+                        "errors": []
+                    },
+                    "message": "Import finished"
+                },
+                [
+                    {
+                        "manufacturer": "Bosch",
+                        "article_norm": "0986",
+                        "country_code": "NGA"
+                    },
+                    {
+                        "manufacturer": "Zed",
+                        "article_norm": "AB1",
+                        "country_code": "EGY"
+                    }
+                ],
+                {
+                    "status": false,
+                    "message": "Cannot open file"
+                }
+            ]
+        },
+        {
+            "name": "themes_data",
+            "output": "",
+            "result": [
+                [
+                    "healthcare_medical",
+                    "automotive",
+                    "food_beverage",
+                    "construction_realestate",
+                    "hospitality_travel",
+                    "beauty_wellness",
+                    "education_training",
+                    "energy_utilities",
+                    "manufacturing_industrial",
+                    "agriculture_farming"
+                ],
+                "Quality auto parts & accessories for every vehicle",
+                "#dc2626",
+                10,
+                6,
+                [
+                    "finance",
+                    "inventory",
+                    "procurement",
+                    "sales",
+                    "warranty",
+                    "vehicle_compat",
+                    "barcode"
+                ],
+                {
+                    "hero": {
+                        "tagline": "Professional solutions for your business",
+                        "accent": "#3b82f6",
+                        "icon": "fa-briefcase",
+                        "bg_image": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200"
+                    },
+                    "categories": [],
+                    "products": [],
+                    "erp_kit": [
+                        "finance",
+                        "inventory",
+                        "procurement",
+                        "sales"
+                    ]
+                },
+                {
+                    "hero": {
+                        "tagline": "Professional solutions for your business",
+                        "accent": "#3b82f6",
+                        "icon": "fa-briefcase",
+                        "bg_image": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200"
+                    },
+                    "categories": [],
+                    "products": [],
+                    "erp_kit": [
+                        "finance",
+                        "inventory",
+                        "procurement",
+                        "sales"
+                    ]
+                },
+                "Automotive ERP Kit",
+                "weighted_average",
+                [
+                    "finance",
+                    "inventory",
+                    "procurement",
+                    "sales",
+                    "warranty",
+                    "vehicle_compat",
+                    "barcode"
+                ],
+                "Nope Group ERP Kit",
+                [
+                    "finance",
+                    "inventory",
+                    "procurement",
+                    "sales"
+                ],
+                "grid_with_vehicle_filter",
+                "standard",
+                "standard_grid"
+            ]
+        },
+        {
+            "name": "brochure_topics",
+            "output": "",
+            "result": [
+                [
+                    "autoparts",
+                    "inventory",
+                    "money",
+                    "orders",
+                    "logistics",
+                    "customers",
+                    "ai",
+                    "marketing",
+                    "documents",
+                    "platform",
+                    "settings",
+                    "erp",
+                    "procurement",
+                    "content",
+                    "default"
+                ],
+                "AI & assistants",
+                8,
+                "/content/general_pages/epc_brochure_process_photo.php?topic=aicopilot&seed=id1&t=AI+Copilot&a=Shop",
+                "/content/general_pages/epc_brochure_process_photo.php?topic=platform&seed=x",
+                "ai",
+                "inventory",
+                "money",
+                "default",
+                "autoparts",
+                {
+                    "Shop": [
+                        {
+                            "id": "p1",
+                            "name": "AI Copilot",
+                            "url": "/ai",
+                            "does": "",
+                            "image": "/content/general_pages/epc_brochure_process_photo.php?topic=ai&seed=p1-u1&t=AI+Copilot&a=Shop",
+                            "photo_topic": "ai",
+                            "photo_label": "AI & assistants"
+                        },
+                        {
+                            "id": "p2",
+                            "name": "Warehouse stock",
+                            "url": "/wh",
+                            "does": "inventor shelves",
+                            "image": "/content/general_pages/epc_brochure_process_photo.php?topic=inventory&seed=p2-u2&t=Warehouse+stock&a=Shop",
+                            "photo_topic": "inventory",
+                            "photo_label": "Inventory & warehouse"
+                        },
+                        {
+                            "name": "Mystery",
+                            "id": "fn-ae79457a8b8d",
+                            "image": "/content/general_pages/epc_brochure_process_photo.php?topic=orders&seed=fn-ae79457a8b8d-u3&t=Mystery&a=Shop",
+                            "photo_topic": "orders",
+                            "photo_label": "Orders & fulfilment"
+                        }
+                    ]
+                },
+                {
+                    "p1#u1": {
+                        "topic": "ai",
+                        "label": "AI & assistants",
+                        "photo": "/content/general_pages/epc_brochure_process_photo.php?topic=ai&seed=p1-u1&t=AI+Copilot&a=Shop"
+                    },
+                    "p2#u2": {
+                        "topic": "inventory",
+                        "label": "Inventory & warehouse",
+                        "photo": "/content/general_pages/epc_brochure_process_photo.php?topic=inventory&seed=p2-u2&t=Warehouse+stock&a=Shop"
+                    },
+                    "fn-ae79457a8b8d#u3": {
+                        "topic": "orders",
+                        "label": "Orders & fulfilment",
+                        "photo": "/content/general_pages/epc_brochure_process_photo.php?topic=orders&seed=fn-ae79457a8b8d-u3&t=Mystery&a=Shop"
+                    }
+                },
+                {
+                    "topic": "ai",
+                    "label": "AI & assistants",
+                    "photo": "/content/general_pages/epc_brochure_process_photo.php?topic=ai&seed=p1-u1&t=AI+Copilot&a=Shop"
+                },
+                {
+                    "topic": "money",
+                    "label": "Money",
+                    "photo": "https://example.com/x.jpg"
+                }
+            ]
+        },
+        {
+            "name": "theme_slots",
+            "output": "",
+            "result": [
+                [
+                    "classic",
+                    "modern",
+                    "midnight",
+                    "signature"
+                ],
+                "classic",
+                "midnight",
+                {
+                    "primary": "#1",
+                    "primary_dark": "#2",
+                    "accent": "#3",
+                    "sidebar_from": "#4",
+                    "sidebar_to": "#5",
+                    "hero_from": "#6",
+                    "hero_to": "#7"
+                },
+                "L",
+                [
+                    "auto_parts",
+                    "tax_advisory",
+                    "fashion",
+                    "electronics",
+                    "medical",
+                    "health",
+                    "consultancy",
+                    "rental",
+                    "jewellery",
+                    "platform_host"
+                ],
+                "Racing red",
+                "Unknown Vert — Classic",
+                "#334155",
+                [
+                    "classic",
+                    "modern",
+                    "midnight"
+                ],
+                [
+                    "auto_parts",
+                    "electronics",
+                    "unknown_vert"
+                ],
+                [
+                    "classic",
+                    "modern",
+                    "midnight",
+                    "signature"
+                ],
+                [
+                    "classic",
+                    "modern",
+                    "midnight",
+                    "signature"
+                ],
+                "midnight",
+                "classic",
+                "midnight",
+                "classic",
+                "#ef4444",
+                {
+                    "label": "Racing red",
+                    "desc": "Bold motorsport red, charcoal nav, amber highlights"
+                },
+                [
+                    "auto_parts",
+                    "electronics",
+                    "unknown_vert"
+                ],
+                "#e10a0a"
+            ]
+        },
+        {
+            "name": "packages_data",
+            "output": "",
+            "result": [
+                [
+                    "automotive_spareparts_pro",
+                    "electronics_retail_virgin",
+                    "consulting_primeinvest",
+                    "fashion_retail_namshi",
+                    "jewellery_retail_kiyasha"
+                ],
+                "Virgin Megastore retail",
+                "midnight",
+                null,
+                "fashion_retail_namshi",
+                "",
+                [
+                    "automotive_spareparts_pro",
+                    "electronics_retail_virgin",
+                    "consulting_primeinvest",
+                    "fashion_retail_namshi",
+                    "jewellery_retail_kiyasha"
+                ],
+                "Prime Invest consulting",
+                "fashion_retail_namshi",
+                "electronics_retail_virgin",
+                "",
+                "jewellery_retail_kiyasha",
+                "classic",
+                "#b45309",
+                {
+                    "theme_template": "midnight",
+                    "storefront_package": "electronics_retail_virgin",
+                    "message": "Applied electronics → style midnight · package electronics_retail_virgin"
+                },
+                "electronics",
+                "midnight",
+                "electronics_retail_virgin",
+                true,
+                {
+                    "theme_template": "classic",
+                    "storefront_package": "automotive_spareparts_pro",
+                    "message": "Applied auto_parts → style classic · package automotive_spareparts_pro"
+                },
+                false,
+                false,
+                {
+                    "theme_template": "classic",
+                    "storefront_package": "",
+                    "message": "Applied erp_standalone → style classic · package colour-only (no chrome package)"
+                },
+                false,
+                true
+            ]
+        }
+    ]
+}

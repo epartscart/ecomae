@@ -1,0 +1,463 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "keys",
+            "output": "",
+            "result": [
+                {
+                    "ok": true,
+                    "key_id": 1,
+                    "api_key": "epc_0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a00",
+                    "prefix": "epc_0a0a",
+                    "scopes": [
+                        "read"
+                    ],
+                    "warning": "Store this key securely — it cannot be retrieved again.",
+                    "hash_ok": true
+                },
+                {
+                    "ok": true,
+                    "site_via_validate": "beta",
+                    "scopes": [
+                        "read",
+                        "write"
+                    ],
+                    "prefix": "epc_0a0a"
+                },
+                {
+                    "valid": true,
+                    "key": {
+                        "id": 1,
+                        "site_key": "acme",
+                        "key_hash": "6a06f29ffb33a3d1ce3e969d5918c4a6974a4dc8129979d9124d8864e8489786",
+                        "key_prefix": "epc_0a0a",
+                        "label": "API Key",
+                        "scopes": [
+                            "read"
+                        ],
+                        "rate_limit": 1000,
+                        "active": 1,
+                        "last_used": null,
+                        "expires_at": null,
+                        "created_by": 0,
+                        "created_at": "TS"
+                    }
+                },
+                {
+                    "valid": false,
+                    "error": "Invalid API key"
+                },
+                {
+                    "valid": false,
+                    "error": "API key expired"
+                },
+                {
+                    "valid": false,
+                    "error": "Invalid API key"
+                },
+                [
+                    {
+                        "id": 4,
+                        "key_prefix": "epc_0a0a",
+                        "label": "empty-exp",
+                        "scopes": [
+                            "read"
+                        ],
+                        "rate_limit": 1000,
+                        "active": 1,
+                        "last_used": null,
+                        "expires_at": null,
+                        "created_at": "TS"
+                    },
+                    {
+                        "id": 3,
+                        "key_prefix": "epc_0a0a",
+                        "label": "expired",
+                        "scopes": [
+                            "read"
+                        ],
+                        "rate_limit": 1000,
+                        "active": 1,
+                        "last_used": null,
+                        "expires_at": "2020-01-01 00:00:00",
+                        "created_at": "TS"
+                    },
+                    {
+                        "id": 1,
+                        "key_prefix": "epc_0a0a",
+                        "label": "API Key",
+                        "scopes": [
+                            "read"
+                        ],
+                        "rate_limit": 1000,
+                        "active": 1,
+                        "last_used": "TS",
+                        "expires_at": null,
+                        "created_at": "TS"
+                    }
+                ],
+                [
+                    {
+                        "id": 2,
+                        "key_prefix": "epc_0a0a",
+                        "label": "Beta write",
+                        "scopes": [
+                            "read",
+                            "write"
+                        ],
+                        "rate_limit": 10,
+                        "active": 1,
+                        "last_used": null,
+                        "expires_at": null,
+                        "created_at": "TS"
+                    }
+                ],
+                [],
+                true,
+                {
+                    "valid": false,
+                    "error": "Invalid API key"
+                },
+                true,
+                [
+                    {
+                        "id": 4,
+                        "key_prefix": "epc_0a0a",
+                        "label": "empty-exp",
+                        "scopes": [
+                            "read"
+                        ],
+                        "rate_limit": 1000,
+                        "active": 1,
+                        "last_used": null,
+                        "expires_at": null,
+                        "created_at": "TS"
+                    },
+                    {
+                        "id": 3,
+                        "key_prefix": "epc_0a0a",
+                        "label": "expired",
+                        "scopes": [
+                            "read"
+                        ],
+                        "rate_limit": 1000,
+                        "active": 0,
+                        "last_used": null,
+                        "expires_at": "2020-01-01 00:00:00",
+                        "created_at": "TS"
+                    },
+                    {
+                        "id": 1,
+                        "key_prefix": "epc_0a0a",
+                        "label": "API Key",
+                        "scopes": [
+                            "read"
+                        ],
+                        "rate_limit": 1000,
+                        "active": 1,
+                        "last_used": "TS",
+                        "expires_at": null,
+                        "created_at": "TS"
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "rate",
+            "output": "",
+            "result": [
+                {
+                    "allowed": true,
+                    "remaining": 1,
+                    "limit": 2,
+                    "reset": 1760086800
+                },
+                {
+                    "allowed": true,
+                    "remaining": 0,
+                    "limit": 2,
+                    "reset": 1760086800
+                },
+                {
+                    "allowed": false,
+                    "remaining": 0,
+                    "limit": 2,
+                    "reset": 1760086800
+                },
+                {
+                    "allowed": true,
+                    "remaining": 4,
+                    "limit": 5,
+                    "reset": 1760086800
+                }
+            ]
+        },
+        {
+            "name": "handle",
+            "output": "",
+            "result": [
+                {
+                    "ok": false,
+                    "error": {
+                        "code": 401,
+                        "message": "Missing API key. Use Authorization: Bearer <key>"
+                    },
+                    "headers": []
+                },
+                {
+                    "ok": true,
+                    "api": "v2",
+                    "endpoint": "/api/v2/products",
+                    "method": "GET",
+                    "site_key": "acme",
+                    "params": [],
+                    "data": [],
+                    "meta": {
+                        "page": 2,
+                        "per_page": 7,
+                        "response_ms": 0,
+                        "rate_limit": {
+                            "remaining": 49,
+                            "limit": 50,
+                            "reset": 1760086800
+                        }
+                    }
+                },
+                {
+                    "ok": true,
+                    "api": "v2",
+                    "endpoint": "/api/v2/products/{id}",
+                    "method": "GET",
+                    "site_key": "acme",
+                    "params": {
+                        "id": "99"
+                    },
+                    "data": [],
+                    "meta": {
+                        "page": 1,
+                        "per_page": 25,
+                        "response_ms": 0,
+                        "rate_limit": {
+                            "remaining": 48,
+                            "limit": 50,
+                            "reset": 1760086800
+                        }
+                    }
+                },
+                {
+                    "ok": false,
+                    "error": {
+                        "code": 403,
+                        "message": "Insufficient scope. Required: write"
+                    },
+                    "headers": []
+                },
+                {
+                    "ok": false,
+                    "error": {
+                        "code": 404,
+                        "message": "Endpoint not found"
+                    },
+                    "headers": []
+                },
+                {
+                    "ok": false,
+                    "error": {
+                        "code": 403,
+                        "message": "Insufficient scope. Required: finance"
+                    },
+                    "headers": []
+                },
+                {
+                    "ok": true,
+                    "api": "v2",
+                    "endpoint": "/api/v2/products",
+                    "method": "GET",
+                    "site_key": "acme",
+                    "params": [],
+                    "data": [],
+                    "meta": {
+                        "page": 1,
+                        "per_page": 25,
+                        "response_ms": 0,
+                        "rate_limit": {
+                            "remaining": 44,
+                            "limit": 50,
+                            "reset": 1760086800
+                        }
+                    }
+                },
+                {
+                    "ok": false,
+                    "error": {
+                        "code": 401,
+                        "message": "Missing API key. Use Authorization: Bearer <key>"
+                    },
+                    "headers": []
+                },
+                {
+                    "ok": false,
+                    "error": {
+                        "code": 401,
+                        "message": "Missing API key. Use Authorization: Bearer <key>"
+                    },
+                    "headers": []
+                },
+                {
+                    "ok": true,
+                    "api": "v2",
+                    "endpoint": "/api/v2/invoices",
+                    "method": "GET",
+                    "site_key": "beta",
+                    "params": [],
+                    "data": [],
+                    "meta": {
+                        "page": 1,
+                        "per_page": 25,
+                        "response_ms": 0,
+                        "rate_limit": {
+                            "remaining": 49,
+                            "limit": 50,
+                            "reset": 1760086800
+                        }
+                    }
+                },
+                {
+                    "ok": true,
+                    "api": "v2",
+                    "endpoint": "/api/v2/inventory/{sku}",
+                    "method": "PUT",
+                    "site_key": "beta",
+                    "params": {
+                        "sku": "SKU-1"
+                    },
+                    "data": [],
+                    "meta": {
+                        "page": 1,
+                        "per_page": 25,
+                        "response_ms": 0,
+                        "rate_limit": {
+                            "remaining": 48,
+                            "limit": 50,
+                            "reset": 1760086800
+                        }
+                    }
+                },
+                {
+                    "ok": true,
+                    "api": "v2",
+                    "endpoint": "/api/v2/webhooks",
+                    "method": "POST",
+                    "site_key": "acme",
+                    "params": [],
+                    "data": [],
+                    "meta": {
+                        "page": 1,
+                        "per_page": 25,
+                        "response_ms": 0,
+                        "rate_limit": {
+                            "remaining": 49,
+                            "limit": 50,
+                            "reset": 1760086800
+                        }
+                    }
+                },
+                {
+                    "ok": false,
+                    "error": {
+                        "code": 401,
+                        "message": "Invalid API key"
+                    },
+                    "headers": []
+                }
+            ]
+        },
+        {
+            "name": "meta",
+            "output": "",
+            "result": [
+                20,
+                {
+                    "method": "GET",
+                    "path": "/api/v2/products",
+                    "scope": "read",
+                    "description": "List products with pagination"
+                },
+                {
+                    "method": "POST",
+                    "path": "/api/v2/webhooks",
+                    "scope": "admin",
+                    "description": "Register webhook endpoint"
+                },
+                true,
+                false,
+                true,
+                true,
+                {
+                    "ok": false,
+                    "error": {
+                        "code": 401,
+                        "message": "Missing API key. Use Authorization: Bearer <key>"
+                    },
+                    "headers": []
+                },
+                "2.0.0",
+                [
+                    "products"
+                ],
+                13,
+                [
+                    {
+                        "site_key": "acme",
+                        "total_requests": 3,
+                        "errors": "1",
+                        "avg_response_ms": "0.0000",
+                        "active_keys": 1,
+                        "last_request": "TS"
+                    },
+                    {
+                        "site_key": "beta",
+                        "total_requests": 1,
+                        "errors": "0",
+                        "avg_response_ms": "0.0000",
+                        "active_keys": 1,
+                        "last_request": "TS"
+                    }
+                ],
+                [
+                    {
+                        "endpoint": "/api/v2/nope",
+                        "method": "GET",
+                        "count": 1,
+                        "avg_ms": "0.0000",
+                        "errors": "1"
+                    },
+                    {
+                        "endpoint": "/api/v2/products",
+                        "method": "GET",
+                        "count": 1,
+                        "avg_ms": "0.0000",
+                        "errors": "0"
+                    },
+                    {
+                        "endpoint": "/x",
+                        "method": "GET",
+                        "count": 1,
+                        "avg_ms": "0.0000",
+                        "errors": "0"
+                    }
+                ],
+                [
+                    {
+                        "endpoint": "/api/v2/orders",
+                        "method": "GET",
+                        "count": 1,
+                        "avg_ms": "0.0000",
+                        "errors": "0"
+                    }
+                ]
+            ]
+        }
+    ]
+}

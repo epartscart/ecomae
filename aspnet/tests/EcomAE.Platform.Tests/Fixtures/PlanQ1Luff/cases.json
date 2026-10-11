@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "preset" },
+    { "name": "verify" },
+    { "name": "apply" },
+    { "name": "fail" }
+  ]
+}

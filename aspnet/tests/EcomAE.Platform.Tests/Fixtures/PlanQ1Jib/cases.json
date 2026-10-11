@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "themes" },
+    { "name": "rows" },
+    { "name": "shots" },
+    { "name": "html" }
+  ]
+}

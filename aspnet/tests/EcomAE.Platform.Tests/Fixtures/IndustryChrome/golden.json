@@ -1,0 +1,401 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "footer_frn",
+            "output": "<footer class=\"epc-frn-footer\" id=\"epc_frn_footer\">\n\t<div class=\"epc-frn-footer__main\">\n\t\t<div class=\"container\">\n\t\t\t<div class=\"epc-frn-footer__grid\">\n\t\t\t\t\t\t\t\t<div class=\"epc-frn-footer__col\">\n\t\t\t\t\t<h3 class=\"epc-frn-footer__title\">Care</h3>\n\t\t\t\t\t<ul class=\"epc-frn-footer__links\">\n\t\t\t\t\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<a href=\"/en/help\">\n\t\t\t\t\t\t\t\tA&amp;B\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<a href=\"https://x.com\">\n\t\t\t\t\t\t\t\tExt\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\t\t</ul>\n\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t<div class=\"epc-frn-footer__social-row\">\n\t\t\t\t<div class=\"epc-frn-footer__social\">\n\t\t\t\t\t<span class=\"epc-frn-footer__social-label\">Follow us</span>\n\t\t\t\t\t\t\t\t\t\t<a class=\"epc-frn-footer__social-icon\" href=\"https://ig.com/?q=1\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"IG\">\n\t\t\t\t\t\t<i class=\"fa fa-instagram\" aria-hidden=\"true\"></i>\n\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t<div class=\"epc-frn-footer__payments\">\n\t\t\t\t\t<span class=\"epc-frn-footer__social-label\">We accept</span>\n\t\t\t\t\t<div class=\"epc-frn-footer__pay-icons\">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"epc-frn-footer__pay\" title=\"Visa\">\n\t\t\t\t\t\t\t<img src=\"/content/files/images/icons/pay/visa.jpg\" alt=\"\" width=\"48\" height=\"32\" loading=\"lazy\" />\n\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n\t<div class=\"epc-frn-footer__bar\">\n\t\t<div class=\"container\">\n\t\t\t<p class=\"epc-frn-footer__copy\">\n\t\t\t\t&copy; 2026 Style&amp;Co.\n\t\t\t\tAll rights reserved.\n\t\t\t\t <em>hosted</em>\t\t\t</p>\n\t\t</div>\n\t</div>\n</footer>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "footer_er",
+            "output": "<footer class=\"epc-er-footer\" id=\"epc_er_footer\">\n\t<div class=\"epc-er-footer__main\">\n\t\t<div class=\"container\">\n\t\t\t<div class=\"epc-er-footer__grid\">\n\t\t\t\t\t\t\t\t<div class=\"epc-er-footer__col\">\n\t\t\t\t\t<h3 class=\"epc-er-footer__title\">Shop</h3>\n\t\t\t\t\t<ul class=\"epc-er-footer__links\">\n\t\t\t\t\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<a href=\"/ar/phones\">\n\t\t\t\t\t\t\t\tPhones\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\t\t</ul>\n\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t<div class=\"epc-er-footer__social-row\">\n\t\t\t\t<div class=\"epc-er-footer__social\">\n\t\t\t\t\t<span class=\"epc-er-footer__social-label\">Follow us</span>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t<div class=\"epc-er-footer__payments\">\n\t\t\t\t\t<span class=\"epc-er-footer__social-label\">We accept</span>\n\t\t\t\t\t<div class=\"epc-er-footer__pay-icons\">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"epc-er-footer__pay\" title=\"Mastercard\">\n\t\t\t\t\t\t\t<img src=\"/content/files/images/icons/pay/mastercard.jpg\" alt=\"\" width=\"48\" height=\"32\" loading=\"lazy\" />\n\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n\t<div class=\"epc-er-footer__bar\">\n\t\t<div class=\"container\">\n\t\t\t<p class=\"epc-er-footer__copy\">\n\t\t\t\t&copy; 2026 Electro.\n\t\t\t\tAll rights reserved.\n\t\t\t\t\t\t\t</p>\n\t\t</div>\n\t</div>\n</footer>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "footer_jrk",
+            "output": "﻿<footer class=\"epc-jrk-footer\" id=\"epc_jrk_footer\">\n\t<div class=\"epc-jrk-footer__main\">\n\t\t<div class=\"container\">\n\t\t\t<div class=\"epc-jrk-footer__grid\">\n\t\t\t\t\t\t\t\t<div class=\"epc-jrk-footer__col\">\n\t\t\t\t\t<h3 class=\"epc-jrk-footer__title\">Bridal</h3>\n\t\t\t\t\t<ul class=\"epc-jrk-footer__links\">\n\t\t\t\t\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<a href=\"/en/rings\">\n\t\t\t\t\t\t\t\tRings\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\t\t</ul>\n\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t<div class=\"epc-jrk-footer__social-row\">\n\t\t\t\t<div class=\"epc-jrk-footer__social\">\n\t\t\t\t\t<span class=\"epc-jrk-footer__social-label\">Follow us</span>\n\t\t\t\t\t\t\t\t\t\t<a class=\"epc-jrk-footer__social-icon\" href=\"https://fb.com/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"FB\">\n\t\t\t\t\t\t<i class=\"fa fa-facebook\" aria-hidden=\"true\"></i>\n\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t<div class=\"epc-jrk-footer__payments\">\n\t\t\t\t\t<span class=\"epc-jrk-footer__social-label\">We accept</span>\n\t\t\t\t\t<div class=\"epc-jrk-footer__pay-icons\">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"epc-jrk-footer__pay\" title=\"Applepay\">\n\t\t\t\t\t\t\t<img src=\"/content/files/images/icons/pay/applepay.jpg\" alt=\"\" width=\"48\" height=\"32\" loading=\"lazy\" />\n\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n\t<div class=\"epc-jrk-footer__bar\">\n\t\t<div class=\"container\">\n\t\t\t<p class=\"epc-jrk-footer__copy\">\n\t\t\t\t&copy; 2026 Gold.\n\t\t\t\tAll rights reserved.\n\t\t\t\t\t\t\t</p>\n\t\t</div>\n\t</div>\n</footer>\n\r\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "footer_cpi",
+            "output": "<footer class=\"epc-cpi-footer\" id=\"epc_cpi_footer\">\n\t<div class=\"epc-cpi-footer__top\">\n\t\t<div class=\"container\">\n\t\t\t<div class=\"epc-cpi-footer__grid\">\n\t\t\t\t<div class=\"epc-cpi-footer__brand\">\n\t\t\t\t\t<b>Brand</b>\t\t\t\t\t<p>Tax&amp;Co — tax, accounting and business advisory for UAE entities. Corporate tax, VAT and client ERP in one relationship.</p>\n\t\t\t\t\t<div class=\"epc-cpi-footer__newsletter\">\n\t\t\t\t\t\t<label for=\"epc_cpi_newsletter\">Stay informed on tax updates</label>\n\t\t\t\t\t\t<div class=\"epc-cpi-footer__newsletter-row\">\n\t\t\t\t\t\t\t<input type=\"email\" id=\"epc_cpi_newsletter\" placeholder=\"Your email\" autocomplete=\"email\" />\n\t\t\t\t\t\t\t<button type=\"button\" onclick=\"window.location.href='/en/kontakty'\">Subscribe</button>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div class=\"epc-cpi-footer__col\">\n\t\t\t\t\t<h3 class=\"epc-cpi-footer__title\">Srv</h3>\n\t\t\t\t\t<ul class=\"epc-cpi-footer__links\">\n\t\t\t\t\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<a href=\"/en/#vat\">\n\t\t\t\t\t\t\t\tVAT\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\t\t</ul>\n\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t</div>\n\t</div>\n\t<div class=\"epc-cpi-footer__bar\">\n\t\t<div class=\"container\" style=\"display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;\">\n\t\t\t<p class=\"epc-cpi-footer__copy\">\n\t\t\t\t&copy; 2026 Tax&amp;Co.\n\t\t\t\ta@b.com &middot;\n\t\t\t\t+971\t\t\t\t &middot; host\t\t\t</p>\n\t\t\t<div class=\"epc-cpi-footer__social\" style=\"display:flex;gap:12px;\"><a href=\"https://li.com/\" target=\"_blank\" rel=\"noopener\" title=\"LI\" style=\"color:#94a3b8;font-size:18px;\"><i class=\"fa fa-linkedin\"></i></a></div>\t\t</div>\n\t</div>\n</footer>\n",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "footer_frn_href",
+            "output": "",
+            "result": [
+                "/en/help",
+                "https://x.com",
+                ""
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_frn_defaults",
+            "output": "",
+            "result": [
+                "Stylenlook",
+                "Fashion, beauty & lifestyle — UAE delivery, prices in AED",
+                "/"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_frn_named",
+            "output": "",
+            "result": [
+                "MyShop",
+                "Wear it",
+                "https://shop.test/"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_frn_apply_main",
+            "output": "",
+            "result": [
+                "Stylenlook — Fashion & Beauty UAE",
+                "Stylenlook: Fashion, beauty & lifestyle — UAE delivery, prices in AED Shop women, men, beauty & accessories with fast UAE delivery.",
+                "fashion UAE, beauty Dubai, makeup, skincare, dresses, shoes, AED, Stylenlook"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_frn_apply_page",
+            "output": "",
+            "result": [
+                "Dresses — Stylenlook",
+                "Dresses at Stylenlook. Fashion, beauty & lifestyle — UAE delivery, prices in AED",
+                "fashion, beauty, Stylenlook, UAE, AED"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_frn_apply_bad",
+            "output": "",
+            "result": [
+                "Shop — Stylenlook",
+                "Shop at Stylenlook. Fashion, beauty & lifestyle — UAE delivery, prices in AED",
+                "fashion, beauty, Stylenlook, UAE, AED"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_frn_patch",
+            "output": "",
+            "result": "<html><title>Stylenlook — Fashion &amp; Beauty UAE</title><meta name=\"keywords\" content=\"fashion UAE, beauty Dubai, makeup, skincare, dresses, shoes, AED, Stylenlook\"><meta name=\"description\" content=\"Stylenlook: Fashion, beauty &amp; lifestyle — UAE delivery, prices in AED\"></html>",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_frn_scrub",
+            "output": "",
+            "result": "Stylenlook sells fashion and Fashion products",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_er_defaults",
+            "output": "",
+            "result": [
+                "Electronicae",
+                "Shop phones, gaming, audio & laptops — UAE delivery, prices in AED",
+                "https://el.test/"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_er_apply_main",
+            "output": "",
+            "result": [
+                "Electronicae — Tech, Gaming & Electronics UAE",
+                "Electronicae: Shop phones, gaming, audio & laptops — UAE delivery, prices in AED Free delivery across the UAE. Samsung, Apple, Sony, gaming & more.",
+                "electronics UAE, smartphones, gaming UAE, laptops, headphones, smart home, AED, Electronicae"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_er_scrub",
+            "output": "",
+            "result": "Buy Electronics and products at Electronicae",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_jrk_defaults",
+            "output": "",
+            "result": [
+                "The Jewellery Trend",
+                "Fine gold, diamonds & bridal jewellery — UAE delivery, prices in AED"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_jrk_apply_main",
+            "output": "",
+            "result": [
+                "The Jewellery Trend — Fine Jewellery UAE",
+                "The Jewellery Trend: Fine gold, diamonds & bridal jewellery — UAE delivery, prices in AED Shop rings, necklaces, earrings & bridal collections with insured UAE delivery.",
+                "jewellery UAE, gold Dubai, diamond rings, necklaces, earrings, bridal, AED, The Jewellery Trend"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_jrk_public",
+            "output": "",
+            "result": "https://gold.test/",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_cpi_defaults",
+            "output": "",
+            "result": [
+                "Taxofinca",
+                "Tax & advisory services — UAE corporate tax, VAT and business compliance"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_cpi_trade",
+            "output": "",
+            "result": [
+                "Prime",
+                "Advice"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_cpi_apply_main",
+            "output": "",
+            "result": [
+                "Taxofinca — Tax, Accounting & Advisory UAE",
+                "Taxofinca: Tax & advisory services — UAE corporate tax, VAT and business compliance",
+                "tax advisory UAE, corporate tax, VAT, accounting, Taxofinca, business compliance"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "seo_cpi_patch",
+            "output": "",
+            "result": "<title>Taxofinca — Tax, Accounting &amp; Advisory UAE</title><meta name=\"keywords\" content=\"tax advisory UAE, corporate tax, VAT, accounting, Taxofinca\"><meta name=\"description\" content=\"Taxofinca: Tax &amp; advisory services — UAE corporate tax, VAT and business compliance\"> Tax advisory",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "logo_enqueue",
+            "output": "",
+            "result": "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_storefront_animated_logos.css?v=20260529h\" />\n",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "logo_fashion",
+            "output": "",
+            "result": "<span class=\"epc-sf-logo epc-sf-logo--fashion\" aria-label=\"A&amp;B\">\n\t<svg class=\"epc-sf-logo__mark\" viewBox=\"0 0 36 40\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<path class=\"epc-sf-logo__hanger-hook\" d=\"M18 4c-2 0-3 1.5-3 3.5S16 11 18 11s3-1.5 3-3.5S20 4 18 4z\" fill=\"#f9a8d4\"/>\n\t\t<path class=\"epc-sf-logo__dress\" d=\"M18 11 L6 28 L30 28 Z\" fill=\"#ec4899\" opacity=\".92\"/>\n\t</svg>\n\t<span class=\"epc-sf-logo__text\">A&amp;B</span>\n</span>\n\t",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "logo_electronics",
+            "output": "",
+            "result": "<span class=\"epc-sf-logo epc-sf-logo--electronics\" aria-label=\"El\">\n\t<svg class=\"epc-sf-logo__mark\" viewBox=\"0 0 40 36\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<rect x=\"6\" y=\"8\" width=\"28\" height=\"20\" rx=\"4\" fill=\"#111\" stroke=\"#e10a0a\" stroke-width=\"2\"/>\n\t\t<circle class=\"epc-sf-logo__pulse\" cx=\"20\" cy=\"18\" r=\"5\" fill=\"#e10a0a\"/>\n\t</svg>\n\t<span class=\"epc-sf-logo__text\">El</span>\n</span>\n\t",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "logo_consulting",
+            "output": "",
+            "result": "<span class=\"epc-sf-logo epc-sf-logo--consulting\" aria-label=\"Tax\">\n\t<svg class=\"epc-sf-logo__mark\" viewBox=\"0 0 48 36\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<rect class=\"epc-sf-logo__bar\" x=\"4\" y=\"18\" width=\"8\" height=\"14\" rx=\"2\" fill=\"#d4af37\"/>\n\t\t<rect class=\"epc-sf-logo__bar\" x=\"18\" y=\"10\" width=\"8\" height=\"22\" rx=\"2\" fill=\"#1e40af\"/>\n\t\t<rect class=\"epc-sf-logo__bar\" x=\"32\" y=\"14\" width=\"8\" height=\"18\" rx=\"2\" fill=\"#d4af37\"/>\n\t</svg>\n\t<span class=\"epc-sf-logo__text\">Tax</span>\n</span>\n\t",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "logo_jewellery",
+            "output": "",
+            "result": "<span class=\"epc-sf-logo epc-sf-logo--jewellery\" aria-label=\"Gold\">\n\t<svg class=\"epc-sf-logo__mark\" viewBox=\"0 0 44 40\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<circle cx=\"22\" cy=\"22\" r=\"14\" fill=\"none\" stroke=\"#d4af37\" stroke-width=\"4\"/>\n\t\t<path class=\"epc-sf-logo__spark\" d=\"M22 6 L24 12 L30 12 L25 16 L27 22 L22 18 L17 22 L19 16 L14 12 L20 12 Z\" fill=\"#fbbf24\"/>\n\t</svg>\n\t<span class=\"epc-sf-logo__text\">Gold</span>\n</span>\n\t",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "logo_unknown",
+            "output": "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_storefront_animated_logos.css?v=20260529h\" />\n",
+            "result": "",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "logo_sanitize",
+            "output": "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_storefront_animated_logos.css?v=20260529h\" />\n",
+            "result": "",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "logo_epart_label",
+            "output": "",
+            "result": [
+                "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_storefront_animated_logos.css?v=20260529h\" />\n",
+                "<span class=\"epc-sf-logo epc-sf-logo--fashion\" aria-label=\"Stylenlook\">\n\t<svg class=\"epc-sf-logo__mark\" viewBox=\"0 0 36 40\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n\t\t<path class=\"epc-sf-logo__hanger-hook\" d=\"M18 4c-2 0-3 1.5-3 3.5S16 11 18 11s3-1.5 3-3.5S20 4 18 4z\" fill=\"#f9a8d4\"/>\n\t\t<path class=\"epc-sf-logo__dress\" d=\"M18 11 L6 28 L30 28 Z\" fill=\"#ec4899\" opacity=\".92\"/>\n\t</svg>\n\t<span class=\"epc-sf-logo__text\">Stylenlook</span>\n</span>\n\t"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "mb_email",
+            "output": "",
+            "result": [
+                "promo_sale",
+                "new_arrivals",
+                "service_reminder",
+                "blank"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "mb_whatsapp",
+            "output": "",
+            "result": {
+                "promo_bilingual": {
+                    "label": "Promo offer (EN + AR)",
+                    "body": "Hello {{customer_name}}! 🎉\n\n{{shop_name}} has special offers this week.\nVisit: {{shop_url}}\n\nمرحباً {{customer_name}}! عروض خاصة من {{shop_name}} هذا الأسبوع.\n{{shop_url}}"
+                },
+                "brochure_share": {
+                    "label": "Brochure / catalogue share",
+                    "body": "Hi {{customer_name}},\n\nHere is our latest brochure from {{shop_name}}.\nBrowse: {{shop_url}}\n\nمرحباً، إليك أحدث كتالوج من {{shop_name}}.\n{{shop_url}}"
+                },
+                "follow_up": {
+                    "label": "Order follow-up",
+                    "body": "Hello {{customer_name}},\n\nThank you for shopping with {{shop_name}}. Need anything else? Reply here or visit {{shop_url}}.\n\nشكراً لتسوقكم مع {{shop_name}}. للمساعدة ردّوا على هذه الرسالة."
+                },
+                "event_invite": {
+                    "label": "Event / open day invitation",
+                    "body": "You're invited! {{shop_name}} open day — visit us or shop online: {{shop_url}}\n\nدعوة من {{shop_name}} — زورونا أو تسوقوا أونلاين: {{shop_url}}"
+                },
+                "blank": {
+                    "label": "Blank WhatsApp message",
+                    "body": "Hello {{customer_name}},\n\nMessage from {{shop_name}}.\n{{shop_url}}"
+                }
+            },
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "mb_apply",
+            "output": "",
+            "result": "Hi Ali from A&B {{missing}}",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "channel_tables",
+            "output": "",
+            "result": [
+                "epc_carrier_accounts",
+                "epc_carrier_shipments",
+                "epc_channel_sync_log",
+                "epc_marketplace_channels",
+                "epc_marketplace_orders",
+                "epc_marketplace_sku_map",
+                "shop_orders_items_statuses_ref"
+            ],
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "frame_assets",
+            "output": "",
+            "result": {
+                "css": {
+                    "/a.css": true,
+                    "/b.css": true
+                },
+                "js": {
+                    "/x.js": true,
+                    "/y.js": true
+                }
+            },
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "frame_open",
+            "output": "",
+            "result": "<div class=\"col-lg-12 epc-cp-page-frame extra\">",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "frame_hero",
+            "output": "",
+            "result": "<div class=\"epc-scp-dashboard__hero epc-cp-page-header\">\n\t<div>\n\t\t\t\t<span class=\"epc-scp-dashboard__badge\">Ops</span>\n\t\t\t\t\t\t<h2 class=\"epc-scp-dashboard__title\">A&amp;B</h2>\n\t\t\t\t\t\t<p class=\"epc-scp-dashboard__sub\">Go &lt;b&gt;now&lt;/b&gt;</p>\n\t\t\t</div>\n\t\t<div class=\"epc-scp-dashboard__hero-actions\">\n\t\t\t\t<a class=\"btn btn-sm btn-primary\" href=\"/cp\">\n\t\t\t<i class=\"fa fa-cog\"></i> \t\t\tOpen\t\t</a>\n\t\t\t\t<a class=\"btn btn-sm btn-default\" href=\"#\">\n\t\t\t\t\t\tHelp\t\t</a>\n\t\t\t</div>\n\t</div>\n\t",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "frame_close",
+            "output": "",
+            "result": "</div>",
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "fm_guest",
+            "output": "window.EPC_FILEMANAGER={\"connectorUrl\":\"/cp/lib/elfinder/php/connector.php\",\"csrf\":\"\",\"lang\":\"en\",\"langUrl\":\"\",\"height\":560};",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "fm_zh",
+            "output": "window.EPC_FILEMANAGER={\"connectorUrl\":\"/cp/lib/elfinder/php/connector.php\",\"csrf\":\"\",\"lang\":\"zh_CN\",\"langUrl\":\"/cp/lib/elfinder/js/i18n/elfinder.zh_CN.js\",\"height\":560};",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "fm_fail",
+            "output": "window.EPC_FILEMANAGER={\"connectorUrl\":\"/cp/lib/elfinder/php/connector.php\",\"csrf\":\"\",\"lang\":\"en\",\"langUrl\":\"\",\"height\":560,\"error\":\"config_failed\"};",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "oi_guest",
+            "output": "window.EPC_OI={};",
+            "result": null,
+            "headers": [],
+            "status": false
+        },
+        {
+            "name": "oi_admin",
+            "output": "window.EPC_OI={\"backend\":\"cp\",\"lang\":\"ar\",\"csrf\":\"tok&\",\"managerId\":7,\"sortField\":\"price\",\"sortDir\":\"asc\",\"timeFrom\":\"1\",\"timeTo\":\"2\",\"inProcessStatuses\":[\"3\",\"5\"],\"urls\":{\"items\":\"/cp/shop/orders/items\",\"setViewed\":\"/cp/content/shop/order_process/ajax_set_orders_viewed.php\",\"userModal\":\"/cp/content/users/statistics/frontAjax/ajax_loadUserModal.php\",\"setItemStatus\":\"/content/shop/protocol/set_order_item_status.php\"},\"msg\":{\"selectItemsViewed\":\"{3619}\",\"setViewedFail\":\"{3599}\",\"selectItemsStatus\":\"{3559}\",\"setStatusFail\":\"{3560}\",\"statusOk\":\"{3755}\",\"userModalFail\":\"{3541}\",\"selectPlaceholder\":\"{2094}\"}};",
+            "result": null,
+            "headers": [],
+            "status": false
+        }
+    ]
+}

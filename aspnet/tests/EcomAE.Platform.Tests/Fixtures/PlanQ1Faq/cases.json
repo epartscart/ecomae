@@ -1,0 +1,12 @@
+{
+  "cases": [
+    {
+      "name": "faq_bits",
+      "eval": "$mods=epc_ecomae_faq_modules(); $first=reset($mods); $item=reset($first['items']); return array(epc_ecomae_faq_status_class('Yes'), epc_ecomae_faq_status_class('Partial'), epc_ecomae_faq_status_class('Planned'), epc_ecomae_faq_status_class('No'), epc_ecomae_faq_status_class('Other'), epc_ecomae_faq_format_answer('See the Auto Price AI page and Catalog API.'), epc_ecomae_faq_format_answer('Open the demo page or pricing page.'), epc_ecomae_faq_status_counts(), substr(epc_ecomae_faq_styles(),0,20), strlen(epc_ecomae_faq_styles()), json_decode(epc_ecomae_faq_schema_json(), true)['@type'], count(json_decode(epc_ecomae_faq_schema_json(), true)['mainEntity']), json_decode(epc_ecomae_faq_schema_json(), true)['mainEntity'][0]['name']);"
+    },
+    {
+      "name": "faq_page",
+      "eval": "$html=epc_ecomae_faq_render_page(); return array(substr_count($html,'epm-faq-item'), substr_count($html,'epm-faq-tab'), str_contains($html,'Frequently Asked Questions'), str_contains($html,'14-day demo'), str_contains($html,'function showModule'), str_contains($html,'function filterFaq'), str_contains($html,'platform/contact'), str_contains($html,'application/ld+json'));"
+    }
+  ]
+}

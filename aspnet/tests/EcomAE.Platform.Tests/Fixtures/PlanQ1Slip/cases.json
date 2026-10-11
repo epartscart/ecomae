@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "missing",
+      "eval": "return slip_run_missing();"
+    },
+    {
+      "name": "stores",
+      "eval": "return slip_run_stores($GLOBALS['db_link'], $GLOBALS['__secret']);"
+    },
+    {
+      "name": "roles",
+      "eval": "return slip_run_roles($GLOBALS['db_link'], $GLOBALS['__secret']);"
+    },
+    {
+      "name": "session",
+      "eval": "return slip_run_session($GLOBALS['db_link'], $GLOBALS['__secret']);"
+    }
+  ]
+}

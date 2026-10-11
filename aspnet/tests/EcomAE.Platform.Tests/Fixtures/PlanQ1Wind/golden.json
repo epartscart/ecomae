@@ -1,0 +1,52 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "url",
+            "output": "",
+            "result": [
+                "/pyprices/pyprices-api.php",
+                "https://shop.example/pyprices/pyprices-api.php",
+                "https://shop.example/pyprices/pyprices-api.php"
+            ]
+        },
+        {
+            "name": "channels",
+            "output": "",
+            "result": [
+                11,
+                "/cp/shop/prices/upload?price_id={id}",
+                "https://shop.examplecp/content/shop/prices_upload/for_pyprices/for_cron/cron_crutch.php?key=k1",
+                "https://shop.example/cp/content/shop/prices_upload/for_pyprices/for_cron/cron_crutch.php?key=k1",
+                "deploy_api"
+            ]
+        },
+        {
+            "name": "snap",
+            "output": "",
+            "result": [
+                1,
+                2,
+                2,
+                3,
+                "Acme",
+                2,
+                -1,
+                -1,
+                11
+            ]
+        },
+        {
+            "name": "health",
+            "output": "",
+            "result": [
+                1,
+                1,
+                "https://shop.example/pyprices/pyprices-api.php",
+                0,
+                0,
+                "HTTP 503"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,244 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "names",
+            "output": "",
+            "result": [
+                "20260721aoCfg1",
+                1,
+                "/content/general_pages/epc_cp_ui_css.php?v=20260721aoCfg1",
+                "epc-cp--blue-theme epc-cp-modern",
+                "<script id=\"epc-cp-sidebar-first-paint\">(function(){try{document.docum",
+                1,
+                1,
+                11147,
+                "<!-- epc-cp-build:20260721aoCfg1 -->\n<st",
+                1,
+                1,
+                606
+            ]
+        },
+        {
+            "name": "context",
+            "output": "",
+            "result": [
+                {
+                    "type": "tenant",
+                    "badge": "T3992",
+                    "heading": "Acme Parts",
+                    "sub": "Commerce, orders & operations",
+                    "tagline": "Finance & operations",
+                    "body_class": "epc-cp-login--tenant",
+                    "features": {
+                        "fa-shopping-cart": "Orders & fulfilment",
+                        "fa-chart-line": "ERP, finance & reports",
+                        "fa-credit-card": "Payment gateways & channels"
+                    }
+                },
+                {
+                    "type": "tenant",
+                    "label": "T3992",
+                    "company": "Acme Parts"
+                },
+                {
+                    "type": "super",
+                    "badge": "BOS · Control",
+                    "heading": "BOS — Business Operation System",
+                    "sub": "One login · operators control the whole fleet, tenants see only their own area",
+                    "tagline": "Unified control over every tenant, ERP-only client and demo",
+                    "body_class": "epc-cp-login--super",
+                    "features": {
+                        "fa-globe": "Fleet command — commerce, ERP-only & demo",
+                        "fa-rocket": "Tenant onboarding, templates & module packs",
+                        "fa-shield": "Platform health, governance & failover"
+                    }
+                },
+                {
+                    "type": "super",
+                    "label": "BOS · Operator",
+                    "company": "ECOM AE"
+                },
+                {
+                    "type": "platform_erp",
+                    "badge": "Platform ERP",
+                    "heading": "ECOM AE Platform ERP",
+                    "sub": "ECOM AE Operations — finance & platform ledger",
+                    "tagline": "Operator ERP on ecomae registry · Super CP staff only",
+                    "body_class": "epc-cp-login--platform_erp",
+                    "features": {
+                        "fa-chart-line": "Platform finance, GL & VAT",
+                        "fa-building": "ECOM AE company operations",
+                        "fa-shield": "Isolated from client tenant databases"
+                    }
+                },
+                {
+                    "type": "platform_erp",
+                    "label": "Platform ERP",
+                    "company": "ECOM AE Operations"
+                },
+                {
+                    "type": "demo_cp",
+                    "badge": "Demo CP",
+                    "heading": "Acme Demo — Sandbox",
+                    "sub": "Shop, catalog & prices — isolated demo tenant",
+                    "tagline": "ECOM AE sandbox · expires automatically",
+                    "body_class": "epc-cp-login--demo_cp",
+                    "features": {
+                        "fa-shopping-cart": "Orders & catalogue",
+                        "fa-tags": "Prices & promotions",
+                        "fa-cubes": "Inventory sample data"
+                    }
+                },
+                {
+                    "type": "demo_cp",
+                    "label": "Demo CP",
+                    "company": "Acme Demo"
+                },
+                {
+                    "type": "demo_erp_only",
+                    "badge": "ERP-only demo",
+                    "heading": "Acme Demo — ERP Sandbox",
+                    "sub": "Finance, CRM & operations — no storefront",
+                    "tagline": "ECOM AE sandbox · expires automatically",
+                    "body_class": "epc-cp-login--demo_erp_only",
+                    "features": {
+                        "fa-chart-line": "Finance, GL & VAT reporting",
+                        "fa-users": "CRM & company operations",
+                        "fa-cubes": "Inventory & procurement"
+                    }
+                },
+                {
+                    "type": "demo_erp_only",
+                    "label": "ERP-only demo",
+                    "company": "Acme Demo"
+                },
+                {
+                    "type": "client_erp",
+                    "badge": "Client ERP",
+                    "heading": "Beta Trading ERP",
+                    "sub": "Company ERP — finance & operations",
+                    "tagline": "Secure tenant workspace · ECOM AE cloud",
+                    "body_class": "epc-cp-login--client_erp",
+                    "features": {
+                        "fa-chart-line": "Finance, GL & VAT reporting",
+                        "fa-cubes": "Inventory & procurement",
+                        "fa-users": "CRM & company operations"
+                    }
+                },
+                {
+                    "type": "client_erp",
+                    "label": "Beta Trading ERP",
+                    "company": "Beta Trading"
+                },
+                {
+                    "eyebrow": "ECOM AE",
+                    "icon": "fa-cogs",
+                    "role_label": "BOS · Operator",
+                    "role_type": "super",
+                    "actions": [
+                        {
+                            "url": "/erp/",
+                            "label": "Platform ERP",
+                            "icon": "fa-chart-line",
+                            "primary": true
+                        },
+                        {
+                            "url": "/cp/shop/tenant_hub/tenant_hub",
+                            "label": "Tenant hub",
+                            "icon": "fa-cloud"
+                        },
+                        {
+                            "url": "https://www.ecomae.com/",
+                            "label": "Marketing site",
+                            "icon": "fa-globe",
+                            "target": "_blank"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "markup",
+            "output": "",
+            "result": [
+                "",
+                "<div class=\"epc-cp-page-header__actions\"><a class=\"epc-cp-page-header__pill epc-cp-page-header__pill--primary\" href=\"/erp/\"><i class=\"fa fa-chart-line\"></i><span>Platform ERP</span></a><a class=\"epc-cp-page-header__pill\" href=\"https://www.ecomae.com/\" target=\"_blank\" rel=\"noopener noreferrer\"><i class=\"fa fa-globe\"></i><span>O&#039;Reilly</span></a></div>",
+                "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_cp_ui_css.php?v=20260721aoCfg1\" />\n<link rel=\"stylesheet\" href=\"/content/general_pages/epc_cp_professional_css.php?v=20260721aoCfg1\" />\n<link rel=\"stylesheet\" href=\"/content/general_pages/epc_cp_density_css.php?v=20260721aoCfg1\" />\n<link rel=\"stylesheet\" href=\"/content/general_pages/epc_cp_tenant_polish_css.php?v=20260721aoCfg1\" />\n<link rel=\"stylesheet\" href=\"/content/general_pages/epc_cp_storefront_topbar_css.php?v=20260721aoCfg1\" />\n<!--hub-logo-->\n",
+                "",
+                "ANIMATED:login",
+                "HUB:login-panel:1",
+                "STATIC:login:1",
+                "",
+                "",
+                "<style id=\"epc-cp-inline-css\">body{color:red}\n\n</style>\n"
+            ]
+        },
+        {
+            "name": "scripts",
+            "output": "",
+            "result": [
+                [
+                    552,
+                    "36b76bdfe73b76682df2a9583935bbf1",
+                    "<script id=\"epc-cp-sidebar-first-paint\">(functio",
+                    "0\");}}}catch(e){}})();</script>\n"
+                ],
+                [
+                    11147,
+                    "d86f9defd9e09f1e357f1e624063c91d",
+                    "\t<style id=\"epc-cp-main-pane-critical\">\n\t\t/* cro",
+                    ": none !important;\n\t\t}\n\t</style>"
+                ],
+                [
+                    3857,
+                    "208e3e741fd869588a7d8f7fac0a2c47",
+                    "<script id=\"epc-cp-force-visible-js\">\n(function(",
+                    "'load',nuclear);\n})();\n</script>"
+                ],
+                [
+                    1234,
+                    "0daede321b02edb9402ca925b02f01e1",
+                    "<script>\n(function(){\n\tvar KEY='epc_cp_sidebar_c",
+                    ");}else{boot();}\n})();\n</script>"
+                ],
+                [
+                    463,
+                    "ee43134dca2a6030541cf38e8f3715df",
+                    "<script>\n(function(){\n\tfunction clearCpCollapse(",
+                    "rCpCollapse);\n\t}\n})();\n</script>"
+                ],
+                [
+                    4101,
+                    "90cb88fa2165ca5cdda6561f9aa29f3e",
+                    "<script id=\"epc-erp-sidebar-accordion\">\n(functio",
+                    "e {\n\t\tboot();\n\t}\n})();\n</script>"
+                ],
+                [
+                    710,
+                    "f453651db737629432213e9db48fb416",
+                    "<script id=\"epc-cp-hide-menu-vanilla\">\n(function",
+                    "ndHideMenu();\n\t}\n})();\n</script>"
+                ],
+                [
+                    10812,
+                    "a5d608fc5f90594ecd2d915c199d4eb4",
+                    "<script>\n(function(){\n\tvar KEY = 'epc_cp_menu_gr",
+                    "catch (e) {}\n\t};\n})();\n</script>"
+                ],
+                [
+                    3649,
+                    "6e417df0088ac8474ee8ecc23be7886c",
+                    "<script>\n(function(){\n\tvar KEY = 'epc_cp_sidebar",
+                    "e {\n\t\tbind();\n\t}\n})();\n</script>"
+                ],
+                [
+                    962,
+                    "03c87cb85c4864328d5bec749cd8d6e9",
+                    "<script id=\"epc-cp-modern-reveal\">\n(function(){\n",
+                    "e {\n\t\tboot();\n\t}\n})();\n</script>"
+                ]
+            ]
+        }
+    ]
+}

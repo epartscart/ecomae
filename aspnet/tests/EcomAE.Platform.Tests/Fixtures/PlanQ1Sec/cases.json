@@ -1,0 +1,12 @@
+{
+  "cases": [
+    {
+      "name": "sec_static",
+      "eval": "$_SERVER['DOCUMENT_ROOT']=$GLOBALS['doc']; return array(epc_sec_script_risk_class('ecomae-find-db-pass.php'), epc_sec_script_risk_class('/tmp/epc-foo.php'), epc_sec_script_risk_class('index.php'), epc_sec_lockdown_enabled(), epc_sec_provider_email_allowlist(), epc_sec_email_is_provider_allowlisted('admin@ecomae.com'), epc_sec_email_is_provider_allowlisted('ecomae.admin@shop.com'), epc_sec_email_is_provider_allowlisted('shopper@x.com'), epc_sec_email_is_provider_allowlisted(''), epc_sec_safe_error('Nope', 422));"
+    },
+    {
+      "name": "sec_flow",
+      "eval": "$pdo=$GLOBALS['db_link']; $pdo->exec('CREATE TABLE `groups` (`id` INT PRIMARY KEY, `parent` INT DEFAULT 0, `for_backend` TINYINT DEFAULT 0)'); $pdo->exec('CREATE TABLE `users_groups_bind` (`user_id` INT, `group_id` INT)'); $pdo->exec('INSERT INTO `groups` VALUES (1,0,1),(2,1,0),(3,0,0)'); $pdo->exec('INSERT INTO `users_groups_bind` VALUES (9,2),(8,3)'); $b1=epc_sec_user_has_backend_group($pdo,9); $b2=epc_sec_user_has_backend_group($pdo,8); $b0=epc_sec_user_has_backend_group($pdo,0); $r1=epc_sec_bos_resolve_role($pdo,array('id'=>9,'site_key'=>'siteA'),'x@y.com'); $r2=epc_sec_bos_resolve_role($pdo,array('id'=>1,'_table'=>'admin'),'x@y.com'); $r3=epc_sec_bos_resolve_role($pdo,array('id'=>9),'nobody@x.com'); $r4=epc_sec_bos_resolve_role($pdo,array('id'=>8),'admin@ecomae.com'); $r5=epc_sec_bos_resolve_role($pdo,array('id'=>8),'shop@x.com'); $_SERVER['REMOTE_ADDR']='0'; $bucket='q1sec-parity'; $file=sys_get_temp_dir().'/epc_rl/'.hash('sha256',$bucket.'|0').'.json'; @unlink($file); $a=epc_sec_rate_limit($bucket,2,300); $b=epc_sec_rate_limit($bucket,2,300); $c=epc_sec_rate_limit($bucket,2,300); @unlink($file); $lock=epc_sec_lockdown_enabled(); file_put_contents($GLOBALS['doc'].'/.epc-security-lockdown','1'); $lock2=epc_sec_lockdown_enabled(); return array($b1,$b2,$b0,$r1,$r2,$r3,$r4,$r5,$a,$b,$c,$lock,$lock2);"
+    }
+  ]
+}

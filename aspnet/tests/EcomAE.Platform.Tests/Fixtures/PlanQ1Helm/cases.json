@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "validate",
+      "eval": "return helm_run_validate();"
+    },
+    {
+      "name": "write",
+      "eval": "return helm_run_write();"
+    },
+    {
+      "name": "effective",
+      "eval": "return helm_run_effective();"
+    },
+    {
+      "name": "send",
+      "eval": "return helm_run_send($GLOBALS['db_link']);"
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "names",
+            "output": "",
+            "result": [
+                "brake-pads",
+                "item",
+                "oil-filter-2",
+                "/en/accessories-spare-parts",
+                "/en/accessories-spare-parts?id=12",
+                "/ar/accessories-spare-parts?id=7&category=brakes&subcategory=pads",
+                "/en/accessories-spare-parts",
+                0,
+                1,
+                1,
+                1,
+                1,
+                "",
+                "/content/files/images/accessories/acc_1.jpg",
+                [
+                    "Dubai",
+                    "Abu Dhabi",
+                    "Sharjah"
+                ],
+                "Karachi",
+                14,
+                "5/tax.json",
+                {
+                    "ok": 0,
+                    "failed": 0,
+                    "errors": []
+                }
+            ]
+        },
+        {
+            "name": "terms",
+            "output": "",
+            "result": [
+                2,
+                3,
+                2,
+                31,
+                [
+                    "Toyota",
+                    "Nissan"
+                ],
+                [
+                    "Dubai",
+                    "Abu Dhabi",
+                    "Sharjah"
+                ],
+                "new",
+                "New",
+                1,
+                1,
+                [
+                    "Toyota",
+                    "Nissan"
+                ],
+                1,
+                3,
+                1,
+                1,
+                1,
+                "Dubai",
+                "AED",
+                1
+            ]
+        },
+        {
+            "name": "listings",
+            "output": "",
+            "result": [
+                2,
+                2,
+                2,
+                "brakes",
+                "pads",
+                2,
+                1,
+                1,
+                1,
+                1,
+                "Pad kit",
+                12.5,
+                1,
+                "Pad kit HD",
+                "Sharjah",
+                0,
+                "Category has listings — deactivate instead of delete",
+                1,
+                1
+            ]
+        },
+        {
+            "name": "market",
+            "output": "",
+            "result": [
+                2,
+                0,
+                "epc_acc_listings",
+                "Pad kit",
+                1,
+                "https://example.com/x",
+                "/en/accessories-spare-parts?id=1&category=brakes&subcategory=pads",
+                1,
+                2,
+                2,
+                1,
+                "Toyota",
+                1,
+                "Cheap pad",
+                2,
+                1,
+                1,
+                1,
+                1
+            ]
+        }
+    ]
+}

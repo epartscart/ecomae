@@ -1,0 +1,156 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "match_ids",
+            "output": "",
+            "result": [
+                [
+                    "BOSCH-AG",
+                    "BOSCHAG"
+                ],
+                [
+                    "ЯПОНИЯ МОТОР",
+                    "ЯПОНИЯМОТОР"
+                ],
+                [
+                    "",
+                    ""
+                ],
+                [
+                    7
+                ],
+                [
+                    1
+                ],
+                [
+                    7
+                ]
+            ]
+        },
+        {
+            "name": "brands_letters",
+            "output": "",
+            "result": [
+                [
+                    1
+                ],
+                [],
+                [
+                    {
+                        "name": "3M",
+                        "parts_count": 1,
+                        "letter": "0-9"
+                    },
+                    {
+                        "name": "Bosch",
+                        "parts_count": 2,
+                        "letter": "B"
+                    },
+                    {
+                        "name": "Hidden",
+                        "parts_count": 1,
+                        "letter": "H"
+                    },
+                    {
+                        "name": "Öhlins",
+                        "parts_count": 1,
+                        "letter": "#"
+                    },
+                    {
+                        "name": "Япония",
+                        "parts_count": 1,
+                        "letter": "#"
+                    }
+                ],
+                [
+                    {
+                        "name": "3M",
+                        "parts_count": 1,
+                        "letter": "0-9"
+                    },
+                    {
+                        "name": "Bosch",
+                        "parts_count": 2,
+                        "letter": "B"
+                    },
+                    {
+                        "name": "Hidden",
+                        "parts_count": 1,
+                        "letter": "H"
+                    },
+                    {
+                        "name": "Öhlins",
+                        "parts_count": 1,
+                        "letter": "#"
+                    },
+                    {
+                        "name": "Япония",
+                        "parts_count": 1,
+                        "letter": "#"
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "parts_tag",
+            "output": "",
+            "result": [
+                [],
+                [
+                    {
+                        "manufacturer_key": "BOSCH-AG",
+                        "manufacturer": "BOSCH-AG",
+                        "article": "046",
+                        "article_show": "046",
+                        "name": "Filter",
+                        "exist": "1",
+                        "price": "8.00",
+                        "time_to_exe": "2",
+                        "storage": "WH",
+                        "min_order": "1"
+                    }
+                ],
+                [
+                    {
+                        "name": "Bosch",
+                        "parts_count": 2,
+                        "letter": "B",
+                        "part_type": "genuine"
+                    },
+                    {
+                        "name": "Mann",
+                        "parts_count": 1,
+                        "letter": "M",
+                        "part_type": "aftermarket"
+                    },
+                    {
+                        "name": "",
+                        "parts_count": 0,
+                        "letter": "#",
+                        "part_type": "aftermarket"
+                    }
+                ],
+                []
+            ]
+        },
+        {
+            "name": "tree_text",
+            "output": "",
+            "result": [
+                "[]",
+                "[{\"id\":1,\"$count\":1,\"$level\":0,\"value\":\"Root\",\"value_lang_str_id\":10,\"$parent\":0,\"image\":\"\",\"order\":1,\"open\":false,\"image_url\":\"\",\"is_new\":0,\"data\":[{\"id\":2,\"$count\":0,\"$level\":1,\"value\":\"Child \\u003CA\\u003E\",\"value_lang_str_id\":11,\"$parent\":1,\"image\":\"c.png\",\"order\":2,\"open\":true,\"image_url\":\"\",\"is_new\":0,\"data\":[],\"alias\":\"child\",\"url\":\"\\/root\\/child\"}],\"alias\":\"root\",\"url\":\"\\/root\"}]",
+                [
+                    7
+                ],
+                [
+                    7,
+                    7
+                ],
+                [
+                    11
+                ]
+            ]
+        }
+    ]
+}

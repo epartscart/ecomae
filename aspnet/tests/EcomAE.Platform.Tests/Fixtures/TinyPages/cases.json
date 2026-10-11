@@ -1,0 +1,176 @@
+{
+  "cases": [
+    {
+      "name": "users_agreement",
+      "file": "content/general_pages/users_agreement.php"
+    },
+    {
+      "name": "cata_bridge_config",
+      "file": "content/shop/docpart/epc_cata_bridge.php",
+      "eval": "return epc_cata_bridge_js_config();"
+    },
+    {
+      "name": "eparts_url_empty",
+      "file": "content/general_pages/epc_eparts_product_route.php",
+      "eval": "return array('vin' => epc_storefront_vin_label(), 'url' => epc_eparts_product_url('/en'));"
+    },
+    {
+      "name": "eparts_url_slash",
+      "file": "content/general_pages/epc_eparts_product_route.php",
+      "eval": "return epc_eparts_product_url('/en/');"
+    },
+    {
+      "name": "eparts_url_params",
+      "file": "content/general_pages/epc_eparts_product_route.php",
+      "eval": "return epc_eparts_product_url('/ar', array('article' => 'OC 90', 'name' => 'ж & x', 'empty' => '', 'skip' => null));"
+    },
+    {
+      "name": "ucatalog_index_plain",
+      "file": "api/UCatalog/ucatalog_index.php"
+    },
+    {
+      "name": "ucatalog_index_garage",
+      "file": "api/UCatalog/ucatalog_index.php",
+      "get": {
+        "UCatalog_get_garage": "12"
+      }
+    },
+    {
+      "name": "ucatalog_index_garage_raw",
+      "file": "api/UCatalog/ucatalog_index.php",
+      "get": {
+        "UCatalog_get_garage": "1, 'x'"
+      }
+    },
+    {
+      "name": "pos_footer_unknown",
+      "file": "content/shop/pos/epc_pos_shell_js.php",
+      "eval": "ob_start(); epc_pos_cp_footer_scripts('shop/orders'); return ob_get_clean();"
+    },
+    {
+      "name": "pos_footer_terminal",
+      "file": "content/shop/pos/epc_pos_shell_js.php",
+      "eval": "ob_start(); epc_pos_cp_footer_scripts('/shop/pos/terminal/'); return ob_get_clean();"
+    },
+    {
+      "name": "pos_footer_tenant",
+      "file": "content/shop/pos/epc_pos_shell_js.php",
+      "eval": "ob_start(); epc_pos_cp_footer_scripts('control/portal/epc_pos_tenant_manage'); return ob_get_clean();"
+    },
+    {
+      "name": "commerce_default_backend",
+      "file": "cp/content/shop/prices_upload/commerce_data_page.php"
+    },
+    {
+      "name": "commerce_custom_backend",
+      "file": "cp/content/shop/prices_upload/commerce_data_page.php",
+      "config": {
+        "backend_dir": "CP&x"
+      }
+    },
+    {
+      "name": "modal_hidden",
+      "file": "cp/content/users/statistics/modal.php",
+      "vars": {
+        "customer_id": 0
+      }
+    },
+    {
+      "name": "modal_shown",
+      "file": "cp/content/users/statistics/modal.php",
+      "vars": {
+        "customer_id": 42
+      }
+    },
+    {
+      "name": "modal_string_id",
+      "file": "cp/content/users/statistics/modal.php",
+      "vars": {
+        "customer_id": "7"
+      }
+    },
+    {
+      "name": "docpart_href_no_license",
+      "file": "content/general/docpart_href.php",
+      "vars_out": [
+        "docpart_href",
+        "docpart_title"
+      ]
+    },
+    {
+      "name": "docpart_href_odd_license",
+      "file": "content/general/docpart_href.php",
+      "license": "license:3\n",
+      "vars_out": [
+        "docpart_href",
+        "docpart_title"
+      ]
+    },
+    {
+      "name": "docpart_href_even_license",
+      "file": "content/general/docpart_href.php",
+      "license": "license:4\n",
+      "vars_out": [
+        "docpart_href",
+        "docpart_title"
+      ]
+    },
+    {
+      "name": "error_pages_absent",
+      "file": "plugins/error_pages/error_pages.php",
+      "plugin_data_value": "{\"404_value\":\"2220\",\"404_title_tag\":\"2221\",\"404_description_tag\":\"2222\",\"404_keywords_tag\":\"2223\",\"404_author_tag\":\"2224\",\"404_content_type\":\"2225\",\"404_content\":\"2226\"}",
+      "vars_out": [
+        "DP_Content"
+      ]
+    },
+    {
+      "name": "error_pages_404",
+      "file": "plugins/error_pages/error_pages.php",
+      "content_service_data": {
+        "error_page": "404"
+      },
+      "plugin_data_value": "{\"404_value\":\"2220\",\"404_title_tag\":\"2221\",\"404_description_tag\":\"2222\",\"404_keywords_tag\":\"2223\",\"404_author_tag\":\"2224\",\"404_content_type\":\"2225\",\"404_content\":\"2226\"}",
+      "vars_out": [
+        "DP_Content"
+      ]
+    },
+    {
+      "name": "logout_module",
+      "file": "cp/modules/logout/module.php",
+      "admin_session": {
+        "csrf_guard_key": "k\"&x"
+      },
+      "admin_profile": {
+        "name": "Ada <b>"
+      }
+    },
+    {
+      "name": "edit_mode_jsonp_frontend",
+      "eval": "setcookie('edit_mode', 'frontend', 0, '/'); return $_GET['callback'].'('.json_encode($_GET['edit_mode']).')';",
+      "get": {
+        "callback": "jQuery123",
+        "edit_mode": "frontend"
+      }
+    },
+    {
+      "name": "edit_mode_jsonp_unicode",
+      "eval": "return $_GET['callback'].'('.json_encode($_GET['edit_mode']).')';",
+      "get": {
+        "callback": "cb",
+        "edit_mode": "back/end ж"
+      }
+    },
+    {
+      "name": "edit_mode_jsonp_missing",
+      "eval": "return (isset($_GET['callback']) ? $_GET['callback'] : '').'('.json_encode(isset($_GET['edit_mode']) ? $_GET['edit_mode'] : null).')';"
+    },
+    {
+      "name": "edit_mode_csrf_1",
+      "eval": "return json_encode(array('error'=>'Error! CSRF 1','message'=>'Error! CSRF 1','status'=>false));"
+    },
+    {
+      "name": "edit_mode_no_db",
+      "eval": "return json_encode(array('status'=>false,'message'=>'No DB connect'));"
+    }
+  ]
+}

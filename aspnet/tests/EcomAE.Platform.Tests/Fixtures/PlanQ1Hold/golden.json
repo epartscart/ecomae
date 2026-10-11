@@ -1,0 +1,267 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "sso_pure",
+            "output": "",
+            "result": [
+                "1.0.0",
+                {
+                    "entity_id": "https://www.ecomae.com/saml/sp/Acme-Site",
+                    "acs_url": "https://www.ecomae.com/saml/acs/Acme-Site",
+                    "slo_url": "https://www.ecomae.com/saml/slo/Acme-Site",
+                    "metadata_url": "https://www.ecomae.com/saml/metadata/Acme-Site",
+                    "name_id_format": "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+                },
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<md:EntityDescriptor xmlns:md=\"urn:oasis:names:tc:SAML:2.0:metadata\"\n    entityID=\"https://www.ecomae.com/saml/sp/Acme-Site\">\n  <md:SPSSODescriptor protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\"\n      AuthnRequestsSigned=\"true\" WantAssertionsSigned=\"true\">\n    <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</md:NameIDFormat>\n    <md:AssertionConsumerService\n        Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\"\n        Location=\"https://www.ecomae.com/saml/acs/Acme-Site\"\n        index=\"0\" isDefault=\"true\"/>\n    <md:SingleLogoutService\n        Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect\"\n        Location=\"https://www.ecomae.com/saml/slo/Acme-Site\"/>\n  </md:SPSSODescriptor>\n</md:EntityDescriptor>",
+                {
+                    "ok": true,
+                    "request_id": "FIXED",
+                    "redirect_url": "HAS_SAML",
+                    "raw_request": "<samlp:AuthnRequest xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\"\n        xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n        ID=\"FIXED\"\n        Version=\"2.0\"\n        IssueInstant=\"FIXED\"\n        Destination=\"https://idp.example.com/sso?x=1&amp;y=2\"\n        AssertionConsumerServiceURL=\"https://www.ecomae.com/saml/acs/Acme-Site\"\n        ProtocolBinding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\">\n    <saml:Issuer>https://www.ecomae.com/saml/sp/Acme-Site</saml:Issuer>\n    <samlp:NameIDPolicy Format=\"urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress\" AllowCreate=\"true\"/>\n</samlp:AuthnRequest>"
+                }
+            ]
+        },
+        {
+            "name": "sso_db",
+            "output": "",
+            "result": [
+                [],
+                {
+                    "ok": true,
+                    "provider_id": 1
+                },
+                {
+                    "ok": true,
+                    "provider_id": 2
+                },
+                {
+                    "id": 2,
+                    "site_key": "acme",
+                    "provider_name": "Acme IdP",
+                    "provider_type": "saml2",
+                    "entity_id": "",
+                    "sso_url": "https://idp.a/sso",
+                    "slo_url": "",
+                    "attribute_map": {
+                        "email": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+                        "first_name": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname",
+                        "last_name": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname",
+                        "role": "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+                    },
+                    "jit_provision": 0,
+                    "default_role": "staff",
+                    "active": 1,
+                    "created_by": 0
+                },
+                [
+                    {
+                        "id": 2,
+                        "provider_name": "Acme IdP",
+                        "provider_type": "saml2",
+                        "entity_id": "",
+                        "sso_url": "https://idp.a/sso",
+                        "active": 1,
+                        "jit_provision": 0,
+                        "default_role": "staff"
+                    },
+                    {
+                        "id": 1,
+                        "provider_name": "Zed IdP",
+                        "provider_type": "saml2",
+                        "entity_id": "",
+                        "sso_url": "https://idp.z/sso",
+                        "active": 0,
+                        "jit_provision": 1,
+                        "default_role": "viewer"
+                    }
+                ],
+                true,
+                true,
+                {
+                    "ok": true,
+                    "session_id": 1,
+                    "email": "ann@x.com",
+                    "first_name": "Ann",
+                    "last_name": "Lee",
+                    "role": "buyer",
+                    "name_id": "ann@x.com",
+                    "jit_provision": false
+                },
+                {
+                    "ok": false,
+                    "error": "Provider not found"
+                },
+                {
+                    "ok": false,
+                    "error": "Invalid SAML response XML"
+                },
+                {
+                    "ok": false,
+                    "error": "SAML authentication failed: urn:oasis:names:tc:SAML:2.0:status:Responder"
+                },
+                [
+                    {
+                        "id": 1,
+                        "site_key": "acme",
+                        "provider_id": 2,
+                        "user_id": 0,
+                        "name_id": "ann@x.com",
+                        "email": "ann@x.com",
+                        "attributes": {
+                            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress": "ann@x.com",
+                            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname": "Ann",
+                            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname": "Lee",
+                            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": "buyer"
+                        },
+                        "session_index": "SI1",
+                        "status": "active",
+                        "ip_address": "10.1.2.3",
+                        "user_agent": "Mozilla/5.0",
+                        "provider_name": "Acme IdP"
+                    }
+                ],
+                true,
+                1,
+                [
+                    {
+                        "site_key": "acme",
+                        "providers": 2,
+                        "active_providers": "2",
+                        "active_sessions": 0,
+                        "total_logins": 2
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "bos_pure",
+            "output": "",
+            "result": [
+                {
+                    "total_tenants": 0,
+                    "avg_score": 0,
+                    "critical": 0,
+                    "healthy": 0
+                },
+                {
+                    "total_tenants": 5,
+                    "avg_score": 56,
+                    "critical": 2,
+                    "healthy": 2
+                }
+            ]
+        },
+        {
+            "name": "bos_db",
+            "output": "",
+            "result": [
+                {
+                    "tenant": "nope",
+                    "checks": [
+                        {
+                            "name": "Tenant record",
+                            "status": "fail",
+                            "detail": "Not found in registry"
+                        }
+                    ],
+                    "score": 0
+                },
+                {
+                    "tenant": "nodb",
+                    "checks": [
+                        {
+                            "name": "Tenant record",
+                            "status": "pass",
+                            "detail": "Found"
+                        },
+                        {
+                            "name": "DB connectivity",
+                            "status": "fail",
+                            "detail": "No db_name configured"
+                        }
+                    ],
+                    "score": 50
+                },
+                {
+                    "tenant": "failc",
+                    "checks": [
+                        {
+                            "name": "Tenant record",
+                            "status": "pass",
+                            "detail": "Found"
+                        },
+                        {
+                            "name": "DB connectivity",
+                            "status": "fail",
+                            "detail": "Connection failed"
+                        }
+                    ],
+                    "score": 50
+                },
+                100,
+                "liveok",
+                [
+                    "Tenant record",
+                    "DB connectivity",
+                    "Table: users",
+                    "Table: sessions",
+                    "Table: pages",
+                    "Table: modules",
+                    "Table: control_groups",
+                    "Table: control_items",
+                    "ERP: epc_erp_coa_accounts",
+                    "ERP: epc_erp_gl_journals",
+                    "ERP: epc_erp_cash_bank_accounts",
+                    "ERP: epc_erp_suppliers",
+                    "ERP: epc_erp_audit_log",
+                    "Admin user",
+                    "Languages",
+                    "Hostname configured"
+                ],
+                [
+                    "pass",
+                    "pass",
+                    "pass",
+                    "pass",
+                    "pass",
+                    "pass",
+                    "pass",
+                    "pass",
+                    "pass",
+                    "pass",
+                    "pass",
+                    "pass",
+                    "pass",
+                    "pass",
+                    "pass",
+                    "pass"
+                ],
+                [
+                    [
+                        "failc",
+                        50
+                    ],
+                    [
+                        "liveok",
+                        100
+                    ],
+                    [
+                        "nodb",
+                        50
+                    ],
+                    [
+                        "missingx",
+                        50
+                    ]
+                ],
+                {
+                    "total_tenants": 4,
+                    "avg_score": 63,
+                    "critical": 0,
+                    "healthy": 1
+                }
+            ]
+        }
+    ]
+}

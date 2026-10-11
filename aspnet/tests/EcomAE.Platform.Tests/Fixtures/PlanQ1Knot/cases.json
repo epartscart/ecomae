@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "none" },
+    { "name": "url" },
+    { "name": "complex" },
+    { "name": "override" }
+  ]
+}

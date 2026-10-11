@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "reset" },
+    { "name": "limit" },
+    { "name": "skip" },
+    { "name": "empty" }
+  ]
+}

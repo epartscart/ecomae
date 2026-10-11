@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "name": "keys",
+      "eval": "return mast_run_keys($GLOBALS['db_link']);"
+    },
+    {
+      "name": "rate",
+      "eval": "return mast_run_rate($GLOBALS['db_link']);"
+    },
+    {
+      "name": "handle",
+      "eval": "return mast_run_handle($GLOBALS['db_link']);"
+    },
+    {
+      "name": "meta",
+      "eval": "return mast_run_meta($GLOBALS['db_link']);"
+    }
+  ]
+}

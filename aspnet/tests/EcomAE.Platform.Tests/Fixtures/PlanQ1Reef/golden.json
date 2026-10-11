@@ -1,0 +1,110 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "pure",
+            "output": "",
+            "result": [
+                false,
+                false,
+                8000,
+                true,
+                true,
+                20000,
+                true,
+                true,
+                20000,
+                false,
+                false,
+                true,
+                true,
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "name": "lists",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "id": 1,
+                        "records_count": 12,
+                        "cron_tasks_count": 3
+                    },
+                    {
+                        "id": 2,
+                        "records_count": 0,
+                        "cron_tasks_count": 0
+                    }
+                ],
+                [
+                    {
+                        "id": 1,
+                        "records_count": 2,
+                        "cron_tasks_count": 3
+                    },
+                    {
+                        "id": 2,
+                        "records_count": 1,
+                        "cron_tasks_count": 0
+                    }
+                ],
+                [
+                    {
+                        "id": 1,
+                        "records_count": 2
+                    },
+                    {
+                        "id": 2,
+                        "records_count": 1
+                    }
+                ],
+                [],
+                false,
+                true,
+                false,
+                {
+                    "1": 2,
+                    "2": 1
+                }
+            ]
+        },
+        {
+            "name": "indexes",
+            "output": "",
+            "result": [
+                0,
+                0,
+                true,
+                false
+            ]
+        },
+        {
+            "name": "health",
+            "output": "",
+            "result": [
+                {
+                    "ok": true,
+                    "message": "OK"
+                },
+                {
+                    "ok": false,
+                    "message": "no",
+                    "raw": "{\"status\":0,\"message\":\"no\"}"
+                },
+                {
+                    "ok": false,
+                    "message": "plain-fail-body",
+                    "raw": "plain-fail-body"
+                },
+                {
+                    "ok": false,
+                    "message": "NET",
+                    "raw": ""
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,494 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "deact_off",
+            "output": "",
+            "result": [
+                false,
+                false
+            ]
+        },
+        {
+            "name": "deact_on",
+            "output": "",
+            "result": [
+                true,
+                false,
+                true
+            ]
+        },
+        {
+            "name": "trace_off",
+            "output": "",
+            "result": [
+                false,
+                true
+            ]
+        },
+        {
+            "name": "trace_on_get",
+            "output": "",
+            "result": true
+        },
+        {
+            "name": "trace_on_flag",
+            "output": "",
+            "result": true
+        },
+        {
+            "name": "trace_write",
+            "output": "",
+            "result": [
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "name": "cpi_data",
+            "output": "",
+            "result": [
+                [
+                    {
+                        "label": "Home",
+                        "href": "/"
+                    },
+                    {
+                        "label": "Services",
+                        "href": "/#epc-cpi-services"
+                    },
+                    {
+                        "label": "About",
+                        "href": "/#epc-cpi-about"
+                    },
+                    {
+                        "label": "Team",
+                        "href": "/#epc-cpi-team"
+                    },
+                    {
+                        "label": "Contact",
+                        "href": "/kontakty"
+                    }
+                ],
+                {
+                    "phone": "+971 4 355 2800",
+                    "email": "info@taxofinca.com",
+                    "hours": "Sun–Thu 9:00–18:00 GST"
+                },
+                [
+                    {
+                        "eyebrow": "Tax & advisory",
+                        "title": "Tax clarity and compliance in one place",
+                        "text": "Corporate tax, VAT and management reporting for UAE entities — with a secure client ERP portal.",
+                        "cta": "Discover our services",
+                        "href": "/#epc-cpi-services",
+                        "tone": "dark"
+                    },
+                    {
+                        "eyebrow": "Corporate tax & VAT",
+                        "title": "Beyond complexity — structured advisory",
+                        "text": "Registration, filing, reviews and cross-border structures handled by advisors who know UAE rules.",
+                        "cta": "Client ERP portal",
+                        "href": "/erp",
+                        "tone": "green"
+                    },
+                    {
+                        "eyebrow": "Business growth",
+                        "title": "Advisory that scales with your ambitions",
+                        "text": "Entity setup, bookkeeping oversight, payroll coordination and board-ready reporting.",
+                        "cta": "Book a consultation",
+                        "href": "/kontakty",
+                        "tone": "dark"
+                    }
+                ],
+                [
+                    {
+                        "icon": "fa-shield",
+                        "title": "We handle the compliance",
+                        "text": "Filings, deadlines and authority correspondence managed with clear accountability."
+                    },
+                    {
+                        "icon": "fa-line-chart",
+                        "title": "ERP & e-invoicing",
+                        "text": "Invoices, customers and finance workflows on one portal your team can trust."
+                    },
+                    {
+                        "icon": "fa-globe",
+                        "title": "UAE corporate tax",
+                        "text": "Registration, returns and advisory aligned with FTA requirements and timelines."
+                    },
+                    {
+                        "icon": "fa-users",
+                        "title": "Dedicated advisors",
+                        "text": "Named contacts for tax, accounting and business questions — not a call centre."
+                    }
+                ],
+                [
+                    {
+                        "icon": "fa-certificate",
+                        "title": "FTA-aligned advisory",
+                        "text": "Corporate tax & VAT compliance"
+                    },
+                    {
+                        "icon": "fa-lock",
+                        "title": "Secure client ERP",
+                        "text": "Encrypted documents & workflows"
+                    },
+                    {
+                        "icon": "fa-map-marker",
+                        "title": "UAE entity focus",
+                        "text": "Mainland & free-zone support"
+                    },
+                    {
+                        "icon": "fa-handshake-o",
+                        "title": "Named advisors",
+                        "text": "Direct partner access"
+                    }
+                ],
+                "/content/files/images/storefronts/consulting/photo-1454165804606-220107c9a589.jpg",
+                [
+                    {
+                        "icon": "fa-balance-scale",
+                        "title": "Corporate tax & VAT",
+                        "text": "Registration, filing, compliance reviews and advisory for UAE and international structures.",
+                        "num": "01"
+                    },
+                    {
+                        "icon": "fa-calculator",
+                        "title": "Accounting & bookkeeping",
+                        "text": "Monthly accounts, management reporting, payroll coordination and audit-ready records.",
+                        "num": "02"
+                    },
+                    {
+                        "icon": "fa-briefcase",
+                        "title": "Business advisory",
+                        "text": "Entity setup, restructuring, cash-flow planning and growth strategy for SMEs.",
+                        "num": "03"
+                    },
+                    {
+                        "icon": "fa-file-text-o",
+                        "title": "E-invoicing & ERP",
+                        "text": "Integrated invoicing, customer records and finance workflows on one secure portal.",
+                        "num": "04"
+                    },
+                    {
+                        "icon": "fa-building-o",
+                        "title": "Entity & licensing",
+                        "text": "Mainland and free-zone setup support with tax registration from day one.",
+                        "num": "05"
+                    },
+                    {
+                        "icon": "fa-pie-chart",
+                        "title": "Management reporting",
+                        "text": "Dashboards and packs tailored for founders, finance teams and investors.",
+                        "num": "06"
+                    }
+                ],
+                [
+                    {
+                        "value": "15+",
+                        "label": "Years experience",
+                        "sub": "tax & advisory"
+                    },
+                    {
+                        "value": "500+",
+                        "label": "Clients supported",
+                        "sub": "UAE & GCC"
+                    },
+                    {
+                        "value": "24h",
+                        "label": "Response target",
+                        "sub": "business days"
+                    },
+                    {
+                        "value": "100%",
+                        "label": "Compliance focus",
+                        "sub": "no shortcuts"
+                    }
+                ],
+                [
+                    {
+                        "name": "Senior tax partner",
+                        "role": "Corporate tax & VAT",
+                        "initials": "ST"
+                    },
+                    {
+                        "name": "Lead accountant",
+                        "role": "Bookkeeping & reporting",
+                        "initials": "LA"
+                    },
+                    {
+                        "name": "Advisory director",
+                        "role": "Business & entity setup",
+                        "initials": "AD"
+                    }
+                ],
+                [
+                    {
+                        "quote": "Taxofinca gave us a clear UAE tax roadmap and a portal our finance team actually uses every day.",
+                        "author": "CFO, trading group",
+                        "company": "Dubai"
+                    },
+                    {
+                        "quote": "VAT and corporate tax filings are on time, with proactive advice before deadlines — not after.",
+                        "author": "Founder, professional services",
+                        "company": "Abu Dhabi"
+                    },
+                    {
+                        "quote": "We moved from spreadsheets to structured reporting and e-invoicing without disrupting operations.",
+                        "author": "Finance manager, SME",
+                        "company": "Sharjah"
+                    }
+                ],
+                [
+                    "FTA ready",
+                    "UAE entities",
+                    "ERP integrated",
+                    "Multi-currency",
+                    "Bilingual support"
+                ],
+                [
+                    {
+                        "num": "01",
+                        "title": "Discovery call",
+                        "text": "We review your entity structure, obligations and reporting needs."
+                    },
+                    {
+                        "num": "02",
+                        "title": "Tailored plan",
+                        "text": "Clear scope for tax, accounting and advisory deliverables."
+                    },
+                    {
+                        "num": "03",
+                        "title": "Ongoing support",
+                        "text": "Filing, reporting and ERP access through your client portal."
+                    }
+                ],
+                [
+                    {
+                        "title": "Services",
+                        "links": [
+                            {
+                                "label": "Corporate tax",
+                                "href": "/#epc-cpi-services"
+                            },
+                            {
+                                "label": "VAT compliance",
+                                "href": "/#epc-cpi-services"
+                            },
+                            {
+                                "label": "Accounting",
+                                "href": "/#epc-cpi-services"
+                            },
+                            {
+                                "label": "Business advisory",
+                                "href": "/#epc-cpi-services"
+                            }
+                        ]
+                    },
+                    {
+                        "title": "Portal",
+                        "links": [
+                            {
+                                "label": "Client ERP login",
+                                "href": "/erp"
+                            },
+                            {
+                                "label": "Staff control panel",
+                                "href": "/cp/"
+                            },
+                            {
+                                "label": "Client login",
+                                "href": "/users/login"
+                            }
+                        ]
+                    },
+                    {
+                        "title": "Company",
+                        "links": [
+                            {
+                                "label": "About us",
+                                "href": "/#epc-cpi-about"
+                            },
+                            {
+                                "label": "Our team",
+                                "href": "/#epc-cpi-team"
+                            },
+                            {
+                                "label": "Contact",
+                                "href": "/kontakty"
+                            }
+                        ]
+                    }
+                ],
+                {
+                    "primary": "#1e40af",
+                    "primary_dark": "#1e3a8a",
+                    "accent": "#d4af37",
+                    "sidebar_from": "#0f172a",
+                    "sidebar_to": "#1e3a5f",
+                    "hero_from": "#0f172a",
+                    "hero_to": "#1e40af"
+                },
+                "Tax & advisory services",
+                "Corporate tax clarity, VAT compliance, and growth you can measure.",
+                "Registration, filing, management reporting and a secure client ERP portal — structured advisory for UAE entities.",
+                [
+                    {
+                        "label": "Our services",
+                        "href": "/#epc-cpi-services",
+                        "icon": "fa-briefcase",
+                        "primary": true
+                    },
+                    {
+                        "label": "Client ERP",
+                        "href": "/shop/erp",
+                        "icon": "fa-line-chart"
+                    },
+                    {
+                        "label": "Contact us",
+                        "href": "/kontakty",
+                        "icon": "fa-envelope"
+                    }
+                ],
+                [
+                    {
+                        "value": "FTA",
+                        "label": "aligned advisory"
+                    },
+                    {
+                        "value": "ERP",
+                        "label": "client portal"
+                    },
+                    {
+                        "value": "UAE",
+                        "label": "entity focus"
+                    }
+                ],
+                [
+                    {
+                        "name": "x",
+                        "sku": "AB-1001"
+                    },
+                    {
+                        "sku": "KEEP",
+                        "name": "y"
+                    }
+                ],
+                [
+                    "",
+                    "",
+                    "AED 2,500",
+                    "AED 3,501"
+                ],
+                12,
+                "TF-VAT-001",
+                "TF-PLN-012"
+            ]
+        },
+        {
+            "name": "mkt_catalogs",
+            "output": "",
+            "result": [
+                [
+                    "bos-overview",
+                    "erp-modules",
+                    "api-documentation",
+                    "security-overview",
+                    "industry-packs",
+                    "user-guides"
+                ],
+                6,
+                "Blockchain BOS overview",
+                [
+                    "ecomae-vs-odoo",
+                    "ecomae-vs-erpnext",
+                    "ecomae-vs-zoho",
+                    "ecomae-vs-netsuite",
+                    "ecomae-vs-dynamics-365"
+                ],
+                5,
+                null,
+                [
+                    "what-is-a-business-operating-system",
+                    "bos-vs-erp",
+                    "bos-vs-crm",
+                    "why-smes-need-a-bos",
+                    "bos-for-retail",
+                    "bos-for-distribution",
+                    "bos-for-manufacturing"
+                ],
+                7,
+                "What is a Blockchain BOS Enterprise System?",
+                [
+                    "business-operating-system",
+                    "erp-software-uae",
+                    "erp-for-retail",
+                    "erp-for-distribution",
+                    "erp-crm-platform",
+                    "inventory-management-software",
+                    "procurement-software",
+                    "accounting-software-uae"
+                ],
+                8,
+                null
+            ]
+        },
+        {
+            "name": "soc2_flow",
+            "output": "",
+            "result": [
+                "1.0.0",
+                21,
+                "CC1.1",
+                "P1.2",
+                21,
+                0,
+                21,
+                14,
+                {
+                    "ok": true
+                },
+                {
+                    "ok": false,
+                    "error": "No fields to update"
+                },
+                true,
+                true,
+                21,
+                4.8,
+                20,
+                1,
+                true,
+                {
+                    "controls": 21,
+                    "readiness_pct": 4.8,
+                    "gaps": 20,
+                    "policies": 1,
+                    "evidence_items": 1
+                },
+                20,
+                1,
+                5,
+                true,
+                1,
+                {
+                    "readiness": 4.8,
+                    "controls_total": 21,
+                    "controls_by_status": {
+                        "not_started": 20,
+                        "in_progress": 0,
+                        "implemented": 0,
+                        "tested": 0,
+                        "effective": 1
+                    },
+                    "outstanding_gaps": 20,
+                    "evidence_items": 1,
+                    "policies": 1,
+                    "report_type": "SOC 2 Type II Readiness Assessment"
+                }
+            ]
+        }
+    ]
+}

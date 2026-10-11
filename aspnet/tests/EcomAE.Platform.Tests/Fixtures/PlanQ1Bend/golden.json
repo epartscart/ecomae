@@ -1,0 +1,63 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "empty",
+            "output": "",
+            "result": [
+                [
+                    0,
+                    "",
+                    ""
+                ],
+                [
+                    0,
+                    "",
+                    ""
+                ]
+            ]
+        },
+        {
+            "name": "nophone",
+            "output": "",
+            "result": [
+                [
+                    451,
+                    "<style>wa</style><div class=\"epc-wa-share-panel\">\n\t<h5><i class=\"fa fa-whatsapp\"",
+                    "\" href=\"https://wa.me/971567607011?t=SALES\">Share with sales</a>\t</div>\n\t</div>\n"
+                ],
+                1,
+                1,
+                0
+            ]
+        },
+        {
+            "name": "phone",
+            "output": "",
+            "result": [
+                [
+                    422,
+                    "<style>wa</style><div class=\"epc-wa-share-panel\">\n\t<h5><i class=\"fa fa-whatsapp\"",
+                    "\" href=\"https://wa.me/971567607011?t=SALES\">Share with sales</a>\t</div>\n\t</div>\n"
+                ],
+                1,
+                1,
+                0
+            ]
+        },
+        {
+            "name": "lpo",
+            "output": "",
+            "result": [
+                [
+                    744,
+                    "<style>wa</style><div class=\"epc-wa-share-panel\">\n\t<h5><i class=\"fa fa-whatsapp\"",
+                    "fault\" href=\"https://wa.me/97156?t=FWD\">LPO: O'Neil</a>\t\t</div>\n\t</div>\n\t</div>\n"
+                ],
+                1,
+                1,
+                1
+            ]
+        }
+    ]
+}

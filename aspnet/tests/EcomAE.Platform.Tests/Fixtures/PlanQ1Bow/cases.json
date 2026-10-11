@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "infer" },
+    { "name": "map" },
+    { "name": "catalog" },
+    { "name": "fetch" }
+  ]
+}

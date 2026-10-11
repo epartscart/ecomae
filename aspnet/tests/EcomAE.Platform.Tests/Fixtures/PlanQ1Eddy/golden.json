@@ -1,0 +1,41 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "empty",
+            "output": "",
+            "result": [
+                "brand=epartscart\nscope=client\nprint=0\nbase_path=/cp/control/cp_brochure\n",
+                "brand=epartscart\nscope=client\nprint=0\nbase_path=/cp/control/cp_brochure\n",
+                "brand=epartscart\nscope=client\nprint=0\nbase_path=/cp/control/cp_brochure\n"
+            ]
+        },
+        {
+            "name": "super",
+            "output": "",
+            "result": [
+                "brand=ecomae\nscope=all\nprint=0\nbase_path=/cp/control/cp_brochure\n",
+                "brand=ecomae\nscope=client\nprint=0\nbase_path=/cp/control/cp_brochure\n",
+                "brand=ecomae\nscope=all\nprint=0\nbase_path=/cp/control/cp_brochure\n"
+            ]
+        },
+        {
+            "name": "query",
+            "output": "",
+            "result": [
+                "brand=epartscart\nscope=allclient\nprint=1\nbase_path=/cp/control/cp_brochure\n",
+                "brand=ecomae\nscope=all\nprint=0\nbase_path=/cp/control/cp_brochure\n",
+                "brand=epartscart\nscope=client\nprint=0\nbase_path=/cp/control/cp_brochure\n",
+                "brand=epartscart\nscope=acmescript\nprint=0\nbase_path=/cp/control/cp_brochure\n"
+            ]
+        },
+        {
+            "name": "tenant",
+            "output": "",
+            "result": [
+                "brand=epartscart\nscope=client\nprint=0\nbase_path=/acme/control/cp_brochure\n",
+                "brand=ecomae\nscope=client\nprint=1\nbase_path=/beta/control/cp_brochure\n"
+            ]
+        }
+    ]
+}
