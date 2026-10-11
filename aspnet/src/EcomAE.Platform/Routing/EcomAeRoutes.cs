@@ -2962,6 +2962,12 @@ public static class EcomAeRoutes
     public const string ErpUaeTaxLegislationChecklistSet = "/erp/uae-tax/legislation/checklist/set";
     /// <summary>HTML form POST for PHP pm_save. confirmWrites=true writes via IErpPmSaveWriteService.</summary>
     public const string ErpPmSave = "/erp/pm/save";
+
+    /// <summary>PHP epc-erp-advanced-setup.php?industry=… → epc_erp_industry_apply(). confirmWrites=true applies the blueprint to the tenant DB.</summary>
+    public const string ErpIndustryApply = "/erp/industry/apply";
+
+    /// <summary>PHP epc_erp_industry_current() readback.</summary>
+    public const string ErpIndustryCurrent = "/erp/industry/current";
     /// <summary>HTML form POST for PHP pm_budget_save. confirmWrites=true writes via IErpPmBudgetSaveWriteService.</summary>
     public const string ErpPmBudgetSave = "/erp/pm/budgets/save";
     /// <summary>HTML form POST for PHP pm_budget_line_save. confirmWrites=true writes via IErpPmBudgetLineSaveWriteService.</summary>
