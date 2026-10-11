@@ -2,6 +2,9 @@ using System.Data.Common;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_quality.php
 /// <summary>
 /// Live PHP <c>epc_qm_plan_save</c> / ajax <c>qm_plan_save</c> twin.
 /// UPDATE <c>epc_qm_plan</c> when <c>id</c> &gt; 0, else UPSERT on <c>company_id</c>+<c>code</c>.

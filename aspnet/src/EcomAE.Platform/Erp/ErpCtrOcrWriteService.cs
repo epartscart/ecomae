@@ -4,6 +4,9 @@ using System.Text.Json;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_contracts.php
 /// <summary>
 /// Live PHP <c>epc_ctr_ocr_store</c> / ajax <c>ctr_ocr</c> twin.
 /// UPDATE <c>epc_erp_contracts.ocr_text</c>. Schema ensure, sign, and vendor OCR stay PHP.

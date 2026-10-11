@@ -5,6 +5,10 @@ using System.Text.Json;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_customs.php
+//   cp/content/shop/finance/erp/custom_shipping/custom_shipping_guide_page.php
 /// <summary>
 /// Live PHP <c>custom_shipping_reports.php</c> twin (epc_custom_shipping.php Phase 2):
 /// five reports over <c>epc_custom_shipping_declarations</c> — declaration search,

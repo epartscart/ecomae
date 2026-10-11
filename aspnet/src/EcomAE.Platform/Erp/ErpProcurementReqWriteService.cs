@@ -1,5 +1,8 @@
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_procurement.php
 /// <summary>
 /// Live PHP <c>epc_proc_req_submit</c> / <c>epc_proc_req_decision</c> / <c>epc_proc_req_convert</c> twins.
 /// Schema ensure stays PHP. Header save is <c>IErpProcurementReqSaveWriteService</c>.

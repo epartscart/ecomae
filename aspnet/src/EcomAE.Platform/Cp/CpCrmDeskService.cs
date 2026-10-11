@@ -4,6 +4,11 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_crm_access.php
+//   content/shop/finance/epc_crm_helpers.php
+//   content/shop/finance/epc_crm_schema.php
 /// <summary>
 /// Read side of the PHP CRM (<c>epc_crm_helpers.php</c>, <c>epc_crm_modules.php</c>,
 /// <c>epc_erp_crm_advanced.php</c>) that <c>crm_main.php</c>, <c>crm_enterprise_panels.php</c>

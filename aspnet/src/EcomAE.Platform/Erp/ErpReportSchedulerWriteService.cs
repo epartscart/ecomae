@@ -5,6 +5,9 @@ using System.Text.Json;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_report_scheduler.php
 /// <summary>
 /// Live PHP <c>epc_report_sched_create</c> twin. Schema-ensure and send/email stay PHP.
 /// </summary>

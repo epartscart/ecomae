@@ -1,5 +1,9 @@
 namespace EcomAE.Platform.Presentation;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_hr_law.php
+//   content/shop/finance/epc_erp_localization.php
 /// <summary>
 /// PHP <c>epc_hr_law_profiles_all</c> / <c>epc_hr_law_authority_url</c> twin.
 /// Built-in labour-law pack — <c>law_fetch</c> reloads this catalog (no HTTP scrape).

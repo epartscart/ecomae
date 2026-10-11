@@ -5,6 +5,9 @@ using System.Text.Json.Nodes;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_integration.php
 /// <summary>
 /// Live PHP <c>epc_intg_event_raise</c> / ajax <c>intg_event_raise</c> twin.
 /// INSERT <c>epc_intg_event_log</c> (one <c>queued</c> row per active match, or one

@@ -4,6 +4,9 @@ using System.Security.Cryptography;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_phase8.php
 /// <summary>
 /// Live PHP twins of ajax_erp.php <c>save_contact</c> (<c>epc_erp_contact_save</c>),
 /// <c>sync_contacts</c> (<c>epc_erp_contacts_sync_from_masters</c>) and

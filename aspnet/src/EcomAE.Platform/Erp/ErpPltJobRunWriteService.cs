@@ -3,6 +3,9 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_platform.php
 /// <summary>
 /// Live PHP <c>epc_plt_batch_run</c> / ajax <c>plt_job_run</c> twin.
 /// INSERT <c>epc_plt_batch_run</c> and UPDATE <c>epc_plt_batch_job</c>

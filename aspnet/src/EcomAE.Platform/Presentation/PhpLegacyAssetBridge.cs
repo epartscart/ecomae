@@ -1,5 +1,9 @@
 namespace EcomAE.Platform.Presentation;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_portal_inline_css.php
+//   cp/content/shop/finance/erp/erp_entry_form_css.php
 /// <summary>
 /// Serves PHP chrome CSS/static files from the monorepo so ASP.NET shells get the same
 /// presentation assets when nginx/PHP-FPM is not in front (local + Kestrel loopback).

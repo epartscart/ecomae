@@ -6,6 +6,9 @@ using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_tax_toolkit.php
 public sealed record ErpTaxAmounts(
     decimal AmountExVat,
     decimal VatAmount,

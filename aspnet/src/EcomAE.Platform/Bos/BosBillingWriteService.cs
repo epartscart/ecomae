@@ -6,6 +6,9 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Bos;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_subscription_billing.php
 /// <summary>
 /// Live PHP <c>ajax_epc_bos.php</c> <c>subscription_billing</c> <c>cancel</c> / <c>epc_billing_cancel</c>,
 /// <c>pay</c> / <c>epc_billing_record_payment</c>, <c>create_plan</c> / <c>epc_billing_create_plan</c>,

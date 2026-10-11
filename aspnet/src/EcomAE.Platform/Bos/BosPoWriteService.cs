@@ -3,6 +3,9 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Bos;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_po_approval.php
 /// <summary>
 /// Live PHP <c>ajax_epc_bos.php</c> <c>po_approval</c> <c>cancel</c> / <c>epc_po_cancel</c>,
 /// <c>reject</c> / <c>epc_po_reject</c>, and <c>approve</c> / <c>epc_po_approve</c>.

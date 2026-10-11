@@ -3,6 +3,9 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_sla.php
 /// <summary>
 /// Live PHP <c>epc_sla_create</c> twin. Schema-ensure stays PHP.
 /// </summary>

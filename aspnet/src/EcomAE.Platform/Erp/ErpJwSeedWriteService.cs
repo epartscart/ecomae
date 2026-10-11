@@ -3,6 +3,9 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_jewellery_integration.php
 /// <summary>Verbatim row-count/error report of PHP epc_jw_seed_sample_data.</summary>
 public sealed record ErpJwSeedResult(
     int Warehouses,

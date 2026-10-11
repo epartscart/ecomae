@@ -3,6 +3,9 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_gold_rate.php
 /// <summary>
 /// Live PHP <c>epc_gold_rate_set</c> twin (manual). API refresh stays PHP.
 /// </summary>

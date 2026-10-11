@@ -4,6 +4,12 @@ using System.Text.RegularExpressions;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_uae_tax_compliance.php
+//   content/shop/finance/epc_uae_tax_knowledge.php
+//   cp/content/shop/finance/erp/erp_uae_tax_compliance_page.php
+//   cp/content/shop/finance/erp/epc_uae_tax_compliance_config.php
 /// <summary>
 /// Pure PHP <c>epc_uae_fta_parse_legislation_list_html</c> /
 /// <c>epc_uae_fta_legislation_tax_category</c> /

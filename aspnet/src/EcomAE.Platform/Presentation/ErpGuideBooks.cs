@@ -1,5 +1,14 @@
 namespace EcomAE.Platform.Presentation;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_guide_content.php
+//   content/shop/finance/epc_erp_process_flows.php
+//   content/shop/finance/epc_erp_portal_guide.php
+//   content/shop/finance/erp_guide_portal.php
+//   cp/content/shop/finance/erp/erp_guide_page.php
+//   cp/content/shop/finance/erp/erp_full_guide_page.php
+//   cp/content/shop/finance/erp/erp_advanced_guide_page.php
 /// <summary>
 /// Extra ERP operator books beyond the module catalog in <c>erp-guide-modules.json</c>.
 /// PHP: <c>erp_guide.php</c>, <c>erp_full_guide.php</c>, <c>erp_advanced_guide.php</c>,

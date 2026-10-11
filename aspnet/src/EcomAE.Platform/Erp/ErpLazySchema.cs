@@ -2,6 +2,11 @@ using System.Data.Common;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_company.php
+//   content/shop/finance/epc_erp_schema.php
+//   content/shop/finance/epc_erp_migration.php
 /// <summary>
 /// Verbatim-DDL schema ensures for ERP tables that PHP creates lazily via
 /// <c>*_ensure_schema</c> functions (CREATE TABLE IF NOT EXISTS at the top of

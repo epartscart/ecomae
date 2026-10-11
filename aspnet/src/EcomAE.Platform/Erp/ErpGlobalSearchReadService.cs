@@ -6,6 +6,9 @@ using EcomAE.Platform.Presentation;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   cp/content/shop/finance/erp/erp_nav_areas.php
 /// <summary>
 /// Live PHP twin of the read-only ajax_erp.php case <c>erp_global_search</c>
 /// (<c>epc_erp_global_search</c>): tenant-filtered module/tab label matches first, then

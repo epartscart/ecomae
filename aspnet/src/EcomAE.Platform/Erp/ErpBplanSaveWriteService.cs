@@ -2,6 +2,9 @@ using System.Data.Common;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_budget_planning.php
 /// <summary>
 /// Live PHP <c>epc_bplan_save</c> / ajax <c>bplan_save</c> twin.
 /// UPDATE <c>epc_bplan_plan</c> when <c>id</c> &gt; 0, else INSERT with stage=draft.
