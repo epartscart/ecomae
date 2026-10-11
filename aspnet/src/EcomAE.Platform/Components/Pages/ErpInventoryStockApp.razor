@@ -57,6 +57,7 @@
             </label>
             <label>Reference <input type="text" name="reference" /></label>
             <button type="submit" class="btn btn-sm btn-primary">Record movement</button>
+            <div id="mv_on_hand_hint" class="muted" style="width:100%;font-size:.8rem;"></div>
         </form>
         <form method="post" action="/erp/ajax/inv-transfer" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
@@ -67,6 +68,7 @@
             <label>Qty <input type="text" name="qty" required /></label>
             <label>Reference <input type="text" name="reference" /></label>
             <button type="submit" class="btn btn-sm btn-default">Transfer stock</button>
+            <div id="tf_on_hand_hint" class="muted" style="width:100%;font-size:.8rem;"></div>
         </form>
         <form method="post" action="/erp/ajax/inv-create-warehouse" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
@@ -252,6 +254,7 @@
         Movements, transfers, closing, and csv_text import stay on ERP ajax. File CSV upload stays Classic.
         @if (!string.IsNullOrWhiteSpace(_summary.Message)) { <span> @_summary.Message</span> }
     </div>
+    <script src="/erp/erp-inventory-stock.js" defer></script>
 </PhpErpDesktopChrome>
 
 @code {

@@ -12910,6 +12910,42 @@ public sealed class ErpModule : ISurfaceModule
             return html is null ? Results.NotFound() : Results.Content(html, "text/html; charset=utf-8");
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpInvOnHand, async (
+            HttpContext context,
+            long warehouseId,
+            long itemId,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for inventory on-hand readback.");
+            }
+
+            var result = await dashboards.BuildErpInvOnHandAsync(warehouseId, itemId, cancellationToken);
+            if (result.OnHand is null)
+            {
+                return Results.NotFound(new { ok = false, error = "not_found", warehouseId, itemId, message = result.Message });
+            }
+
+            var s = result.OnHand;
+            return Results.Ok(new
+            {
+                ok = true,
+                warehouseId = s.WarehouseId,
+                itemId = s.ItemId,
+                sku = s.Sku,
+                name = s.Name,
+                reorderLevel = s.ReorderLevel,
+                qtyOnHand = s.QtyOnHand,
+                avgUnitCost = s.AvgUnitCost,
+                stockValue = s.StockValue,
+                atReorder = s.ReorderLevel > 0m && s.QtyOnHand <= s.ReorderLevel,
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpRfqs, async (
             HttpContext context,
             int? limit,
