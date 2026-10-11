@@ -27,7 +27,7 @@ public static class LoginErrorHelper
             "rate_limited" => "Too many failed attempts. Please wait "
                 + (query.TryGetValue("wait", out var wait) && int.TryParse(wait, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var minutes) && minutes > 0 ? minutes : 15)
                 + " minutes before trying again.",
-            _ => "Incorrect login or password. Use the tenant host where the account was registered (e.g. taxofinca.com vs epartscart.com). If PHP login works on this same host, operator must sync SecretSuccession + shop db_name."
+            _ => "Incorrect login or password. Super CP/ERP on www.ecomae.com uses yawer@ecomae.com (same password as the previous Gmail operator). Tenant accounts must use the host where they were registered (taxofinca.com vs epartscart.com). If PHP login works on this same host, sync SecretSuccession."
         };
     }
 }

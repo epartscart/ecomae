@@ -4,6 +4,24 @@ The command `bash scripts/preflight_aspnet_production.sh` must be run from the r
 
 **Do not use `/var/www/ecomae`.** That path is usually missing. Source checkouts live under `/root/ecomae` or `/opt/ecomae-aspnet-source`. Published releases live under `/var/www/ecomae-aspnet`.
 
+## Super admin `yawer@ecomae.com` cannot log in?
+
+The live `users` row is still `ecomaedxb@gmail.com` until you remap it. Password hash stays the same.
+
+```bash
+# See both rows (no hash printed):
+ECOMAE_CONFIRM_REMAP_SUPER_OPERATOR=0 bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/erp-logout-everywhere-5dbd/scripts/cloudpanel_remap_super_operator_yawer.sh)"
+
+# Remap email only:
+ECOMAE_CONFIRM_REMAP_SUPER_OPERATOR=YES bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/erp-logout-everywhere-5dbd/scripts/cloudpanel_remap_super_operator_yawer.sh)"
+
+# Same PHP password for ASP.NET:
+ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
+  bash /opt/ecomae-aspnet-source/scripts/cloudpanel_sync_secret_succession_from_php.sh
+```
+
+Then sign in on `https://www.ecomae.com/erp/login` as `yawer@ecomae.com` with the previous Gmail-operator password. Do not use a tenant host.
+
 ## Logout still signed in after refresh?
 
 Production is still on the old ASP.NET binary until you deploy `cursor/erp-logout-everywhere-5dbd`. Diagnose first (no restart), then deploy:

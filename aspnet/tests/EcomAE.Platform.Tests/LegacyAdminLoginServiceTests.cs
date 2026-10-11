@@ -179,6 +179,22 @@ public sealed class LegacyAdminLoginServiceTests
         Assert.NotNull(wrong);
         Assert.Contains("taxofinca", wrong, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("SecretSuccession", wrong, StringComparison.Ordinal);
+        Assert.Contains("yawer@ecomae.com", wrong, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void SuperOperatorAliasLooksUpBothEmails()
+    {
+        Assert.True(PlatformOperatorIdentity.IsAlias("yawer@ecomae.com"));
+        Assert.True(PlatformOperatorIdentity.IsAlias("Ecomaedxb@gmail.com"));
+        Assert.False(PlatformOperatorIdentity.IsAlias("buyer@epartscart.com"));
+        Assert.Equal("yawer@ecomae.com", PlatformOperatorIdentity.Canonicalize("ecomaedxb@gmail.com"));
+        Assert.Equal(
+            new[] { "yawer@ecomae.com", "ecomaedxb@gmail.com" },
+            PlatformOperatorIdentity.LookupEmails("yawer@ecomae.com"));
+        Assert.Equal(
+            new[] { "buyer@epartscart.com" },
+            PlatformOperatorIdentity.LookupEmails("buyer@epartscart.com"));
     }
 
     [Fact]
