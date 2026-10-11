@@ -133,6 +133,8 @@ public sealed class SuperCpTenantIsolationTests
         var boc = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpBocTopnav.razor"));
         Assert.Contains("PhpSuperCpBocNav.Nav()", boc, StringComparison.Ordinal);
         Assert.Contains("epc_boc_topnav", boc, StringComparison.Ordinal);
+        Assert.Contains("flex-direction:row !important", boc, StringComparison.Ordinal);
+        Assert.Contains("list-style:none !important", boc, StringComparison.Ordinal);
         // Fleet console must not query tenant shop digests.
         Assert.DoesNotContain("ListCpOrdersAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpProductCatalogueDigestAsync", text, StringComparison.Ordinal);
