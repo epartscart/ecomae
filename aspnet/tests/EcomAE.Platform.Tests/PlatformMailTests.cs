@@ -5,6 +5,7 @@ using EcomAE.Platform.Cp;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Mail;
 using EcomAE.Platform.Routing;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Xunit;
 
@@ -77,6 +78,7 @@ public class PlatformMailTests
         Assert.Contains("Publish Cloudflare DNS", guide);
         Assert.Contains("Compose and send", guide);
         Assert.Contains("own inbox", guide);
+        Assert.Contains("never Gmail", guide);
         Assert.DoesNotContain("mint", guide, StringComparison.OrdinalIgnoreCase);
 
         var erp = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpTenantMailboxApp.razor"));
@@ -277,6 +279,8 @@ public class PlatformMailTests
         Assert.Contains("SuperCpHostGate.IsAllowed", src);
         Assert.Contains("platformErp", src);
         Assert.Contains("AllowPlatformErp", src);
+        var program = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Program.cs"));
+        Assert.Contains("TenantTransactionalMailer", program);
     }
 
     [Fact]
@@ -431,6 +435,66 @@ public class PlatformMailTests
 
         public Task<ErpSimpleWriteResult> DeleteAsync(string? idsJson, long actorUserId, CancellationToken cancellationToken = default)
             => Task.FromResult(ErpSimpleWriteResult.Fail("no", "no"));
+    }
+
+    [Fact]
+    public async Task Transactional_mail_uses_tenant_domain_not_gmail()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "ecomae-mail-" + Guid.NewGuid().ToString("n") + ".json");
+        var dir = new PlatformMailDirectory(null, path);
+        dir.UpsertMailbox(new PlatformMailbox(
+            "orders@epartscart.com",
+            "orders",
+            "epartscart.com",
+            "epartscart",
+            DateTimeOffset.UtcNow));
+        var stored = await new PlatformMailService(dir, new InMemoryPurelymailApi(), Options.Create(new PurelymailOptions()))
+            .WriteAsync(new PlatformMailWriteRequest("set_mailbox_password", Address: "orders@epartscart.com", Password: "box-pass"), CancellationToken.None);
+        Assert.True(stored.Succeeded);
+
+        var smtp = new InMemoryMailboxSmtpClient();
+        var inner = new RecordingInnerMailer();
+        var http = new HttpContextAccessor
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+        http.HttpContext.Request.Host = new HostString("www.epartscart.com");
+        var mailer = new TenantTransactionalMailer(inner, dir, smtp, http);
+
+        using (TenantTransactionalMail.UseNotification("new_order_to_manager"))
+        {
+            var config = mailer.ReadConfig();
+            Assert.Equal("orders@epartscart.com", config["from_email"]);
+            Assert.Equal("smtp.purelymail.com", config["smtp_host"]);
+            var sent = await mailer.SendHtmlAsync("buyer@client.example", "Order", "<p>hi</p>");
+            Assert.True(sent.Ok);
+        }
+
+        var row = Assert.Single(smtp.Sent);
+        Assert.Equal("orders@epartscart.com", row.From);
+        Assert.Equal("buyer@client.example", row.To);
+        Assert.Empty(inner.Sent);
+        Assert.Equal("orders", TenantTransactionalMail.LocalFor("lpo_to_supplier"));
+        Assert.Equal("info", TenantTransactionalMail.LocalFor("new_order_to_user"));
+        Assert.Equal("orders@epartscart.com", TenantTransactionalMail.PreferDomainInbox("epartscart@gmail.com", "www.epartscart.com"));
+    }
+
+    private sealed class RecordingInnerMailer : ICpPlatformMailer
+    {
+        public List<string> Sent { get; } = [];
+
+        public IReadOnlyDictionary<string, string> ReadConfig()
+            => new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["from_email"] = "epartscart@gmail.com",
+                ["smtp_host"] = "smtp.gmail.com",
+            };
+
+        public Task<CpSmsSendOutcome> SendHtmlAsync(string to, string subject, string htmlBody, CancellationToken cancellationToken = default)
+        {
+            Sent.Add(to);
+            return Task.FromResult(new CpSmsSendOutcome(true, "inner"));
+        }
     }
 
     private sealed class StubFactory : IHttpClientFactory

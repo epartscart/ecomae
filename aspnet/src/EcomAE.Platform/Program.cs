@@ -709,7 +709,11 @@ builder.Services.AddSingleton<IStorefrontCartAddDryRun, StorefrontCartAddDryRun>
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartAddService, EcomAE.Platform.Storefront.StorefrontCartAddService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartWriteService, EcomAE.Platform.Storefront.StorefrontCartWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCheckoutWriteService, EcomAE.Platform.Storefront.StorefrontCheckoutWriteService>();
-builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPlatformMailer, EcomAE.Platform.Cp.CpPlatformMailer>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.CpPlatformMailer>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPlatformMailer>(sp =>
+    ActivatorUtilities.CreateInstance<EcomAE.Platform.Mail.TenantTransactionalMailer>(
+        sp,
+        sp.GetRequiredService<EcomAE.Platform.Cp.CpPlatformMailer>()));
 builder.Services.AddSingleton<EcomAE.Platform.Auth.IAuthOtpMailer, EcomAE.Platform.Auth.AuthOtpMailer>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontNotifyDispatcher, EcomAE.Platform.Storefront.StorefrontNotifyDispatcher>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontWhatsappNotifier, EcomAE.Platform.Storefront.StorefrontWhatsappNotifier>();

@@ -108,7 +108,8 @@ public sealed class MailKitSmtpClient : IMailboxSmtpClient
         message.From.Add(MailboxAddress.Parse(from));
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject;
-        message.Body = new TextPart("plain") { Text = body ?? string.Empty };
+        var text = body ?? string.Empty;
+        message.Body = new TextPart(text.Contains('<', StringComparison.Ordinal) ? "html" : "plain") { Text = text };
         using var client = new MailKit.Net.Smtp.SmtpClient { Timeout = 20_000 };
         await client.ConnectAsync(_options.SmtpHost, _options.SmtpPort, SecureSocketOptions.StartTls, cancellationToken).ConfigureAwait(false);
         await client.AuthenticateAsync(new NetworkCredential(from, password), cancellationToken).ConfigureAwait(false);
