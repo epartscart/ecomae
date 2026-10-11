@@ -86,6 +86,10 @@ public static class PhpLegacyAssetBridge
             });
         }
 
+        // wwwroot CSS — UseStaticFiles is off, so /css/*.css 404s unless mapped.
+        endpoints.MapGet("/css/{fileName}.css", (IWebHostEnvironment host, string fileName) =>
+            ServeWwwrootCss(host, fileName + ".css"));
+
         // Uploaded media root managed by the CP file manager (PHP served this directly from the docroot).
         var filesRoot = Path.GetFullPath(Path.Combine(repoRoot, "content", "files"));
         endpoints.MapGet("/content/files/{**relativePath}", (string? relativePath) =>
@@ -502,6 +506,30 @@ public static class PhpLegacyAssetBridge
 
             return Results.Text(PhpEpartsCartLogoAssets.EcomaeMarkSvg, "image/svg+xml");
         });
+    }
+
+    private static IResult ServeWwwrootCss(IWebHostEnvironment host, string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName)
+            || fileName.Contains("..", StringComparison.Ordinal)
+            || fileName.Contains('/', StringComparison.Ordinal)
+            || fileName.Contains('\\', StringComparison.Ordinal)
+            || !fileName.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
+        {
+            return Results.NotFound();
+        }
+
+        var webRoot = string.IsNullOrWhiteSpace(host.WebRootPath)
+            ? Path.Combine(host.ContentRootPath, "wwwroot")
+            : host.WebRootPath;
+        var root = Path.GetFullPath(Path.Combine(webRoot, "css"));
+        var path = Path.GetFullPath(Path.Combine(root, fileName));
+        if (!path.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal) || !File.Exists(path))
+        {
+            return Results.NotFound();
+        }
+
+        return Results.File(path, "text/css; charset=utf-8");
     }
 
     private static IResult ServeRepoFile(string repoRoot, string relative, string contentType)

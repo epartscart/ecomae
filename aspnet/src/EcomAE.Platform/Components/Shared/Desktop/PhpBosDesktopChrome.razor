@@ -19,8 +19,8 @@
 <style>
     /* Tokens match bos/epc_bos_shell.css */
     .bos-body--topnav {
-        --bos-topbar-height:52px; --bos-bg:#f0f2f5; --bos-ink:#1e293b; --bos-primary:#0ea5e9; --bos-primary-dark:#0284c7;
-        --bos-topnav-bg:#000000; --bos-topnav-hover:rgba(255,255,255,.12); --bos-topnav-active:rgba(255,255,255,.18);
+        --bos-topbar-height:58px; --bos-bg:#f3f6fa; --bos-ink:#15253d; --bos-primary:#0ea5e9; --bos-primary-dark:#0284c7;
+        --bos-topnav-bg:#05070b; --bos-topnav-hover:rgba(255,255,255,.12); --bos-topnav-active:rgba(255,255,255,.18);
         min-height:100vh; background:var(--bos-bg); color:var(--bos-ink);
         font-family: @(LegacyPhpFontAssets.StackFor("bos")); font-size: @(LegacyPhpFontAssets.BaseFontSize);
     }
@@ -72,8 +72,8 @@
 <style>
     /* Tokens match bos/epc_bos_shell.css — body-stream fallback when HeadOutlet drops. */
     .bos-body--topnav {
-        --bos-topbar-height:52px; --bos-bg:#f0f2f5; --bos-ink:#1e293b; --bos-primary:#0ea5e9; --bos-primary-dark:#0284c7;
-        --bos-topnav-bg:#000000; --bos-topnav-hover:rgba(255,255,255,.12); --bos-topnav-active:rgba(255,255,255,.18);
+        --bos-topbar-height:58px; --bos-bg:#f3f6fa; --bos-ink:#15253d; --bos-primary:#0ea5e9; --bos-primary-dark:#0284c7;
+        --bos-topnav-bg:#05070b; --bos-topnav-hover:rgba(255,255,255,.12); --bos-topnav-active:rgba(255,255,255,.18);
         min-height:100vh; background:var(--bos-bg); color:var(--bos-ink);
         font-family: @(LegacyPhpFontAssets.StackFor("bos")); font-size: @(LegacyPhpFontAssets.BaseFontSize);
     }
@@ -122,7 +122,8 @@
     .bos-tag--warn { background:#fef3c7; color:#92400e; }
 </style>
 
-<div class="bos-body bos-body--topnav epc-php-font-root">
+<div class="bos-body bos-body--topnav epc-premium-shell epc-php-font-root">
+    <link rel="stylesheet" href="/css/epc-premium-enterprise-shell.css?v=20261011premium" />
     <nav class="bos-topnav" id="bosTopnav" aria-label="BOS top navigation">
         <div class="bos-topnav__inner">
             <a class="bos-topnav__brand" href="/bos">
@@ -182,21 +183,26 @@
                 }
                 else
                 {
-                    <span class="bos-topnav__user" title="@_userLabel">@_userLabel</span>
+                    <span class="bos-topnav__user" title="@_userLabel"><i class="fa fa-user-circle" aria-hidden="true"></i> @_userLabel</span>
                     <a class="bos-topnav__logout" href="/bos/logout" title="Sign out"><i class="fa fa-sign-out" aria-hidden="true"></i> Log out</a>
                 }
+                <a href="/bos/mail-app" title="Platform mail">Mail</a>
                 <a href="/bos">BOS home</a>
                 <a href="/attention">Attention</a>
                 <a href="/cp">Control panel</a>
+                <a href="/erp">ERP</a>
             </div>
         </div>
     </nav>
 
     <main class="bos-main" id="bosMain">
         <div class="bos-main__header" id="bosMainHeader">
-            <div class="bos-main__breadcrumb">BOS / Fleet / @Title</div>
-            <div class="bos-main__tenant-bar">
-                <span class="bos-tag">Fleet</span>
+            <div>
+                <div class="bos-main__breadcrumb">Business Operation System · Fleet · @Title</div>
+                <div class="bos-main__tenant-bar">
+                    <span class="bos-tag">Super BOS</span>
+                    <span class="bos-tag">Fleet command</span>
+                </div>
             </div>
         </div>
         <OperatingNavigationContextBar Surface="bos" />

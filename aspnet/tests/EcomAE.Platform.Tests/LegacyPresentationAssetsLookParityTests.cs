@@ -61,4 +61,18 @@ public sealed class LegacyPresentationAssetsLookParityTests
             LegacyPresentationAssets.ErpStylesheets,
             href => href.Contains("epc-enterprise-design-system.css", StringComparison.OrdinalIgnoreCase));
     }
+
+    [Fact]
+    public void PremiumEnterpriseShellIsLoadedByCpBosAndErp()
+    {
+        Assert.Contains(
+            LegacyPresentationAssets.ControlPanelStylesheets,
+            href => href.Contains("epc-premium-enterprise-shell.css", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(
+            LegacyPresentationAssets.BosStylesheets,
+            href => href.Contains("epc-premium-enterprise-shell.css", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(
+            LegacyPresentationAssets.ErpStylesheets,
+            href => href.Contains("epc-premium-enterprise-shell.css", StringComparison.OrdinalIgnoreCase));
+    }
 }

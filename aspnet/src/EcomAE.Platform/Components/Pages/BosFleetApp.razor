@@ -48,17 +48,20 @@
 <PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Command Center">
 
         <section class="epc-bosapp-hero">
-            <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.15)" />
-            <h1>Super BOS · Fleet Command Center</h1>
-            <p>
-                Product Super BOS on ecomae.com (<code>/bos</code>) — separate from Super CP (<code>/cp</code> red BOC console).
-                Tenant control, readiness, health, and audit in the black BOS shell.
-            </p>
-            <p style="margin:.65rem 0 0">
-                <a href="/cp" style="color:#7dd3fc;font-weight:700">← Back to Super CP</a>
-                · <a href="/erp" style="color:#7dd3fc;font-weight:700">Super ERP</a>
-                · <a href="/ip" style="color:#7dd3fc;font-weight:700">Intelligence Platform</a>
-            </p>
+            <div>
+                <div class="epc-bosapp-hero__kicker">Business Operation System</div>
+                <h1>Super BOS · Fleet Command Center</h1>
+                <p>
+                    Product Super BOS on ecomae.com (<code>/bos</code>) — separate from Super CP (<code>/cp</code>).
+                    Tenant control, readiness, health, and audit in the enterprise BOS shell.
+                </p>
+            </div>
+            <div class="epc-bosapp-hero__actions">
+                <a href="/cp">Super CP</a>
+                <a class="ghost" href="/erp">Super ERP</a>
+                <a class="ghost" href="/bos/mail-app">Platform mail</a>
+                <a class="ghost" href="/ip">Intelligence</a>
+            </div>
         </section>
 
         @if (!_isAdmin)

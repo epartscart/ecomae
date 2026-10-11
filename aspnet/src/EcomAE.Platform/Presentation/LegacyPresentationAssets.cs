@@ -40,7 +40,8 @@ public static class LegacyPresentationAssets
         // (Super CP + Tenant CP). /platform-assets survives PHP pause.
         "/platform-assets/epc_cp_aspnet_module_parity.css?v=20260811scp",
         "/content/general_pages/epc_cp_aspnet_module_parity_css.php",
-        "/css/epc-enterprise-design-system.css?v=20260930visual"
+        "/css/epc-enterprise-design-system.css?v=20260930visual",
+        "/css/epc-premium-enterprise-shell.css?v=20261011premium"
     ];
 
     /// <summary>
@@ -102,6 +103,7 @@ public static class LegacyPresentationAssets
         "/platform-assets/epc_erp_aspnet_module_parity.css?v=20260909clip",
         "/content/shop/finance/epc_erp_aspnet_module_parity_css.php",
         "/css/epc-enterprise-design-system.css?v=20260930visual",
+        "/css/epc-premium-enterprise-shell.css?v=20261011premium",
         "/erp-document-workspace.css?v=20260929workspace",
         "/erp-finance-voucher-workspace.css?v=20260929finance"
     ];
@@ -109,7 +111,8 @@ public static class LegacyPresentationAssets
     public static readonly IReadOnlyList<string> BosStylesheets =
     [
         "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css",
-        "/epc-static.php?f=bos/epc_bos_shell.css"
+        "/epc-static.php?f=bos/epc_bos_shell.css",
+        "/css/epc-premium-enterprise-shell.css?v=20261011premium"
     ];
 
     /// <summary>LifeOS marketing/app — Font Awesome only; page CSS is inline in HeadContent.</summary>
