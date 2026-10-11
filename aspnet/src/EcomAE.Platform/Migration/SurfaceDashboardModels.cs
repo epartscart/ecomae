@@ -4475,6 +4475,18 @@ public sealed record CpJewelleryMastersColorStoneDigest(
     string Size,
     decimal Rate);
 
+public sealed record CpJewelleryMastersBarcodeDigest(
+    long Id,
+    long CompanyId,
+    string StockCode,
+    string Barcode,
+    string ItemType,
+    string Karat,
+    decimal GrossWt,
+    decimal NetWt,
+    decimal TagPrice,
+    int Printed);
+
 public sealed record CpJewelleryMastersDigestResult(
     CpJewelleryMastersSummary Summary,
     IReadOnlyList<CpJewelleryMastersKaratDigest> Karats,
@@ -4484,6 +4496,7 @@ public sealed record CpJewelleryMastersDigestResult(
     IReadOnlyList<CpJewelleryMastersDesignDigest> Designs,
     IReadOnlyList<CpJewelleryMastersPearlDigest> Pearls,
     IReadOnlyList<CpJewelleryMastersColorStoneDigest> ColorStones,
+    IReadOnlyList<CpJewelleryMastersBarcodeDigest> BarcodeRows,
     int Count,
     string Source,
     string Message);

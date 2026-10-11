@@ -253,7 +253,7 @@ public static class ErpJewelleryModuleChrome
             "No sales analysis rows yet."),
         "retail_barcode" => new("retail_barcode", "Retail barcode", "Retail barcode",
             "Scan barcodes at jewellery POS.",
-            ["Barcode", "Tag", "Item", "Karat", "Status"],
+            ["No.", "Barcode", "Stock Code", "Item Type", "Karat", "Gr.Wt", "Net.Wt", "Tag Price", "Printed"],
             "No retail barcodes yet."),
         "retail_commerce" => new("retail_commerce", "Retail commerce", "Retail commerce",
             "Commerce / e-retail jewellery orders.",
