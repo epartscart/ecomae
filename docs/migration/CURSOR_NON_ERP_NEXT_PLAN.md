@@ -568,7 +568,8 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6bl | `epc_boc_command_center.php` | Closed in Holm. Leftover unique portal, leftover unique console parent, leftover unique user helper, leftover hub helpers, Super-CP host, and the command-center body stay injected unnamed. |
 | 6bm | `epc_boc_vendor_control.php` + `epc_boc_warehouse_control.php` | Closed together in Hope (fastest pair). Same Super-CP / admin / PDO wrapper; leftover unique console parent stays injected unnamed. |
 | 6bn | `epc_boc_audit_log.php` | Closed in Horn. Super-CP / admin / PDO gates, GET area sanitize, table render; leftover unique portal, leftover unique kernel parent, leftover unique user helper, and Super-CP host stay injected unnamed. |
-| 6bo | `epc_mobile_apps.php` | Next (`PhpPlanQ1Howe`). Unique small CP portal page after the Super-CP wrapper cluster. |
+| 6bo | `epc_mobile_apps.php` | Closed in Howe. Admin gate, Super vs tenant form (Firebase/push Super-only), storefront URL `www.` replace is a no-op; leftover unique portal, leftover unique page-frame parent, leftover unique user helper, leftover portal-db parent, Super-CP host, and portal host stay injected unnamed. Helpers already closed in Shoal are stubbed, not included. |
+| 6bp | `epc_tenant_email_settings.php` | Next (`PhpPlanQ1Hunt`). Unique small CP portal page (142 lines, 0 functions). Skip `*_h` guides, APE, and catalogue kernels. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 

@@ -2409,6 +2409,39 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.Equal("cp/content/control/portal/epc_boc_audit_log.php", PhpPlanQ1Horn.BocAuditLogPath);
     }
 
+    [Fact]
+    public void BocMobileApps_LinksStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Howe.Reset();
+        PhpPlanQ1Howe.IsAdmin = () => true;
+        PhpPlanQ1Howe.IsSuperCp = () => true;
+        PhpPlanQ1Howe.BackendDir = "acme";
+        PhpPlanQ1Howe.HttpHost = "acme.example.com";
+        var acme = PhpPlanQ1Howe.EpcMobileAppsPage();
+        PhpPlanQ1Howe.IsSuperCp = () => false;
+        PhpPlanQ1Howe.BackendDir = "beta";
+        PhpPlanQ1Howe.HttpHost = "beta.example.com";
+        var beta = PhpPlanQ1Howe.EpcMobileAppsPage();
+        PhpPlanQ1Howe.IsAdmin = () => false;
+        PhpPlanQ1Howe.BackendDir = "acme";
+        var denied = PhpPlanQ1Howe.EpcMobileAppsPage();
+        Assert.Contains("data-ajax-url=\"/acme/content/control/portal/ajax_integrations.php\"", acme, StringComparison.Ordinal);
+        Assert.Contains("FRAME_OPEN:epc-mobile-apps|Super CP|Mobile apps (Android / iOS / PWA)", acme, StringComparison.Ordinal);
+        Assert.Contains("firebase_project_id", acme, StringComparison.Ordinal);
+        Assert.Contains("https://acme.example.com/en/", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("/beta/", acme, StringComparison.Ordinal);
+        Assert.Contains("data-ajax-url=\"/beta/content/control/portal/ajax_integrations.php\"", beta, StringComparison.Ordinal);
+        Assert.Contains("FRAME_OPEN:epc-mobile-apps|Tenant CP|Mobile apps (Android / iOS / PWA)", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("firebase_project_id", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("/acme/", beta, StringComparison.Ordinal);
+        Assert.Equal(PhpPlanQ1Howe.DeniedAdmin, denied);
+        Assert.DoesNotContain("/acme/", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("/beta/", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Howe.MobileAppsPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Howe.MobileAppsPath, StringComparison.Ordinal);
+        Assert.Equal("cp/content/control/portal/epc_mobile_apps.php", PhpPlanQ1Howe.MobileAppsPath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2512,6 +2545,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Hope.BocVendorControlPath,
             PhpPlanQ1Hope.BocWarehouseControlPath,
             PhpPlanQ1Horn.BocAuditLogPath,
+            PhpPlanQ1Howe.MobileAppsPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,

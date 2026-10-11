@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-11 — plan Q1-howe (CP mobile-apps page)
+
+Not complete.
+
+- One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Howe` `cp/content/control/portal/epc_mobile_apps.php` (`epc_int_h`, `epc_int_backend`, `epc_integrations_mobile_config`, `epc_integrations_platform_mobile_defaults`, `epc_integrations_default_mobile_config`, `epc_cp_page_frame_open`, `epc_cp_page_frame_close`; empty / gates / live / tenant isolation; leftover unique portal, leftover unique page-frame parent, leftover unique user helper, leftover portal-db parent, Super-CP host, and portal host stay unnamed). Tenant CP sees the form without Firebase/push. Super-CP sees those fields. Storefront URL `preg_replace('/^www\./', 'www.', …)` is a no-op. Empty backend becomes `//content/control/portal/ajax_integrations.php`. GET does not mint a session.
+- Area functionality gained mobile-apps isolation (`/acme/` ajax stays off `/beta/`; tenant form has no Firebase; denied admin shows no tenant path).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Howe` (4). Howe + area pending while leftovers continue. Last full suite after Foam **6344 / 6344**. The weighted headline stays about 20.4%. ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-11 — plan Q1-horn (BOC audit-log page)
 
 Not complete.
