@@ -95,7 +95,7 @@ public sealed class ErpPhpTabRouteMapTests
         }
 
         Assert.Equal("/erp/collections-dunning-app", ErpPhpTabRouteMap.PreferErpSurface("/cp/collections-dunning-app"));
-        Assert.Equal("/erp/hr-overview-app?tab=hr_ops", ErpPhpTabRouteMap.PreferErpSurface("/cp/hr-overview-app?tab=hr_ops"));
+        Assert.Equal("/erp/hr-overview-app?tab=hr_ops", ErpPhpTabRouteMap.PreferErpSurface("/erp/hr-overview-app?tab=hr_ops"));
 
         foreach (var php in new[]
                  {

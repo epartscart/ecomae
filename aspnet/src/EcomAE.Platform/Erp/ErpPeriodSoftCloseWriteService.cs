@@ -55,6 +55,7 @@ public sealed class ErpPeriodSoftCloseWriteService : IErpPeriodSoftCloseWriteSer
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsurePeriodCloseAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_periods", "year_month", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_erp_period_close_log", "action", cancellationToken).ConfigureAwait(false))
         {

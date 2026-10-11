@@ -1,4 +1,3 @@
-@page "/cp/workflows-app"
 @page "/erp/workflows-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
@@ -56,7 +55,7 @@
 </style>
 </HeadContent>
 
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="epc-auto-hero">
         <h3><i class="fa fa-magic"></i> Accounting &amp; Business Process Automation</h3>
@@ -295,7 +294,7 @@
         </div>
     }
 
-</PhpCpDesktopChrome>
+</PhpErpDesktopChrome>
 
 <form method="post" action="/erp/automation/deactivate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
@@ -333,14 +332,14 @@
     private bool _isAdmin;
     private bool _isErpHost;
     private string _view = "hub";
-    private string _basePath = "/cp/workflows-app";
+    private string _basePath = "/erp/workflows-app";
     private CpWorkflowsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpWorkflowDigest> _workflows = [];
     private string _flashOk = "";
     private string _flashErr = "";
     private int _activeDefault;
     private int _availableDefault;
-    private string _listHref = "/cp/workflows-app";
+    private string _listHref = "/erp/workflows-app";
     private long _openedId;
     private CpWorkflowDetail? _opened;
     private IReadOnlyList<CpWorkflowDigest> _openedSiblings = [];
@@ -361,7 +360,7 @@
         if (ctx is null) return;
         var path = ctx.Request.Path.Value ?? "";
         _isErpHost = path.StartsWith("/erp", StringComparison.OrdinalIgnoreCase);
-        _basePath = _isErpHost ? "/erp/workflows-app" : "/cp/workflows-app";
+        _basePath = _isErpHost ? "/erp/workflows-app" : "/erp/workflows-app";
         _listHref = _basePath;
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "workflow_id");
         _view = (ctx.Request.Query["auto_view"].ToString() ?? "hub").Trim().ToLowerInvariant();

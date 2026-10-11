@@ -143,7 +143,7 @@ public static class BosCommandCentreComposer
             "erp.purchase_order" => "/erp/purchase-orders-app",
             "erp.gl_journal" => "/erp/gl-journals-app",
             "erp.stock" => "/erp/inventory-stock-app",
-            "crm.opportunity" => "/cp/crm-opportunities-app",
+            "crm.opportunity" => "/erp/crm-opportunities-app",
             _ => string.Empty,
         };
         if (path.Length == 0)

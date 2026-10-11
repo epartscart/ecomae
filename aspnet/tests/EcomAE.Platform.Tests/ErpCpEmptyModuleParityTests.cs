@@ -122,10 +122,10 @@ public sealed class ErpCpEmptyModuleParityTests
     [Fact]
     public void CpModuleCopy_IsNotGenericForKnownModules()
     {
-        Assert.False(CpPhpModuleCopy.IsGeneric(CpPhpModuleCopy.PurposeFor("/cp/hr-overview-app")));
-        Assert.Contains("salary", CpPhpModuleCopy.PurposeFor("/cp/hr-overview-app"), StringComparison.OrdinalIgnoreCase);
+        Assert.False(CpPhpModuleCopy.IsGeneric(CpPhpModuleCopy.PurposeFor("/erp/hr-overview-app")));
+        Assert.Contains("salary", CpPhpModuleCopy.PurposeFor("/erp/hr-overview-app"), StringComparison.OrdinalIgnoreCase);
         Assert.Contains("credit", CpPhpModuleCopy.PurposeFor("/cp/credit-limits-app"), StringComparison.OrdinalIgnoreCase);
-        Assert.False(CpPhpModuleCopy.IsGeneric(CpPhpModuleCopy.PurposeFor("/cp/landed-cost-app")));
+        Assert.False(CpPhpModuleCopy.IsGeneric(CpPhpModuleCopy.PurposeFor("/erp/landed-cost-app")));
     }
 
     [Fact]

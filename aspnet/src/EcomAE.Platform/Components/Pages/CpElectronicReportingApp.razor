@@ -1,4 +1,3 @@
-@page "/cp/electronic-reporting-app"
 @page "/erp/electronic-reporting-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
@@ -10,8 +9,8 @@
 @inject IHttpContextAccessor Http
 
 <PageTitle>Electronic reporting · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -20,12 +19,12 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/electronic-reporting-app")</p>
+                <p>@CpPhpModuleCopy.PurposeFor("/erp/electronic-reporting-app")</p>
                 <p>Open a format to see fields and run previews. Add a reporting field or save a format here.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/electronic-reporting-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+    <PhpParityModuleBody AppPath="/erp/electronic-reporting-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedFormat is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -217,18 +216,18 @@
         </div>
     </div>
 
-</PhpCpDesktopChrome>
+</PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=elec_reporting";
-    private string _listHref = "/cp/electronic-reporting-app";
+    private string _listHref = "/erp/electronic-reporting-app";
     private bool _isAdmin;
     private CpElectronicReportingSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpElectronicReportingFormatDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
     private long _openedId;
-    private string _returnHref = "/cp/electronic-reporting-app";
+    private string _returnHref = "/erp/electronic-reporting-app";
     private CpElectronicReportingFormatDigest? _openedFormat;
     private IReadOnlyList<CpElectronicReportingFieldDigest> _openedFields = [];
     private IReadOnlyList<CpElectronicReportingRunDigest> _openedRuns = [];
@@ -255,7 +254,7 @@
         var path = ctx.Request.Path.Value;
         _listHref = string.Equals(path, "/erp/electronic-reporting-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/electronic-reporting-app"
-            : "/cp/electronic-reporting-app";
+            : "/erp/electronic-reporting-app";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "format_id");
         _returnHref = _openedId > 0
             ? ErpRecordOpen.Href(_listHref, "format_id", _openedId).Split('#')[0]

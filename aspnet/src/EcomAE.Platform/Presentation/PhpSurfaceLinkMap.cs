@@ -72,7 +72,7 @@ public static class PhpSurfaceLinkMap
         ("shop/manufacturers_synonyms", "/cp/synonyms-app"),
         ("shop/crosses", "/cp/crosses-app"),
         ("shop/crm", "/cp/crm-board-app"),
-        ("shop/pos", "/cp/pos-overview-app"),
+        ("shop/pos", "/erp/pos-overview-app"),
         ("shop/procurement", "/cp/procurement-app"),
         ("shop/eparts-cata", "/cp/product-catalogue-app"),
         ("shop/eparts-mod", "/cp/product-catalogue-app"),
@@ -162,7 +162,7 @@ public static class PhpSurfaceLinkMap
         ("usefull/ip", "/cp/server-ip-app"),
         ("content/usefull/ip", "/cp/server-ip-app"),
         ("control/shop/prices", "/cp/price-lists-app"),
-        ("control/shop/pos", "/cp/pos-overview-app"),
+        ("control/shop/pos", "/erp/pos-overview-app"),
         ("control/portal/epc_super_cp_fleet_dashboard", "/bos/fleet-health-app"),
         ("control/portal/epc_super_erp_fleet_dashboard", "/erp/fleet-app"),
         ("control/portal/epc_super_cp_info_blocks", "/cp/info-blocks-app"),
@@ -172,20 +172,20 @@ public static class PhpSurfaceLinkMap
         ("control/portal/epc_industry_packs", "/cp/industry-packs-app"),
         ("control/portal/epc_notifications", "/cp/notifications-app"),
         ("control/notifications_settings", "/cp/notifications-app"),
-        ("control/portal/epc_workflow_builder", "/cp/workflows-app"),
+        ("control/portal/epc_workflow_builder", "/erp/workflows-app"),
         ("shop/tenant_hub/tenant_hub", "/cp/tenants-app"),
         ("control/portal/epc_platform_health_checkup", "/cp/failover-status-app"),
         ("control/portal/epc_boc_audit_log", "/bos/audit-log-app"),
         ("control/portal/epc_boc_channel_control", "/cp/marketplace-channels-app"),
-        ("control/portal/epc_boc_warehouse_control", "/cp/warehouse-wms-app"),
+        ("control/portal/epc_boc_warehouse_control", "/erp/warehouse-wms-app"),
         ("control/portal/epc_boc_vendor_control", "/erp/suppliers-app"),
         ("control/portal/epc_boc_command_center", "/cp/control"),
         ("control/portal/epc_super_cp_price_configs", "/cp/price-configs-app"),
-        ("control/portal/epc_tenant_config", "/cp/tenant-config-app"),
+        ("control/portal/epc_tenant_config", "/erp/tenant-config-app"),
         ("control/portal/epc_design_tokens", "/cp/design-tokens-app"),
         ("control/portal/epc_config_sandbox", "/cp/config-sandbox-app"),
-        ("control/portal/epc_db_migrations", "/cp/data-migrations-app"),
-        ("control/portal/epc_import_orchestrator", "/cp/data-migrations-app"),
+        ("control/portal/epc_db_migrations", "/erp/data-migrations-app"),
+        ("control/portal/epc_import_orchestrator", "/erp/data-migrations-app"),
         ("control/portal/epc_mfa_management", "/cp/auth-mfa-app"),
         ("control/portal/epc_marketplace", "/cp/marketplace-apps-app"),
         ("control/portal/epc_ai_copilot", "/cp/ai-service-app"),
@@ -215,7 +215,7 @@ public static class PhpSurfaceLinkMap
         ("control/portal/industry_settings", "/cp/industry-settings-app"),
         ("control/portal/epc_free_tools", "/cp/free-tools-app"),
         ("control/portal/epc_free_tools_admin", "/cp/free-tools-app"),
-        ("control/portal/epc_pos_tenant", "/cp/pos-overview-app"),
+        ("control/portal/epc_pos_tenant", "/erp/pos-overview-app"),
         ("control/portal/tenant_control", "/cp/tenants-app"),
         ("control/portal/portal", "/cp/portal-settings-app"),
         ("shop/document_control/document_control", "/cp/document-control-app"),
@@ -225,8 +225,8 @@ public static class PhpSurfaceLinkMap
         ("shop/finance/nastrojka-kursov-valyut", "/cp/currencies-app"),
         ("shop/finance/epc_collections_dunning", "/cp/collections-dunning-app"),
         ("shop/finance/epc_fulfillment_queue", "/cp/fulfillment-queue-app"),
-        ("shop/finance/erp/uae-tax-compliance", "/cp/uae-tax-compliance-app"),
-        ("uae-tax-compliance", "/cp/uae-tax-compliance-app"),
+        ("shop/finance/erp/uae-tax-compliance", "/erp/uae-tax-compliance-app"),
+        ("uae-tax-compliance", "/erp/uae-tax-compliance-app"),
         ("shop/finance/epc_credit_limit", "/cp/credit-limits-app"),
         ("shop/finance/epc_po_approval", "/cp/po-approvals-app"),
         ("shop/finance/epc_warranty_rma", "/cp/returns-rma-app"),
@@ -237,7 +237,7 @@ public static class PhpSurfaceLinkMap
         ("shop/finance/epc_multi_currency_gl", "/erp/multi-currency-gl-app"),
         ("shop/finance/epc_multi_entity", "/erp/multi-entity-app"),
         ("shop/finance/epc_currency_live_rates", "/cp/currencies-app"),
-        ("shop/finance/epc_einvoice", "/cp/einvoice-documents-app"),
+        ("shop/finance/epc_einvoice", "/erp/einvoice-documents-app"),
         ("shop/finance/epc_tax_toolkit", "/cp/tax-toolkits-app"),
         ("shop/finance/epc_insights_suite", "/erp/dashboard-summary-app"),
         ("shop/finance/epc_custom_shipping", "/cp/carriers-app"),
@@ -273,7 +273,7 @@ public static class PhpSurfaceLinkMap
         ("shop/returns-manager", "/cp/returns-app"),
         ("shop/crm/crm_main", "/cp/crm-board-app"),
         ("shop/crm", "/cp/crm-board-app"),
-        ("shop/pos", "/cp/pos-overview-app"),
+        ("shop/pos", "/erp/pos-overview-app"),
         ("shop/crosses", "/cp/crosses-app"),
         ("shop/prices", "/cp/prices-upload-app"),
         ("modules/module", "/cp/modules-app"),
@@ -297,10 +297,10 @@ public static class PhpSurfaceLinkMap
         ("epc_platform_governance", "/cp/platform-governance-app"),
         ("epc_free_tools", "/cp/free-tools-app"),
         ("epc_tenant_control", "/cp/tenants-app"),
-        ("epc_tenant_config", "/cp/tenant-config-app"),
+        ("epc_tenant_config", "/erp/tenant-config-app"),
         ("epc_design_tokens", "/cp/design-tokens-app"),
         ("epc_config_sandbox", "/cp/config-sandbox-app"),
-        ("epc_db_migrations", "/cp/data-migrations-app"),
+        ("epc_db_migrations", "/erp/data-migrations-app"),
         ("epc_mfa_management", "/cp/auth-mfa-app"),
         ("epc_marketplace", "/cp/marketplace-apps-app"),
         ("epc_ai_copilot", "/cp/ai-service-app"),
@@ -318,7 +318,7 @@ public static class PhpSurfaceLinkMap
         ("tenant_hub", "/cp/tenants-app"),
         ("sposoby-polucheniya", "/cp/delivery-methods-app"),
         ("tenant_control", "/cp/tenants-app"),
-        ("workflows", "/cp/workflows-app"),
+        ("workflows", "/erp/workflows-app"),
         ("notifications", "/cp/notifications-app"),
         ("carriers", "/cp/carriers-app"),
         ("payments", "/cp/payment-gateways-app"),
@@ -1593,7 +1593,7 @@ public static class PhpSurfaceLinkMap
         // UAE tax lives under /finance/erp/… but must NOT be swallowed by the ERP shell remap.
         if (value.Contains("uae-tax-compliance", StringComparison.OrdinalIgnoreCase))
         {
-            return ErpRecordOpen.PreserveRecordQuery("/cp/uae-tax-compliance-app", value);
+            return ErpRecordOpen.PreserveRecordQuery("/erp/uae-tax-compliance-app", value);
         }
 
         // PHP warehouse edit uses ?id=. Open key is storage_id — do not add generic id to RecordQueryKeys.
@@ -1738,23 +1738,23 @@ public static class PhpSurfaceLinkMap
 
                 if (aspNet.Equals("/cp/collections-dunning-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/api-clients-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/einvoice-documents-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/einvoice-documents-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/accessories-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/crosses-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/synonyms-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/promotions-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/page-builder-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/tax-toolkits-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/landed-cost-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/landed-cost-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/soc2-compliance-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/abandoned-carts-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/aml-compliance-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/aml-compliance-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/quote-requests-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/returns-rma-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/returns-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/tenant-config-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/tenant-config-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/marketing-broadcast-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/data-migrations-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/data-migrations-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/event-bus-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/ops-guides-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/marketplace-apps-app", StringComparison.OrdinalIgnoreCase)
@@ -1774,13 +1774,13 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/notifications-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/social-hub-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/crm-activities-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/crm-tickets-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/crm-tickets-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/additional-texts-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/system-requests-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/consolidations-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/consolidations-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/po-approvals-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/budgets-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/warehouse-wms-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/budgets-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/warehouse-wms-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/search-tabs-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/storages-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/product-filters-app", StringComparison.OrdinalIgnoreCase)
@@ -1791,25 +1791,25 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/product-catalogue-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/offices-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/modules-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/uae-tax-compliance-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/uae-tax-compliance-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/uae-tax-compliance-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/auto-price-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/groups-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/credit-limits-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/workshop-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/jewellery-fixing-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/jewellery-fixing-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/jewellery-fixing-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/crm-board-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/crm-board-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/jewellery-masters-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/jewellery-masters-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/jewellery-stock-verification-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/jewellery-masters-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/jewellery-stock-verification-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/jewellery-repairs-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/jewellery-stock-verification-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/jewellery-repairs-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/jewellery-retail-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/jewellery-repairs-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/jewellery-retail-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/workflows-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/jewellery-retail-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/workflows-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/workflows-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/templates-manager-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/packs-app", StringComparison.OrdinalIgnoreCase)

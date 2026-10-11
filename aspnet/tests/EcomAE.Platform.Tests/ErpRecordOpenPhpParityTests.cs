@@ -32,7 +32,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_api_clients_manage?api_client_id=7", "/cp/api-clients-app?api_client_id=7")]
     [InlineData("/ERP/?epc_erp_shell=1&area=cost_mgmt&tab=cost_models&costm_id=3", "/erp/cost-models-app?costm_id=3")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=elec_reporting&format_id=6", "/erp/electronic-reporting-app?format_id=6")]
-    [InlineData("/CP/shop/finance/epc_einvoice?ei_id=8", "/cp/einvoice-documents-app?ei_id=8")]
+    [InlineData("/CP/shop/finance/epc_einvoice?ei_id=8", "/erp/einvoice-documents-app?ei_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=einvoice&ei_id=8", "/erp/einvoice-documents-app?ei_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=projects&tab=projects&project_id=4", "/erp/projects-overview-app?project_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=production&tab=manufacturing&wo_id=7", "/erp/production-overview-app?wo_id=7")]
@@ -95,7 +95,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/logistics/offices?office_id=2", "/cp/offices-app?office_id=2")]
     [InlineData("/CP/modules/module?module_id=4", "/cp/modules-app?module_id=4")]
     [InlineData("/CP/modules/modules_manager?module_id=4", "/cp/modules-app?module_id=4")]
-    [InlineData("/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1&leg_id=4", "/cp/uae-tax-compliance-app?leg_id=4")]
+    [InlineData("/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1&leg_id=4", "/erp/uae-tax-compliance-app?leg_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=tax_compliance&leg_id=4", "/erp/uae-tax-compliance-app?leg_id=4")]
     [InlineData("/CP/control/portal/epc_auto_price_engine?aprice_id=6", "/cp/auto-price-app?aprice_id=6")]
     [InlineData("/CP/users/usergroups?ugroup_id=3", "/cp/groups-app?ugroup_id=3")]
@@ -107,7 +107,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=jw_retail_sales&voc_id=6", "/erp/jewellery-retail-app?tab=jw_retail_sales&voc_id=6")]
     [InlineData("/CP/shop/finance/erp?area=sales&tab=jw_retail_sales&epc_erp_shell=1&voc_id=6", "/erp/jewellery-retail-app?tab=jw_retail_sales&voc_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=setup&tab=workflow_automation&workflow_id=3", "/erp/workflows-app?workflow_id=3")]
-    [InlineData("/CP/control/portal/epc_workflow_builder?workflow_id=3", "/cp/workflows-app?workflow_id=3")]
+    [InlineData("/CP/control/portal/epc_workflow_builder?workflow_id=3", "/erp/workflows-app?workflow_id=3")]
     [InlineData("/CP/templates/templates_manager?tpl_id=4", "/cp/templates-manager-app?tpl_id=4")]
     [InlineData("/CP/templates_control?tpl_id=4", "/cp/templates-manager-app?tpl_id=4")]
     [InlineData("/CP/plugins/plugins_manager?plugin_id=5", "/cp/plugins-manager-app?plugin_id=5")]
@@ -174,7 +174,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=aml_compliance&kyc=7", "/erp/aml-compliance-app?kyc=7")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=opportunities&opp_id=6", "/erp/crm-opportunities-app?opp_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=setup&tab=tenant_config&config_id=8", "/erp/tenant-config-app?config_id=8")]
-    [InlineData("/CP/control/portal/epc_tenant_config?config_id=8", "/cp/tenant-config-app?config_id=8")]
+    [InlineData("/CP/control/portal/epc_tenant_config?config_id=8", "/erp/tenant-config-app?config_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=audit_wb&tab=audit&event_id=3", "/erp/audit-trail-app?event_id=3")]
     [InlineData("/ERP/?epc_erp_shell=1&area=risk&tab=doc_expiry&doc=4", "/erp/doc-expiry-app?doc=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=risk&tab=doc_expiry&document_id=4", "/erp/doc-expiry-app?document_id=4")]
@@ -186,7 +186,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/quote-requests?quote_id=15", "/cp/quote-requests-app?quote_id=15")]
     [InlineData("/CP/control/portal/epc_marketing_broadcast?campaign_id=11", "/cp/marketing-broadcast-app?campaign_id=11")]
     [InlineData("/ERP/?epc_erp_shell=1&area=setup&tab=data_import&migration_id=9", "/erp/data-migrations-app?migration_id=9")]
-    [InlineData("/CP/control/portal/epc_db_migrations?migration_id=9", "/cp/data-migrations-app?migration_id=9")]
+    [InlineData("/CP/control/portal/epc_db_migrations?migration_id=9", "/erp/data-migrations-app?migration_id=9")]
     public void AspNetPrimaryHref_KeepsErpRecordId(string php, string expected)
     {
         var href = PhpSurfaceLinkMap.AspNetPrimaryHref(php);
@@ -393,7 +393,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("BankNameExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("OfficeId", razor, StringComparison.Ordinal);
         Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.ErpCashAccountsCreate", razor, StringComparison.Ordinal);
         Assert.Contains("/erp/offices-cash/add", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
@@ -846,9 +846,9 @@ public sealed class ErpRecordOpenPhpParityTests
                 "/erp/fin-advanced-app",
                 "/ERP/?epc_erp_shell=1&area=cost_acct&tab=fin_advanced&period_id=5"));
         Assert.Equal(
-            "/cp/fin-advanced-app?period_id=5",
+            "/erp/fin-advanced-app?period_id=5",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/fin-advanced-app",
+                "/erp/fin-advanced-app",
                 "/ERP/?epc_erp_shell=1&area=cost_acct&tab=fin_advanced&period_id=5"));
     }
 
@@ -880,9 +880,9 @@ public sealed class ErpRecordOpenPhpParityTests
                 "/erp/blockchain-proofs-app",
                 "/ERP/?epc_erp_shell=1&area=tax&tab=blockchain_proofs&proof_id=4"));
         Assert.Equal(
-            "/cp/blockchain-proofs-app?proof_id=4",
+            "/erp/blockchain-proofs-app?proof_id=4",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/blockchain-proofs-app",
+                "/erp/blockchain-proofs-app",
                 "/ERP/?epc_erp_shell=1&area=audit_wb&tab=blockchain_proofs&proof_id=4"));
     }
 
@@ -1415,12 +1415,12 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-ct-hero", text, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/crm-tickets-app?ticket_id=8#erp-row-8",
-            ErpRecordOpen.Href("/cp/crm-tickets-app", "ticket_id", 8));
+        Assert.Equal("/erp/crm-tickets-app?ticket_id=8#erp-row-8",
+            ErpRecordOpen.Href("/erp/crm-tickets-app", "ticket_id", 8));
         Assert.Equal(
-            "/cp/crm-tickets-app?ticket_id=8",
+            "/erp/crm-tickets-app?ticket_id=8",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/crm-tickets-app",
+                "/erp/crm-tickets-app",
                 "/ERP/?epc_erp_shell=1&area=sales&tab=crm&ticket_id=8"));
         Assert.Equal(
             "/erp/crm-tickets-app?tab=tickets&ticket_id=8#erp-row-8",
@@ -1527,8 +1527,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/consolidations-app?cons_id=3#erp-row-3",
-            ErpRecordOpen.Href("/cp/consolidations-app", "cons_id", 3));
+        Assert.Equal("/erp/consolidations-app?cons_id=3#erp-row-3",
+            ErpRecordOpen.Href("/erp/consolidations-app", "cons_id", 3));
         Assert.Equal(
             "/erp/consolidations-app?cons_id=3",
             ErpRecordOpen.PreserveRecordQuery(
@@ -1600,8 +1600,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/budgets-app?budget_id=5#erp-row-5",
-            ErpRecordOpen.Href("/cp/budgets-app", "budget_id", 5));
+        Assert.Equal("/erp/budgets-app?budget_id=5#erp-row-5",
+            ErpRecordOpen.Href("/erp/budgets-app", "budget_id", 5));
         Assert.Equal(
             "/erp/budgets-app?budget_id=5",
             ErpRecordOpen.PreserveRecordQuery(
@@ -1636,8 +1636,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/warehouse-wms-app?work_id=7#erp-row-7",
-            ErpRecordOpen.Href("/cp/warehouse-wms-app", "work_id", 7));
+        Assert.Equal("/erp/warehouse-wms-app?work_id=7#erp-row-7",
+            ErpRecordOpen.Href("/erp/warehouse-wms-app", "work_id", 7));
         Assert.Equal(
             "/erp/warehouse-wms-app?work_id=7",
             ErpRecordOpen.PreserveRecordQuery(
@@ -2114,17 +2114,17 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("pdf_url", text, StringComparison.Ordinal);
         Assert.DoesNotContain("compliance_actions_json", text, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/uae-tax-compliance-app?leg_id=4#erp-row-4",
-            ErpRecordOpen.Href("/cp/uae-tax-compliance-app", "leg_id", 4));
+        Assert.Equal("/erp/uae-tax-compliance-app?leg_id=4#erp-row-4",
+            ErpRecordOpen.Href("/erp/uae-tax-compliance-app", "leg_id", 4));
         Assert.Equal(
             "/erp/uae-tax-compliance-app?leg_id=4",
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/uae-tax-compliance-app",
                 "/ERP/?epc_erp_shell=1&area=tax&tab=tax_compliance&leg_id=4"));
         Assert.Equal(
-            "/cp/uae-tax-compliance-app?leg_id=4",
+            "/erp/uae-tax-compliance-app?leg_id=4",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/uae-tax-compliance-app",
+                "/erp/uae-tax-compliance-app",
                 "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1&leg_id=4"));
     }
 
@@ -2225,8 +2225,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/jewellery-masters-app?karat_id=3#erp-row-3",
-            ErpRecordOpen.Href("/cp/jewellery-masters-app", "karat_id", 3));
+        Assert.Equal("/erp/jewellery-masters-app?karat_id=3#erp-row-3",
+            ErpRecordOpen.Href("/erp/jewellery-masters-app", "karat_id", 3));
         Assert.Equal(
             "/erp/jewellery-masters-app?karat_id=3",
             ErpRecordOpen.PreserveRecordQuery(
@@ -2265,17 +2265,17 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/jewellery-stock-verification-app?verify_id=4#erp-row-4",
-            ErpRecordOpen.Href("/cp/jewellery-stock-verification-app", "verify_id", 4));
+        Assert.Equal("/erp/jewellery-stock-verification-app?verify_id=4#erp-row-4",
+            ErpRecordOpen.Href("/erp/jewellery-stock-verification-app", "verify_id", 4));
         Assert.Equal(
             "/erp/jewellery-stock-verification-app?verify_id=4",
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/jewellery-stock-verification-app",
                 "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_stock_verification&verify_id=4"));
         Assert.Equal(
-            "/cp/jewellery-stock-verification-app?verify_id=4",
+            "/erp/jewellery-stock-verification-app?verify_id=4",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/jewellery-stock-verification-app",
+                "/erp/jewellery-stock-verification-app",
                 "/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_stock_verification&epc_erp_shell=1&verify_id=4"));
     }
 
@@ -2312,17 +2312,17 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/jewellery-repairs-app?repair_id=5#erp-row-5",
-            ErpRecordOpen.Href("/cp/jewellery-repairs-app", "repair_id", 5));
+        Assert.Equal("/erp/jewellery-repairs-app?repair_id=5#erp-row-5",
+            ErpRecordOpen.Href("/erp/jewellery-repairs-app", "repair_id", 5));
         Assert.Equal(
             "/erp/jewellery-repairs-app?repair_id=5",
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/jewellery-repairs-app",
                 "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repairs&repair_id=5"));
         Assert.Equal(
-            "/cp/jewellery-repairs-app?repair_id=5",
+            "/erp/jewellery-repairs-app?repair_id=5",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/jewellery-repairs-app",
+                "/erp/jewellery-repairs-app",
                 "/CP/shop/finance/erp?area=service_mgmt&tab=jw_repairs&epc_erp_shell=1&repair_id=5"));
     }
 
@@ -2357,17 +2357,17 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/jewellery-retail-app?voc_id=6#erp-row-6",
-            ErpRecordOpen.Href("/cp/jewellery-retail-app", "voc_id", 6));
+        Assert.Equal("/erp/jewellery-retail-app?voc_id=6#erp-row-6",
+            ErpRecordOpen.Href("/erp/jewellery-retail-app", "voc_id", 6));
         Assert.Equal(
             "/erp/jewellery-retail-app?voc_id=6",
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/jewellery-retail-app",
                 "/ERP/?epc_erp_shell=1&area=sales&tab=jw_retail_sales&voc_id=6"));
         Assert.Equal(
-            "/cp/jewellery-retail-app?voc_id=6",
+            "/erp/jewellery-retail-app?voc_id=6",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/jewellery-retail-app",
+                "/erp/jewellery-retail-app",
                 "/CP/shop/finance/erp?area=sales&tab=jw_retail_sales&epc_erp_shell=1&voc_id=6"));
     }
 
@@ -2398,17 +2398,17 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/workflows-app?workflow_id=3#erp-row-3",
-            ErpRecordOpen.Href("/cp/workflows-app", "workflow_id", 3));
+        Assert.Equal("/erp/workflows-app?workflow_id=3#erp-row-3",
+            ErpRecordOpen.Href("/erp/workflows-app", "workflow_id", 3));
         Assert.Equal(
             "/erp/workflows-app?workflow_id=3",
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/workflows-app",
                 "/ERP/?epc_erp_shell=1&area=setup&tab=workflow_automation&workflow_id=3"));
         Assert.Equal(
-            "/cp/workflows-app?workflow_id=3",
+            "/erp/workflows-app?workflow_id=3",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/workflows-app",
+                "/erp/workflows-app",
                 "/CP/control/portal/epc_workflow_builder?workflow_id=3"));
     }
 
@@ -4247,17 +4247,17 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/jewellery-fixing-app?fixing_id=4#erp-row-4",
-            ErpRecordOpen.Href("/cp/jewellery-fixing-app", "fixing_id", 4));
+        Assert.Equal("/erp/jewellery-fixing-app?fixing_id=4#erp-row-4",
+            ErpRecordOpen.Href("/erp/jewellery-fixing-app", "fixing_id", 4));
         Assert.Equal(
             "/erp/jewellery-fixing-app?fixing_id=4",
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/jewellery-fixing-app",
                 "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4"));
         Assert.Equal(
-            "/cp/jewellery-fixing-app?fixing_id=4",
+            "/erp/jewellery-fixing-app?fixing_id=4",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/jewellery-fixing-app",
+                "/erp/jewellery-fixing-app",
                 "/CP/shop/finance/erp?area=purchasing&tab=jw_purchase_fixing&epc_erp_shell=1&fixing_id=4"));
     }
 
@@ -4489,9 +4489,9 @@ public sealed class ErpRecordOpenPhpParityTests
                 "/erp/data-migrations-app",
                 "/ERP/?epc_erp_shell=1&area=setup&tab=data_import&migration_id=9"));
         Assert.Equal(
-            "/cp/data-migrations-app?migration_id=9",
+            "/erp/data-migrations-app?migration_id=9",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/data-migrations-app",
+                "/erp/data-migrations-app",
                 "/CP/control/portal/epc_db_migrations?migration_id=9"));
     }
 
@@ -4514,13 +4514,13 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("client_key_hash", text, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/finance-close-app?batch_id=5#erp-row-5",
-            ErpRecordOpen.Href("/cp/finance-close-app", "batch_id", 5));
+        Assert.Equal("/erp/finance-close-app?batch_id=5#erp-row-5",
+            ErpRecordOpen.Href("/erp/finance-close-app", "batch_id", 5));
         Assert.Equal(
-            "/cp/finance-close-app?batch_id=5",
+            "/erp/finance-close-app?batch_id=5",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/finance-close-app",
-                "/cp/finance-close-app?batch_id=5"));
+                "/erp/finance-close-app",
+                "/erp/finance-close-app?batch_id=5"));
     }
 
     [Fact]
@@ -4593,12 +4593,12 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/einvoice-documents-app?ei_id=8#erp-row-8",
-            ErpRecordOpen.Href("/cp/einvoice-documents-app", "ei_id", 8));
+        Assert.Equal("/erp/einvoice-documents-app?ei_id=8#erp-row-8",
+            ErpRecordOpen.Href("/erp/einvoice-documents-app", "ei_id", 8));
         Assert.Equal(
-            "/cp/einvoice-documents-app?ei_id=8",
+            "/erp/einvoice-documents-app?ei_id=8",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/einvoice-documents-app",
+                "/erp/einvoice-documents-app",
                 "/CP/shop/finance/epc_einvoice?ei_id=8"));
         Assert.Equal(
             "/erp/einvoice-documents-app?ei_id=8",
@@ -4876,9 +4876,9 @@ public sealed class ErpRecordOpenPhpParityTests
                 "/erp/landed-cost-app",
                 "/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6"));
         Assert.Equal(
-            "/cp/landed-cost-app?sheet_id=6",
+            "/erp/landed-cost-app?sheet_id=6",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/landed-cost-app",
+                "/erp/landed-cost-app",
                 "/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6"));
     }
 
@@ -4964,9 +4964,9 @@ public sealed class ErpRecordOpenPhpParityTests
                 "/erp/aml-compliance-app",
                 "/ERP/?epc_erp_shell=1&area=tax&tab=aml_compliance&kyc_id=7"));
         Assert.Equal(
-            "/cp/aml-compliance-app?kyc=7",
+            "/erp/aml-compliance-app?kyc=7",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/aml-compliance-app",
+                "/erp/aml-compliance-app",
                 "/ERP/?epc_erp_shell=1&area=tax&tab=aml_compliance&kyc=7"));
     }
 
@@ -5003,9 +5003,9 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Equal("/erp/tenant-config-app?config_id=8#erp-row-8",
             ErpRecordOpen.Href("/erp/tenant-config-app", "config_id", 8));
         Assert.Equal(
-            "/cp/tenant-config-app?config_id=8",
+            "/erp/tenant-config-app?config_id=8",
             ErpRecordOpen.PreserveRecordQuery(
-                "/cp/tenant-config-app",
+                "/erp/tenant-config-app",
                 "/CP/control/portal/epc_tenant_config?config_id=8"));
         Assert.Equal("/erp/audit-trail-app?event_id=3#erp-row-3",
             ErpRecordOpen.Href("/erp/audit-trail-app", "event_id", 3));

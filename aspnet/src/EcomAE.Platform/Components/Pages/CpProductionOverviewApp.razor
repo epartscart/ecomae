@@ -1,4 +1,3 @@
-@page "/cp/production-overview-app"
 @page "/erp/production-overview-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
@@ -10,23 +9,23 @@
 @inject IHttpContextAccessor Http
 
 <PageTitle>Production Overview · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Production overview
-                <a class="btn btn-xs btn-default pull-right" href="/cp/hr-overview-app" style="margin-right:.4rem">HR overview</a>
+                <a class="btn btn-xs btn-default pull-right" href="/erp/hr-overview-app" style="margin-right:.4rem">HR overview</a>
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/production-overview-app")</p>
+                <p>@CpPhpModuleCopy.PurposeFor("/erp/production-overview-app")</p>
                 <p>Open a work order to see costs and BOM lines. Firm a planned order, save a route or work center, create a work order, or save a BOM here.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/production-overview-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+    <PhpParityModuleBody AppPath="/erp/production-overview-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedWo is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -134,7 +133,7 @@
         </div>
     </div>
 
-</PhpCpDesktopChrome>
+</PhpErpDesktopChrome>
 
 <ErpPhpCreateWell Title="Firm planned order">
 <form method="post" action="/erp/mfgr/planned/firm" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
@@ -193,7 +192,7 @@
 
 <form method="post" action="/erp/manufacturing/work-orders/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/production-overview-app")" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/production-overview-app")" />
             <label>BOM id <input type="number" name="bom_id" min="1" required style="width:7rem" /></label>
             <label>WO no <input type="text" name="wo_no" /></label>
             <label>Qty planned <input type="number" name="qty_planned" step="0.0001" value="1" style="width:7rem" /></label>
@@ -203,7 +202,7 @@
 
 <form method="post" action="/erp/manufacturing/bom/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/production-overview-app")" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/production-overview-app")" />
             <label>Product id <input type="number" name="product_item_id" min="1" required style="width:7rem" /></label>
             <label>Name <input type="text" name="name" /></label>
             <label>Output qty <input type="number" name="output_qty" step="0.0001" value="1" style="width:6rem" /></label>
@@ -217,7 +216,7 @@
 
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=production&tab=manufacturing&epc_erp_shell=1";
-    private string _listHref = "/cp/production-overview-app";
+    private string _listHref = "/erp/production-overview-app";
     private bool _isAdmin;
     private CpProductionOverviewSummary _summary = new(0, 0, 0, "n/a", "");
     private IReadOnlyList<CpProductionWorkOrderDigest> _workOrders = [];
@@ -240,7 +239,7 @@
         var path = ctx.Request.Path.Value;
         _listHref = string.Equals(path, "/erp/production-overview-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/production-overview-app"
-            : "/cp/production-overview-app";
+            : "/erp/production-overview-app";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "wo_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);

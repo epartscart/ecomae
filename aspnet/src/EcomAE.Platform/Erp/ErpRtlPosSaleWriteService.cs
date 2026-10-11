@@ -200,7 +200,7 @@ public sealed class ErpRtlPosSaleWriteService : IErpRtlPosSaleWriteService
             foreach (var line in priced)
             {
                 if (line.Qty == 0) continue;
-                var movementDate = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                var movementDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 writes += await ErpDb.ExecuteAsync(
                     connection,
                     transaction,

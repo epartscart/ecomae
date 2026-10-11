@@ -1,5 +1,4 @@
 @page "/erp/tax-external-reporting-app"
-@page "/cp/tax-external-reporting-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
@@ -470,7 +469,7 @@
 
         var path = ctx.Request.Path.Value ?? EcomAeRoutes.ErpTaxExternalReportingApp;
         _self = path.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase)
-            ? EcomAeRoutes.ControlPanelTaxExternalReportingApp
+            ? EcomAeRoutes.ErpTaxExternalReportingApp
             : EcomAeRoutes.ErpTaxExternalReportingApp;
 
         _companyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;

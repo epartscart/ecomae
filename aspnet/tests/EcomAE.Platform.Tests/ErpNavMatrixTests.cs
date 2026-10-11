@@ -147,7 +147,7 @@ public sealed class ErpNavMatrixTests
     [Theory]
     [InlineData("/erp/jewellery-retail-app", "jewellery")]
     [InlineData("/erp/jewellery/stock-availability", "jewellery")]
-    [InlineData("/cp/jewellery-masters-app", "jewellery")]
+    [InlineData("/erp/jewellery-masters-app", "jewellery")]
     [InlineData("/erp/project-accounting-app", "fitout")]
     [InlineData("/erp/contracts-app", null)]
     [InlineData("/erp/retail-commerce-app", null)]

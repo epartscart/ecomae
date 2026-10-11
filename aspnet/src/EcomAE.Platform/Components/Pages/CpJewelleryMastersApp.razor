@@ -1,4 +1,3 @@
-@page "/cp/jewellery-masters-app"
 @page "/erp/jewellery-masters-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
@@ -654,9 +653,9 @@
     private bool _isAdmin;
     private int _company;
     private string _tab = "jw_karat";
-    private string _appPath = "/cp/jewellery-masters-app";
-    private string _tabBase = "/cp/jewellery-masters-app";
-    private string _returnHere = "/cp/jewellery-masters-app?tab=jw_karat";
+    private string _appPath = "/erp/jewellery-masters-app";
+    private string _tabBase = "/erp/jewellery-masters-app";
+    private string _returnHere = "/erp/jewellery-masters-app?tab=jw_karat";
     private ErpJewelleryModuleChrome.TabSpec _spec = ErpJewelleryModuleChrome.MasterSpec("jw_karat");
     private CpJewelleryMastersSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpJewelleryMastersKaratDigest> _rows = [];
@@ -673,7 +672,7 @@
     private string _message = "";
     private string _ok = "";
     private string _err = "";
-    private string _listHref = "/cp/jewellery-masters-app";
+    private string _listHref = "/erp/jewellery-masters-app";
     private long _openedId;
     private CpJewelleryMastersKaratDetail? _opened;
     private IReadOnlyList<CpJewelleryMastersKaratDigest> _openedSiblings = [];
@@ -694,10 +693,10 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
-        var path = ctx.Request.Path.Value ?? "/cp/jewellery-masters-app";
+        var path = ctx.Request.Path.Value ?? "/erp/jewellery-masters-app";
         _appPath = path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
             ? "/erp/jewellery-masters-app"
-            : "/cp/jewellery-masters-app";
+            : "/erp/jewellery-masters-app";
         _listHref = _appPath;
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "karat_id");
         _company = ErpJewelleryModuleChrome.CompanyFromQuery(ctx.Request.Query["company"].ToString());

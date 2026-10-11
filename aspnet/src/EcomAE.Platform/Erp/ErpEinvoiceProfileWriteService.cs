@@ -92,6 +92,7 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
             return ErpSimpleWriteResult.Fail("invalid", "Registered tenant country is required for e-invoice compliance");
         }
 
+        await EnsureSellerSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await SellerSchemaAvailableAsync(connection, cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("db", "PHP-owned e-invoice seller schema is unavailable.");
@@ -441,7 +442,45 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
             return raw.ToUpperInvariant();
         }
 
-        return string.Empty;
+        return CountryNamesByIso.Value.TryGetValue(name, out var iso) ? iso : string.Empty;
+    }
+
+    private static readonly Lazy<Dictionary<string, string>> CountryNamesByIso = new(BuildCountryNameCatalogue);
+
+    private static Dictionary<string, string> BuildCountryNameCatalogue()
+    {
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var culture in System.Globalization.CultureInfo.GetCultures(System.Globalization.CultureTypes.SpecificCultures))
+        {
+            System.Globalization.RegionInfo region;
+            try
+            {
+                region = new System.Globalization.RegionInfo(culture.Name);
+            }
+            catch (ArgumentException)
+            {
+                continue;
+            }
+
+            var iso = region.TwoLetterISORegionName;
+            if (iso.Length != 2 || !char.IsLetter(iso[0]) || !char.IsLetter(iso[1]))
+            {
+                continue;
+            }
+
+            foreach (var label in new[] { region.EnglishName, region.DisplayName, region.NativeName, region.ThreeLetterISORegionName })
+            {
+                var key = (label ?? string.Empty).Trim().ToLowerInvariant();
+                if (key.Length > 0)
+                {
+                    map.TryAdd(key, iso.ToUpperInvariant());
+                }
+            }
+        }
+
+        map.TryAdd("ksa", "SA");
+        map.TryAdd("kingdom of saudi arabia", "SA");
+        return map;
     }
 
     private static string NormalizeRegisteredCountry(string? raw)
@@ -480,6 +519,21 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
             table,
             column).ConfigureAwait(false);
         return count > 0;
+    }
+
+    /// <summary>PHP epc_einvoice_ensure_schema + epc_erp_adv_settings_ensure: settings tables are created lazily on first save.</summary>
+    internal static async Task EnsureSellerSchemaAsync(
+        System.Data.Common.DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "CREATE TABLE IF NOT EXISTS `epc_einvoice_settings` (`setting_key` varchar(64) NOT NULL, `setting_value` text, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`setting_key`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='UAE e-invoice seller & ASP settings'",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "CREATE TABLE IF NOT EXISTS `epc_price_settings` (`setting_key` varchar(128) NOT NULL, `setting_value` text, PRIMARY KEY (`setting_key`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<bool> SellerSchemaAvailableAsync(

@@ -112,7 +112,7 @@ public sealed class CpPosTerminalTests
         Assert.Contains("/platform-assets/epc_pos.css", text, StringComparison.Ordinal);
         Assert.Contains("/platform-assets/epc_pos_terminal.js", text, StringComparison.Ordinal);
         Assert.Contains("POS is disabled for this tenant", text, StringComparison.Ordinal);
-        Assert.Contains("session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains(\"cp\")", text, StringComparison.Ordinal);
+        Assert.Contains("session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains(\"erp\")", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Classic twin", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);

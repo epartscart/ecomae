@@ -1391,7 +1391,7 @@ public sealed class ErpCashWriteService : IErpCashWriteService
     }
 
     /// <summary>Subset of PHP <c>epc_erp_ensure_schema</c> / <c>epc_erp_vouchers_ensure_schema</c> for the cash tables.</summary>
-    private static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+    internal static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await ErpDb.TryExecuteAsync(
             connection,

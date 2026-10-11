@@ -102,6 +102,7 @@ public sealed class ErpPeriodReadService : IErpPeriodReadService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsurePeriodCloseAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ErpPeriodLockReopenWriteService.SchemaReadyAsync(connection, cancellationToken).ConfigureAwait(false))
         {
             return new(ErpSimpleWriteResult.Fail("invalid", NotProvisioned), empty);
@@ -156,6 +157,7 @@ public sealed class ErpPeriodReadService : IErpPeriodReadService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsurePeriodCloseAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ErpPeriodLockReopenWriteService.SchemaReadyAsync(connection, cancellationToken).ConfigureAwait(false))
         {
             return new(ErpSimpleWriteResult.Fail("invalid", NotProvisioned), ym, empty);
@@ -176,6 +178,7 @@ public sealed class ErpPeriodReadService : IErpPeriodReadService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsurePeriodCloseAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ErpPeriodLockReopenWriteService.SchemaReadyAsync(connection, cancellationToken).ConfigureAwait(false))
         {
             return Fail(ErpSimpleWriteResult.Fail("invalid", NotProvisioned), current, empty);

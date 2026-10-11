@@ -34,7 +34,7 @@ public sealed class ErpExternalReportingAppTests
         Assert.True(ErpPhpTabRouteMap.TryMapTab("external_reports", out var alias));
         Assert.Equal("/erp/tax-external-reporting-app", alias);
         Assert.Equal("/erp/tax-external-reporting-app", EcomAeRoutes.ErpTaxExternalReportingApp);
-        Assert.Equal("/cp/tax-external-reporting-app", EcomAeRoutes.ControlPanelTaxExternalReportingApp);
+        Assert.Equal("/erp/tax-external-reporting-app", EcomAeRoutes.ErpTaxExternalReportingApp);
         Assert.Equal("/erp/tax-external-reporting-app",
             PhpSurfaceLinkMap.AspNetPrimaryHref("/ERP/?epc_erp_shell=1&area=tax&tab=ext_reports"));
         Assert.Equal("/erp/tax-external-reporting-app",
@@ -52,7 +52,7 @@ public sealed class ErpExternalReportingAppTests
         var razor = File.ReadAllText(Path.Combine(FindRepoRoot(),
             "aspnet/src/EcomAE.Platform/Components/Pages/ErpExternalReportingApp.razor"));
         Assert.Contains("@page \"/erp/tax-external-reporting-app\"", razor, StringComparison.Ordinal);
-        Assert.Contains("@page \"/cp/tax-external-reporting-app\"", razor, StringComparison.Ordinal);
+        Assert.Contains("@page \"/erp/tax-external-reporting-app\"", razor, StringComparison.Ordinal);
         Assert.Contains("External Reporting", razor, StringComparison.Ordinal);
         Assert.Contains("Registration country", razor, StringComparison.Ordinal);
         Assert.Contains("Preview jurisdiction", razor, StringComparison.Ordinal);

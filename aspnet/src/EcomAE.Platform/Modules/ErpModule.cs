@@ -183,7 +183,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/insurance-compliance-app", "Admin ERP capability required for insurance claim status.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/insurance-compliance-app", "Admin ERP capability required for insurance claim status.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInsClaimStatusBody>(context, cancellationToken) ?? new(0, null, false);
@@ -206,7 +206,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.SetStatusAsync(id, status, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/insurance-compliance-app",
+                "/erp/insurance-compliance-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -227,7 +227,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/consolidations-app", "Admin ERP capability required for consolidation entity save.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/consolidations-app", "Admin ERP capability required for consolidation entity save.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpConsEntitySaveBody>(context, cancellationToken)
@@ -259,7 +259,7 @@ public sealed class ErpModule : ISurfaceModule
                 var written = await writes.SaveAsync(id, code, name, currencyCode, ownershipPct, isHome, parentCode, cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/consolidations-app",
+                    "/erp/consolidations-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -277,7 +277,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/consolidations-app", "Admin ERP capability required for consolidation entity delete.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/consolidations-app", "Admin ERP capability required for consolidation entity delete.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpConsEntityDeleteBody>(context, cancellationToken) ?? new(0, false);
@@ -298,7 +298,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.DeleteEntityAsync(id, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/consolidations-app",
+                "/erp/consolidations-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -455,7 +455,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/consolidations-app", "Admin ERP capability required for consolidation IC delete.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/consolidations-app", "Admin ERP capability required for consolidation IC delete.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpConsIcDeleteBody>(context, cancellationToken) ?? new(0, false);
@@ -476,7 +476,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.DeleteIcAsync(id, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/consolidations-app",
+                "/erp/consolidations-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -1638,7 +1638,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                    "/erp/login?returnUrl=/erp/jewellery-repairs-app",
                     "Admin ERP capability required for jewellery repair create.");
             }
 
@@ -1706,7 +1706,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/jewellery-repairs-app?tab=jw_repairs",
+                "/erp/jewellery-repairs-app?tab=jw_repairs",
                 written.Succeeded,
                 written.Message,
                 new
@@ -1732,7 +1732,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/jewellery-repairs-app", "Admin ERP capability required.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/jewellery-repairs-app", "Admin ERP capability required.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwRepairUpdateStatusBody>(context, cancellationToken) ?? new();
@@ -1755,7 +1755,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.SetStatusAsync(repairId, status, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/jewellery-repairs-app",
+                "/erp/jewellery-repairs-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -3635,7 +3635,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/warehouse-wms-app", "Admin ERP capability required for WMS receive.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/warehouse-wms-app", "Admin ERP capability required for WMS receive.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWmsReceiveBody>(context, cancellationToken) ?? new(null, 0, 0, 0, false);
@@ -3668,7 +3668,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.ReceiveAsync(item, qty, receiveLocationId, putawayLocationId, reference, lpCode, companyId, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/warehouse-wms-app",
+                "/erp/warehouse-wms-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -3684,7 +3684,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/warehouse-wms-app", "Admin ERP capability required for WMS location save.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/warehouse-wms-app", "Admin ERP capability required for WMS location save.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWmsLocationSaveBody>(context, cancellationToken)
@@ -3720,7 +3720,7 @@ public sealed class ErpModule : ISurfaceModule
                     code, warehouse, zone, type, capacity, active, companyId, id, cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/warehouse-wms-app",
+                    "/erp/warehouse-wms-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -3979,7 +3979,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/purchase-requests-app", "Admin ERP capability required for procurement req save.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/purchase-requests-app", "Admin ERP capability required for procurement req save.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpProcReqSaveBody>(context, cancellationToken)
@@ -4009,7 +4009,7 @@ public sealed class ErpModule : ISurfaceModule
                     requester, businessUnitId, justification, reqNumber, companyId, id, cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/purchase-requests-app",
+                    "/erp/purchase-requests-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -4028,7 +4028,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/purchase-requests-app", "Admin ERP capability required for procurement req add-line.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/purchase-requests-app", "Admin ERP capability required for procurement req add-line.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpProcReqAddLineBody>(context, cancellationToken) ?? new();
@@ -4063,7 +4063,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/purchase-requests-app",
+                "/erp/purchase-requests-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -4079,7 +4079,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/fin-advanced-app", "Admin ERP capability required for fin period status.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fin-advanced-app", "Admin ERP capability required for fin period status.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFinPeriodStatusBody>(context, cancellationToken) ?? new(0, 0, "open", false);
@@ -4106,7 +4106,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.SetStatusAsync(companyId, fy, periodNo, status, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/fin-advanced-app",
+                "/erp/fin-advanced-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -4122,7 +4122,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/warehouse-wms-app", "Admin ERP capability required for WMS wave create.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/warehouse-wms-app", "Admin ERP capability required for WMS wave create.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWmsWaveCreateBody>(context, cancellationToken)
@@ -4151,7 +4151,7 @@ public sealed class ErpModule : ISurfaceModule
                 var written = await writes.CreateWithPickAsync(item, qty, reference, companyId, fromLocationId, toLocationId, cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/warehouse-wms-app",
+                    "/erp/warehouse-wms-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -4346,7 +4346,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/purchase-requests-app", "Admin ERP capability required for procurement submit.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/purchase-requests-app", "Admin ERP capability required for procurement submit.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpProcReqSubmitBody>(context, cancellationToken) ?? new(0, false);
@@ -4367,7 +4367,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.SubmitAsync(id, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/purchase-requests-app",
+                "/erp/purchase-requests-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -4382,7 +4382,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/purchase-requests-app", "Admin ERP capability required for procurement decision.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/purchase-requests-app", "Admin ERP capability required for procurement decision.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpProcReqDecisionBody>(context, cancellationToken)
@@ -4415,7 +4415,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.DecideAsync(id, approve, by, note, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/purchase-requests-app",
+                "/erp/purchase-requests-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -5061,7 +5061,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/purchase-requests-app", "Admin ERP capability required for procurement req add-line.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/purchase-requests-app", "Admin ERP capability required for procurement req add-line.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpProcReqAddLineBody>(context, cancellationToken) ?? new();
@@ -5096,7 +5096,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/purchase-requests-app",
+                "/erp/purchase-requests-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -5111,7 +5111,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/purchase-requests-app", "Admin ERP capability required for procurement convert.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/purchase-requests-app", "Admin ERP capability required for procurement convert.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpProcReqConvertBody>(context, cancellationToken) ?? new(0, false);
@@ -5132,7 +5132,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.ConvertAsync(id, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/purchase-requests-app",
+                "/erp/purchase-requests-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -5752,7 +5752,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/hr-overview-app", "Admin ERP capability required for leave request.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/hr-overview-app", "Admin ERP capability required for leave request.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrLeaveRequestBody>(context, cancellationToken)
@@ -5779,7 +5779,7 @@ public sealed class ErpModule : ISurfaceModule
                 var written = await writes.RequestAsync(employeeId, type, days, dateFrom, dateTo, cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/hr-overview-app",
+                    "/erp/hr-overview-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -5797,7 +5797,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/hr-overview-app", "Admin ERP capability required for leave status.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/hr-overview-app", "Admin ERP capability required for leave status.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrLeaveStatusBody>(context, cancellationToken) ?? new(0, null, false);
@@ -5820,7 +5820,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.SetLeaveStatusAsync(id, status, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/hr-overview-app",
+                "/erp/hr-overview-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -5835,7 +5835,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/hr-overview-app", "Admin ERP capability required for expense save.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/hr-overview-app", "Admin ERP capability required for expense save.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrExpenseSaveBody>(context, cancellationToken)
@@ -5858,7 +5858,7 @@ public sealed class ErpModule : ISurfaceModule
                 var written = await writes.SaveAsync(employeeId, title, lines, cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/hr-overview-app",
+                    "/erp/hr-overview-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -5876,7 +5876,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/hr-overview-app", "Admin ERP capability required for expense status.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/hr-overview-app", "Admin ERP capability required for expense status.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrExpenseStatusBody>(context, cancellationToken) ?? new(0, null, false);
@@ -5899,7 +5899,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.SetExpenseStatusAsync(id, status, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/hr-overview-app",
+                "/erp/hr-overview-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -5953,7 +5953,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/einvoice-documents-app", "Admin ERP capability required for e-invoice seller save.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/einvoice-documents-app", "Admin ERP capability required for e-invoice seller save.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpEinvoiceSaveSellerBody>(context, cancellationToken) ?? new();
@@ -6009,7 +6009,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/einvoice-documents-app",
+                "/erp/einvoice-documents-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -6024,7 +6024,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/einvoice-documents-app", "Admin ERP capability required for e-invoice buyer save.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/einvoice-documents-app", "Admin ERP capability required for e-invoice buyer save.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpEinvoiceSaveBuyerBody>(context, cancellationToken) ?? new();
@@ -6077,7 +6077,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/einvoice-documents-app",
+                "/erp/einvoice-documents-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -6092,7 +6092,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/einvoice-documents-app", "Admin ERP capability required for e-invoice ASP save.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/einvoice-documents-app", "Admin ERP capability required for e-invoice ASP save.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpEinvoiceSaveAspBody>(context, cancellationToken) ?? new();
@@ -6123,7 +6123,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/einvoice-documents-app",
+                "/erp/einvoice-documents-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -6139,7 +6139,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/einvoice-documents-app", "Admin ERP capability required for e-invoice submission.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/einvoice-documents-app", "Admin ERP capability required for e-invoice submission.");
             }
 
             var request = body ?? await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpEinvoiceSubmitBody>(context, cancellationToken) ?? new(0, false);
@@ -6160,7 +6160,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.SubmitAsync(id, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/einvoice-documents-app?ei_id=" + id.ToString(CultureInfo.InvariantCulture),
+                "/erp/einvoice-documents-app?ei_id=" + id.ToString(CultureInfo.InvariantCulture),
                 written.Succeeded,
                 written.Message,
                 new
@@ -6224,7 +6224,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/einvoice-documents-app",
+                "/erp/einvoice-documents-app",
                 written.Succeeded,
                 written.Message,
                 new
@@ -6545,7 +6545,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                    "/erp/login?returnUrl=/erp/jewellery-repairs-app",
                     "Admin ERP capability required for jewellery repair create.");
             }
 
@@ -6564,7 +6564,7 @@ public sealed class ErpModule : ISurfaceModule
                 var code = string.IsNullOrWhiteSpace(customerName) ? itemDescription : customerName;
                 var result = dryRun.Evaluate(new ErpJwRepairCreateRequest(0, code, false));
                 return DryRunHtmlForm.Redirect(
-                    DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-repairs-app?tab=jw_repairs"),
+                    DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/jewellery-repairs-app?tab=jw_repairs"),
                     result.ValidationCode == "ok",
                     result.Detail);
             }
@@ -6589,7 +6589,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/jewellery-repairs-app?tab=jw_repairs",
+                "/erp/jewellery-repairs-app?tab=jw_repairs",
                 written.Succeeded,
                 written.Message,
                 new
@@ -6617,7 +6617,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                    "/erp/login?returnUrl=/erp/jewellery-repairs-app",
                     "Admin ERP capability required for jewellery repair status.");
             }
 
@@ -6641,7 +6641,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 var result = dryRun.Evaluate(new ErpJwRepairUpdateStatusRequest(repairId, status, false));
                 return DryRunHtmlForm.Redirect(
-                    DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-repairs-app?tab=jw_repairs"),
+                    DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/jewellery-repairs-app?tab=jw_repairs"),
                     result.ValidationCode == "ok",
                     result.Detail);
             }
@@ -6649,7 +6649,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.SetStatusAsync(repairId, status, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/jewellery-repairs-app?tab=jw_repairs",
+                "/erp/jewellery-repairs-app?tab=jw_repairs",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -6666,7 +6666,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_karat",
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=jw_karat",
                     "Admin ERP capability required for jewellery karat save.");
             }
 
@@ -6703,7 +6703,7 @@ public sealed class ErpModule : ISurfaceModule
                 if (LiveWriteFormBinder.WantsHtml(context))
                 {
                     return DryRunHtmlForm.Redirect(
-                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_karat"),
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/jewellery-masters-app?tab=jw_karat"),
                         result.ValidationCode == "ok",
                         result.Detail);
                 }
@@ -6725,7 +6725,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/jewellery-masters-app?tab=jw_karat",
+                "/erp/jewellery-masters-app?tab=jw_karat",
                 written.Succeeded,
                 written.Message,
                 new
@@ -6753,7 +6753,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_rate_type",
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=jw_rate_type",
                     "Admin ERP capability required for jewellery rate type save.");
             }
 
@@ -6826,7 +6826,7 @@ public sealed class ErpModule : ISurfaceModule
                 if (LiveWriteFormBinder.WantsHtml(context))
                 {
                     return DryRunHtmlForm.Redirect(
-                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_rate_type"),
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/jewellery-masters-app?tab=jw_rate_type"),
                         result.ValidationCode == "ok",
                         result.Detail);
                 }
@@ -6851,7 +6851,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/jewellery-masters-app?tab=jw_rate_type",
+                "/erp/jewellery-masters-app?tab=jw_rate_type",
                 written.Succeeded,
                 written.Message,
                 new
@@ -6879,7 +6879,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_currency",
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=jw_currency",
                     "Admin ERP capability required for jewellery currency save.");
             }
 
@@ -6931,7 +6931,7 @@ public sealed class ErpModule : ISurfaceModule
                 if (LiveWriteFormBinder.WantsHtml(context))
                 {
                     return DryRunHtmlForm.Redirect(
-                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_currency"),
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/jewellery-masters-app?tab=jw_currency"),
                         result.ValidationCode == "ok",
                         result.Detail);
                 }
@@ -6953,7 +6953,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/jewellery-masters-app?tab=jw_currency",
+                "/erp/jewellery-masters-app?tab=jw_currency",
                 written.Succeeded,
                 written.Message,
                 new
@@ -6981,7 +6981,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_diamond",
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=jw_diamond",
                     "Admin ERP capability required for jewellery diamond save.");
             }
 
@@ -7107,7 +7107,7 @@ public sealed class ErpModule : ISurfaceModule
                 if (LiveWriteFormBinder.WantsHtml(context))
                 {
                     return DryRunHtmlForm.Redirect(
-                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_diamond"),
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/jewellery-masters-app?tab=jw_diamond"),
                         result.ValidationCode == "ok",
                         result.Detail);
                 }
@@ -7171,7 +7171,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/jewellery-masters-app?tab=jw_diamond",
+                "/erp/jewellery-masters-app?tab=jw_diamond",
                 written.Succeeded,
                 written.Message,
                 new
@@ -7199,7 +7199,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_design",
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=jw_design",
                     "Admin ERP capability required for jewellery design save.");
             }
 
@@ -7261,7 +7261,7 @@ public sealed class ErpModule : ISurfaceModule
                 if (LiveWriteFormBinder.WantsHtml(context))
                 {
                     return DryRunHtmlForm.Redirect(
-                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_design"),
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/jewellery-masters-app?tab=jw_design"),
                         result.ValidationCode == "ok",
                         result.Detail);
                 }
@@ -7293,7 +7293,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/jewellery-masters-app?tab=jw_design",
+                "/erp/jewellery-masters-app?tab=jw_design",
                 written.Succeeded,
                 written.Message,
                 new
@@ -7321,7 +7321,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_pearl",
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=jw_pearl",
                     "Admin ERP capability required for jewellery pearl save.");
             }
 
@@ -7395,7 +7395,7 @@ public sealed class ErpModule : ISurfaceModule
                 if (LiveWriteFormBinder.WantsHtml(context))
                 {
                     return DryRunHtmlForm.Redirect(
-                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_pearl"),
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/jewellery-masters-app?tab=jw_pearl"),
                         result.ValidationCode == "ok",
                         result.Detail);
                 }
@@ -7433,7 +7433,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/jewellery-masters-app?tab=jw_pearl",
+                "/erp/jewellery-masters-app?tab=jw_pearl",
                 written.Succeeded,
                 written.Message,
                 new
@@ -7461,7 +7461,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_color_stone",
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=jw_color_stone",
                     "Admin ERP capability required for jewellery color stone save.");
             }
 
@@ -7508,7 +7508,7 @@ public sealed class ErpModule : ISurfaceModule
                 if (LiveWriteFormBinder.WantsHtml(context))
                 {
                     return DryRunHtmlForm.Redirect(
-                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_color_stone"),
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/jewellery-masters-app?tab=jw_color_stone"),
                         result.ValidationCode == "ok",
                         result.Detail);
                 }
@@ -7535,7 +7535,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/jewellery-masters-app?tab=jw_color_stone",
+                "/erp/jewellery-masters-app?tab=jw_color_stone",
                 written.Succeeded,
                 written.Message,
                 new
@@ -7563,7 +7563,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_barcode",
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=jw_barcode",
                     "Admin ERP capability required for jewellery barcode generate.");
             }
 
@@ -7590,7 +7590,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/jewellery-masters-app?tab=jw_barcode";
+            const string returnApp = "/erp/jewellery-masters-app?tab=jw_barcode";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_barcode_generate", stockCode, false));
@@ -7630,7 +7630,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jewellery_tag",
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=jewellery_tag",
                     "Admin ERP capability required for jewellery tag create.");
             }
 
@@ -7687,7 +7687,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/jewellery-masters-app?tab=jewellery_tag";
+            const string returnApp = "/erp/jewellery-masters-app?tab=jewellery_tag";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_tag_create", tagNo ?? description, false));
@@ -7749,7 +7749,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jewellery_tag",
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=jewellery_tag",
                     "Admin ERP capability required for jewellery tag sell.");
             }
 
@@ -7770,7 +7770,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/jewellery-masters-app?tab=jewellery_tag";
+            const string returnApp = "/erp/jewellery-masters-app?tab=jewellery_tag";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_tag_sell", tagId.ToString(CultureInfo.InvariantCulture), false));
@@ -7811,7 +7811,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=gold_scheme",
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=gold_scheme",
                     "Admin ERP capability required for gold scheme create.");
             }
 
@@ -7844,7 +7844,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/jewellery-masters-app?tab=gold_scheme";
+            const string returnApp = "/erp/jewellery-masters-app?tab=gold_scheme";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_gold_scheme_create", schemeCode ?? schemeName, false));
@@ -7894,7 +7894,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=gold_scheme",
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=gold_scheme",
                     "Admin ERP capability required for gold scheme enroll.");
             }
 
@@ -7919,7 +7919,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/jewellery-masters-app?tab=gold_scheme";
+            const string returnApp = "/erp/jewellery-masters-app?tab=gold_scheme";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_gold_scheme_enroll", schemeId.ToString(CultureInfo.InvariantCulture), false));
@@ -7959,7 +7959,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=gold_scheme",
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=gold_scheme",
                     "Admin ERP capability required for gold scheme pay.");
             }
 
@@ -7984,7 +7984,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/jewellery-masters-app?tab=gold_scheme";
+            const string returnApp = "/erp/jewellery-masters-app?tab=gold_scheme";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_gold_scheme_pay", enrollmentId.ToString(CultureInfo.InvariantCulture), false));
@@ -8024,7 +8024,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-fixing-app?tab=fix_unfix",
+                    "/erp/login?returnUrl=/erp/jewellery-fixing-app?tab=fix_unfix",
                     "Admin ERP capability required for fix/unfix create.");
             }
 
@@ -8071,7 +8071,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/jewellery-fixing-app?tab=fix_unfix";
+            const string returnApp = "/erp/jewellery-fixing-app?tab=fix_unfix";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_fix_unfix_create", supplierName, false));
@@ -8129,7 +8129,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-fixing-app?tab=fix_unfix",
+                    "/erp/login?returnUrl=/erp/jewellery-fixing-app?tab=fix_unfix",
                     "Admin ERP capability required for fix/unfix settle.");
             }
 
@@ -8148,7 +8148,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/jewellery-fixing-app?tab=fix_unfix";
+            const string returnApp = "/erp/jewellery-fixing-app?tab=fix_unfix";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_fix_unfix_settle", id.ToString(CultureInfo.InvariantCulture), false));
@@ -8373,7 +8373,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/crm-tickets-app?tab=sla",
+                    "/erp/login?returnUrl=/erp/crm-tickets-app?tab=sla",
                     "Admin ERP capability required for SLA create.");
             }
 
@@ -8414,7 +8414,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/crm-tickets-app?tab=sla";
+            const string returnApp = "/erp/crm-tickets-app?tab=sla";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("sla_create", slaCode ?? clientName, false));
@@ -8994,7 +8994,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/crm-tickets-app?tab=tickets",
+                    "/erp/login?returnUrl=/erp/crm-tickets-app?tab=tickets",
                     "Admin ERP capability required for ticket create.");
             }
 
@@ -9031,7 +9031,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/crm-tickets-app?tab=tickets";
+            const string returnApp = "/erp/crm-tickets-app?tab=tickets";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("tickets_create", subject, false));
@@ -9083,7 +9083,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/crm-tickets-app?tab=tickets",
+                    "/erp/login?returnUrl=/erp/crm-tickets-app?tab=tickets",
                     "Admin ERP capability required for ticket reply.");
             }
 
@@ -9106,7 +9106,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/crm-tickets-app?tab=tickets";
+            const string returnApp = "/erp/crm-tickets-app?tab=tickets";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("tickets_reply", message, false));
@@ -9559,7 +9559,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-stock-verification-app?tab=jw_metal_stock",
+                    "/erp/login?returnUrl=/erp/jewellery-stock-verification-app?tab=jw_metal_stock",
                     "Admin ERP capability required for jewellery metal stock save.");
             }
 
@@ -9598,7 +9598,7 @@ public sealed class ErpModule : ISurfaceModule
                 if (LiveWriteFormBinder.WantsHtml(context))
                 {
                     return DryRunHtmlForm.Redirect(
-                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-stock-verification-app?tab=jw_metal_stock"),
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/jewellery-stock-verification-app?tab=jw_metal_stock"),
                         result.ValidationCode == "ok",
                         result.Detail);
                 }
@@ -9627,7 +9627,7 @@ public sealed class ErpModule : ISurfaceModule
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/jewellery-stock-verification-app?tab=jw_metal_stock",
+                "/erp/jewellery-stock-verification-app?tab=jw_metal_stock",
                 written.Succeeded,
                 written.Message,
                 new
@@ -9664,7 +9664,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-fixing-app?tab=jw_purchase_fixing",
+                    "/erp/login?returnUrl=/erp/jewellery-fixing-app?tab=jw_purchase_fixing",
                     "Admin ERP capability required for jewellery fixing save.");
             }
 
@@ -9713,7 +9713,7 @@ public sealed class ErpModule : ISurfaceModule
                 || string.Equals(fixDirection, "SF", StringComparison.OrdinalIgnoreCase);
             var dryAction = sales ? "jw_sales_fixing_save" : "jw_purchase_fixing_save";
             var returnTab = sales ? "jw_sales_fixing" : "jw_purchase_fixing";
-            var returnApp = "/cp/jewellery-fixing-app?tab=" + returnTab;
+            var returnApp = "/erp/jewellery-fixing-app?tab=" + returnTab;
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest(
@@ -9780,7 +9780,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-retail-app?tab=jw_retail_sales",
+                    "/erp/login?returnUrl=/erp/jewellery-retail-app?tab=jw_retail_sales",
                     "Admin ERP capability required for jewellery voucher save.");
             }
 
@@ -10083,7 +10083,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/uae-tax-compliance-app?tab=jw_tourist_vat",
+                    "/erp/login?returnUrl=/erp/uae-tax-compliance-app?tab=jw_tourist_vat",
                     "Admin ERP capability required for jewellery tourist VAT save.");
             }
 
@@ -10134,7 +10134,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/uae-tax-compliance-app?tab=jw_tourist_vat";
+            const string returnApp = "/erp/uae-tax-compliance-app?tab=jw_tourist_vat";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_tourist_vat_save", touristName, false));
@@ -10201,7 +10201,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-repairs-app?tab=jw_repair_receipt",
+                    "/erp/login?returnUrl=/erp/jewellery-repairs-app?tab=jw_repair_receipt",
                     "Admin ERP capability required for jewellery repair receipt save.");
             }
 
@@ -10242,7 +10242,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/jewellery-repairs-app?tab=jw_repair_receipt";
+            const string returnApp = "/erp/jewellery-repairs-app?tab=jw_repair_receipt";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_repair_save", customerName, false));
@@ -10281,7 +10281,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-repairs-app?tab=jw_repair_transfer",
+                    "/erp/login?returnUrl=/erp/jewellery-repairs-app?tab=jw_repair_transfer",
                     "Admin ERP capability required for jewellery repair transfer save.");
             }
 
@@ -10318,7 +10318,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/jewellery-repairs-app?tab=jw_repair_transfer";
+            const string returnApp = "/erp/jewellery-repairs-app?tab=jw_repair_transfer";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_repair_transfer_save", !string.IsNullOrWhiteSpace(repairNo) ? repairNo : code, false));
@@ -10357,7 +10357,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-repairs-app?tab=jw_workshop_receive",
+                    "/erp/login?returnUrl=/erp/jewellery-repairs-app?tab=jw_workshop_receive",
                     "Admin ERP capability required for jewellery workshop receive save.");
             }
 
@@ -10388,7 +10388,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/jewellery-repairs-app?tab=jw_workshop_receive";
+            const string returnApp = "/erp/jewellery-repairs-app?tab=jw_workshop_receive";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_workshop_receive_save", !string.IsNullOrWhiteSpace(transferRef) ? transferRef : code, false));
@@ -10427,7 +10427,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-repairs-app?tab=jw_repair_delivery",
+                    "/erp/login?returnUrl=/erp/jewellery-repairs-app?tab=jw_repair_delivery",
                     "Admin ERP capability required for jewellery repair delivery save.");
             }
 
@@ -10470,7 +10470,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/jewellery-repairs-app?tab=jw_repair_delivery";
+            const string returnApp = "/erp/jewellery-repairs-app?tab=jw_repair_delivery";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_repair_delivery_save", !string.IsNullOrWhiteSpace(repairNo) ? repairNo : code, false));
@@ -10509,7 +10509,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(
                     context,
-                    "/erp/login?returnUrl=/cp/jewellery-stock-verification-app?tab=jw_stock_verification",
+                    "/erp/login?returnUrl=/erp/jewellery-stock-verification-app?tab=jw_stock_verification",
                     "Admin ERP capability required for jewellery stock verification save.");
             }
 
@@ -10546,7 +10546,7 @@ public sealed class ErpModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            const string returnApp = "/cp/jewellery-stock-verification-app?tab=jw_stock_verification";
+            const string returnApp = "/erp/jewellery-stock-verification-app?tab=jw_stock_verification";
             if (!confirm)
             {
                 var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_stock_verification_save", !string.IsNullOrWhiteSpace(location) ? location : code, false));
@@ -10579,7 +10579,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_karat");
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/jewellery-masters-app?tab=jw_karat");
             if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
                 return Results.Redirect("/erp/login");
             var result = dryRun.Evaluate(new ErpJwSeedSampleDataRequest(0, "jw_karat_seed", false));
@@ -10588,7 +10588,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryModuleSaveForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwModuleSaveDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app");
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/jewellery-masters-app");
             if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
                 return Results.Redirect("/erp/login");
             var action = DryRunHtmlForm.Read(context.Request, "action");
@@ -10682,7 +10682,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/insurance-compliance-app", "Admin ERP capability required for insurance document delete.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/insurance-compliance-app", "Admin ERP capability required for insurance document delete.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInsDocDeleteBody>(context, cancellationToken) ?? new(0, false);
@@ -10703,7 +10703,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.DeleteAsync(id, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/insurance-compliance-app",
+                "/erp/insurance-compliance-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -10718,7 +10718,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/insurance-compliance-app", "Admin ERP capability required for insurance claim add.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/insurance-compliance-app", "Admin ERP capability required for insurance claim add.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInsClaimAddBody>(context, cancellationToken)
@@ -10761,7 +10761,7 @@ public sealed class ErpModule : ISurfaceModule
                     claimAmount, settledAmount, surveyor, status, note, cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/insurance-compliance-app",
+                    "/erp/insurance-compliance-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -11024,7 +11024,6 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpCashAccountsCreate, async (
             HttpContext context,
-            ErpCashAccountCreateBody? body,
             ILegacySessionValidator validator,
             IErpCashAccountCreateDryRun dryRun,
             IErpGlLedgerWriteService writes,
@@ -11035,12 +11034,82 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return Unauthorized("Admin ERP capability required for cash account create dry-run.");
             }
-            body ??= new ErpCashAccountCreateBody(null, "cash", false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCashAccountCreateBody>(context, cancellationToken)
+                       ?? new ErpCashAccountCreateBody(null, "cash", false);
+            var fromForm = context.Request.HasFormContentType;
+            if (fromForm)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                body = new ErpCashAccountCreateBody(
+                    LiveWriteFormBinder.Text(form, "name", "accountName"),
+                    LiveWriteFormBinder.Text(form, "accountType", "account_type") is { Length: > 0 } formType ? formType : "cash",
+                    LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"),
+                    LiveWriteFormBinder.Text(form, "bankName", "bank_name"),
+                    LiveWriteFormBinder.Text(form, "accountNumber", "account_number"),
+                    LiveWriteFormBinder.Text(form, "currencyCode", "currency_code") is { Length: > 0 } formCurrency ? formCurrency : "AED",
+                    decimal.TryParse(LiveWriteFormBinder.Text(form, "openingBalance", "opening_balance"), NumberStyles.Any, CultureInfo.InvariantCulture, out var formOpening) ? formOpening : 0m,
+                    LiveWriteFormBinder.Long(form, "officeId", "office_id"),
+                    LiveWriteFormBinder.Long(form, "legalEntityId", "legal_entity_id"),
+                    LiveWriteFormBinder.Long(form, "businessUnitId", "business_unit_id"),
+                    LiveWriteFormBinder.Long(form, "glAccountId", "gl_account_id"),
+                    LiveWriteFormBinder.Text(form, "iban"),
+                    LiveWriteFormBinder.Text(form, "swiftBic", "swift_bic"),
+                    LiveWriteFormBinder.Text(form, "bankBranch", "bank_branch"),
+                    LiveWriteFormBinder.Text(form, "routingCode", "routing_code"),
+                    LiveWriteFormBinder.Text(form, "address"),
+                    LiveWriteFormBinder.Text(form, "contactName", "contact_name"),
+                    LiveWriteFormBinder.Text(form, "contactPhone", "contact_phone"),
+                    LiveWriteFormBinder.Text(form, "contactEmail", "contact_email"),
+                    "active",
+                    LiveWriteFormBinder.Text(form, "notes"));
+            }
+
             if (!body.ConfirmWrites)
             {
                 return Results.Ok(dryRun
                     .Evaluate(new ErpCashAccountCreateRequest(body.Name, body.AccountType, false))
                     .ToPayload(SessionPayload(session)));
+            }
+
+            if (fromForm)
+            {
+                var formResult = await ExecuteErpWriteAsync(session, async () =>
+                {
+                    var accountId = await writes.CreateCashAccountAsync(
+                        new ErpCashAccountInput
+                        {
+                            Name = body.Name ?? string.Empty,
+                            AccountType = body.AccountType ?? "cash",
+                            BankName = body.BankName ?? string.Empty,
+                            AccountNumber = body.AccountNumber ?? string.Empty,
+                            CurrencyCode = body.CurrencyCode ?? "AED",
+                            OpeningBalance = body.OpeningBalance,
+                            OfficeId = body.OfficeId,
+                            LegalEntityId = body.LegalEntityId,
+                            BusinessUnitId = body.BusinessUnitId,
+                            GlAccountId = body.GlAccountId,
+                            Iban = body.Iban ?? string.Empty,
+                            SwiftBic = body.SwiftBic ?? string.Empty,
+                            BankBranch = body.BankBranch ?? string.Empty,
+                            RoutingCode = body.RoutingCode ?? string.Empty,
+                            Address = body.Address ?? string.Empty,
+                            ContactName = body.ContactName ?? string.Empty,
+                            ContactPhone = body.ContactPhone ?? string.Empty,
+                            ContactEmail = body.ContactEmail ?? string.Empty,
+                            Status = body.Status ?? "active",
+                            Notes = body.Notes ?? string.Empty,
+                        },
+                        session.UserId,
+                        cancellationToken);
+                    return ("Account created", (object)new { id = accountId });
+                });
+                var formOk = formResult is IStatusCodeHttpResult { StatusCode: null or 200 };
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/cash-accounts-app",
+                    formOk,
+                    formOk ? "Account created" : "Cash account create failed",
+                    new { ok = formOk, phpAuthoritative = false, session = SessionPayload(session) });
             }
 
             return await ExecuteErpWriteAsync(session, async () =>
@@ -13208,7 +13277,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
             return LiveWriteFormBinder.LoginRedirect(context,
-                "/erp/login?returnUrl=/cp/jewellery-masters-app",
+                "/erp/login?returnUrl=/erp/jewellery-masters-app",
                 "Admin ERP capability required for jewellery design/diamond history.");
         var result = await read.ReadAsync(companyId, kind ?? string.Empty, limit, offset, cancellationToken)
             .ConfigureAwait(false);
@@ -13252,7 +13321,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
             return LiveWriteFormBinder.LoginRedirect(context,
-                "/erp/login?returnUrl=/cp/jewellery-retail-app?tab=jw_journal",
+                "/erp/login?returnUrl=/erp/jewellery-retail-app?tab=jw_journal",
                 "Admin ERP capability required for jewellery journal history.");
         var result = await read.ReadAsync(companyId, limit, cancellationToken).ConfigureAwait(false);
         return Results.Ok(new
@@ -13273,7 +13342,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
             return LiveWriteFormBinder.LoginRedirect(context,
-                "/erp/login?returnUrl=/cp/jewellery-masters-app",
+                "/erp/login?returnUrl=/erp/jewellery-masters-app",
                 "Admin ERP capability required for jewellery stone master history.");
         var result = await read.ReadAsync(companyId, kind ?? string.Empty, limit, cancellationToken)
             .ConfigureAwait(false);
@@ -13295,7 +13364,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
             return LiveWriteFormBinder.LoginRedirect(context,
-                "/erp/login?returnUrl=/cp/jewellery-retail-app?tab=jw_advances",
+                "/erp/login?returnUrl=/erp/jewellery-retail-app?tab=jw_advances",
                 "Admin ERP capability required for jewellery advance history.");
         var result = await read.ReadAsync(companyId, limit, cancellationToken).ConfigureAwait(false);
         return Results.Ok(new
@@ -13322,7 +13391,7 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.LoginRedirect(
                 context,
-                "/erp/login?returnUrl=/cp/jewellery-retail-app?tab=jw_retail_sales",
+                "/erp/login?returnUrl=/erp/jewellery-retail-app?tab=jw_retail_sales",
                 "Admin ERP capability required for jewellery sale history.");
         }
 
@@ -13357,7 +13426,7 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.LoginRedirect(
                 context,
-                "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                "/erp/login?returnUrl=/erp/jewellery-repairs-app",
                 "Admin ERP capability required for jewellery pending repairs.");
         }
 
@@ -13393,7 +13462,7 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.LoginRedirect(
                 context,
-                "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                "/erp/login?returnUrl=/erp/jewellery-repairs-app",
                 "Admin ERP capability required for jewellery repair history.");
         }
 
@@ -13478,7 +13547,7 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.LoginRedirect(
                 context,
-                "/erp/login?returnUrl=/cp/jewellery-fixing-app?tab=jw_purchase_fixing",
+                "/erp/login?returnUrl=/erp/jewellery-fixing-app?tab=jw_purchase_fixing",
                 "Admin ERP capability required for jewellery fixing history.");
         }
 
@@ -13547,7 +13616,7 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.LoginRedirect(
                 context,
-                "/erp/login?returnUrl=/cp/jewellery-stock-verification-app?tab=jw_metal_stock",
+                "/erp/login?returnUrl=/erp/jewellery-stock-verification-app?tab=jw_metal_stock",
                 "Admin ERP capability required for jewellery metal stock balance.");
         }
 
@@ -13579,7 +13648,7 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.LoginRedirect(
                 context,
-                "/erp/login?returnUrl=/cp/jewellery-stock-verification-app?tab=jw_stock_verification",
+                "/erp/login?returnUrl=/erp/jewellery-stock-verification-app?tab=jw_stock_verification",
                 "Admin ERP capability required for jewellery stock verification.");
         }
 
@@ -13638,7 +13707,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
             return LiveWriteFormBinder.LoginRedirect(context,
-                "/erp/login?returnUrl=/cp/jewellery-masters-app",
+                "/erp/login?returnUrl=/erp/jewellery-masters-app",
                 "Admin ERP capability required for jewellery design detail.");
         var result = await read.ReadAsync(companyId, designCode ?? string.Empty, cancellationToken)
             .ConfigureAwait(false);
@@ -13660,7 +13729,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
             return LiveWriteFormBinder.LoginRedirect(context,
-                "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                "/erp/login?returnUrl=/erp/jewellery-repairs-app",
                 "Admin ERP capability required for jewellery repair history.");
         var result = await read.ReadAsync(companyId, from ?? string.Empty, to ?? string.Empty,
             status ?? string.Empty, limit, cancellationToken).ConfigureAwait(false);
@@ -13682,7 +13751,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
             return LiveWriteFormBinder.LoginRedirect(context,
-                "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                "/erp/login?returnUrl=/erp/jewellery-repairs-app",
                 "Admin ERP capability required for jewellery repair detail.");
         var result = await read.ReadAsync(companyId, repairId, cancellationToken).ConfigureAwait(false);
         return Results.Ok(new
@@ -13701,15 +13770,15 @@ public sealed class ErpModule : ISurfaceModule
 
     private static string JewelleryVoucherReturnApp(string vocType) => vocType switch
     {
-        "MMP" or "MLP" => "/cp/jewellery-fixing-app?tab=jw_metal_purchase",
-        "DMP" or "DLP" => "/cp/jewellery-fixing-app?tab=jw_diamond_purchase",
-        "MSI" or "MSC" => "/cp/jewellery-retail-app?tab=jw_metal_sales",
-        "SRN" or "SRC" => "/cp/jewellery-retail-app?tab=jw_sales_return",
+        "MMP" or "MLP" => "/erp/jewellery-fixing-app?tab=jw_metal_purchase",
+        "DMP" or "DLP" => "/erp/jewellery-fixing-app?tab=jw_diamond_purchase",
+        "MSI" or "MSC" => "/erp/jewellery-retail-app?tab=jw_metal_sales",
+        "SRN" or "SRC" => "/erp/jewellery-retail-app?tab=jw_sales_return",
         "PCV" => "/erp/cash-accounts-app?tab=jw_petty_cash",
-        "RSL" => "/cp/jewellery-repairs-app?tab=jw_repair_sale",
-        "PAD" => "/cp/pos-overview-app",
+        "RSL" => "/erp/jewellery-repairs-app?tab=jw_repair_sale",
+        "PAD" => "/erp/pos-overview-app",
         "JVG" => "/erp/gl-journals-app?tab=jw_journal_voucher",
-        _ => "/cp/jewellery-retail-app?tab=jw_retail_sales"
+        _ => "/erp/jewellery-retail-app?tab=jw_retail_sales"
     };
 
     /// <summary>
@@ -14465,7 +14534,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/consolidations-app", "Admin ERP capability required for consolidation figures save.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/consolidations-app", "Admin ERP capability required for consolidation figures save.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpConsFiguresSaveBody>(context, cancellationToken) ?? new();
@@ -14498,7 +14567,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/consolidations-app",
+            "/erp/consolidations-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -14514,7 +14583,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/projects-overview-app", "Admin ERP capability required for project time log.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/projects-overview-app", "Admin ERP capability required for project time log.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPrjLogTimeBody>(context, cancellationToken) ?? new();
@@ -14551,7 +14620,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/projects-overview-app",
+            "/erp/projects-overview-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -14567,7 +14636,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/projects-overview-app", "Admin ERP capability required for project task save.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/projects-overview-app", "Admin ERP capability required for project task save.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPrjTaskSaveBody>(context, cancellationToken) ?? new();
@@ -14600,7 +14669,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/projects-overview-app",
+            "/erp/projects-overview-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -16236,7 +16305,7 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.LoginRedirect(
                 context,
-                "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jewellery_tag",
+                "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=jewellery_tag",
                 "Admin ERP capability required for jewellery stock availability.");
         }
 
@@ -16293,7 +16362,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/projects-overview-app", "Admin ERP capability required for project save.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/projects-overview-app", "Admin ERP capability required for project save.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPrjSaveBody>(context, cancellationToken) ?? new();
@@ -16330,7 +16399,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/projects-overview-app",
+            "/erp/projects-overview-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -16383,7 +16452,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/hr-overview-app", "Admin ERP capability required for attendance.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/hr-overview-app", "Admin ERP capability required for attendance.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrAttendanceBody>(context, cancellationToken) ?? new();
@@ -16414,7 +16483,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/hr-overview-app",
+            "/erp/hr-overview-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -16430,7 +16499,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/hr-overview-app", "Admin ERP capability required for HR payroll generate.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/hr-overview-app", "Admin ERP capability required for HR payroll generate.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrPayrollRunBody>(context, cancellationToken) ?? new();
@@ -16460,7 +16529,7 @@ public sealed class ErpModule : ISurfaceModule
         var written = await writes.GenerateAsync(new ErpHrPayrollRunWriteRequest(period, deductions), cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/hr-overview-app",
+            "/erp/hr-overview-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -16476,7 +16545,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/hr-overview-app", "Admin ERP capability required for employee save.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/hr-overview-app", "Admin ERP capability required for employee save.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrEmpSaveBody>(context, cancellationToken) ?? new();
@@ -16540,7 +16609,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/hr-overview-app",
+            "/erp/hr-overview-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -16609,7 +16678,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/consolidations-app", "Admin ERP capability required for consolidation IC save.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/consolidations-app", "Admin ERP capability required for consolidation IC save.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpConsIcSaveBody>(context, cancellationToken) ?? new();
@@ -16644,7 +16713,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/consolidations-app",
+            "/erp/consolidations-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -16660,7 +16729,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/insurance-compliance-app", "Admin ERP capability required for insurance policy save.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/insurance-compliance-app", "Admin ERP capability required for insurance policy save.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInsSaveBody>(context, cancellationToken) ?? new();
@@ -16724,7 +16793,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/insurance-compliance-app",
+            "/erp/insurance-compliance-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -16740,7 +16809,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/insurance-compliance-app", "Admin ERP capability required for insurance document add.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/insurance-compliance-app", "Admin ERP capability required for insurance document add.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInsDocAddBody>(context, cancellationToken) ?? new();
@@ -16771,7 +16840,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/insurance-compliance-app",
+            "/erp/insurance-compliance-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -16787,7 +16856,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/insurance-compliance-app", "Admin ERP capability required for insurance policy delete.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/insurance-compliance-app", "Admin ERP capability required for insurance policy delete.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInsDeleteBody>(context, cancellationToken) ?? new();
@@ -16808,7 +16877,7 @@ public sealed class ErpModule : ISurfaceModule
         var written = await writes.DeleteAsync(id, cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/insurance-compliance-app",
+            "/erp/insurance-compliance-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -16824,7 +16893,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/production-overview-app", "Admin ERP capability required for manufacturing BOM save.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/production-overview-app", "Admin ERP capability required for manufacturing BOM save.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpMfgBomSaveBody>(context, cancellationToken) ?? new();
@@ -16863,7 +16932,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/production-overview-app",
+            "/erp/production-overview-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -16879,7 +16948,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/production-overview-app", "Admin ERP capability required for manufacturing work-order create.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/production-overview-app", "Admin ERP capability required for manufacturing work-order create.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpMfgWoCreateBody>(context, cancellationToken) ?? new();
@@ -16908,7 +16977,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/production-overview-app",
+            "/erp/production-overview-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -16924,7 +16993,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/production-overview-app", "Admin ERP capability required for manufacturing work-order issue.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/production-overview-app", "Admin ERP capability required for manufacturing work-order issue.");
         }
 
         var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
@@ -16937,7 +17006,7 @@ public sealed class ErpModule : ISurfaceModule
         var result = await writes.IssueMaterialsAsync(woId, session.UserId, cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/production-overview-app",
+            "/erp/production-overview-app",
             result.Ok,
             result.Message,
             new
@@ -16963,7 +17032,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/production-overview-app", "Admin ERP capability required for manufacturing work-order complete.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/production-overview-app", "Admin ERP capability required for manufacturing work-order complete.");
         }
 
         var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
@@ -16983,7 +17052,7 @@ public sealed class ErpModule : ISurfaceModule
         var result = await writes.CompleteAsync(woId, qtyProduced, session.UserId, labour, overhead, cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/production-overview-app",
+            "/erp/production-overview-app",
             result.Ok,
             result.Message,
             new
@@ -18594,7 +18663,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/cost-models-app", "Admin ERP capability required for costing model save.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/cost-models-app", "Admin ERP capability required for costing model save.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCostmItemSetBody>(context, cancellationToken) ?? new();
@@ -18625,7 +18694,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/cost-models-app",
+            "/erp/cost-models-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -18684,7 +18753,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/cost-models-app", "Admin ERP capability required for costing transaction.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/cost-models-app", "Admin ERP capability required for costing transaction.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCostmTxnAddBody>(context, cancellationToken) ?? new();
@@ -18723,7 +18792,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/cost-models-app",
+            "/erp/cost-models-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -18843,7 +18912,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/jewellery-retail-app?tab=retail_commerce", "Admin ERP capability required for assortment set.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/jewellery-retail-app?tab=retail_commerce", "Admin ERP capability required for assortment set.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRtlAssortmentSetBody>(context, cancellationToken) ?? new();
@@ -18937,7 +19006,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/jewellery-retail-app?tab=retail_commerce", "Admin ERP capability required for discount save.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/jewellery-retail-app?tab=retail_commerce", "Admin ERP capability required for discount save.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRtlDiscountSaveBody>(context, cancellationToken) ?? new();
@@ -24382,7 +24451,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/uae-tax-compliance-app", "Admin ERP capability required for CT adjustments.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/uae-tax-compliance-app", "Admin ERP capability required for CT adjustments.");
         }
 
         var dateFrom = "";
@@ -24419,7 +24488,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/uae-tax-compliance-app",
+            "/erp/uae-tax-compliance-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -24805,7 +24874,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/fin-advanced-app", "Admin ERP capability required for finance period generate.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fin-advanced-app", "Admin ERP capability required for finance period generate.");
         }
 
         var fy = 0;
@@ -24847,7 +24916,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/fin-advanced-app",
+            "/erp/fin-advanced-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });

@@ -215,7 +215,10 @@
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_source.
-        @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+        @if (!string.IsNullOrWhiteSpace(_message))
+        {
+            <span> @_message</span>
+        }
     </div>
 </PhpErpDesktopChrome>
 

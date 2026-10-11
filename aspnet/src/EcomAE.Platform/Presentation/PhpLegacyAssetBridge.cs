@@ -357,6 +357,27 @@ public static class PhpLegacyAssetBridge
 
             return Results.File(path, ContentTypeFor(path));
         });
+        // Font Awesome webfonts referenced as ../webfonts/* from the bridged CP vendor CSS
+        // (/epc-static.php?f=cp/.../fontawesome/css/font-awesome.css resolves them to /webfonts/*).
+        endpoints.MapGet("/webfonts/{fileName}", (string fileName) =>
+        {
+            if (string.IsNullOrWhiteSpace(fileName)
+                || fileName.Contains("..", StringComparison.Ordinal)
+                || fileName.Contains('/', StringComparison.Ordinal)
+                || Path.IsPathRooted(fileName))
+            {
+                return Results.NotFound();
+            }
+
+            var root = Path.GetFullPath(Path.Combine(repoRoot, "cp", "templates", "bootstrap_admin", "vendor", "fontawesome", "webfonts"));
+            var path = Path.GetFullPath(Path.Combine(root, fileName));
+            if (!path.StartsWith(root, StringComparison.Ordinal) || !File.Exists(path))
+            {
+                return Results.NotFound();
+            }
+
+            return Results.File(path, ContentTypeFor(path));
+        });
         endpoints.MapGet("/platform-assets/industry_3d.css", () =>
         {
             var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/industry_templates/assets/industry_3d.css"));

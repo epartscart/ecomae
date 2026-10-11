@@ -141,7 +141,7 @@ public sealed class ErpPhpReadTwinTests
         Assert.Equal("/erp/staff-app", EcomAeRoutes.ErpStaffApp);
         Assert.Equal("/erp/print-designer-app", EcomAeRoutes.ErpPrintDesignerApp);
         Assert.DoesNotContain("/cp/hr-overview-app", staff, StringComparison.Ordinal);
-        Assert.DoesNotContain("/erp/module-app", print, StringComparison.Ordinal);
+        Assert.DoesNotContain("/cp/module-app", print, StringComparison.Ordinal);
 
         Assert.True(ErpPhpTabRouteMap.TryMapTab("order_planning", out var opl));
         Assert.Equal("/erp/order-planning-app", opl);
@@ -174,7 +174,7 @@ public sealed class ErpPhpReadTwinTests
         Assert.DoesNotContain("/cp/hr-overview-app", recruitment, StringComparison.Ordinal);
         Assert.DoesNotContain("/cp/hr-overview-app", performance, StringComparison.Ordinal);
         Assert.DoesNotContain("/cp/projects-overview-app", prja, StringComparison.Ordinal);
-        Assert.DoesNotContain("/erp/inventory-stock-app", productInfo, StringComparison.Ordinal);
+        Assert.DoesNotContain("/cp/inventory-stock-app", productInfo, StringComparison.Ordinal);
     }
 
     [Fact]

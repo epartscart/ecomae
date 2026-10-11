@@ -1,19 +1,18 @@
-@page "/cp/warehouse-wms-app"
 @page "/erp/warehouse-wms-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Warehouse WMS · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
+<PhpChromeStyles Surface="erp" />
 
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -27,7 +26,7 @@
             </div>
         </div>
     </div>
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/warehouse-wms-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/warehouse-wms-app" IsAdmin="_isAdmin" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedWork is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -246,7 +245,7 @@
             </div>
         </div>
     </div>
-</PhpCpDesktopChrome>
+</PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=warehouse&tab=wms";
@@ -257,7 +256,7 @@
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
-    private string _listHref = "/cp/warehouse-wms-app";
+    private string _listHref = "/erp/warehouse-wms-app";
     private long _openedId;
     private CpWarehouseWmsWorkDetail? _openedWork;
     private IReadOnlyList<CpWarehouseWmsWorkDigest> _openedSiblings = [];
@@ -325,7 +324,7 @@
         var path = ctx.Request.Path.Value;
         _listHref = string.Equals(path, "/erp/warehouse-wms-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/warehouse-wms-app"
-            : "/cp/warehouse-wms-app";
+            : "/erp/warehouse-wms-app";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "work_id");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";

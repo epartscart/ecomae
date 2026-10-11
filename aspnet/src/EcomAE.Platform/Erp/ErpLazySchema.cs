@@ -903,7 +903,8 @@ internal static class ErpLazySchema
             await ErpDb.ExecuteAsync(c, null,
                 "INSERT INTO `epc_erp_pm_legal_entities`" +
                 " (`code`,`name`,`country_code`,`currency_code`,`trn`,`note`,`active`,`time_created`,`time_updated`)" +
-                " VALUES ('MAIN', @p0, @p1, @p2, @p3, 'Auto-created default company', 1, @p4, @p4)",
+                " SELECT 'MAIN', @p0, @p1, @p2, @p3, 'Auto-created default company', 1, @p4, @p4 FROM DUAL" +
+                " WHERE NOT EXISTS (SELECT 1 FROM `epc_erp_pm_legal_entities` WHERE `code` = 'MAIN')",
                 ct,
                 name,
                 country.Trim().ToUpperInvariant()[..Math.Min(4, country.Trim().ToUpperInvariant().Length)],
@@ -1090,10 +1091,36 @@ internal static class ErpLazySchema
             await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
         }
 
-        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_items` ADD COLUMN `barcode` varchar(128) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
-        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_movements` ADD COLUMN `serial_no` varchar(128) DEFAULT NULL", ct).ConfigureAwait(false);
-        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_field_defs` ADD COLUMN `field_role` enum('inventory','non_inventory') NOT NULL DEFAULT 'inventory'", ct).ConfigureAwait(false);
-        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_field_defs` ADD COLUMN `source_pack` varchar(64) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "barcode", "varchar(128) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "reorder_level", "decimal(14,3) NOT NULL DEFAULT 0.000", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_movements", "serial_no", "varchar(128) DEFAULT NULL", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_field_defs", "field_role", "enum('inventory','non_inventory') NOT NULL DEFAULT 'inventory'", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_field_defs", "source_pack", "varchar(64) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+
+        var movementEnum = await ErpDb.StringAsync(
+            c, null,
+            "SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_erp_inv_movements' AND COLUMN_NAME = 'movement_type'",
+            ct).ConfigureAwait(false) ?? string.Empty;
+        if (movementEnum.Length > 0 && !movementEnum.Contains("'mfg_issue'", StringComparison.Ordinal))
+        {
+            await ErpDb.TryExecuteAsync(
+                c,
+                "ALTER TABLE `epc_erp_inv_movements` MODIFY COLUMN `movement_type` enum('opening','purchase_in','sale_out','transfer_in','transfer_out','adjustment','return_in','return_out','mfg_issue','mfg_receipt') NOT NULL",
+                ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>Adds a column only when information_schema says it is missing, so steady-state ensures issue no failing DDL.</summary>
+    public static async Task AddColumnIfMissingAsync(DbConnection c, string table, string column, string definition, CancellationToken ct)
+    {
+        var exists = await ErpDb.LongAsync(
+            c, null,
+            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"),
+            ct, table, column).ConfigureAwait(false);
+        if (exists == 0)
+        {
+            await ErpDb.TryExecuteAsync(c, "ALTER TABLE `" + table + "` ADD COLUMN `" + column + "` " + definition, ct).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -1107,6 +1134,8 @@ internal static class ErpLazySchema
             "CREATE TABLE IF NOT EXISTS `epc_erp_periods` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `year_month` CHAR(7) NOT NULL, `year` SMALLINT NOT NULL, `month` TINYINT NOT NULL, `status` ENUM('open','soft_close','locked') NOT NULL DEFAULT 'open', `closed_by` INT NOT NULL DEFAULT 0, `closed_at` INT NOT NULL DEFAULT 0, `locked_by` INT NOT NULL DEFAULT 0, `locked_at` INT NOT NULL DEFAULT 0, `note` VARCHAR(512) NOT NULL DEFAULT '', `checklist_json` TEXT, `created_at` INT NOT NULL DEFAULT 0, `updated_at` INT NOT NULL DEFAULT 0, UNIQUE KEY `idx_year_month` (`year_month`), INDEX `idx_status` (`status`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
             "CREATE TABLE IF NOT EXISTS `epc_erp_period_close_log` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `year_month` CHAR(7) NOT NULL, `action` VARCHAR(32) NOT NULL, `old_status` VARCHAR(16) NOT NULL DEFAULT '', `new_status` VARCHAR(16) NOT NULL DEFAULT '', `admin_id` INT NOT NULL DEFAULT 0, `note` VARCHAR(512) NOT NULL DEFAULT '', `created_at` INT NOT NULL DEFAULT 0, INDEX `idx_period` (`year_month`, `created_at`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
             "CREATE TABLE IF NOT EXISTS `epc_erp_fiscal_locks` (`id` int(11) NOT NULL AUTO_INCREMENT, `lock_date` int(11) NOT NULL, `note` varchar(255) DEFAULT NULL, `admin_id` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_active_date` (`active`,`lock_date`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='BOS fiscal-period locks'",
+            "CREATE TABLE IF NOT EXISTS `epc_fy_years` (`id` int(11) NOT NULL AUTO_INCREMENT, `label` varchar(40) NOT NULL, `start_date` int(11) NOT NULL DEFAULT 0, `end_date` int(11) NOT NULL DEFAULT 0, `status` varchar(10) NOT NULL DEFAULT 'open', `closed_at` int(11) NOT NULL DEFAULT 0, `retained_pl` decimal(16,2) NOT NULL DEFAULT 0.00, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_label` (`label`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Fiscal years'",
+            "CREATE TABLE IF NOT EXISTS `epc_fy_periods` (`id` int(11) NOT NULL AUTO_INCREMENT, `year_id` int(11) NOT NULL, `period_no` int(11) NOT NULL DEFAULT 0, `start_date` int(11) NOT NULL DEFAULT 0, `end_date` int(11) NOT NULL DEFAULT 0, `status` varchar(10) NOT NULL DEFAULT 'open', PRIMARY KEY (`id`), UNIQUE KEY `x_period` (`year_id`,`period_no`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Fiscal periods'",
         };
         foreach (var ddl in ddls)
         {

@@ -321,7 +321,7 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains(ErpJewelleryModuleChrome.StockTabs, t => t.Key == "jw_metal_stock");
         Assert.Equal("jw_repairs", ErpJewelleryModuleChrome.NormalizeTab("", ErpJewelleryModuleChrome.RepairTabs, "jw_repairs"));
         Assert.Equal("jw_repair_delivery", ErpJewelleryModuleChrome.NormalizeTab("jw_repair_delivery", ErpJewelleryModuleChrome.RepairTabs, "jw_repairs"));
-        Assert.Contains("/cp/jewellery-repairs-app?company=2&tab=jw_repairs", ErpJewelleryModuleChrome.AppHref("/cp/jewellery-repairs-app", 2, ("tab", "jw_repairs")), StringComparison.Ordinal);
+        Assert.Contains("/erp/jewellery-repairs-app?company=2&tab=jw_repairs", ErpJewelleryModuleChrome.AppHref("/erp/jewellery-repairs-app", 2, ("tab", "jw_repairs")), StringComparison.Ordinal);
     }
 
     [Fact]
