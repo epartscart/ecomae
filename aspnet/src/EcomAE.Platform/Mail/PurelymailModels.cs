@@ -36,7 +36,8 @@ public sealed record MailboxMessage(
     string Subject,
     DateTimeOffset ReceivedUtc,
     string Excerpt,
-    bool Unread);
+    bool Unread,
+    string Body = "");
 
 public sealed record PurelymailCallResult(
     bool Ok,

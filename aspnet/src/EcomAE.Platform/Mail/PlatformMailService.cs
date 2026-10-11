@@ -53,6 +53,7 @@ public sealed class PlatformMailService : IPlatformMailService
             "create_mailbox" => await CreateMailboxAsync(request, cancellationToken).ConfigureAwait(false),
             "set_mailbox_password" => SetMailboxPassword(request),
             "setup_tenants" => await SetupTenantsAsync(request, cancellationToken).ConfigureAwait(false),
+            "setup_fleet" => await SetupFleetAsync(request, cancellationToken).ConfigureAwait(false),
             "setup_business" => await SetupBusinessAsync(request, cancellationToken).ConfigureAwait(false),
             "register_login" => await RegisterLoginAsync(request, cancellationToken).ConfigureAwait(false),
             "delete_mailbox" => await DeleteMailboxAsync(request, cancellationToken).ConfigureAwait(false),
@@ -64,7 +65,7 @@ public sealed class PlatformMailService : IPlatformMailService
     {
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var rows = new List<TenantMailTarget>();
-        foreach (var (hostname, siteKey) in tenants)
+        foreach (var (hostname, siteKey) in KnownShopMailTenants.Merge(tenants))
         {
             var domain = PlatformMailNormalize.Domain(hostname);
             if (domain.Length == 0 || !domain.Contains('.', StringComparison.Ordinal) || !seen.Add(domain))
@@ -268,6 +269,43 @@ public sealed class PlatformMailService : IPlatformMailService
             added == 0
                 ? "Every tenant domain is already on the platform mail directory."
                 : "Added " + added.ToString(System.Globalization.CultureInfo.InvariantCulture) + " tenant domain(s). Publish DNS, then create each login mailbox.");
+    }
+
+    private async Task<PlatformMailWriteResult> SetupFleetAsync(PlatformMailWriteRequest request, CancellationToken cancellationToken)
+    {
+        var writes = 0;
+        var boxed = 0;
+        var platform = await SetupBusinessAsync(
+            new PlatformMailWriteRequest("setup_business", Domain: PurelymailDns.FirstDomain, SiteKey: PurelymailDns.PlatformSiteKey),
+            cancellationToken).ConfigureAwait(false);
+        writes += platform.Writes;
+        if (platform.Succeeded)
+        {
+            boxed++;
+        }
+
+        var planned = PlanTenantDomains(request.Tenants ?? []);
+        foreach (var row in planned)
+        {
+            var domain = await AddDomainAsync(new PlatformMailWriteRequest("add_domain", Domain: row.Domain, SiteKey: row.SiteKey), cancellationToken).ConfigureAwait(false);
+            writes += domain.Writes;
+            var business = await SetupBusinessAsync(
+                new PlatformMailWriteRequest("setup_business", Domain: row.Domain, SiteKey: row.SiteKey),
+                cancellationToken).ConfigureAwait(false);
+            writes += business.Writes;
+            if (business.Succeeded)
+            {
+                boxed++;
+            }
+        }
+
+        return new PlatformMailWriteResult(
+            true,
+            writes,
+            "ok",
+            "Fleet mail ready for "
+            + boxed.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            + " domain(s) including ecomae.com. Shop tenants use their own domain; ERP customers create @ecomae.com boxes in Super ERP. Add the Cloudflare records, then open inbox / compose.");
     }
 
     private async Task<PlatformMailWriteResult> SetupBusinessAsync(PlatformMailWriteRequest request, CancellationToken cancellationToken)

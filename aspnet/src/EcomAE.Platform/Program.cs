@@ -824,8 +824,10 @@ builder.Services.AddHttpClient(EcomAE.Platform.Mail.PurelymailHttpApi.HttpClient
 builder.Services.AddSingleton<EcomAE.Platform.Mail.IPlatformMailDirectory, EcomAE.Platform.Mail.PlatformMailDirectory>();
 builder.Services.AddSingleton<EcomAE.Platform.Mail.IPurelymailApi, EcomAE.Platform.Mail.PurelymailHttpApi>();
 builder.Services.AddSingleton<EcomAE.Platform.Mail.IMailboxImapClient, EcomAE.Platform.Mail.MailKitImapClient>();
+builder.Services.AddSingleton<EcomAE.Platform.Mail.IMailboxSmtpClient, EcomAE.Platform.Mail.MailKitSmtpClient>();
 builder.Services.AddScoped<EcomAE.Platform.Mail.IPlatformMailService, EcomAE.Platform.Mail.PlatformMailService>();
 builder.Services.AddScoped<EcomAE.Platform.Mail.IMailboxInboxService, EcomAE.Platform.Mail.MailboxInboxService>();
+builder.Services.AddScoped<EcomAE.Platform.Mail.IMailboxComposer, EcomAE.Platform.Mail.MailboxComposer>();
 builder.Services.AddScoped<EcomAE.Platform.Mail.ITenantMailboxSelfServe, EcomAE.Platform.Mail.TenantMailboxSelfServeService>();
 builder.Services.AddScoped<EcomAE.Platform.Auth.IPlatformOperatorSuccession, EcomAE.Platform.Auth.PlatformOperatorSuccessionService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMobileAppsWriteService, EcomAE.Platform.Cp.CpMobileAppsWriteService>();

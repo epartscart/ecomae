@@ -27,7 +27,8 @@
                     This tenant’s login and ops mail only — isolated by <code>site_key=@_siteKey</code>
                     on domain <code>@_tenantDomain</code>.
                     Signed-in login email: <strong>@(string.IsNullOrWhiteSpace(_loginEmail) ? "not signed in" : _loginEmail)</strong>.
-                    Create as many <code>name@@_tenantDomain</code> mailboxes and CP users as this business needs.
+                    Shop tenants create as many <code>name@@_tenantDomain</code> mailboxes as they need.
+                    <code>ecomae.com</code> mailboxes are ERP customers only.
                     This page never shows another tenant’s inbox.
                 </p>
             </div>
@@ -133,6 +134,32 @@
         <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
     }
 
+    @if (_isAdmin && !string.IsNullOrWhiteSpace(_opened))
+    {
+        <div class="col-lg-12">
+            <form method="post" action="/cp/mailbox/write" class="well">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="action" value="send" />
+                <input type="hidden" name="address" value="@_opened" />
+                <input type="hidden" name="returnUrl" value="/cp/mailbox-app?address=@Uri.EscapeDataString(_opened)" />
+                <h4>Compose from @_opened</h4>
+                <div class="form-group">
+                    <label>To</label>
+                    <input type="email" class="form-control" name="to" />
+                </div>
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" class="form-control" name="subject" />
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea class="form-control" name="body" rows="6"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+        </div>
+    }
+
     @if (_messages.Count > 0 || !string.IsNullOrWhiteSpace(_opened))
     {
         <div class="col-lg-12">
@@ -154,7 +181,7 @@
                                     <td>@row.ReceivedUtc.ToString("u", CultureInfo.InvariantCulture)</td>
                                     <td>@row.From</td>
                                     <td>@row.Subject</td>
-                                    <td>@row.Excerpt</td>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Body) ? row.Excerpt : row.Body)</td>
                                 </tr>
                             }
                         }
@@ -194,20 +221,20 @@
         _loginEmail = session.Email ?? "";
         _flashOk = ctx.Request.Query["ok"].ToString();
         _flashErr = ctx.Request.Query["err"].ToString();
-        _boxes = Inbox.ListForCaller(_siteKey, _isSuper);
+        _boxes = Inbox.ListForCaller(_siteKey, superCp: false, _loginEmail, ownInboxOnly: _isSuper);
         if (!_isAdmin)
         {
             return;
         }
 
-        _opened = Inbox.PreferLoginAddress(_boxes, _loginEmail, ctx.Request.Query["address"].ToString());
+        _opened = Inbox.PreferLoginAddress(_boxes, _loginEmail, _isSuper ? _loginEmail : ctx.Request.Query["address"].ToString());
 
         if (string.IsNullOrWhiteSpace(_opened))
         {
             return;
         }
 
-        var read = await Inbox.ReadAsync(_siteKey, _isSuper, _opened, 40, ctx.RequestAborted);
+        var read = await Inbox.ReadAsync(_siteKey, superCp: false, _opened, 40, ctx.RequestAborted, _loginEmail, ownInboxOnly: _isSuper);
         _messages = read.Messages;
         if (read.Ok)
         {

@@ -1,8 +1,11 @@
+using EcomAE.Platform.Services;
+
 namespace EcomAE.Platform.Mail;
 
 /// <summary>
-/// Tenant CP may create as many mailboxes as it wants — only on its own domain / site_key.
-/// Super CP hosts keep fleet-wide writes on <c>/cp/super-mail/write</c>.
+/// Shop-tenant CP/ERP may create mailboxes only on their own domain / site_key.
+/// Only ERP sessions on Super hosts may create customer boxes on ecomae.com.
+/// Super CP fleet writes stay on <c>/cp/super-mail/write</c>.
 /// </summary>
 public static class TenantMailboxGuard
 {
@@ -12,7 +15,17 @@ public static class TenantMailboxGuard
         "setup_business",
         "set_mailbox_password",
         "register_login",
-        "create_staff"
+        "create_staff",
+        "send"
+    };
+
+    public static readonly HashSet<string> PlatformErpActions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "create_mailbox",
+        "set_mailbox_password",
+        "register_login",
+        "create_staff",
+        "send"
     };
 
     public static bool TryBind(
@@ -25,7 +38,8 @@ public static class TenantMailboxGuard
         out string siteKey,
         out string address,
         out string errorCode,
-        out string errorMessage)
+        out string errorMessage,
+        bool allowPlatformErp = false)
     {
         domain = string.Empty;
         siteKey = string.Empty;
@@ -49,11 +63,21 @@ public static class TenantMailboxGuard
             return false;
         }
 
-        if (string.Equals(tenantDomain, PurelymailDns.FirstDomain, StringComparison.OrdinalIgnoreCase))
+        var platformHost = PlatformHostPolicy.IsSuperCpHost(requestHost)
+            || string.Equals(tenantDomain, PurelymailDns.FirstDomain, StringComparison.OrdinalIgnoreCase);
+        if (platformHost)
         {
-            errorCode = "platform_domain";
-            errorMessage = "Platform ecomae.com mailboxes are Super CP only. Use this tenant’s own domain.";
-            return false;
+            return BindPlatformErp(
+                act,
+                postedDomain,
+                postedAddress,
+                postedLocal,
+                allowPlatformErp,
+                out domain,
+                out siteKey,
+                out address,
+                out errorCode,
+                out errorMessage);
         }
 
         var requested = PlatformMailNormalize.Domain(postedDomain);
@@ -83,6 +107,79 @@ public static class TenantMailboxGuard
 
         domain = tenantDomain;
         siteKey = PlatformMailNormalize.SiteKey(null, superCpHost: false, requestHost: tenantDomain);
+        return true;
+    }
+
+    private static bool BindPlatformErp(
+        string action,
+        string? postedDomain,
+        string? postedAddress,
+        string? postedLocal,
+        bool allowPlatformErp,
+        out string domain,
+        out string siteKey,
+        out string address,
+        out string errorCode,
+        out string errorMessage)
+    {
+        domain = string.Empty;
+        siteKey = string.Empty;
+        address = string.Empty;
+        errorCode = string.Empty;
+        errorMessage = string.Empty;
+
+        if (!allowPlatformErp)
+        {
+            errorCode = "platform_domain";
+            errorMessage = "Only ERP customers can create mailboxes on ecomae.com. Shop tenants use their own domain.";
+            return false;
+        }
+
+        if (!PlatformErpActions.Contains(action))
+        {
+            errorCode = "tenant_forbidden";
+            errorMessage = "ERP customers can create and send from their own @ecomae.com mailbox only.";
+            return false;
+        }
+
+        var requested = PlatformMailNormalize.Domain(postedDomain);
+        if (requested.Length > 0 && !string.Equals(requested, PurelymailDns.FirstDomain, StringComparison.OrdinalIgnoreCase))
+        {
+            errorCode = "isolated";
+            errorMessage = "ERP customers can only create mailboxes on ecomae.com.";
+            return false;
+        }
+
+        string local;
+        if (PlatformMailNormalize.IsEmail(postedAddress))
+        {
+            var split = PlatformMailNormalize.SplitAddress(postedAddress);
+            if (!string.Equals(split.Domain, PurelymailDns.FirstDomain, StringComparison.OrdinalIgnoreCase))
+            {
+                errorCode = "isolated";
+                errorMessage = "ERP customer mailboxes must use the ecomae.com domain.";
+                return false;
+            }
+
+            local = split.Local;
+        }
+        else
+        {
+            local = PlatformMailNormalize.LocalPart(postedLocal);
+        }
+
+        if (!string.Equals(action, "send", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(action, "set_mailbox_password", StringComparison.OrdinalIgnoreCase)
+            && PurelymailDns.IsReservedPlatformLocal(local))
+        {
+            errorCode = "reserved_mailbox";
+            errorMessage = "That ecomae.com address is reserved for platform / Super CP. Choose another local part.";
+            return false;
+        }
+
+        domain = PurelymailDns.FirstDomain;
+        siteKey = PurelymailDns.PlatformSiteKey;
+        address = PlatformMailNormalize.Address(local, domain);
         return true;
     }
 }

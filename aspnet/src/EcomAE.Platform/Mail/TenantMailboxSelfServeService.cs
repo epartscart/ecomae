@@ -15,22 +15,30 @@ public sealed record TenantMailboxSelfServeRequest(
     string? LocalPart,
     string? Address,
     string? Password,
-    string? GroupsJson);
+    string? GroupsJson,
+    string? To = null,
+    string? Subject = null,
+    string? Body = null,
+    string? LoginEmail = null,
+    bool AllowPlatformErp = false);
 
 public sealed class TenantMailboxSelfServeService : ITenantMailboxSelfServe
 {
     private readonly IPlatformMailService _mail;
     private readonly ICpUserWriteService _users;
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IMailboxComposer _composer;
 
     public TenantMailboxSelfServeService(
         IPlatformMailService mail,
         ICpUserWriteService users,
-        IErpWriteConnectionFactory connections)
+        IErpWriteConnectionFactory connections,
+        IMailboxComposer composer)
     {
         _mail = mail;
         _users = users;
         _connections = connections;
+        _composer = composer;
     }
 
     public async Task<PlatformMailWriteResult> WriteAsync(TenantMailboxSelfServeRequest request, CancellationToken cancellationToken)
@@ -45,9 +53,25 @@ public sealed class TenantMailboxSelfServeService : ITenantMailboxSelfServe
                 out var siteKey,
                 out var address,
                 out var errorCode,
-                out var errorMessage))
+                out var errorMessage,
+                request.AllowPlatformErp))
         {
             return new PlatformMailWriteResult(false, 0, errorCode, errorMessage);
+        }
+
+        if (string.Equals(request.Action, "send", StringComparison.OrdinalIgnoreCase))
+        {
+            var sent = await _composer.SendAsync(
+                siteKey,
+                superCp: false,
+                address.Length > 0 ? address : request.Address,
+                request.To,
+                request.Subject,
+                request.Body,
+                cancellationToken,
+                request.LoginEmail,
+                request.AllowPlatformErp).ConfigureAwait(false);
+            return new PlatformMailWriteResult(sent.Ok, sent.Ok ? 1 : 0, sent.Code, sent.Message);
         }
 
         var action = string.Equals(request.Action, "create_staff", StringComparison.OrdinalIgnoreCase)

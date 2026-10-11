@@ -6462,7 +6462,8 @@ public sealed class ControlPanelModule : ISurfaceModule
             }
 
             IReadOnlyList<(string Domain, string SiteKey)>? tenants = null;
-            if (string.Equals(action, "setup_tenants", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(action, "setup_tenants", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(action, "setup_fleet", StringComparison.OrdinalIgnoreCase))
             {
                 var fleet = await dashboards.ListPortalTenantsAsync(500, cancellationToken);
                 tenants = fleet.Tenants
@@ -6492,7 +6493,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             }
 
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            if (session.Kind != LegacySessionKind.Admin || (!session.Capabilities.Contains("cp") && !session.Capabilities.Contains("erp")))
             {
                 return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/mailbox-app", "Admin CP capability required to create tenant mailboxes.");
             }
@@ -6502,6 +6503,9 @@ public sealed class ControlPanelModule : ISurfaceModule
             string? address = null;
             string? password = null;
             string? groupsJson = null;
+            string? to = null;
+            string? subject = null;
+            string? bodyText = null;
             var confirm = false;
             if (context.Request.HasFormContentType)
             {
@@ -6511,6 +6515,9 @@ public sealed class ControlPanelModule : ISurfaceModule
                 address = LiveWriteFormBinder.Text(form, "address");
                 password = LiveWriteFormBinder.Text(form, "password");
                 groupsJson = LiveWriteFormBinder.Text(form, "groups_json", "groupsJson");
+                to = LiveWriteFormBinder.Text(form, "to");
+                subject = LiveWriteFormBinder.Text(form, "subject");
+                bodyText = LiveWriteFormBinder.Text(form, "body");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
             else
@@ -6521,6 +6528,9 @@ public sealed class ControlPanelModule : ISurfaceModule
                 address = body.Address;
                 password = body.Password;
                 groupsJson = body.GroupsJson;
+                to = body.To;
+                subject = body.Subject;
+                bodyText = body.Body;
                 confirm = body.ConfirmWrites;
             }
 
@@ -6539,11 +6549,94 @@ public sealed class ControlPanelModule : ISurfaceModule
             }
 
             var written = await mail.WriteAsync(
-                new TenantMailboxSelfServeRequest(action, context.Request.Host.Host, localPart, address, password, groupsJson),
+                new TenantMailboxSelfServeRequest(action, context.Request.Host.Host, localPart, address, password, groupsJson, to, subject, bodyText),
+                cancellationToken);
+            var returnTo = context.Request.Path.StartsWithSegments("/erp")
+                ? EcomAeRoutes.ErpMailboxApp
+                : EcomAeRoutes.ControlPanelMailboxApp;
+            return LiveWriteFormBinder.Complete(
+                context,
+                returnTo,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpMailboxWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ITenantMailboxSelfServe mail,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var platformErp = SuperCpHostGate.IsAllowed(context);
+            if (platformErp)
+            {
+                if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                {
+                    return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/mailbox-app", "ERP capability required to create or send @ecomae.com mail.");
+                }
+            }
+            else if (session.Kind != LegacySessionKind.Admin || (!session.Capabilities.Contains("erp") && !session.Capabilities.Contains("cp")))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/mailbox-app", "Admin ERP capability required to send tenant mail.");
+            }
+
+            var action = "";
+            string? localPart = null;
+            string? address = null;
+            string? password = null;
+            string? groupsJson = null;
+            string? to = null;
+            string? subject = null;
+            string? bodyText = null;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action") ?? "";
+                localPart = LiveWriteFormBinder.Text(form, "local_part", "localPart");
+                address = LiveWriteFormBinder.Text(form, "address");
+                password = LiveWriteFormBinder.Text(form, "password");
+                groupsJson = LiveWriteFormBinder.Text(form, "groups_json", "groupsJson");
+                to = LiveWriteFormBinder.Text(form, "to");
+                subject = LiveWriteFormBinder.Text(form, "subject");
+                bodyText = LiveWriteFormBinder.Text(form, "body");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpTenantMailboxWriteBody>(context, cancellationToken) ?? new();
+                action = body.Action ?? "";
+                localPart = body.LocalPart;
+                address = body.Address;
+                password = body.Password;
+                groupsJson = body.GroupsJson;
+                to = body.To;
+                subject = body.Subject;
+                bodyText = body.Body;
+                confirm = body.ConfirmWrites;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to send or create mail on this tenant domain (ecomae.com is ERP customers only).",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await mail.WriteAsync(
+                new TenantMailboxSelfServeRequest(action, context.Request.Host.Host, localPart, address, password, groupsJson, to, subject, bodyText, session.Email, AllowPlatformErp: platformErp),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                EcomAeRoutes.ControlPanelMailboxApp,
+                EcomAeRoutes.ErpMailboxApp,
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -17501,6 +17594,9 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Address = null,
         string? Password = null,
         string? GroupsJson = null,
+        string? To = null,
+        string? Subject = null,
+        string? Body = null,
         bool ConfirmWrites = false);
     private sealed record CpTenantEmailSaveBody(
         bool UseTenantSmtp = false,

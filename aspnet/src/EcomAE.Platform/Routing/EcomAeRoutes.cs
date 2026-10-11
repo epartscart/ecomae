@@ -539,6 +539,8 @@ public static class EcomAeRoutes
     public const string ControlPanelMailboxWrite = "/cp/mailbox/write";
     /// <summary>Tenant ERP chrome inbox for the same <c>site_key</c> mailboxes.</summary>
     public const string ErpMailboxApp = "/erp/mailbox-app";
+    /// <summary>Tenant ERP compose / mailbox write. Same isolation as <see cref="ControlPanelMailboxWrite"/>.</summary>
+    public const string ErpMailboxWrite = "/erp/mailbox/write";
     public const string ControlPanelDataMigrations = "/cp/data-migrations";
     /// <summary>CP Data migrations Blazor list (JSON digest remains <see cref="ControlPanelDataMigrations"/>).</summary>
     public const string ControlPanelDataMigrationsApp = "/cp/data-migrations-app";

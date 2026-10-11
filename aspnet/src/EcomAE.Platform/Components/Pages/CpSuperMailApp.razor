@@ -55,8 +55,9 @@ else
                 <div class="panel-body">
                     <p>
                         One Purelymail account covers Super CP, Super ERP, BOS, and every tenant.
-                        Add a client domain, create mailboxes, assign each box to that tenant’s <code>site_key</code>.
-                        Tenants open only their own mail on <a href="/cp/mailbox-app">/cp/mailbox-app</a> and <a href="/erp/mailbox-app">/erp/mailbox-app</a>.
+                        Shop tenants get mailboxes on their own domain (same business set as ecomae.com).
+                        Only ERP customers create personal boxes on <code>ecomae.com</code> from Super ERP mailbox — they see and send only their own inbox.
+                        Shop tenants never create <code>@@ecomae.com</code> addresses.
                     </p>
                     <p>
                         Super CP / Super BOS / Super ERP admin login: <strong>yawer@ecomae.com</strong>
@@ -163,9 +164,18 @@ else
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="action" value="setup_tenants" />
                     <input type="hidden" name="returnUrl" value="@_returnUrl" />
-                    <p>Add every active tenant hostname from the fleet registry as a mail domain (ecomae.com is already first).</p>
+                    <p>Add every named shop domain (epartscart.com, electronicae.com, stylenlook.com, thejewellerytrend.com, taxofinca.com) plus registry hosts. ecomae.com stays the platform domain for ERP customers only.</p>
                     <p class="text-muted">@_fleetHint</p>
-                    <button type="submit" class="btn btn-primary">Setup mail for all tenants</button>
+                    <button type="submit" class="btn btn-primary">Add tenant domains</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form method="post" action="/cp/super-mail/write" class="well">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="setup_fleet" />
+                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                    <p>Create the same business mailbox set as ecomae.com on the platform domain and every shop domain: info, hello, support, sales, accounts, orders, billing plus contact/office/admin/noreply routing.</p>
+                    <button type="submit" class="btn btn-primary">Create mail for all shop tenants</button>
                 </form>
             </div>
             <div class="col-md-6">
@@ -215,6 +225,33 @@ else
                 </form>
             </div>
         }
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Cloudflare records — same as ecomae.com</div>
+                <div class="panel-body" style="overflow:auto">
+                    <p>Publish these on ecomae.com and every shop domain. After DNS is live, Refresh DNS so Purelymail can send and receive.</p>
+                    @{
+                        var cloudflareHosts = new List<(string Hostname, string SiteKey)> { (PurelymailDns.FirstDomain, PurelymailDns.PlatformSiteKey) };
+                        cloudflareHosts.AddRange(KnownShopMailTenants.Rows);
+                    }
+                    @foreach (var shop in cloudflareHosts)
+                    {
+                        var owned = Mail.ListDomains().FirstOrDefault(d => string.Equals(d.Domain, shop.Hostname, StringComparison.OrdinalIgnoreCase));
+                        <h4>@shop.Hostname <small>site_key=@shop.SiteKey</small></h4>
+                        <table class="table table-condensed">
+                            <thead><tr><th>Type</th><th>Name</th><th>Content</th></tr></thead>
+                            <tbody>
+                            @foreach (var row in CloudflareDnsPack.ForDomain(shop.Hostname, owned?.OwnershipCode ?? ""))
+                            {
+                                <tr><td>@row.Type</td><td><code>@row.Name</code></td><td><code>@row.Content</code></td></tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
 
         <div class="col-lg-12">
             <div class="hpanel">

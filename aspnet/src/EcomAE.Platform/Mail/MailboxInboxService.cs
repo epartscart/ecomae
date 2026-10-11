@@ -14,14 +14,16 @@ public interface IMailboxImapClient
 
 public interface IMailboxInboxService
 {
-    IReadOnlyList<PlatformMailbox> ListForCaller(string siteKey, bool superCp);
+    IReadOnlyList<PlatformMailbox> ListForCaller(string siteKey, bool superCp, string? loginEmail = null, bool ownInboxOnly = false);
     string PreferLoginAddress(IReadOnlyList<PlatformMailbox> boxes, string? loginEmail, string? queryAddress);
     Task<(bool Ok, string Code, string Message, IReadOnlyList<MailboxMessage> Messages)> ReadAsync(
         string siteKey,
         bool superCp,
         string? address,
         int limit,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        string? loginEmail = null,
+        bool ownInboxOnly = false);
 }
 
 public sealed class MailboxInboxService : IMailboxInboxService
@@ -35,8 +37,22 @@ public sealed class MailboxInboxService : IMailboxInboxService
         _imap = imap;
     }
 
-    public IReadOnlyList<PlatformMailbox> ListForCaller(string siteKey, bool superCp)
-        => _directory.ListMailboxes(siteKey, superCp);
+    public IReadOnlyList<PlatformMailbox> ListForCaller(string siteKey, bool superCp, string? loginEmail = null, bool ownInboxOnly = false)
+    {
+        var boxes = _directory.ListMailboxes(siteKey, superCp);
+        if (!ownInboxOnly)
+        {
+            return boxes;
+        }
+
+        var login = (loginEmail ?? string.Empty).Trim().ToLowerInvariant();
+        if (login.Length == 0)
+        {
+            return [];
+        }
+
+        return boxes.Where(b => string.Equals(b.Address, login, StringComparison.OrdinalIgnoreCase)).ToArray();
+    }
 
     public string PreferLoginAddress(IReadOnlyList<PlatformMailbox> boxes, string? loginEmail, string? queryAddress)
     {
@@ -64,7 +80,9 @@ public sealed class MailboxInboxService : IMailboxInboxService
         bool superCp,
         string? address,
         int limit,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? loginEmail = null,
+        bool ownInboxOnly = false)
     {
         var box = _directory.FindMailbox(address);
         if (box is null)
@@ -75,6 +93,11 @@ public sealed class MailboxInboxService : IMailboxInboxService
         if (!superCp && !string.Equals(box.SiteKey, siteKey, StringComparison.OrdinalIgnoreCase))
         {
             return (false, "isolated", "This Control Panel can only open mailboxes for its own site_key.", []);
+        }
+
+        if (ownInboxOnly && !string.Equals(box.Address, (loginEmail ?? string.Empty).Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            return (false, "own_inbox", "You can only open your own inbox.", []);
         }
 
         if (!box.HasPassword)
@@ -123,6 +146,12 @@ public sealed class MailKitImapClient : IMailboxImapClient
                 text = text[..280];
             }
 
+            var body = message.TextBody ?? message.HtmlBody ?? string.Empty;
+            if (body.Length > 8000)
+            {
+                body = body[..8000];
+            }
+
             rows.Add(new MailboxMessage(
                 uid.Id.ToString(),
                 message.From.ToString(),
@@ -130,7 +159,8 @@ public sealed class MailKitImapClient : IMailboxImapClient
                 message.Subject ?? string.Empty,
                 message.Date.ToUniversalTime(),
                 text,
-                false));
+                false,
+                body));
         }
 
         await client.DisconnectAsync(true, cancellationToken).ConfigureAwait(false);

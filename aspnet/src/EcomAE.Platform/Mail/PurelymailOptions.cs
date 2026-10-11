@@ -44,6 +44,19 @@ public static class PurelymailDns
         "contact", "office", "admin", "noreply"
     ];
 
+    /// <summary>Platform business / operator locals on ecomae.com — ERP customers cannot claim these.</summary>
+    public static bool IsReservedPlatformLocal(string? local)
+    {
+        var value = PlatformMailNormalize.LocalPart(local);
+        if (value.Length == 0 || string.Equals(value, "yawer", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return BusinessLocals.Any(l => string.Equals(l, value, StringComparison.OrdinalIgnoreCase))
+            || AliasLocals.Any(l => string.Equals(l, value, StringComparison.OrdinalIgnoreCase));
+    }
+
     public static readonly IReadOnlyList<(string Host, string Target, string Kind, string Hint)> Records =
     [
         ("@", MxHost, "MX", "Mail exchanger"),
