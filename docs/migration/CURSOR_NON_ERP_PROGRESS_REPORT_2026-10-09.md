@@ -67,8 +67,8 @@ Beyond gap files, these are open for every surface regardless of file counts:
 
 ## 4. In progress right now
 
-- PlanQ1Hunt closed: CP tenant email/SMTP page against one PHP 8.3 golden after Howe / Horn / Hope / Holm / Gill / Ford / Eddy / Delta / Creek / Firth / Beck / Tarn / Mere / Reed / Loch / Bight / Road / Reach / Sound. Super-CP banner first, then admin, then `email_smtp` feature. CloudPanel 2026-10-10 publish of `main` `b7f1554bf` is live; this branch is not. Finance-path files stay Devin.
-- Remaining 244 non-ERP files cannot close in one leftover. Ready ≤200 rows are still Q2/Q3 (industry templates, `*_h` guides, APE, OEM catalog, `printProducts*`). Those are not closed by mention-only. Next unused class: Hike (`epc_super_cp_customer_board.php`; Gulf helpers already closed). Fastest path: unique small CP/BOS pages after the Super-CP wrapper cluster.
+- PlanQ1Hike (this slice): Super-CP customer board against one PHP 8.3 golden after Hunt. Super-CP / admin / PDO gates, then KPI + filter + table. CloudPanel 2026-10-10 publish of `main` `b7f1554bf` is live; this branch is not. Finance-path files stay Devin.
+- Remaining 244 non-ERP files cannot close in one leftover. Ready ≤200 rows are still Q2/Q3 (industry templates, `*_h` guides, APE, OEM catalog, `printProducts*`). Those are not closed by mention-only. Next unused class: Hill. Fastest path: unique small CP/BOS pages after the Super-CP wrapper cluster.
 - After those named helpers: `printProducts.php` / `printProducts_2.php` shells once the catalogue list kernel is in, then `part_search_page.php` and the parts agent.
 
 ## 5. ERP handoff notes for Devin

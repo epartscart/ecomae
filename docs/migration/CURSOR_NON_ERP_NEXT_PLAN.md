@@ -2,7 +2,7 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Hunt (`--max-gap 411` passed; current gap **410**).
+after PlanQ1Hike (this slice; `--max-gap 410` still current until Hike ratchets).
 
 Refresh the table:
 
@@ -570,7 +570,8 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6bn | `epc_boc_audit_log.php` | Closed in Horn. Super-CP / admin / PDO gates, GET area sanitize, table render; leftover unique portal, leftover unique kernel parent, leftover unique user helper, and Super-CP host stay injected unnamed. |
 | 6bo | `epc_mobile_apps.php` | Closed in Howe. Admin gate, Super vs tenant form (Firebase/push Super-only), storefront URL `www.` replace is a no-op; leftover unique portal, leftover unique page-frame parent, leftover unique user helper, leftover portal-db parent, Super-CP host, and portal host stay injected unnamed. Helpers already closed in Shoal are stubbed, not included. |
 | 6bp | `epc_tenant_email_settings.php` | Closed in Hunt. Super-CP banner first (does not return), then admin deny, then `email_smtp` feature deny, then tenant SMTP form + test send. PHP `??` for host/port/enc/from; `empty()` for host line / use_tenant_smtp / saved password. Leftover unique portal, leftover unique page-frame parent, leftover unique user helper, leftover portal-db parent, and Super-CP host stay injected unnamed. Helpers already closed in Shoal/Helm are stubbed, not included. |
-| 6bq | `epc_super_cp_customer_board.php` | Next unused class: Hike. Unique small Super-CP page (165 lines). Gulf already owns `epc_super_cp_platform.php` helpers. Skip `*_h` guides, APE, catalogue, and `epc_free_tools_admin.php` (needs leftover unique console + free-tools parents). |
+| 6bq | `epc_super_cp_customer_board.php` | This slice (`PhpPlanQ1Hike`). Super-CP / admin / PDO gates, then KPI + filter + table + pagination. Gulf helpers are stubbed, not included. Leftover unique portal, leftover unique operator-guide page, leftover unique user helper, and leftover portal PDO stay injected unnamed. |
+| 6br | unique small CP page after Hike | Next unused class: Hill. Skip `*_h` guides, APE, catalogue, and `epc_free_tools_admin.php` (needs leftover unique console + free-tools parents). |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 

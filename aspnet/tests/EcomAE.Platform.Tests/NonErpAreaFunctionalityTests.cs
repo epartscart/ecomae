@@ -2475,6 +2475,78 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.Equal("cp/content/control/portal/epc_tenant_email_settings.php", PhpPlanQ1Hunt.TenantEmailSettingsPath);
     }
 
+    [Fact]
+    public void BocSuperCpCustomerBoard_LinksStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Hike.Reset();
+        PhpPlanQ1Hike.IsSuperHost = () => true;
+        PhpPlanQ1Hike.IsAdmin = () => true;
+        PhpPlanQ1Hike.HasPdo = true;
+        PhpPlanQ1Hike.BackendDir = "acme";
+        PhpPlanQ1Hike.TenantFilter = "acme";
+        PhpPlanQ1Hike.Board = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["rows"] = new List<Dictionary<string, object?>>
+            {
+                new(StringComparer.Ordinal)
+                {
+                    ["name"] = "Ada Acme",
+                    ["user_id"] = 11,
+                    ["email"] = "ada@acme.test",
+                    ["source_label"] = "Acme",
+                    ["links"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+                    {
+                        ["crm"] = "/acme/crm/11",
+                        ["erp"] = "/acme/erp/11"
+                    }
+                }
+            },
+            ["total"] = 1,
+            ["page"] = 1,
+            ["per_page"] = 50,
+            ["stats"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+        };
+        PhpPlanQ1Hike.Tenants = [new Dictionary<string, object?>(StringComparer.Ordinal) { ["site_key"] = "acme", ["label"] = "Acme Parts" }];
+        var acme = PhpPlanQ1Hike.EpcSuperCpCustomerBoardPage();
+        PhpPlanQ1Hike.BackendDir = "beta";
+        PhpPlanQ1Hike.TenantFilter = "beta";
+        PhpPlanQ1Hike.Board = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["rows"] = new List<Dictionary<string, object?>>
+            {
+                new(StringComparer.Ordinal)
+                {
+                    ["name"] = "Bea Beta",
+                    ["user_id"] = 22,
+                    ["email"] = "bea@beta.test",
+                    ["source_label"] = "Beta",
+                    ["links"] = new Dictionary<string, object?>(StringComparer.Ordinal) { ["crm"] = "/beta/crm/22" }
+                }
+            },
+            ["total"] = 1,
+            ["page"] = 1,
+            ["per_page"] = 50,
+            ["stats"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+        };
+        PhpPlanQ1Hike.Tenants = [new Dictionary<string, object?>(StringComparer.Ordinal) { ["site_key"] = "beta", ["label"] = "Beta Town" }];
+        var beta = PhpPlanQ1Hike.EpcSuperCpCustomerBoardPage();
+        PhpPlanQ1Hike.IsAdmin = () => false;
+        PhpPlanQ1Hike.BackendDir = "acme";
+        var denied = PhpPlanQ1Hike.EpcSuperCpCustomerBoardPage();
+        Assert.Contains("/acme/crm/11", acme, StringComparison.Ordinal);
+        Assert.Contains("/acme/shop/tenant_hub/tenant_hub", acme, StringComparison.Ordinal);
+        Assert.Contains("ada@acme.test", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("/beta/", acme, StringComparison.Ordinal);
+        Assert.Contains("/beta/crm/22", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("/acme/", beta, StringComparison.Ordinal);
+        Assert.Contains("log in to Super CP", denied, StringComparison.Ordinal);
+        Assert.Contains("/acme/", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("Ada Acme", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Hike.CustomerBoardPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Hike.CustomerBoardPath, StringComparison.Ordinal);
+        Assert.Equal("cp/content/control/portal/epc_super_cp_customer_board.php", PhpPlanQ1Hike.CustomerBoardPath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2580,6 +2652,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Horn.BocAuditLogPath,
             PhpPlanQ1Howe.MobileAppsPath,
             PhpPlanQ1Hunt.TenantEmailSettingsPath,
+            PhpPlanQ1Hike.CustomerBoardPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
