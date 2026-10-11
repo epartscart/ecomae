@@ -4414,9 +4414,31 @@ public sealed record CpJewelleryMastersKaratDigest(
     string Division,
     string CreatedAt);
 
+public sealed record CpJewelleryMastersRateTypeDigest(
+    long Id,
+    long CompanyId,
+    string Metal,
+    string RateType,
+    decimal ConvFactor,
+    string Currency,
+    decimal CurrRate,
+    string Status,
+    int IsDefault);
+
+public sealed record CpJewelleryMastersCurrencyDigest(
+    long Id,
+    long CompanyId,
+    string CurrCode,
+    string Description,
+    string Symbol,
+    decimal ConvRate,
+    string Status);
+
 public sealed record CpJewelleryMastersDigestResult(
     CpJewelleryMastersSummary Summary,
     IReadOnlyList<CpJewelleryMastersKaratDigest> Karats,
+    IReadOnlyList<CpJewelleryMastersRateTypeDigest> RateTypes,
+    IReadOnlyList<CpJewelleryMastersCurrencyDigest> Currencies,
     int Count,
     string Source,
     string Message);
