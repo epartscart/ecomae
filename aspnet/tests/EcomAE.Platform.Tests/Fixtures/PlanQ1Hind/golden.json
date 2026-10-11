@@ -1,0 +1,128 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "empty",
+            "output": "",
+            "result": [
+                "",
+                "0",
+                "A &amp; B &lt;x&gt; &quot;q&quot; &#039;z&#039;",
+                2,
+                3,
+                0,
+                1,
+                1,
+                0,
+                "/en/shop/part_search?article=1J0971972&brend=VAG",
+                "/en/shop/part_search",
+                "/ar/parts/VAG%252FOEM/1J0971972",
+                "/en/product/MANNFILTER/W71295",
+                "/en/eparts-product",
+                0,
+                1,
+                2,
+                1,
+                "https://partsapi.ru/account/shop?method=getModels",
+                "https://example/shop",
+                "Need key",
+                "An EParts API subscription is required for Vehicle models (getModels). Add the key to config.epc-partsapi.php under method_keys after subscribing."
+            ]
+        },
+        {
+            "name": "gates",
+            "output": "",
+            "result": [
+                {
+                    "denied": 1,
+                    "root": 0,
+                    "cart": 0,
+                    "help": 0,
+                    "key_alert": 0,
+                    "vin": 0,
+                    "plate": 0,
+                    "version": 0,
+                    "session": 0,
+                    "prefix": "<div class=\"alert alert-warning\">EParts Mod is not available on this site.</div>"
+                },
+                {
+                    "denied": 0,
+                    "root": 1,
+                    "cart": 1,
+                    "help": 1,
+                    "key_alert": 1,
+                    "vin": 1,
+                    "plate": 1,
+                    "version": 1,
+                    "session": 0,
+                    "prefix": "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_vc_catalog.css?v=0.5.26-"
+                },
+                1,
+                0
+            ]
+        },
+        {
+            "name": "live",
+            "output": "",
+            "result": [
+                {
+                    "denied": 0,
+                    "root": 1,
+                    "cart": 1,
+                    "help": 1,
+                    "key_alert": 1,
+                    "vin": 1,
+                    "plate": 1,
+                    "version": 1,
+                    "session": 0,
+                    "prefix": "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_vc_catalog.css?v=0.5.26-"
+                },
+                1,
+                1,
+                1,
+                12,
+                5,
+                "<div class=\"epc-vc-message\" style=\"margin-bottom:12px;\">Category <strong>Filters</strong> selected. Choose make, model and engine to browse parts.</div>",
+                0
+            ]
+        },
+        {
+            "name": "tenant",
+            "output": "",
+            "result": [
+                {
+                    "denied": 0,
+                    "root": 1,
+                    "cart": 1,
+                    "help": 1,
+                    "key_alert": 1,
+                    "vin": 1,
+                    "plate": 1,
+                    "version": 1,
+                    "session": 0,
+                    "prefix": "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_vc_catalog.css?v=0.5.26-"
+                },
+                {
+                    "denied": 0,
+                    "root": 1,
+                    "cart": 1,
+                    "help": 1,
+                    "key_alert": 1,
+                    "vin": 1,
+                    "plate": 1,
+                    "version": 1,
+                    "session": 0,
+                    "prefix": "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_vc_catalog.css?v=0.5.26-"
+                },
+                1,
+                1,
+                1,
+                1,
+                0,
+                0,
+                1,
+                1
+            ]
+        }
+    ]
+}

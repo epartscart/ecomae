@@ -67,8 +67,8 @@ Beyond gap files, these are open for every surface regardless of file counts:
 
 ## 4. In progress right now
 
-- PlanQ1Hint closed: EParts CATA config against one PHP 8.3 golden after Hive. Host isolation and storefront URL isolation; DB helpers empty without PDO. CloudPanel 2026-10-10 publish of `main` `b7f1554bf` is live; this branch is not. Finance-path files stay Devin.
-- Remaining 240 non-ERP files cannot close in one leftover. Ready ≤200 rows are still Q2/Q3 (industry templates, `*_h` guides, APE, OEM catalog, `printProducts*`). Those are not closed by mention-only. Next unused class: Hind.
+- PlanQ1Hind closed: EParts Mod catalog against one PHP 8.3 golden after Hint. Host gate and `/ar` vs `/en` cart/contacts isolation. CloudPanel 2026-10-10 publish of `main` `b7f1554bf` is live; this branch is not. Finance-path files stay Devin.
+- Remaining 239 non-ERP files cannot close in one leftover. Ready ≤200 rows are still Q2/Q3 (industry templates, `*_h` guides, APE, OEM catalog, `printProducts*`). Those are not closed by mention-only. Next unused class: Holt.
 - After those named helpers: `printProducts.php` / `printProducts_2.php` shells once the catalogue list kernel is in, then `part_search_page.php` and the parts agent.
 
 ## 5. ERP handoff notes for Devin

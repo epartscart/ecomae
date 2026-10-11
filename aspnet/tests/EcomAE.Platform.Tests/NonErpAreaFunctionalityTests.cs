@@ -2641,6 +2641,26 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void EpartsModCatalog_HostGateAndLangHrefStayOnTenant()
+    {
+        PhpPlanQ1Hind.Reset();
+        PhpPlanQ1Dock.Server["HTTP_HOST"] = "www.ecomae.com";
+        Assert.Contains("not available on this site", PhpPlanQ1Hind.RenderPage("/en"), StringComparison.Ordinal);
+        PhpPlanQ1Dock.Server["HTTP_HOST"] = "www.epartscart.com";
+        var ar = PhpPlanQ1Hind.RenderPage("/ar/");
+        var en = PhpPlanQ1Hind.RenderPage("/en");
+        Assert.Contains("data-lang-href=\"/ar\"", ar, StringComparison.Ordinal);
+        Assert.Contains("data-lang-href=\"/en\"", en, StringComparison.Ordinal);
+        Assert.Contains("/ar/shop/cart", ar, StringComparison.Ordinal);
+        Assert.Contains("/en/shop/cart", en, StringComparison.Ordinal);
+        Assert.DoesNotContain("/en/shop/cart", ar, StringComparison.Ordinal);
+        Assert.DoesNotContain("/ar/shop/cart", en, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", ar, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Hind.EpartsModCatalogPath, StringComparison.Ordinal);
+        Assert.Equal("content/eparts_mod_catalog.php", PhpPlanQ1Hind.EpartsModCatalogPath);
+    }
+
+    [Fact]
     public void CoveredAreas_AreCursorOwnedNotErp()
     {
         var paths = new[]
@@ -2720,6 +2740,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Hill.FreeToolsPath,
             PhpPlanQ1Hive.PlatformPagesPath,
             PhpPlanQ1Hint.CataConfigPath,
+            PhpPlanQ1Hind.EpartsModCatalogPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,

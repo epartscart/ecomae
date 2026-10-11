@@ -383,6 +383,14 @@ Not complete.
 - 273 ASP.NET stamps under `/var/www/ecomae-aspnet/releases` are **24G**. Live `current` is `20261010085717`. `scripts/cloudpanel_prune_aspnet_releases.sh` dry-runs and, with `CONFIRM=I_HAVE_READ_THE_LIST`, deletes only older stamps. It refuses a missing current or a non-200 `/health`.
 - Do not prune the ten running PHP-FPM versions. Do not delete `/opt/ecomae-aspnet-source`, `/home/ecomae/htdocs`, or `/home/mysql`. Journal / syslog (~2.6G) and CloudPanel snapshots (1.5G) are second cuts.
 
+### Checkpoint 2026-10-11 — plan Q1-hind (EParts Mod catalog page)
+
+Not complete.
+
+- Ratchet 406 to 405. One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Hind` `content/eparts_mod_catalog.php` (`text`, `esc`, `apiItems`, `isSubscriptionErr`, `partSearchUrl`, `productDetailUrl`, `cartUrl`, `filterRowsBySubcategory`, `categoriesWithSubcategories`, `shopUrlFor`, `subscriptionMessage`, `pendingCategoryBanner`, and the rest of the 43 page-local JS identifiers; empty / gates / live / tenant isolation). ePartsCart host enables chrome; other hosts get the warning. `/ar` vs `/en` cart and contacts stay on that lang href. GET never mints a session. Leftover unique portal / user helper stay unnamed. Auto-parts site is injected; ePartsCart host uses Dock. Parents already closed: Spar, Hint, Dock, TinyPages.
+- Area functionality: ecomae.com is denied; ePartsCart `/ar` vs `/en` cart/contacts do not leak.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Hind` (4). Hind + area **5 / 5**. Last full suite after Foam **6344 / 6344**; Hind suite **5 / 5**. CP-page mentioned stays 280 of 523. Ready ≤200-line non-ERP functions stay 46. The weighted headline stays about 20.4%. Non-ERP pending: 239 files / ~123,615 lines (was 240 / 124,654). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-11 — plan Q1-hint (EParts CATA config library)
 
 Not complete.
