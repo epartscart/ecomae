@@ -103,6 +103,9 @@ public static class CpShortcutCatalog
 
     public static string CycleTone(int index) => Tones[index % Tones.Length];
 
+    public static IReadOnlyList<CpShortcutCatalogItem> ForCpSurface(bool includeErp)
+        => includeErp ? All : All.Where(item => !SurfaceChromePolicy.IsErpDestination(item.Url)).ToList();
+
     private static IReadOnlyList<CpShortcutCatalogItem> Build()
     {
         // PHP paths resolved through the same map the CP menu uses, so no shortcut can point at an invented route.

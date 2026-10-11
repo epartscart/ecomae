@@ -156,9 +156,12 @@ public sealed class SuperCpTenantIsolationTests
                 $"area {area.Key} href {area.Href} left the raw PHP shell path");
         }
 
-        // Every group renders (no empty groups in the mega menu).
+        // Rendered Super CP menu drops ERP / tenant-shop groups so chrome stays on Super CP.
         var nav = EcomAE.Platform.Presentation.PhpSuperCpBocNav.Nav().ToList();
-        Assert.Equal(15, nav.Count);
+        Assert.True(nav.Count > 0 && nav.Count < 15, $"expected a slimmer Super CP menu, found {nav.Count}");
+        Assert.DoesNotContain(nav, n => n.Group.Key == "erp");
+        Assert.Contains(nav, n => n.Group.Key == "command");
+        Assert.Contains(nav, n => n.Group.Key == "lifecycle");
     }
 
     [Fact]

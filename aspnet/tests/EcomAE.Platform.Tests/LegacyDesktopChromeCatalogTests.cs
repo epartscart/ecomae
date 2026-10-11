@@ -10,8 +10,10 @@ public sealed class LegacyDesktopChromeCatalogTests
     {
         var groups = LegacyDesktopChromeCatalog.ControlPanelTopnav();
         // PHP brand is "Control"; CONTROL is not a dropdown group.
+        // ERP modules stay in the ERP environment — CP chrome does not list them.
         var expected = LegacyChromeNavCatalog.ControlPanel.Count(n =>
-            !n.Label.Equals("CONTROL", StringComparison.OrdinalIgnoreCase));
+            !n.Label.Equals("CONTROL", StringComparison.OrdinalIgnoreCase)
+            && !n.Label.Equals("ERP", StringComparison.OrdinalIgnoreCase));
         Assert.Equal(expected, groups.Count);
         Assert.All(groups, g => Assert.NotEmpty(g.Links));
         // Catalog may still store PHP source hrefs; product chrome rewrites via AspNetPrimaryHref.

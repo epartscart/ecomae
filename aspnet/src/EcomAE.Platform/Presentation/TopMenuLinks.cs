@@ -56,9 +56,9 @@ public static class TopMenuLinks
     }
 
     /// <summary>
-    /// Tenant host view: drop Super-only, BOS, jewellery-pack and other-industry destinations
-    /// so the live CP top menu only keeps links that belong on that shop.
-    /// Super hosts keep the full deduped tree.
+    /// Tenant host view: drop Super-only, BOS, jewellery-pack, other-industry and ERP-window
+    /// destinations so the live CP top menu only keeps links that belong on that shop.
+    /// Super hosts keep Super-CP operator tools — not tenant shop desks and not ERP modules.
     /// </summary>
     public static IReadOnlyList<CpNavGroup> ForHost(IReadOnlyList<CpNavGroup> groups, string? host)
     {
@@ -102,7 +102,7 @@ public static class TopMenuLinks
             }
         }
 
-        return result;
+        return SurfaceChromePolicy.KeepCpSurface(result, super);
     }
 
     private static bool IsTenantHiddenHref(string href)
@@ -127,12 +127,26 @@ public static class TopMenuLinks
     }
 
     public static IEnumerable<(PhpSuperCpBocNav.BocGroup Group, IReadOnlyList<PhpSuperCpBocNav.BocArea> Areas)> DedupeBoc(
-        IEnumerable<(PhpSuperCpBocNav.BocGroup Group, IReadOnlyList<PhpSuperCpBocNav.BocArea> Areas)> nav)
+        IEnumerable<(PhpSuperCpBocNav.BocGroup Group, IReadOnlyList<PhpSuperCpBocNav.BocArea> Areas)> nav,
+        bool pathOnly = false)
     {
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var (group, areas) in nav)
         {
-            var kept = areas.Where(a => seen.Add(DestinationKey(a.Href))).ToList();
+            var kept = areas.Where(a =>
+            {
+                var key = DestinationKey(a.Href);
+                if (pathOnly)
+                {
+                    var q = key.IndexOf('?', StringComparison.Ordinal);
+                    if (q >= 0)
+                    {
+                        key = key[..q];
+                    }
+                }
+
+                return seen.Add(key);
+            }).ToList();
             if (kept.Count > 0)
             {
                 yield return (group, kept);

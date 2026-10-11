@@ -1,7 +1,10 @@
 @namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
 @*
   Super CP home — port of cp/content/control/epc_super_cp_dashboard.php:
   epc_boc_console_open (BOC chrome + red top mega-menu from the epc_boc_areas
@@ -93,7 +96,7 @@
 
 
 <div class="epc-boc epc-boc--topnav epc-premium-shell" style="display:flex!important;flex-direction:column!important;position:fixed!important;inset:0!important;z-index:4000!important;overflow:auto!important;width:100%!important;float:none!important;background:#f3f6fa!important;isolation:isolate!important;">
-    <nav class="epc-boc__topnav" id="epc_boc_topnav" aria-label="Business Operation Control">
+    <nav class="epc-boc__topnav" id="epc_boc_topnav" aria-label="Business Operation Control" data-epc-surface="super-cp">
         <div class="epc-boc__topnav-inner">
             @* Brand short-name is "BOS" in PHP BOC, but the home stays Super CP (/cp) — not product Super BOS (/bos). *@
             <a class="epc-boc__topnav-brand" href="/cp" title="Super CP — Business Operation Control">
@@ -137,8 +140,11 @@
             </ul>
             <div class="epc-boc__topnav-actions">
                 <a class="epc-boc__topnav-bos" href="/bos" title="Open product Super BOS — Fleet Command (black shell)"><i class="fa fa-server"></i> Super BOS</a>
-                <a class="epc-boc__topnav-erp" href="/erp" title="Company ERP workspace"><i class="fa fa-university"></i> ERP</a>
-                <a class="epc-boc__topnav-erp" href="/erp/fleet-app" title="Fleet ERP operator view"><i class="fa fa-sitemap"></i> Fleet ERP</a>
+                @if (_showErp)
+                {
+                    <a class="epc-boc__topnav-erp" href="/erp" title="Leave Super CP and open the ERP workspace" data-epc-erp-switcher="1"><i class="fa fa-university"></i> ERP</a>
+                    <a class="epc-boc__topnav-erp" href="/erp/fleet-app" title="Leave Super CP and open Super ERP fleet" data-epc-erp-switcher="1"><i class="fa fa-sitemap"></i> Fleet ERP</a>
+                }
                 <a class="epc-boc__topnav-erp" href="/cp/super-mail-app" title="Platform mail"><i class="fa fa-inbox"></i> Mail</a>
                 <span class="epc-boc__scope" title="Platform fleet vs active tenant CP"><i class="fa fa-globe"></i> All units · Fleet</span>
                 <span class="epc-boc__env"><i class="fa fa-circle" style="font-size:7px;vertical-align:middle;color:#16a34a"></i> Production</span>
@@ -284,7 +290,10 @@
                                     @if (!string.IsNullOrWhiteSpace(t.Hostname))
                                     {
                                         <a href="https://@(t.Hostname)/" target="_blank" rel="noopener"><i class="fa fa-globe"></i> Site</a>
-                                        <a href="https://@(t.Hostname)/cp" target="_blank" rel="noopener"><i class="fa fa-cogs"></i> Tenant CP</a>
+                                        @if (!t.ErpOnly)
+                                        {
+                                            <a href="https://@(t.Hostname)/cp" target="_blank" rel="noopener"><i class="fa fa-cogs"></i> Tenant CP</a>
+                                        }
                                         <a href="https://@(t.Hostname)/erp" target="_blank" rel="noopener"><i class="fa fa-university"></i> ERP</a>
                                     }
                                 </div>
@@ -315,6 +324,7 @@
     private int _healthy;
     private int _attention;
     private int _critical;
+    private bool _showErp;
 
     private static readonly (string Type, string Icon, string Label)[] FleetTypes =
     [
@@ -325,6 +335,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var ctx = Http.HttpContext;
+        if (ctx is not null)
+        {
+            var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+            _showErp = SurfaceChromePolicy.ShowErpSwitcher(session, SurfaceChromePolicy.ModeOf(ctx));
+        }
+
         var health = await Dashboards.BuildBosFleetHealthAsync(60);
         _summary = health.Summary;
         _tenants = health.SampleTenants;

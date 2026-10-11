@@ -186,11 +186,17 @@ public static class LegacyDesktopChromeCatalog
                 continue;
             }
 
+            if (nav.Label.Equals("ERP", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             var id = Slug(nav.Label);
             var links = PhpModuleCatalog.CpBrochureFeatures
                 .Where(f => MatchesGroup(f, nav.Label, nav.Href))
                 .Where(f => includeSuperOnly || !IsSuperOnlyCpLink(f.Href, f.Group))
                 .Where(f => jewelleryIndustry || !IsJewelleryCpLink(f))
+                .Where(f => !SurfaceChromePolicy.IsErpDestination(f.Href))
                 .ToList();
 
             foreach (var extra in PhpLegacyGroupParityLinks(nav.Label))
@@ -201,6 +207,11 @@ public static class LegacyDesktopChromeCatalog
                 }
 
                 if (!jewelleryIndustry && IsJewelleryCpLink(extra))
+                {
+                    continue;
+                }
+
+                if (SurfaceChromePolicy.IsErpDestination(extra.Href))
                 {
                     continue;
                 }
@@ -286,21 +297,22 @@ public static class LegacyDesktopChromeCatalog
     }
 
     /// <summary>
-    /// Tenant CP brochure directory: drop jewellery ERP shells and Super-only fleet links.
-    /// Super CP keeps the full brochure list.
+    /// Tenant CP brochure directory: drop jewellery ERP shells, Super-only fleet links,
+    /// and ERP-window destinations. Super CP keeps Super-operator brochure links only.
     /// </summary>
     public static IReadOnlyList<PhpModuleCatalog.ModuleLink> BrochureFeaturesForHost(
         IReadOnlyList<PhpModuleCatalog.ModuleLink> links,
         string? host)
     {
+        var isolated = SurfaceChromePolicy.KeepCpBrochure(links, host);
         if (PlatformHostPolicy.IsSuperCpHost(host))
         {
-            return links;
+            return isolated;
         }
 
         var jewellery = ErpIndustryNav.ShowJewelleryModules(ErpHostContext.Resolve(host).IndustryCode, company: null);
-        return links
-            .Where(link => (jewellery || !IsJewelleryCpLink(link)) && !IsSuperOnlyCpLink(link.Href, link.Group))
+        return isolated
+            .Where(link => jewellery || !IsJewelleryCpLink(link))
             .ToList();
     }
 

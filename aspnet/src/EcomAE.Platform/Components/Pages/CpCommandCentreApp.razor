@@ -49,7 +49,10 @@ else
                     <span class="cp-dash-chip cp-dash-chip--dark"><i class="fa fa-industry"></i> @_industryLabel</span>
                     <span class="cp-dash-chip"><i class="fa fa-calendar"></i> @DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</span>
                     <span class="cp-dash-chip"><i class="fa fa-money"></i> @_currency</span>
-                    <a class="cp-dash-chip" href="@ErpHomeUrl"><i class="fa fa-university"></i> Open ERP</a>
+                    @if (_showErp)
+                    {
+                        <a class="cp-dash-chip" href="@ErpHomeUrl" data-epc-erp-switcher="1"><i class="fa fa-university"></i> Open ERP</a>
+                    }
                     <a class="cp-dash-chip" href="/" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> View site</a>
                 </div>
             </div>
@@ -224,7 +227,7 @@ else
                     <div class="eds-panel" aria-label="Customize shortcuts">
                         <p class="eds-panel__lead">Turn catalogue items on or off. Changes save immediately. You can also add a custom link below.</p>
                         <div class="eds-cat">
-                            @foreach (var item in CpShortcutCatalog.All)
+                            @foreach (var item in CpShortcutCatalog.ForCpSurface(_showErp))
                             {
                                 <button type="button" class="eds-cat__btn@(_pinnedKeys.Contains(item.Key) ? " is-on" : "")"
                                         data-key="@item.Key" data-label="@item.Label" data-icon="@item.IconClass"
@@ -267,7 +270,10 @@ else
                                     <span class="epc-insights__period">@_insights.PeriodLabel@if (!string.IsNullOrWhiteSpace(_insights.FromLabel) && !string.IsNullOrWhiteSpace(_insights.ToLabel)) { <text> · @_insights.FromLabel → @_insights.ToLabel</text> }</span>
                                 </div>
                             </div>
-                            <a class="epc-insights__erp" href="@ErpHomeUrl">Open ERP Command Centre <i class="fa fa-arrow-right"></i></a>
+                            @if (_showErp)
+                            {
+                                <a class="epc-insights__erp" href="@ErpHomeUrl" data-epc-erp-switcher="1">Open ERP Command Centre <i class="fa fa-arrow-right"></i></a>
+                            }
                         </div>
                         @if (_insights.Alerts.Count > 0)
                         {
@@ -428,9 +434,17 @@ else
         </details>
 
         <p class="cp-dash-help">
-            Tip: use the top menu to jump across modules. Open the full
-            <a href="/erp">ERP Command Centre</a>
-            for finance depth, or share the
+            Tip: use the top menu to jump across Control Panel modules.
+            @if (_showErp)
+            {
+                <text>Leave CP and open the
+                <a href="/erp" data-epc-erp-switcher="1">ERP workspace</a>
+                when you need finance depth, or share the</text>
+            }
+            else
+            {
+                <text>Share the</text>
+            }
             <a href="/brochure/cp" target="_blank" rel="noopener">CP brochure</a>.
         </p>
     </div>
@@ -636,6 +650,7 @@ else
         => total <= 0 ? 8 : Math.Clamp((int)Math.Round(value * 100d / total), 8, 100);
     private bool _isAdmin;
     private bool _isSuperHost;
+    private bool _showErp;
     private string _pageTitle = "Control Command Centre";
     private string _brandLabel = "Control Panel";
     private string _industryLabel = "Auto parts";
@@ -694,6 +709,7 @@ else
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin;
+        _showErp = SurfaceChromePolicy.ShowErpSwitcher(session, SurfaceChromePolicy.ModeOf(ctx));
         if (_isAdmin && _isSuperHost)
         {
             return; // Super CP KPIs come from PhpSuperCpCommandCentre (platform fleet).
@@ -730,6 +746,10 @@ else
         // PHP epc_shortcuts_list_for_surface('cp') + seed-on-first-visit defaults per industry.
         _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
         _shortcuts = await CpDashboard.LoadShortcutsAsync(session.UserId, _industryCode, ctx.RequestAborted);
+        if (!_showErp)
+        {
+            _shortcuts = _shortcuts.Where(t => !SurfaceChromePolicy.IsErpDestination(t.Url)).ToList();
+        }
         _pinnedKeys = new HashSet<string>(
             _shortcuts.Where(t => !string.IsNullOrEmpty(t.Key)).Select(t => t.Key),
             StringComparer.OrdinalIgnoreCase);

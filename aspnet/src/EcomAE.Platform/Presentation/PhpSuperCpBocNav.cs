@@ -190,6 +190,17 @@ public static class PhpSuperCpBocNav
         new("workshop_guide", "Autoworkshop guide", "knowledge", "fa-wrench", "control/portal/epc_autoworkshop_guide", "Workshop vertical"),
     ];
 
+    /// <summary>
+    /// Super CP top mega-menu. The PHP registry still lists ERP / tenant-shop areas for
+    /// link-map tests; the rendered menu keeps Super-CP operator tools only so a click
+    /// never dumps the operator into the ERP window or a tenant shop desk.
+    /// </summary>
     public static IEnumerable<(BocGroup Group, IReadOnlyList<BocArea> Areas)> Nav() =>
-        TopMenuLinks.DedupeBoc(Groups.Select(group => (group, (IReadOnlyList<BocArea>)Areas.Where(a => a.Group == group.Key).ToList())));
+        TopMenuLinks.DedupeBoc(
+            Groups.Select(group => (
+                group,
+                (IReadOnlyList<BocArea>)Areas
+                    .Where(a => a.Group == group.Key && SurfaceChromePolicy.IsSuperCpMenuArea(a))
+                    .ToList())),
+            pathOnly: true);
 }

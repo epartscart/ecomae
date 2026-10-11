@@ -367,15 +367,22 @@ public sealed class CpPhpParityTests
     }
 
     [Fact]
-    public void JewelleryTenantTopnav_KeepsJewelleryLinks()
+    public void JewelleryTenant_KeepsJewelleryInErpChrome_NotCpWindowDump()
     {
         var groups = LegacyDesktopChromeCatalog.ControlPanelTopnav(includeSuperOnly: false, industryCode: "jewellery");
         var all = groups.SelectMany(g => g.Links).ToList();
-        Assert.Contains(all, LegacyDesktopChromeCatalog.IsJewelleryCpLink);
+        Assert.DoesNotContain(all, l => SurfaceChromePolicy.IsErpDestination(l.Href));
+
+        var erp = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience("current", "jewellery", null, false));
+        var erpLinks = erp.SelectMany(g => g.Columns ?? []).SelectMany(c => c.Tabs).ToList();
+        Assert.Contains(erpLinks, ErpIndustryNav.IsJewelleryTab);
+
         var directory = LegacyDesktopChromeCatalog.BrochureFeaturesForHost(
             PhpModuleCatalog.CpBrochureFeatures,
             "www.thejewellerytrend.com");
-        Assert.Contains(directory, LegacyDesktopChromeCatalog.IsJewelleryCpLink);
+        Assert.DoesNotContain(directory, l => SurfaceChromePolicy.IsErpDestination(l.Href));
     }
 
     private static string Find(string relative)

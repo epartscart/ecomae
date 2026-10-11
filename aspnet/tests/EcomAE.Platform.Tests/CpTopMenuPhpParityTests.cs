@@ -17,13 +17,15 @@ public sealed class CpTopMenuPhpParityTests
         var labels = groups.Select(g => g.Label).ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var label in new[]
                  {
-                     "Commerce", "Customers", "Documents", "ERP", "Purchase", "Channels", "Logistics",
+                     "Commerce", "Customers", "Documents", "Purchase", "Channels", "Logistics",
                      "Catalogue", "Users", "Content", "System", "Modules",
                      "AI", "Marketing", "Payments", "Integrations", "Portal"
                  })
         {
             Assert.Contains(label, labels);
         }
+
+        Assert.DoesNotContain(labels, l => l.Equals("ERP", StringComparison.OrdinalIgnoreCase));
 
         Assert.DoesNotContain(labels, l => l.Equals("Platform", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(labels, l => l.Equals("Operator", StringComparison.OrdinalIgnoreCase));
@@ -74,8 +76,11 @@ public sealed class CpTopMenuPhpParityTests
 
         var catalogue = Assert.Single(groups, g => g.Label.Equals("Catalogue", StringComparison.OrdinalIgnoreCase));
         AssertContainsAspNet(catalogue, "/cp/product-catalogue-app");
-        AssertContainsAspNet(catalogue, "/erp/inventory-stock-app");
         AssertContainsAspNet(catalogue, "/cp/data-transfer-app");
+        Assert.DoesNotContain(catalogue.Links, l =>
+            SurfaceChromePolicy.IsErpDestination(l.Href)
+            || PhpSurfaceLinkMap.AspNetPrimaryHref(l.Href)
+                .StartsWith("/erp/", StringComparison.OrdinalIgnoreCase));
 
         var documents = Assert.Single(groups, g => g.Label.Equals("Documents", StringComparison.OrdinalIgnoreCase));
         AssertContainsAspNet(documents, "/cp/document-control-app");
@@ -119,10 +124,17 @@ public sealed class CpTopMenuPhpParityTests
             industryCode: "auto_parts");
         foreach (var label in LegacyDesktopChromeCatalog.PhpLegacyParityGroupLabels)
         {
+            if (label.Equals("ERP", StringComparison.OrdinalIgnoreCase))
+            {
+                Assert.DoesNotContain(groups, g => g.Label.Equals("ERP", StringComparison.OrdinalIgnoreCase));
+                continue;
+            }
+
             var group = Assert.Single(groups, g => g.Label.Equals(label, StringComparison.OrdinalIgnoreCase));
             foreach (var extra in LegacyDesktopChromeCatalog.PhpLegacyGroupParityLinks(label))
             {
-                if (LegacyDesktopChromeCatalog.IsSuperOnlyCpLink(extra.Href, extra.Group))
+                if (LegacyDesktopChromeCatalog.IsSuperOnlyCpLink(extra.Href, extra.Group)
+                    || SurfaceChromePolicy.IsErpDestination(extra.Href))
                 {
                     continue;
                 }

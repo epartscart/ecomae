@@ -100,7 +100,7 @@
                 }
                 @if (_showControlPanel)
                 {
-                    <a href="/cp">Control panel</a>
+                    <a href="/cp" data-epc-cp-switcher="1">Control panel</a>
                 }
                 <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/")" target="_blank" rel="noopener">Classic ERP</a>
                 @if (_showControlPanel)
@@ -264,7 +264,7 @@
         ERP · <a href="@ErpHomeHref">Dashboard</a>
         @if (_showControlPanel)
         {
-            <text> · <a href="/cp">Control panel</a></text>
+            <text> · <a href="/cp" data-epc-cp-switcher="1">Control panel</a></text>
         }
         @if (_showBos)
         {
@@ -468,11 +468,8 @@
             return;
         }
 
-        // ERP-only tenants have no Control Panel surface — never advertise /cp.
-        if (ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant)
-        {
-            _showControlPanel = tenant.Mode is not TenantMode.ErpOnlyTenant;
-        }
+        var tenantMode = SurfaceChromePolicy.ModeOf(ctx);
+        _showControlPanel = tenantMode is not TenantMode.ErpOnlyTenant;
 
         var companies = ErpIndustryNav.EnsureSwitchableCompanies(
             (await Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted)).Companies,
@@ -516,5 +513,7 @@
         {
             _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
         }
+
+        _showControlPanel = SurfaceChromePolicy.ShowCpSwitcher(session, tenantMode);
     }
 }

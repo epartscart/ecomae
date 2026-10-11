@@ -32,6 +32,10 @@ public sealed class TopMenuIntegrityTests
         "CpIntegrationsGuideApp.razor", "CpLifeOsClientsApp.razor", "CpLifeOsGuideApp.razor", "CpOpsGuidesApp.razor",
         "CpVinFieldsApp.razor", "CpWorkshopApp.razor", "ErpMultiEntityApp.razor", "ErpUserControlApp.razor",
         "ErpTenantMailboxApp.razor",
+        // Tenant shop desks that Super CP no longer lists (they belong on the tenant host).
+        "CpAccessoriesApp.razor", "CpSeoApp.razor", "CpWebTrackerApp.razor",
+        // Super ERP fleet is a header switcher, not a Super CP menu row.
+        "ErpFleetApp.razor",
     ];
 
     public static IEnumerable<object[]> Menus()

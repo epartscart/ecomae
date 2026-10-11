@@ -125,13 +125,16 @@ else
             </a>
             <div class="epc-cp-topbar-strip hidden-xs">
                 <nav class="epc-cp-topbar-ctas" aria-label="Quick destinations">
-                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--erp" href="/erp" title="Open ERP">
+                    @if (_showErp)
+                    {
+                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--erp" href="/erp" title="Open ERP workspace" data-epc-erp-switcher="1">
                         <span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-briefcase"></i></span>
                         <span class="epc-cp-topbar-cta__text">
                             <span class="epc-cp-topbar-cta__label">ERP</span>
                             <span class="epc-cp-topbar-cta__host">Operations</span>
                         </span>
                     </a>
+                    }
                     <a class="epc-cp-topbar-cta epc-cp-topbar-cta--storefront" href="/" target="_blank" rel="noopener noreferrer" title="Open public storefront">
                         <span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-shopping-bag"></i></span>
                         <span class="epc-cp-topbar-cta__text">
@@ -164,7 +167,10 @@ else
                     </button>
                     <div class="collapse mobile-navbar" id="mobile-collapse">
                         <ul class="nav navbar-nav">
-                            <li><a href="/erp"><i class="fa fa-briefcase"></i> ERP</a></li>
+                            @if (_showErp)
+                            {
+                            <li><a href="/erp" data-epc-erp-switcher="1"><i class="fa fa-briefcase"></i> ERP</a></li>
+                            }
                             <li>
                                 <a href="/" target="_blank" rel="noopener noreferrer">
                                     <i class="fa fa-shopping-bag"></i> Storefront@(string.IsNullOrWhiteSpace(_storefrontHost) ? "" : " · " + _storefrontHost)
@@ -200,7 +206,10 @@ else
                 <a href="/cp">Control panel</a>
                 <a href="/attention">Attention</a>
                 <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/")" target="_blank" rel="noopener">Classic CP</a>
-                <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/")" target="_blank" rel="noopener">Classic ERP</a>
+                @if (_showErp)
+                {
+                    <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/")" target="_blank" rel="noopener">Classic ERP</a>
+                }
                 @if (_showBos)
                 {
                     <a href="/bos">BOS</a>
@@ -220,7 +229,9 @@ else
         </div>
     </div>
 
-    <nav class="epc-cp-topnav" id="epc_cp_topnav" aria-label="Control Panel top navigation">
+    @if (!_hideCpMegaMenu)
+    {
+    <nav class="epc-cp-topnav" id="epc_cp_topnav" aria-label="Control Panel top navigation" data-epc-surface="cp">
         <div class="epc-cp-topnav-inner">
             <a class="epc-cp-topnav-brand" href="/cp/app">
                 <i class="fa fa-th-large" aria-hidden="true"></i><span>Control</span>
@@ -279,6 +290,7 @@ else
             </ul>
         </div>
     </nav>
+    }
 
     <div id="wrapper">
         <div class="content epc-cp-main-pane">
@@ -315,7 +327,11 @@ else
         </div>
         <footer class="footer">
             <div>
-                Control Panel · <a href="/cp">Open control panel</a> · <a href="/erp">ERP</a>
+                Control Panel · <a href="/cp">Open control panel</a>
+                @if (_showErp)
+                {
+                    <text> · <a href="/erp" data-epc-erp-switcher="1">ERP</a></text>
+                }
                 @if (_showBos)
                 {
                     <text> · <a href="/bos">BOS</a></text>
@@ -456,6 +472,8 @@ else
     private string _erpTitle = "Module";
     private string _erpArea = "Modules";
     private bool _showBos;
+    private bool _showErp;
+    private bool _hideCpMegaMenu;
     private LoginHostBrand.Brand _brand = LoginHostBrand.Resolve(null, "cp");
     private bool _signedIn;
     private string _userLabel = "Admin session";
@@ -501,6 +519,7 @@ else
         var host = Http.HttpContext?.Request.Host.Host;
         _brand = LoginHostBrand.Resolve(host, "cp");
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
+        _hideCpMegaMenu = _showBos && IsSuperHome(_currentPath);
         // Tenant industry (epartscart → auto_parts) drives jewellery menu filtering.
         if (!_showBos && !string.IsNullOrWhiteSpace(host))
         {
@@ -531,8 +550,14 @@ else
             _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
         }
 
+        _showErp = SurfaceChromePolicy.ShowErpSwitcher(session, SurfaceChromePolicy.ModeOf(ctx));
         _navGroups = await NavMenu.BuildAsync(host, session, ctx.RequestAborted);
     }
+
+    private static bool IsSuperHome(string path)
+        => path.Equals("/cp", StringComparison.OrdinalIgnoreCase)
+           || path.Equals("/cp/app", StringComparison.OrdinalIgnoreCase)
+           || path.Equals("/cp/control", StringComparison.OrdinalIgnoreCase);
 
     private bool GroupIsActive(CpNavGroup group) => group.Items.Any(i => PathIsActive(i.Url));
 
