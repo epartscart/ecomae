@@ -2198,9 +2198,19 @@ public sealed record CpJewelleryVoucherDigest(
     decimal VatAmount,
     decimal TotalWithVat);
 
+public sealed record CpJewellerySalesAnalysisRow(
+    string GroupKey,
+    long VocCount,
+    decimal TotalPcs,
+    decimal TotalWt,
+    decimal MetalTotal,
+    decimal MakingTotal,
+    decimal GrandTotal);
+
 public sealed record CpJewelleryRetailDigestResult(
     CpJewelleryRetailSummary Summary,
     IReadOnlyList<CpJewelleryVoucherDigest> Vouchers,
+    IReadOnlyList<CpJewellerySalesAnalysisRow> SalesAnalysis,
     int Count,
     string Source,
     string Message);

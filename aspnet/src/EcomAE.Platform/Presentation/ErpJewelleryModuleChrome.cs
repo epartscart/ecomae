@@ -249,7 +249,7 @@ public static class ErpJewelleryModuleChrome
             "No sales returns yet."),
         "jw_sales_analysis" => new("jw_sales_analysis", "Sales analysis", "Sales analysis",
             "Retail jewellery sales by metal, karat and salesman.",
-            ["Period", "Metal", "Karat", "Invoices", "Net Amt"],
+            ["Period", "Invoices", "Pcs", "Net wt", "Metal", "Making", "Total"],
             "No sales analysis rows yet."),
         "retail_barcode" => new("retail_barcode", "Retail barcode", "Retail barcode",
             "Scan barcodes at jewellery POS.",
