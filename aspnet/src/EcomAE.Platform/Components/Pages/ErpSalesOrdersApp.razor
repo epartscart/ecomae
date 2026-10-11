@@ -269,6 +269,26 @@
             {
                 <p class="text-muted" style="margin:.85rem 0 0">No notes excerpt yet.</p>
             }
+            @if (_openedAttachments.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Attachments</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>File</th><th>Category</th><th>Reference</th><th class="text-right">Size</th><th class="text-right">Uploaded</th><th>By</th></tr></thead>
+                    <tbody>
+                        @foreach (var at in _openedAttachments)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(at.FileName) ? "—" : at.FileName)</td>
+                                <td>@(string.IsNullOrWhiteSpace(at.DocCategory) ? "—" : at.DocCategory)</td>
+                                <td>@(string.IsNullOrWhiteSpace(at.ReferenceNo) ? "—" : at.ReferenceNo)</td>
+                                <td class="text-right">@(at.FileSize > 0 ? at.FileSize.ToString("N0", CultureInfo.InvariantCulture) + " B" : "—")</td>
+                                <td class="text-right">@FormatTime(at.UploadedAt)</td>
+                                <td>@(at.UploadedBy > 0 ? at.UploadedBy.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
             @if (_openedAuditTrail.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Audit trail</p>
@@ -573,6 +593,7 @@
     private ErpSalesOrderDetail? _openedDetail;
     private IReadOnlyList<ErpSalesOrderDigest> _openedSiblings = [];
     private IReadOnlyList<ErpAuditTrailRow> _openedAuditTrail = [];
+    private IReadOnlyList<ErpDocumentAttachmentRow> _openedAttachments = [];
 
     private bool OpenedFound => _openedDetail is not null || _openedOrder is not null;
 
@@ -637,6 +658,7 @@
             _openedDimensionLinks = await DimensionLinks.LoadAsync("sales_order", _openedId, ctx.RequestAborted);
             _openedSiblings = detail.Siblings;
             _openedAuditTrail = detail.AuditTrail;
+            _openedAttachments = detail.Attachments;
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
                 _message = detail.Message;

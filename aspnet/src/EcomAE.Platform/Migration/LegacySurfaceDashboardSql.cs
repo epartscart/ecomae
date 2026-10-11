@@ -1217,6 +1217,18 @@ public static class LegacySurfaceDashboardSql
         LIMIT 50
         """;
 
+    /// <summary>Document attachments for one ERP entity (entity_type per PHP doc-control: order/invoice/purchase_order/purchase/project/lead).</summary>
+    public const string SelectErpEntityAttachments = """
+        SELECT `id`, IFNULL(`doc_category`, '') AS doc_category,
+               IFNULL(`reference_no`, '') AS reference_no,
+               IFNULL(`file_name`, '') AS file_name, IFNULL(`file_size`, 0) AS file_size,
+               IFNULL(`mime_type`, '') AS mime_type, `uploaded_by`, `uploaded_at`
+        FROM `epc_document_attachments`
+        WHERE `entity_type` = @entity_type AND `entity_id` = @entity_id
+        ORDER BY `uploaded_at` DESC, `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Audit trail rows for one ERP entity (Open key audit).</summary>
     public const string SelectErpEntityAuditTrail = """
         SELECT `id`, `time`, `admin_id`, IFNULL(`action`, '') AS action,

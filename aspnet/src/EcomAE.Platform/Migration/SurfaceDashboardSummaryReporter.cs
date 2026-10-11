@@ -2884,6 +2884,30 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    private static async Task<List<ErpDocumentAttachmentRow>> LoadEntityAttachmentsAsync(
+        System.Data.Common.DbConnection connection, string entityType, long entityId, CancellationToken cancellationToken)
+    {
+        var rows = new List<ErpDocumentAttachmentRow>();
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = LegacySurfaceDashboardSql.SelectErpEntityAttachments;
+        AddParameter(cmd, "@entity_type", entityType);
+        AddParameter(cmd, "@entity_id", entityId);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new(
+                ReadI64(reader, "id"),
+                ReadStr(reader, "doc_category"),
+                ReadStr(reader, "reference_no"),
+                ReadStr(reader, "file_name"),
+                ReadI64(reader, "file_size"),
+                ReadStr(reader, "mime_type"),
+                ReadI64(reader, "uploaded_by"),
+                ReadI64(reader, "uploaded_at")));
+        }
+        return rows;
+    }
+
     public async Task<ErpInvoiceDetailResult> BuildErpInvoiceDetailAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
@@ -2984,7 +3008,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
-            return new(header, siblings, "database", string.Empty) { Settlements = settlements };
+            var attachments = await LoadEntityAttachmentsAsync(connection, "invoice", id, cancellationToken).ConfigureAwait(false);
+
+            return new(header, siblings, "database", string.Empty) { Settlements = settlements, Attachments = attachments };
         }
         catch (Exception ex)
         {
@@ -3675,7 +3701,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
-            return new(header, siblings, "database", string.Empty) { AuditTrail = auditTrail };
+            var attachments = await LoadEntityAttachmentsAsync(connection, "order", id, cancellationToken).ConfigureAwait(false);
+
+            return new(header, siblings, "database", string.Empty) { AuditTrail = auditTrail, Attachments = attachments };
         }
         catch (Exception ex)
         {
