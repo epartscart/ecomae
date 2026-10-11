@@ -1007,6 +1007,10 @@ public static class EcomAeRoutes
     public const string ErpPaymentSystemsSaveStandart = "/erp/payment-systems/save-standart";
     /// <summary>Live PHP payment_systems_wholesaler save twin (per-office system).</summary>
     public const string ErpPaymentSystemsSaveWholesaler = "/erp/payment-systems/save-wholesaler";
+    /// <summary>Custom & shipping Phase-2 reports — PHP custom_shipping_reports.php twin.</summary>
+    public const string ErpCustomShippingReportsApp = "/erp/custom-shipping-reports";
+    /// <summary>CSV export for the custom-shipping reports (PHP cs_export=csv twin).</summary>
+    public const string ErpCustomShippingReportsExport = "/erp/custom-shipping-reports/export";
     /// <summary>Department workflow board from <c>epc_erp_workflow_tasks</c> (not process-flow cases).</summary>
     public const string ErpWorkflowTasks = "/erp/workflow-tasks";
     public const string ErpWorkflowApp = "/erp/workflow-app";

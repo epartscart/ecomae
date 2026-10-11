@@ -1,0 +1,229 @@
+@page "/erp/custom-shipping-reports"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@inject IErpCsReportsReadService Reports
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Custom & shipping reports · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Custom & shipping reports" BreadcrumbArea="Logistics" BreadcrumbTab="Reports">
+
+    <PhpErpModulePageHeader Title="Custom & shipping reports" Subtitle="Declaration registry, cost summary, duty, re-export tracking, and document expiry — PHP custom_shipping_reports.php Phase 2." />
+    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+
+    @if (!_isAdmin)
+    {
+        <p>Sign in with ERP capability for live data.</p>
+    }
+    else if (_reportKey.Length == 0 || !_defs.ContainsKey(_reportKey))
+    {
+        <p><a href="/erp/app">&larr; Dashboard</a></p>
+        <div class="epc-erp-report-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.8rem">
+            @foreach (var (key, meta) in _defs)
+            {
+                <div class="hpanel" style="margin:0">
+                    <div class="panel-body">
+                        <h5 style="margin-top:0">@meta.Label <span class="label label-@(meta.Live ? "success" : "warning")" style="font-size:10px">@(meta.Live ? "Live" : "Partial")</span></h5>
+                        <p class="text-muted" style="font-size:12px">@meta.Desc</p>
+                        <a class="btn btn-primary btn-sm" href="/erp/custom-shipping-reports?cs_report=@key">Open report</a>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="alert alert-info" style="margin-top:16px">
+            <strong>Excel parity:</strong> Cost Summary LC/bank/charge breakdown, duty paid/payable calculations, VAT document tracking, and supplier/shipment search macros remain Phase 3.
+        </div>
+    }
+    else
+    {
+        var meta = _defs[_reportKey];
+        <p><a href="/erp/custom-shipping-reports">&larr; All reports</a></p>
+
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">@meta.Label</div>
+            <div class="panel-body">
+                <form method="get" action="/erp/custom-shipping-reports" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0">
+                    <input type="hidden" name="cs_report" value="@_reportKey" />
+                    <label>From <input type="date" name="from" value="@_filters.From" /></label>
+                    <label>To <input type="date" name="to" value="@_filters.To" /></label>
+                    <label>Category <input name="cs_category" value="@_filters.Category" placeholder="import / lgp" style="width:8rem" /></label>
+                    <label>Status <input name="cs_status" value="@_filters.Status" style="width:8rem" /></label>
+                    <label>Type <input name="cs_type" value="@_filters.DeclarationType" style="width:10rem" /></label>
+                    <label>Company <input name="cs_company" value="@_filters.Company" style="width:10rem" /></label>
+                    <label>Emirate <input name="cs_emirate" value="@_filters.CustomsEmirate" style="width:7rem" /></label>
+                    <label>Search <input name="cs_q" value="@_filters.Q" style="width:9rem" /></label>
+                    @if (_reportKey == "document_expiry")
+                    {
+                        <label>Days <input type="number" name="cs_expiry_days" min="1" value="@_filters.ExpiryDays" style="width:5rem" /></label>
+                    }
+                    <button type="submit" class="btn btn-success">Run</button>
+                    <a class="btn btn-default" href="@ExportHref()">CSV</a>
+                </form>
+            </div>
+        </div>
+
+        <div class="hpanel">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                @if (_reportKey == "cost_summary" && _cost is not null)
+                {
+                    <thead><tr><th>Category</th><th>Company</th><th>Emirate</th><th>Decls</th><th>Invoice AED</th><th>Total cost AED</th><th>Line amount AED</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in _cost.Rows)
+                        {
+                            <tr><td>@r.Category</td><td>@r.Company</td><td>@r.CustomsEmirate</td><td>@r.DeclCount</td><td>@r.SumInvoiceAed.ToString("0.00", CultureInfo.InvariantCulture)</td><td>@r.SumTotalCostAed.ToString("0.00", CultureInfo.InvariantCulture)</td><td>@r.SumLineAmountAed.ToString("0.00", CultureInfo.InvariantCulture)</td></tr>
+                        }
+                        <tr style="font-weight:600;background:#f2f6fa"><td>Total</td><td></td><td></td><td>@_cost.DeclCount</td><td>@_cost.SumInvoiceAed.ToString("0.00", CultureInfo.InvariantCulture)</td><td>@_cost.SumTotalCostAed.ToString("0.00", CultureInfo.InvariantCulture)</td><td>@_cost.SumLineAmountAed.ToString("0.00", CultureInfo.InvariantCulture)</td></tr>
+                    </tbody>
+                }
+                else if (_reportKey == "duty_report" && _duty is not null)
+                {
+                    <thead><tr><th>ID</th><th>Type</th><th>Company</th><th>Decl #</th><th>HS code</th><th>Origin</th><th>Item</th><th>Qty</th><th>Line AED</th><th>Duty AED</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in _duty)
+                        {
+                            <tr>
+                                <td>@Cell(r, "id")</td><td>@Cell(r, "declaration_type")</td><td>@Cell(r, "company")</td><td>@Cell(r, "declaration_number")</td>
+                                <td>@Cell(r, "hs_code")</td><td>@Cell(r, "country_of_origin")</td><td>@Cell(r, "item_description")</td>
+                                <td>@Cell(r, "quantity")</td><td>@Cell(r, "line_amount")</td><td>@Cell(r, "total_duty_aed")</td>
+                            </tr>
+                        }
+                        @if (_duty.Count > 0)
+                        {
+                            <tr style="font-weight:600;background:#f2f6fa"><td>Total</td><td></td><td></td><td></td><td></td><td></td><td></td>
+                                <td>@_duty.Sum(r => Dec(r, "quantity")).ToString("0.##", CultureInfo.InvariantCulture)</td>
+                                <td>@_duty.Sum(r => Dec(r, "line_amount")).ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                <td>@_duty.Sum(r => Dec(r, "total_duty_aed")).ToString("0.00", CultureInfo.InvariantCulture)</td></tr>
+                        }
+                    </tbody>
+                }
+                else if (_reportKey == "reexport_tracking" && _reexport is not null)
+                {
+                    <thead><tr><th>ID</th><th>Type</th><th>Company</th><th>Entry date</th><th>Decl #</th><th>Status</th><th>Import ref</th><th>Linked</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in _reexport)
+                        {
+                            <tr style="@(r.IsReexport ? "background-color:#d4ffd0;" : "background-color:#fff7d6;")">
+                                <td>@r.Id</td><td>@r.DeclarationType</td><td>@r.Company</td><td>@r.EntryDate</td><td>@r.DeclarationNumber</td><td>@r.Status</td>
+                                <td>@r.ImportRef</td>
+                                <td>@(r.ImportLinkId is not null ? "#" + r.ImportLinkId : "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                }
+                else if (_reportKey == "document_expiry" && _expiry is not null)
+                {
+                    <thead><tr><th>ID</th><th>Category</th><th>Type</th><th>Company</th><th>Decl #</th><th>Status</th><th>Expiry date</th><th>Days</th><th>Expiry</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in _expiry)
+                        {
+                            <tr style="@(r.ExpiryStatus == "overdue" ? "background-color:#ffecec;" : "background-color:#fff7d6;")">
+                                <td>@r.Id</td><td>@r.Category</td><td>@r.DeclarationType</td><td>@r.Company</td><td>@r.DeclarationNumber</td><td>@r.Status</td>
+                                <td>@r.DocumentExpiryDate</td><td>@r.DaysUntilExpiry</td><td>@r.ExpiryStatus</td>
+                            </tr>
+                        }
+                        <tr style="font-weight:600;background:#f2f6fa"><td>Total</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                            <td>@_expiry.Count(r => r.ExpiryStatus == "overdue") overdue / @_expiry.Count(r => r.ExpiryStatus == "upcoming") upcoming</td></tr>
+                    </tbody>
+                }
+                else if (_search is not null)
+                {
+                    <thead><tr><th>ID</th><th>Category</th><th>Type</th><th>Company</th><th>Emirate</th><th>Entry date</th><th>Decl #</th><th>SRV #</th><th>Supplier</th><th>Status</th><th>Invoice AED</th><th>Total cost AED</th><th>Items</th></tr></thead>
+                    <tbody>
+                        @if (_search.Declarations.Count == 0)
+                        {
+                            <tr><td colspan="13">No declarations found.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var r in _search.Declarations)
+                            {
+                                <tr>
+                                    <td>@Cell(r, "id")</td><td>@Cell(r, "category")</td><td>@Cell(r, "declaration_type")</td><td>@Cell(r, "company")</td>
+                                    <td>@Cell(r, "customs_emirate")</td><td>@Cell(r, "entry_date")</td><td>@Cell(r, "declaration_number")</td>
+                                    <td>@Cell(r, "srv_number")</td><td>@Cell(r, "supplier_detail")</td><td>@Cell(r, "status")</td>
+                                    <td>@Cell(r, "invoice_amount_aed")</td><td>@Cell(r, "total_cost_aed")</td><td>@Cell(r, "item_count")</td>
+                                </tr>
+                            }
+                            <tr style="font-weight:600;background:#f2f6fa"><td>Total</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                                <td>@_search.Declarations.Sum(r => Dec(r, "invoice_amount_aed")).ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                <td>@_search.Declarations.Sum(r => Dec(r, "total_cost_aed")).ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                <td>@_search.Declarations.Count</td></tr>
+                        }
+                    </tbody>
+                }
+            </table>
+        </div>
+    }
+
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private string _reportKey = "";
+    private ErpCsDeclarationsFilters _filters = new();
+    private ErpCsDeclarationsResult? _search;
+    private ErpCsCostSummaryResult? _cost;
+    private IReadOnlyList<Dictionary<string, object?>>? _duty;
+    private IReadOnlyList<ErpCsReexportRow>? _reexport;
+    private IReadOnlyList<ErpCsExpiryRow>? _expiry;
+
+    private static readonly Dictionary<string, (string Label, string Desc, bool Live)> _defs = new(StringComparer.Ordinal)
+    {
+        ["search_results"] = ("Declaration search", "Filter declarations by date, type, category, company, emirate, and status — Excel Search results sheet.", true),
+        ["cost_summary"] = ("Cost summary", "Aggregate invoice and line-item amounts by company and category — partial Excel Cost Summary.", false),
+        ["duty_report"] = ("Duty report", "Declaration totals with HS codes and origins — duty paid/payable columns stubbed until Phase 3.", false),
+        ["reexport_tracking"] = ("Re-export tracking", "Import-for-re-export and re-export declarations with link to original import ref #.", true),
+        ["document_expiry"] = ("Document expiry", "Declarations with document expiry date — overdue and upcoming within 30 days.", true),
+    };
+
+    private static string Cell(Dictionary<string, object?> row, string key)
+        => row.TryGetValue(key, out var v) ? Convert.ToString(v, CultureInfo.InvariantCulture) ?? "" : "";
+
+    private static decimal Dec(Dictionary<string, object?> row, string key)
+        => row.TryGetValue(key, out var v) && v is not null ? Convert.ToDecimal(v, CultureInfo.InvariantCulture) : 0m;
+
+    private string ExportHref()
+    {
+        var q = $"?cs_report={_reportKey}&cs_category={Uri.EscapeDataString(_filters.Category)}&cs_status={Uri.EscapeDataString(_filters.Status)}"
+            + $"&cs_type={Uri.EscapeDataString(_filters.DeclarationType)}&from={_filters.From}&to={_filters.To}"
+            + $"&cs_company={Uri.EscapeDataString(_filters.Company)}&cs_emirate={Uri.EscapeDataString(_filters.CustomsEmirate)}"
+            + $"&cs_q={Uri.EscapeDataString(_filters.Q)}&cs_expiry_days={_filters.ExpiryDays}";
+        return "/erp/custom-shipping-reports/export" + q;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        _reportKey = ctx.Request.Query["cs_report"].ToString();
+        var q = ctx.Request.Query;
+        _filters = new ErpCsDeclarationsFilters(
+            Category: q["cs_category"].ToString(),
+            Status: q["cs_status"].ToString(),
+            DeclarationType: q["cs_type"].ToString(),
+            From: q["from"].ToString(),
+            To: q["to"].ToString(),
+            Company: q["cs_company"].ToString(),
+            CustomsEmirate: q["cs_emirate"].ToString(),
+            Q: q["cs_q"].ToString(),
+            ExpiryDays: int.TryParse(q["cs_expiry_days"], out var ed) && ed > 0 ? ed : 30);
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin || !_defs.ContainsKey(_reportKey)) return;
+
+        switch (_reportKey)
+        {
+            case "cost_summary": _cost = await Reports.CostSummaryAsync(_filters, ctx.RequestAborted); break;
+            case "duty_report": _duty = await Reports.DutyLinesAsync(_filters, ctx.RequestAborted); break;
+            case "reexport_tracking": _reexport = await Reports.ReexportTrackingAsync(_filters, ctx.RequestAborted); break;
+            case "document_expiry": _expiry = await Reports.DocumentExpiryAsync(_filters, ctx.RequestAborted); break;
+            default: _search = await Reports.SearchResultsAsync(_filters, ctx.RequestAborted); break;
+        }
+    }
+}
