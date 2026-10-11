@@ -89,16 +89,31 @@
     .epc-boc__fleet-links { display:flex; gap:10px; font-size:12px; }
     .epc-boc__fleet-links a { color:#b91c1c; font-weight:700; text-decoration:none; }
     .epc-boc__note { color:#475569; margin:0; }
+    .epc-boc--in-chrome { position:static !important; inset:auto !important; z-index:auto !important; width:100% !important; display:block !important; float:none !important; }
 </style>
 <link rel="stylesheet" href="/content/general_pages/epc_boc_console_css.php?v=20260722tenant1" />
 <link rel="stylesheet" href="/css/epc-premium-enterprise-shell.css?v=20261011premium" />
+<style>
+    /* Console CSS pins .epc-boc to the viewport (z-index 4000). Super chrome already
+       owns the full-width BOC menu — keep the dashboard in document flow. */
+    body.epc-cp-shell .content .epc-boc.epc-boc--in-chrome,
+    .epc-cp-shell .epc-boc.epc-boc--in-chrome,
+    .epc-boc.epc-boc--in-chrome {
+        position: static !important;
+        inset: auto !important;
+        z-index: auto !important;
+        width: 100% !important;
+        min-height: 0 !important;
+        display: block !important;
+        float: none !important;
+        isolation: auto !important;
+    }
+</style>
 </HeadContent>
 
 
-<div class="epc-boc epc-boc--topnav epc-premium-shell" style="display:flex!important;flex-direction:column!important;position:fixed!important;inset:0!important;z-index:4000!important;overflow:auto!important;width:100%!important;float:none!important;background:#f3f6fa!important;isolation:isolate!important;">
-    <PhpSuperCpBocTopnav />
-
-    <div class="epc-boc__main" style="display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-width:0!important;width:auto!important;float:none!important;">
+<div class="epc-boc epc-boc--topnav epc-boc--in-chrome epc-premium-shell">
+    <div class="epc-boc__main">
         <div class="epc-boc__canvas">
             <div class="epc-boc__platform-banner" role="status">
                 <div><strong>Platform Super CP</strong> <span>· ecomae.com operator console (/cp)</span>
@@ -259,8 +274,6 @@
         </div>
     </div>
 </div>
-
-<PhpBocTopnavBinder />
 
 
 @code {

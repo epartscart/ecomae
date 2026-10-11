@@ -175,8 +175,10 @@ public sealed class SurfaceChromePolicyTests
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpDesktopChrome.razor"));
         var css = File.ReadAllText(Path.Combine(FindRepoRoot(),
             "cp/templates/bootstrap_admin/css/epc_cp_professional.css"));
-        Assert.Contains("_showSuperBocChrome", chrome, StringComparison.Ordinal);
+        Assert.Contains("_showSuperBocChrome = _showBos", chrome, StringComparison.Ordinal);
+        Assert.DoesNotContain("!IsSuperHome", chrome, StringComparison.Ordinal);
         Assert.Contains("PhpSuperCpBocTopnav", chrome, StringComparison.Ordinal);
+        Assert.Contains("epc-boc-mode", chrome, StringComparison.Ordinal);
         Assert.Contains("margin-left:0 !important", chrome, StringComparison.Ordinal);
         Assert.Contains("flex-wrap:wrap", chrome, StringComparison.Ordinal);
         Assert.Contains(":not(:has(#epc_boc_topnav))", css, StringComparison.Ordinal);

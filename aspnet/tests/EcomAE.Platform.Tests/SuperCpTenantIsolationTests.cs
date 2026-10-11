@@ -124,11 +124,12 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Contains("BuildBosFleetHealthAsync", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__hero", text, StringComparison.Ordinal);
         // Full BOC console chrome (top mega-menu + fleet + platform banner).
-        Assert.Contains("epc-boc__topnav", text, StringComparison.Ordinal);
+        Assert.Contains("epc-boc--in-chrome", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("position:fixed!important;inset:0!important;z-index:4000!important", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("<PhpSuperCpBocTopnav", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__platform-banner", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__fleet-grid", text, StringComparison.Ordinal);
         Assert.Contains("epc-premium-shell", text, StringComparison.Ordinal);
-        Assert.Contains("PhpSuperCpBocTopnav", text, StringComparison.Ordinal);
         var boc = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpBocTopnav.razor"));
         Assert.Contains("PhpSuperCpBocNav.Nav()", boc, StringComparison.Ordinal);
         Assert.Contains("epc_boc_topnav", boc, StringComparison.Ordinal);
