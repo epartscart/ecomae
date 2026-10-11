@@ -1,0 +1,317 @@
+@page "/erp/payment-systems-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using System.Text.Json
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@inject IErpPaymentSystemsService PaySystems
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Payment systems · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Payment systems" BreadcrumbArea="Finance" BreadcrumbTab="Payment systems">
+
+    <PhpErpModulePageHeader Title="Payment systems" Subtitle="PHP payment_systems_standart (one global system for the shop) and payment_systems_wholesaler (per-office system). Select a system, fill its parameters, save — same parameters_values JSON PHP stores." />
+    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+
+    <div class="php-tabs" style="margin:0 0 1rem;display:flex;gap:.4rem">
+        <a class="btn @(_tab == "standart" ? "btn-success" : "btn-default")" href="/erp/payment-systems-app?tab=standart">Standard (shop-wide)</a>
+        <a class="btn @(_tab == "wholesaler" ? "btn-success" : "btn-default")" href="/erp/payment-systems-app?tab=wholesaler">Wholesaler (per office)</a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+
+    @if (_tab == "standart")
+    {
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Shop payment system</div>
+            <div class="panel-body">
+                @if (!_isAdmin)
+                {
+                    <p>Sign in with ERP capability for live data.</p>
+                }
+                else if (_systems.Count == 0)
+                {
+                    <p>No payment systems registered. Seed <code>shop_payment_systems</code> via the epc integrations setup.</p>
+                }
+                else
+                {
+                    var selected = _systems.FirstOrDefault(s => s.Id == _systemId) ?? _systems.FirstOrDefault(s => s.Active == 1);
+                    <form method="get" action="/erp/payment-systems-app" style="display:flex;gap:.4rem;align-items:end;margin:0 0 1rem">
+                        <input type="hidden" name="tab" value="standart" />
+                        <label>System
+                            <select name="system_id">
+                                <option value="0">— none (disable all) —</option>
+                                @foreach (var s in _systems)
+                                {
+                                    <option value="@s.Id" selected="@(selected is not null && selected.Id == s.Id)">@s.Name @(s.Active == 1 ? "(active)" : "")</option>
+                                }
+                            </select>
+                        </label>
+                        <button type="submit" class="btn btn-default">Configure</button>
+                    </form>
+
+                    @if (selected is not null)
+                    {
+                        <form method="post" action="/erp/payment-systems/save-standart">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="/erp/payment-systems-app?tab=standart&system_id=@selected.Id" />
+                            <input type="hidden" name="system_id" value="@selected.Id" />
+                            @RenderParameters(selected, selected.ParametersValues)
+                            @if (!string.IsNullOrWhiteSpace(selected.Description))
+                            {
+                                <div style="margin:.6rem 0;color:#4b5563">@selected.Description</div>
+                            }
+                            <button type="submit" class="btn btn-success">Activate and save</button>
+                        </form>
+                        <form method="post" action="/erp/payment-systems/save-standart" style="margin-top:.5rem">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="/erp/payment-systems-app?tab=standart" />
+                            <input type="hidden" name="system_id" value="0" />
+                            <button type="submit" class="btn btn-default">Disable all systems</button>
+                        </form>
+                    }
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Per-office payment system</div>
+            <div class="panel-body">
+                @if (!_isAdmin)
+                {
+                    <p>Sign in with ERP capability for live data.</p>
+                }
+                else if (!_officesReady)
+                {
+                    <p>The offices table (<code>shop_offices</code>) is not provisioned in this tenant database — the wholesaler tab needs the shop install schema.</p>
+                }
+                else if (_offices.Count == 0)
+                {
+                    <p>No offices managed by your account.</p>
+                }
+                else
+                {
+                    var office = _offices.FirstOrDefault(o => o.Id == _officeId);
+                    <form method="get" action="/erp/payment-systems-app" style="display:flex;gap:.4rem;align-items:end;margin:0 0 1rem">
+                        <input type="hidden" name="tab" value="wholesaler" />
+                        <label>Office
+                            <select name="office_id">
+                                <option value="0">— select office —</option>
+                                @foreach (var o in _offices)
+                                {
+                                    <option value="@o.Id" selected="@(o.Id == _officeId)">@o.Caption, @o.City, @o.Address (ID @o.Id)</option>
+                                }
+                            </select>
+                        </label>
+                        <button type="submit" class="btn btn-default">Open</button>
+                    </form>
+
+                    @if (office is not null)
+                    {
+                        var current = _systems.FirstOrDefault(s => s.Id == office.PaySystemId);
+                        <p>Current payment system: <strong>@(current is null ? "none" : current.Name)</strong></p>
+
+                        var chosen = _systems.FirstOrDefault(s => s.Id == _systemId) ?? current;
+                        <form method="get" action="/erp/payment-systems-app" style="display:flex;gap:.4rem;align-items:end;margin:0 0 1rem">
+                            <input type="hidden" name="tab" value="wholesaler" />
+                            <input type="hidden" name="office_id" value="@office.Id" />
+                            <label>System
+                                <select name="system_id">
+                                    <option value="0">— none —</option>
+                                    @foreach (var s in _systems)
+                                    {
+                                        <option value="@s.Id" selected="@(chosen is not null && chosen.Id == s.Id)">@s.Name</option>
+                                    }
+                                </select>
+                            </label>
+                            <button type="submit" class="btn btn-default">Configure</button>
+                        </form>
+
+                        @if (chosen is not null)
+                        {
+                            <form method="post" action="/erp/payment-systems/save-wholesaler">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="/erp/payment-systems-app?tab=wholesaler&office_id=@office.Id&system_id=@chosen.Id" />
+                                <input type="hidden" name="office_id" value="@office.Id" />
+                                <input type="hidden" name="system_id" value="@chosen.Id" />
+                                @{ var prefill = chosen.Id == office.PaySystemId ? office.PaySystemParameters : chosen.ParametersValues; }
+                                @RenderParameters(chosen, prefill)
+                                @if (!string.IsNullOrWhiteSpace(chosen.Description))
+                                {
+                                    <div style="margin:.6rem 0;color:#4b5563">@chosen.Description</div>
+                                }
+                                <button type="submit" class="btn btn-success">Save for this office</button>
+                            </form>
+                            <form method="post" action="/erp/payment-systems/save-wholesaler" style="margin-top:.5rem">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="/erp/payment-systems-app?tab=wholesaler&office_id=@office.Id" />
+                                <input type="hidden" name="office_id" value="@office.Id" />
+                                <input type="hidden" name="system_id" value="0" />
+                                <button type="submit" class="btn btn-default">Disable for this office</button>
+                            </form>
+                        }
+                    }
+                }
+            </div>
+        </div>
+    }
+
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private bool _officesReady;
+    private string _tab = "standart";
+    private long _officeId;
+    private long _systemId;
+    private IReadOnlyList<ErpPaymentSystemRow> _systems = [];
+    private IReadOnlyList<ErpPayOfficeRow> _offices = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
+
+    private RenderFragment RenderParameters(ErpPaymentSystemRow system, string prefillJson) => builder =>
+    {
+        var parameters = ParseParameters(system.Parameters);
+        if (parameters.Count == 0)
+        {
+            return;
+        }
+        var values = ParseValues(prefillJson);
+        var checkboxNames = parameters.Where(p => p.Type == "checkbox").Select(p => p.Name).ToList();
+        var seq = 0;
+        builder.OpenElement(seq++, "div");
+        builder.SetKey("params-" + system.Id);
+        builder.OpenElement(seq++, "input");
+        builder.AddAttribute(seq++, "type", "hidden");
+        builder.AddAttribute(seq++, "name", "checkbox_names");
+        builder.AddAttribute(seq++, "value", string.Join(',', checkboxNames));
+        builder.CloseElement();
+        foreach (var p in parameters)
+        {
+            values.TryGetValue(p.Name, out var current);
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "style", "display:flex;gap:.6rem;align-items:center;margin:.35rem 0");
+            builder.OpenElement(seq++, "label");
+            builder.AddAttribute(seq++, "style", "min-width:14rem;font-weight:600");
+            builder.AddContent(seq++, p.Caption);
+            builder.CloseElement();
+            var inputName = "param_" + p.Name;
+            if (p.Type == "select")
+            {
+                builder.OpenElement(seq++, "select");
+                builder.AddAttribute(seq++, "name", inputName);
+                foreach (var opt in p.Options)
+                {
+                    builder.OpenElement(seq++, "option");
+                    builder.AddAttribute(seq++, "value", opt.Value);
+                    if (opt.Value == current) builder.AddAttribute(seq++, "selected", true);
+                    builder.AddContent(seq++, opt.Caption);
+                    builder.CloseElement();
+                }
+                builder.CloseElement();
+            }
+            else
+            {
+                builder.OpenElement(seq++, "input");
+                builder.AddAttribute(seq++, "type", p.Type);
+                builder.AddAttribute(seq++, "name", inputName);
+                if (p.Type == "checkbox")
+                {
+                    if (current is "true" or "True" or "1" or "on") builder.AddAttribute(seq++, "checked", true);
+                }
+                else
+                {
+                    builder.AddAttribute(seq++, "value", current ?? "");
+                }
+                builder.CloseElement();
+            }
+            builder.CloseElement();
+        }
+        builder.CloseElement();
+    };
+
+    private sealed record PayParam(string Name, string Caption, string Type, List<(string Value, string Caption)> Options);
+
+    private static List<PayParam> ParseParameters(string json)
+    {
+        var list = new List<PayParam>();
+        try
+        {
+            using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(json) ? "[]" : json);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array) return list;
+            foreach (var el in doc.RootElement.EnumerateArray())
+            {
+                var options = new List<(string, string)>();
+                if (el.TryGetProperty("options", out var opts) && opts.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var o in opts.EnumerateArray())
+                    {
+                        options.Add((o.TryGetProperty("value", out var v) ? v.ToString() : "",
+                                     o.TryGetProperty("caption", out var c) ? c.ToString() : ""));
+                    }
+                }
+                list.Add(new PayParam(
+                    el.TryGetProperty("name", out var n) ? n.ToString() : "",
+                    el.TryGetProperty("caption", out var c2) ? c2.ToString() : "",
+                    el.TryGetProperty("type", out var t) ? t.ToString() : "text",
+                    options));
+            }
+        }
+        catch (JsonException) { }
+        return list;
+    }
+
+    private static Dictionary<string, string?> ParseValues(string json)
+    {
+        var map = new Dictionary<string, string?>(StringComparer.Ordinal);
+        try
+        {
+            using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(json) ? "{}" : json);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object) return map;
+            foreach (var prop in doc.RootElement.EnumerateObject())
+            {
+                map[prop.Name] = prop.Value.ValueKind == JsonValueKind.True ? "true"
+                    : prop.Value.ValueKind == JsonValueKind.False ? "false"
+                    : prop.Value.ToString();
+            }
+        }
+        catch (JsonException) { }
+        return map;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _tab = ctx.Request.Query["tab"].ToString();
+        if (_tab != "wholesaler") _tab = "standart";
+        long.TryParse(ctx.Request.Query["office_id"], out _officeId);
+        long.TryParse(ctx.Request.Query["system_id"], out _systemId);
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin) return;
+
+        _systems = await PaySystems.ListSystemsAsync(ctx.RequestAborted);
+        _officesReady = await PaySystems.OfficesProvisionedAsync(ctx.RequestAborted);
+        if (_officesReady)
+        {
+            _offices = await PaySystems.ListOfficesAsync(session.UserId, ctx.RequestAborted);
+        }
+    }
+}

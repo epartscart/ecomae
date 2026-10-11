@@ -1001,6 +1001,12 @@ public static class EcomAeRoutes
     public const string ErpOperationsCreateEntry = "/erp/operations/create-entry";
     /// <summary>Account operations ledger app — PHP account_operations.php twin.</summary>
     public const string ErpAccountOperationsApp = "/erp/account-operations-app";
+    /// <summary>Payment systems app — PHP payment_systems_standart + payment_systems_wholesaler twin.</summary>
+    public const string ErpPaymentSystemsApp = "/erp/payment-systems-app";
+    /// <summary>Live PHP payment_systems_standart save twin (one global active system).</summary>
+    public const string ErpPaymentSystemsSaveStandart = "/erp/payment-systems/save-standart";
+    /// <summary>Live PHP payment_systems_wholesaler save twin (per-office system).</summary>
+    public const string ErpPaymentSystemsSaveWholesaler = "/erp/payment-systems/save-wholesaler";
     /// <summary>Department workflow board from <c>epc_erp_workflow_tasks</c> (not process-flow cases).</summary>
     public const string ErpWorkflowTasks = "/erp/workflow-tasks";
     public const string ErpWorkflowApp = "/erp/workflow-app";
