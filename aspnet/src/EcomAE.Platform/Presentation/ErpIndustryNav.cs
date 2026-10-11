@@ -155,9 +155,12 @@ public static class ErpIndustryNav
     /// tabs are omitted unless the tenant/company is jewellery.
     /// </summary>
     public static IReadOnlyList<PhpModuleCatalog.ModuleLink> DirectoryTabs(bool jewelleryCompany)
-        => jewelleryCompany
-            ? PhpModuleCatalog.ErpTabs
-            : PhpModuleCatalog.ErpTabs.Where(t => !IsJewelleryTab(t)).ToList();
+        => DirectoryTabs(jewelleryCompany, fitOutCompany: true);
+
+    public static IReadOnlyList<PhpModuleCatalog.ModuleLink> DirectoryTabs(bool jewelleryCompany, bool fitOutCompany)
+        => PhpModuleCatalog.ErpTabs
+            .Where(t => (jewelleryCompany || !IsJewelleryTab(t)) && (fitOutCompany || !IsFitOutTab(t)))
+            .ToList();
 
     /// <summary>
     /// Filter ERP topnav like PHP: strip jewellery-only tabs unless the active company is jewellery.
