@@ -8,6 +8,8 @@ public interface IErpO2cDocumentPrintService
 {
     Task<string?> RenderSalesOrderAsync(long id, CancellationToken cancellationToken = default);
     Task<string?> RenderInvoiceAsync(long id, CancellationToken cancellationToken = default);
+    Task<string?> RenderPurchaseOrderAsync(long id, CancellationToken cancellationToken = default);
+    Task<string?> RenderPurchaseAsync(long id, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Printable document renderer for O2C sales orders and invoices (PHP invoice_print-style HTML + lines grid).</summary>
@@ -180,6 +182,175 @@ public sealed class ErpO2cDocumentPrintService : IErpO2cDocumentPrintService
         return FinishHtml(builder, null, 0);
     }
 
+    public async Task<string?> RenderPurchaseOrderAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0 || !_connections.IsConfigured)
+        {
+            return null;
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT o.`po_no`, o.`status`, o.`amount_ex_vat`, o.`vat_amount`, o.`total_amount`,
+                   IFNULL(o.`notes`, ''), o.`time_created`, IFNULL(s.`name`, ''), o.`purchase_id`, o.`order_id`
+            FROM `epc_erp_purchase_orders` o
+            LEFT JOIN `epc_erp_suppliers` s ON s.`id` = o.`supplier_id`
+            WHERE o.`id` = @p0
+            LIMIT 1
+            """;
+        ErpDb.AddParameters(command, id);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        var poNo = ReadString(reader, 0);
+        var status = ReadString(reader, 1);
+        var amountExVat = ReadDecimal(reader, 2);
+        var vatAmount = ReadDecimal(reader, 3);
+        var totalAmount = ReadDecimal(reader, 4);
+        var notes = ReadString(reader, 5);
+        var timeCreated = ReadLong(reader, 6);
+        var supplierName = ReadString(reader, 7);
+        var purchaseId = ReadLong(reader, 8);
+        var orderId = ReadLong(reader, 9);
+        await reader.DisposeAsync().ConfigureAwait(false);
+
+        var lines = new List<PoLine>();
+        await using (var lineCommand = connection.CreateCommand())
+        {
+            lineCommand.CommandText = """
+                SELECT `item_code`, `description`, `qty`, `unit_cost_ex_vat`, `line_ex_vat`, `qty_received`
+                FROM `epc_erp_po_lines`
+                WHERE `po_id` = @p0
+                ORDER BY `line_no`, `id`
+                """;
+            ErpDb.AddParameters(lineCommand, id);
+            await using var lineReader = await lineCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await lineReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                lines.Add(new PoLine(ReadString(lineReader, 0), ReadString(lineReader, 1), ReadDecimal(lineReader, 2), ReadDecimal(lineReader, 3), ReadDecimal(lineReader, 4), ReadDecimal(lineReader, 5)));
+            }
+        }
+
+        var builder = StartHtml($"Purchase order {Encode(poNo)}");
+        builder.Append("<h1>Purchase order ").Append(Encode(poNo)).Append("</h1>");
+        builder.Append("<p>");
+        Meta(builder, "Supplier", supplierName);
+        Meta(builder, "Status", status);
+        if (orderId > 0)
+        {
+            Meta(builder, "Shop order", $"#{orderId}");
+        }
+        if (purchaseId > 0)
+        {
+            Meta(builder, "Purchase bill", $"#{purchaseId}");
+        }
+        builder.Append("</p>");
+        builder.Append("""
+            <table><thead><tr><th style="text-align:left">Item</th><th style="text-align:left">Description</th>
+            <th style="text-align:right">Qty</th><th style="text-align:right">Received</th><th style="text-align:right">Unit cost</th><th style="text-align:right">Amount</th></tr></thead><tbody>
+            """);
+        foreach (var line in lines)
+        {
+            builder.Append("<tr><td>").Append(Encode(Blank(line.ItemCode))).Append("</td><td>")
+                .Append(Encode(Blank(line.Description))).Append("</td><td style=\"text-align:right\">")
+                .Append(N(line.Qty)).Append("</td><td style=\"text-align:right\">").Append(N(line.QtyReceived)).Append("</td><td style=\"text-align:right\">")
+                .Append(N(line.UnitCost)).Append("</td><td style=\"text-align:right\">").Append(N(line.Amount)).Append("</td></tr>");
+        }
+        builder.Append("</tbody></table>");
+        Totals(builder, amountExVat, vatAmount, totalAmount);
+        return FinishHtml(builder, notes, timeCreated);
+    }
+
+    public async Task<string?> RenderPurchaseAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0 || !_connections.IsConfigured)
+        {
+            return null;
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT p.`invoice_number`, p.`status`, p.`amount_ex_vat`, p.`vat_amount`, p.`total_amount`,
+                   IFNULL(p.`note`, ''), p.`purchase_date`, IFNULL(s.`name`, ''), p.`order_id`,
+                   IFNULL((SELECT SUM(a.`amount`) FROM `epc_erp_supplier_accounting` a
+                           WHERE a.`purchase_id` = p.`id` AND a.`active` = 1 AND a.`is_credit` = 0), 0) AS `paid`
+            FROM `epc_erp_purchases` p
+            LEFT JOIN `epc_erp_suppliers` s ON s.`id` = p.`supplier_id`
+            WHERE p.`id` = @p0
+            LIMIT 1
+            """;
+        ErpDb.AddParameters(command, id);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        var invoiceNumber = ReadString(reader, 0);
+        var status = ReadString(reader, 1);
+        var amountExVat = ReadDecimal(reader, 2);
+        var vatAmount = ReadDecimal(reader, 3);
+        var totalAmount = ReadDecimal(reader, 4);
+        var notes = ReadString(reader, 5);
+        var purchaseDate = ReadLong(reader, 6);
+        var supplierName = ReadString(reader, 7);
+        var orderId = ReadLong(reader, 8);
+        var paid = ReadDecimal(reader, 9);
+        await reader.DisposeAsync().ConfigureAwait(false);
+
+        var lines = new List<BillLine>();
+        await using (var lineCommand = connection.CreateCommand())
+        {
+            lineCommand.CommandText = """
+                SELECT `item_id`, `qty`, `unit_cost`, `batch_no`, `expiry_date`
+                FROM `epc_erp_purchase_inv_lines`
+                WHERE `purchase_id` = @p0
+                ORDER BY `id`
+                """;
+            ErpDb.AddParameters(lineCommand, id);
+            await using var lineReader = await lineCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await lineReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                lines.Add(new BillLine(ReadLong(lineReader, 0), ReadDecimal(lineReader, 1), ReadDecimal(lineReader, 2), ReadString(lineReader, 3), ReadString(lineReader, 4)));
+            }
+        }
+
+        var builder = StartHtml($"Supplier bill {Encode(invoiceNumber)}");
+        builder.Append("<h1>Supplier bill ").Append(Encode(string.IsNullOrWhiteSpace(invoiceNumber) ? $"#{id}" : invoiceNumber)).Append("</h1>");
+        builder.Append("<p>");
+        Meta(builder, "Supplier", supplierName);
+        Meta(builder, "Bill date", FmtDate(purchaseDate));
+        Meta(builder, "Status", status);
+        if (orderId > 0)
+        {
+            Meta(builder, "Shop order", $"#{orderId}");
+        }
+        builder.Append("</p>");
+        builder.Append("""
+            <table><thead><tr><th style="text-align:right">Item id</th><th style="text-align:right">Qty</th>
+            <th style="text-align:right">Unit cost</th><th style="text-align:right">Amount</th><th style="text-align:left">Batch</th><th style="text-align:left">Expiry</th></tr></thead><tbody>
+            """);
+        foreach (var line in lines)
+        {
+            builder.Append("<tr><td style=\"text-align:right\">").Append(line.ItemId).Append("</td><td style=\"text-align:right\">")
+                .Append(N(line.Qty)).Append("</td><td style=\"text-align:right\">").Append(N(line.UnitCost)).Append("</td><td style=\"text-align:right\">")
+                .Append(N(line.Qty * line.UnitCost)).Append("</td><td>").Append(Encode(Blank(line.BatchNo))).Append("</td><td>")
+                .Append(Encode(Blank(line.ExpiryDate))).Append("</td></tr>");
+        }
+        builder.Append("</tbody></table>");
+        Totals(builder, amountExVat, vatAmount, totalAmount);
+        builder.Append("<p style=\"margin-top:8px;\"><strong>Paid:</strong> ").Append(N(paid))
+            .Append("&nbsp;&nbsp;<strong>Due:</strong> ").Append(N(Math.Max(totalAmount - paid, 0m))).Append("</p>");
+        return FinishHtml(builder, notes, 0);
+    }
+
     private static async Task<List<SoLine>> LoadSalesOrderLinesAsync(DbConnection connection, long id, CancellationToken cancellationToken)
     {
         var lines = new List<SoLine>();
@@ -291,6 +462,10 @@ public sealed class ErpO2cDocumentPrintService : IErpO2cDocumentPrintService
         => DateTimeOffset.FromUnixTimeSeconds(time).ToLocalTime().ToString("yyyy-MM-dd");
 
     private sealed record SoLine(string ItemCode, string Description, decimal Qty, decimal UnitPrice, decimal Amount);
+
+    private sealed record PoLine(string ItemCode, string Description, decimal Qty, decimal UnitCost, decimal Amount, decimal QtyReceived);
+
+    private sealed record BillLine(long ItemId, decimal Qty, decimal UnitCost, string BatchNo, string ExpiryDate);
 
     private sealed record InvLine(int LineNo, string ItemName, decimal Quantity, string UomCode, decimal UnitPrice, decimal LineNet, decimal TaxRate, decimal TaxAmount, decimal GrossAmount);
 }
