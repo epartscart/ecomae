@@ -170,8 +170,10 @@ The board paragraph above was last edited in #2013 and names sixteen throwaway
 cycles. Later merged notes, through #2026, add throwaway rehearsals for
 collections, contracts, subscriptions, insurance, org admin, after-sales,
 cash and treasury, RBAC, and withholding under
-`docs/migration/evidence/write-dryruns/`, plus landed cost, VAT refund, and a
-lazy-schema sweep under `aspnet/docs/migration/evidence/write-dryruns/`.
+`docs/migration/evidence/write-dryruns/`, plus landed cost, VAT refund, a
+lazy-schema sweep under `aspnet/docs/migration/evidence/write-dryruns/`,
+and the cost-centre/costing-model cycle in
+`erp-costing-cycle-2026-10-11.md` (#2072).
 Those notes did not change the percentage bands in the table and did not
 accept a process. They are not production evidence. The live-gate file
 `evidence/presentation/MODULE_FUNCTION_PARITY_STATUS_LIVE.md` still records
@@ -183,7 +185,7 @@ interactive ASP.NET complete **0** and PHP as the authoritative runtime.
 | Order-to-Cash (B2) | 85% | 65% | 40% | 85% | 45% (cycle proven locally; isolation/rollback/UAT pending) | No |
 | Procure-to-Pay (B3) | 85% | 70% | 45% | 85% | 70% (PO lifecycle + RFQ award cycles proven) | No |
 | Inventory/WMS (B4) | 75% | 65% | 40% | 70% | 55% (receipt/issue + transfer cycles proven) | No |
-| Finance/GL (B5) | 75% | 60% | 40% | 75% | 25% (period lock/reopen + opening batch cycles proven) | No |
+| Finance/GL (B5) | 75% | 60% | 40% | 75% | 30% (period lock/reopen + opening batch + costing cycles proven) | No |
 | AR/AP | 70% | 60% | 40% | 70% | 25% (open-balance + knock-off + contacts sync proven) | No |
 | Treasury (B7) | 60% | 55% | 30% | 60% | 30% (bank import/reconcile + petty cash + batch cycles proven) | No |
 | Tax/E-Invoice (B8) | 75% | 60% | 40% | 70% | 15% (PINT-AE issue/poll/credit-note live + cycle proven) | No |
@@ -223,6 +225,9 @@ process gates).
 - Production backup/restore and ownership-rollback rehearsal window.
 - Human visual acceptance of PHP vs ASP.NET side-by-side captures.
 - Country compliance data / external integrations for Tax, E-Invoice, payroll.
+- Missing `epc_erp_syncron_policy.php` reference (Syncron built from PR #8
+  behaviour instead).
+- ERP-only staff role parity (PHP ERP-only vs ASP.NET CP+ERP roles).
 
 ## Enhancement record
 
