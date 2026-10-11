@@ -4225,44 +4225,53 @@ public static class LegacySurfaceDashboardSql
 
     /// <summary>Warehouse stock transfers — omits notes.</summary>
     public const string SelectErpStockTransfers = """
-        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`transfer_no`,'') AS transfer_no,
-               IFNULL(`from_warehouse_id`,0) AS from_warehouse_id, IFNULL(`to_warehouse_id`,0) AS to_warehouse_id,
-               IFNULL(`reason`,'') AS reason, IFNULL(`status`,'') AS status,
-               IFNULL(`total_items`,0) AS total_items, IFNULL(`total_qty`,0) AS total_qty,
-               IFNULL(`shipped_at`,'') AS shipped_at, IFNULL(`received_at`,'') AS received_at,
-               IFNULL(`created_by`,0) AS created_by, IFNULL(`time_created`,0) AS time_created
-        FROM `epc_warehouse_transfers`
-        ORDER BY `id` DESC
+        SELECT t.`id`, IFNULL(t.`company_id`,0) AS company_id, IFNULL(t.`transfer_no`,'') AS transfer_no,
+               IFNULL(t.`from_warehouse_id`,0) AS from_warehouse_id, IFNULL(t.`to_warehouse_id`,0) AS to_warehouse_id,
+               IFNULL(fw.`name`,'') AS from_warehouse_name, IFNULL(tw.`name`,'') AS to_warehouse_name,
+               IFNULL(t.`reason`,'') AS reason, IFNULL(t.`status`,'') AS status,
+               IFNULL(t.`total_items`,0) AS total_items, IFNULL(t.`total_qty`,0) AS total_qty,
+               IFNULL(t.`shipped_at`,'') AS shipped_at, IFNULL(t.`received_at`,'') AS received_at,
+               IFNULL(t.`created_by`,0) AS created_by, IFNULL(t.`time_created`,0) AS time_created
+        FROM `epc_warehouse_transfers` t
+        LEFT JOIN `epc_erp_inv_warehouses` fw ON fw.`id` = t.`from_warehouse_id`
+        LEFT JOIN `epc_erp_inv_warehouses` tw ON tw.`id` = t.`to_warehouse_id`
+        ORDER BY t.`id` DESC
         LIMIT @limit
         """;
 
     /// <summary>Opened stock transfer. notes is a short excerpt. Line bodies omitted. Ship/receive stay Classic.</summary>
     public const string SelectErpStockTransferDetail = """
-        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`transfer_no`,'') AS transfer_no,
-               IFNULL(`from_warehouse_id`,0) AS from_warehouse_id, IFNULL(`to_warehouse_id`,0) AS to_warehouse_id,
-               IFNULL(`reason`,'') AS reason, IFNULL(`status`,'') AS status,
-               IFNULL(`total_items`,0) AS total_items, IFNULL(`total_qty`,0) AS total_qty,
-               IFNULL(`shipped_at`,'') AS shipped_at, IFNULL(`received_at`,'') AS received_at,
-               IFNULL(`created_by`,0) AS created_by, IFNULL(`received_by`,0) AS received_by,
-               IFNULL(`time_created`,0) AS time_created,
-               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
-               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
-        FROM `epc_warehouse_transfers`
-        WHERE `id` = @id
+        SELECT t.`id`, IFNULL(t.`company_id`,0) AS company_id, IFNULL(t.`transfer_no`,'') AS transfer_no,
+               IFNULL(t.`from_warehouse_id`,0) AS from_warehouse_id, IFNULL(t.`to_warehouse_id`,0) AS to_warehouse_id,
+               IFNULL(fw.`name`,'') AS from_warehouse_name, IFNULL(tw.`name`,'') AS to_warehouse_name,
+               IFNULL(t.`reason`,'') AS reason, IFNULL(t.`status`,'') AS status,
+               IFNULL(t.`total_items`,0) AS total_items, IFNULL(t.`total_qty`,0) AS total_qty,
+               IFNULL(t.`shipped_at`,'') AS shipped_at, IFNULL(t.`received_at`,'') AS received_at,
+               IFNULL(t.`created_by`,0) AS created_by, IFNULL(t.`received_by`,0) AS received_by,
+               IFNULL(t.`time_created`,0) AS time_created,
+               CHAR_LENGTH(IFNULL(t.`notes`,'')) AS notes_len,
+               LEFT(IFNULL(t.`notes`,''), 280) AS notes_excerpt
+        FROM `epc_warehouse_transfers` t
+        LEFT JOIN `epc_erp_inv_warehouses` fw ON fw.`id` = t.`from_warehouse_id`
+        LEFT JOIN `epc_erp_inv_warehouses` tw ON tw.`id` = t.`to_warehouse_id`
+        WHERE t.`id` = @id
         LIMIT 1
         """;
 
     /// <summary>Other stock transfers with the same status. notes omitted.</summary>
     public const string SelectErpStockTransferStatusSiblings = """
-        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`transfer_no`,'') AS transfer_no,
-               IFNULL(`from_warehouse_id`,0) AS from_warehouse_id, IFNULL(`to_warehouse_id`,0) AS to_warehouse_id,
-               IFNULL(`reason`,'') AS reason, IFNULL(`status`,'') AS status,
-               IFNULL(`total_items`,0) AS total_items, IFNULL(`total_qty`,0) AS total_qty,
-               IFNULL(`shipped_at`,'') AS shipped_at, IFNULL(`received_at`,'') AS received_at,
-               IFNULL(`created_by`,0) AS created_by, IFNULL(`time_created`,0) AS time_created
-        FROM `epc_warehouse_transfers`
-        WHERE IFNULL(`status`,'') = @status AND `id` <> @id
-        ORDER BY `id` DESC
+        SELECT t.`id`, IFNULL(t.`company_id`,0) AS company_id, IFNULL(t.`transfer_no`,'') AS transfer_no,
+               IFNULL(t.`from_warehouse_id`,0) AS from_warehouse_id, IFNULL(t.`to_warehouse_id`,0) AS to_warehouse_id,
+               IFNULL(fw.`name`,'') AS from_warehouse_name, IFNULL(tw.`name`,'') AS to_warehouse_name,
+               IFNULL(t.`reason`,'') AS reason, IFNULL(t.`status`,'') AS status,
+               IFNULL(t.`total_items`,0) AS total_items, IFNULL(t.`total_qty`,0) AS total_qty,
+               IFNULL(t.`shipped_at`,'') AS shipped_at, IFNULL(t.`received_at`,'') AS received_at,
+               IFNULL(t.`created_by`,0) AS created_by, IFNULL(t.`time_created`,0) AS time_created
+        FROM `epc_warehouse_transfers` t
+        LEFT JOIN `epc_erp_inv_warehouses` fw ON fw.`id` = t.`from_warehouse_id`
+        LEFT JOIN `epc_erp_inv_warehouses` tw ON tw.`id` = t.`to_warehouse_id`
+        WHERE IFNULL(t.`status`,'') = @status AND t.`id` <> @id
+        ORDER BY t.`id` DESC
         LIMIT 50
         """;
 

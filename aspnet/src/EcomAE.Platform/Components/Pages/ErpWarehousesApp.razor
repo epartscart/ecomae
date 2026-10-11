@@ -151,8 +151,8 @@
                         {
                             <tr>
                                 <td><strong>@(string.IsNullOrWhiteSpace(t.TransferNo) ? $"#{t.Id}" : t.TransferNo)</strong></td>
-                                <td>@t.FromWarehouseId.ToString(CultureInfo.InvariantCulture)</td>
-                                <td>@t.ToWarehouseId.ToString(CultureInfo.InvariantCulture)</td>
+                                <td>@(string.IsNullOrWhiteSpace(t.FromWarehouseName) ? t.FromWarehouseId.ToString(CultureInfo.InvariantCulture) : t.FromWarehouseName)</td>
+                                <td>@(string.IsNullOrWhiteSpace(t.ToWarehouseName) ? t.ToWarehouseId.ToString(CultureInfo.InvariantCulture) : t.ToWarehouseName)</td>
                                 <td>@(string.IsNullOrWhiteSpace(t.Reason) ? "—" : t.Reason)</td>
                                 <td>@t.Status</td>
                                 <td class="text-right">@t.TotalQty.ToString("N2", CultureInfo.InvariantCulture)</td>
