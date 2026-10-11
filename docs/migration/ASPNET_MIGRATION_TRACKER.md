@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-11 — plan Q1-creek (ePartsCart home product lines)
+
+Not complete.
+
+- Ratchet 421 to 420. One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Creek` `content/general_pages/epc_epartscart_home_product_lines.php` (`epc_ep_pl_href`, `epc_perf_cache_get`; empty / live-cache / escape / tenant isolation; Haven storefront helpers injected). Fast-cache miss returns empty. GET does not mint a session.
+- Area functionality gained ePartsCart product-line isolation (`Acme Brakes` / `/en/acme/lines` stay off the Beta Town `/ar/beta-engine` grid).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Creek` (4). Creek + area **6 / 6**. Last full suite after Foam **6344 / 6344**; Creek suite pending while leftovers continue. Content mentioned 597 to 598 of 952. Unnamed PHP functions 6,035 to 6,034. Ready ≤200-line non-ERP functions 47 to 46. The weighted headline stays about 20.4%. Non-ERP pending: 254 files / 132,741 lines (was 255 / 132,822). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-11 — plan Q1-firth (Electronicae home product lines)
 
 Not complete.
