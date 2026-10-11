@@ -158,6 +158,27 @@ public sealed class SurfaceChromePolicyTests
         Assert.Contains(cpOnly, i => i.Key == "orders");
     }
 
+    [Fact]
+    public void TenantCpCommandCentre_StaysOnCpSurface()
+    {
+        var src = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor"));
+        Assert.Contains("ForCpSurface(includeErp: false)", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildErpWorkspaceHomeAsync", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("ForCpSurface(_showErp)", src, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CpMenus_DoNotRepeatFirstItemViaHubLink()
+    {
+        var super = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpCommandCentre.razor"));
+        var tenant = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpDesktopChrome.razor"));
+        Assert.DoesNotContain("epc-boc__topnav-panel-hub", super, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-cp-topnav-panel-hub", tenant, StringComparison.Ordinal);
+    }
+
     private static string PathOnly(string href)
     {
         var key = TopMenuLinks.DestinationKey(href);

@@ -242,7 +242,6 @@ else
                     var itemClass = "epc-cp-topnav-item";
                     if (GroupIsActive(group)) { itemClass += " is-active"; }
                     if (group.IsAdvanced) { itemClass += " epc-cp-topnav-item--advanced"; }
-                    var firstHref = CpNavTree.AspNetHref(group.Items[0].Url);
                     <li class="@itemClass" data-group="@group.Key" role="none">
                         <button type="button"
                                 class="epc-cp-topnav-btn"
@@ -264,7 +263,6 @@ else
                                         <span class="epc-cp-topnav-panel-sub">@group.Subtitle</span>
                                     }
                                 </div>
-                                <a class="epc-cp-topnav-panel-hub" href="@firstHref">Open first <i class="fa fa-arrow-right"></i></a>
                             </div>
                             <div class="epc-cp-topnav-cols">
                                 @foreach (var col in CpNavTree.Chunk(group.Items))

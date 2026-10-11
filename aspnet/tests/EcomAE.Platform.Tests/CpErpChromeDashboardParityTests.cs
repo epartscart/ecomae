@@ -57,10 +57,11 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.DoesNotContain("Admin users", src);
         Assert.DoesNotContain("Portal tenants", src);
         Assert.Contains("PhpHybridModuleDirectory", src);
-        Assert.Contains("epc-insights--cp", src);
+        Assert.DoesNotContain("epc-insights--cp", src);
         Assert.Contains("Unread VIN / parts requests", src);
         Assert.Contains("Open returns", src);
-        Assert.Contains("Finance pulse (MTD)", src);
+        Assert.DoesNotContain("Finance pulse (MTD)", src);
+        Assert.DoesNotContain("BuildErpWorkspaceHomeAsync", src);
         Assert.Contains("id=\"cpDashOrdersChart\"", src);
         Assert.Contains("cp-dash-more", src);
         Assert.Contains("More tools", src);

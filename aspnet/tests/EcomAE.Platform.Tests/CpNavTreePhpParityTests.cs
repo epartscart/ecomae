@@ -343,7 +343,7 @@ public sealed class CpNavTreePhpParityTests
         Assert.Contains("CpNavTree.Chunk(group.Items)", src);
         Assert.Contains("CpNavTree.AspNetHref(link.Url)", src);
         Assert.DoesNotContain("PhpSurfaceLinkMap.AspNetPrimaryHref(link.Url)", src);
-        Assert.Contains("epc-cp-topnav-panel-hub", src);
+        Assert.DoesNotContain("epc-cp-topnav-panel-hub", src);
         Assert.DoesNotContain("LegacyDesktopChromeCatalog.ControlPanelTopnav", src);
         Assert.DoesNotContain("QuickAction", src);
     }
