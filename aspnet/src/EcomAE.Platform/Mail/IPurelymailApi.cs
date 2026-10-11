@@ -15,6 +15,7 @@ public interface IPurelymailApi
     Task<PurelymailCallResult> CreateUserAsync(string address, string password, CancellationToken cancellationToken);
     Task<PurelymailCallResult> ListUsersAsync(CancellationToken cancellationToken);
     Task<PurelymailCallResult> DeleteUserAsync(string address, CancellationToken cancellationToken);
+    Task<PurelymailCallResult> CreateRoutingRuleAsync(string domain, string matchUser, string target, CancellationToken cancellationToken);
 }
 
 public sealed class PurelymailHttpApi : IPurelymailApi
@@ -50,13 +51,25 @@ public sealed class PurelymailHttpApi : IPurelymailApi
         => PostAsync("updateDomainSettings", new { name = PlatformMailNormalize.Domain(domain), recheckDns = true }, cancellationToken);
 
     public Task<PurelymailCallResult> CreateUserAsync(string address, string password, CancellationToken cancellationToken)
-        => PostAsync("createUser", new { userName = address.Trim().ToLowerInvariant(), newPassword = password }, cancellationToken);
+    {
+        var (local, domain) = PlatformMailNormalize.SplitAddress(address);
+        return PostAsync("createUser", new { userName = local, domainName = domain, password }, cancellationToken);
+    }
 
     public Task<PurelymailCallResult> ListUsersAsync(CancellationToken cancellationToken)
         => PostAsync("listUser", new { }, cancellationToken);
 
     public Task<PurelymailCallResult> DeleteUserAsync(string address, CancellationToken cancellationToken)
         => PostAsync("deleteUser", new { userName = address.Trim().ToLowerInvariant() }, cancellationToken);
+
+    public Task<PurelymailCallResult> CreateRoutingRuleAsync(string domain, string matchUser, string target, CancellationToken cancellationToken)
+        => PostAsync("createRoutingRule", new
+        {
+            domainName = PlatformMailNormalize.Domain(domain),
+            prefix = false,
+            matchUser = (matchUser ?? string.Empty).Trim().ToLowerInvariant(),
+            targetAddresses = new[] { target.Trim().ToLowerInvariant() }
+        }, cancellationToken);
 
     private async Task<PurelymailCallResult> PostAsync(string endpoint, object body, CancellationToken cancellationToken)
     {
@@ -211,5 +224,11 @@ public sealed class InMemoryPurelymailApi : IPurelymailApi
         Calls.Add("deleteUser:" + user);
         Users.RemoveAll(u => string.Equals(u, user, StringComparison.OrdinalIgnoreCase));
         return Task.FromResult(PurelymailCallResult.Success("Mailbox deleted."));
+    }
+
+    public Task<PurelymailCallResult> CreateRoutingRuleAsync(string domain, string matchUser, string target, CancellationToken cancellationToken)
+    {
+        Calls.Add("createRoutingRule:" + PlatformMailNormalize.Domain(domain) + ":" + matchUser + "->" + target);
+        return Task.FromResult(PurelymailCallResult.Success("Routing rule created."));
     }
 }

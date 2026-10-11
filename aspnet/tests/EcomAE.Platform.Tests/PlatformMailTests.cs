@@ -35,6 +35,7 @@ public class PlatformMailTests
         Assert.Contains("value=\"true\"", super);
         Assert.Contains("yawer@ecomae.com", super);
         Assert.Contains("setup_tenants", super);
+        Assert.Contains("setup_business", super);
         Assert.Contains("register_login", super);
         Assert.Contains("SuperCpHostGate.IsAllowed", super);
         Assert.Contains("type=\"password\"", super);
@@ -159,6 +160,24 @@ public class PlatformMailTests
     }
 
     [Fact]
+    public async Task Setup_business_creates_standard_locals_and_routes_aliases()
+    {
+        var dir = new PlatformMailDirectory(null, Path.Combine(Path.GetTempPath(), "ecomae-mail-" + Guid.NewGuid().ToString("n") + ".json"));
+        var api = new InMemoryPurelymailApi();
+        var mail = new PlatformMailService(dir, api, Options.Create(new PurelymailOptions()));
+        var written = await mail.WriteAsync(new PlatformMailWriteRequest("setup_business", Domain: "ecomae.com", SiteKey: "platform"), CancellationToken.None);
+        Assert.True(written.Succeeded);
+        foreach (var local in PurelymailDns.BusinessLocals)
+        {
+            Assert.NotNull(dir.FindMailbox(local + "@ecomae.com"));
+            Assert.Contains(api.Users, u => string.Equals(u, local + "@ecomae.com", StringComparison.OrdinalIgnoreCase));
+        }
+
+        Assert.Contains(api.Calls, c => c.StartsWith("createRoutingRule:ecomae.com:->info@ecomae.com", StringComparison.Ordinal));
+        Assert.Contains(api.Calls, c => c.Contains("contact->info@ecomae.com", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task Http_api_sends_token_header_and_parses_errors()
     {
         var handler = new StubHandler();
@@ -179,6 +198,18 @@ public class PlatformMailTests
         Assert.False(parsed.Ok);
         Assert.Equal("exists", parsed.Code);
         Assert.Equal("already", parsed.Message);
+
+        handler.Response = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("""{"type":"success","result":{}}""", Encoding.UTF8, "application/json")
+        };
+        var created = await api.CreateUserAsync("info@ecomae.com", "secret-box", CancellationToken.None);
+        Assert.True(created.Ok);
+        Assert.Equal("createUser", handler.LastPath);
+        Assert.Contains("\"userName\":\"info\"", handler.LastBody, StringComparison.Ordinal);
+        Assert.Contains("\"domainName\":\"ecomae.com\"", handler.LastBody, StringComparison.Ordinal);
+        Assert.Contains("\"password\":\"secret-box\"", handler.LastBody, StringComparison.Ordinal);
+        Assert.DoesNotContain("newPassword", handler.LastBody, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -216,12 +247,14 @@ public class PlatformMailTests
         public HttpResponseMessage Response { get; set; } = new(HttpStatusCode.OK);
         public string? LastPath { get; private set; }
         public string? LastToken { get; private set; }
+        public string? LastBody { get; private set; }
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             LastPath = request.RequestUri?.ToString().TrimEnd('/').Split('/').Last();
             LastToken = request.Headers.TryGetValues(PurelymailDns.ApiTokenHeader, out var values) ? values.FirstOrDefault() : null;
-            return Task.FromResult(Response);
+            LastBody = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
+            return Response;
         }
     }
 

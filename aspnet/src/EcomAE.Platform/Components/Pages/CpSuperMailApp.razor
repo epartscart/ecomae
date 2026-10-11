@@ -169,6 +169,23 @@ else
             <div class="col-md-6">
                 <form method="post" action="/cp/super-mail/write" class="well">
                     <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="setup_business" />
+                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                    <div class="form-group">
+                        <label>Create standard business mailboxes</label>
+                        <input type="text" class="form-control" name="domain" value="ecomae.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>site_key</label>
+                        <input type="text" class="form-control" name="site_key" value="platform" />
+                    </div>
+                    <p class="text-muted">Creates info, hello, support, sales, accounts, orders, billing plus contact/office/admin/noreply routing to info at that domain.</p>
+                    <button type="submit" class="btn btn-primary">Create business mailboxes</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form method="post" action="/cp/super-mail/write" class="well">
+                    <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="action" value="register_login" />
                     <input type="hidden" name="returnUrl" value="@_returnUrl" />
                     <div class="form-group">

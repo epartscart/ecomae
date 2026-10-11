@@ -32,6 +32,17 @@ public static class PurelymailDns
     public const string FirstMailbox = "yawer@ecomae.com";
     public const string FirstDomain = "ecomae.com";
     public const string PlatformSiteKey = "platform";
+    public const string OwnershipTxtPrefix = "purelymail_ownership_proof=";
+
+    public static readonly IReadOnlyList<string> BusinessLocals =
+    [
+        "info", "hello", "support", "sales", "accounts", "orders", "billing"
+    ];
+
+    public static readonly IReadOnlyList<string> AliasLocals =
+    [
+        "contact", "office", "admin", "noreply"
+    ];
 
     public static readonly IReadOnlyList<(string Host, string Target, string Kind, string Hint)> Records =
     [

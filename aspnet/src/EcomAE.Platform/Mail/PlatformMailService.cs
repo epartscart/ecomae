@@ -53,6 +53,7 @@ public sealed class PlatformMailService : IPlatformMailService
             "create_mailbox" => await CreateMailboxAsync(request, cancellationToken).ConfigureAwait(false),
             "set_mailbox_password" => SetMailboxPassword(request),
             "setup_tenants" => await SetupTenantsAsync(request, cancellationToken).ConfigureAwait(false),
+            "setup_business" => await SetupBusinessAsync(request, cancellationToken).ConfigureAwait(false),
             "register_login" => await RegisterLoginAsync(request, cancellationToken).ConfigureAwait(false),
             "delete_mailbox" => await DeleteMailboxAsync(request, cancellationToken).ConfigureAwait(false),
             _ => new PlatformMailWriteResult(false, 0, "unknown_action", "Unknown platform mail action."),
@@ -267,6 +268,60 @@ public sealed class PlatformMailService : IPlatformMailService
             added == 0
                 ? "Every tenant domain is already on the platform mail directory."
                 : "Added " + added.ToString(System.Globalization.CultureInfo.InvariantCulture) + " tenant domain(s). Publish DNS, then create each login mailbox.");
+    }
+
+    private async Task<PlatformMailWriteResult> SetupBusinessAsync(PlatformMailWriteRequest request, CancellationToken cancellationToken)
+    {
+        var domain = PlatformMailNormalize.Domain(string.IsNullOrWhiteSpace(request.Domain) ? PurelymailDns.FirstDomain : request.Domain);
+        var siteKey = PlatformMailNormalize.SiteKey(request.SiteKey, superCpHost: true, requestHost: domain);
+        if (_directory.FindDomain(domain) is null)
+        {
+            _directory.UpsertDomain(new PlatformMailDomain(domain, siteKey, DateTimeOffset.UtcNow, FirstPlatform: string.Equals(domain, PurelymailDns.FirstDomain, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        var created = 0;
+        var writes = 0;
+        foreach (var local in PurelymailDns.BusinessLocals)
+        {
+            var address = PlatformMailNormalize.Address(local, domain);
+            var password = string.IsNullOrWhiteSpace(request.Password)
+                ? PlatformMailSecrets.NewMailboxPassword()
+                : request.Password;
+            var result = await CreateMailboxAsync(
+                new PlatformMailWriteRequest("create_mailbox", Domain: domain, SiteKey: siteKey, LocalPart: local, Address: address, Password: password),
+                cancellationToken).ConfigureAwait(false);
+            writes += result.Writes;
+            if (result.Succeeded)
+            {
+                created++;
+            }
+        }
+
+        var info = PlatformMailNormalize.Address("info", domain);
+        var routed = 0;
+        foreach (var alias in PurelymailDns.AliasLocals.Append(""))
+        {
+            var rule = await _api.CreateRoutingRuleAsync(domain, alias, info, cancellationToken).ConfigureAwait(false);
+            writes++;
+            if (rule.Ok)
+            {
+                routed++;
+            }
+        }
+
+        return new PlatformMailWriteResult(
+            true,
+            writes,
+            "ok",
+            "Business mailboxes ready on "
+            + domain
+            + ": "
+            + created.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            + " boxes, "
+            + routed.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            + " routing aliases to info@"
+            + domain
+            + ".");
     }
 
     private async Task<PlatformMailWriteResult> RegisterLoginAsync(PlatformMailWriteRequest request, CancellationToken cancellationToken)
