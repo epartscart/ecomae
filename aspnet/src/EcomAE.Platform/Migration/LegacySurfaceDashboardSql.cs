@@ -1449,7 +1449,8 @@ public static class LegacySurfaceDashboardSql
     public const string SelectErpSalesOrders = """
         SELECT `id`, IFNULL(`so_no`, '') AS so_no, IFNULL(`customer_user_id`, 0) AS customer_user_id,
                IFNULL(`total_amount`, 0) AS total_amount, IFNULL(`status`, '') AS status,
-               IFNULL(`time_created`, 0) AS time_created
+               IFNULL(`time_created`, 0) AS time_created,
+               IFNULL(`vat_amount`, 0) AS vat_amount, IFNULL(`sales_invoice_id`, 0) AS sales_invoice_id
         FROM `epc_erp_sales_orders`
         ORDER BY `time_created` DESC, `id` DESC
         LIMIT @limit
@@ -1480,7 +1481,8 @@ public static class LegacySurfaceDashboardSql
     public const string SelectErpSalesOrderStatusSiblings = """
         SELECT `id`, IFNULL(`so_no`, '') AS so_no, IFNULL(`customer_user_id`, 0) AS customer_user_id,
                IFNULL(`total_amount`, 0) AS total_amount, IFNULL(`status`, '') AS status,
-               IFNULL(`time_created`, 0) AS time_created
+               IFNULL(`time_created`, 0) AS time_created,
+               IFNULL(`vat_amount`, 0) AS vat_amount, IFNULL(`sales_invoice_id`, 0) AS sales_invoice_id
         FROM `epc_erp_sales_orders`
         WHERE IFNULL(`status`, '') = @status AND `id` <> @id
         ORDER BY `time_created` DESC, `id` DESC
