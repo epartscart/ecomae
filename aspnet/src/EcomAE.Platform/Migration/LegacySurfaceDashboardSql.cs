@@ -1158,7 +1158,8 @@ public static class LegacySurfaceDashboardSql
     public const string SelectErpInvoices = """
         SELECT d.`id`, IFNULL(d.`invoice_number`, '') AS invoice_number, d.`order_id`, d.`user_id`,
                IFNULL(u.`email`, '') AS customer_email, d.`issue_date`,
-               IFNULL(d.`status`, '') AS status, IFNULL(d.`total_incl_vat`, 0) AS total_incl_vat
+               IFNULL(d.`status`, '') AS status, IFNULL(d.`total_incl_vat`, 0) AS total_incl_vat,
+               IFNULL(d.`paid_amount`, 0) AS paid_amount, IFNULL(d.`amount_due`, 0) AS amount_due
         FROM `epc_einvoice_documents` d
         LEFT JOIN `users` u ON u.`user_id` = d.`user_id`
         WHERE d.`active` = 1
@@ -1201,7 +1202,8 @@ public static class LegacySurfaceDashboardSql
     public const string SelectErpInvoiceStatusSiblings = """
         SELECT d.`id`, IFNULL(d.`invoice_number`, '') AS invoice_number, d.`order_id`, d.`user_id`,
                IFNULL(u.`email`, '') AS customer_email, d.`issue_date`,
-               IFNULL(d.`status`, '') AS status, IFNULL(d.`total_incl_vat`, 0) AS total_incl_vat
+               IFNULL(d.`status`, '') AS status, IFNULL(d.`total_incl_vat`, 0) AS total_incl_vat,
+               IFNULL(d.`paid_amount`, 0) AS paid_amount, IFNULL(d.`amount_due`, 0) AS amount_due
         FROM `epc_einvoice_documents` d
         LEFT JOIN `users` u ON u.`user_id` = d.`user_id`
         WHERE IFNULL(d.`status`, '') = @status AND d.`id` <> @id
