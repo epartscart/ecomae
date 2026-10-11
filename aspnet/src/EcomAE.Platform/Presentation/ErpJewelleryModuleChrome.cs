@@ -79,7 +79,7 @@ public static class ErpJewelleryModuleChrome
         ["Date", "Gold 24K", "Gold 22K", "Gold 18K", "Silver", "Change"];
 
     public static readonly IReadOnlyList<string> TagColumns =
-        ["TAG #", "Item description", "Category", "Karat", "Gross wt", "Net wt", "Stone wt", "Cost", "Location", "Status"];
+        ["No.", "TAG #", "Barcode", "Item Type", "Karat", "Net wt", "Sell price", "Location", "Status"];
 
     public static readonly IReadOnlyList<string> FixingColumns =
         ["No.", "Fix No", "Fix Date", "Ref Voc", "Party Code", "Metal", "Fixed Rate", "Net Wt", "Amount", "Status"];
