@@ -383,6 +383,14 @@ Not complete.
 - 273 ASP.NET stamps under `/var/www/ecomae-aspnet/releases` are **24G**. Live `current` is `20261010085717`. `scripts/cloudpanel_prune_aspnet_releases.sh` dry-runs and, with `CONFIRM=I_HAVE_READ_THE_LIST`, deletes only older stamps. It refuses a missing current or a non-200 `/health`.
 - Do not prune the ten running PHP-FPM versions. Do not delete `/opt/ecomae-aspnet-source`, `/home/ecomae/htdocs`, or `/home/mysql`. Journal / syslog (~2.6G) and CloudPanel snapshots (1.5G) are second cuts.
 
+### Checkpoint 2026-10-11 — plan Q1-hive (public platform marketing pages)
+
+Not complete.
+
+- Ratchet 408 to 407. One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Hive` `content/general_pages/epc_ecomae_platform_pages.php` (`epc_ecomae_platform_get_industry_groups`, `epc_ecomae_platform_render_page`, `epc_ecomae_platform_render_inner`, `epc_ecomae_platform_page_home`, `epc_ecomae_platform_ecosystem_model_section`, `epc_ecomae_platform_page_platform`, `epc_ecomae_platform_page_industries`, `scoreText`, `filterSubs`, `epc_ecomae_platform_page_industry`, `epc_ecomae_platform_page_pricing`, `epc_ecomae_platform_page_demo`, `epc_ecomae_platform_page_contact`, `epc_ecomae_platform_page_about`, `epc_ecomae_platform_page_platform_guides`, `epc_ecomae_platform_page_capabilities`, `epc_ecomae_platform_page_business_continuity`, `epc_ecomae_platform_page_customer_results`, `epc_ecomae_platform_page_auto_price_ai`, `epc_ecomae_platform_page_faq`, `epc_ecomae_platform_page_api_documentation`, `epc_ecomae_platform_page_api_services`; empty / gates / live / tenant isolation). Contact POST flash, Super CP `backend_dir` isolation, and about links stay on `https://www.ecomae.com/`. Home / platform / industries / demo compose leftover parents and stay injected. GET never mints a session. Leftover unique portal / platform-data parents stay unnamed.
+- Area functionality: contact Super CP href uses `acme-cp` vs `beta-cp`; about never follows a tenant host.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Hive` (4). Hive + area **5 / 5**. Last full suite after Foam **6344 / 6344**. The weighted headline stays about 20.4%. ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-11 — plan Q1-hill (public Free Tools catalog and page)
 
 Not complete.

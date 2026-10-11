@@ -2566,6 +2566,26 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.Equal("content/general_pages/epc_ecomae_free_tools.php", PhpPlanQ1Hill.FreeToolsPath);
     }
 
+    [Fact]
+    public void PlatformMarketingPages_ContactStaysOnEcomaeAndSuperCpUsesBackendDir()
+    {
+        PhpPlanQ1Hive.Reset();
+        PhpPlanQ1Hive.BackendDir = "acme-cp";
+        var acme = PhpPlanQ1Hive.EpcEcomaePlatformPageContact();
+        var about = PhpPlanQ1Hive.EpcEcomaePlatformPageAbout();
+        PhpPlanQ1Hive.BackendDir = "beta-cp";
+        var beta = PhpPlanQ1Hive.EpcEcomaePlatformPageContact();
+        Assert.Contains("https://www.ecomae.com/acme-cp", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("https://www.ecomae.com/beta-cp", acme, StringComparison.Ordinal);
+        Assert.Contains("https://www.ecomae.com/beta-cp", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("https://www.ecomae.com/acme-cp", beta, StringComparison.Ordinal);
+        Assert.Contains("https://www.ecomae.com/platform/contact", about, StringComparison.Ordinal);
+        Assert.DoesNotContain("acme.example", about, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Hive.PlatformPagesPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Hive.PlatformPagesPath, StringComparison.Ordinal);
+        Assert.Equal("content/general_pages/epc_ecomae_platform_pages.php", PhpPlanQ1Hive.PlatformPagesPath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2673,6 +2693,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Hunt.TenantEmailSettingsPath,
             PhpPlanQ1Hike.CustomerBoardPath,
             PhpPlanQ1Hill.FreeToolsPath,
+            PhpPlanQ1Hive.PlatformPagesPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
