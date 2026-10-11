@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Delta (`--max-gap 420` passed; current gap **419**).
+after PlanQ1Eddy (`--max-gap 419` passed; current gap **418**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 419
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 418
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -26,14 +26,14 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP other | 10 | 3,274 |
 | 3 | CP shop core (orders, catalogue, price upload) | 24 | 12,698 |
 | 3 | CP shop smaller | 22 | 7,537 |
-| 4 | CP control/portal | 37 | 8,848 |
+| 4 | CP control/portal | 36 | 8,810 |
 | 5 | Marketing/BOS/industries | 67 | 35,874 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **419** | **198,846** |
+| | **Total** | **418** | **198,808** |
 
-- Non-ERP (Cursor): **253 files / 132,655 lines**
+- Non-ERP (Cursor): **252 files / 132,617 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
 - Functions unmentioned: **6,034** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **46**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
@@ -562,7 +562,8 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6bf | `epc_electronicae_home_product_lines.php` | Closed in Firth. |
 | 6bg | `epc_epartscart_home_product_lines.php` | Closed in Creek. |
 | 6bh | `epc_epartscart_home_new_arrivals.php` | Closed in Delta. |
-| 6bi | `epc_cp_brochure_page.php` | Next (`PhpPlanQ1Eddy`). Path 38/0 unique. Leftover unique Super-CP host check and leftover full-brochure render stay injected unnamed. |
+| 6bi | `epc_cp_brochure_page.php` | Closed in Eddy. |
+| 6bj | `epc_boc_channel_control.php` | Next (`PhpPlanQ1Ford`). Path 41/0 unique. Leftover portal parent stays injected. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 

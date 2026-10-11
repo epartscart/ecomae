@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-11 — plan Q1-eddy (in-CP brochure page)
+
+Not complete.
+
+- Ratchet 419 to 418. One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Eddy` `cp/content/control/epc_cp_brochure_page.php` (`epc_cp_full_brochure_render_and_exit`; empty / super / query / tenant isolation; leftover unique Super-CP host check stays unnamed). Tenant CP brand is `epartscart` / `client`; Super-CP brand is `ecomae`. GET `print` is true only for the string `1`. GET does not mint a session.
+- Area functionality gained brochure-page isolation (`/acme/control/cp_brochure` + `epartscart` stay off the Beta Town Super-CP `/beta/control/cp_brochure` + `ecomae` surface).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Eddy` (4). Eddy + area **6 / 6**. Last full suite after Foam **6344 / 6344**; Eddy suite pending while leftovers continue. CP-page mentioned 270 to 271 of 523. Unnamed PHP functions stay 6,034 (page defines none). Ready ≤200-line non-ERP functions stay 46. The weighted headline stays about 20.4%. Non-ERP pending: 252 files / 132,617 lines (was 253 / 132,655). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-11 — plan Q1-delta (ePartsCart home new arrivals)
 
 Not complete.
