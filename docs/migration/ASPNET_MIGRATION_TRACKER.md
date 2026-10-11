@@ -383,6 +383,14 @@ Not complete.
 - 273 ASP.NET stamps under `/var/www/ecomae-aspnet/releases` are **24G**. Live `current` is `20261010085717`. `scripts/cloudpanel_prune_aspnet_releases.sh` dry-runs and, with `CONFIRM=I_HAVE_READ_THE_LIST`, deletes only older stamps. It refuses a missing current or a non-200 `/health`.
 - Do not prune the ten running PHP-FPM versions. Do not delete `/opt/ecomae-aspnet-source`, `/home/ecomae/htdocs`, or `/home/mysql`. Journal / syslog (~2.6G) and CloudPanel snapshots (1.5G) are second cuts.
 
+### Checkpoint 2026-10-11 — plan Q1-holt (accessories marketplace page)
+
+Not complete.
+
+- Ratchet 405 to 404. One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Holt` `content/general_pages/epc_epartscart_accessories.php` (`esc`, `money`, `getSaved`, `setSaved`, `toggleSaved`, `isSaved`, `updateSavedBar`, `relativeUpdated`, `listingHref`, `listingPhotos`, `browseBackHref`, `clearDetail`, `renderDetail`, `syncUrl`, `readUrl`, `facetList`, `fillVehicleMakes`, `renderFacets`, `renderCards`, `renderPager`, `load`, `saveNotify`, `setView`; empty / page / live / tenant isolation). `/ar` vs `/en` data-lang and listing hrefs stay on that lang href. GET never mints a session. Leftover unique portal / user helper stay unnamed. Parents already closed: Stem, Foam.
+- Area functionality: `/ar` vs `/en` accessories listing URLs do not leak.
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Holt` (4). Holt + area **5 / 5**. Last full suite after Foam **6344 / 6344**; Holt suite **5 / 5**. CP-page mentioned stays 280 of 523. Unnamed PHP functions 5,845 to 5,823. Ready ≤200-line non-ERP functions stay 46. The weighted headline stays about 20.4%. Non-ERP pending: 238 files / 122,778 lines (was 239 / 123,615). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-11 — plan Q1-hind (EParts Mod catalog page)
 
 Not complete.

@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Hind (`--max-gap 406` passed; current gap **405**).
+after PlanQ1Holt (`--max-gap 405` passed; current gap **404**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 405
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 404
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 24 | 12,698 |
 | 3 | CP shop smaller | 22 | 7,537 |
 | 4 | CP control/portal | 27 | 8,097 |
-| 5 | Marketing/BOS/industries | 63 | 27,585 |
+| 5 | Marketing/BOS/industries | 62 | 26,748 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **405** | **189,806** |
+| | **Total** | **404** | **188,969** |
 
-- Non-ERP (Cursor): **239 files / 123,615 lines**
+- Non-ERP (Cursor): **238 files / 122,778 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **5,845** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **46**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **5,823** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **46**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -575,7 +575,8 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6bs | `epc_ecomae_platform_pages.php` | Closed in Hive. Public marketing page renderers (1,911 lines): contact / about / API docs / API services goldens, render_inner dispatcher, industry-not-found, ecosystem section, industries `scoreText` / `filterSubs`. Home / platform / industries / demo compose leftover parents and stay injected. GET never mints a session. Leftover unique portal / platform-data parents stay unnamed. Do not name `epc_ecomae_h`. |
 | 6bt | `epc_cata_config.php` | Closed in Hint. Unified CATA config library (2,144 lines / 66 functions). Providers, aliases, VIN/slug/sanitize, default 26-group tree, storefront href/resolve, enabled-for-request host isolation, presentation/js light. DB ensure/import/legacy counts return empty/false without PDO. GET never mints a session. Leftover unique portal / user helper stay unnamed. Auto-parts site is injected; ePartsCart host uses Dock. `StorefrontTinyPages` closed only sibling `epc_cata_bridge.php`. |
 | 6bu | `eparts_mod_catalog.php` | Closed in Hind. EParts Mod catalog page (1,039 lines / 43 JS functions). Host gate, chrome, helper ports of `text`/`esc`/`apiItems`/`partSearchUrl`/`productDetailUrl`/`filterRowsBySubcategory`/`categoriesWithSubcategories`/`shopUrlFor`/`subscriptionMessage`. `/en` vs `/ar` cart/contacts isolation. GET never mints a session. Leftover unique portal / user helper stay unnamed. Parents already closed: Spar, Hint, Dock, TinyPages. |
-| 6bv | unique leftover after Hind | Next unused class after Hind (Holt). Prefer next biggest unblocked file. Skip search/APE/`printProducts*`/`*_h` and CP `product.php` (basename collision + leftover user helper). |
+| 6bv | `epc_epartscart_accessories.php` | Closed in Holt. Storefront accessories marketplace page (837 lines / 23 JS functions). Chrome, `esc`/`money`/`listingHref`/`listingPhotos`/`browseBackHref`/`relativeUpdated`/`getSaved`/`setSaved`/`toggleSaved`/`isSaved`/`updateSavedBar`/`facetList`/`fillVehicleMakes`/`renderFacets`/`renderCards`/`renderPager`/`load`/`saveNotify`/`setView`/`syncUrl`/`readUrl`/`clearDetail`/`renderDetail`. `/en` vs `/ar` listing href isolation. GET never mints a session. Leftover unique portal / user helper stay unnamed. Parents already closed: Stem, Foam. |
+| 6bw | unique leftover after Holt | Next unused class after Holt (Hood). Prefer next biggest unblocked file. Skip search/APE/`printProducts*`/`*_h` and CP `product.php` (basename collision + leftover user helper). |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 
