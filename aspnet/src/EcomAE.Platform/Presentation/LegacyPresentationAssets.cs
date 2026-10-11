@@ -40,7 +40,7 @@ public static class LegacyPresentationAssets
         // (Super CP + Tenant CP). /platform-assets survives PHP pause.
         "/platform-assets/epc_cp_aspnet_module_parity.css?v=20260811scp",
         "/content/general_pages/epc_cp_aspnet_module_parity_css.php",
-        "/css/epc-enterprise-design-system.css?v=20260930visual"
+        "/platform-assets/css/epc-enterprise-design-system.css?v=20260930visual"
     ];
 
     /// <summary>
@@ -101,9 +101,9 @@ public static class LegacyPresentationAssets
         // /platform-assets survives PHP pause on Super / Tenant / ERP-only hosts.
         "/platform-assets/epc_erp_aspnet_module_parity.css?v=20260909clip",
         "/content/shop/finance/epc_erp_aspnet_module_parity_css.php",
-        "/css/epc-enterprise-design-system.css?v=20260930visual",
-        "/erp-document-workspace.css?v=20260929workspace",
-        "/erp-finance-voucher-workspace.css?v=20260929finance"
+        "/platform-assets/css/epc-enterprise-design-system.css?v=20260930visual",
+        "/platform-assets/css/erp-document-workspace.css?v=20260929workspace",
+        "/platform-assets/css/erp-finance-voucher-workspace.css?v=20260929finance"
     ];
 
     public static readonly IReadOnlyList<string> BosStylesheets =
