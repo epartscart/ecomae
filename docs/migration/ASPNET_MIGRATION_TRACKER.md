@@ -236,7 +236,7 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - `cp/content/shop/order_process` (20 files): done on the `/cp/orders` workspace (`order_card.php`, `orders_items.php` add/edit/reload, detail pane, fulfilment/OMS/WhatsApp guides, `epc_order_whatsapp_share.php`). OMS write ajax stay unmapped (ERP lock).
    - `cp/content/shop/catalogue/product.php` and its includes: done on `/cp/product-catalogue-app`. Multipart image bytes stay Classic.
    - `cp/content/shop/prices_upload` page bodies: done on `/cp/prices-upload-app` (`upload_file.php`, `price_review.php`, the download manager, update history, multivendor and commerce upload). These reuse the existing price importer.
-   - Smaller sets: logistics, crosses, data transfer, document control, channels, marketing, tenant hub, POS, payments, demand countries, manufacturer synonyms, eparts catalogue and mod, accessories, statistics.
+   - Smaller sets: done on the existing CP desks (logistics, crosses, data transfer, document control, channels, marketing, tenant hub, POS, payments, demand countries, manufacturer synonyms, eparts catalogue and mod, accessories, statistics).
    - `cp/content/users`, `cp/content/lang`, `cp/content/packs_control`, the file manager, `cp/content/requests`, the content structure dumps.
    - The CP plugins `2fa` and `authentication`; CP modules (bread crumbs, left menu, SSL check, logout).
 4. **Control Panel control and portal.**

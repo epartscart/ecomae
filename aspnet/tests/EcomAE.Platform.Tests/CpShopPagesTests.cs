@@ -42,6 +42,10 @@ public sealed class CpShopPagesTests
         var orders = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpOrdersApp.razor"));
         Assert.Contains("CpOrderProcessPages.OrderCardPath", orders, StringComparison.Ordinal);
         Assert.Contains("CpOrderProcessPages.WhatsappGuideHref", orders, StringComparison.Ordinal);
+        Assert.Equal("cp/content/shop/logistics/logistics.php", CpShopDeskPages.LogisticsPath);
+        Assert.Equal("cp/content/shop/crosses/crosses.php", CpShopDeskPages.CrossesPath);
+        Assert.Equal("/cp/crosses-app", CpShopDeskPages.CrossesHref);
+        Assert.Equal("cp/content/shop/marketing/marketing_main.php", CpShopDeskPages.MarketingMainPath);
     }
 
     private static string Find(string relative)
