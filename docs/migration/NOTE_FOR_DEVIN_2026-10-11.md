@@ -11,17 +11,17 @@ ERP acceptance is still **0 / 15**. The weighted headline is still about **20.4%
 
 ## What Cursor did since 9 Oct
 
-Cursor ran leftover non-ERP twins on `cursor/small-gaps-storefront-done-5dbd` (stacked leftover queue). Latest measured inventory after PlanQ1Hope (`41a523534`):
+Cursor ran leftover non-ERP twins on `cursor/small-gaps-storefront-done-5dbd` (stacked leftover queue). Latest measured inventory after PlanQ1Horn (`9eedbe08c`):
 
 | | Files | Lines |
 |---|---:|---:|
-| Non-ERP still open (Cursor) | **247** | **132,403** |
+| Non-ERP still open (Cursor) | **246** | **132,337** |
 | ERP finance still open (Devin) | **166** | **66,191** |
-| Total PHP gap | **413** | **198,594** |
+| Total PHP gap | **412** | **198,528** |
 
-Unmentioned functions: **6,032** of 9,870. Ready ≤200-line non-ERP rows: 46, mostly Q2/Q3 (catalogue list, APE, `*_h` guides). Cursor is not closing those by mention-only.
+Unmentioned functions: **6,031** of 9,870. Ready ≤200-line non-ERP rows: 46, mostly Q2/Q3 (catalogue list, APE, `*_h` guides). Cursor is not closing those by mention-only.
 
-**No file under `aspnet/src/EcomAE.Platform/Erp/` was edited on this leftover stream.** Finance PHP was not edited. Do not treat leftover BOC wrappers (channel / command-center / vendor / warehouse) as ERP process work. They are Super-CP shells; the finance collectors stay yours.
+**No file under `aspnet/src/EcomAE.Platform/Erp/` was edited on this leftover stream.** Finance PHP was not edited. Do not treat leftover BOC wrappers (channel / command-center / vendor / warehouse / audit-log) as ERP process work. They are Super-CP shells; the finance collectors stay yours.
 
 Production-like local counts after Cursor leftovers: `docpart.users` 2, `ecomae.users` 2, leftover `ecomae_cpw_%` = 0. Keep that.
 

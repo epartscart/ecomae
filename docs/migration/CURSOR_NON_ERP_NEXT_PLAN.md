@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Hope (`--max-gap 415` passed; current gap **413**).
+after PlanQ1Horn (`--max-gap 413` passed; current gap **412**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 413
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 412
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -26,16 +26,16 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP other | 10 | 3,274 |
 | 3 | CP shop core (orders, catalogue, price upload) | 24 | 12,698 |
 | 3 | CP shop smaller | 22 | 7,537 |
-| 4 | CP control/portal | 31 | 8,596 |
+| 4 | CP control/portal | 30 | 8,530 |
 | 5 | Marketing/BOS/industries | 67 | 35,874 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **413** | **198,594** |
+| | **Total** | **412** | **198,528** |
 
-- Non-ERP (Cursor): **247 files / 132,403 lines**
+- Non-ERP (Cursor): **246 files / 132,337 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,032** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **46**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **6,031** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **46**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
@@ -567,7 +567,8 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6bk | `epc_boc_channel_control.php` | Closed in Gill. Leftover unique portal, leftover unique console parent, leftover unique user helper, and Super-CP host stay injected unnamed. |
 | 6bl | `epc_boc_command_center.php` | Closed in Holm. Leftover unique portal, leftover unique console parent, leftover unique user helper, leftover hub helpers, Super-CP host, and the command-center body stay injected unnamed. |
 | 6bm | `epc_boc_vendor_control.php` + `epc_boc_warehouse_control.php` | Closed together in Hope (fastest pair). Same Super-CP / admin / PDO wrapper; leftover unique console parent stays injected unnamed. |
-| 6bn | `epc_boc_audit_log.php` | Next (`PhpPlanQ1Horn`). Unique small Super-CP page; leftover unique console parent stays injected unnamed. |
+| 6bn | `epc_boc_audit_log.php` | Closed in Horn. Super-CP / admin / PDO gates, GET area sanitize, table render; leftover unique portal, leftover unique kernel parent, leftover unique user helper, and Super-CP host stay injected unnamed. |
+| 6bo | `epc_mobile_apps.php` | Next (`PhpPlanQ1Howe`). Unique small CP portal page after the Super-CP wrapper cluster. |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 

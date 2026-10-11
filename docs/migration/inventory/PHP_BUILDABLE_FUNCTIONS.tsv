@@ -324,7 +324,6 @@ epc_boc_render_top_nav	EpcBocRenderTopNav	content/general_pages/epc_boc_console.
 epc_boc_area_path_resolvable	EpcBocAreaPathResolvable	content/general_pages/epc_boc_kernel.php	php	609	mentioned	partial-file
 epc_boc_area_perm	EpcBocAreaPerm	content/general_pages/epc_boc_kernel.php	php	609	mentioned	partial-file
 epc_boc_audit_ensure_schema	EpcBocAuditEnsureSchema	content/general_pages/epc_boc_kernel.php	php	609	mentioned	partial-file
-epc_boc_brand	EpcBocBrand	content/general_pages/epc_boc_kernel.php	php	609	mentioned	partial-file
 epc_boc_can	EpcBocCan	content/general_pages/epc_boc_kernel.php	php	609	mentioned	partial-file
 epc_boc_fleet	EpcBocFleet	content/general_pages/epc_boc_kernel.php	php	609	mentioned	partial-file
 epc_boc_fleet_summary	EpcBocFleetSummary	content/general_pages/epc_boc_kernel.php	php	609	mentioned	partial-file
