@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Data.Common;
 
 namespace EcomAE.Platform.Erp;
@@ -811,7 +812,7 @@ internal static class ErpLazySchema
             var count = await ErpDb.LongAsync(c, null,
                 "SELECT COUNT(*) FROM `epc_erp_pm_legal_entities` WHERE `active` = 1",
                 ct).ConfigureAwait(false);
-            if (count > 1)
+            if (count > 1 && DedupedDatabases.TryAdd(c.Database, 0))
             {
                 await DeactivateUnusedRacedDefaultCompaniesAsync(c, ct).ConfigureAwait(false);
             }
@@ -948,7 +949,29 @@ internal static class ErpLazySchema
     /// (PHP epc_erp_active_company_id picks the first active row) and deactivate the others — but only when
     /// no company-scoped table references them, so existing records never become unreachable.
     /// </summary>
+    private static readonly ConcurrentDictionary<string, byte> DedupedDatabases = new(StringComparer.Ordinal);
+
     private static async Task DeactivateUnusedRacedDefaultCompaniesAsync(DbConnection c, CancellationToken ct)
+    {
+        var locked = await ErpDb.LongAsync(c, null,
+            "SELECT COALESCE(GET_LOCK('epc_erp_pm_legal_entities_main', 5), 0)", ct).ConfigureAwait(false) == 1;
+        if (!locked)
+        {
+            DedupedDatabases.TryRemove(c.Database, out _);
+            return;
+        }
+
+        try
+        {
+            await DeactivateUnusedRacedDefaultCompaniesLockedAsync(c, ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            await ErpDb.TryExecuteAsync(c, "SELECT RELEASE_LOCK('epc_erp_pm_legal_entities_main')", ct).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task DeactivateUnusedRacedDefaultCompaniesLockedAsync(DbConnection c, CancellationToken ct)
     {
         var ids = new List<long>();
         await using (var command = c.CreateCommand())
@@ -968,27 +991,27 @@ internal static class ErpLazySchema
             return;
         }
 
-        var scopedTables = new List<string>();
+        var scopedTables = new List<(string Table, string Column)>();
         await using (var command = c.CreateCommand())
         {
             command.CommandText =
-                "SELECT `TABLE_NAME` FROM information_schema.COLUMNS" +
-                " WHERE `TABLE_SCHEMA` = DATABASE() AND `COLUMN_NAME` = 'company_id'" +
+                "SELECT `TABLE_NAME`, `COLUMN_NAME` FROM information_schema.COLUMNS" +
+                " WHERE `TABLE_SCHEMA` = DATABASE() AND `COLUMN_NAME` IN ('company_id','legal_entity_id')" +
                 " AND `TABLE_NAME` <> 'epc_erp_pm_legal_entities'";
             await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
             while (await reader.ReadAsync(ct).ConfigureAwait(false))
             {
-                scopedTables.Add(reader.GetString(0));
+                scopedTables.Add((reader.GetString(0), reader.GetString(1)));
             }
         }
 
         foreach (var duplicateId in ids.Skip(1))
         {
             var referenced = false;
-            foreach (var table in scopedTables)
+            foreach (var (table, column) in scopedTables)
             {
                 var rows = await ErpDb.LongAsync(c, null,
-                    "SELECT COUNT(*) FROM `" + table.Replace("`", "``") + "` WHERE `company_id` = @p0",
+                    "SELECT COUNT(*) FROM `" + table.Replace("`", "``") + "` WHERE `" + column + "` = @p0",
                     ct, duplicateId).ConfigureAwait(false);
                 if (rows > 0)
                 {
