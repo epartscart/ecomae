@@ -415,6 +415,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationRegen, HandleUaeTaxLegislationRegenAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationChecklistSet, HandleUaeTaxLegislationChecklistSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPmSave, HandlePmSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpIndustryApply, HandleIndustryApplyAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpIndustryCurrent, HandleIndustryCurrentAsync);
         endpoints.MapPost(EcomAeRoutes.ErpPmBudgetSave, HandlePmBudgetSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPmBudgetLineSave, HandlePmBudgetLineSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPmToggle, HandlePmToggleAsync).DisableAntiforgery();
@@ -23406,6 +23408,89 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleIndustryApplyAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpIndustryApplyWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/app", "Admin ERP capability required for industry setup.");
+        }
+
+        var industry = "";
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            industry = LiveWriteFormBinder.Text(form, "industry", "industry_key");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = ErpPmSaveWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            industry = ErpPmSaveWriteService.JsonText(root, "industry", "industry_key");
+        }
+
+        var blueprint = ErpIndustryApplyWriteService.Blueprint(industry);
+        if (!confirm)
+        {
+            return Results.Ok(new
+            {
+                ok = blueprint is not null,
+                writes = 0,
+                writesBlocked = true,
+                phpAuthoritative = true,
+                validation_code = blueprint is null ? "unknown_industry" : "dry_run",
+                message = blueprint is null ? "Unknown industry: " + industry : "Dry run — industry \"" + blueprint.Label + "\" would seed " + blueprint.Fields.Length + " inventory fields",
+                industries = ErpIndustryApplyWriteService.Catalog.Select(b => new { key = b.Key, label = b.Label, item_type = b.ItemType, default_unit = b.DefaultUnit, track_expiry = b.TrackExpiry, tax_category = b.TaxCategory }),
+                session = SessionPayload(session),
+            });
+        }
+
+        var applied = await writes.ApplyAsync(industry, session.UserId, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/app",
+            applied.Status,
+            applied.Message,
+            new
+            {
+                ok = applied.Status,
+                status = applied.Status,
+                writes = applied.Status ? applied.FieldsSeeded + 6 : 0,
+                phpAuthoritative = false,
+                validation_code = applied.Status ? "ok" : "unknown_industry",
+                message = applied.Message,
+                industry_key = applied.IndustryKey,
+                fields_seeded = applied.FieldsSeeded,
+                item_type = applied.ItemType,
+                default_unit = applied.DefaultUnit,
+                track_expiry = applied.TrackExpiry,
+                tax_category = applied.TaxCategory,
+                session = SessionPayload(session),
+            });
+    }
+
+    private static async Task<IResult> HandleIndustryCurrentAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpIndustryApplyWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Unauthorized();
+        }
+
+        var current = await writes.CurrentAsync(cancellationToken);
+        return Results.Ok(new { ok = true, key = current.Key, label = current.Label, item_type = current.ItemType, default_unit = current.DefaultUnit, track_expiry = current.TrackExpiry, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandlePmBudgetSaveAsync(

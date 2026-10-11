@@ -1072,6 +1072,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpUaeTaxLegislationAskWriteServ
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpUaeTaxLegislationRegenWriteService, EcomAE.Platform.Erp.ErpUaeTaxLegislationRegenWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpUaeTaxLegislationChecklistSetWriteService, EcomAE.Platform.Erp.ErpUaeTaxLegislationChecklistSetWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPmSaveWriteService, EcomAE.Platform.Erp.ErpPmSaveWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpIndustryApplyWriteService, EcomAE.Platform.Erp.ErpIndustryApplyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPmBudgetSaveWriteService, EcomAE.Platform.Erp.ErpPmBudgetSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPmBudgetLineSaveWriteService, EcomAE.Platform.Erp.ErpPmBudgetLineSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPmToggleWriteService, EcomAE.Platform.Erp.ErpPmToggleWriteService>();
