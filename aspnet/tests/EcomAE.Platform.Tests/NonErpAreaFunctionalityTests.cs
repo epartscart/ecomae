@@ -2353,6 +2353,62 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.Equal("cp/content/control/portal/epc_boc_warehouse_control.php", PhpPlanQ1Hope.BocWarehouseControlPath);
     }
 
+    [Fact]
+    public void BocAuditLog_LinksStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Horn.Reset();
+        PhpPlanQ1Horn.IsSuperCp = () => true;
+        PhpPlanQ1Horn.IsAdmin = () => true;
+        PhpPlanQ1Horn.HasPdo = true;
+        PhpPlanQ1Horn.AuditRows = new List<Dictionary<string, object?>>
+        {
+            new(StringComparer.Ordinal)
+            {
+                ["id"] = 1L,
+                ["ts"] = 1700000000L,
+                ["user_id"] = 7,
+                ["actor"] = "Ada",
+                ["area"] = "governance",
+                ["action"] = "toggle",
+                ["target"] = "acme",
+                ["meta"] = "{\"via\":\"test\"}",
+                ["ip"] = "1.2.3.4"
+            },
+            new(StringComparer.Ordinal)
+            {
+                ["id"] = 2L,
+                ["ts"] = 1700000100L,
+                ["user_id"] = 8,
+                ["actor"] = "Bea",
+                ["area"] = "tenant_control",
+                ["action"] = "reveal",
+                ["target"] = "beta",
+                ["meta"] = null,
+                ["ip"] = "10.0.0.1"
+            }
+        };
+        PhpPlanQ1Horn.AreaQuerySet = true;
+        PhpPlanQ1Horn.AreaQuery = "governance";
+        var acme = PhpPlanQ1Horn.EpcBocAuditLogPage();
+        PhpPlanQ1Horn.AreaQuery = "tenant_control";
+        var beta = PhpPlanQ1Horn.EpcBocAuditLogPage();
+        PhpPlanQ1Horn.IsSuperCp = () => false;
+        var denied = PhpPlanQ1Horn.EpcBocAuditLogPage();
+        Assert.Contains("Ada", acme, StringComparison.Ordinal);
+        Assert.Contains("governance", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("Bea", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("tenant_control", acme, StringComparison.Ordinal);
+        Assert.Contains("Bea", beta, StringComparison.Ordinal);
+        Assert.Contains("tenant_control", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("Ada", beta, StringComparison.Ordinal);
+        Assert.Contains("BOC", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("Ada", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("Bea", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Horn.BocAuditLogPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Horn.BocAuditLogPath, StringComparison.Ordinal);
+        Assert.Equal("cp/content/control/portal/epc_boc_audit_log.php", PhpPlanQ1Horn.BocAuditLogPath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2455,6 +2511,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Holm.BocCommandCenterPath,
             PhpPlanQ1Hope.BocVendorControlPath,
             PhpPlanQ1Hope.BocWarehouseControlPath,
+            PhpPlanQ1Horn.BocAuditLogPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
