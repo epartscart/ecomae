@@ -1091,11 +1091,36 @@ internal static class ErpLazySchema
             await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
         }
 
-        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_items` ADD COLUMN `barcode` varchar(128) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
-        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_items` ADD COLUMN `reorder_level` decimal(14,3) NOT NULL DEFAULT 0.000", ct).ConfigureAwait(false);
-        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_movements` ADD COLUMN `serial_no` varchar(128) DEFAULT NULL", ct).ConfigureAwait(false);
-        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_field_defs` ADD COLUMN `field_role` enum('inventory','non_inventory') NOT NULL DEFAULT 'inventory'", ct).ConfigureAwait(false);
-        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_field_defs` ADD COLUMN `source_pack` varchar(64) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "barcode", "varchar(128) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "reorder_level", "decimal(14,3) NOT NULL DEFAULT 0.000", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_movements", "serial_no", "varchar(128) DEFAULT NULL", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_field_defs", "field_role", "enum('inventory','non_inventory') NOT NULL DEFAULT 'inventory'", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_field_defs", "source_pack", "varchar(64) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+
+        var movementEnum = await ErpDb.StringAsync(
+            c, null,
+            "SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_erp_inv_movements' AND COLUMN_NAME = 'movement_type'",
+            ct).ConfigureAwait(false) ?? string.Empty;
+        if (movementEnum.Length > 0 && !movementEnum.Contains("'mfg_issue'", StringComparison.Ordinal))
+        {
+            await ErpDb.TryExecuteAsync(
+                c,
+                "ALTER TABLE `epc_erp_inv_movements` MODIFY COLUMN `movement_type` enum('opening','purchase_in','sale_out','transfer_in','transfer_out','adjustment','return_in','return_out','mfg_issue','mfg_receipt') NOT NULL",
+                ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>Adds a column only when information_schema says it is missing, so steady-state ensures issue no failing DDL.</summary>
+    public static async Task AddColumnIfMissingAsync(DbConnection c, string table, string column, string definition, CancellationToken ct)
+    {
+        var exists = await ErpDb.LongAsync(
+            c, null,
+            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"),
+            ct, table, column).ConfigureAwait(false);
+        if (exists == 0)
+        {
+            await ErpDb.TryExecuteAsync(c, "ALTER TABLE `" + table + "` ADD COLUMN `" + column + "` " + definition, ct).ConfigureAwait(false);
+        }
     }
 
     /// <summary>

@@ -99,7 +99,7 @@ public sealed class ErpFreshTenantAcceptanceFixTests
     [Fact]
     public void Inventory_schema_adds_php_phase8_reorder_level_and_on_hand_read_ensures_it()
     {
-        Assert.Contains("ALTER TABLE `epc_erp_inv_items` ADD COLUMN `reorder_level` decimal(14,3) NOT NULL DEFAULT 0.000", Read("aspnet/src/EcomAE.Platform/Erp/ErpLazySchema.cs"));
+        Assert.Contains("AddColumnIfMissingAsync(c, \"epc_erp_inv_items\", \"reorder_level\", \"decimal(14,3) NOT NULL DEFAULT 0.000\"", Read("aspnet/src/EcomAE.Platform/Erp/ErpLazySchema.cs"));
         var reporter = Read("aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs");
         var ensure = reporter.IndexOf("ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken)", StringComparison.Ordinal);
         var query = reporter.IndexOf("LegacySurfaceDashboardSql.SelectErpInvOnHand", StringComparison.Ordinal);
@@ -259,6 +259,27 @@ public sealed class ErpFreshTenantAcceptanceFixTests
         var pos = Read("aspnet/src/EcomAE.Platform/Components/Pages/CpPosOverviewApp.razor");
         Assert.Contains("session.Capabilities.Contains(\"erp\")", pos);
         Assert.DoesNotContain("session.Capabilities.Contains(\"cp\")", pos);
+    }
+
+    [Theory]
+    [InlineData("Saudi Arabia", "SA")]
+    [InlineData("KSA", "SA")]
+    [InlineData("Oman", "OM")]
+    [InlineData("Qatar", "QA")]
+    [InlineData("United Arab Emirates", "AE")]
+    [InlineData("India", "IN")]
+    [InlineData("gb", "GB")]
+    [InlineData("Atlantis", "")]
+    public void Country_names_resolve_to_iso_for_seller_setup(string name, string expected)
+        => Assert.Equal(expected, EcomAE.Platform.Erp.ErpEinvoiceProfileWriteService.CountryNameToIso(name));
+
+    [Fact]
+    public void Inventory_lazy_schema_guards_alters_and_adds_mfg_movement_types()
+    {
+        var schema = Read("aspnet/src/EcomAE.Platform/Erp/ErpLazySchema.cs");
+        Assert.Contains("AddColumnIfMissingAsync(c, \"epc_erp_inv_items\", \"reorder_level\"", schema);
+        Assert.Contains("'mfg_issue','mfg_receipt'", schema);
+        Assert.DoesNotContain("TryExecuteAsync(c, \"ALTER TABLE `epc_erp_inv_items` ADD COLUMN", schema);
     }
 
     [Fact]

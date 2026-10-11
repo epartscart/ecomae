@@ -442,7 +442,45 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
             return raw.ToUpperInvariant();
         }
 
-        return string.Empty;
+        return CountryNamesByIso.Value.TryGetValue(name, out var iso) ? iso : string.Empty;
+    }
+
+    private static readonly Lazy<Dictionary<string, string>> CountryNamesByIso = new(BuildCountryNameCatalogue);
+
+    private static Dictionary<string, string> BuildCountryNameCatalogue()
+    {
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var culture in System.Globalization.CultureInfo.GetCultures(System.Globalization.CultureTypes.SpecificCultures))
+        {
+            System.Globalization.RegionInfo region;
+            try
+            {
+                region = new System.Globalization.RegionInfo(culture.Name);
+            }
+            catch (ArgumentException)
+            {
+                continue;
+            }
+
+            var iso = region.TwoLetterISORegionName;
+            if (iso.Length != 2 || !char.IsLetter(iso[0]) || !char.IsLetter(iso[1]))
+            {
+                continue;
+            }
+
+            foreach (var label in new[] { region.EnglishName, region.DisplayName, region.NativeName, region.ThreeLetterISORegionName })
+            {
+                var key = (label ?? string.Empty).Trim().ToLowerInvariant();
+                if (key.Length > 0)
+                {
+                    map.TryAdd(key, iso.ToUpperInvariant());
+                }
+            }
+        }
+
+        map.TryAdd("ksa", "SA");
+        map.TryAdd("kingdom of saudi arabia", "SA");
+        return map;
     }
 
     private static string NormalizeRegisteredCountry(string? raw)
