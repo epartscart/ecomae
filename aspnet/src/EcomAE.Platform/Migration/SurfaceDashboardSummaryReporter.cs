@@ -1613,6 +1613,26 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
+            var settlements = new List<ErpInvoiceSettlementRow>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInvoiceSettlements;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    settlements.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "voucher_no"),
+                        ReadI64(reader, "time"),
+                        ReadDec(reader, "amount"),
+                        ReadI32(reader, "is_advance") == 1,
+                        ReadStr(reader, "currency_code"),
+                        ReadStr(reader, "reference"),
+                        ReadStr(reader, "account_name")));
+                }
+            }
+
             return new(header, siblings, "database", string.Empty);
         }
         catch (Exception ex)
@@ -2941,7 +2961,27 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
-            return new(header, siblings, "database", string.Empty);
+            var settlements = new List<ErpInvoiceSettlementRow>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInvoiceSettlements;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    settlements.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "voucher_no"),
+                        ReadI64(reader, "time"),
+                        ReadDec(reader, "amount"),
+                        ReadI32(reader, "is_advance") == 1,
+                        ReadStr(reader, "currency_code"),
+                        ReadStr(reader, "reference"),
+                        ReadStr(reader, "account_name")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty) { Settlements = settlements };
         }
         catch (Exception ex)
         {

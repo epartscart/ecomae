@@ -1211,6 +1211,19 @@ public static class LegacySurfaceDashboardSql
         LIMIT 50
         """;
 
+    /// <summary>Receipts settled against one sales invoice (Open key inv_id).</summary>
+    public const string SelectErpInvoiceSettlements = """
+        SELECT e.`id`, IFNULL(e.`voucher_no`, '') AS voucher_no, e.`time`,
+               IFNULL(e.`amount`, 0) AS amount, IFNULL(e.`is_advance`, 0) AS is_advance,
+               IFNULL(e.`currency_code`, '') AS currency_code,
+               IFNULL(e.`reference`, '') AS reference,
+               IFNULL(a.`name`, '') AS account_name
+        FROM `epc_erp_cash_bank_entries` e
+        LEFT JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = e.`account_id`
+        WHERE e.`sales_invoice_id` = @id AND e.`active` = 1
+        ORDER BY e.`time` DESC, e.`id` DESC
+        """;
+
     public const string SelectErpGlJournals = """
         SELECT j.`id`, IFNULL(j.`journal_no`, '') AS journal_no, j.`journal_date`,
                IFNULL(j.`source_type`, '') AS source_type, IFNULL(j.`source_id`, 0) AS source_id,
