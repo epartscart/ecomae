@@ -726,11 +726,24 @@ public sealed record ErpInvoiceDetail(
     long TimeUpdated,
     long TimeSubmitted);
 
+public sealed record ErpInvoiceSettlementRow(
+    long Id,
+    string VoucherNo,
+    long Time,
+    decimal Amount,
+    bool IsAdvance,
+    string CurrencyCode,
+    string Reference,
+    string AccountName);
+
 public sealed record ErpInvoiceDetailResult(
     ErpInvoiceDetail? Invoice,
     IReadOnlyList<ErpInvoiceDigest> Siblings,
     string Source,
-    string Message);
+    string Message)
+{
+    public IReadOnlyList<ErpInvoiceSettlementRow> Settlements { get; init; } = [];
+}
 
 public sealed record ErpGlJournalDigest(
     long Id,
