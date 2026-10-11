@@ -2039,6 +2039,60 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.Equal("modules/slider/slider.php", PhpPlanQ1Beck.SliderModulePath);
     }
 
+    [Fact]
+    public void ProductLines_TilesStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Firth.Reset();
+        PhpPlanQ1Firth.HasPdo = () => true;
+        PhpPlanQ1Firth.LangHref = () => "/en";
+        PhpPlanQ1Firth.SiteKey = () => "acme";
+        PhpPlanQ1Firth.AllLinesHref = _ => "/acme/lines";
+        PhpPlanQ1Firth.ProductLineTiles = _ => new List<Dictionary<string, object?>>
+        {
+            new(StringComparer.Ordinal)
+            {
+                ["name"] = "Acme Phones",
+                ["href"] = "/acme-phones",
+                ["image"] = "/img/acme-phones.jpg",
+                ["icon"] = "fa-mobile",
+                ["accent"] = "#e10a0a",
+                ["product_count"] = 4,
+                ["trend"] = "hot"
+            }
+        };
+        var acme = PhpPlanQ1Firth.EpcElectronicaeHomeProductLines();
+        PhpPlanQ1Firth.LangHref = () => "/ar";
+        PhpPlanQ1Firth.SiteKey = () => "beta";
+        PhpPlanQ1Firth.AllLinesHref = _ => "/beta/lines";
+        PhpPlanQ1Firth.ProductLineTiles = _ => new List<Dictionary<string, object?>>
+        {
+            new(StringComparer.Ordinal)
+            {
+                ["name"] = "Beta Laptops",
+                ["href"] = "/beta-laptops",
+                ["image"] = "",
+                ["icon"] = "fa-laptop",
+                ["accent"] = "#202124",
+                ["product_count"] = 0,
+                ["trend"] = ""
+            }
+        };
+        var beta = PhpPlanQ1Firth.EpcElectronicaeHomeProductLines();
+        Assert.Contains("Acme Phones", acme, StringComparison.Ordinal);
+        Assert.Contains("/en/acme-phones", acme, StringComparison.Ordinal);
+        Assert.Contains("/en/acme/lines", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("Beta Laptops", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("/beta-laptops", acme, StringComparison.Ordinal);
+        Assert.Contains("Beta Laptops", beta, StringComparison.Ordinal);
+        Assert.Contains("/ar/beta-laptops", beta, StringComparison.Ordinal);
+        Assert.Contains("/ar/beta/lines", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("Acme Phones", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("/acme-phones", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Firth.ElectronicaeHomeProductLinesPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Firth.ElectronicaeHomeProductLinesPath, StringComparison.Ordinal);
+        Assert.Equal("content/general_pages/epc_electronicae_home_product_lines.php", PhpPlanQ1Firth.ElectronicaeHomeProductLinesPath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2132,6 +2186,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Mere.CartModulePath,
             PhpPlanQ1Tarn.LoginModulePath,
             PhpPlanQ1Beck.SliderModulePath,
+            PhpPlanQ1Firth.ElectronicaeHomeProductLinesPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
