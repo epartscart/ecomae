@@ -9802,6 +9802,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 // Table may be absent on lean tenants — companies list still works.
             }
 
+            var tenantProfile = await ReadTenantIndustryProfileAsync(connection, cancellationToken).ConfigureAwait(false);
             var rows = new List<ErpCompanyDigest>();
             await using (var list = connection.CreateCommand())
             {
@@ -9812,6 +9813,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 {
                     var id = Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture);
                     packs.TryGetValue(id, out var industryPack);
+                    if (string.IsNullOrWhiteSpace(industryPack))
+                    {
+                        industryPack = tenantProfile;
+                    }
+
                     rows.Add(new ErpCompanyDigest(
                         id,
                         Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
@@ -9830,6 +9836,27 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         catch (Exception ex)
         {
             return new([], 0, "database-error", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// PHP <c>epc_jw_is_jewellery_tenant</c> precedence: per-company <c>industry_pack</c>
+    /// wins, otherwise the tenant-wide <c>erp_industry_profile</c> written by
+    /// <c>epc_erp_industry_apply</c> drives module visibility.
+    /// </summary>
+    private static async Task<string> ReadTenantIndustryProfileAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            ErpFirstPaint.ApplyIfErp(cmd);
+            cmd.CommandText = "SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key` = 'erp_industry_profile' LIMIT 1";
+            var value = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return value is null or DBNull ? string.Empty : (Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty).Trim();
+        }
+        catch
+        {
+            return string.Empty;
         }
     }
 
@@ -9859,6 +9886,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             catch
             {
                 // Table may be absent on lean tenants.
+            }
+
+            if (string.IsNullOrWhiteSpace(industryPack))
+            {
+                industryPack = await ReadTenantIndustryProfileAsync(connection, cancellationToken).ConfigureAwait(false);
             }
 
             await using var command = connection.CreateCommand();

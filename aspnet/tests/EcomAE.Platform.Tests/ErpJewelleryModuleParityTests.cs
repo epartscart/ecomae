@@ -88,13 +88,13 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("name=\"certificate_no\"", text, StringComparison.Ordinal);
         Assert.Contains(ErpJewelleryModuleChrome.KaratColumns, c => c.Contains("Purity", StringComparison.Ordinal));
         Assert.Equal(
-            ["No.", "Item Code", "RFID", "Design", "Description", "Color", "Clarity", "Gr.Wt", "Cost", "Price 1"],
+            ["No.", "Item Code", "Description", "Color", "Clarity", "Type", "Brand", "Currency", "Curr rate"],
             ErpJewelleryModuleChrome.MasterSpec("jw_diamond").Columns);
         Assert.Equal(
-            ["No.", "Item Code", "Description", "Type", "Shape", "Color", "Size", "Grade", "Cost"],
+            ["No.", "Code", "Description", "Size", "Color", "Rate"],
             ErpJewelleryModuleChrome.MasterSpec("jw_pearl").Columns);
         Assert.Equal(
-            ["No.", "Item Code", "Description", "Stone Type", "Shape", "Color", "Carat", "Cost"],
+            ["No.", "Code", "Description", "Color", "Shape", "Size", "Rate"],
             ErpJewelleryModuleChrome.MasterSpec("jw_color_stone").Columns);
         Assert.DoesNotContain("295.50", text, StringComparison.Ordinal);
         Assert.DoesNotContain("2,458", text, StringComparison.Ordinal);

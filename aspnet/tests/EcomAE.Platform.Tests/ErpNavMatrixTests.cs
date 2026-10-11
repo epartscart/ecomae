@@ -198,6 +198,20 @@ public sealed class ErpNavMatrixTests
     }
 
     [Fact]
+    public void TenantIndustryProfileFallbackDrivesJewelleryVisibility()
+    {
+        // Fresh tenant: MAIN legal entity with no per-company pack row; the digest
+        // falls back to the tenant-wide erp_industry_profile written by industry apply.
+        var main = new ErpCompanyDigest(1, "MAIN", "Main Company", "AED", "AE", "jewellery", true);
+        var autoParts = new ErpCompanyDigest(1, "MAIN", "Main Company", "AED", "AE", "auto_parts", true);
+
+        Assert.True(ErpIndustryNav.ShowJewelleryModules("auto_parts", main));
+        Assert.True(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", main));
+        Assert.False(ErpIndustryNav.ShowJewelleryModules("auto_parts", autoParts));
+        Assert.False(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", autoParts));
+    }
+
+    [Fact]
     public void SharedHostAllowsTrustedFitOutCompanyPack()
     {
         var company = new ErpCompanyDigest(3, "FITOUT", "Fit-out Company", "AED", "AE", "fitout_contracting", true);

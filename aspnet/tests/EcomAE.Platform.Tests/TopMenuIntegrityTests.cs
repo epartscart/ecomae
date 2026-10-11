@@ -30,6 +30,8 @@ public sealed class TopMenuIntegrityTests
         // No row in the production CP menu snapshots; open menu placement items in the tracker.
         "CpIntegrationsGuideApp.razor", "CpLifeOsClientsApp.razor", "CpLifeOsGuideApp.razor", "CpOpsGuidesApp.razor",
         "CpVinFieldsApp.razor", "CpWorkshopApp.razor", "ErpMultiEntityApp.razor", "ErpUserControlApp.razor",
+        // CP-finance ops pages (PHP account_operations / custom shipping reports) reached from the ERP module host, not a top-menu row.
+        "ErpAccountOperationsApp.razor", "ErpCustomShippingReportsApp.razor", "ErpOperationsEditorApp.razor", "ErpPaymentSystemsApp.razor",
     ];
 
     public static IEnumerable<object[]> Menus()
