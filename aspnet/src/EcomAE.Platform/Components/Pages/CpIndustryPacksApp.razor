@@ -9,7 +9,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Industry Packs · ERP · eParts Cart</PageTitle>
+<PageTitle>Industry Packs · @(Http.HttpContext?.Request.Path.StartsWithSegments("/erp") == true ? "ERP" : "Control Panel") · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 <HeadContent>
 <style>

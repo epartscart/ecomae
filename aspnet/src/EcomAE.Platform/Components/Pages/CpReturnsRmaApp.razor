@@ -10,7 +10,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Returns RMA · ERP · eParts Cart</PageTitle>
+<PageTitle>Returns RMA · @(Http.HttpContext?.Request.Path.StartsWithSegments("/erp") == true ? "ERP" : "Control Panel") · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
