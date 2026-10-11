@@ -269,6 +269,25 @@
             {
                 <p class="text-muted" style="margin:.85rem 0 0">No notes excerpt yet.</p>
             }
+            @if (_openedLines.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Lines</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Item</th><th>Description</th><th class="text-right">Qty</th><th class="text-right">Unit price (ex VAT)</th><th class="text-right">Amount (ex VAT)</th></tr></thead>
+                    <tbody>
+                        @foreach (var line in _openedLines)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(line.ItemCode) ? "—" : line.ItemCode)</td>
+                                <td>@(string.IsNullOrWhiteSpace(line.Description) ? "—" : line.Description)</td>
+                                <td class="text-right">@line.Qty.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@line.UnitPriceExVat.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@line.LineExVat.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
             @if (_openedAttachments.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Attachments</p>
@@ -594,6 +613,7 @@
     private IReadOnlyList<ErpSalesOrderDigest> _openedSiblings = [];
     private IReadOnlyList<ErpAuditTrailRow> _openedAuditTrail = [];
     private IReadOnlyList<ErpDocumentAttachmentRow> _openedAttachments = [];
+    private IReadOnlyList<ErpDocumentLineDigest> _openedLines = [];
 
     private bool OpenedFound => _openedDetail is not null || _openedOrder is not null;
 
@@ -659,6 +679,7 @@
             _openedSiblings = detail.Siblings;
             _openedAuditTrail = detail.AuditTrail;
             _openedAttachments = detail.Attachments;
+            _openedLines = detail.Lines;
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
                 _message = detail.Message;
