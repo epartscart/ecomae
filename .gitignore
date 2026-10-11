@@ -57,3 +57,4 @@ epc-operator-probe.php
 [Bb]in/
 [Oo]bj/
 .vs/
+aspnet/src/EcomAE.Platform/App_Data/

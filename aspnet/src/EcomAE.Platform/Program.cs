@@ -28,6 +28,7 @@ builder.Services.Configure<PriceLookupOptions>(builder.Configuration.GetSection(
 builder.Services.Configure<SessionCacheOptions>(builder.Configuration.GetSection(SessionCacheOptions.SectionName));
 builder.Services.Configure<TenantDbPoolOptions>(builder.Configuration.GetSection(TenantDbPoolOptions.SectionName));
 builder.Services.Configure<PlatformDataProtectionOptions>(builder.Configuration.GetSection(PlatformDataProtectionOptions.SectionName));
+builder.Services.Configure<EcomAE.Platform.Mail.PurelymailOptions>(builder.Configuration.GetSection(EcomAE.Platform.Mail.PurelymailOptions.SectionName));
 builder.Services.Configure<SchemaMigrationOptions>(builder.Configuration.GetSection(SchemaMigrationOptions.SectionName));
 var dataProtection = builder.Configuration.GetSection(PlatformDataProtectionOptions.SectionName).Get<PlatformDataProtectionOptions>()
     ?? new PlatformDataProtectionOptions();
@@ -815,6 +816,16 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStorageGroupWriteService, EcomA
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStorageWriteService, EcomAE.Platform.Cp.CpStorageWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOfficeWriteService, EcomAE.Platform.Cp.CpOfficeWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantEmailWriteService, EcomAE.Platform.Cp.CpTenantEmailWriteService>();
+builder.Services.AddHttpClient(EcomAE.Platform.Mail.PurelymailHttpApi.HttpClientName, client =>
+{
+    client.BaseAddress = new Uri(EcomAE.Platform.Mail.PurelymailDns.ApiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(20);
+});
+builder.Services.AddSingleton<EcomAE.Platform.Mail.IPlatformMailDirectory, EcomAE.Platform.Mail.PlatformMailDirectory>();
+builder.Services.AddSingleton<EcomAE.Platform.Mail.IPurelymailApi, EcomAE.Platform.Mail.PurelymailHttpApi>();
+builder.Services.AddSingleton<EcomAE.Platform.Mail.IMailboxImapClient, EcomAE.Platform.Mail.MailKitImapClient>();
+builder.Services.AddScoped<EcomAE.Platform.Mail.IPlatformMailService, EcomAE.Platform.Mail.PlatformMailService>();
+builder.Services.AddScoped<EcomAE.Platform.Mail.IMailboxInboxService, EcomAE.Platform.Mail.MailboxInboxService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMobileAppsWriteService, EcomAE.Platform.Cp.CpMobileAppsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpIndustrySettingsService, EcomAE.Platform.Cp.CpIndustrySettingsService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpIndustrySettingsWriteService, EcomAE.Platform.Cp.CpIndustrySettingsWriteService>();

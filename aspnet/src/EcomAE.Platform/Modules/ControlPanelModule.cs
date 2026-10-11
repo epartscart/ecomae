@@ -5,6 +5,7 @@ using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Cp;
 using Microsoft.Extensions.Options;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Mail;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
@@ -6379,6 +6380,80 @@ public sealed class ControlPanelModule : ISurfaceModule
             return LiveWriteFormBinder.Complete(
                 context,
                 EcomAeRoutes.ControlPanelTenantEmailApp,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ControlPanelSuperMailWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IPlatformMailService mail,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new { ok = false, code = "super_cp_only", message = "Platform mail setup is Super CP / Super BOS only." });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/super-mail-app", "Admin CP capability required for platform mail.");
+            }
+
+            var action = "";
+            string? domain = null;
+            string? siteKey = null;
+            string? localPart = null;
+            string? address = null;
+            string? password = null;
+            string? apiToken = null;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action") ?? "";
+                domain = LiveWriteFormBinder.Text(form, "domain");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                localPart = LiveWriteFormBinder.Text(form, "local_part", "localPart");
+                address = LiveWriteFormBinder.Text(form, "address");
+                password = LiveWriteFormBinder.Text(form, "password");
+                apiToken = LiveWriteFormBinder.Text(form, "api_token", "apiToken");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpSuperMailWriteBody>(context, cancellationToken) ?? new();
+                action = body.Action ?? "";
+                domain = body.Domain;
+                siteKey = body.SiteKey;
+                localPart = body.LocalPart;
+                address = body.Address;
+                password = body.Password;
+                apiToken = body.ApiToken;
+                confirm = body.ConfirmWrites;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to change platform mail.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await mail.WriteAsync(
+                new PlatformMailWriteRequest(action, domain, siteKey, localPart, address, password, apiToken),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelSuperMailApp,
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -17320,6 +17395,15 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? HandlerFolder = null,
         int Hidden = 0,
         int BgLineColor = 0,
+        bool ConfirmWrites = false);
+    private sealed record CpSuperMailWriteBody(
+        string? Action = null,
+        string? Domain = null,
+        string? SiteKey = null,
+        string? LocalPart = null,
+        string? Address = null,
+        string? Password = null,
+        string? ApiToken = null,
         bool ConfirmWrites = false);
     private sealed record CpTenantEmailSaveBody(
         bool UseTenantSmtp = false,
