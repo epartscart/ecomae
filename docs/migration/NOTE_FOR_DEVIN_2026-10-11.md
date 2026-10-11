@@ -11,7 +11,7 @@ ERP acceptance is still **0 / 15**. The weighted headline is still about **20.4%
 
 ## What Cursor did since 9 Oct
 
-Cursor ran leftover non-ERP twins on `cursor/small-gaps-storefront-done-5dbd` (stacked leftover queue). Devin has started ERP. Cursor is staying off `Erp/` and finance PHP. Latest measured inventory after PlanQ1Hive:
+Cursor ran leftover non-ERP twins on `cursor/small-gaps-storefront-done-5dbd` (stacked leftover queue). Devin has started ERP. Cursor is staying off `Erp/` and finance PHP. Latest measured inventory after PlanQ1Hive; Hint (`epc_cata_config.php`) is the next leftover twin and does not touch ERP:
 
 | | Files | Lines |
 |---|---:|---:|

@@ -2,7 +2,7 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Hive (`--max-gap 408` passed; current gap **407**).
+after PlanQ1Hint (`--max-gap 407` expected after tests; current gap **407** until ratchet).
 
 Refresh the table:
 
@@ -573,7 +573,8 @@ The leftover “ready” ≤200-line rows are still mostly Q2/Q3. Next honest po
 | 6bq | `epc_super_cp_customer_board.php` | Closed in Hike. Super-CP / admin / PDO gates, then KPI + filter + table + pagination. Gulf helpers are stubbed, not included. Leftover unique portal, leftover unique operator-guide page, leftover unique user helper, and leftover portal PDO stay injected unnamed. |
 | 6br | `epc_ecomae_free_tools.php` | Closed in Hill. Public catalog + SEO + hub/tool page (3,195 lines). Compute already golden in `FreeToolsCompute`; this slice ports catalog/seo/jsonld/site_base/faq/guide/preview/fields/styles/scripts and names every `epc_free_tools_*` identifier. GET never mints a session. Leftover unique portal / console parents stay unnamed. |
 | 6bs | `epc_ecomae_platform_pages.php` | Closed in Hive. Public marketing page renderers (1,911 lines): contact / about / API docs / API services goldens, render_inner dispatcher, industry-not-found, ecosystem section, industries `scoreText` / `filterSubs`. Home / platform / industries / demo compose leftover parents and stay injected. GET never mints a session. Leftover unique portal / platform-data parents stay unnamed. Do not name `epc_ecomae_h`. |
-| 6bt | unique leftover after Hive | Next unused class after Hive. Prefer next biggest unblocked file. Skip search/APE/`printProducts*`/`*_h` and CP `product.php` (basename collision + leftover user helper). |
+| 6bt | `epc_cata_config.php` | Closed in Hint. Unified CATA config library (2,144 lines / 66 functions). Providers, aliases, VIN/slug/sanitize, default 26-group tree, storefront href/resolve, enabled-for-request host isolation, presentation/js light. DB ensure/import/legacy counts return empty/false without PDO. GET never mints a session. Leftover unique portal / user helper stay unnamed. Auto-parts site is injected; ePartsCart host uses Dock. `StorefrontTinyPages` closed only sibling `epc_cata_bridge.php`. |
+| 6bu | unique leftover after Hint | Next unused class after Hint. Prefer next biggest unblocked file. Skip search/APE/`printProducts*`/`*_h` and CP `product.php` (basename collision + leftover user helper). |
 | 7 | `epc_bos_health_check.php` | Already mentioned. |
 | 8 | `printProducts.php` / `printProducts_2.php` | Catalogue list parent still open — skip until that kernel. |
 

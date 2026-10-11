@@ -383,6 +383,13 @@ Not complete.
 - 273 ASP.NET stamps under `/var/www/ecomae-aspnet/releases` are **24G**. Live `current` is `20261010085717`. `scripts/cloudpanel_prune_aspnet_releases.sh` dry-runs and, with `CONFIRM=I_HAVE_READ_THE_LIST`, deletes only older stamps. It refuses a missing current or a non-200 `/health`.
 - Do not prune the ten running PHP-FPM versions. Do not delete `/opt/ecomae-aspnet-source`, `/home/ecomae/htdocs`, or `/home/mysql`. Journal / syslog (~2.6G) and CloudPanel snapshots (1.5G) are second cuts.
 
+### Checkpoint 2026-10-11 — plan Q1-hint (EParts CATA config library)
+
+Not complete.
+
+- Twin landed for `PhpPlanQ1Hint` `content/general_pages/epc_cata_config.php` (2,144 lines; all `epc_cata_*` identifiers named). PHP 8.3 golden covers providers / aliases / VIN / slug / sanitize, the 26-group default tree, storefront href/resolve, enabled-for-request host isolation, and presentation/js light. DB ensure/import/legacy counts return empty/false without PDO. GET never mints a session. Leftover unique portal / user helper stay unnamed. Auto-parts site is injected; ePartsCart host uses Dock. `StorefrontTinyPages` closed only sibling `epc_cata_bridge.php`. Inventory ratchet (407 → 406) follows the Hint suite.
+- Area functionality: ePartsCart host enables CATA; other hosts stay off unless auto-parts is injected; `/ar` vs `/en` storefront URLs do not leak.
+
 ### Checkpoint 2026-10-11 — plan Q1-hive (public platform marketing pages)
 
 Not complete.

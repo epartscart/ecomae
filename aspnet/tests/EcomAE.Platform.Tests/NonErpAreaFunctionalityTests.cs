@@ -2616,6 +2616,31 @@ public sealed class NonErpAreaFunctionalityTests
     }
 
     [Fact]
+    public void EpartsCataConfig_EpartscartHostEnablesAndLangHrefStaysOnTenant()
+    {
+        PhpPlanQ1Hint.Reset();
+        PhpPlanQ1Dock.Server["HTTP_HOST"] = "www.epartscart.com";
+        Assert.True(PhpPlanQ1Hint.EpcCataEnabledForRequest());
+        PhpPlanQ1Dock.Server["HTTP_HOST"] = "www.ecomae.com";
+        Assert.False(PhpPlanQ1Hint.EpcCataEnabledForRequest());
+        PhpPlanQ1Hint.AutoPartsSite = true;
+        Assert.True(PhpPlanQ1Hint.EpcCataEnabledForRequest());
+        PhpPlanQ1Hint.FileConfigValues["enabled"] = 0;
+        Assert.False(PhpPlanQ1Hint.EpcCataEnabledForRequest());
+        PhpPlanQ1Hint.LangHref = "/ar/";
+        var ar = PhpPlanQ1Hint.EpcCataStorefrontUrl();
+        PhpPlanQ1Hint.LangHref = "/en/";
+        var en = PhpPlanQ1Hint.EpcCataStorefrontUrl();
+        Assert.Equal("/ar/eparts-cata", ar);
+        Assert.Equal("/en/eparts-cata", en);
+        Assert.DoesNotContain("/en/", ar, StringComparison.Ordinal);
+        Assert.DoesNotContain("/ar/", en, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Hint.CataConfigPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Hint.CataConfigPath, StringComparison.Ordinal);
+        Assert.Equal("content/general_pages/epc_cata_config.php", PhpPlanQ1Hint.CataConfigPath);
+    }
+
+    [Fact]
     public void CoveredAreas_AreCursorOwnedNotErp()
     {
         var paths = new[]
@@ -2694,6 +2719,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Hike.CustomerBoardPath,
             PhpPlanQ1Hill.FreeToolsPath,
             PhpPlanQ1Hive.PlatformPagesPath,
+            PhpPlanQ1Hint.CataConfigPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
