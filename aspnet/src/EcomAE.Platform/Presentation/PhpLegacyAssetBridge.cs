@@ -519,17 +519,27 @@ public static class PhpLegacyAssetBridge
             return Results.NotFound();
         }
 
+        var candidates = new List<string>();
         var webRoot = string.IsNullOrWhiteSpace(host.WebRootPath)
             ? Path.Combine(host.ContentRootPath, "wwwroot")
             : host.WebRootPath;
-        var root = Path.GetFullPath(Path.Combine(webRoot, "css"));
-        var path = Path.GetFullPath(Path.Combine(root, fileName));
-        if (!path.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal) || !File.Exists(path))
+        candidates.Add(Path.GetFullPath(Path.Combine(webRoot, "css", fileName)));
+        candidates.Add(Path.GetFullPath(Path.Combine(host.ContentRootPath, "wwwroot", "css", fileName)));
+        var repoCss = Path.GetFullPath(Path.Combine(FindRepoRoot(host), "aspnet", "src", "EcomAE.Platform", "wwwroot", "css", fileName));
+        candidates.Add(repoCss);
+
+        foreach (var path in candidates)
         {
-            return Results.NotFound();
+            var root = Path.GetFullPath(Path.GetDirectoryName(path)!);
+            if (!path.StartsWith(root, StringComparison.Ordinal) || !File.Exists(path))
+            {
+                continue;
+            }
+
+            return Results.File(path, "text/css; charset=utf-8");
         }
 
-        return Results.File(path, "text/css; charset=utf-8");
+        return Results.NotFound();
     }
 
     private static IResult ServeRepoFile(string repoRoot, string relative, string contentType)
