@@ -6,21 +6,20 @@ The command `bash scripts/preflight_aspnet_production.sh` must be run from the r
 
 ## Super admin `yawer@ecomae.com` cannot log in?
 
-The live `users` row is still `ecomaedxb@gmail.com` until you remap it. Password hash stays the same.
+Production still has `ecomaedxb@gmail.com` in the **platform registry** `users` table (not a shop `db_name`). Password hash stays the same. One paste as root on CloudPanel remaps the email, syncs SecretSuccession from PHP, and restarts ASP.NET:
 
 ```bash
-# See both rows (no hash printed):
-ECOMAE_CONFIRM_REMAP_SUPER_OPERATOR=0 bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/erp-logout-everywhere-5dbd/scripts/cloudpanel_remap_super_operator_yawer.sh)"
-
-# Remap email only:
-ECOMAE_CONFIRM_REMAP_SUPER_OPERATOR=YES bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/erp-logout-everywhere-5dbd/scripts/cloudpanel_remap_super_operator_yawer.sh)"
-
-# Same PHP password for ASP.NET:
-ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
-  bash /opt/ecomae-aspnet-source/scripts/cloudpanel_sync_secret_succession_from_php.sh
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/erp-logout-everywhere-5dbd/scripts/cloudpanel_enable_super_operator_yawer.sh)"
 ```
 
 Then sign in on `https://www.ecomae.com/erp/login` as `yawer@ecomae.com` with the previous Gmail-operator password. Do not use a tenant host.
+
+Diagnose only (no write):
+
+```bash
+ECOMAE_DIAG_EMAIL='yawer@ecomae.com' ECOMAE_DIAG_HOST='www.ecomae.com' \
+  bash /opt/ecomae-aspnet-source/scripts/cloudpanel_diagnose_cp_login_user.sh
+```
 
 ## Logout still signed in after refresh?
 

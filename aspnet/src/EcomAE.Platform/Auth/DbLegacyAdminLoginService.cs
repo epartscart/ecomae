@@ -90,9 +90,10 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
         var clientIp = LegacyLoginSecurity.ClientIp(_http.HttpContext);
         try
         {
-            await using var connection = await _connections
-                .OpenForTenantAsync(tenant, cancellationToken)
-                .ConfigureAwait(false);
+            // Super operator lives in the platform registry users table — never a shop db_name.
+            await using var connection = superCpHost
+                ? await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false)
+                : await _connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
 
             async Task<LegacyLoginOutcome> Fail(string message, string code, int waitMinutes = 0)
             {
@@ -121,12 +122,12 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                 request.Surface,
                 contactType);
 
-            var user = await LoadUserAsync(connection, contactLookup, contactType, superCpHost, cancellationToken)
+            var user = await LoadUserAsync(connection, contactLookup, contactType, superCpHost, password, cancellationToken)
                 .ConfigureAwait(false);
             // Retry raw contact if HtmlEncode form differed (rare for emails; keeps PHP parity).
             if (user is null && !string.Equals(contactLookup, contactRaw, StringComparison.Ordinal))
             {
-                user = await LoadUserAsync(connection, contactRaw, contactType, superCpHost, cancellationToken)
+                user = await LoadUserAsync(connection, contactRaw, contactType, superCpHost, password, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -176,12 +177,17 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                 return await Fail("Incorrect login or password.", "invalid_credentials").ConfigureAwait(false);
             }
 
+            var sessionEmail = user.Email;
             if (superCpHost && PlatformOperatorIdentity.IsAlias(contactRaw))
             {
                 try
                 {
-                    await PlatformOperatorSuccessionService.SucceedOnConnectionAsync(connection, cancellationToken)
+                    var succeeded = await PlatformOperatorSuccessionService.SucceedOnConnectionAsync(connection, cancellationToken)
                         .ConfigureAwait(false);
+                    if (succeeded.Succeeded)
+                    {
+                        sessionEmail = succeeded.Email;
+                    }
                 }
                 catch (DbException ex)
                 {
@@ -243,7 +249,7 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
 
             return LegacyLoginOutcome.Succeeded(new LegacyLoginSuccess(
                 user.UserId,
-                user.Email,
+                sessionEmail,
                 sessionToken,
                 csrf,
                 adminSession,
@@ -271,13 +277,15 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
     private static string NormalizeContactType(string? contactType)
         => string.Equals(contactType, "phone", StringComparison.OrdinalIgnoreCase) ? "phone" : "email";
 
-    private static async Task<UserRow?> LoadUserAsync(
+    private async Task<UserRow?> LoadUserAsync(
         DbConnection connection,
         string contact,
         string contactType,
         bool superCpHost,
+        string password,
         CancellationToken cancellationToken)
     {
+        UserRow? first = null;
         foreach (var candidate in LoginContacts(contact, contactType, superCpHost))
         {
             await using var command = connection.CreateCommand();
@@ -291,13 +299,18 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                 continue;
             }
 
-            return new UserRow(
+            var row = new UserRow(
                 Convert.ToInt32(reader["user_id"], CultureInfo.InvariantCulture),
                 Convert.ToString(reader["password"], CultureInfo.InvariantCulture) ?? string.Empty,
                 Convert.ToString(reader["email"], CultureInfo.InvariantCulture) ?? string.Empty);
+            first ??= row;
+            if (LegacyPasswordVerifier.Verify(password, row.PasswordHash, _options.SecretSuccession))
+            {
+                return row;
+            }
         }
 
-        return null;
+        return first;
     }
 
     private static async Task<UserProbe?> ProbeUserAsync(
