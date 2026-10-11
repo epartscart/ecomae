@@ -2,6 +2,9 @@ using System.Data.Common;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_audit.php
 public sealed record ErpRbacAuditEntry(
     long Id,
     long Time,

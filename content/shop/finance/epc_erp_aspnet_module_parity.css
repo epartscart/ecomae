@@ -427,3 +427,746 @@ body.epc-erp-cp-shell .table-responsive {
 		grid-template-columns: minmax(0, 1fr) !important;
 	}
 }
+    /* ===== Premium enterprise ERP shell polish =====
+       (guaranteed-render copy lives in content/shop/finance/epc_erp_aspnet_module_parity.css —
+        HeadContent is dropped by live SSR on product shells) */
+    .epc-erp-cp-shell {
+        --epc-erp-accent: #1769aa;
+        --epc-erp-accent-soft: #e8f2f9;
+        --epc-erp-good: #15803d;
+        --epc-erp-warn: #b45309;
+        --epc-erp-bad: #b91c1c;
+    }
+
+    .epc-erp-cp-shell .epc-erp-shell--layout {
+        margin: 0;
+    }
+
+    .epc-erp-cp-shell .hpanel,
+    .epc-erp-cp-shell .panel,
+    .epc-erp-cp-shell .ns-port,
+    .epc-erp-cp-shell .epc-erp-section {
+        border: 1px solid #dbe4ee;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(15, 35, 60, .05), 0 10px 26px rgba(15, 35, 60, .05);
+        margin-bottom: 14px;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-heading,
+    .epc-erp-cp-shell .panel-heading,
+    .epc-erp-cp-shell .epc-erp-section > h4,
+    .epc-erp-cp-shell .epc-erp-section-title,
+    .epc-erp-cp-shell .ns-port > h4 {
+        position: relative;
+        padding: 10px 14px;
+        border-bottom: 1px solid #e6edf4;
+        border-radius: 12px 12px 0 0;
+        background: linear-gradient(180deg, #fbfdfe, #f4f8fb);
+        color: #1f3251;
+        font-size: 12.5px;
+        font-weight: 750;
+        letter-spacing: .02em;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-heading::before,
+    .epc-erp-cp-shell .epc-erp-section > h4::before,
+    .epc-erp-cp-shell .epc-erp-section-title::before,
+    .epc-erp-cp-shell .ns-port > h4::before {
+        display: inline-block;
+        width: 4px;
+        height: 14px;
+        margin-right: 8px;
+        border-radius: 2px;
+        background: linear-gradient(180deg, var(--epc-erp-accent), var(--epc-enterprise-cyan));
+        content: "";
+        vertical-align: -2px;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-body,
+    .epc-erp-cp-shell .panel-body {
+        padding: 14px;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-body form label,
+    .epc-erp-cp-shell .panel-body label,
+    .epc-erp-cp-shell .form-inline label {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 3px;
+        color: #4a5d77;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .03em;
+        text-transform: none;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-body form label input,
+    .epc-erp-cp-shell .hpanel .panel-body form label select {
+        min-width: 140px;
+    }
+
+    .epc-erp-cp-shell .table {
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 12.5px;
+    }
+
+    .epc-erp-cp-shell .table > thead > tr > th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        padding: 8px 10px;
+        background: linear-gradient(180deg, #f2f7fb, #eaf1f7);
+        border-top: 0;
+        border-bottom: 2px solid #c9d8e6;
+        color: #2c405e;
+    }
+
+    .epc-erp-cp-shell .table > tbody > tr > td,
+    .epc-erp-cp-shell .table > thead > tr > th {
+        border-color: #e6edf4;
+    }
+
+    .epc-erp-cp-shell .table.table-striped > tbody > tr:nth-of-type(odd) > td {
+        background: #fbfdff;
+    }
+
+    .epc-erp-cp-shell .table > tbody > tr:hover > td {
+        background: #eff6fc;
+    }
+
+    .epc-erp-cp-shell .table td.text-right,
+    .epc-erp-cp-shell .table th.text-right {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+    }
+
+    .epc-erp-cp-shell .table td[style*="font-weight:600"],
+    .epc-erp-cp-shell .table td[style*="font-weight: 600"] {
+        border-top: 2px solid #c9d8e6;
+    }
+
+    .epc-erp-cp-shell .epc-erp-kpi .kpi,
+    .epc-erp-cp-shell .kpi {
+        min-width: 150px;
+        padding: 12px 16px;
+        border: 1px solid #dbe4ee;
+        border-radius: 12px;
+        background: linear-gradient(160deg, #ffffff 0%, #f4f9fd 100%);
+        box-shadow: 0 1px 2px rgba(15, 35, 60, .05), 0 8px 20px rgba(15, 35, 60, .05);
+    }
+
+    .epc-erp-cp-shell .epc-erp-kpi .kpi .lbl,
+    .epc-erp-cp-shell .kpi .lbl {
+        color: #5a6f8a;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .epc-erp-cp-shell .epc-erp-kpi .kpi .val,
+    .epc-erp-cp-shell .kpi .val {
+        margin-top: 4px;
+        color: #15253d;
+        font-size: 20px;
+        font-weight: 850;
+        letter-spacing: -.02em;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .epc-erp-cp-shell .epc-erp-kpi {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .epc-erp-cp-shell .btn {
+        border-radius: 8px;
+        font-weight: 650;
+    }
+
+    .epc-erp-cp-shell .btn-default {
+        border: 1px solid #c8d4e2;
+        background: linear-gradient(180deg, #ffffff, #f2f6fa);
+        color: #2c405e;
+    }
+
+    .epc-erp-cp-shell .btn-default:hover {
+        background: #eaf2f8;
+        border-color: #a9bfcf;
+    }
+
+    .epc-erp-cp-shell .btn-success {
+        background: linear-gradient(135deg, #15803d, #16a34a);
+        border-color: #146f37;
+        box-shadow: 0 4px 10px rgba(21, 128, 61, .18);
+        font-weight: 700;
+    }
+
+    .epc-erp-cp-shell .btn-danger {
+        background: linear-gradient(135deg, #b91c1c, #dc2626);
+        border-color: #a11818;
+    }
+
+    .epc-erp-cp-shell .label,
+    .epc-erp-cp-shell .badge {
+        border-radius: 999px;
+        padding: 3px 9px;
+        font-size: 10px;
+        font-weight: 750;
+        letter-spacing: .03em;
+    }
+
+    .epc-erp-cp-shell a {
+        color: var(--epc-erp-accent);
+    }
+
+    .epc-erp-cp-shell a:hover {
+        color: #0e5a93;
+        text-decoration: none;
+    }
+
+    .epc-erp-cp-shell .alert {
+        border-radius: 10px;
+        border-width: 1px;
+        font-size: 12.5px;
+    }
+
+    .epc-erp-cp-shell .alert-info {
+        border-color: #bfdbfe;
+        background: #eff6ff;
+        color: #1e40af;
+    }
+
+    .epc-erp-cp-shell .alert-warning {
+        border-color: #fde68a;
+        background: #fffbeb;
+        color: #92400e;
+    }
+
+    .epc-erp-cp-shell .table-epc,
+    .epc-erp-cp-shell .epc-erp-table {
+        background: #fff;
+    }
+
+    .epc-erp-cp-shell .text-muted {
+        color: #61728a;
+    }
+    .epc-cp-shell,
+    .epc-erp-cp-shell {
+        --epc-enterprise-navy: #0b1f3a;
+        --epc-enterprise-blue: #1769aa;
+        --epc-enterprise-cyan: #0ea5c7;
+        --epc-enterprise-ink: #15253d;
+        --epc-enterprise-muted: #61728a;
+        --epc-enterprise-line: #d9e2ec;
+        --epc-enterprise-surface: #ffffff;
+        --epc-enterprise-canvas: #f3f6fa;
+        background: var(--epc-enterprise-canvas);
+        color: var(--epc-enterprise-ink);
+    }
+
+    .epc-cp-shell .epc-cp-header-bar,
+    .epc-erp-cp-shell .epc-erp-topbar {
+        background: linear-gradient(115deg, #0b1f3a 0%, #123d68 68%, #1769aa 100%);
+        border-bottom: 0;
+        color: #fff;
+        box-shadow: 0 5px 18px rgba(11, 31, 58, .18);
+    }
+
+    .epc-cp-shell .epc-cp-header-bar a,
+    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn),
+    .epc-erp-cp-shell .epc-erp-topbar__nav,
+    .epc-erp-cp-shell .epc-erp-topbar__user {
+        color: rgba(255, 255, 255, .9);
+    }
+
+    .epc-cp-shell .epc-cp-header-bar a:hover,
+    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn):hover {
+        color: #fff;
+    }
+
+    .epc-cp-shell .epc-cp-topnav,
+    .epc-erp-cp-shell .epc-erp-topnav {
+        background: var(--epc-enterprise-surface);
+        border-bottom: 1px solid var(--epc-enterprise-line);
+        box-shadow: 0 3px 12px rgba(15, 35, 60, .08);
+    }
+
+    .epc-cp-shell .epc-cp-topnav-btn,
+    .epc-erp-cp-shell .epc-erp-topnav-btn {
+        min-height: 48px;
+        font-weight: 700;
+        letter-spacing: .01em;
+    }
+
+    .epc-cp-shell .epc-cp-main-pane,
+    .epc-erp-cp-shell .epc-erp-content {
+        background: var(--epc-enterprise-canvas);
+    }
+
+    .epc-cp-shell .epc-cp-content-inner,
+    .epc-erp-cp-shell .epc-erp-layout {
+        max-width: 1600px;
+    }
+
+    .epc-cp-shell .epc-cp-main-pane h1,
+    .epc-cp-shell .epc-cp-main-pane h2,
+    .epc-cp-shell .epc-cp-main-pane h3,
+    .epc-erp-cp-shell .epc-erp-content-title,
+    .epc-erp-cp-shell .epc-erp-page-title {
+        color: var(--epc-enterprise-ink);
+        letter-spacing: -.015em;
+    }
+
+    .epc-cp-shell .panel,
+    .epc-cp-shell .hpanel,
+    .epc-erp-cp-shell .epc-erp-section,
+    .epc-erp-cp-shell .epc-erp-section-card,
+    .epc-erp-cp-shell .epc-erp-table-wrap,
+    .epc-erp-cp-shell .epc-erp-kpi .kpi {
+        background: var(--epc-enterprise-surface);
+        border: 1px solid var(--epc-enterprise-line);
+        border-radius: 10px;
+        box-shadow: 0 5px 18px rgba(15, 35, 60, .06);
+    }
+
+    .epc-cp-shell .panel-heading,
+    .epc-cp-shell .hpanel .panel-heading,
+    .epc-erp-cp-shell .epc-erp-section-title {
+        border-bottom-color: var(--epc-enterprise-line);
+        color: var(--epc-enterprise-ink);
+        font-weight: 750;
+    }
+
+    .epc-cp-shell input,
+    .epc-cp-shell select,
+    .epc-cp-shell textarea,
+    .epc-erp-cp-shell input,
+    .epc-erp-cp-shell select,
+    .epc-erp-cp-shell textarea {
+        min-height: 38px;
+        border: 1px solid #c8d4e2;
+        border-radius: 6px;
+        box-shadow: inset 0 1px 2px rgba(15, 35, 60, .04);
+    }
+
+    .epc-cp-shell input:focus,
+    .epc-cp-shell select:focus,
+    .epc-cp-shell textarea:focus,
+    .epc-erp-cp-shell input:focus,
+    .epc-erp-cp-shell select:focus,
+    .epc-erp-cp-shell textarea:focus {
+        border-color: var(--epc-enterprise-blue);
+        box-shadow: 0 0 0 3px rgba(23, 105, 170, .14);
+        outline: 0;
+    }
+
+    .epc-cp-shell .btn-primary,
+    .epc-erp-cp-shell .btn-primary,
+    .epc-erp-cp-shell .epc-erp-page-actions .btn {
+        background: linear-gradient(135deg, #1769aa, #0e83b5);
+        border-color: #125989;
+        box-shadow: 0 4px 10px rgba(23, 105, 170, .2);
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .epc-cp-shell .table > thead > tr > th,
+    .epc-erp-cp-shell .table > thead > tr > th {
+        background: #eef4f9;
+        border-bottom: 2px solid #c9d8e6;
+        color: #314762;
+        font-size: 11px;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .epc-cp-shell .table > tbody > tr:hover,
+    .epc-erp-cp-shell .table > tbody > tr:hover {
+        background: #f5f9fc;
+    }
+
+    .epc-infographic {
+        position: relative;
+        margin: 18px 0;
+        padding: 18px;
+        border: 1px solid var(--epc-enterprise-line);
+        border-radius: 16px;
+        background:
+            radial-gradient(circle at 92% 8%, rgba(14, 165, 199, .16), transparent 32%),
+            linear-gradient(135deg, #ffffff 0%, #f5f9fd 100%);
+        box-shadow: 0 12px 30px rgba(15, 35, 60, .08);
+        overflow: hidden;
+    }
+
+    .epc-infographic__head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .epc-infographic__eyebrow {
+        color: var(--epc-enterprise-blue);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+    }
+
+    .epc-infographic__title {
+        margin: 4px 0 3px;
+        color: var(--epc-enterprise-ink);
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .epc-infographic__sub {
+        margin: 0;
+        color: var(--epc-enterprise-muted);
+        font-size: 12px;
+    }
+
+    .epc-infographic__legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 7px;
+        color: var(--epc-enterprise-muted);
+        font-size: 11px;
+    }
+
+    .epc-infographic__legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 8px;
+        border: 1px solid var(--epc-enterprise-line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .78);
+    }
+
+    .epc-infographic__legend i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--epc-enterprise-cyan);
+    }
+
+    .epc-infographic__legend .is-alert i { background: #d97706; }
+    .epc-infographic__legend .is-action i { background: #1769aa; }
+
+    .epc-infographic__rail {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .epc-infographic__node {
+        position: relative;
+        min-height: 112px;
+        padding: 13px;
+        border: 1px solid #d9e5ef;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, .9);
+        box-shadow: 0 5px 14px rgba(15, 35, 60, .05);
+    }
+
+    .epc-infographic__node:not(:last-child)::after {
+        position: absolute;
+        top: 46px;
+        right: -14px;
+        z-index: 2;
+        color: #8aa2b8;
+        content: "→";
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .epc-infographic__node--accent {
+        border-color: rgba(23, 105, 170, .35);
+        background: linear-gradient(145deg, #eef8fc, #ffffff);
+    }
+
+    .epc-infographic__node--warn {
+        border-color: rgba(217, 119, 6, .35);
+        background: linear-gradient(145deg, #fff8eb, #ffffff);
+    }
+
+    .epc-infographic__node-label {
+        color: var(--epc-enterprise-muted);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+
+    .epc-infographic__node-value {
+        margin: 7px 0 3px;
+        color: var(--epc-enterprise-ink);
+        font-size: 23px;
+        font-weight: 850;
+        letter-spacing: -.03em;
+    }
+
+    .epc-infographic__node-note {
+        color: var(--epc-enterprise-muted);
+        font-size: 11px;
+        line-height: 1.35;
+    }
+
+    .epc-infographic__bar {
+        height: 5px;
+        margin-top: 10px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e5edf4;
+    }
+
+    .epc-infographic__bar span {
+        display: block;
+        height: 100%;
+        min-width: 5px;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #1769aa, #0ea5c7);
+    }
+
+    .epc-infographic__node--warn .epc-infographic__bar span {
+        background: linear-gradient(90deg, #d97706, #f59e0b);
+    }
+
+    .epc-infographic__foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 13px;
+        padding-top: 11px;
+        border-top: 1px dashed #cbd9e6;
+        color: var(--epc-enterprise-muted);
+        font-size: 11px;
+    }
+
+    .epc-infographic__foot strong { color: var(--epc-enterprise-ink); }
+
+    /* ===== Premium enterprise ERP shell polish =====
+       (guaranteed-render copy lives in content/shop/finance/epc_erp_aspnet_module_parity.css —
+        HeadContent is dropped by live SSR on product shells) */
+    .epc-erp-cp-shell {
+        --epc-erp-accent: #1769aa;
+        --epc-erp-accent-soft: #e8f2f9;
+        --epc-erp-good: #15803d;
+        --epc-erp-warn: #b45309;
+        --epc-erp-bad: #b91c1c;
+    }
+
+    .epc-erp-cp-shell .epc-erp-shell--layout {
+        margin: 0;
+    }
+
+    .epc-erp-cp-shell .hpanel,
+    .epc-erp-cp-shell .panel,
+    .epc-erp-cp-shell .ns-port,
+    .epc-erp-cp-shell .epc-erp-section {
+        border: 1px solid #dbe4ee;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(15, 35, 60, .05), 0 10px 26px rgba(15, 35, 60, .05);
+        margin-bottom: 14px;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-heading,
+    .epc-erp-cp-shell .panel-heading,
+    .epc-erp-cp-shell .epc-erp-section > h4,
+    .epc-erp-cp-shell .epc-erp-section-title,
+    .epc-erp-cp-shell .ns-port > h4 {
+        position: relative;
+        padding: 10px 14px;
+        border-bottom: 1px solid #e6edf4;
+        border-radius: 12px 12px 0 0;
+        background: linear-gradient(180deg, #fbfdfe, #f4f8fb);
+        color: #1f3251;
+        font-size: 12.5px;
+        font-weight: 750;
+        letter-spacing: .02em;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-heading::before,
+    .epc-erp-cp-shell .epc-erp-section > h4::before,
+    .epc-erp-cp-shell .epc-erp-section-title::before,
+    .epc-erp-cp-shell .ns-port > h4::before {
+        display: inline-block;
+        width: 4px;
+        height: 14px;
+        margin-right: 8px;
+        border-radius: 2px;
+        background: linear-gradient(180deg, var(--epc-erp-accent), var(--epc-enterprise-cyan));
+        content: "";
+        vertical-align: -2px;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-body,
+    .epc-erp-cp-shell .panel-body {
+        padding: 14px;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-body form label,
+    .epc-erp-cp-shell .panel-body label,
+    .epc-erp-cp-shell .form-inline label {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 3px;
+        color: #4a5d77;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .03em;
+        text-transform: none;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-body form label input,
+    .epc-erp-cp-shell .hpanel .panel-body form label select {
+        min-width: 140px;
+    }
+
+    .epc-erp-cp-shell .table {
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 12.5px;
+    }
+
+    .epc-module-visual-frame {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        align-items: center;
+        gap: 13px;
+        margin: 0 0 14px;
+        padding: 11px 14px;
+        border: 1px solid var(--epc-enterprise-line);
+        border-radius: 12px;
+        background: linear-gradient(100deg, #ffffff, #f7fbfe);
+        box-shadow: 0 4px 14px rgba(15, 35, 60, .05);
+    }
+
+    .epc-module-visual-frame__icon {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border-radius: 11px;
+        background: linear-gradient(145deg, #0b1f3a, #1769aa);
+        color: #fff;
+        box-shadow: 0 5px 12px rgba(23, 105, 170, .22);
+    }
+
+    .epc-module-visual-frame__eyebrow {
+        color: var(--epc-enterprise-blue);
+        font-size: 9px;
+        font-weight: 850;
+        letter-spacing: .13em;
+        text-transform: uppercase;
+    }
+
+    .epc-module-visual-frame__title {
+        margin: 2px 0 0;
+        color: var(--epc-enterprise-ink);
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .epc-module-visual-frame__flow {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: var(--epc-enterprise-muted);
+        font-size: 10px;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .epc-module-visual-frame__flow span {
+        padding: 5px 7px;
+        border-radius: 999px;
+        background: #eaf3f8;
+    }
+
+    .epc-module-visual-frame__flow span.is-current {
+        background: #d9f3f8;
+        color: #0b6f86;
+    }
+
+    .epc-module-visual-frame__scope {
+        color: var(--epc-enterprise-muted);
+        font-size: 10px;
+        text-align: right;
+    }
+
+    @media (max-width: 700px) {
+        .epc-module-visual-frame { grid-template-columns: auto minmax(0, 1fr); }
+        .epc-module-visual-frame__flow,
+        .epc-module-visual-frame__scope { grid-column: 2; text-align: left; }
+    }
+
+    @media (max-width: 900px) {
+        .epc-infographic__rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .epc-infographic__node:nth-child(2)::after { display: none; }
+    }
+
+    @media (max-width: 560px) {
+        .epc-infographic { padding: 14px; }
+        .epc-infographic__head { display: block; }
+        .epc-infographic__legend { justify-content: flex-start; margin-top: 10px; }
+        .epc-infographic__rail { grid-template-columns: 1fr; }
+        .epc-infographic__node::after { display: none !important; }
+    }
+
+    @media (max-width: 768px) {
+        .epc-cp-shell .epc-cp-main-pane,
+        .epc-erp-cp-shell .epc-erp-content {
+            padding-left: .75rem;
+            padding-right: .75rem;
+        }
+    }
+
+/* Company/industry scope bar — premium strip */
+.epc-erp-cp-shell .epc-erp-company-scope--panel {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 0 12px;
+    padding: 8px 12px;
+    border: 1px solid #dbe4ee;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #ffffff, #f4f8fb);
+    box-shadow: 0 1px 2px rgba(15, 35, 60, .04);
+    font-size: 12px;
+}
+
+.epc-erp-cp-shell .epc-erp-company-scope--panel .epc-erp-industry-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #e8f2f9;
+    color: #1769aa;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: .02em;
+}
+
+.epc-erp-cp-shell .epc-erp-company-scope--panel .epc-erp-industry-chip em {
+    font-size: 10px;
+    font-style: normal;
+    color: #5a6f8a;
+}
+
+.epc-erp-cp-shell .epc-erp-company-scope--panel .epc-erp-shell-link {
+    margin-left: auto;
+    font-weight: 650;
+}

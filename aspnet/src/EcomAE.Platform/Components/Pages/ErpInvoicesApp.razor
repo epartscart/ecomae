@@ -1,8 +1,9 @@
 @page "/erp/invoices-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
-@using EcomAE.Platform.Auth
 @using EcomAE.Platform.Components.Shared.Desktop
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Erp
@@ -11,6 +12,7 @@
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 @inject IErpDimensionLinkReadService DimensionLinks
+@inject ICpCsrfGuard Csrf
 
 <PageTitle>Invoices · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -125,6 +127,16 @@
                     </tbody>
                 </table>
             }
+            <form id="epc_erp_form_inv_attachment" method="post" action="/erp/ajax/upload-attachment" enctype="multipart/form-data" class="form-inline" style="margin:.6rem 0 0;" onsubmit="var f=this;fetch(f.action,{method:'POST',body:new FormData(f)}).then(r=>r.json()).then(function(d){alert(d.message||'saved');if(d&&d.ok){location.reload();}}).catch(function(){alert('upload failed')});return false;">
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="entity_type" value="invoice" />
+                <input type="hidden" name="entity_id" value="@_openedId.ToString(CultureInfo.InvariantCulture)" />
+                <input type="text" name="doc_category" class="form-control input-sm" value="tax_invoice" placeholder="Category" />
+                <input type="text" name="notes" class="form-control input-sm" placeholder="Version note" />
+                <input type="file" name="file" class="form-control input-sm" required />
+                <button type="submit" class="btn btn-default btn-sm">Upload</button>
+            </form>
             @if (_openedLines.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Lines</p>
@@ -325,6 +337,7 @@
     private IReadOnlyList<ErpInvoiceDigest> _openedSiblings = [];
     private IReadOnlyList<ErpInvoiceSettlementRow> _openedSettlements = [];
     private IReadOnlyList<ErpDocumentAttachmentRow> _openedAttachments = [];
+    private string _csrf = "";
     private IReadOnlyList<ErpInvoiceLineRow> _openedLines = [];
     private RenderFragment? InvoiceHeaderActions => _isAdmin && _openedDetail is not null && _openedDetail.Id > 0
         ? @<div>
@@ -367,6 +380,7 @@
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _csrf = _isAdmin ? await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted) : "";
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

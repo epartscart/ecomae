@@ -3585,7 +3585,12 @@ public sealed record CpEinvoiceSellerProfile(
     string CompanyCountryCode,
     bool CompanyVatRegistered,
     string Source,
-    string Message);
+    string Message,
+    string SellerLegalRegNo = "",
+    string SellerLegalRegType = "TL",
+    string SellerAuthorityName = "",
+    string SellerAddressLine1 = "",
+    string SellerPhone = "");
 
 public sealed record CpEinvoiceDocumentDetail(
     long Id,

@@ -62,6 +62,7 @@ public sealed class ErpRtlChannelSaveWriteService : IErpRtlChannelSaveWriteServi
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpRtlSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_rtl_channel", "code", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_rtl_channel", "channel_type", cancellationToken).ConfigureAwait(false))
         {

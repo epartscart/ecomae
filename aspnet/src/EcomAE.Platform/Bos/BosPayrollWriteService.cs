@@ -6,6 +6,9 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Bos;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_wps_payroll.php
 /// <summary>
 /// Live PHP <c>ajax_epc_bos.php</c> <c>wps_payroll</c> <c>approve_run</c> / <c>epc_payroll_approve_run</c>
 /// and <c>employee_add</c> / <c>epc_payroll_employee_add</c>.

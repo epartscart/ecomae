@@ -88,13 +88,13 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("name=\"certificate_no\"", text, StringComparison.Ordinal);
         Assert.Contains(ErpJewelleryModuleChrome.KaratColumns, c => c.Contains("Purity", StringComparison.Ordinal));
         Assert.Equal(
-            ["No.", "Item Code", "RFID", "Design", "Description", "Color", "Clarity", "Gr.Wt", "Cost", "Price 1"],
+            ["No.", "Item Code", "Description", "Color", "Clarity", "Type", "Brand", "Currency", "Curr rate"],
             ErpJewelleryModuleChrome.MasterSpec("jw_diamond").Columns);
         Assert.Equal(
-            ["No.", "Item Code", "Description", "Type", "Shape", "Color", "Size", "Grade", "Cost"],
+            ["No.", "Code", "Description", "Size", "Color", "Rate"],
             ErpJewelleryModuleChrome.MasterSpec("jw_pearl").Columns);
         Assert.Equal(
-            ["No.", "Item Code", "Description", "Stone Type", "Shape", "Color", "Carat", "Cost"],
+            ["No.", "Code", "Description", "Color", "Shape", "Size", "Rate"],
             ErpJewelleryModuleChrome.MasterSpec("jw_color_stone").Columns);
         Assert.DoesNotContain("295.50", text, StringComparison.Ordinal);
         Assert.DoesNotContain("2,458", text, StringComparison.Ordinal);
@@ -321,7 +321,7 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains(ErpJewelleryModuleChrome.StockTabs, t => t.Key == "jw_metal_stock");
         Assert.Equal("jw_repairs", ErpJewelleryModuleChrome.NormalizeTab("", ErpJewelleryModuleChrome.RepairTabs, "jw_repairs"));
         Assert.Equal("jw_repair_delivery", ErpJewelleryModuleChrome.NormalizeTab("jw_repair_delivery", ErpJewelleryModuleChrome.RepairTabs, "jw_repairs"));
-        Assert.Contains("/cp/jewellery-repairs-app?company=2&tab=jw_repairs", ErpJewelleryModuleChrome.AppHref("/cp/jewellery-repairs-app", 2, ("tab", "jw_repairs")), StringComparison.Ordinal);
+        Assert.Contains("/erp/jewellery-repairs-app?company=2&tab=jw_repairs", ErpJewelleryModuleChrome.AppHref("/erp/jewellery-repairs-app", 2, ("tab", "jw_repairs")), StringComparison.Ordinal);
     }
 
     [Fact]

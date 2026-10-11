@@ -1,5 +1,8 @@
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_closing.php
 /// <summary>
 /// Live PHP <c>epc_fy_reopen_year</c> / <c>epc_fy_set_period_status</c> twins.
 /// Schema ensure, year create, and year-end close stay PHP.

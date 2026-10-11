@@ -2,6 +2,11 @@ using System.Data.Common;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_security.php
+//   content/shop/finance/epc_erp_control.php
+//   content/shop/finance/epc_erp_governance.php
 /// <summary>
 /// Live PHP <c>epc_rbac_privilege_save</c> / ajax <c>rbac_priv_save</c> twin.
 /// UPSERT <c>epc_rbac_privilege</c> on <c>company_id</c>+<c>code</c>.

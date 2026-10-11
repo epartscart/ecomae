@@ -1966,6 +1966,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await EcomAE.Platform.Erp.ErpPurchaseInvoiceWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpPurchases;
             AddParameter(command, "@limit", safeLimit);
@@ -2112,6 +2113,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInvOnHand;
             AddParameter(cmd, "@warehouseId", warehouseId);
@@ -2761,6 +2763,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await EcomAE.Platform.Erp.ErpCashWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             if (accountId is > 0)
             {
@@ -2917,6 +2920,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await EcomAE.Platform.Erp.ErpSalesInvoiceWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpInvoices;
             AddParameter(command, "@limit", safeLimit);
@@ -3164,6 +3168,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpGlJournals;
             AddParameter(command, "@limit", safeLimit);
@@ -3205,6 +3210,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             ErpGlJournalDetail? header = null;
             await using (var cmd = connection.CreateCommand())
             {
@@ -3494,6 +3500,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpCoaAccounts;
             AddParameter(command, "@limit", safeLimit);
@@ -3536,6 +3543,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             ErpCoaAccountDetail? header = null;
             await using (var cmd = connection.CreateCommand())
             {
@@ -3708,6 +3716,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpSalesOrderWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpSalesOrders;
             AddParameter(command, "@limit", safeLimit);
@@ -7429,6 +7438,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await EcomAE.Platform.Erp.ErpPurchaseOrderWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpPurchaseOrders;
             AddParameter(command, "@limit", safeLimit);
@@ -7653,6 +7663,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
             var summary = empty with { Source = "database", Message = string.Empty };
             await using (var stats = connection.CreateCommand())
             {
@@ -9773,6 +9784,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            // PHP epc_erp_company_context_ensure: ensure schema and auto-seed the
+            // default legal entity from the tenant profile on first use so a fresh
+            // tenant resolves a real company id instead of posting company_id=0.
+            await ErpLazySchema.EnsureCompanyContextAsync(connection, cancellationToken).ConfigureAwait(false);
             var packs = new Dictionary<long, string>();
             try
             {
@@ -9794,6 +9809,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 // Table may be absent on lean tenants — companies list still works.
             }
 
+            var tenantProfile = await ReadTenantIndustryProfileAsync(connection, cancellationToken).ConfigureAwait(false);
             var rows = new List<ErpCompanyDigest>();
             await using (var list = connection.CreateCommand())
             {
@@ -9804,6 +9820,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 {
                     var id = Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture);
                     packs.TryGetValue(id, out var industryPack);
+                    if (string.IsNullOrWhiteSpace(industryPack))
+                    {
+                        industryPack = tenantProfile;
+                    }
+
                     rows.Add(new ErpCompanyDigest(
                         id,
                         Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
@@ -9822,6 +9843,27 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         catch (Exception ex)
         {
             return new([], 0, "database-error", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// PHP <c>epc_jw_is_jewellery_tenant</c> precedence: per-company <c>industry_pack</c>
+    /// wins, otherwise the tenant-wide <c>erp_industry_profile</c> written by
+    /// <c>epc_erp_industry_apply</c> drives module visibility.
+    /// </summary>
+    private static async Task<string> ReadTenantIndustryProfileAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            ErpFirstPaint.ApplyIfErp(cmd);
+            cmd.CommandText = "SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key` = 'erp_industry_profile' LIMIT 1";
+            var value = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return value is null or DBNull ? string.Empty : (Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty).Trim();
+        }
+        catch
+        {
+            return string.Empty;
         }
     }
 
@@ -9851,6 +9893,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             catch
             {
                 // Table may be absent on lean tenants.
+            }
+
+            if (string.IsNullOrWhiteSpace(industryPack))
+            {
+                industryPack = await ReadTenantIndustryProfileAsync(connection, cancellationToken).ConfigureAwait(false);
             }
 
             await using var command = connection.CreateCommand();
@@ -9889,6 +9936,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             var vouchers = 0; var open = 0; var tags = 0; var metal = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9977,6 +10025,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             var rows = new List<CpJewelleryTagLookupRow>();
             await ReadLookupRowsAsync(
                 connection,
@@ -10055,6 +10104,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             CpJewelleryVoucherDetail? header = null;
             await using (var cmd = connection.CreateCommand())
             {
@@ -12426,6 +12476,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
             case "ar_customer_list":
             {
+                await ErpCreditSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
                 await using var command = connection.CreateCommand();
                 command.CommandText = LegacySurfaceDashboardSql.SelectErpCreditProfiles;
                 AddParameter(command, "@limit", safeLimit);
@@ -12433,6 +12484,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
             case "credit_holds":
             {
+                await ErpCreditSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
                 await using var command = connection.CreateCommand();
                 command.CommandText = LegacySurfaceDashboardSql.SelectErpCreditHolds;
                 AddParameter(command, "@limit", safeLimit);
@@ -13489,6 +13541,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await EcomAE.Platform.Erp.ErpSalesInvoiceWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             var docs = 0; var open = 0; var submitted = 0; var total = 0m;
             await using (var stats = connection.CreateCommand())
             {
@@ -13555,7 +13608,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     SELECT `setting_key`, `setting_value`
                     FROM `epc_einvoice_settings`
                     WHERE `setting_key` IN ('seller_name', 'seller_trn', 'seller_tin', 'seller_city',
-                                            'seller_emirate', 'seller_country_code', 'seller_email')
+                                            'seller_emirate', 'seller_country_code', 'seller_email',
+                                            'seller_legal_reg_no', 'seller_legal_reg_type', 'seller_authority_name',
+                                            'seller_address_line1', 'seller_phone')
                     """;
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -13595,7 +13650,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 companyCountry,
                 vatRegistered,
                 "database",
-                "");
+                "",
+                settings.GetValueOrDefault("seller_legal_reg_no", ""),
+                settings.GetValueOrDefault("seller_legal_reg_type", "TL"),
+                settings.GetValueOrDefault("seller_authority_name", ""),
+                settings.GetValueOrDefault("seller_address_line1", ""),
+                settings.GetValueOrDefault("seller_phone", ""));
         }
         catch (Exception ex)
         {
@@ -13720,6 +13780,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             var repairs = 0; var open = 0; var authorized = 0; var items = 0;
             var rows = new List<CpJewelleryRepairDigest>();
             var sourcesOk = 0;
@@ -13831,6 +13892,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             var suntech = await TryReadJewelleryRepairDetailAsync(
                 connection,
                 LegacySurfaceDashboardSql.SelectCpJewelleryRepairDetail,
@@ -15764,6 +15826,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             var karats = 0; var rates = 0; var barcodes = 0; var diamonds = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -15999,6 +16062,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             CpJewelleryMastersKaratDetail? header = null;
             await using (var cmd = connection.CreateCommand())
             {
@@ -17448,6 +17512,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             var verificationCount = 0; var inProgressCount = 0; var completeCount = 0; var lineCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -17513,6 +17578,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             CpJewelleryStockVerificationDetail? header = null;
             await using (var cmd = connection.CreateCommand())
             {
@@ -18048,6 +18114,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryStockBalanceRows;
             AddParameter(command, "@companyId", Math.Max(0, companyId));
@@ -18440,6 +18507,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             var fixingCount = 0; var openFixingCount = 0; var purchaseFixCount = 0; var settlementCount = 0; var pettyCashCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -18511,6 +18579,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             CpJewelleryFixingDetail? header = null;
             await using (var cmd = connection.CreateCommand())
             {
@@ -25481,6 +25550,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpContractSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             var rows = new List<ErpContractDigest>();
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpContracts;
@@ -25526,6 +25596,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpContractSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             ErpContractDetail? header = null;
             await using (var cmd = connection.CreateCommand())
             {

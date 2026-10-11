@@ -3,6 +3,10 @@ using System.Text.Json;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_fin_advanced.php
+//   content/shop/finance/epc_erp_finance_suite.php
 /// <summary>
 /// Live PHP <c>epc_fin_alloc_run</c> / ajax <c>fin_alloc_run</c> twin: loads the rule,
 /// splits the amount by the rule's basis weights (PHP <c>epc_fin_alloc_split</c> rounding),

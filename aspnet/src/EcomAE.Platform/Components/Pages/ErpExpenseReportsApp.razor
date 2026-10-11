@@ -125,6 +125,12 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "expense_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="2"></td>
+                        <td>@_reports.Sum(r => r.TotalAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td colspan="3" class="text-muted">@_reports.Count reports</td>
+                    </tr>
                 }
             </tbody>
         </table>

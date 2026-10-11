@@ -1817,7 +1817,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/pos-overview-app", "Admin CP capability required for POS open-session.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/erp/pos-overview-app", "Admin CP capability required for POS open-session.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPosOpenSessionBody>(context, cancellationToken)
@@ -1838,7 +1838,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 var written = await writes.OpenSessionAsync(openingFloat, session.UserId, registerName, cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/pos-overview-app",
+                    "/erp/pos-overview-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -1856,7 +1856,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/pos-overview-app", "Admin CP capability required for POS close-session.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/erp/pos-overview-app", "Admin CP capability required for POS close-session.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPosCloseSessionBody>(context, cancellationToken)
@@ -1879,7 +1879,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 var written = await writes.CloseSessionAsync(sessionId, closingCash, notes, cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/pos-overview-app",
+                    "/erp/pos-overview-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -1897,7 +1897,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/pos-overview-app", "Admin CP capability required for POS complete-sale.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/erp/pos-overview-app", "Admin CP capability required for POS complete-sale.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPosCompleteSaleBody>(context, cancellationToken)
@@ -1969,7 +1969,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/pos-overview-app",
+                    "/erp/pos-overview-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -1987,7 +1987,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/pos-overview-app", "Admin CP capability required for POS save-settings.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/erp/pos-overview-app", "Admin CP capability required for POS save-settings.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPosSaveSettingsBody>(context, cancellationToken)
@@ -2026,7 +2026,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/pos-overview-app",
+                    "/erp/pos-overview-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -2144,7 +2144,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var saleId = ErpRecordOpen.ReadId(context.Request, "sale_id");
             return saleId > 0
                 ? Results.Redirect("/cp/pos/receipt/" + saleId.ToString(CultureInfo.InvariantCulture))
-                : Results.Redirect("/cp/pos-overview-app");
+                : Results.Redirect("/erp/pos-overview-app");
         });
         endpoints.MapPost(EcomAeRoutes.CpPosTerminalAjax, async (
             HttpContext context,
@@ -11164,7 +11164,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/workflows-app", "Admin CP capability required for workflow toggle.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/erp/workflows-app", "Admin CP capability required for workflow toggle.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpWorkflowsWriteBody>(context, cancellationToken)
@@ -11204,7 +11204,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 var written = await writes.ToggleAsync(id, active, cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/workflows-app",
+                    "/erp/workflows-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -11802,7 +11802,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin
                 || !(session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp")))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crm-opportunities-app", "Admin CP or ERP capability required for CRM opportunity write.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/erp/crm-opportunities-app", "Admin CP or ERP capability required for CRM opportunity write.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmOpportunitiesWriteBody>(context, cancellationToken)
@@ -11846,8 +11846,8 @@ public sealed class ControlPanelModule : ISurfaceModule
             {
                 var written = await writes.UpdateStageAsync(id, stage, cancellationToken);
                 var dest = written.Succeeded && written.Id > 0
-                    ? "/cp/crm-opportunities-app?opp_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
-                    : "/cp/crm-opportunities-app";
+                    ? "/erp/crm-opportunities-app?opp_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/erp/crm-opportunities-app";
                 return LiveWriteFormBinder.Complete(
                     context,
                     dest,
@@ -11863,8 +11863,8 @@ public sealed class ControlPanelModule : ISurfaceModule
                         id, leadId, title, stage, amount, probability, closeDate, ownerUserId, linkedUserId, notes),
                     cancellationToken);
                 var dest = written.Succeeded && written.Id > 0
-                    ? "/cp/crm-opportunities-app?opp_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
-                    : "/cp/crm-opportunities-app";
+                    ? "/erp/crm-opportunities-app?opp_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/erp/crm-opportunities-app";
                 return LiveWriteFormBinder.Complete(
                     context,
                     dest,
@@ -11990,7 +11990,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin
                 || !(session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp")))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crm-tickets-app", "Admin CP or ERP capability required for CRM ticket write.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/erp/crm-tickets-app", "Admin CP or ERP capability required for CRM ticket write.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmTicketsWriteBody>(context, cancellationToken)
@@ -12030,8 +12030,8 @@ public sealed class ControlPanelModule : ISurfaceModule
             {
                 var written = await writes.UpdateStatusAsync(id, status, priority, message, session.UserId, cancellationToken);
                 var dest = written.Succeeded && written.Id > 0
-                    ? "/cp/crm-tickets-app?ticket_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
-                    : "/cp/crm-tickets-app";
+                    ? "/erp/crm-tickets-app?ticket_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/erp/crm-tickets-app";
                 return LiveWriteFormBinder.Complete(
                     context,
                     dest,
@@ -12047,8 +12047,8 @@ public sealed class ControlPanelModule : ISurfaceModule
                         id, customerUserId, orderId, subject, status, priority, assignedUserId, message, session.UserId),
                     cancellationToken);
                 var dest = written.Succeeded && written.Id > 0
-                    ? "/cp/crm-tickets-app?ticket_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
-                    : "/cp/crm-tickets-app";
+                    ? "/erp/crm-tickets-app?ticket_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/erp/crm-tickets-app";
                 return LiveWriteFormBinder.Complete(
                     context,
                     dest,
@@ -12160,7 +12160,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin
                 || !(session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp")))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crm-opportunities-app", "Admin CP or ERP capability required for CRM project write.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/erp/crm-opportunities-app", "Admin CP or ERP capability required for CRM project write.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmProjectsWriteBody>(context, cancellationToken)
@@ -12215,11 +12215,11 @@ public sealed class ControlPanelModule : ISurfaceModule
                         id, name, opportunityId, orderId, status, progressPct, startDate, endDate, ownerUserId, notes),
                     cancellationToken);
                 var dest = written.Succeeded
-                    ? "/cp/crm-opportunities-app"
-                    : "/cp/crm-opportunities-app";
+                    ? "/erp/crm-opportunities-app"
+                    : "/erp/crm-opportunities-app";
                 if (written.Succeeded && opportunityId > 0)
                 {
-                    dest = "/cp/crm-opportunities-app?opp_id=" + opportunityId.ToString(CultureInfo.InvariantCulture);
+                    dest = "/erp/crm-opportunities-app?opp_id=" + opportunityId.ToString(CultureInfo.InvariantCulture);
                 }
 
                 return LiveWriteFormBinder.Complete(
@@ -12237,7 +12237,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/crm-opportunities-app",
+                    "/erp/crm-opportunities-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -12270,7 +12270,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin
                 || !(session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp")))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crm-opportunities-app", "Admin CP or ERP capability required for CRM contract write.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/erp/crm-opportunities-app", "Admin CP or ERP capability required for CRM contract write.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmContractsWriteBody>(context, cancellationToken)
@@ -12309,7 +12309,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/crm-opportunities-app",
+                    "/erp/crm-opportunities-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -12340,7 +12340,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin
                 || !(session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp")))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crm-opportunities-app", "Admin CP or ERP capability required for CRM expense write.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/erp/crm-opportunities-app", "Admin CP or ERP capability required for CRM expense write.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmExpensesWriteBody>(context, cancellationToken)
@@ -12379,7 +12379,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/crm-opportunities-app",
+                    "/erp/crm-opportunities-app",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });

@@ -4,6 +4,9 @@ using System.Text.Json;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_treasury.php
 public sealed record ErpCashEntryInput
 {
     public int AccountId { get; init; }
@@ -1391,7 +1394,7 @@ public sealed class ErpCashWriteService : IErpCashWriteService
     }
 
     /// <summary>Subset of PHP <c>epc_erp_ensure_schema</c> / <c>epc_erp_vouchers_ensure_schema</c> for the cash tables.</summary>
-    private static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+    internal static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await ErpDb.TryExecuteAsync(
             connection,

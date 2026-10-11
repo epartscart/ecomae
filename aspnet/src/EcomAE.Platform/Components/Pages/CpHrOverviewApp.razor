@@ -1,4 +1,3 @@
-@page "/cp/hr-overview-app"
 @page "/erp/hr-overview-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
@@ -10,9 +9,9 @@
 @inject IHttpContextAccessor Http
 
 <PageTitle>HR Overview · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
+<PhpChromeStyles Surface="erp" />
 
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -23,13 +22,13 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/hr-overview-app")</p>
+                <p>@CpPhpModuleCopy.PurposeFor("/erp/hr-overview-app")</p>
                 <p>Add an employee, record attendance, generate HR payroll, save days worked, submit a leave request or expense claim, and set leave or expense status here.</p>
             </div>
         </div>
     </div>
 
-    <ErpPhpViewTabs QueryName="hv" Active="@_view" BaseHref="/cp/hr-overview-app" Tabs="@_views" />
+    <ErpPhpViewTabs QueryName="hv" Active="@_view" BaseHref="/erp/hr-overview-app" Tabs="@_views" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -43,7 +42,7 @@
     {
         <form method="post" action="/erp/hr/employees/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/hr-overview-app" />
+            <input type="hidden" name="returnUrl" value="/erp/hr-overview-app" />
             <label>Id <input type="number" name="id" min="0" style="width:5rem" placeholder="new" /></label>
             <label>Code <input type="text" name="code" required placeholder="EMP-001" /></label>
             <label>Name <input type="text" name="name" required /></label>
@@ -59,7 +58,7 @@
         </form>
         <form method="post" action="/erp/hr/payroll/generate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/hr-overview-app" />
+            <input type="hidden" name="returnUrl" value="/erp/hr-overview-app" />
             <label>Period <input type="month" name="period" /></label>
             <label>Employee id <input type="number" name="employee_id" min="0" style="width:6rem" placeholder="optional" /></label>
             <label>Deduction <input type="text" name="label" placeholder="Loan" /></label>
@@ -68,7 +67,7 @@
         </form>
         <form method="post" action="/erp/hr/attendance/log" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/hr-overview-app" />
+            <input type="hidden" name="returnUrl" value="/erp/hr-overview-app" />
             <label>Employee id <input type="number" name="employee_id" min="1" required style="width:6rem" /></label>
             <label>Work date <input type="date" name="work_date_str" /></label>
             <label>Hours <input type="number" name="hours" step="0.25" min="0" style="width:6rem" /></label>
@@ -83,14 +82,14 @@
         </form>
         <form method="post" action="/erp/ajax/hr-update-days" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/hr-overview-app")" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/hr-overview-app")" />
             <label>Staff profile id <input type="number" name="staffProfileId" min="1" required style="width:6rem" /></label>
             <label>Days worked <input type="text" name="daysWorked" required /></label>
             <button type="submit">Save days</button>
         </form>
         <form method="post" action="/erp/ajax/hr-leave-request" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/hr-overview-app" />
+            <input type="hidden" name="returnUrl" value="/erp/hr-overview-app" />
             <label>Employee id <input type="number" name="employee_id" min="1" required style="width:6rem" /></label>
             <label>Type
                 <select name="type">
@@ -106,7 +105,7 @@
         </form>
         <form method="post" action="/erp/ajax/hr-leave-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/hr-overview-app")" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/hr-overview-app")" />
             <label>Leave id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <label>Status
                 <select name="status">
@@ -119,7 +118,7 @@
         </form>
         <form method="post" action="/erp/ajax/hr-expense-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/hr-overview-app" />
+            <input type="hidden" name="returnUrl" value="/erp/hr-overview-app" />
             <label>Employee id <input type="number" name="employee_id" min="1" required style="width:6rem" /></label>
             <label>Title <input type="text" name="title" placeholder="Expense claim" /></label>
             <label>Line <input type="text" name="label" placeholder="Description" /></label>
@@ -128,7 +127,7 @@
         </form>
         <form method="post" action="/erp/ajax/hr-expense-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/hr-overview-app")" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/hr-overview-app")" />
             <label>Expense id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <label>Status
                 <select name="status">
@@ -274,13 +273,13 @@
     }
 
     <p class="help-block">Source: @_source / @_hrSource. CP employee KPIs stay on <code>epc_hr_*</code>; salary/statutory rows bind <code>epc_erp_hr_records</code>.</p>
-</PhpCpDesktopChrome>
+</PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=people&tab=hr&epc_erp_shell=1";
     private static readonly IReadOnlyList<(string Key, string Label)> _views =
         [("salaries", "Salaries"), ("statutory", "Labour law & leave")];
-    private string _listHref = "/cp/hr-overview-app";
+    private string _listHref = "/erp/hr-overview-app";
     private string _lawCountry = "AE";
     private bool _lawFetched;
     private ErpHrLabourLawPack.Profile _law = ErpHrLabourLawPack.ByCode("AE");
@@ -306,7 +305,7 @@
         var path = ctx.Request.Path.Value;
         _listHref = string.Equals(path, "/erp/hr-overview-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/hr-overview-app"
-            : "/cp/hr-overview-app";
+            : "/erp/hr-overview-app";
         var hv = ctx.Request.Query["hv"].ToString();
         var tab = ctx.Request.Query["tab"].ToString();
         if (hv is "statutory" or "salaries")

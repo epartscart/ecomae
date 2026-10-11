@@ -123,7 +123,7 @@ public sealed class ErpPmSavePhpParityTests
         Assert.DoesNotContain("epc_erp_pm_cheque_save", service, StringComparison.Ordinal);
     }
 
-    private static string FindRepoFile(string relative)
+    internal static string FindRepoFile(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)

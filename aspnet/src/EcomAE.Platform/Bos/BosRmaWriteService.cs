@@ -6,6 +6,9 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Bos;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_warranty_rma.php
 /// <summary>
 /// Live PHP <c>ajax_epc_bos.php</c> <c>warranty_rma</c> <c>rma_transition</c> / <c>epc_rma_transition</c>
 /// and <c>register</c> / <c>epc_warranty_register</c>.

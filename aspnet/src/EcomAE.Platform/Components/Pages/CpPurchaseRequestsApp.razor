@@ -1,11 +1,10 @@
-@page "/cp/purchase-requests-app"
 @page "/erp/purchase-requests-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
@@ -14,8 +13,8 @@
 @inject IErpOrganizationMasterReadService OrganizationMasters
 
 <PageTitle>Purchase requests · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     @if (_isErpRoute)
     {
@@ -33,12 +32,12 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/purchase-requests-app")</p>
+                <p>@CpPhpModuleCopy.PurposeFor("/erp/purchase-requests-app")</p>
                 <p>Save a requisition, add a line, submit, decide, or convert here. Open a row to see lines and status actions.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/purchase-requests-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+    <PhpParityModuleBody AppPath="/erp/purchase-requests-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -277,7 +276,7 @@
         </div>
     </div>
 
-</PhpCpDesktopChrome>
+</PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=purchasing&tab=purchase_requisitions&epc_erp_shell=1";
@@ -292,8 +291,8 @@
     private long _openedId;
     private CpPurchaseRequestDetail? _openedDetail;
     private IReadOnlyList<CpPurchaseRequestLineDigest> _openedLines = [];
-    private string _listHref = "/cp/purchase-requests-app";
-    private string _returnHref = "/cp/purchase-requests-app";
+    private string _listHref = "/erp/purchase-requests-app";
+    private string _returnHref = "/erp/purchase-requests-app";
     private bool _isErpRoute;
     private IReadOnlyList<string> RequisitionWorkspaceTabs => ["General", "Lines", "Approval", "Procurement"];
     private IReadOnlyList<ErpDocumentWorkspaceField> RequisitionWorkspaceFields => _openedDetail is null
@@ -341,7 +340,7 @@
         _isErpRoute = string.Equals(path, "/erp/purchase-requests-app", StringComparison.OrdinalIgnoreCase);
         _listHref = string.Equals(path, "/erp/purchase-requests-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/purchase-requests-app"
-            : "/cp/purchase-requests-app";
+            : "/erp/purchase-requests-app";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "req_id", "rq");
         _returnHref = _openedId > 0
             ? ErpRecordOpen.Href(_listHref, "req_id", _openedId).Split('#')[0]

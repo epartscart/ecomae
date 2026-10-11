@@ -84,6 +84,7 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_jw_tags", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_jw_tags", "tag_no", cancellationToken).ConfigureAwait(false))
         {
@@ -211,6 +212,7 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_jw_tags", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_jw_tags", "status", cancellationToken).ConfigureAwait(false))
         {

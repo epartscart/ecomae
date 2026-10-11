@@ -2,6 +2,11 @@ using System.Data.Common;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_company.php
+//   content/shop/finance/epc_erp_schema.php
+//   content/shop/finance/epc_erp_migration.php
 /// <summary>
 /// Verbatim-DDL schema ensures for ERP tables that PHP creates lazily via
 /// <c>*_ensure_schema</c> functions (CREATE TABLE IF NOT EXISTS at the top of
@@ -776,5 +781,370 @@ internal static class ErpLazySchema
             "KEY `x_item` (`item_id`)" +
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Inventory closing/recalculation runs'",
             ct);
+    }
+
+    /// <summary>
+    /// epc_erp_company_context_ensure (epc_erp_company_context.php): the legal-entity
+    /// master must exist AND a fresh tenant auto-seeds one default company from the
+    /// single-row tenant profile (epc_co_profile id=1) so GL/company resolution has a
+    /// real id — without this a new tenant silently posts company_id=0.
+    /// </summary>
+    public static async Task EnsureCompanyContextAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_legal_entities` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`code` varchar(40) NOT NULL DEFAULT ''," +
+            "`name` varchar(190) NOT NULL DEFAULT ''," +
+            "`country_code` varchar(4) NOT NULL DEFAULT ''," +
+            "`currency_code` varchar(8) NOT NULL DEFAULT ''," +
+            "`trn` varchar(40) NOT NULL DEFAULT ''," +
+            "`note` varchar(255) NOT NULL DEFAULT ''," +
+            "`active` tinyint(1) NOT NULL DEFAULT 1," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            ct).ConfigureAwait(false);
+
+        try
+        {
+            var count = await ErpDb.LongAsync(c, null,
+                "SELECT COUNT(*) FROM `epc_erp_pm_legal_entities` WHERE `active` = 1",
+                ct).ConfigureAwait(false);
+            if (count > 0)
+            {
+                return;
+            }
+        }
+        catch (DbException)
+        {
+            return; // table could not be created/read on this tenant — leave unscoped
+        }
+
+        // PHP epc_co_profile_get → epc_co_ensure_schema: profile tables are created
+        // lazily on first read, so a fresh tenant's seed still has a real (empty) profile row source.
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_co_profile` (" +
+            "`id` tinyint(1) NOT NULL DEFAULT 1," +
+            "`legal_name` varchar(200) NOT NULL DEFAULT ''," +
+            "`trade_name` varchar(200) NOT NULL DEFAULT ''," +
+            "`logo_url` varchar(255) NOT NULL DEFAULT ''," +
+            "`stamp_url` varchar(255) NOT NULL DEFAULT ''," +
+            "`address` varchar(500) NOT NULL DEFAULT ''," +
+            "`city` varchar(120) NOT NULL DEFAULT ''," +
+            "`country` varchar(2) NOT NULL DEFAULT ''," +
+            "`phone` varchar(60) NOT NULL DEFAULT ''," +
+            "`email` varchar(160) NOT NULL DEFAULT ''," +
+            "`website` varchar(160) NOT NULL DEFAULT ''," +
+            "`trn` varchar(40) NOT NULL DEFAULT ''," +
+            "`tax_label` varchar(20) NOT NULL DEFAULT 'TRN'," +
+            "`trade_license` varchar(60) NOT NULL DEFAULT ''," +
+            "`reg_no` varchar(60) NOT NULL DEFAULT ''," +
+            "`bank_details` varchar(500) NOT NULL DEFAULT ''," +
+            "`base_currency` varchar(3) NOT NULL DEFAULT ''," +
+            "`fy_start` varchar(5) NOT NULL DEFAULT '01-01'," +
+            "`invoice_terms` varchar(1000) NOT NULL DEFAULT ''," +
+            "`header_html` text," +
+            "`footer_html` text," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Single-row tenant company profile'",
+            ct).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_co_branch_profile` (" +
+            "`branch_id` int(11) NOT NULL," +
+            "`name` varchar(200) NOT NULL DEFAULT ''," +
+            "`address` varchar(500) NOT NULL DEFAULT ''," +
+            "`phone` varchar(60) NOT NULL DEFAULT ''," +
+            "`email` varchar(160) NOT NULL DEFAULT ''," +
+            "`trn` varchar(40) NOT NULL DEFAULT ''," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`branch_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Per-branch document overrides'",
+            ct).ConfigureAwait(false);
+
+        var legalName = string.Empty;
+        var tradeName = string.Empty;
+        var baseCurrency = string.Empty;
+        var country = string.Empty;
+        var trn = string.Empty;
+        try
+        {
+            await using var command = c.CreateCommand();
+            command.CommandText =
+                "SELECT COALESCE(`legal_name`,''), COALESCE(`trade_name`,'')," +
+                " COALESCE(`base_currency`,''), COALESCE(`country`,''), COALESCE(`trn`,'')" +
+                " FROM `epc_co_profile` WHERE `id` = 1 LIMIT 1";
+            await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            if (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                legalName = Convert.ToString(reader.GetValue(0)) ?? string.Empty;
+                tradeName = Convert.ToString(reader.GetValue(1)) ?? string.Empty;
+                baseCurrency = Convert.ToString(reader.GetValue(2)) ?? string.Empty;
+                country = Convert.ToString(reader.GetValue(3)) ?? string.Empty;
+                trn = Convert.ToString(reader.GetValue(4)) ?? string.Empty;
+            }
+        }
+        catch (DbException)
+        {
+            // epc_co_profile may be absent on lean tenants — seed defaults like PHP.
+        }
+
+        var name = (legalName.Length > 0 ? legalName : tradeName).Trim();
+        if (name.Length == 0)
+        {
+            name = "Main Company";
+        }
+
+        var currency = baseCurrency.Trim().ToUpperInvariant();
+        if (currency.Length == 0)
+        {
+            currency = "AED";
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        try
+        {
+            await ErpDb.ExecuteAsync(c, null,
+                "INSERT INTO `epc_erp_pm_legal_entities`" +
+                " (`code`,`name`,`country_code`,`currency_code`,`trn`,`note`,`active`,`time_created`,`time_updated`)" +
+                " SELECT 'MAIN', @p0, @p1, @p2, @p3, 'Auto-created default company', 1, @p4, @p4 FROM DUAL" +
+                " WHERE NOT EXISTS (SELECT 1 FROM `epc_erp_pm_legal_entities` WHERE `code` = 'MAIN')",
+                ct,
+                name,
+                country.Trim().ToUpperInvariant()[..Math.Min(4, country.Trim().ToUpperInvariant().Length)],
+                currency,
+                trn.Trim(),
+                now).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            // Insert raced another request seeding the same row — PHP treats ensure as best-effort too.
+        }
+    }
+
+    /// <summary>
+    /// epc_erp_pm_ensure_schema + epc_erp_pm_seed_defaults (epc_erp_pdf_modules.php):
+    /// every pm_* master table is lazily created AND pre-seeded with editable defaults
+    /// on any pm_save/list call, so a fresh tenant never sees "not provisioned".
+    /// </summary>
+    public static async Task EnsurePmMastersAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_legal_entities` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `country_code` varchar(4) NOT NULL DEFAULT '', `currency_code` varchar(8) NOT NULL DEFAULT '', `trn` varchar(40) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_business_units` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `legal_entity_id` int(11) NOT NULL DEFAULT 0, `parent_id` int(11) NOT NULL DEFAULT 0, `manager` varchar(120) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_class_units` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `class_type` varchar(60) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_dimensions` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `dim_type` varchar(60) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_dimension_values` (`id` int(11) NOT NULL AUTO_INCREMENT, `dimension_id` int(11) NOT NULL DEFAULT 0, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `dim` (`dimension_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_vendor_groups` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `terms_id` int(11) NOT NULL DEFAULT 0, `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_customer_groups` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `terms_id` int(11) NOT NULL DEFAULT 0, `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_pay_methods` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `method_type` varchar(40) NOT NULL DEFAULT '', `account_code` varchar(40) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_pay_terms` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `net_days` int(11) NOT NULL DEFAULT 0, `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_inv_groups` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `valuation` varchar(30) NOT NULL DEFAULT 'weighted_avg', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_barcode_formats` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `symbology` varchar(30) NOT NULL DEFAULT 'CODE128', `pattern` varchar(120) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_budgets` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(190) NOT NULL DEFAULT '', `fiscal_year` varchar(9) NOT NULL DEFAULT '', `business_unit_id` int(11) NOT NULL DEFAULT 0, `is_master` tinyint(1) NOT NULL DEFAULT 0, `note` varchar(255) NOT NULL DEFAULT '', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_budget_lines` (`id` int(11) NOT NULL AUTO_INCREMENT, `budget_id` int(11) NOT NULL DEFAULT 0, `account_code` varchar(40) NOT NULL DEFAULT '', `account_name` varchar(190) NOT NULL DEFAULT '', `month_no` tinyint(4) NOT NULL DEFAULT 0, `amount` decimal(18,2) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `b` (`budget_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_cheques` (`id` int(11) NOT NULL AUTO_INCREMENT, `bank_account_id` int(11) NOT NULL DEFAULT 0, `cheque_no` varchar(40) NOT NULL DEFAULT '', `pay_to` varchar(190) NOT NULL DEFAULT '', `amount` decimal(18,2) NOT NULL DEFAULT 0, `cheque_date` int(11) NOT NULL DEFAULT 0, `memo` varchar(255) NOT NULL DEFAULT '', `status` varchar(20) NOT NULL DEFAULT 'printed', `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_listings` (`id` int(11) NOT NULL AUTO_INCREMENT, `ref_no` varchar(40) NOT NULL DEFAULT '', `resource_type` varchar(40) NOT NULL DEFAULT '', `title` varchar(190) NOT NULL DEFAULT '', `description` text, `qty` decimal(18,3) NOT NULL DEFAULT 0, `rate` decimal(18,2) NOT NULL DEFAULT 0, `amount` decimal(18,2) NOT NULL DEFAULT 0, `voucher_ref` varchar(60) NOT NULL DEFAULT '', `status` varchar(20) NOT NULL DEFAULT 'draft', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+
+        // epc_erp_pm_seed_defaults: editable defaults so masters screens aren't empty.
+        // Each table seeds only when completely empty (PHP seedIf semantics).
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await SeedIfEmptyAsync(c, ct, "epc_erp_pm_pay_terms",
+            "(`code`,`name`,`net_days`,`note`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,'',1,@p3,@p3)",
+            new object?[][]
+            {
+                new object?[] { "NET0", "Due on receipt", 0, now },
+                new object?[] { "NET15", "Net 15 days", 15, now },
+                new object?[] { "NET30", "Net 30 days", 30, now },
+                new object?[] { "NET60", "Net 60 days", 60, now },
+            }).ConfigureAwait(false);
+        await SeedIfEmptyAsync(c, ct, "epc_erp_pm_pay_methods",
+            "(`code`,`name`,`method_type`,`account_code`,`note`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,@p3,'',1,@p4,@p4)",
+            new object?[][]
+            {
+                new object?[] { "CASH", "Cash", "cash", "1010", now },
+                new object?[] { "BANK", "Bank transfer", "bank", "1020", now },
+                new object?[] { "CHEQUE", "Cheque", "cheque", "1020", now },
+                new object?[] { "CARD", "Credit card", "card", "1030", now },
+            }).ConfigureAwait(false);
+        await SeedIfEmptyAsync(c, ct, "epc_erp_pm_vendor_groups",
+            "(`code`,`name`,`terms_id`,`note`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,'',1,@p3,@p3)",
+            new object?[][]
+            {
+                new object?[] { "LOCAL", "Local suppliers", 0, now },
+                new object?[] { "IMPORT", "Import / overseas", 0, now },
+            }).ConfigureAwait(false);
+        await SeedIfEmptyAsync(c, ct, "epc_erp_pm_customer_groups",
+            "(`code`,`name`,`terms_id`,`note`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,'',1,@p3,@p3)",
+            new object?[][]
+            {
+                new object?[] { "RETAIL", "Retail customers", 0, now },
+                new object?[] { "WHOLESALE", "Wholesale / B2B", 0, now },
+                new object?[] { "VIP", "Key accounts", 0, now },
+            }).ConfigureAwait(false);
+        await SeedIfEmptyAsync(c, ct, "epc_erp_pm_dimensions",
+            "(`code`,`name`,`dim_type`,`note`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,'',1,@p3,@p3)",
+            new object?[][]
+            {
+                new object?[] { "DEPT", "Department", "department", now },
+                new object?[] { "PROJECT", "Project", "project", now },
+                new object?[] { "COSTCENTER", "Cost centre", "cost_center", now },
+            }).ConfigureAwait(false);
+        await SeedIfEmptyAsync(c, ct, "epc_erp_pm_inv_groups",
+            "(`code`,`name`,`valuation`,`note`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,'',1,@p3,@p3)",
+            new object?[][]
+            {
+                new object?[] { "FG", "Finished goods", "weighted_avg", now },
+                new object?[] { "RM", "Raw materials", "weighted_avg", now },
+                new object?[] { "TRADE", "Trading items", "fifo", now },
+            }).ConfigureAwait(false);
+        await SeedIfEmptyAsync(c, ct, "epc_erp_pm_barcode_formats",
+            "(`code`,`name`,`symbology`,`pattern`,`note`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,@p3,'',1,@p4,@p4)",
+            new object?[][]
+            {
+                new object?[] { "SKU128", "SKU (Code 128)", "CODE128", "{SKU}", now },
+                new object?[] { "EAN13", "Retail EAN-13", "EAN13", "{SKU13}", now },
+                new object?[] { "PRICE", "SKU + price tag", "CODE128", "{SKU}-{PRICE}", now },
+            }).ConfigureAwait(false);
+
+        // Dimension values seeded under their dimension code when that dimension has none yet.
+        var dimSeeds = new Dictionary<string, string[][]>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["COSTCENTER"] = new[] { new[] { "CC-ADMIN", "Administration" }, new[] { "CC-SALES", "Sales & marketing" }, new[] { "CC-OPS", "Operations" } },
+            ["DEPT"] = new[] { new[] { "D-FIN", "Finance" }, new[] { "D-SALES", "Sales" }, new[] { "D-WH", "Warehouse" } },
+            ["PROJECT"] = new[] { new[] { "P-GEN", "General" } },
+        };
+        foreach (var (dimCode, values) in dimSeeds)
+        {
+            try
+            {
+                var dimId = await ErpDb.LongAsync(c, null,
+                    ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_dimensions` WHERE `code` = ? LIMIT 1"),
+                    ct, dimCode).ConfigureAwait(false);
+                if (dimId <= 0)
+                {
+                    continue;
+                }
+                var existing = await ErpDb.LongAsync(c, null,
+                    ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_pm_dimension_values` WHERE `dimension_id` = ?"),
+                    ct, dimId).ConfigureAwait(false);
+                if (existing > 0)
+                {
+                    continue;
+                }
+                foreach (var v in values)
+                {
+                    await ErpDb.ExecuteAsync(c, null,
+                        "INSERT INTO `epc_erp_pm_dimension_values` (`dimension_id`,`code`,`name`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,1,@p3,@p3)",
+                        ct, dimId, v[0], v[1], now).ConfigureAwait(false);
+                }
+            }
+            catch (DbException)
+            {
+                // best-effort seed — PHP treats ensure as fire-and-forget too
+            }
+        }
+    }
+
+    private static async Task SeedIfEmptyAsync(
+        DbConnection c, CancellationToken ct, string table, string valuesClause, object?[][] rows)
+    {
+        try
+        {
+            var count = await ErpDb.LongAsync(c, null,
+                "SELECT COUNT(*) FROM `" + table + "`", ct).ConfigureAwait(false);
+            if (count > 0)
+            {
+                return;
+            }
+            foreach (var row in rows)
+            {
+                await ErpDb.ExecuteAsync(c, null,
+                    "INSERT INTO `" + table + "` " + valuesClause, ct, row).ConfigureAwait(false);
+            }
+        }
+        catch (DbException)
+        {
+            // best-effort seed
+        }
+    }
+
+    /// <summary>epc_erp_inventory_ensure_schema (epc_erp_inventory.php): item master, warehouses, stock, movements.</summary>
+    public static async Task EnsureInventoryAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_warehouses` (`id` int(11) NOT NULL AUTO_INCREMENT, `storage_id` int(11) NOT NULL DEFAULT 0, `code` varchar(32) NOT NULL DEFAULT '', `name` varchar(255) NOT NULL, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_code` (`code`), KEY `x_storage` (`storage_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_field_defs` (`id` int(11) NOT NULL AUTO_INCREMENT, `field_key` varchar(32) NOT NULL, `label` varchar(120) NOT NULL, `field_type` enum('text','number','date','select') NOT NULL DEFAULT 'text', `options_json` text, `sort_order` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`id`), UNIQUE KEY `x_key` (`field_key`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_items` (`id` int(11) NOT NULL AUTO_INCREMENT, `sku` varchar(64) NOT NULL, `name` varchar(255) NOT NULL, `product_id` int(11) NOT NULL DEFAULT 0, `item_type` enum('standard','perishable','serialized') NOT NULL DEFAULT 'standard', `track_expiry` tinyint(1) NOT NULL DEFAULT 0, `unit` varchar(16) NOT NULL DEFAULT 'pcs', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_sku` (`sku`), KEY `x_product` (`product_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_item_fields` (`item_id` int(11) NOT NULL, `field_key` varchar(32) NOT NULL, `value` varchar(512) NOT NULL DEFAULT '', PRIMARY KEY (`item_id`,`field_key`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_stock` (`id` int(11) NOT NULL AUTO_INCREMENT, `warehouse_id` int(11) NOT NULL, `item_id` int(11) NOT NULL, `qty_on_hand` decimal(14,3) NOT NULL DEFAULT 0.000, `avg_unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `expiry_date` date DEFAULT NULL, `batch_no` varchar(64) DEFAULT NULL, `variant_label` varchar(120) DEFAULT NULL, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_wh_item_batch` (`warehouse_id`,`item_id`,`batch_no`,`variant_label`), KEY `x_item` (`item_id`), KEY `x_expiry` (`expiry_date`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_movements` (`id` int(11) NOT NULL AUTO_INCREMENT, `movement_type` enum('opening','purchase_in','sale_out','transfer_in','transfer_out','adjustment','return_in','return_out') NOT NULL, `warehouse_id` int(11) NOT NULL, `item_id` int(11) NOT NULL, `qty` decimal(14,3) NOT NULL DEFAULT 0.000, `unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `total_cost` decimal(14,2) NOT NULL DEFAULT 0.00, `transfer_warehouse_id` int(11) NOT NULL DEFAULT 0, `purchase_id` int(11) NOT NULL DEFAULT 0, `order_id` int(11) NOT NULL DEFAULT 0, `batch_no` varchar(64) DEFAULT NULL, `expiry_date` date DEFAULT NULL, `reference` varchar(128) DEFAULT NULL, `note` text, `movement_date` int(11) NOT NULL DEFAULT 0, `admin_id` int(11) NOT NULL DEFAULT 0, `opening_batch_id` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`id`), KEY `x_wh_item` (`warehouse_id`,`item_id`,`movement_date`), KEY `x_type` (`movement_type`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_closing` (`id` int(11) NOT NULL AUTO_INCREMENT, `period_end` date NOT NULL, `warehouse_id` int(11) NOT NULL DEFAULT 0, `item_id` int(11) NOT NULL, `qty_closing` decimal(14,3) NOT NULL DEFAULT 0.000, `avg_unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `value_closing` decimal(14,2) NOT NULL DEFAULT 0.00, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_period` (`period_end`,`warehouse_id`,`item_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_purchase_inv_lines` (`id` int(11) NOT NULL AUTO_INCREMENT, `purchase_id` int(11) NOT NULL, `warehouse_id` int(11) NOT NULL, `item_id` int(11) NOT NULL, `qty` decimal(14,3) NOT NULL DEFAULT 0.000, `unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `batch_no` varchar(64) DEFAULT NULL, `expiry_date` date DEFAULT NULL, `movement_id` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_purchase` (`purchase_id`), KEY `x_item` (`item_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_serials` (`id` int(11) NOT NULL AUTO_INCREMENT, `item_id` int(11) NOT NULL, `serial_no` varchar(128) NOT NULL, `warehouse_id` int(11) NOT NULL DEFAULT 0, `batch_no` varchar(64) DEFAULT NULL, `status` enum('in_stock','sold','returned','scrapped','in_transit') NOT NULL DEFAULT 'in_stock', `in_movement_id` int(11) NOT NULL DEFAULT 0, `out_movement_id` int(11) NOT NULL DEFAULT 0, `unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `note` varchar(255) DEFAULT NULL, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_item_serial` (`item_id`,`serial_no`), KEY `x_status` (`status`), KEY `x_wh` (`warehouse_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Serial-number register'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "barcode", "varchar(128) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "reorder_level", "decimal(14,3) NOT NULL DEFAULT 0.000", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_movements", "serial_no", "varchar(128) DEFAULT NULL", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_field_defs", "field_role", "enum('inventory','non_inventory') NOT NULL DEFAULT 'inventory'", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_field_defs", "source_pack", "varchar(64) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+
+        var movementEnum = await ErpDb.StringAsync(
+            c, null,
+            "SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_erp_inv_movements' AND COLUMN_NAME = 'movement_type'",
+            ct).ConfigureAwait(false) ?? string.Empty;
+        if (movementEnum.Length > 0 && !movementEnum.Contains("'mfg_issue'", StringComparison.Ordinal))
+        {
+            await ErpDb.TryExecuteAsync(
+                c,
+                "ALTER TABLE `epc_erp_inv_movements` MODIFY COLUMN `movement_type` enum('opening','purchase_in','sale_out','transfer_in','transfer_out','adjustment','return_in','return_out','mfg_issue','mfg_receipt') NOT NULL",
+                ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>Adds a column only when information_schema says it is missing, so steady-state ensures issue no failing DDL.</summary>
+    public static async Task AddColumnIfMissingAsync(DbConnection c, string table, string column, string definition, CancellationToken ct)
+    {
+        var exists = await ErpDb.LongAsync(
+            c, null,
+            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"),
+            ct, table, column).ConfigureAwait(false);
+        if (exists == 0)
+        {
+            await ErpDb.TryExecuteAsync(c, "ALTER TABLE `" + table + "` ADD COLUMN `" + column + "` " + definition, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// epc_erp_period_close_ensure_schema (epc_erp_period_close.php) + epc_erp_fiscal_ensure_schema
+    /// (epc_erp_fiscal_periods.php): period rows, close log and fiscal locks.
+    /// </summary>
+    public static async Task EnsurePeriodCloseAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_erp_periods` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `year_month` CHAR(7) NOT NULL, `year` SMALLINT NOT NULL, `month` TINYINT NOT NULL, `status` ENUM('open','soft_close','locked') NOT NULL DEFAULT 'open', `closed_by` INT NOT NULL DEFAULT 0, `closed_at` INT NOT NULL DEFAULT 0, `locked_by` INT NOT NULL DEFAULT 0, `locked_at` INT NOT NULL DEFAULT 0, `note` VARCHAR(512) NOT NULL DEFAULT '', `checklist_json` TEXT, `created_at` INT NOT NULL DEFAULT 0, `updated_at` INT NOT NULL DEFAULT 0, UNIQUE KEY `idx_year_month` (`year_month`), INDEX `idx_status` (`status`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_period_close_log` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `year_month` CHAR(7) NOT NULL, `action` VARCHAR(32) NOT NULL, `old_status` VARCHAR(16) NOT NULL DEFAULT '', `new_status` VARCHAR(16) NOT NULL DEFAULT '', `admin_id` INT NOT NULL DEFAULT 0, `note` VARCHAR(512) NOT NULL DEFAULT '', `created_at` INT NOT NULL DEFAULT 0, INDEX `idx_period` (`year_month`, `created_at`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_fiscal_locks` (`id` int(11) NOT NULL AUTO_INCREMENT, `lock_date` int(11) NOT NULL, `note` varchar(255) DEFAULT NULL, `admin_id` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_active_date` (`active`,`lock_date`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='BOS fiscal-period locks'",
+            "CREATE TABLE IF NOT EXISTS `epc_fy_years` (`id` int(11) NOT NULL AUTO_INCREMENT, `label` varchar(40) NOT NULL, `start_date` int(11) NOT NULL DEFAULT 0, `end_date` int(11) NOT NULL DEFAULT 0, `status` varchar(10) NOT NULL DEFAULT 'open', `closed_at` int(11) NOT NULL DEFAULT 0, `retained_pl` decimal(16,2) NOT NULL DEFAULT 0.00, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_label` (`label`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Fiscal years'",
+            "CREATE TABLE IF NOT EXISTS `epc_fy_periods` (`id` int(11) NOT NULL AUTO_INCREMENT, `year_id` int(11) NOT NULL, `period_no` int(11) NOT NULL DEFAULT 0, `start_date` int(11) NOT NULL DEFAULT 0, `end_date` int(11) NOT NULL DEFAULT 0, `status` varchar(10) NOT NULL DEFAULT 'open', PRIMARY KEY (`id`), UNIQUE KEY `x_period` (`year_id`,`period_no`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Fiscal periods'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
     }
 }

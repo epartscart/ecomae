@@ -2,6 +2,9 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_wms.php
 /// <summary>
 /// Live PHP <c>epc_wms_wave_create</c> + <c>epc_wms_wave_add_pick</c> twin
 /// (ajax_erp <c>wms_wave_create</c>). Schema ensure stays PHP.

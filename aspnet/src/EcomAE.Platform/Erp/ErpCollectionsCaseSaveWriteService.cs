@@ -83,6 +83,7 @@ public sealed class ErpCollectionsCaseSaveWriteService : IErpCollectionsCaseSave
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpCreditSchema.EnsureCollectionsAsync(connection, cancellationToken).ConfigureAwait(false);
         if (id > 0)
         {
             await ErpDb.ExecuteAsync(

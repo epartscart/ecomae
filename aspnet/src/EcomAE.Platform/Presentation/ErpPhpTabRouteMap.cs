@@ -1,5 +1,14 @@
 namespace EcomAE.Platform.Presentation;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_card_reader.php
+//   content/shop/finance/epc_erp_crm_integration.php
+//   content/shop/finance/epc_erp_data_migration.php
+//   content/shop/finance/epc_erp_drilldown.php
+//   content/shop/finance/epc_erp_inventory_report.php
+//   content/shop/finance/epc_erp_modules_ajax.php
+//   content/shop/finance/epc_erp_ecommerce_integration.php
 /// <summary>
 /// PHP erp_tabs_* → ASP.NET primary app map (PHP remains write-authoritative).
 /// Generated for full tab coverage; unmapped tabs fall through to area hubs or /erp/module-app.
@@ -186,8 +195,8 @@ public static class ErpPhpTabRouteMap
         ["report_scheduler"] = "/erp/report-scheduler-app",
         ["reportcenter"] = "/erp/report-center-app",
         ["reports"] = "/erp/report-center-app",
-        ["retail_barcode"] = "/erp/jewellery-retail-app?tab=retail_barcode",
-        ["retail_commerce"] = "/erp/jewellery-retail-app?tab=retail_commerce",
+        ["retail_barcode"] = "/erp/retail-commerce-app?tab=barcode",
+        ["retail_commerce"] = "/erp/retail-commerce-app?tab=channels",
         ["rfid"] = "/erp/rfid-app",
         ["rfq"] = "/erp/rfq-app",
         ["sales_orders"] = "/erp/sales-orders-app",

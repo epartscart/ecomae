@@ -42,12 +42,22 @@ public sealed class ErpContractStatusWriteService : IErpContractStatusWriteServi
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await ErpContractSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
-        await ErpDb.ExecuteAsync(
+        var affected = await ErpDb.ExecuteAsync(
             connection,
             null,
             ErpDb.Positional("UPDATE `epc_erp_contracts` SET `status` = ?, `time_updated` = ? WHERE `id` = ?"),
             cancellationToken,
             next, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), id);
+        if (affected == 0)
+        {
+            var exists = await ErpDb.LongAsync(connection, null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_contracts` WHERE `id` = ?"),
+                cancellationToken, id).ConfigureAwait(false);
+            if (exists == 0)
+            {
+                return ErpSimpleWriteResult.Fail("not_found", "Contract not found");
+            }
+        }
         return ErpSimpleWriteResult.Ok("Contract " + next, id);
     }
 }

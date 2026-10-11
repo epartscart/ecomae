@@ -4,6 +4,9 @@ using System.Text;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_customer_groups.php
 /// <summary>
 /// Live PHP <c>epc_cust_groups_create</c> / <c>epc_cust_groups_assign</c> twin. Schema-ensure stays PHP.
 /// </summary>

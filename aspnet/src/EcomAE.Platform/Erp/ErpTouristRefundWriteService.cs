@@ -3,6 +3,9 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_tourist_refund.php
 /// <summary>
 /// Live PHP <c>epc_tourist_refund_create</c> / <c>epc_tourist_refund_validate</c> twin. Schema-ensure stays PHP.
 /// Distinct from jewellery <c>epc_jewel_tourist_vat_refund</c>.

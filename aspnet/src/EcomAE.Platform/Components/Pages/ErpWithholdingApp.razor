@@ -172,6 +172,13 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "txn_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="4"></td>
+                        <td class="text-right">@_txns.Sum(r => r.BaseAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_txns.Sum(r => r.WhtAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td colspan="3" class="text-muted">@_txns.Count transactions</td>
+                    </tr>
                 }
             </tbody>
         </table>

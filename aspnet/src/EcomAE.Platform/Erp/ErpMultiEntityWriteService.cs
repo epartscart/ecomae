@@ -4,6 +4,11 @@ using System.Text.RegularExpressions;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_bos_org.php
+//   content/shop/finance/epc_multi_entity.php
+//   content/shop/finance/epc_erp_enterprise.php
 /// <summary>
 /// Live PHP <c>epc_entity_create_group</c> / <c>epc_entity_add_member</c> /
 /// <c>epc_entity_record_intercompany</c> / <c>epc_entity_eliminate</c> twins.

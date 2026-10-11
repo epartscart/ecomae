@@ -76,6 +76,9 @@ public sealed class ErpPmSaveWriteService : IErpPmSaveWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        // PHP epc_erp_pm_ensure_schema + seed_defaults run inside every pm_save — a
+        // fresh tenant gets the masters schema and editable defaults, never "not provisioned".
+        await ErpLazySchema.EnsurePmMastersAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, table, "code", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Master table is not provisioned");

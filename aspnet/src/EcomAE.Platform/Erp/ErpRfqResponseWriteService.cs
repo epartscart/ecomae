@@ -2,6 +2,9 @@ using System.Data.Common;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_scm.php
 /// <summary>
 /// Guarded PHP <c>epc_scm_rfq_add_response</c> twin. The PHP SCM table remains
 /// Classic-owned: this service only inserts when the existing table is present.

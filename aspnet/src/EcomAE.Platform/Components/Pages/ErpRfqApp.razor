@@ -1,8 +1,8 @@
 @page "/erp/rfq-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
-@using EcomAE.Platform.Auth
 @using EcomAE.Platform.Components.Shared.Desktop
+@using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Erp
@@ -280,6 +280,12 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "rfq_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="2"></td>
+                        <td>@_rfqs.Sum(r => r.AmountEst).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td colspan="4" class="text-muted">@_rfqs.Count RFQs</td>
+                    </tr>
                 }
             </tbody>
         </table>

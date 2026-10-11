@@ -76,6 +76,7 @@ public sealed class ErpJwFinanceHistoryReadService : IErpJwFinanceHistoryReadSer
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional(sql);
         ErpDb.AddParameters(command, companyId, from.Trim(), to.Trim());

@@ -5,6 +5,10 @@ using EcomAE.Platform.Cp;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_doc_attachment.php
+//   cp/content/shop/finance/erp/erp_invoice_attachments_panel.php
 /// <summary>
 /// Live PHP twins for the document-control ajax pair still on dry-run:
 /// <c>sync_einvoice_seller</c> → <c>epc_dc_sync_seller_from_einvoice</c> and

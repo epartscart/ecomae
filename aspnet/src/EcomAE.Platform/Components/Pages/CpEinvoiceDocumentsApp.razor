@@ -1,18 +1,17 @@
-@page "/cp/einvoice-documents-app"
 @page "/erp/einvoice-documents-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>E-invoice documents · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -21,12 +20,12 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/einvoice-documents-app")</p>
+                <p>@CpPhpModuleCopy.PurposeFor("/erp/einvoice-documents-app")</p>
                 <p>Open a document to see seller/buyer JSON, tax breakdown, validation, lines, and events. Save seller, buyer, and ASP e-invoice settings here. Fetch FTA legislation to ingest PINT-AE / Peppol instruments.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/einvoice-documents-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+    <PhpParityModuleBody AppPath="/erp/einvoice-documents-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -55,6 +54,20 @@
             <label>TRN <input type="text" name="sellerTrn" value="@_sellerProfile.SellerTrn" required maxlength="15" /></label>
             <label>Country <input type="text" name="sellerCountryCode" value="@(_sellerProfile.SellerCountryCode is { Length: > 0 } ? _sellerProfile.SellerCountryCode : "AE")" style="width:4rem" /></label>
             <label>City <input type="text" name="sellerCity" value="@(_sellerProfile.SellerCity is { Length: > 0 } ? _sellerProfile.SellerCity : "Dubai")" /></label>
+            <label>Emirate / subdivision <input type="text" name="sellerEmirate" value="@(_sellerProfile.SellerEmirate is { Length: > 0 } ? _sellerProfile.SellerEmirate : "Dubai")" /></label>
+            <label>Trade licence / legal reg. no. <input type="text" name="sellerLegalRegNo" value="@_sellerProfile.SellerLegalRegNo" required /></label>
+            <label>Reg. type
+                <select name="sellerLegalRegType">
+                    @foreach (var regType in new[] { "TL", "EID", "PAS", "CD" })
+                    {
+                        <option value="@regType" selected="@(string.Equals(_sellerProfile.SellerLegalRegType, regType, StringComparison.OrdinalIgnoreCase))">@regType</option>
+                    }
+                </select>
+            </label>
+            <label>Authority <input type="text" name="sellerAuthorityName" value="@(_sellerProfile.SellerAuthorityName is { Length: > 0 } ? _sellerProfile.SellerAuthorityName : "Dubai Economy and Tourism")" /></label>
+            <label>Address line 1 <input type="text" name="sellerAddressLine1" value="@_sellerProfile.SellerAddressLine1" required style="min-width:16rem" /></label>
+            <label>Phone <input type="text" name="sellerPhone" value="@_sellerProfile.SellerPhone" /></label>
+            <label>Email <input type="email" name="sellerEmail" value="@_sellerProfile.SellerEmail" /></label>
             <label>VAT registered <input type="checkbox" name="companyVatRegistered" value="1" checked="@_sellerProfile.CompanyVatRegistered" /></label>
             <button type="submit">Save seller</button>
         </form>
@@ -203,11 +216,11 @@
         </div>
     </div>
 
-</PhpCpDesktopChrome>
+</PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=einvoice";
-    private string _listHref = "/cp/einvoice-documents-app";
+    private string _listHref = "/erp/einvoice-documents-app";
     private bool _isAdmin;
     private CpEinvoiceDocumentsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpEinvoiceDocumentDigest> _rows = [];
@@ -216,7 +229,7 @@
     private long _openedId;
     private string _flashOk = "";
     private string _flashErr = "";
-    private string _returnHref = "/cp/einvoice-documents-app";
+    private string _returnHref = "/erp/einvoice-documents-app";
     private CpEinvoiceDocumentDetail? _openedDocument;
     private IReadOnlyList<CpEinvoiceLineDigest> _openedLines = [];
     private IReadOnlyList<CpEinvoiceEventDigest> _openedEvents = [];
@@ -287,7 +300,7 @@
         var path = ctx.Request.Path.Value;
         _listHref = string.Equals(path, "/erp/einvoice-documents-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/einvoice-documents-app"
-            : "/cp/einvoice-documents-app";
+            : "/erp/einvoice-documents-app";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "ei_id");
         _returnHref = _openedId > 0
             ? ErpRecordOpen.Href(_listHref, "ei_id", _openedId).Split('#')[0]

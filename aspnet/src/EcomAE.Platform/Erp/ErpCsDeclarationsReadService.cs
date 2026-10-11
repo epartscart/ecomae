@@ -26,7 +26,8 @@ public sealed record ErpCsDeclarationsFilters(
     string Company = "",
     string CustomsEmirate = "",
     string Q = "",
-    int Limit = 200);
+    int Limit = 200,
+    int ExpiryDays = 30);
 
 public sealed record ErpCsDeclarationsResult(
     bool Ok,

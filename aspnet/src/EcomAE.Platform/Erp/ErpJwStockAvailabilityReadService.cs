@@ -51,6 +51,7 @@ public sealed class ErpJwStockAvailabilityReadService
         var scope = Math.Max(0, companyId);
         var term = (search ?? string.Empty).Trim();
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional("""
             SELECT `id`,`company_id`,`tag_no`,`barcode`,`item_type`,`karat`,

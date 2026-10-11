@@ -37,6 +37,7 @@ public sealed class ErpJwDesignDiamondReadService : IErpJwDesignDiamondReadServi
         var designColumn = isDiamond ? "design" : "design_code";
         var promotional = isDiamond ? "`promotional`" : "0";
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional($"""
             SELECT `id`,`{codeColumn}` AS `code`,`description`,`{designColumn}` AS `design`,

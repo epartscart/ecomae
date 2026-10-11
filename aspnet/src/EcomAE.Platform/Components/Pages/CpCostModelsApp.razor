@@ -1,4 +1,3 @@
-@page "/cp/cost-models-app"
 @page "/erp/cost-models-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
@@ -10,8 +9,8 @@
 @inject IHttpContextAccessor Http
 
 <PageTitle>Cost models · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -20,12 +19,12 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/cost-models-app")</p>
+                <p>@CpPhpModuleCopy.PurposeFor("/erp/cost-models-app")</p>
                 <p>Open an assignment to see transactions and close detail. Add a costing transaction or assign a costing model here.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/cost-models-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+    <PhpParityModuleBody AppPath="/erp/cost-models-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedItem is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -219,18 +218,18 @@
         </div>
     </div>
 
-</PhpCpDesktopChrome>
+</PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=cost_mgmt&tab=cost_models";
-    private string _listHref = "/cp/cost-models-app";
+    private string _listHref = "/erp/cost-models-app";
     private bool _isAdmin;
     private CpCostModelsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpCostModelItemDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
     private long _openedId;
-    private string _returnHref = "/cp/cost-models-app";
+    private string _returnHref = "/erp/cost-models-app";
     private CpCostModelItemDigest? _openedItem;
     private IReadOnlyList<CpCostModelTxnDigest> _openedTxns = [];
     private IReadOnlyList<CpCostModelCloseDigest> _openedCloses = [];
@@ -253,7 +252,7 @@
         var path = ctx.Request.Path.Value;
         _listHref = string.Equals(path, "/erp/cost-models-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/cost-models-app"
-            : "/cp/cost-models-app";
+            : "/erp/cost-models-app";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "costm_id");
         _returnHref = _openedId > 0
             ? ErpRecordOpen.Href(_listHref, "costm_id", _openedId).Split('#')[0]

@@ -3,6 +3,9 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_jewellery_integration.php
 /// <summary>Verbatim row-count/error report of PHP epc_jw_seed_sample_data.</summary>
 public sealed record ErpJwSeedResult(
     int Warehouses,
@@ -59,6 +62,7 @@ public sealed class ErpJwSeedWriteService : IErpJwSeedWriteService
         var now = _clock.GetUtcNow().ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
         // epc_erp_adv_set_setting($db, 'erp_industry_profile', 'jewellery')

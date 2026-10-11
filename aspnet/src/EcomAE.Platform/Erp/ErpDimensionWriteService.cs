@@ -4,6 +4,9 @@ using System.Text.RegularExpressions;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_dimensions.php
 /// <summary>
 /// Live PHP <c>epc_erp_dim_save</c> / <c>epc_erp_dim_save_from_post</c> twin.
 /// Schema-ensure stays PHP — missing tables refuse instead of CREATE.

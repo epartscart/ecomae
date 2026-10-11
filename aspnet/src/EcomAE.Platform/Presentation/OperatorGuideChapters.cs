@@ -1,5 +1,8 @@
 namespace EcomAE.Platform.Presentation;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   cp/content/shop/finance/erp/erp_only_operator_guide_page.php
 /// <summary>PHP-extracted chapter bodies for <see cref="OperatorGuidesCatalog"/>.</summary>
 internal static class OperatorGuideChapters
 {
@@ -781,7 +784,7 @@ internal static class OperatorGuideChapters
                     "Without the shop database the counts stay zero."
                 ])
             ],
-            ["/cp/procurement-app", "/cp/purchase-requests-app", "/erp/payables-app"]),
+            ["/cp/procurement-app", "/erp/purchase-requests-app", "/erp/payables-app"]),
         new(
             "customer-mgmt",
             "cp",

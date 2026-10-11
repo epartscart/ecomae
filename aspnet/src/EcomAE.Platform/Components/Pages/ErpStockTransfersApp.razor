@@ -1,10 +1,10 @@
 @page "/erp/stock-transfers-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -134,6 +134,13 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "transfer_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="5"></td>
+                        <td>@_transfers.Sum(r => r.TotalItems).ToString(CultureInfo.InvariantCulture)</td>
+                        <td>@_transfers.Sum(r => r.TotalQty).ToString("0.###", CultureInfo.InvariantCulture)</td>
+                        <td class="text-muted">@_transfers.Count transfers</td>
+                    </tr>
                 }
             </tbody>
         </table>

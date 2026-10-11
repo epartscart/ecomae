@@ -2,6 +2,9 @@ using System.Data.Common;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_org.php
 /// <summary>
 /// Live PHP <c>epc_oa_party_save</c> twin. INSERT/UPDATE <c>epc_oa_party</c>.
 /// Address, contact, calendar, holiday, and schema ensure stay PHP. Does not CREATE tables.

@@ -99,9 +99,19 @@ public sealed class CpIndustrySettingsService : ICpIndustrySettingsService
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await CpPortalSchema.EnsureSiteSettingsAsync(connection, cancellationToken).ConfigureAwait(false);
             var row = await LoadRowAsync(connection, hostName, cancellationToken).ConfigureAwait(false);
-            var groups = await LoadMenuGroupsAsync(connection, cancellationToken).ConfigureAwait(false);
-            var items = await LoadMenuItemsAsync(connection, cancellationToken).ConfigureAwait(false);
+            IReadOnlyList<CpIndustrySettingsMenuGroup> groups = [];
+            IReadOnlyList<CpIndustrySettingsMenuItem> items = [];
+            try
+            {
+                groups = await LoadMenuGroupsAsync(connection, cancellationToken).ConfigureAwait(false);
+                items = await LoadMenuItemsAsync(connection, cancellationToken).ConfigureAwait(false);
+            }
+            catch (DbException)
+            {
+                // ERP-only tenants have no CP control_groups/control_items — PHP renders the form without the menu tab.
+            }
             var baseline = row ?? CpIndustrySettingsView.Empty(hostName, "defaults");
             return baseline with { MenuGroups = groups, MenuItems = items, Source = row is null ? "defaults" : "db" };
         }
@@ -127,12 +137,12 @@ public sealed class CpIndustrySettingsService : ICpIndustrySettingsService
         if (aliases.Count > 0)
         {
             var placeholders = string.Join(", ", aliases.Select((_, i) => "@p" + i.ToString(CultureInfo.InvariantCulture)));
-            sql += "WHERE `host` IN (" + placeholders + ") ORDER BY `id` ASC LIMIT 1";
+            sql += "WHERE `host` IN (" + placeholders + ") ORDER BY `host` ASC LIMIT 1";
             parameters = aliases.Cast<object?>().ToArray();
         }
         else
         {
-            sql += "ORDER BY `id` ASC LIMIT 1";
+            sql += "ORDER BY `host` ASC LIMIT 1";
             parameters = [];
         }
 

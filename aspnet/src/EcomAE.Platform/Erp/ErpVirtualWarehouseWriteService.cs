@@ -5,6 +5,9 @@ using System.Text.Json;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_virtual_warehouse.php
 /// <summary>
 /// Live PHP <c>epc_vwh_create_warehouse</c> / <c>epc_vwh_create_transfer</c> twin. Schema-ensure stays PHP.
 /// </summary>

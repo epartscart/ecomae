@@ -6,6 +6,9 @@ using System.Text.RegularExpressions;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_dataio.php
 /// <summary>
 /// Live PHP <c>cs_import_declaration_pdf</c> / <c>epc_cs_pdf_import_from_upload</c> twin:
 /// uploads a declaration PDF (≤15 MB, .pdf extension), extracts text via pdftotext when

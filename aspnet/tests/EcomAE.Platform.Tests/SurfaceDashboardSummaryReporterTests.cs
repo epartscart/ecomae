@@ -690,7 +690,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("@order_id", LegacySurfaceDashboardSql.SelectErpOrderPipelineLogOrderSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpOrderPipelineLogOrderSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_inventory_forecast", LegacySurfaceDashboardSql.SelectErpInventoryForecast, StringComparison.Ordinal);
-        Assert.DoesNotContain("site_key", LegacySurfaceDashboardSql.SelectErpInventoryForecast, StringComparison.Ordinal);
+        Assert.Contains("site_key", LegacySurfaceDashboardSql.SelectErpInventoryForecast, StringComparison.Ordinal);
         Assert.Contains("site_key", LegacySurfaceDashboardSql.SelectErpInventoryForecastDetail, StringComparison.Ordinal);
         Assert.Contains("lead_time_days", LegacySurfaceDashboardSql.SelectErpInventoryForecastDetail, StringComparison.Ordinal);
         Assert.Contains("safety_stock", LegacySurfaceDashboardSql.SelectErpInventoryForecastDetail, StringComparison.Ordinal);
@@ -916,7 +916,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpBankReconciliationAccountSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_warehouse_transfers", LegacySurfaceDashboardSql.SelectErpStockTransfers, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpStockTransfers, StringComparison.Ordinal);
-        Assert.Contains("LEFT(IFNULL(`notes`,''), 280)", LegacySurfaceDashboardSql.SelectErpStockTransferDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(t.`notes`,''), 280)", LegacySurfaceDashboardSql.SelectErpStockTransferDetail, StringComparison.Ordinal);
         Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpStockTransferDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpStockTransferStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpStockTransferStatusSiblings, StringComparison.Ordinal);

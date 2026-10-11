@@ -64,6 +64,7 @@ public sealed class ErpRtlDiscountSaveWriteService : IErpRtlDiscountSaveWriteSer
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpRtlSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_rtl_discount", "disc_type", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_rtl_discount", "value", cancellationToken).ConfigureAwait(false))
         {

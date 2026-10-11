@@ -39,6 +39,7 @@ public sealed class ErpJwDesignDetailReadService : IErpJwDesignDetailReadService
             return Empty("Company and design code are required.", "invalid");
         if (!_connections.IsConfigured) return Empty("TenantRegistry DB is not configured.", "migration");
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         try
         {
             var detail = await ReadHeaderAsync(connection, companyId, designCode.Trim(), cancellationToken);

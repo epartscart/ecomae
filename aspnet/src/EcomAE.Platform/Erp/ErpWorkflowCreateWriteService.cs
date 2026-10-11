@@ -2,6 +2,9 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_staff.php
 /// <summary>
 /// Live PHP <c>epc_erp_workflow_create</c> twin. Staff schema ensure and sample seed stay PHP.
 /// </summary>

@@ -2,6 +2,10 @@ using System.Text.RegularExpressions;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_tax_toolkit_world.php
+//   content/shop/finance/epc_erp_einvoice.php
 /// <summary>
 /// Live PHP <c>einvoice_save_seller</c> / <c>einvoice_save_buyer</c> / <c>einvoice_save_asp</c> twins.
 /// Document creation, API-mode submission, credit-note, and ASP-poll workflows stay Classic; manual ASP-portal submission is live in its dedicated write service. Schema-ensure stays PHP.
@@ -92,6 +96,7 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
             return ErpSimpleWriteResult.Fail("invalid", "Registered tenant country is required for e-invoice compliance");
         }
 
+        await EnsureSellerSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await SellerSchemaAvailableAsync(connection, cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("db", "PHP-owned e-invoice seller schema is unavailable.");
@@ -323,7 +328,163 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
             }
         }
 
+        var portalCountry = await ResolvePortalCountryAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (portalCountry.Length > 0)
+        {
+            return portalCountry;
+        }
+
         return null;
+    }
+
+    /// <summary>
+    /// epc_tax_toolkit_read_portal_country: the CP industry-settings row (epc_portal_site_settings)
+    /// carries the tenant country as an ISO column and inside contact_json (country / country_code).
+    /// </summary>
+    private static async Task<string> ResolvePortalCountryAsync(
+        System.Data.Common.DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        if (!await TableExistsAsync(connection, "epc_portal_site_settings", cancellationToken).ConfigureAwait(false)
+            || !await ColumnExistsAsync(connection, "epc_portal_site_settings", "contact_json", cancellationToken).ConfigureAwait(false))
+        {
+            return string.Empty;
+        }
+
+        var hasCountryColumn = await ColumnExistsAsync(connection, "epc_portal_site_settings", "country_code", cancellationToken).ConfigureAwait(false);
+        var sql = hasCountryColumn
+            ? "SELECT COALESCE(`country_code`, ''), COALESCE(`contact_json`, '') FROM `epc_portal_site_settings` ORDER BY `updated_at` DESC LIMIT 1"
+            : "SELECT '', COALESCE(`contact_json`, '') FROM `epc_portal_site_settings` ORDER BY `updated_at` DESC LIMIT 1";
+
+        string column;
+        string contactJson;
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return string.Empty;
+            }
+
+            column = Convert.ToString(reader.GetValue(0)) ?? string.Empty;
+            contactJson = Convert.ToString(reader.GetValue(1)) ?? string.Empty;
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return string.Empty;
+        }
+
+        var iso = CountryNameToIso(column);
+        if (iso.Length > 0)
+        {
+            return iso;
+        }
+
+        if (contactJson.Trim().Length == 0)
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(contactJson);
+            if (doc.RootElement.ValueKind != System.Text.Json.JsonValueKind.Object)
+            {
+                return string.Empty;
+            }
+
+            if (doc.RootElement.TryGetProperty("country_code", out var codeEl) && codeEl.ValueKind == System.Text.Json.JsonValueKind.String)
+            {
+                iso = CountryNameToIso(codeEl.GetString());
+                if (iso.Length > 0)
+                {
+                    return iso;
+                }
+            }
+
+            if (doc.RootElement.TryGetProperty("country", out var nameEl) && nameEl.ValueKind == System.Text.Json.JsonValueKind.String)
+            {
+                return CountryNameToIso(nameEl.GetString());
+            }
+        }
+        catch (System.Text.Json.JsonException)
+        {
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>epc_tax_toolkit_country_name_to_iso: UAE/UK/USA aliases, then bare two-letter codes.</summary>
+    public static string CountryNameToIso(string? countryName)
+    {
+        var raw = (countryName ?? string.Empty).Trim();
+        var name = raw.ToLowerInvariant();
+        if (name.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        if (name is "uae" or "u.a.e." or "u.a.e" or "are" || name.Contains("emirates", StringComparison.Ordinal))
+        {
+            return "AE";
+        }
+
+        if (name is "uk" or "united kingdom" or "great britain" or "gbr")
+        {
+            return "GB";
+        }
+
+        if (name is "usa" or "united states" or "united states of america")
+        {
+            return "US";
+        }
+
+        if (raw.Length == 2 && char.IsLetter(raw[0]) && char.IsLetter(raw[1]))
+        {
+            return raw.ToUpperInvariant();
+        }
+
+        return CountryNamesByIso.Value.TryGetValue(name, out var iso) ? iso : string.Empty;
+    }
+
+    private static readonly Lazy<Dictionary<string, string>> CountryNamesByIso = new(BuildCountryNameCatalogue);
+
+    private static Dictionary<string, string> BuildCountryNameCatalogue()
+    {
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var culture in System.Globalization.CultureInfo.GetCultures(System.Globalization.CultureTypes.SpecificCultures))
+        {
+            System.Globalization.RegionInfo region;
+            try
+            {
+                region = new System.Globalization.RegionInfo(culture.Name);
+            }
+            catch (ArgumentException)
+            {
+                continue;
+            }
+
+            var iso = region.TwoLetterISORegionName;
+            if (iso.Length != 2 || !char.IsLetter(iso[0]) || !char.IsLetter(iso[1]))
+            {
+                continue;
+            }
+
+            foreach (var label in new[] { region.EnglishName, region.DisplayName, region.NativeName, region.ThreeLetterISORegionName })
+            {
+                var key = (label ?? string.Empty).Trim().ToLowerInvariant();
+                if (key.Length > 0)
+                {
+                    map.TryAdd(key, iso.ToUpperInvariant());
+                }
+            }
+        }
+
+        map.TryAdd("ksa", "SA");
+        map.TryAdd("kingdom of saudi arabia", "SA");
+        return map;
     }
 
     private static string NormalizeRegisteredCountry(string? raw)
@@ -362,6 +523,21 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
             table,
             column).ConfigureAwait(false);
         return count > 0;
+    }
+
+    /// <summary>PHP epc_einvoice_ensure_schema + epc_erp_adv_settings_ensure: settings tables are created lazily on first save.</summary>
+    internal static async Task EnsureSellerSchemaAsync(
+        System.Data.Common.DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "CREATE TABLE IF NOT EXISTS `epc_einvoice_settings` (`setting_key` varchar(64) NOT NULL, `setting_value` text, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`setting_key`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='UAE e-invoice seller & ASP settings'",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "CREATE TABLE IF NOT EXISTS `epc_price_settings` (`setting_key` varchar(128) NOT NULL, `setting_value` text, PRIMARY KEY (`setting_key`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<bool> SellerSchemaAvailableAsync(

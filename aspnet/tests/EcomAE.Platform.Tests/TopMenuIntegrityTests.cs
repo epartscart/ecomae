@@ -36,6 +36,8 @@ public sealed class TopMenuIntegrityTests
         "CpAccessoriesApp.razor", "CpSeoApp.razor", "CpWebTrackerApp.razor",
         // Super ERP fleet is a header switcher, not a Super CP menu row.
         "ErpFleetApp.razor",
+        // CP-finance ops pages (PHP account_operations / custom shipping reports) reached from the ERP module host, not a top-menu row.
+        "ErpAccountOperationsApp.razor", "ErpCustomShippingReportsApp.razor", "ErpOperationsEditorApp.razor", "ErpPaymentSystemsApp.razor",
     ];
 
     public static IEnumerable<object[]> Menus()

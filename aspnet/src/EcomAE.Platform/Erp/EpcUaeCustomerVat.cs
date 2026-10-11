@@ -3,6 +3,9 @@ using EcomAE.Platform.Storefront;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_uae_customer_vat.php
 /// <summary>The country, trade type and tax-exempt flag PHP <c>epc_uae_customer_vat_context()</c> decides the VAT type from.</summary>
 public sealed record EpcUaeCustomerVatContext(string CountryCode, string CustomerType, bool TaxExempt);
 

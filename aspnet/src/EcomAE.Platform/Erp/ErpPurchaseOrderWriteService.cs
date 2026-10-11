@@ -923,7 +923,7 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
     }
 
     /// <summary>Subset of PHP <c>epc_erp_extended_ensure_schema</c> / <c>epc_erp_order_fulfillment_ensure_schema</c>.</summary>
-    private static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+    internal static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await ErpDb.TryExecuteAsync(
             connection,

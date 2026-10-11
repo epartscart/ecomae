@@ -5,6 +5,17 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Storefront;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/pay_for_order.php
+//   content/shop/finance/payment_systems/alfabank/SoapClient.php
+//   content/shop/finance/payment_systems/cdekpay/callback.php
+//   content/shop/finance/payment_systems/cdekpay/success.php
+//   content/shop/finance/payment_systems/docpart_emulator/pay_gateway.php
+//   content/shop/finance/payment_systems/promsvbank/genHmacStr.php
+//   content/shop/finance/payment_systems/robokassa/error.php
+//   content/shop/finance/payment_systems/robokassa/success.php
+//   content/shop/finance/payment_systems/tinkoff/include.php
 /// <summary>The <c>DP_Config</c> fields PHP <c>protocol/pay_for_order.php</c> reads.</summary>
 public sealed record ShopPayForOrderConfig(
     bool Wholesaler,

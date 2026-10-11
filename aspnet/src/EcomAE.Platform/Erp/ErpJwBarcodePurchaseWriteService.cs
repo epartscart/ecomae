@@ -3,6 +3,9 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_barcode_purchase.php
 /// <summary>
 /// Live PHP <c>epc_barcode_purchase_create</c> / <c>epc_barcode_purchase_sell</c> twin. Schema-ensure stays PHP.
 /// </summary>
@@ -76,6 +79,7 @@ public sealed class ErpJwBarcodePurchaseWriteService : IErpJwBarcodePurchaseWrit
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_barcode_purchases", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_barcode_purchases", "barcode", cancellationToken).ConfigureAwait(false))
         {
@@ -189,6 +193,7 @@ public sealed class ErpJwBarcodePurchaseWriteService : IErpJwBarcodePurchaseWrit
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_barcode_purchases", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_barcode_purchases", "status", cancellationToken).ConfigureAwait(false))
         {

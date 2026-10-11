@@ -1,11 +1,11 @@
 @page "/erp/order-planning-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Routing
 @using EcomAE.Platform.Presentation
-@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -201,6 +201,13 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "opl_rec_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="2"></td>
+                        <td class="text-right">@_recs.Sum(r => r.Roq).ToString("N3", CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_recs.Sum(r => r.OrderValue).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td colspan="4" class="text-muted">@_recs.Count recommendations</td>
+                    </tr>
                 }
             </tbody>
         </table>

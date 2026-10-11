@@ -95,6 +95,7 @@ public sealed class ErpRtlPosSaleWriteService : IErpRtlPosSaleWriteService
         var lines = request.Lines ?? [];
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpRtlSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_rtl_txn", "receipt_no", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_rtl_txn_line", "line_net", cancellationToken).ConfigureAwait(false))
         {
@@ -108,6 +109,7 @@ public sealed class ErpRtlPosSaleWriteService : IErpRtlPosSaleWriteService
         }
 
         var postStock = request.WarehouseId > 0 && await InventoryReadyAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var glReady = await GlAccountsReadyAsync(connection, cancellationToken).ConfigureAwait(false);
         if (glReady)
         {
@@ -198,7 +200,7 @@ public sealed class ErpRtlPosSaleWriteService : IErpRtlPosSaleWriteService
             foreach (var line in priced)
             {
                 if (line.Qty == 0) continue;
-                var movementDate = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                var movementDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 writes += await ErpDb.ExecuteAsync(
                     connection,
                     transaction,

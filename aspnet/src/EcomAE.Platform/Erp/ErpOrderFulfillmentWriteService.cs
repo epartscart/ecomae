@@ -5,6 +5,10 @@ using System.Text.Json.Serialization;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_fulfilment.php
+//   content/shop/finance/epc_order_supplier_fulfillment.php
 /// <summary>
 /// Live PHP <c>epc_erp_order_fulfillment.php</c> twin: commerce order → ERP sales order + per-supplier
 /// purchase orders, receipt-synced PO statuses, PO→purchase-invoice and SO/order→sales-invoice posting,

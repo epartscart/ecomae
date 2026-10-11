@@ -19,15 +19,15 @@ public sealed class PhpParityChromeWaveTests
     [Fact]
     public void DumpCatalog_GroupsTabsByApp()
     {
-        var tenant = PhpParityDumpCatalog.TabsForPath("/cp/tenant-config-app");
+        var tenant = PhpParityDumpCatalog.TabsForPath("/erp/tenant-config-app");
         Assert.Contains(tenant, t => t.Key == "tenant_config" || t.Key == "setup" || t.Key == "erp_setup");
         Assert.True(tenant.Count >= 3, "tenant-config should host multiple PHP setup tabs");
 
-        var consol = PhpParityDumpCatalog.TabsForPath("/cp/consolidations-app");
+        var consol = PhpParityDumpCatalog.TabsForPath("/erp/consolidations-app");
         Assert.True(consol.Count >= 3);
 
-        Assert.Equal("tenant_config", PhpParityDumpCatalog.DefaultTab("/cp/tenant-config-app", "tenant_config"));
-        Assert.Equal("/cp/tenant-config-app", PhpParityDumpCatalog.NormalizePath("/cp/tenant-config-app?tab=setup"));
+        Assert.Equal("tenant_config", PhpParityDumpCatalog.DefaultTab("/erp/tenant-config-app", "tenant_config"));
+        Assert.Equal("/erp/tenant-config-app", PhpParityDumpCatalog.NormalizePath("/erp/tenant-config-app?tab=setup"));
     }
 
     [Fact]

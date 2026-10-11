@@ -53,6 +53,7 @@ public sealed class ErpCollectionsHoldSetWriteService : IErpCollectionsHoldSetWr
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpCreditSchema.EnsureCollectionsAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_coll_hold", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_coll_hold", "action", cancellationToken).ConfigureAwait(false)
             || !await TableExistsAsync(connection, "epc_credit_profiles", cancellationToken).ConfigureAwait(false)

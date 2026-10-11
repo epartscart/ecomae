@@ -8,6 +8,7 @@
 @inject ILegacySessionValidator Sessions
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IErpNavTenantRules NavTenantRules
+@inject ITenantRegistry Registry
 @*
   Mirrors erp_desktop.php + epc_erp_render_top_nav mega chrome.
   Topnav typography/panels come from epc_erp_professional.css (px sizes).
@@ -469,7 +470,15 @@
         }
 
         var tenantMode = SurfaceChromePolicy.ModeOf(ctx);
-        _showControlPanel = tenantMode is not TenantMode.ErpOnlyTenant;
+        var demoCpEnabled = true;
+        if (ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant
+            && tenant.Mode is TenantMode.DemoTenant)
+        {
+            // Demo rows keep erp_only_shared alongside is_demo; the registry record is the
+            // only place that still says whether the tenant has a Control Panel surface.
+            var record = await Registry.FindByHostAsync(tenant.Host, ctx.RequestAborted);
+            demoCpEnabled = record?.ControlPanelEnabled ?? true;
+        }
 
         var companies = ErpIndustryNav.EnsureSwitchableCompanies(
             (await Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted)).Companies,
@@ -514,6 +523,7 @@
             _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
         }
 
-        _showControlPanel = SurfaceChromePolicy.ShowCpSwitcher(session, tenantMode);
+        _showControlPanel = demoCpEnabled
+            && SurfaceChromePolicy.ShowCpSwitcher(session, tenantMode);
     }
 }

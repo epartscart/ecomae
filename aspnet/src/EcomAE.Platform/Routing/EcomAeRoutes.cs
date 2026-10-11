@@ -164,7 +164,7 @@ public static class EcomAeRoutes
     /// <summary>CP POS settings + recent sales metadata (terminal writes remain PHP).</summary>
     public const string ControlPanelPosOverview = "/cp/pos-overview";
     /// <summary>CP POS Blazor overview (JSON digest remains <see cref="ControlPanelPosOverview"/>).</summary>
-    public const string ControlPanelPosOverviewApp = "/cp/pos-overview-app";
+    public const string ControlPanelPosOverviewApp = "/erp/pos-overview-app";
     /// <summary>CP tax toolkit catalog + tenant profile (rules_json / reg_number secrets omitted).</summary>
     public const string ControlPanelTaxToolkits = "/cp/tax-toolkits";
     /// <summary>CP tax toolkits Blazor list (JSON digest remains <see cref="ControlPanelTaxToolkits"/>).</summary>
@@ -208,15 +208,15 @@ public static class EcomAeRoutes
     /// <summary>CP HR overview KPIs + employees (salary/PII detail omitted).</summary>
     public const string ControlPanelHrOverview = "/cp/hr-overview";
     /// <summary>CP HR Blazor overview (JSON digest remains <see cref="ControlPanelHrOverview"/>).</summary>
-    public const string ControlPanelHrOverviewApp = "/cp/hr-overview-app";
+    public const string ControlPanelHrOverviewApp = "/erp/hr-overview-app";
     /// <summary>CP production overview KPIs + work orders (cost columns omitted).</summary>
     public const string ControlPanelProductionOverview = "/cp/production-overview";
     /// <summary>CP production Blazor overview (JSON digest remains <see cref="ControlPanelProductionOverview"/>).</summary>
-    public const string ControlPanelProductionOverviewApp = "/cp/production-overview-app";
+    public const string ControlPanelProductionOverviewApp = "/erp/production-overview-app";
     /// <summary>CP projects overview KPIs + projects (timesheet rates omitted).</summary>
     public const string ControlPanelProjectsOverview = "/cp/projects-overview";
     /// <summary>CP projects Blazor overview (JSON digest remains <see cref="ControlPanelProjectsOverview"/>).</summary>
-    public const string ControlPanelProjectsOverviewApp = "/cp/projects-overview-app";
+    public const string ControlPanelProjectsOverviewApp = "/erp/projects-overview-app";
     /// <summary>CP industry packs metadata (JSON blobs omitted).</summary>
     public const string ControlPanelIndustryPacks = "/cp/industry-packs";
     /// <summary>CP industry packs Blazor list (JSON digest remains <see cref="ControlPanelIndustryPacks"/>).</summary>
@@ -224,7 +224,7 @@ public static class EcomAeRoutes
     /// <summary>CP jewellery retail KPIs + vouchers (PII/cost omitted).</summary>
     public const string ControlPanelJewelleryRetail = "/cp/jewellery-retail";
     /// <summary>CP jewellery Blazor retail (JSON digest remains <see cref="ControlPanelJewelleryRetail"/>).</summary>
-    public const string ControlPanelJewelleryRetailApp = "/cp/jewellery-retail-app";
+    public const string ControlPanelJewelleryRetailApp = "/erp/jewellery-retail-app";
     /// <summary>CP price lists metadata (stats_json/error_text/stored_relpath omitted).</summary>
     public const string ControlPanelPriceLists = "/cp/price-lists";
     /// <summary>CP price lists Blazor list (JSON digest remains <see cref="ControlPanelPriceLists"/>).</summary>
@@ -244,11 +244,11 @@ public static class EcomAeRoutes
     /// <summary>CP UAE tax compliance legislation (erp_summary/pdf/passport omitted).</summary>
     public const string ControlPanelUaeTaxCompliance = "/cp/uae-tax-compliance";
     /// <summary>CP UAE tax Blazor list (JSON digest remains <see cref="ControlPanelUaeTaxCompliance"/>).</summary>
-    public const string ControlPanelUaeTaxComplianceApp = "/cp/uae-tax-compliance-app";
+    public const string ControlPanelUaeTaxComplianceApp = "/erp/uae-tax-compliance-app";
     /// <summary>CP budgets KPIs + headers (note omitted).</summary>
     public const string ControlPanelBudgets = "/cp/budgets";
     /// <summary>CP budgets Blazor list (JSON digest remains <see cref="ControlPanelBudgets"/>).</summary>
-    public const string ControlPanelBudgetsApp = "/cp/budgets-app";
+    public const string ControlPanelBudgetsApp = "/erp/budgets-app";
     /// <summary>CP carriers KPIs + directory (contact PII omitted).</summary>
     public const string ControlPanelCarriers = "/cp/carriers";
     /// <summary>CP carriers Blazor list (JSON digest remains <see cref="ControlPanelCarriers"/>).</summary>
@@ -261,13 +261,13 @@ public static class EcomAeRoutes
     /// <summary>CP workflows KPIs + definitions (trigger_config/JSON omitted).</summary>
     public const string ControlPanelWorkflows = "/cp/workflows";
     /// <summary>CP workflows Blazor list (JSON digest remains <see cref="ControlPanelWorkflows"/>).</summary>
-    public const string ControlPanelWorkflowsApp = "/cp/workflows-app";
+    public const string ControlPanelWorkflowsApp = "/erp/workflows-app";
     /// <summary>CP workflow activate/deactivate. <c>confirmWrites=true</c> twins PHP epc_workflow_toggle. Tick / execute stay Classic.</summary>
     public const string CpWorkflowsWrite = "/cp/workflows/write";
     /// <summary>CP purchase requisitions (justification/decision_note omitted).</summary>
     public const string ControlPanelPurchaseRequests = "/cp/purchase-requests";
     /// <summary>CP purchase requests Blazor list (JSON digest remains <see cref="ControlPanelPurchaseRequests"/>).</summary>
-    public const string ControlPanelPurchaseRequestsApp = "/cp/purchase-requests-app";
+    public const string ControlPanelPurchaseRequestsApp = "/erp/purchase-requests-app";
     /// <summary>CP promotions (campaign codes from epc_promo_promotions).</summary>
     public const string ControlPanelPromotions = "/cp/promotions";
     /// <summary>CP promotions Blazor list (JSON digest remains <see cref="ControlPanelPromotions"/>).</summary>
@@ -277,7 +277,7 @@ public static class EcomAeRoutes
     /// <summary>CP CRM opportunities (notes omitted).</summary>
     public const string ControlPanelCrmOpportunities = "/cp/crm-opportunities";
     /// <summary>CP CRM opportunities Blazor list (JSON digest remains <see cref="ControlPanelCrmOpportunities"/>).</summary>
-    public const string ControlPanelCrmOpportunitiesApp = "/cp/crm-opportunities-app";
+    public const string ControlPanelCrmOpportunitiesApp = "/erp/crm-opportunities-app";
     /// <summary>CRM opportunity update_stage and save_opportunity. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Convert / quote email stay Classic.</summary>
     public const string CpCrmOpportunitiesWrite = "/cp/crm/opportunities/write";
     /// <summary>CP integrations / webhooks (secrets/events JSON omitted).</summary>
@@ -301,15 +301,15 @@ public static class EcomAeRoutes
     /// <summary>CP e-invoice documents (payload JSON/XML omitted).</summary>
     public const string ControlPanelEinvoiceDocuments = "/cp/einvoice-documents";
     /// <summary>CP e-invoice documents Blazor list (JSON digest remains <see cref="ControlPanelEinvoiceDocuments"/>).</summary>
-    public const string ControlPanelEinvoiceDocumentsApp = "/cp/einvoice-documents-app";
+    public const string ControlPanelEinvoiceDocumentsApp = "/erp/einvoice-documents-app";
     /// <summary>CP jewellery repairs (customer PII/narration omitted).</summary>
     public const string ControlPanelJewelleryRepairs = "/cp/jewellery-repairs";
     /// <summary>CP jewellery repairs Blazor list (JSON digest remains <see cref="ControlPanelJewelleryRepairs"/>).</summary>
-    public const string ControlPanelJewelleryRepairsApp = "/cp/jewellery-repairs-app";
+    public const string ControlPanelJewelleryRepairsApp = "/erp/jewellery-repairs-app";
     /// <summary>CP CRM tickets (message bodies omitted).</summary>
     public const string ControlPanelCrmTickets = "/cp/crm-tickets";
     /// <summary>CP CRM tickets Blazor list (JSON digest remains <see cref="ControlPanelCrmTickets"/>).</summary>
-    public const string ControlPanelCrmTicketsApp = "/cp/crm-tickets-app";
+    public const string ControlPanelCrmTicketsApp = "/erp/crm-tickets-app";
     /// <summary>CRM update_ticket_status / save_ticket. <c>confirmWrites=true</c> twins PHP ajax_crm.php. File attachments and send stay Classic.</summary>
     public const string CpCrmTicketsWrite = "/cp/crm/tickets/write";
     /// <summary>CRM save_quote. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Accept and quote email stay Classic.</summary>
@@ -333,23 +333,23 @@ public static class EcomAeRoutes
     /// <summary>CP cost models (detail_json omitted).</summary>
     public const string ControlPanelCostModels = "/cp/cost-models";
     /// <summary>CP cost models Blazor list (JSON digest remains <see cref="ControlPanelCostModels"/>).</summary>
-    public const string ControlPanelCostModelsApp = "/cp/cost-models-app";
+    public const string ControlPanelCostModelsApp = "/erp/cost-models-app";
     /// <summary>CP financial depth / periods (basis/schedule/lines JSON omitted).</summary>
     public const string ControlPanelFinAdvanced = "/cp/fin-advanced";
     /// <summary>CP fin-advanced Blazor list (JSON digest remains <see cref="ControlPanelFinAdvanced"/>).</summary>
-    public const string ControlPanelFinAdvancedApp = "/cp/fin-advanced-app";
+    public const string ControlPanelFinAdvancedApp = "/erp/fin-advanced-app";
     /// <summary>CP blockchain proofs (payload/merkle JSON omitted).</summary>
     public const string ControlPanelBlockchainProofs = "/cp/blockchain-proofs";
     /// <summary>CP blockchain proofs Blazor list (JSON digest remains <see cref="ControlPanelBlockchainProofs"/>).</summary>
-    public const string ControlPanelBlockchainProofsApp = "/cp/blockchain-proofs-app";
+    public const string ControlPanelBlockchainProofsApp = "/erp/blockchain-proofs-app";
     /// <summary>CP landed cost sheets (notes omitted).</summary>
     public const string ControlPanelLandedCost = "/cp/landed-cost";
     /// <summary>CP landed-cost Blazor list (JSON digest remains <see cref="ControlPanelLandedCost"/>).</summary>
-    public const string ControlPanelLandedCostApp = "/cp/landed-cost-app";
+    public const string ControlPanelLandedCostApp = "/erp/landed-cost-app";
     /// <summary>CP warehouse WMS work pool.</summary>
     public const string ControlPanelWarehouseWms = "/cp/warehouse-wms";
     /// <summary>CP warehouse-wms Blazor list (JSON digest remains <see cref="ControlPanelWarehouseWms"/>).</summary>
-    public const string ControlPanelWarehouseWmsApp = "/cp/warehouse-wms-app";
+    public const string ControlPanelWarehouseWmsApp = "/erp/warehouse-wms-app";
     /// <summary>CP AI service queries (input/output text omitted).</summary>
     public const string ControlPanelAiService = "/cp/ai-service";
     /// <summary>CP AI service Blazor list (JSON digest remains <see cref="ControlPanelAiService"/>).</summary>
@@ -369,15 +369,15 @@ public static class EcomAeRoutes
     /// <summary>CP AML compliance KYC/transactions (notes/document paths omitted).</summary>
     public const string ControlPanelAmlCompliance = "/cp/aml-compliance";
     /// <summary>CP aml-compliance Blazor list (JSON digest remains <see cref="ControlPanelAmlCompliance"/>).</summary>
-    public const string ControlPanelAmlComplianceApp = "/cp/aml-compliance-app";
+    public const string ControlPanelAmlComplianceApp = "/erp/aml-compliance-app";
     /// <summary>CP jewellery masters (karat/rate/barcode).</summary>
     public const string ControlPanelJewelleryMasters = "/cp/jewellery-masters";
     /// <summary>CP jewellery-masters Blazor list (JSON digest remains <see cref="ControlPanelJewelleryMasters"/>).</summary>
-    public const string ControlPanelJewelleryMastersApp = "/cp/jewellery-masters-app";
+    public const string ControlPanelJewelleryMastersApp = "/erp/jewellery-masters-app";
     /// <summary>CP consolidations group entities (memo omitted).</summary>
     public const string ControlPanelConsolidations = "/cp/consolidations";
     /// <summary>CP consolidations Blazor list (JSON digest remains <see cref="ControlPanelConsolidations"/>).</summary>
-    public const string ControlPanelConsolidationsApp = "/cp/consolidations-app";
+    public const string ControlPanelConsolidationsApp = "/erp/consolidations-app";
     /// <summary>CP CRM activities (notes omitted).</summary>
     public const string ControlPanelCrmActivities = "/cp/crm-activities";
     /// <summary>CP CRM activities Blazor list (JSON digest remains <see cref="ControlPanelCrmActivities"/>).</summary>
@@ -391,7 +391,7 @@ public static class EcomAeRoutes
     /// <summary>CP electronic reporting formats (preview omitted).</summary>
     public const string ControlPanelElectronicReporting = "/cp/electronic-reporting";
     /// <summary>CP electronic reporting Blazor list (JSON digest remains <see cref="ControlPanelElectronicReporting"/>).</summary>
-    public const string ControlPanelElectronicReportingApp = "/cp/electronic-reporting-app";
+    public const string ControlPanelElectronicReportingApp = "/erp/electronic-reporting-app";
     /// <summary>CP collections/dunning queue (notes omitted).</summary>
     public const string ControlPanelCollectionsDunning = "/cp/collections-dunning";
     /// <summary>CP collections/dunning Blazor list (JSON digest remains <see cref="ControlPanelCollectionsDunning"/>).</summary>
@@ -417,26 +417,24 @@ public static class EcomAeRoutes
 
     public const string ControlPanelInsuranceCompliance = "/cp/insurance-compliance";
     /// <summary>CP insurance compliance Blazor list (JSON digest remains <see cref="ControlPanelInsuranceCompliance"/>).</summary>
-    public const string ControlPanelInsuranceComplianceApp = "/cp/insurance-compliance-app";
+    public const string ControlPanelInsuranceComplianceApp = "/erp/insurance-compliance-app";
 
     public const string ControlPanelAuditTrail = "/cp/audit-trail";
     /// <summary>CP ERP audit trail Blazor list (JSON digest remains <see cref="ControlPanelAuditTrail"/>).</summary>
-    public const string ControlPanelAuditTrailApp = "/cp/audit-trail-app";
+    public const string ControlPanelAuditTrailApp = "/erp/audit-trail-app";
 
     public const string ControlPanelDocExpiry = "/cp/doc-expiry";
     /// <summary>CP document expiry Blazor list (JSON digest remains <see cref="ControlPanelDocExpiry"/>).</summary>
-    public const string ControlPanelDocExpiryApp = "/cp/doc-expiry-app";
+    public const string ControlPanelDocExpiryApp = "/erp/doc-expiry-app";
 
     public const string ControlPanelTenantConfig = "/cp/tenant-config";
     /// <summary>CP tenant config Blazor list (JSON digest remains <see cref="ControlPanelTenantConfig"/>).</summary>
-    public const string ControlPanelTenantConfigApp = "/cp/tenant-config-app";
+    public const string ControlPanelTenantConfigApp = "/erp/tenant-config-app";
 
     public const string ControlPanelJewelleryStockVerification = "/cp/jewellery-stock-verification";
     /// <summary>CP jewellery stock verification Blazor list (JSON digest remains <see cref="ControlPanelJewelleryStockVerification"/>).</summary>
-    public const string ControlPanelJewelleryStockVerificationApp = "/cp/jewellery-stock-verification-app";
+    public const string ControlPanelJewelleryStockVerificationApp = "/erp/jewellery-stock-verification-app";
     public const string ControlPanelTaxExternalReporting = "/cp/tax-external-reporting";
-    /// <summary>CP alias of the ERP External Reporting workspace (PHP <c>erp_tabs_external_reports</c>).</summary>
-    public const string ControlPanelTaxExternalReportingApp = "/cp/tax-external-reporting-app";
     /// <summary>ERP External Reporting catalogue (PHP <c>ext_reports</c> tab).</summary>
     public const string ErpTaxExternalReportingApp = "/erp/tax-external-reporting-app";
     /// <summary>ERP External Reporting catalogue JSON (static PHP registry, no shop writes).</summary>
@@ -460,10 +458,10 @@ public static class EcomAeRoutes
     public const string ControlPanelPoApprovalsReject = "/cp/po-approvals/reject";
     public const string ControlPanelFinanceClose = "/cp/finance-close";
     /// <summary>CP Finance close Blazor list (JSON digest remains <see cref="ControlPanelFinanceClose"/>).</summary>
-    public const string ControlPanelFinanceCloseApp = "/cp/finance-close-app";
+    public const string ControlPanelFinanceCloseApp = "/erp/finance-close-app";
     public const string ControlPanelJewelleryFixing = "/cp/jewellery-fixing";
     /// <summary>CP Jewellery fixing Blazor list (JSON digest remains <see cref="ControlPanelJewelleryFixing"/>).</summary>
-    public const string ControlPanelJewelleryFixingApp = "/cp/jewellery-fixing-app";
+    public const string ControlPanelJewelleryFixingApp = "/erp/jewellery-fixing-app";
 
     public const string ControlPanelWebTracker = "/cp/web-tracker";
     /// <summary>CP Web tracker Blazor list (JSON digest remains <see cref="ControlPanelWebTracker"/>).</summary>
@@ -545,7 +543,7 @@ public static class EcomAeRoutes
     public const string ErpMailboxWrite = "/erp/mailbox/write";
     public const string ControlPanelDataMigrations = "/cp/data-migrations";
     /// <summary>CP Data migrations Blazor list (JSON digest remains <see cref="ControlPanelDataMigrations"/>).</summary>
-    public const string ControlPanelDataMigrationsApp = "/cp/data-migrations-app";
+    public const string ControlPanelDataMigrationsApp = "/erp/data-migrations-app";
 
     // Wave 22 CMS/platform leftovers
     public const string ControlPanelGeoRegions = "/cp/geo-regions";
@@ -1005,6 +1003,26 @@ public static class EcomAeRoutes
     public const string ErpWithholdingTxnsRecord = "/erp/withholding/txns/record";
     /// <summary>Live PHP epc_wht_certificate_issue twin.</summary>
     public const string ErpWithholdingTxnsCertificate = "/erp/withholding/txns/certificate";
+    /// <summary>Operations editor app — PHP operations_editor / operation_create_edit twin.</summary>
+    public const string ErpOperationsEditorApp = "/erp/operations-editor-app";
+    /// <summary>Live PHP operation_create_edit save twin.</summary>
+    public const string ErpOperationsSave = "/erp/operations/save";
+    /// <summary>Live PHP operations_editor delete_operations twin.</summary>
+    public const string ErpOperationsDelete = "/erp/operations/delete";
+    /// <summary>Live PHP create_operation.php action=create twin (manual user balance entry).</summary>
+    public const string ErpOperationsCreateEntry = "/erp/operations/create-entry";
+    /// <summary>Account operations ledger app — PHP account_operations.php twin.</summary>
+    public const string ErpAccountOperationsApp = "/erp/account-operations-app";
+    /// <summary>Payment systems app — PHP payment_systems_standart + payment_systems_wholesaler twin.</summary>
+    public const string ErpPaymentSystemsApp = "/erp/payment-systems-app";
+    /// <summary>Live PHP payment_systems_standart save twin (one global active system).</summary>
+    public const string ErpPaymentSystemsSaveStandart = "/erp/payment-systems/save-standart";
+    /// <summary>Live PHP payment_systems_wholesaler save twin (per-office system).</summary>
+    public const string ErpPaymentSystemsSaveWholesaler = "/erp/payment-systems/save-wholesaler";
+    /// <summary>Custom & shipping Phase-2 reports — PHP custom_shipping_reports.php twin.</summary>
+    public const string ErpCustomShippingReportsApp = "/erp/custom-shipping-reports";
+    /// <summary>CSV export for the custom-shipping reports (PHP cs_export=csv twin).</summary>
+    public const string ErpCustomShippingReportsExport = "/erp/custom-shipping-reports/export";
     /// <summary>Department workflow board from <c>epc_erp_workflow_tasks</c> (not process-flow cases).</summary>
     public const string ErpWorkflowTasks = "/erp/workflow-tasks";
     public const string ErpWorkflowApp = "/erp/workflow-app";
@@ -2965,6 +2983,12 @@ public static class EcomAeRoutes
     public const string ErpUaeTaxLegislationChecklistSet = "/erp/uae-tax/legislation/checklist/set";
     /// <summary>HTML form POST for PHP pm_save. confirmWrites=true writes via IErpPmSaveWriteService.</summary>
     public const string ErpPmSave = "/erp/pm/save";
+
+    /// <summary>PHP epc-erp-advanced-setup.php?industry=… → epc_erp_industry_apply(). confirmWrites=true applies the blueprint to the tenant DB.</summary>
+    public const string ErpIndustryApply = "/erp/industry/apply";
+
+    /// <summary>PHP epc_erp_industry_current() readback.</summary>
+    public const string ErpIndustryCurrent = "/erp/industry/current";
     /// <summary>HTML form POST for PHP pm_budget_save. confirmWrites=true writes via IErpPmBudgetSaveWriteService.</summary>
     public const string ErpPmBudgetSave = "/erp/pm/budgets/save";
     /// <summary>HTML form POST for PHP pm_budget_line_save. confirmWrites=true writes via IErpPmBudgetLineSaveWriteService.</summary>

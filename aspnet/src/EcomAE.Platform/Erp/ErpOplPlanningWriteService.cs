@@ -3,6 +3,9 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_order_planning.php
 /// <summary>
 /// Live PHP epc_erp_order_planning ajax twins: <c>opl_seed_demo</c>
 /// (epc_opl_seed_demo_demand), <c>opl_clear_demo</c> (epc_opl_clear_demo_demand)

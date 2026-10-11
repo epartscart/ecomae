@@ -49,6 +49,7 @@ public sealed class ErpJwStoneMasterReadService : IErpJwStoneMasterReadService
 
         var boundedLimit = Math.Clamp(limit, 1, 200);
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional($"""
             SELECT `id`,`code`,`description`,`design`,`category`,`sub_category`,

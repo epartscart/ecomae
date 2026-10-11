@@ -1096,6 +1096,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpUaeTaxLegislationAskWriteServ
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpUaeTaxLegislationRegenWriteService, EcomAE.Platform.Erp.ErpUaeTaxLegislationRegenWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpUaeTaxLegislationChecklistSetWriteService, EcomAE.Platform.Erp.ErpUaeTaxLegislationChecklistSetWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPmSaveWriteService, EcomAE.Platform.Erp.ErpPmSaveWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpIndustryApplyWriteService, EcomAE.Platform.Erp.ErpIndustryApplyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPmBudgetSaveWriteService, EcomAE.Platform.Erp.ErpPmBudgetSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPmBudgetLineSaveWriteService, EcomAE.Platform.Erp.ErpPmBudgetLineSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPmToggleWriteService, EcomAE.Platform.Erp.ErpPmToggleWriteService>();
@@ -1135,6 +1136,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAiReadService, EcomAE.Platfor
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDocControlWriteService, EcomAE.Platform.Erp.ErpDocControlWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEinvoiceAspPollService, EcomAE.Platform.Erp.ErpEinvoiceAspPollService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShortcutReadService, EcomAE.Platform.Erp.ErpShortcutReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRetailCommerceReadService, EcomAE.Platform.Erp.ErpRetailCommerceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryScanReadService, EcomAE.Platform.Erp.ErpInventoryScanReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlobalSearchReadService, EcomAE.Platform.Erp.ErpGlobalSearchReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpContactWriteService, EcomAE.Platform.Erp.ErpContactWriteService>();
@@ -1191,6 +1193,9 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWhtSettleWriteService, EcomAE
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWhtCodeSaveWriteService, EcomAE.Platform.Erp.ErpWhtCodeSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWhtRecordWriteService, EcomAE.Platform.Erp.ErpWhtRecordWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWhtCertificateWriteService, EcomAE.Platform.Erp.ErpWhtCertificateWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAccountingCodesService, EcomAE.Platform.Erp.ErpAccountingCodesService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPaymentSystemsService, EcomAE.Platform.Erp.ErpPaymentSystemsService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCsReportsReadService, EcomAE.Platform.Erp.ErpCsReportsReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOmsWriteService, EcomAE.Platform.Cp.CpOmsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpFulfillmentQueueWriteService, EcomAE.Platform.Cp.CpFulfillmentQueueWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPosWriteService, EcomAE.Platform.Cp.CpPosWriteService>();
@@ -1337,6 +1342,7 @@ app.UseMiddleware<PublicAnonymousPagesMiddleware>();
 app.UseMiddleware<CpLegacyPhpAjaxLinkMiddleware>();
 // Deep /CP|/ERP|/BOS|/shop product paths → ASP.NET; PHP only via /php-reference/* (503 when serving deactivated).
 app.UseMiddleware<PhpProductPathRedirectMiddleware>();
+app.UseMiddleware<CpErpModulePathRedirectMiddleware>();
 // Thin /marketing/{slug} stubs → PHP canonical full pages (except /marketing/app home). Skipped when PHP serving off.
 app.UseMiddleware<MarketingStubToPhpRedirectMiddleware>();
 // PHP-rendered marketing pages at canonical URLs on www.ecomae.com (whole marketing

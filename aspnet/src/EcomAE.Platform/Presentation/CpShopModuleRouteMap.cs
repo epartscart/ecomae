@@ -31,7 +31,7 @@ public static class CpShopModuleRouteMap
         ["order_process"] = "/cp/orders",
         ["parts_agent"] = "/cp/parts-agent-chats-app",
         ["payments"] = "/cp/payment-gateways-app",
-        ["pos"] = "/cp/pos-overview-app",
+        ["pos"] = "/erp/pos-overview-app",
         ["prices_edit"] = "/cp/prices-edit-app",
         ["prices_send"] = "/cp/prices-send-app",
         ["prices_upload"] = "/cp/prices-upload-app",

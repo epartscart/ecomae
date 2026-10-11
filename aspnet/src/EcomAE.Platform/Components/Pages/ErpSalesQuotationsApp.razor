@@ -1,6 +1,7 @@
 @page "/erp/sales-quotations-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
@@ -8,7 +9,6 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
-@using EcomAE.Platform.Components.Shared.Desktop
 
 <PageTitle>Sales quotations · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -171,6 +171,12 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "quote_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="3"></td>
+                        <td>@_quotations.Sum(r => r.Subtotal).ToString("0.00", CultureInfo.InvariantCulture)</td>
+                        <td colspan="4" class="text-muted">@_quotations.Count quotations</td>
+                    </tr>
                 }
             </tbody>
         </table>

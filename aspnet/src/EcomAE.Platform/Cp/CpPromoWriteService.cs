@@ -3,6 +3,9 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_pricing.php
 public sealed record CpPromoSaveRequest(
     long Id,
     string? Code,

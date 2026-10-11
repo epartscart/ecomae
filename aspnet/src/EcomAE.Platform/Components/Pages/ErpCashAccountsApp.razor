@@ -31,6 +31,22 @@
     }
     @if (_isAdmin && _view == "cash_bank")
     {
+        <form method="post" action="@EcomAeRoutes.ErpCashAccountsCreate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app" />
+            <label>Account name <input type="text" name="name" required style="min-width:12rem" /></label>
+            <label>Type
+                <select name="accountType">
+                    <option value="cash">Cash</option>
+                    <option value="bank">Bank</option>
+                </select>
+            </label>
+            <label>Bank <input type="text" name="bankName" /></label>
+            <label>Account no. <input type="text" name="accountNumber" /></label>
+            <label>Currency <input type="text" name="currencyCode" value="AED" style="width:4.5rem" /></label>
+            <label>Opening <input type="text" name="openingBalance" value="0" style="width:6rem" /></label>
+            <button type="submit">Create account</button>
+        </form>
         <form method="post" action="/erp/offices-cash/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app" />
@@ -320,7 +336,7 @@
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
             </dl>
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
-            <p class="text-muted" style="margin:.85rem 0 0">Office cash, petty cash, and forecast write here. Writes stay Classic for account create.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Cash accounts, office cash, petty cash, and forecast all write here.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.BankNameExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">bank-name excerpt</p>
@@ -519,7 +535,7 @@
             "petty_cash" => "Small cash floats with custodian and linked cash account.",
             "cash_forecast" => "Opening balance plus dated inflows and outflows.",
             "bank_setup" => "Bank account names, currencies and opening balances.",
-            _ => "Open a cash account for the bank-name excerpt and office. Office cash, petty cash, and forecast write here. Writes stay Classic for account create."
+            _ => "Open a cash account for the bank-name excerpt and office. Cash accounts, office cash, petty cash, and forecast all write here."
         };
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);

@@ -6,7 +6,7 @@ namespace EcomAE.Platform.Tests;
 public sealed class ErpPurchaseAmendDryRunTests
 {
     private static ErpPurchaseDigest Purchase(long id, string status = "draft") =>
-        new(id, 3, "Supplier Co", 1_700_000_000, $"PI-{id}", 250m, status, 0, []);
+        new(id, 3, "Supplier Co", 1_700_000_000, $"PI-{id}", 250m, status, 0, [], 0m, 250m);
 
     [Fact]
     public void AmendIsDryRunValidatedAsAspNetOwned()
