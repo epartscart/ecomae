@@ -1990,6 +1990,55 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.DoesNotContain("dp_user.php", PhpPlanQ1Tarn.LoginModulePath, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Slider_ImagesStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Beck.Reset();
+        PhpPlanQ1Beck.QuerySettings = () => new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["connected"] = 1,
+            ["cnt_img"] = 3,
+            ["cnt_img_next"] = 1,
+            ["time_next"] = 4000
+        };
+        PhpPlanQ1Beck.QueryImages = () => new List<Dictionary<string, object?>>
+        {
+            new(StringComparer.Ordinal) { ["link"] = "/acme-city", ["href"] = "/img/acme-city.jpg" }
+        };
+        PhpPlanQ1Beck.MainFlag = () => true;
+        PhpPlanQ1Beck.MenuCategoryShow = () => 1;
+        PhpPlanQ1Beck.HeaderStyle = () => "no_header";
+        var acme = PhpPlanQ1Beck.EpcSliderModule();
+        PhpPlanQ1Beck.QuerySettings = () => new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["connected"] = 1,
+            ["cnt_img"] = 2,
+            ["cnt_img_next"] = 1,
+            ["time_next"] = 3000
+        };
+        PhpPlanQ1Beck.QueryImages = () => new List<Dictionary<string, object?>>
+        {
+            new(StringComparer.Ordinal) { ["link"] = "/beta-town", ["href"] = "/img/beta-town.jpg" }
+        };
+        PhpPlanQ1Beck.MainFlag = () => false;
+        PhpPlanQ1Beck.MenuCategoryShow = () => "";
+        PhpPlanQ1Beck.HeaderStyle = () => "boxed";
+        var beta = PhpPlanQ1Beck.EpcSliderModule();
+        Assert.Contains("/img/acme-city.jpg", acme, StringComparison.Ordinal);
+        Assert.Contains("/acme-city", acme, StringComparison.Ordinal);
+        Assert.Contains("keep_open", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("beta-town", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("/img/beta-town.jpg", acme, StringComparison.Ordinal);
+        Assert.Contains("/img/beta-town.jpg", beta, StringComparison.Ordinal);
+        Assert.Contains("/beta-town", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("acme-city", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("/img/acme-city.jpg", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("keep_open", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Beck.SliderModulePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Beck.SliderModulePath, StringComparison.Ordinal);
+        Assert.Equal("modules/slider/slider.php", PhpPlanQ1Beck.SliderModulePath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2082,6 +2131,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Reed.BalanceModulePath,
             PhpPlanQ1Mere.CartModulePath,
             PhpPlanQ1Tarn.LoginModulePath,
+            PhpPlanQ1Beck.SliderModulePath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
