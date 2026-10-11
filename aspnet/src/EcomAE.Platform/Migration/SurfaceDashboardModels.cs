@@ -3089,7 +3089,8 @@ public sealed record ErpBankStatementLineDigest(
     int Direction,
     long MatchedEntryId,
     string ImportBatch,
-    long TimeCreated);
+    long TimeCreated,
+    string AccountName = "");
 
 public sealed record ErpBankReconciliationDigestResult(
     ErpBankReconciliationSummary Summary,
@@ -3108,7 +3109,8 @@ public sealed record ErpBankReconciliationLineDetail(
     int Direction,
     long MatchedEntryId,
     string ImportBatch,
-    long TimeCreated);
+    long TimeCreated,
+    string AccountName = "");
 
 public sealed record ErpBankReconciliationLineDetailResult(
     ErpBankReconciliationLineDetail? Line,

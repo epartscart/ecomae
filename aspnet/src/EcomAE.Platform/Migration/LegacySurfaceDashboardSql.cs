@@ -4179,25 +4179,29 @@ public static class LegacySurfaceDashboardSql
 
     /// <summary>Bank statement lines for reconciliation.</summary>
     public const string SelectErpBankReconciliationLines = """
-        SELECT `id`, IFNULL(`account_id`,0) AS account_id, IFNULL(`line_date`,0) AS line_date,
-               IFNULL(`description`,'') AS description, IFNULL(`reference`,'') AS reference,
-               IFNULL(`amount`,0) AS amount, IFNULL(`direction`,0) AS direction,
-               IFNULL(`matched_entry_id`,0) AS matched_entry_id, IFNULL(`import_batch`,'') AS import_batch,
-               IFNULL(`time_created`,0) AS time_created
-        FROM `epc_erp_bank_statement_lines`
-        ORDER BY `id` DESC
+        SELECT l.`id`, IFNULL(l.`account_id`,0) AS account_id, IFNULL(ca.`name`,'') AS account_name,
+               IFNULL(l.`line_date`,0) AS line_date,
+               IFNULL(l.`description`,'') AS description, IFNULL(l.`reference`,'') AS reference,
+               IFNULL(l.`amount`,0) AS amount, IFNULL(l.`direction`,0) AS direction,
+               IFNULL(l.`matched_entry_id`,0) AS matched_entry_id, IFNULL(l.`import_batch`,'') AS import_batch,
+               IFNULL(l.`time_created`,0) AS time_created
+        FROM `epc_erp_bank_statement_lines` l
+        LEFT JOIN `epc_erp_cash_bank_accounts` ca ON ca.`id` = l.`account_id`
+        ORDER BY l.`id` DESC
         LIMIT @limit
         """;
 
     /// <summary>Opened bank statement line (Open key <c>recon_line_id</c>). Surfaces line_date + time_created hidden from the list table. No extra secret columns.</summary>
     public const string SelectErpBankReconciliationLineDetail = """
-        SELECT `id`, IFNULL(`account_id`,0) AS account_id, IFNULL(`line_date`,0) AS line_date,
-               IFNULL(`description`,'') AS description, IFNULL(`reference`,'') AS reference,
-               IFNULL(`amount`,0) AS amount, IFNULL(`direction`,0) AS direction,
-               IFNULL(`matched_entry_id`,0) AS matched_entry_id, IFNULL(`import_batch`,'') AS import_batch,
-               IFNULL(`time_created`,0) AS time_created
-        FROM `epc_erp_bank_statement_lines`
-        WHERE `id` = @id
+        SELECT l.`id`, IFNULL(l.`account_id`,0) AS account_id, IFNULL(ca.`name`,'') AS account_name,
+               IFNULL(l.`line_date`,0) AS line_date,
+               IFNULL(l.`description`,'') AS description, IFNULL(l.`reference`,'') AS reference,
+               IFNULL(l.`amount`,0) AS amount, IFNULL(l.`direction`,0) AS direction,
+               IFNULL(l.`matched_entry_id`,0) AS matched_entry_id, IFNULL(l.`import_batch`,'') AS import_batch,
+               IFNULL(l.`time_created`,0) AS time_created
+        FROM `epc_erp_bank_statement_lines` l
+        LEFT JOIN `epc_erp_cash_bank_accounts` ca ON ca.`id` = l.`account_id`
+        WHERE l.`id` = @id
         LIMIT 1
         """;
 

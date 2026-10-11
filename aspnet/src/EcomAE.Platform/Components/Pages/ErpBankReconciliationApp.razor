@@ -89,7 +89,7 @@
             </p>
             <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
                 <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Account</dt><dd>@(_opened.AccountId > 0 ? _opened.AccountId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Account</dt><dd>@AccountLabel(_opened.AccountId, _opened.AccountName)</dd>
                 <dt>Line date</dt><dd>@FormatTime(_opened.LineDate)</dd>
                 <dt>Description</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Description) ? "—" : _opened.Description)</dd>
                 <dt>Reference</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Reference) ? "—" : _opened.Reference)</dd>
@@ -158,7 +158,7 @@
                     {
                         <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.AccountId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@AccountLabel(row.AccountId, row.AccountName)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Description) ? row.Description : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Reference) ? row.Reference : "—")</td>
                             <td>@row.Amount.ToString("0.00", CultureInfo.InvariantCulture)</td>
@@ -320,6 +320,11 @@
             }
         }
     }
+
+    private static string AccountLabel(long accountId, string accountName)
+        => string.IsNullOrWhiteSpace(accountName)
+            ? (accountId > 0 ? accountId.ToString(CultureInfo.InvariantCulture) : "—")
+            : accountName;
 
     private static string FormatTime(long unix)
     {

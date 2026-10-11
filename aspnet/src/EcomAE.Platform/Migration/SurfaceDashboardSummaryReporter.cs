@@ -11563,7 +11563,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToInt32(reader["direction"] is DBNull ? 0 : reader["direction"], CultureInfo.InvariantCulture),
                         Convert.ToInt64(reader["matched_entry_id"] is DBNull ? 0 : reader["matched_entry_id"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["import_batch"] is DBNull ? string.Empty : reader["import_batch"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["account_name"] is DBNull ? string.Empty : reader["account_name"], CultureInfo.InvariantCulture) ?? string.Empty));
                 }
             }
 
@@ -11610,7 +11611,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToInt32(reader["direction"] is DBNull ? 0 : reader["direction"], CultureInfo.InvariantCulture),
                         Convert.ToInt64(reader["matched_entry_id"] is DBNull ? 0 : reader["matched_entry_id"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["import_batch"] is DBNull ? string.Empty : reader["import_batch"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture));
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["account_name"] is DBNull ? string.Empty : reader["account_name"], CultureInfo.InvariantCulture) ?? string.Empty);
                 }
             }
 
