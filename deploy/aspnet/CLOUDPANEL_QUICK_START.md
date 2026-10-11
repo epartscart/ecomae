@@ -1,5 +1,17 @@
 # CloudPanel ASP.NET Core Foundation Quick Start
 
+## Production: publish completed non-ERP now
+
+One paste as root on CloudPanel. It checks out `cursor/non-erp-production-5dbd` (latest `main` + logout + Super `yawer@ecomae.com` login + shop-domain mail), publishes ASP.NET, remaps the Super operator, syncs SecretSuccession, and restarts:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/non-erp-production-5dbd/scripts/cloudpanel_deploy_non_erp_now.sh)"
+```
+
+Then sign in on `https://www.ecomae.com/erp/login` as `yawer@ecomae.com` with the previous Gmail-operator password. After logout, refresh `/erp` — you must stay on `/erp/login`.
+
+Do **not** deploy an older feature branch on top of this (that rolls production back). PHP stays fallback.
+
 The command `bash scripts/preflight_aspnet_production.sh` must be run from the repository root. If CloudPanel shows `No such file or directory`, you are not inside the checked-out repo yet or the repository has not been cloned to that server.
 
 **Do not use `/var/www/ecomae`.** That path is usually missing. Source checkouts live under `/root/ecomae` or `/opt/ecomae-aspnet-source`. Published releases live under `/var/www/ecomae-aspnet`.
