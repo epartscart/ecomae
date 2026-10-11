@@ -77,6 +77,7 @@
                     <div class="field"><label for="rv_amount">Amount *</label><input id="rv_amount" type="number" name="amount" min="0.01" step="0.01" required /></div>
                     <div class="field"><label for="rv_sales_order_id">Sales order id</label><input id="rv_sales_order_id" type="number" name="sales_order_id" min="1" /></div>
                     <div class="field"><label for="rv_sales_invoice_id">Sales invoice id</label><input id="rv_sales_invoice_id" type="number" name="sales_invoice_id" min="1" /></div>
+                    <div class="field wide"><label>Invoice balance</label><div id="rv_invoice_balance_hint" style="font-size:12px;color:#475569;padding-top:6px;"></div></div>
                     <div class="field"><label for="rv_order_id">Order id</label><input id="rv_order_id" type="number" name="order_id" min="1" /></div>
                     <div class="field wide"><label for="rv_note">Narration / note</label><input id="rv_note" type="text" name="note" maxlength="255" /></div>
                     <div class="form-actions">
@@ -278,6 +279,8 @@
     </div>
 
 </PhpErpDesktopChrome>
+
+    <script src="/erp/erp-cash-entries.js" defer></script>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank";
