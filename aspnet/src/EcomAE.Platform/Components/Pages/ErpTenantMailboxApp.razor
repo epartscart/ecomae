@@ -14,7 +14,7 @@
 <PageTitle>Mailbox · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Mailbox" BreadcrumbArea="Workspace" BreadcrumbTab="Mailbox">
-    <PhpErpModulePageHeader Title="Mailbox" Subtitle="Own inbox only. Shop tenants use their domain; only ERP customers create @@ecomae.com mailboxes." PhpTabHref="" />
+    <PhpErpModulePageHeader Title="Mailbox" Subtitle="@_subtitle" PhpTabHref="" />
 
     <MailboxInboxWorkspace
         Surface="erp"
@@ -32,7 +32,7 @@
         FlashOk="@_flashOk"
         FlashErr="@_flashErr"
         CreateButton="@(_isSuper ? "Create ERP customer mailbox on ecomae.com" : "Create mailbox and login")"
-        CreateHint="@(_isSuper ? "Only ERP customers get @@ecomae.com addresses. Reserved locals (info, hello, yawer, admin, …) stay Super CP." : "Creates a mailbox and a login with the same address on this shop domain.")"
+        CreateHint="@_createHint"
         Boxes="_boxes"
         Messages="_messages"
         SmtpFor="Mail.SmtpFor" />
@@ -51,6 +51,10 @@
     private string _flashErr = "";
     private IReadOnlyList<PlatformMailbox> _boxes = [];
     private IReadOnlyList<MailboxMessage> _messages = [];
+    private const string _subtitle = "Own inbox only. Shop tenants use their domain; only ERP customers create @ecomae.com mailboxes.";
+    private string _createHint => _isSuper
+        ? "Only ERP customers get @ecomae.com addresses. Reserved locals (info, hello, yawer, admin, …) stay Super CP."
+        : "Creates a mailbox and a login with the same address on this shop domain.";
 
     protected override async Task OnInitializedAsync()
     {

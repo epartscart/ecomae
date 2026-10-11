@@ -31,7 +31,7 @@
             FlashOk="@_flashOk"
             FlashErr="@_flashErr"
             CreateButton="Create mailbox and CP user"
-            CreateHint="Creates local@@this shop domain on Purelymail and a Control Panel login with the same address. Other tenant domains are refused."
+            CreateHint="@_createHint"
             Boxes="_boxes"
             Messages="_messages"
             SmtpFor="Mail.SmtpFor" />
@@ -50,6 +50,7 @@
     private string _flashErr = "";
     private IReadOnlyList<PlatformMailbox> _boxes = [];
     private IReadOnlyList<MailboxMessage> _messages = [];
+    private const string _createHint = "Creates local@this shop domain on Purelymail and a Control Panel login with the same address. Other tenant domains are refused.";
 
     protected override async Task OnInitializedAsync()
     {

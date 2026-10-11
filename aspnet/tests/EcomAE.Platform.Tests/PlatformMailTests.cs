@@ -80,6 +80,8 @@ public class PlatformMailTests
         Assert.Contains("WritePath=\"/cp/mailbox/write\"", cp);
         Assert.Contains("ownInboxOnly", cp);
         Assert.Contains("MailboxInboxWorkspace", cp);
+        Assert.Contains("CreateHint=\"@_createHint\"", cp);
+        Assert.DoesNotContain("CreateHint=\"Creates", cp, StringComparison.Ordinal);
         Assert.DoesNotContain("mint", cp, StringComparison.OrdinalIgnoreCase);
 
         var guide = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Shared/MailboxVisualGuide.razor"));
@@ -103,6 +105,9 @@ public class PlatformMailTests
         Assert.Contains("ownInboxOnly", erp);
         Assert.Contains("MailboxInboxWorkspace", erp);
         Assert.Contains("ecomae.com", erp);
+        Assert.Contains("Subtitle=\"@_subtitle\"", erp);
+        Assert.Contains("CreateHint=\"@_createHint\"", erp);
+        Assert.DoesNotContain("Subtitle=\"Own inbox", erp, StringComparison.Ordinal);
     }
 
     [Fact]
