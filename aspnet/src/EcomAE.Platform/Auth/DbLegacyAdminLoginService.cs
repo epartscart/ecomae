@@ -121,12 +121,12 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                 request.Surface,
                 contactType);
 
-            var user = await LoadUserAsync(connection, contactLookup, contactType, cancellationToken)
+            var user = await LoadUserAsync(connection, contactLookup, contactType, superCpHost, cancellationToken)
                 .ConfigureAwait(false);
             // Retry raw contact if HtmlEncode form differed (rare for emails; keeps PHP parity).
             if (user is null && !string.Equals(contactLookup, contactRaw, StringComparison.Ordinal))
             {
-                user = await LoadUserAsync(connection, contactRaw, contactType, cancellationToken)
+                user = await LoadUserAsync(connection, contactRaw, contactType, superCpHost, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -228,9 +228,26 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                 await LegacyLoginSecurity.RecordAsync(connection, clientIp, request.Contact ?? string.Empty, true, cancellationToken).ConfigureAwait(false);
             }
 
+            var sessionEmail = user.Email;
+            if (superCpHost && adminSession && PlatformOperatorIdentity.IsAlias(user.Email))
+            {
+                try
+                {
+                    var succeeded = await PlatformOperatorSuccessionService.SucceedOnConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
+                    if (succeeded.Succeeded)
+                    {
+                        sessionEmail = succeeded.Email;
+                    }
+                }
+                catch (DbException ex)
+                {
+                    _log.LogWarning(ex, "Operator email succession skipped userId={UserId}", user.UserId);
+                }
+            }
+
             return LegacyLoginOutcome.Succeeded(new LegacyLoginSuccess(
                 user.UserId,
-                user.Email,
+                sessionEmail,
                 sessionToken,
                 csrf,
                 adminSession,
@@ -262,13 +279,52 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
         DbConnection connection,
         string contact,
         string contactType,
+        bool superCpHost,
+        CancellationToken cancellationToken)
+    {
+        if (contactType != "phone" && superCpHost && PlatformOperatorIdentity.IsAlias(contact))
+        {
+            foreach (var alias in PlatformOperatorIdentity.LookupEmails(contact))
+            {
+                var found = await LoadUserByEmailAsync(connection, alias, cancellationToken).ConfigureAwait(false);
+                if (found is not null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
+        }
+
+        return contactType == "phone"
+            ? await LoadUserByPhoneAsync(connection, contact, cancellationToken).ConfigureAwait(false)
+            : await LoadUserByEmailAsync(connection, contact, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<UserRow?> LoadUserByEmailAsync(
+        DbConnection connection,
+        string contact,
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = contactType == "phone"
-            ? LegacyAdminLoginSql.SelectUserByPhone
-            : LegacyAdminLoginSql.SelectUserByEmail;
+        command.CommandText = LegacyAdminLoginSql.SelectUserByEmail;
         AddParameter(command, "@contact", contact);
+        return await ReadUserAsync(command, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<UserRow?> LoadUserByPhoneAsync(
+        DbConnection connection,
+        string contact,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = LegacyAdminLoginSql.SelectUserByPhone;
+        AddParameter(command, "@contact", contact);
+        return await ReadUserAsync(command, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<UserRow?> ReadUserAsync(DbCommand command, CancellationToken cancellationToken)
+    {
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {

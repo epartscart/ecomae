@@ -59,6 +59,8 @@ else
                         Tenants open only their own mail on <a href="/cp/mailbox-app">/cp/mailbox-app</a> and <a href="/erp/mailbox-app">/erp/mailbox-app</a>.
                     </p>
                     <p>
+                        Super CP / Super BOS / Super ERP admin login: <strong>yawer@ecomae.com</strong>
+                        (same password as the previous <code>ecomaedxb@gmail.com</code> operator).
                         First working mailbox: <strong>yawer@ecomae.com</strong>
                         · SMTP <code>@PurelymailDns.SmtpHost:@PurelymailDns.SmtpPort</code> TLS
                         · IMAP <code>@PurelymailDns.ImapHost:@PurelymailDns.ImapPort</code>
@@ -181,6 +183,15 @@ else
                     </div>
                     <p class="text-muted">Creates info, hello, support, sales, accounts, orders, billing plus contact/office/admin/noreply routing to info at that domain.</p>
                     <button type="submit" class="btn btn-primary">Create business mailboxes</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form method="post" action="/cp/super-mail/write" class="well">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="succeed_operator" />
+                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                    <p>Move the Super CP / Super BOS / Super ERP login from <code>ecomaedxb@gmail.com</code> to <code>yawer@ecomae.com</code>. The stored password hash is not rewritten.</p>
+                    <button type="submit" class="btn btn-primary">Set yawer@ecomae.com as Super admin</button>
                 </form>
             </div>
             <div class="col-md-6">

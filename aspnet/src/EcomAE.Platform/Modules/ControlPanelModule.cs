@@ -6449,6 +6449,18 @@ public sealed class ControlPanelModule : ISurfaceModule
                 });
             }
 
+            if (string.Equals(action, "succeed_operator", StringComparison.OrdinalIgnoreCase))
+            {
+                var succession = context.RequestServices.GetRequiredService<IPlatformOperatorSuccession>();
+                var moved = await succession.SucceedAsync(cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    EcomAeRoutes.ControlPanelSuperMailApp,
+                    moved.Succeeded,
+                    moved.Message,
+                    new { ok = moved.Succeeded, writes = moved.Writes, phpAuthoritative = false, validation_code = moved.Code, message = moved.Message, email = moved.Email, passwordUnchanged = moved.PasswordUnchanged, surfaces = PlatformOperatorIdentity.Surfaces, session = SessionPayload(session) });
+            }
+
             IReadOnlyList<(string Domain, string SiteKey)>? tenants = null;
             if (string.Equals(action, "setup_tenants", StringComparison.OrdinalIgnoreCase))
             {
@@ -6464,6 +6476,74 @@ public sealed class ControlPanelModule : ISurfaceModule
             return LiveWriteFormBinder.Complete(
                 context,
                 EcomAeRoutes.ControlPanelSuperMailApp,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ControlPanelMailboxWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ITenantMailboxSelfServe mail,
+            CancellationToken cancellationToken) =>
+        {
+            if (SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new { ok = false, code = "use_super_mail", message = "Platform hosts create mailboxes under Super CP mail setup." });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/mailbox-app", "Admin CP capability required to create tenant mailboxes.");
+            }
+
+            var action = "";
+            string? localPart = null;
+            string? address = null;
+            string? password = null;
+            string? groupsJson = null;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action") ?? "";
+                localPart = LiveWriteFormBinder.Text(form, "local_part", "localPart");
+                address = LiveWriteFormBinder.Text(form, "address");
+                password = LiveWriteFormBinder.Text(form, "password");
+                groupsJson = LiveWriteFormBinder.Text(form, "groups_json", "groupsJson");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpTenantMailboxWriteBody>(context, cancellationToken) ?? new();
+                action = body.Action ?? "";
+                localPart = body.LocalPart;
+                address = body.Address;
+                password = body.Password;
+                groupsJson = body.GroupsJson;
+                confirm = body.ConfirmWrites;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to create a mailbox on this tenant domain.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await mail.WriteAsync(
+                new TenantMailboxSelfServeRequest(action, context.Request.Host.Host, localPart, address, password, groupsJson),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelMailboxApp,
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -17414,6 +17494,13 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Address = null,
         string? Password = null,
         string? ApiToken = null,
+        bool ConfirmWrites = false);
+    private sealed record CpTenantMailboxWriteBody(
+        string? Action = null,
+        string? LocalPart = null,
+        string? Address = null,
+        string? Password = null,
+        string? GroupsJson = null,
         bool ConfirmWrites = false);
     private sealed record CpTenantEmailSaveBody(
         bool UseTenantSmtp = false,

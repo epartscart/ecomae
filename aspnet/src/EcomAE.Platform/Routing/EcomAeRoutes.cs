@@ -535,6 +535,8 @@ public static class EcomAeRoutes
     public const string ControlPanelSuperMailWrite = "/cp/super-mail/write";
     /// <summary>Tenant CP inbox for mailboxes assigned to this <c>site_key</c>.</summary>
     public const string ControlPanelMailboxApp = "/cp/mailbox-app";
+    /// <summary>Tenant CP mailbox + staff create on this tenant domain only. <c>confirmWrites=true</c>.</summary>
+    public const string ControlPanelMailboxWrite = "/cp/mailbox/write";
     /// <summary>Tenant ERP chrome inbox for the same <c>site_key</c> mailboxes.</summary>
     public const string ErpMailboxApp = "/erp/mailbox-app";
     public const string ControlPanelDataMigrations = "/cp/data-migrations";

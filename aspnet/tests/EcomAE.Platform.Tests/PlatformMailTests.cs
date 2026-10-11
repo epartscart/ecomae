@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using EcomAE.Platform.Cp;
+using EcomAE.Platform.Erp;
 using EcomAE.Platform.Mail;
 using EcomAE.Platform.Routing;
 using Microsoft.Extensions.Options;
@@ -16,6 +18,7 @@ public class PlatformMailTests
         Assert.Equal("/cp/super-mail-app", EcomAeRoutes.ControlPanelSuperMailApp);
         Assert.Equal("/cp/super-mail/write", EcomAeRoutes.ControlPanelSuperMailWrite);
         Assert.Equal("/cp/mailbox-app", EcomAeRoutes.ControlPanelMailboxApp);
+        Assert.Equal("/cp/mailbox/write", EcomAeRoutes.ControlPanelMailboxWrite);
         Assert.Equal("/erp/mailbox-app", EcomAeRoutes.ErpMailboxApp);
         Assert.Equal("/bos/mail-app", EcomAeRoutes.BosMailApp);
         Assert.Equal("yawer@ecomae.com", PurelymailDns.FirstMailbox);
@@ -37,6 +40,8 @@ public class PlatformMailTests
         Assert.Contains("setup_tenants", super);
         Assert.Contains("setup_business", super);
         Assert.Contains("register_login", super);
+        Assert.Contains("succeed_operator", super);
+        Assert.Contains("ecomaedxb@gmail.com", super);
         Assert.Contains("SuperCpHostGate.IsAllowed", super);
         Assert.Contains("type=\"password\"", super);
         Assert.Contains("Sessions.ValidateAsync", super);
@@ -49,6 +54,10 @@ public class PlatformMailTests
         Assert.Contains("site_key", cp);
         Assert.Contains("PreferLoginAddress", cp);
         Assert.Contains("Sessions.ValidateAsync", cp);
+        Assert.Contains("action=\"/cp/mailbox/write\"", cp);
+        Assert.Contains("create_staff", cp);
+        Assert.Contains("setup_business", cp);
+        Assert.Contains("name=\"confirmWrites\"", cp);
         Assert.DoesNotContain("mint", cp, StringComparison.OrdinalIgnoreCase);
 
         var erp = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpTenantMailboxApp.razor"));
@@ -228,8 +237,94 @@ public class PlatformMailTests
     {
         var src = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("ControlPanelSuperMailWrite", src);
+        Assert.Contains("ControlPanelMailboxWrite", src);
         Assert.Contains("IPlatformMailService", src);
+        Assert.Contains("ITenantMailboxSelfServe", src);
+        Assert.Contains("succeed_operator", src);
         Assert.Contains("SuperCpHostGate.IsAllowed", src);
+    }
+
+    [Fact]
+    public void Tenant_guard_keeps_mailboxes_on_the_caller_domain()
+    {
+        Assert.True(TenantMailboxGuard.TryBind("create_staff", "acme.test", "ops@acme.test", "ops", "www.acme.test", out var domain, out var siteKey, out var address, out _, out _));
+        Assert.Equal("acme.test", domain);
+        Assert.Equal("acme-test", siteKey);
+        Assert.Equal("ops@acme.test", address);
+
+        Assert.False(TenantMailboxGuard.TryBind("create_mailbox", "beta.test", null, "ops", "www.acme.test", out _, out _, out _, out var isolated, out _));
+        Assert.Equal("isolated", isolated);
+
+        Assert.False(TenantMailboxGuard.TryBind("create_mailbox", null, "ops@ecomae.com", "ops", "www.acme.test", out _, out _, out _, out var stolen, out _));
+        Assert.Equal("isolated", stolen);
+
+        Assert.False(TenantMailboxGuard.TryBind("create_mailbox", null, "ops@acme.test", "ops", "www.ecomae.com", out _, out _, out _, out var platform, out _));
+        Assert.Equal("platform_domain", platform);
+
+        Assert.False(TenantMailboxGuard.TryBind("save_token", null, null, "ops", "www.acme.test", out _, out _, out _, out var forbidden, out _));
+        Assert.Equal("tenant_forbidden", forbidden);
+        Assert.False(TenantMailboxGuard.TryBind("setup_tenants", null, null, "ops", "www.acme.test", out _, out _, out _, out _, out _));
+        Assert.False(TenantMailboxGuard.TryBind("succeed_operator", null, null, "ops", "www.acme.test", out _, out _, out _, out _, out _));
+    }
+
+    [Fact]
+    public async Task Tenant_self_serve_creates_only_on_its_domain()
+    {
+        var dir = new PlatformMailDirectory(null, Path.Combine(Path.GetTempPath(), "ecomae-mail-" + Guid.NewGuid().ToString("n") + ".json"));
+        var mail = new PlatformMailService(dir, new InMemoryPurelymailApi(), Options.Create(new PurelymailOptions()));
+        var users = new RecordingUsers();
+        var serve = new TenantMailboxSelfServeService(mail, users, new UnconfiguredWrites());
+
+        var stolen = await serve.WriteAsync(new TenantMailboxSelfServeRequest("create_staff", "www.acme.test", "ops", "ops@beta.test", "box-secret", "[3]"), CancellationToken.None);
+        Assert.False(stolen.Succeeded);
+        Assert.Equal("isolated", stolen.Code);
+        Assert.Empty(users.Created);
+
+        var created = await serve.WriteAsync(new TenantMailboxSelfServeRequest("create_staff", "www.acme.test", "ops", null, "box-secret", "[3]"), CancellationToken.None);
+        Assert.True(created.Succeeded);
+        Assert.NotNull(dir.FindMailbox("ops@acme.test"));
+        Assert.Equal("acme-test", dir.FindMailbox("ops@acme.test")!.SiteKey);
+        Assert.DoesNotContain(dir.ListMailboxes("platform", superCp: false), m => m.Address == "ops@acme.test");
+        Assert.Contains(users.Created, e => e == "ops@acme.test");
+    }
+
+    private sealed class UnconfiguredWrites : IErpWriteConnectionFactory
+    {
+        public bool IsConfigured => false;
+        public Task<System.Data.Common.DbConnection> OpenAsync(CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("not configured");
+    }
+
+    private sealed class RecordingUsers : ICpUserWriteService
+    {
+        public List<string> Created { get; } = [];
+
+        public Task<ErpSimpleWriteResult> SetCommentAsync(long userId, string? comment, CancellationToken cancellationToken = default)
+            => Task.FromResult(ErpSimpleWriteResult.Fail("no", "no"));
+
+        public Task<ErpSimpleWriteResult> SetVinViewedAsync(IReadOnlyList<long> requestIds, int viewedFlag, CancellationToken cancellationToken = default)
+            => Task.FromResult(ErpSimpleWriteResult.Fail("no", "no"));
+
+        public Task<ErpSimpleWriteResult> SendVinMessageAsync(long vinId, string? text, CancellationToken cancellationToken = default)
+            => Task.FromResult(ErpSimpleWriteResult.Fail("no", "no"));
+
+        public Task<ErpSimpleWriteResult> SetUnlockedAsync(long userId, int unlockedFlag, long actorUserId, CancellationToken cancellationToken = default)
+            => Task.FromResult(ErpSimpleWriteResult.Fail("no", "no"));
+
+        public Task<ErpSimpleWriteResult> CreateAsync(string? email, int emailConfirmed, string? phone, int phoneConfirmed, string? password, int unlocked, int regVariant, string? fieldsJson, string? groupsJson, CancellationToken cancellationToken = default)
+        {
+            Created.Add(email ?? "");
+            return Task.FromResult(ErpSimpleWriteResult.Ok("created", 9));
+        }
+
+        public Task<ErpSimpleWriteResult> SetPasswordAsync(long userId, string? password, string? keepSession, CancellationToken cancellationToken = default)
+            => Task.FromResult(ErpSimpleWriteResult.Fail("no", "no"));
+
+        public Task<ErpSimpleWriteResult> UpdateAsync(long userId, string? email, int emailConfirmed, string? phone, int phoneConfirmed, string? password, int unlocked, int regVariant, string? fieldsJson, string? groupsJson, long actorUserId, string? actorSession, CancellationToken cancellationToken = default)
+            => Task.FromResult(ErpSimpleWriteResult.Fail("no", "no"));
+
+        public Task<ErpSimpleWriteResult> DeleteAsync(string? idsJson, long actorUserId, CancellationToken cancellationToken = default)
+            => Task.FromResult(ErpSimpleWriteResult.Fail("no", "no"));
     }
 
     private sealed class StubFactory : IHttpClientFactory

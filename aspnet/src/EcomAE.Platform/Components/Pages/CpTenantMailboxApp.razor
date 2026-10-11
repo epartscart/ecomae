@@ -24,9 +24,11 @@
             </div>
             <div class="panel-body">
                 <p>
-                    This tenant’s login and ops mail only — isolated by <code>site_key=@_siteKey</code>.
+                    This tenant’s login and ops mail only — isolated by <code>site_key=@_siteKey</code>
+                    on domain <code>@_tenantDomain</code>.
                     Signed-in login email: <strong>@(string.IsNullOrWhiteSpace(_loginEmail) ? "not signed in" : _loginEmail)</strong>.
-                    Super CP / BOS creates the domain and mailbox. This page never shows another tenant’s inbox.
+                    Create as many <code>name@@_tenantDomain</code> mailboxes and CP users as this business needs.
+                    This page never shows another tenant’s inbox.
                 </p>
             </div>
         </div>
@@ -47,11 +49,52 @@
         </div>
     </div>
 
+    @if (_isAdmin && !_isSuper && !string.IsNullOrWhiteSpace(_tenantDomain))
+    {
+        <div class="col-lg-12">
+            <form method="post" action="/cp/mailbox/write" class="well">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="action" value="create_staff" />
+                <input type="hidden" name="returnUrl" value="/cp/mailbox-app" />
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>New mailbox on @_tenantDomain</label>
+                            <input type="text" class="form-control" name="local_part" placeholder="ops" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Mailbox + CP password</label>
+                            <input type="password" class="form-control" name="password" autocomplete="new-password" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary btn-block">Create mailbox and CP user</button>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-muted">Creates <code>local@@_tenantDomain</code> on Purelymail and a Control Panel login with the same address. Other tenant domains are refused.</p>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <form method="post" action="/cp/mailbox/write" class="well">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="action" value="setup_business" />
+                <input type="hidden" name="returnUrl" value="/cp/mailbox-app" />
+                <p>Create info, hello, support, sales, accounts, orders, billing on <code>@_tenantDomain</code>.</p>
+                <button type="submit" class="btn btn-default">Create standard business mailboxes</button>
+            </form>
+        </div>
+    }
+
     @if (_boxes.Count == 0)
     {
         <div class="col-lg-12">
             <div class="alert alert-warning" role="status">
-                No mailbox is assigned to this tenant yet. Super CP adds the domain and creates <code>ops@your-domain</code> under this site_key.
+                No mailbox is assigned to this tenant yet. Create one above, or ask Super CP to add the domain.
             </div>
         </div>
     }
@@ -129,6 +172,7 @@
     private string _siteKey = "tenant";
     private string _opened = "";
     private string _loginEmail = "";
+    private string _tenantDomain = "";
     private string _flashOk = "";
     private string _flashErr = "";
     private IReadOnlyList<PlatformMailbox> _boxes = [];
@@ -146,7 +190,10 @@
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         _isSuper = SuperCpHostGate.IsAllowed(ctx);
         _siteKey = PlatformMailNormalize.SiteKey(ctx.Request.Query["site_key"].ToString(), _isSuper, ctx.Request.Host.Host);
+        _tenantDomain = PlatformMailNormalize.Domain(ctx.Request.Host.Host);
         _loginEmail = session.Email ?? "";
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
         _boxes = Inbox.ListForCaller(_siteKey, _isSuper);
         if (!_isAdmin)
         {

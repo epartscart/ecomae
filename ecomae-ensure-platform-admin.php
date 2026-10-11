@@ -9,7 +9,7 @@ epc_deploy_require_token();
 header('Content-Type: application/json; charset=utf-8');
 
 $apply = !empty($_GET['apply']);
-$email = trim((string) ($_GET['email'] ?? 'taxofin2025@gmail.com'));
+$email = trim((string) ($_GET['email'] ?? 'yawer@ecomae.com'));
 $password = (string) ($_GET['password'] ?? '12345678');
 
 require_once __DIR__ . '/config.php';

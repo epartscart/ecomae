@@ -24,7 +24,7 @@ Use host `http://www.ecomae.com:5080` (not localhost) — the app keys tenant re
   string and/or `EcomAE__SecretSuccession` are missing, not bad credentials.
 - The legacy password hash is derived from `EcomAE__SecretSuccession`; with a local test secret you
   must recompute the operator row's hash in the local DB, otherwise login always fails.
-- Operator account used historically: `ecomaedxb@gmail.com`, capabilities `cp, erp, bos, api`.
+- Operator account: `yawer@ecomae.com` (legacy alias `ecomaedxb@gmail.com`), capabilities `cp, erp, bos, api`. Password hash is unchanged when the email is remapped.
 - For shell probes, capture the session cookie once (`curl -c jar -d "contact=...&password=..." .../erp/login`)
   and reuse `-b jar`; the browser session is independent, so both can be active.
 

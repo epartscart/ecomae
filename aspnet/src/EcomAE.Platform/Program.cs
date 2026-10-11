@@ -826,6 +826,8 @@ builder.Services.AddSingleton<EcomAE.Platform.Mail.IPurelymailApi, EcomAE.Platfo
 builder.Services.AddSingleton<EcomAE.Platform.Mail.IMailboxImapClient, EcomAE.Platform.Mail.MailKitImapClient>();
 builder.Services.AddScoped<EcomAE.Platform.Mail.IPlatformMailService, EcomAE.Platform.Mail.PlatformMailService>();
 builder.Services.AddScoped<EcomAE.Platform.Mail.IMailboxInboxService, EcomAE.Platform.Mail.MailboxInboxService>();
+builder.Services.AddScoped<EcomAE.Platform.Mail.ITenantMailboxSelfServe, EcomAE.Platform.Mail.TenantMailboxSelfServeService>();
+builder.Services.AddScoped<EcomAE.Platform.Auth.IPlatformOperatorSuccession, EcomAE.Platform.Auth.PlatformOperatorSuccessionService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMobileAppsWriteService, EcomAE.Platform.Cp.CpMobileAppsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpIndustrySettingsService, EcomAE.Platform.Cp.CpIndustrySettingsService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpIndustrySettingsWriteService, EcomAE.Platform.Cp.CpIndustrySettingsWriteService>();
