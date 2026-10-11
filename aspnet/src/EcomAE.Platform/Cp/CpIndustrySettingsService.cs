@@ -101,8 +101,17 @@ public sealed class CpIndustrySettingsService : ICpIndustrySettingsService
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             await CpPortalSchema.EnsureSiteSettingsAsync(connection, cancellationToken).ConfigureAwait(false);
             var row = await LoadRowAsync(connection, hostName, cancellationToken).ConfigureAwait(false);
-            var groups = await LoadMenuGroupsAsync(connection, cancellationToken).ConfigureAwait(false);
-            var items = await LoadMenuItemsAsync(connection, cancellationToken).ConfigureAwait(false);
+            IReadOnlyList<CpIndustrySettingsMenuGroup> groups = [];
+            IReadOnlyList<CpIndustrySettingsMenuItem> items = [];
+            try
+            {
+                groups = await LoadMenuGroupsAsync(connection, cancellationToken).ConfigureAwait(false);
+                items = await LoadMenuItemsAsync(connection, cancellationToken).ConfigureAwait(false);
+            }
+            catch (DbException)
+            {
+                // ERP-only tenants have no CP control_groups/control_items — PHP renders the form without the menu tab.
+            }
             var baseline = row ?? CpIndustrySettingsView.Empty(hostName, "defaults");
             return baseline with { MenuGroups = groups, MenuItems = items, Source = row is null ? "defaults" : "db" };
         }

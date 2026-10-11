@@ -284,9 +284,12 @@ public sealed class ErpPeriodLockReopenWriteService : IErpPeriodLockReopenWriteS
             yearMonth, action, oldStatus, newStatus, adminId, note, now);
 
     internal static async Task<bool> SchemaReadyAsync(DbConnection connection, CancellationToken ct)
-        => await ColumnExistsAsync(connection, "epc_erp_periods", "checklist_json", ct).ConfigureAwait(false)
+    {
+        await ErpLazySchema.EnsurePeriodCloseAsync(connection, ct).ConfigureAwait(false);
+        return await ColumnExistsAsync(connection, "epc_erp_periods", "checklist_json", ct).ConfigureAwait(false)
            && await ColumnExistsAsync(connection, "epc_erp_period_close_log", "action", ct).ConfigureAwait(false)
            && await ColumnExistsAsync(connection, "epc_erp_fiscal_locks", "lock_date", ct).ConfigureAwait(false);
+    }
 
     private static async Task<bool> ColumnExistsAsync(DbConnection connection, string table, string column, CancellationToken ct)
         => await ErpDb.LongAsync(
