@@ -71,8 +71,21 @@ public sealed class ErpNavMatrixTests
             new ErpIndustryNav.ErpNavAudience("current", "core", "AE", IsSuperErp: true));
 
         Assert.DoesNotContain(filtered.SelectMany(g => g.Links), ErpIndustryNav.IsJewelleryTab);
-        Assert.Equal("fitout", ErpIndustryNav.NavIndustryCode("core",
-            new ErpCompanyDigest(3, "FITOUT", "Fit-out Company", "AED", "AE", "fitout_contracting", true)));
+    }
+
+    [Fact]
+    public void FitOutCompanyOnJewelleryHostKeepsJewelleryTabsAndShowsProjectAccounting()
+    {
+        var fitOutCompany = new ErpCompanyDigest(3, "FITOUT", "Fit-out Company", "AED", "AE", "fitout_contracting", true);
+        var filtered = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience("current", "jewellery", "AE", IsSuperErp: true, Company: fitOutCompany));
+
+        var links = filtered.SelectMany(g => g.Links).ToList();
+        Assert.Contains(links, ErpIndustryNav.IsJewelleryTab);
+        Assert.Contains(links, ErpIndustryNav.IsFitOutTab);
+        Assert.True(ErpIndustryNav.ShowFitOutModules("construction", null));
+        Assert.False(ErpIndustryNav.ShowFitOutModules("core", null));
     }
 
     [Fact]

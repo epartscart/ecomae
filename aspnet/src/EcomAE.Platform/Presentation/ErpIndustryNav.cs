@@ -27,7 +27,8 @@ public static class ErpIndustryNav
         string? CountryCode,
         bool IsSuperErp,
         IReadOnlySet<string>? DisabledTabIds = null,
-        IReadOnlySet<string>? EnabledModuleIds = null);
+        IReadOnlySet<string>? EnabledModuleIds = null,
+        ErpCompanyDigest? Company = null);
 
     private static readonly HashSet<string> JewelleryTabIds = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -64,9 +65,9 @@ public static class ErpIndustryNav
             || code.Contains("construction", StringComparison.Ordinal);
     }
 
-    /// <summary>Industry code for topnav filtering: a fit-out company (by pack, code or name) counts as fit-out like the route gate.</summary>
-    public static string? NavIndustryCode(string? industryCode, ErpCompanyDigest? company)
-        => !IsFitOutIndustry(industryCode) && IsFitOutCompany(company) ? "fitout" : industryCode;
+    /// <summary>Fit-out modules are allowed by the host industry or by the active company (pack, code or name), like the route gate.</summary>
+    public static bool ShowFitOutModules(string? hostIndustryCode, ErpCompanyDigest? company)
+        => IsFitOutIndustry(hostIndustryCode) || IsFitOutCompany(company);
 
     public static bool IsFitOutTab(PhpModuleCatalog.ModuleLink tab)
         => string.Equals(TabKey(tab), "project_accounting", StringComparison.OrdinalIgnoreCase);
@@ -267,12 +268,12 @@ public static class ErpIndustryNav
             && !IsJewelleryFromHostOrPack(
                 audience.IndustryCode,
                 audience.IndustryCode,
-                null))
+                audience.Company))
         {
             return new(false, "industry", "Jewellery module requires the jewellery industry pack.");
         }
 
-        if (IsFitOutTab(tab) && !IsFitOutIndustry(audience.IndustryCode))
+        if (IsFitOutTab(tab) && !ShowFitOutModules(audience.IndustryCode, audience.Company))
         {
             return new(false, "industry", "Project accounting requires the fit-out / construction industry pack.");
         }
