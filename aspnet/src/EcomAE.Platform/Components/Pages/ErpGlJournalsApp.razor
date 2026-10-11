@@ -76,6 +76,7 @@
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="GL KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_journals.Count</div></div>
         <div class="kpi"><div class="lbl">Posted in page</div><div class="val">@_posted</div></div>
+        <div class="kpi"><div class="lbl">Unbalanced in page</div><div class="val">@_unbalanced</div></div>
         <div class="kpi"><div class="lbl">Page total debit</div><div class="val">@_totalDebit.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
@@ -114,11 +115,11 @@
                     <p class="text-muted">Excerpt only (@_openedDetail.DescriptionExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedDetail.DescriptionLen.ToString(CultureInfo.InvariantCulture) chars).</p>
                 }
             }
-            <p class="text-muted">Reverse stays Classic-compatible until the journal parity gate is closed.</p>
             else
             {
                 <p class="text-muted" style="margin:.85rem 0 0">No note excerpt yet.</p>
             }
+            <p class="text-muted">Reverse stays Classic-compatible until the journal parity gate is closed.</p>
             @if (_openedSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-source siblings</p>
@@ -174,10 +175,20 @@
                             <td><span class="label label-default">@j.Status</span></td>
                             <td>@j.TotalDebit.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@j.TotalCredit.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td>@((j.TotalDebit - j.TotalCredit).ToString("N2", CultureInfo.InvariantCulture))</td>
+                            <td style="@(j.TotalDebit - j.TotalCredit != 0 ? "color:#b3261e;font-weight:600" : "")">@((j.TotalDebit - j.TotalCredit).ToString("N2", CultureInfo.InvariantCulture))</td>
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/gl-journals-app", "journal_id", j.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>@_journals.Sum(j => j.TotalDebit).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@_journals.Sum(j => j.TotalCredit).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@_journals.Sum(j => j.TotalDebit - j.TotalCredit).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td></td>
+                    </tr>
                 }
             </tbody>
         </table>
@@ -205,6 +216,7 @@
     private IReadOnlyList<ErpGlJournalDigest> _journals = [];
     private IReadOnlyList<ErpCoaAccountDigest> _coaAccounts = [];
     private int _posted;
+    private int _unbalanced;
     private decimal _totalDebit;
     private int _limit = 100;
     private string _source = "n/a";
@@ -339,6 +351,7 @@
             }
         }
         _posted = _journals.Count(j => string.Equals(j.Status, "posted", StringComparison.OrdinalIgnoreCase));
+        _unbalanced = _journals.Count(j => j.TotalDebit - j.TotalCredit != 0);
         _totalDebit = _journals.Sum(j => j.TotalDebit);
         _source = result.Source;
         _message = result.Message;
