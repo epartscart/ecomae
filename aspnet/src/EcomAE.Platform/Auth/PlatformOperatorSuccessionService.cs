@@ -1,8 +1,14 @@
 using System.Data.Common;
 using System.Globalization;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Auth;
+
+public interface IPlatformOperatorSuccession
+{
+    Task<OperatorSuccessionResult> SucceedAsync(CancellationToken cancellationToken = default);
+}
 
 public sealed record OperatorSuccessionResult(
     bool Succeeded,
@@ -18,8 +24,26 @@ public sealed record OperatorSuccessionResult(
 /// <see cref="PlatformOperatorIdentity.CanonicalEmail"/> and keeps the stored password hash.
 /// Never echoes the hash.
 /// </summary>
-public static class PlatformOperatorSuccessionService
+public sealed class PlatformOperatorSuccessionService : IPlatformOperatorSuccession
 {
+    private readonly ITenantDbConnectionFactory _connections;
+
+    public PlatformOperatorSuccessionService(ITenantDbConnectionFactory connections)
+    {
+        _connections = connections;
+    }
+
+    public async Task<OperatorSuccessionResult> SucceedAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new OperatorSuccessionResult(false, 0, "db", "TenantRegistry DB is not configured.", PlatformOperatorIdentity.CanonicalEmail, true);
+        }
+
+        await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
+        return await SucceedOnConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
+    }
+
     public static async Task<OperatorSuccessionResult> SucceedOnConnectionAsync(
         DbConnection connection,
         CancellationToken cancellationToken)
