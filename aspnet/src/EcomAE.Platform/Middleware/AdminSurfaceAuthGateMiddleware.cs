@@ -180,7 +180,9 @@ public sealed class AdminSurfaceAuthGateMiddleware
             || bare.Equals("/ip/login", StringComparison.OrdinalIgnoreCase)
             || bare.Equals("/ip/logout", StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LegacyAdminLogin, StringComparison.OrdinalIgnoreCase)
-            || bare.Equals("/auth/logout", StringComparison.OrdinalIgnoreCase);
+            || bare.Equals("/auth/logout", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/storefront/logout", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/lifeos/logout", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string LoginPathFor(string path)

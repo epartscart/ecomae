@@ -85,7 +85,8 @@ public sealed class LegacyAdminLoginServiceTests
             "test-agent");
 
         Assert.NotEqual("tenant_db_unbound", outcome.Failure?.Code);
-        Assert.True(connections.OpenForTenantCalled);
+        Assert.True(connections.OpenRegistryCalled);
+        Assert.False(connections.OpenForTenantCalled);
     }
 
     private sealed class AlwaysConfiguredConnections : ITenantDbConnectionFactory
@@ -110,6 +111,7 @@ public sealed class LegacyAdminLoginServiceTests
     private sealed class CapturingConnections : ITenantDbConnectionFactory
     {
         public bool OpenForTenantCalled { get; private set; }
+        public bool OpenRegistryCalled { get; private set; }
         public bool IsConfigured => true;
 
         public Task<System.Data.Common.DbConnection> OpenAsync(string? databaseName, CancellationToken cancellationToken = default)
@@ -127,7 +129,10 @@ public sealed class LegacyAdminLoginServiceTests
         }
 
         public Task<System.Data.Common.DbConnection> OpenRegistryAsync(CancellationToken cancellationToken = default)
-            => throw new InvalidOperationException("capture-only");
+        {
+            OpenRegistryCalled = true;
+            throw new InvalidOperationException("expected-registry-then-fail");
+        }
     }
 
     private sealed class NoopSessionStore : ILegacySessionStore
@@ -178,7 +183,28 @@ public sealed class LegacyAdminLoginServiceTests
         var wrong = LoginErrorHelper.FromUri("https://www.epartscart.com/cp/login?error=invalid_credentials");
         Assert.NotNull(wrong);
         Assert.Contains("taxofinca", wrong, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("SecretSuccession", wrong, StringComparison.Ordinal);
+        Assert.Contains("shop db_name", wrong, StringComparison.Ordinal);
+        Assert.DoesNotContain("yawer@ecomae.com", wrong, StringComparison.OrdinalIgnoreCase);
+
+        var superWrong = LoginErrorHelper.FromUri("https://www.ecomae.com/erp/login?error=invalid_credentials");
+        Assert.NotNull(superWrong);
+        Assert.Contains("yawer@ecomae.com", superWrong, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("taxofinca", superWrong, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void SuperOperatorAliasLooksUpBothEmails()
+    {
+        Assert.True(PlatformOperatorIdentity.IsAlias("yawer@ecomae.com"));
+        Assert.True(PlatformOperatorIdentity.IsAlias("Ecomaedxb@gmail.com"));
+        Assert.False(PlatformOperatorIdentity.IsAlias("buyer@epartscart.com"));
+        Assert.Equal("yawer@ecomae.com", PlatformOperatorIdentity.Canonicalize("ecomaedxb@gmail.com"));
+        Assert.Equal(
+            new[] { "yawer@ecomae.com", "ecomaedxb@gmail.com" },
+            PlatformOperatorIdentity.LookupEmails("yawer@ecomae.com"));
+        Assert.Equal(
+            new[] { "buyer@epartscart.com" },
+            PlatformOperatorIdentity.LookupEmails("buyer@epartscart.com"));
     }
 
     [Fact]

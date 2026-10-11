@@ -90,9 +90,10 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
         var clientIp = LegacyLoginSecurity.ClientIp(_http.HttpContext);
         try
         {
-            await using var connection = await _connections
-                .OpenForTenantAsync(tenant, cancellationToken)
-                .ConfigureAwait(false);
+            // Super operator lives in the platform registry users table — never a shop db_name.
+            await using var connection = superCpHost
+                ? await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false)
+                : await _connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
 
             async Task<LegacyLoginOutcome> Fail(string message, string code, int waitMinutes = 0)
             {
@@ -121,22 +122,22 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                 request.Surface,
                 contactType);
 
-            var user = await LoadUserAsync(connection, contactLookup, contactType, cancellationToken)
+            var user = await LoadUserAsync(connection, contactLookup, contactType, superCpHost, password, cancellationToken)
                 .ConfigureAwait(false);
             // Retry raw contact if HtmlEncode form differed (rare for emails; keeps PHP parity).
             if (user is null && !string.Equals(contactLookup, contactRaw, StringComparison.Ordinal))
             {
-                user = await LoadUserAsync(connection, contactRaw, contactType, cancellationToken)
+                user = await LoadUserAsync(connection, contactRaw, contactType, superCpHost, password, cancellationToken)
                     .ConfigureAwait(false);
             }
 
             if (user is null)
             {
-                var probe = await ProbeUserAsync(connection, contactLookup, contactType, cancellationToken)
+                var probe = await ProbeUserAsync(connection, contactLookup, contactType, superCpHost, cancellationToken)
                     .ConfigureAwait(false);
                 if (probe is null && !string.Equals(contactLookup, contactRaw, StringComparison.Ordinal))
                 {
-                    probe = await ProbeUserAsync(connection, contactRaw, contactType, cancellationToken)
+                    probe = await ProbeUserAsync(connection, contactRaw, contactType, superCpHost, cancellationToken)
                         .ConfigureAwait(false);
                 }
 
@@ -174,6 +175,24 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                     user.UserId,
                     LegacyPasswordVerifier.IsLegacyMd5(user.PasswordHash) ? "md5" : "modern");
                 return await Fail("Incorrect login or password.", "invalid_credentials").ConfigureAwait(false);
+            }
+
+            var sessionEmail = user.Email;
+            if (superCpHost && PlatformOperatorIdentity.IsAlias(contactRaw))
+            {
+                try
+                {
+                    var succeeded = await PlatformOperatorSuccessionService.SucceedOnConnectionAsync(connection, cancellationToken)
+                        .ConfigureAwait(false);
+                    if (succeeded.Succeeded)
+                    {
+                        sessionEmail = succeeded.Email;
+                    }
+                }
+                catch (DbException ex)
+                {
+                    _log.LogWarning(ex, "Super operator email remap skipped; password hash left unchanged");
+                }
             }
 
             try
@@ -230,7 +249,7 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
 
             return LegacyLoginOutcome.Succeeded(new LegacyLoginSuccess(
                 user.UserId,
-                user.Email,
+                sessionEmail,
                 sessionToken,
                 csrf,
                 adminSession,
@@ -258,50 +277,79 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
     private static string NormalizeContactType(string? contactType)
         => string.Equals(contactType, "phone", StringComparison.OrdinalIgnoreCase) ? "phone" : "email";
 
-    private static async Task<UserRow?> LoadUserAsync(
+    private async Task<UserRow?> LoadUserAsync(
         DbConnection connection,
         string contact,
         string contactType,
+        bool superCpHost,
+        string password,
         CancellationToken cancellationToken)
     {
-        await using var command = connection.CreateCommand();
-        command.CommandText = contactType == "phone"
-            ? LegacyAdminLoginSql.SelectUserByPhone
-            : LegacyAdminLoginSql.SelectUserByEmail;
-        AddParameter(command, "@contact", contact);
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        UserRow? first = null;
+        foreach (var candidate in LoginContacts(contact, contactType, superCpHost))
         {
-            return null;
+            await using var command = connection.CreateCommand();
+            command.CommandText = contactType == "phone"
+                ? LegacyAdminLoginSql.SelectUserByPhone
+                : LegacyAdminLoginSql.SelectUserByEmail;
+            AddParameter(command, "@contact", candidate);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                continue;
+            }
+
+            var row = new UserRow(
+                Convert.ToInt32(reader["user_id"], CultureInfo.InvariantCulture),
+                Convert.ToString(reader["password"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["email"], CultureInfo.InvariantCulture) ?? string.Empty);
+            first ??= row;
+            if (LegacyPasswordVerifier.Verify(password, row.PasswordHash, _options.SecretSuccession))
+            {
+                return row;
+            }
         }
 
-        return new UserRow(
-            Convert.ToInt32(reader["user_id"], CultureInfo.InvariantCulture),
-            Convert.ToString(reader["password"], CultureInfo.InvariantCulture) ?? string.Empty,
-            Convert.ToString(reader["email"], CultureInfo.InvariantCulture) ?? string.Empty);
+        return first;
     }
 
     private static async Task<UserProbe?> ProbeUserAsync(
         DbConnection connection,
         string contact,
         string contactType,
+        bool superCpHost,
         CancellationToken cancellationToken)
     {
-        await using var command = connection.CreateCommand();
-        command.CommandText = contactType == "phone"
-            ? LegacyAdminLoginSql.SelectUserProbeByPhone
-            : LegacyAdminLoginSql.SelectUserProbeByEmail;
-        AddParameter(command, "@contact", contact);
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        foreach (var candidate in LoginContacts(contact, contactType, superCpHost))
         {
-            return null;
+            await using var command = connection.CreateCommand();
+            command.CommandText = contactType == "phone"
+                ? LegacyAdminLoginSql.SelectUserProbeByPhone
+                : LegacyAdminLoginSql.SelectUserProbeByEmail;
+            AddParameter(command, "@contact", candidate);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                continue;
+            }
+
+            var confirmedCol = contactType == "phone" ? "phone_confirmed" : "email_confirmed";
+            var confirmed = Convert.ToInt32(reader[confirmedCol], CultureInfo.InvariantCulture) == 1;
+            var unlocked = Convert.ToInt32(reader["unlocked"], CultureInfo.InvariantCulture) == 1;
+            return new UserProbe(confirmed, unlocked);
         }
 
-        var confirmedCol = contactType == "phone" ? "phone_confirmed" : "email_confirmed";
-        var confirmed = Convert.ToInt32(reader[confirmedCol], CultureInfo.InvariantCulture) == 1;
-        var unlocked = Convert.ToInt32(reader["unlocked"], CultureInfo.InvariantCulture) == 1;
-        return new UserProbe(confirmed, unlocked);
+        return null;
+    }
+
+    private static IReadOnlyList<string> LoginContacts(string contact, string contactType, bool superCpHost)
+    {
+        if (contactType == "email" && superCpHost && PlatformOperatorIdentity.IsAlias(contact))
+        {
+            return PlatformOperatorIdentity.LookupEmails(contact);
+        }
+
+        return [contact];
     }
 
     private static void AddParameter(DbCommand command, string name, object value)

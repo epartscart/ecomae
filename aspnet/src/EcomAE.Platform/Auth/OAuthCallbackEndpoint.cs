@@ -100,7 +100,8 @@ public static class OAuthCallbackEndpoint
         LegacyLoginCookieWriter.Apply(
             context.Response,
             new LegacyLoginSuccess(payload.UserId, "", payload.SessionToken, "", payload.Mode != "storefront", payload.Path),
-            rememberMe: false);
+            rememberMe: false,
+            LegacyLoginCookieWriter.RequestIsHttps(context.Request));
         var location = payload.Path;
         if (!string.IsNullOrWhiteSpace(payload.Host))
         {
@@ -185,7 +186,8 @@ public static class OAuthCallbackEndpoint
             LegacyLoginCookieWriter.Apply(
                 context.Response,
                 new LegacyLoginSuccess(userId, profile.Email, session, csrf, state.AuthMode != "storefront", OAuthCallback.SafeReturnPath(state)),
-                rememberMe: false);
+                rememberMe: false,
+                LegacyLoginCookieWriter.RequestIsHttps(context.Request));
             if (state.Provider == "google")
             {
                 RememberGoogle(context, profile.Email);
