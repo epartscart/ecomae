@@ -442,7 +442,9 @@ public static partial class StorefrontPhpAjax
         }
         catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
         {
-            return new StatusBody(false, "Cart is not in this database.", null);
+            // PHP ajax_get_cart_info.php always emits cart_items_count. A status-only
+            // body paints the word "undefined" in the bottom-bar badge.
+            return new CartBody(string.Empty, 0);
         }
     }
 
