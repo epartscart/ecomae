@@ -2249,6 +2249,39 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.Equal("cp/content/control/portal/epc_boc_product_brochure.php", PhpPlanQ1Ford.BocProductBrochurePath);
     }
 
+    [Fact]
+    public void BocChannelControl_LinksStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Gill.Reset();
+        PhpPlanQ1Gill.IsSuperCp = () => true;
+        PhpPlanQ1Gill.IsAdmin = () => true;
+        PhpPlanQ1Gill.HasPdo = true;
+        PhpPlanQ1Gill.HasUserClass = true;
+        PhpPlanQ1Gill.HasGetName = true;
+        PhpPlanQ1Gill.HasGetUserId = true;
+        PhpPlanQ1Gill.HasNavForUser = true;
+        PhpPlanQ1Gill.OperatorName = "Ada";
+        PhpPlanQ1Gill.OperatorId = 7;
+        PhpPlanQ1Gill.BackendDir = "acme";
+        var acme = PhpPlanQ1Gill.EpcBocChannelControl();
+        PhpPlanQ1Gill.BackendDir = "beta";
+        var beta = PhpPlanQ1Gill.EpcBocChannelControl();
+        PhpPlanQ1Gill.IsSuperCp = () => false;
+        PhpPlanQ1Gill.BackendDir = "acme";
+        var denied = PhpPlanQ1Gill.EpcBocChannelControl();
+        Assert.Contains("CHANNEL:/acme", acme, StringComparison.Ordinal);
+        Assert.Contains("CONSOLE_OPEN:channel_control|Channels & Orders|/acme|Ada|All units · Fleet|user:7", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("/beta", acme, StringComparison.Ordinal);
+        Assert.Contains("CHANNEL:/beta", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("/acme", beta, StringComparison.Ordinal);
+        Assert.Contains("Super CP", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("/acme", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("/beta", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Gill.BocChannelControlPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Gill.BocChannelControlPath, StringComparison.Ordinal);
+        Assert.Equal("cp/content/control/portal/epc_boc_channel_control.php", PhpPlanQ1Gill.BocChannelControlPath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2347,6 +2380,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Delta.EpartscartHomeNewArrivalsPath,
             PhpPlanQ1Eddy.CpBrochurePagePath,
             PhpPlanQ1Ford.BocProductBrochurePath,
+            PhpPlanQ1Gill.BocChannelControlPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,

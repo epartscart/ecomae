@@ -1,0 +1,41 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "empty",
+            "output": "",
+            "result": [
+                "<div class=\"alert alert-warning\">Channel control is available on <strong>BOC</strong> (Super CP) only.</div>",
+                "<div class=\"alert alert-warning\">Channel control is available on <strong>BOC</strong> (Super CP) only.</div>"
+            ]
+        },
+        {
+            "name": "gates",
+            "output": "",
+            "result": [
+                "<div class=\"alert alert-warning\">Please <a href=\"/acme/\">log in to BOC</a>.</div>",
+                "<div class=\"alert alert-warning\">Please <a href=\"/acme&quot;&gt;&lt;x/\">log in to BOC</a>.</div>",
+                "<div class=\"alert alert-danger\">Platform database unavailable.</div>",
+                "<div class=\"alert alert-danger\">Platform database unavailable.</div>"
+            ]
+        },
+        {
+            "name": "live",
+            "output": "",
+            "result": [
+                "CONSOLE_OPEN:channel_control|Channels & Orders|/cp|Operator|All units · Fleet|fleetCHANNEL:/cpCONSOLE_CLOSE",
+                "CONSOLE_OPEN:channel_control|Channels & Orders|/cp|Ada|All units · Fleet|user:7CHANNEL:/cpCONSOLE_CLOSE",
+                "CONSOLE_OPEN:channel_control|Channels & Orders|/|Ada|All units · Fleet|user:7CHANNEL:/CONSOLE_CLOSE"
+            ]
+        },
+        {
+            "name": "tenant",
+            "output": "",
+            "result": [
+                "CONSOLE_OPEN:channel_control|Channels & Orders|/acme|Ada|All units · Fleet|user:7CHANNEL:/acmeCONSOLE_CLOSE",
+                "CONSOLE_OPEN:channel_control|Channels & Orders|/beta|Ada|All units · Fleet|user:7CHANNEL:/betaCONSOLE_CLOSE",
+                "<div class=\"alert alert-warning\">Channel control is available on <strong>BOC</strong> (Super CP) only.</div>"
+            ]
+        }
+    ]
+}
