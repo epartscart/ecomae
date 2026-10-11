@@ -140,6 +140,17 @@
         </div>
     }
 
+    @if (_apAgingTotal > 0)
+    {
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="AP aging">
+            <div class="kpi"><div class="lbl">AP open</div><div class="val">@_apAgingTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">0–30 days</div><div class="val">@_apAging0To30.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">31–60 days</div><div class="val">@_apAging31To60.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">61–90 days</div><div class="val">@_apAging61To90.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">90+ days</div><div class="val">@_apAging90Plus.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        </div>
+    }
+
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
@@ -149,6 +160,8 @@
                     <th>Supplier</th>
                     <th>Status</th>
                     <th>Total</th>
+                    <th>Paid</th>
+                    <th>Due</th>
                     <th>PO / Order</th>
                     <th></th>
                 </tr>
@@ -156,7 +169,7 @@
             <tbody>
                 @if (_purchases.Count == 0)
                 {
-                    <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -168,13 +181,15 @@
                             <td>@(string.IsNullOrWhiteSpace(p.SupplierName) ? $"#{p.SupplierId}" : p.SupplierName)</td>
                             <td><span class="label label-default">@p.Status</span></td>
                             <td>@p.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@p.PaidAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@p.AmountDue.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(p.OrderId > 0 ? p.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/purchases-app", "purchase_id", p.Id)">Open</a></td>
                         </tr>
                         @if (p.Lines.Count > 0)
                         {
                             <tr class="epc-erp-doc-lines">
-                                <td colspan="7">
+                                <td colspan="9">
                                     <table class="table table-condensed table-bordered" style="margin-bottom:0">
                                         <thead>
                                             <tr>
@@ -229,6 +244,11 @@
     private ErpPurchaseDigest? _openedPurchase;
     private ErpPurchaseDetail? _openedDetail;
     private IReadOnlyList<ErpPurchaseDigest> _openedSiblings = [];
+    private decimal _apAgingTotal;
+    private decimal _apAging0To30;
+    private decimal _apAging31To60;
+    private decimal _apAging61To90;
+    private decimal _apAging90Plus;
     private IReadOnlyList<ErpAuditTrailRow> _openedAuditTrail = [];
     private IReadOnlyList<ErpDocumentAttachmentRow> _openedAttachments = [];
     private IReadOnlyList<ErpDocumentLineDigest> _openedLines = [];
@@ -283,6 +303,16 @@
                 _openedId,
                 ctx.RequestAborted);
         }
+        var nowUnixAp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var openAp = _purchases.Where(p => p.AmountDue > 0.005m
+            && !string.Equals(p.Status, "voided", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(p.Status, "cancelled", StringComparison.OrdinalIgnoreCase)).ToList();
+        _apAging0To30 = openAp.Where(p => nowUnixAp - p.PurchaseDate <= 30L * 86400).Sum(p => p.AmountDue);
+        _apAging31To60 = openAp.Where(p => nowUnixAp - p.PurchaseDate > 30L * 86400 && nowUnixAp - p.PurchaseDate <= 60L * 86400).Sum(p => p.AmountDue);
+        _apAging61To90 = openAp.Where(p => nowUnixAp - p.PurchaseDate > 60L * 86400 && nowUnixAp - p.PurchaseDate <= 90L * 86400).Sum(p => p.AmountDue);
+        _apAging90Plus = openAp.Where(p => nowUnixAp - p.PurchaseDate > 90L * 86400).Sum(p => p.AmountDue);
+        _apAgingTotal = _apAging0To30 + _apAging31To60 + _apAging61To90 + _apAging90Plus;
+
         _open = _purchases.Count(p => !string.Equals(p.Status, "closed", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(p.Status, "cancelled", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(p.Status, "canceled", StringComparison.OrdinalIgnoreCase)

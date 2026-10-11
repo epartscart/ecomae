@@ -1738,16 +1738,20 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
+                    var totalAmount = ReadDec(reader, "total_amount");
+                    var paidAmount = ReadDec(reader, "paid");
                     purchases.Add(new(
                         ReadI64(reader, "id"),
                         ReadI64(reader, "supplier_id"),
                         ReadStr(reader, "supplier_name"),
                         ReadI64(reader, "purchase_date"),
                         ReadStr(reader, "invoice_number"),
-                        ReadDec(reader, "total_amount"),
+                        totalAmount,
                         ReadStr(reader, "status"),
                         ReadI64(reader, "order_id"),
-                        []));
+                        [],
+                        paidAmount,
+                        Math.Max(totalAmount - paidAmount, 0m)));
                 }
             }
 
@@ -1970,16 +1974,20 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
+                    var totalAmount = Convert.ToDecimal(reader["total_amount"] is DBNull ? 0m : reader["total_amount"], CultureInfo.InvariantCulture);
+                    var paid = Convert.ToDecimal(reader["paid"] is DBNull ? 0m : reader["paid"], CultureInfo.InvariantCulture);
                     headers.Add(new ErpPurchaseDigest(
                         Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
                         Convert.ToInt64(reader["supplier_id"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["supplier_name"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToInt64(reader["purchase_date"] is DBNull ? 0 : reader["purchase_date"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["invoice_number"] is DBNull ? string.Empty : reader["invoice_number"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToDecimal(reader["total_amount"] is DBNull ? 0m : reader["total_amount"], CultureInfo.InvariantCulture),
+                        totalAmount,
                         Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture),
-                        []));
+                        [],
+                        paid,
+                        Math.Max(totalAmount - paid, 0m)));
                 }
             }
 
@@ -2067,7 +2075,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         ReadDec(reader, "total_amount"),
                         ReadStr(reader, "status"),
                         ReadI64(reader, "order_id"),
-                        []));
+                        [],
+                        0m,
+                        0m));
                 }
             }
 
