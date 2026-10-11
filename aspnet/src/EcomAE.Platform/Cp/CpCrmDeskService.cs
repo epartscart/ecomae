@@ -27,6 +27,8 @@ public interface ICpCrmDeskService
 
     Task<CpCrmCustomer360> Customer360Async(long userId, CancellationToken cancellationToken = default);
 
+    Task<CpCrmCustomer360Workspace> Workspace360Async(long userId, CancellationToken cancellationToken = default);
+
     Task<CpCrmWonHint> WonHintAsync(long opportunityId, CancellationToken cancellationToken = default);
 
     Task<CpCrmLeadScore> ScoreLeadAsync(long leadId, CancellationToken cancellationToken = default);
@@ -995,6 +997,60 @@ public sealed class CpCrmDeskService : ICpCrmDeskService
         }
     }
 
+    public async Task<CpCrmCustomer360Workspace> Workspace360Async(long userId, CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return CpCrmCustomer360Workspace.Empty(userId);
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return CpCrmCustomer360Workspace.Empty(userId, "Tenant database is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var profile = await UserProfileAsync(connection, userId, cancellationToken).ConfigureAwait(false);
+            var totals = await Customer360Async(userId, cancellationToken).ConfigureAwait(false);
+            var email = profile?.Email ?? "";
+            var leads = await ListLeadsForCustomerAsync(connection, email, cancellationToken).ConfigureAwait(false);
+            var opps = await ListOpportunitiesForUserAsync(connection, userId, cancellationToken).ConfigureAwait(false);
+            var quotes = await ListQuotesForUserAsync(connection, userId, cancellationToken).ConfigureAwait(false);
+            var tickets = await ListTicketsForUserAsync(connection, userId, cancellationToken).ConfigureAwait(false);
+            var activities = await ListActivitiesForCustomerAsync(connection, leads, opps, cancellationToken).ConfigureAwait(false);
+            var orders = await RecentOrdersCoreAsync(connection, userId, 25, cancellationToken).ConfigureAwait(false);
+            var credit = await ReadCreditAsync(connection, userId, cancellationToken).ConfigureAwait(false);
+            var invoices = await ReadInvoicesAsync(connection, userId, cancellationToken).ConfigureAwait(false);
+            return CpCrmCustomer360Composer.Compose(
+                userId,
+                profile is not null,
+                true,
+                profile?.Name ?? "",
+                email,
+                profile?.Phone ?? "",
+                profile is not null ? userId.ToString(CultureInfo.InvariantCulture) : "",
+                profile?.GroupName ?? "",
+                totals,
+                credit,
+                leads,
+                opps,
+                activities,
+                quotes,
+                tickets,
+                orders.Rows,
+                orders.HasCommerce,
+                invoices.Lines,
+                invoices.Available,
+                null);
+        }
+        catch (DbException ex)
+        {
+            return CpCrmCustomer360Workspace.Empty(userId, ex.Message);
+        }
+    }
+
     public async Task<CpCrmWonHint> WonHintAsync(long opportunityId, CancellationToken cancellationToken = default)
     {
         var none = new CpCrmWonHint("", 0, 0m, "");
@@ -1534,6 +1590,217 @@ public sealed class CpCrmDeskService : ICpCrmDeskService
         catch (DbException)
         {
             return 0;
+        }
+    }
+
+    private sealed record CustomerProfile(string Email, string Name, string Phone, string GroupName);
+
+    private static async Task<CustomerProfile?> UserProfileAsync(DbConnection connection, long userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var c = connection.CreateCommand();
+            c.CommandText = ErpDb.Positional("SELECT IFNULL(`email`,''), IFNULL(`phone`,'') FROM `users` WHERE `user_id` = ? LIMIT 1");
+            ErpDb.AddParameters(c, userId);
+            await using var r = await c.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await r.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            var email = S(r, 0);
+            var phone = S(r, 1);
+            var group = await UserGroupNameAsync(connection, userId, cancellationToken).ConfigureAwait(false);
+            return new CustomerProfile(email, email, phone, group);
+        }
+        catch (DbException)
+        {
+            return null;
+        }
+    }
+
+    private static async Task<string> UserGroupNameAsync(DbConnection connection, long userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var c = connection.CreateCommand();
+            c.CommandText = ErpDb.Positional("SELECT IFNULL(g.`value`,'') FROM `users_groups_bind` b INNER JOIN `groups` g ON g.`id` = b.`group_id` WHERE b.`user_id` = ? ORDER BY b.`group_id` DESC LIMIT 1");
+            ErpDb.AddParameters(c, userId);
+            var value = await c.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return value is null or DBNull ? "" : Convert.ToString(value, CultureInfo.InvariantCulture) ?? "";
+        }
+        catch (DbException)
+        {
+            return "";
+        }
+    }
+
+    private static async Task<IReadOnlyList<CpCrmLeadRow>> ListLeadsForCustomerAsync(DbConnection connection, string email, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return [];
+        }
+
+        try
+        {
+            var list = new List<CpCrmLeadRow>();
+            await using var c = connection.CreateCommand();
+            c.CommandText = ErpDb.Positional(LeadSelect + " WHERE `active` = 1 AND `email` = ? ORDER BY `time_updated` DESC, `id` DESC LIMIT 50");
+            ErpDb.AddParameters(c, email);
+            await using var r = await c.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                list.Add(ReadLead(r));
+            }
+
+            return list;
+        }
+        catch (DbException)
+        {
+            return [];
+        }
+    }
+
+    private static async Task<IReadOnlyList<CpCrmOpportunityRow>> ListOpportunitiesForUserAsync(DbConnection connection, long userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var list = new List<CpCrmOpportunityRow>();
+            await using var c = connection.CreateCommand();
+            c.CommandText = ErpDb.Positional(OppSelect + " WHERE o.`active` = 1 AND o.`linked_user_id` = ? ORDER BY o.`time_updated` DESC, o.`id` DESC LIMIT 50");
+            ErpDb.AddParameters(c, userId);
+            await using var r = await c.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                list.Add(ReadOpp(r));
+            }
+
+            return list;
+        }
+        catch (DbException)
+        {
+            return [];
+        }
+    }
+
+    private static async Task<IReadOnlyList<CpCrmQuoteRow>> ListQuotesForUserAsync(DbConnection connection, long userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var list = new List<CpCrmQuoteRow>();
+            await using var c = connection.CreateCommand();
+            c.CommandText = ErpDb.Positional(QuoteSelect + " WHERE q.`active` = 1 AND q.`customer_user_id` = ? ORDER BY q.`time_updated` DESC LIMIT 50");
+            ErpDb.AddParameters(c, userId);
+            await using var r = await c.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                list.Add(ReadQuote(r));
+            }
+
+            return list;
+        }
+        catch (DbException)
+        {
+            return [];
+        }
+    }
+
+    private static async Task<IReadOnlyList<CpCrmTicketRow>> ListTicketsForUserAsync(DbConnection connection, long userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var list = new List<CpCrmTicketRow>();
+            await using var c = connection.CreateCommand();
+            c.CommandText = ErpDb.Positional(TicketSelect + " WHERE t.`customer_user_id` = ? ORDER BY t.`time_updated` DESC LIMIT 50");
+            ErpDb.AddParameters(c, userId);
+            await using var r = await c.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                list.Add(ReadTicket(r));
+            }
+
+            return list;
+        }
+        catch (DbException)
+        {
+            return [];
+        }
+    }
+
+    private static async Task<IReadOnlyList<CpCrmActivityRow>> ListActivitiesForCustomerAsync(
+        DbConnection connection,
+        IReadOnlyList<CpCrmLeadRow> leads,
+        IReadOnlyList<CpCrmOpportunityRow> opportunities,
+        CancellationToken cancellationToken)
+    {
+        var list = new List<CpCrmActivityRow>();
+        foreach (var lead in leads.Take(20))
+        {
+            list.AddRange(await ListActivitiesCoreAsync(connection, "lead", lead.Id, 20, cancellationToken).ConfigureAwait(false));
+        }
+
+        foreach (var opp in opportunities.Take(20))
+        {
+            list.AddRange(await ListActivitiesCoreAsync(connection, "opportunity", opp.Id, 20, cancellationToken).ConfigureAwait(false));
+        }
+
+        return list
+            .GroupBy(row => row.Id)
+            .Select(group => group.First())
+            .OrderByDescending(row => row.TimeCreated)
+            .Take(50)
+            .ToList();
+    }
+
+    private static async Task<CpCrmCustomer360Credit> ReadCreditAsync(DbConnection connection, long userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var c = connection.CreateCommand();
+            c.CommandText = ErpDb.Positional("SELECT IFNULL(`credit_limit`,0), IFNULL(`balance_used`,0), IFNULL(`currency`,''), IFNULL(`status`,''), IFNULL(`risk_score`,0) FROM `epc_credit_limits` WHERE `customer_id` = ? ORDER BY `id` DESC LIMIT 1");
+            ErpDb.AddParameters(c, userId);
+            await using var r = await c.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await r.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return new CpCrmCustomer360Credit(true, null, null, null, "", "", null);
+            }
+
+            var limit = D(r, 0);
+            var used = D(r, 1);
+            return new CpCrmCustomer360Credit(true, limit, used, limit - used, S(r, 2), S(r, 3), (int)L(r, 4));
+        }
+        catch (DbException)
+        {
+            return new CpCrmCustomer360Credit(false, null, null, null, "", "", null);
+        }
+    }
+
+    private static async Task<(bool Available, IReadOnlyList<CpCrmCustomer360Line> Lines)> ReadInvoicesAsync(DbConnection connection, long userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var list = new List<CpCrmCustomer360Line>();
+            await using var c = connection.CreateCommand();
+            c.CommandText = ErpDb.Positional("SELECT `id`, IFNULL(`invoice_no`,''), IFNULL(`status`,''), IFNULL(`total_amount`,0) FROM `epc_erp_sales_invoices` WHERE `customer_user_id` = ? AND `active` = 1 ORDER BY `id` DESC LIMIT 25");
+            ErpDb.AddParameters(c, userId);
+            await using var r = await c.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var id = L(r, 0);
+                var number = S(r, 1);
+                list.Add(new CpCrmCustomer360Line(
+                    number.Length > 0 ? number : "Invoice #" + id.ToString(CultureInfo.InvariantCulture),
+                    S(r, 2),
+                    Money(D(r, 3)),
+                    "/erp/sales-invoices-app?id=" + id.ToString(CultureInfo.InvariantCulture)));
+            }
+
+            return (true, list);
+        }
+        catch (DbException)
+        {
+            return (false, []);
         }
     }
 

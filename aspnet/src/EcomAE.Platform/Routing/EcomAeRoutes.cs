@@ -183,6 +183,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCrmBoard = "/cp/crm-board";
     /// <summary>CP CRM Blazor board (JSON digest remains <see cref="ControlPanelCrmBoard"/>).</summary>
     public const string ControlPanelCrmBoardApp = "/cp/crm-board-app";
+    /// <summary>One customer workspace composed from CRM and ERP reads. JSON 360 digest stays on the CRM action.</summary>
+    public const string ControlPanelCustomer360App = "/cp/customer-360-app";
     /// <summary>CRM convert_lead. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Quote email stays Classic.</summary>
     public const string CpCrmLeadConvert = "/cp/crm/leads/convert";
     /// <summary>CP document control templates (HTML/bank secrets omitted).</summary>
@@ -2202,6 +2204,13 @@ public static class EcomAeRoutes
     public const string BosApp = "/bos/app";
     /// <summary>BOS attention shell. Tenant-scoped reads of ERP and CRM rows. Not the Super-CP fleet.</summary>
     public const string Attention = "/attention";
+    /// <summary>BOS role-centre index. Five centres consume the same ERP/CRM attention reads.</summary>
+    public const string BosRoleCentresApp = "/bos/role-centres-app";
+    public const string BosRoleCeoApp = "/bos/role-ceo-app";
+    public const string BosRoleCfoApp = "/bos/role-cfo-app";
+    public const string BosRoleSalesApp = "/bos/role-sales-app";
+    public const string BosRolePurchasingApp = "/bos/role-purchasing-app";
+    public const string BosRoleOperationsApp = "/bos/role-operations-app";
     public const string BosParity = "/bos/parity";
     public const string BosFleetSummary = "/bos/fleet-summary";
     /// <summary>BOS fleet summary Blazor KPI UI (JSON digest remains <see cref="BosFleetSummary"/>).</summary>

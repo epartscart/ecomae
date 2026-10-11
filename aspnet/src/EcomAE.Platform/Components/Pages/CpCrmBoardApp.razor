@@ -71,6 +71,7 @@
                         <a class="btn btn-sm btn-default" href="@TabUrl("intelligence")"><i class="fa fa-line-chart"></i> Intelligence</a>
                         <a class="btn btn-sm btn-default" href="@TabUrl("pipeline")"><i class="fa fa-columns"></i> Pipeline</a>
                         <a class="btn btn-sm btn-default" href="/cp/orders-app"><i class="fa fa-shopping-cart"></i> Orders</a>
+                        <a class="btn btn-sm btn-default" href="@EcomAeRoutes.ControlPanelCustomer360App"><i class="fa fa-user"></i> Customer 360</a>
                     </div>
                 </div>
 
@@ -523,12 +524,11 @@
                                 <a href="/erp/contacts-app">ERP Contacts</a>.
                             </p>
                             <div class="epc-crm-form-card">
-                                <form id="epc_crm_360_form" class="form-inline epc-crm-form-inline">
+                                <form id="epc_crm_360_form" class="form-inline epc-crm-form-inline" method="get" action="@EcomAeRoutes.ControlPanelCustomer360App">
                                     <label style="font-weight:700;margin-right:8px;">Customer 360</label>
                                     <input type="number" name="user_id" id="epc_crm_360_user" class="form-control input-sm" placeholder="Shop user ID" min="1" required />
-                                    <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-search"></i> Load 360</button>
+                                    <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-search"></i> Open workspace</button>
                                 </form>
-                                <div id="epc_crm_360_result" style="margin-top:12px;display:none;"></div>
                             </div>
                             <table class="table table-striped table-bordered table-condensed epc-erp-table-compact table-epc">
                                 <thead><tr><th>Account</th><th>Contact</th><th>Leads</th><th>Opps</th><th>Open pipeline</th><th>Won</th><th>Expected</th><th>Linked user</th><th>Last touch</th><th></th></tr></thead>
@@ -546,7 +546,7 @@
                                         <td>
                                             @if (acc.LinkedUserId > 0)
                                             {
-                                                <button type="button" class="btn btn-xs btn-default epc-crm-load-360" data-user-id="@acc.LinkedUserId">#@acc.LinkedUserId 360</button>
+                                                <a class="btn btn-xs btn-default" href="@CpCrmCustomer360Composer.Href(acc.LinkedUserId)">#@acc.LinkedUserId 360</a>
                                             }
                                             else { <text>—</text> }
                                         </td>

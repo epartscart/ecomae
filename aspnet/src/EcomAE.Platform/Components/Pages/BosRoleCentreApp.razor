@@ -1,0 +1,277 @@
+@page "/bos/role-centres-app"
+@page "/bos/role-ceo-app"
+@page "/bos/role-cfo-app"
+@page "/bos/role-sales-app"
+@page "/bos/role-purchasing-app"
+@page "/bos/role-operations-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Bos
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IBosCommandCentreReadService Reads
+
+<PageTitle>@_pageTitle</PageTitle>
+<PhpChromeStyles Surface="bos" />
+<HeadContent>
+<style>
+    .epc-role { width:min(1180px,calc(100% - 1.5rem)); margin:0 auto 2rem; }
+    .epc-role-hero {
+        margin:0 0 1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
+        background:linear-gradient(135deg,#000000 0%,#0c4a6e 55%,#0ea5e9 100%);
+    }
+    .epc-role-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+    .epc-role-hero p { margin:0; max-width:46rem; color:rgba(255,255,255,.9); font-size:.92rem; }
+    .epc-role-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+    .epc-role-cta a {
+        display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+        text-decoration:none; color:#0c4a6e; background:#e0f2fe;
+    }
+    .epc-role-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+    .epc-role-nav { display:flex; flex-wrap:wrap; gap:.4rem; margin:0 0 1rem; }
+    .epc-role-nav a {
+        padding:.35rem .65rem; border:1px solid #e2e8f0; border-radius:.4rem; background:#fff;
+        text-decoration:none; font-weight:700; font-size:12.5px; color:#0f172a;
+    }
+    .epc-role-nav a[aria-current="page"] { border-color:#0ea5e9; background:#ecfeff; color:#0c4a6e; }
+    .epc-role-kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.65rem; margin:0 0 1rem; }
+    .epc-role-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; text-decoration:none; color:inherit; display:block; }
+    .epc-role-kpi strong { display:block; font-size:1.25rem; font-variant-numeric:tabular-nums; }
+    .epc-role-kpi span, .epc-role-kpi em { display:block; color:#64748b; font-size:.78rem; font-style:normal; }
+    .epc-role-kpi.is-unsourced { background:#f8fafc; }
+    .epc-role-kpi.is-unsourced strong { color:#94a3b8; font-size:.95rem; }
+    .epc-role-panel { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:1rem 1.1rem; margin:0 0 1rem; }
+    .epc-role-panel h2 { margin:.1rem 0 .55rem; font-size:1rem; }
+    .epc-role table { width:100%; border-collapse:collapse; }
+    .epc-role th, .epc-role td { text-align:left; padding:.45rem .5rem; border-bottom:1px solid #e2e8f0; vertical-align:top; }
+    .epc-role__empty, .epc-role__unread { color:#334155; }
+    @@media (max-width:720px) {
+        .epc-role table, .epc-role thead, .epc-role tbody, .epc-role tr, .epc-role th, .epc-role td { display:block; }
+        .epc-role thead { display:none; }
+    }
+</style>
+</HeadContent>
+
+<PhpBosDesktopChrome IsAdmin="_isAdmin" Title="@_chromeTitle">
+    <div class="epc-role" data-product-job="attention">
+        <section class="epc-role-hero">
+            <div>
+                <div class="epc-role-hero__kicker">Business Operating System</div>
+                <h1>@_heading</h1>
+                <p>@_job ERP posts the documents. These centres rank sourced exceptions. They do not invent a figure.</p>
+            </div>
+            <div class="epc-role-cta">
+                <a href="@OperatingNavigationContext.AttentionHref(_companyId, _role)">Attention queue</a>
+                <a class="ghost" href="/bos">Fleet command</a>
+                <a class="ghost" href="/cp">CP</a>
+                <a class="ghost" href="/erp">ERP</a>
+            </div>
+        </section>
+
+        <OperatingNavigationContextBar Surface="bos" />
+
+        <nav class="epc-role-nav" aria-label="Role centres">
+            <a href="@OperatingNavigationContext.RoleCentreHref(null, _companyId)" aria-current="@(_role is null ? "page" : null)">All roles</a>
+            @foreach (var role in OperatingNavigationContext.Roles)
+            {
+                <a href="@OperatingNavigationContext.RoleCentreHref(role, _companyId)" aria-current="@(_role == role ? "page" : null)">@role</a>
+            }
+        </nav>
+
+        @if (!_signedIn)
+        {
+            <p class="epc-role__empty">Sign in to read ERP and CRM records for this tenant.</p>
+        }
+        else if (_view is { Attention.ReadDenied: true })
+        {
+            <p class="epc-role__empty">This sign-in cannot read ERP or CRM records.</p>
+        }
+        else if (_view is { Attention.DatabaseConfigured: false })
+        {
+            <p class="epc-role__empty">Tenant database is not configured.</p>
+        }
+        else if (_index)
+        {
+            <div class="epc-role-kpis" aria-label="Role centres">
+                @foreach (var role in OperatingNavigationContext.Roles)
+                {
+                    var spec = BosRoleCentreComposer.Specs[role];
+                    <a class="epc-role-kpi" href="@OperatingNavigationContext.RoleCentreHref(role, _companyId)">
+                        <strong>@spec.Title</strong>
+                        <span>@spec.Job</span>
+                        <em>KPI → variance → cause → transaction</em>
+                    </a>
+                }
+            </div>
+            <section class="epc-role-panel">
+                <h2>Not sourced on any centre</h2>
+                <p class="epc-role__empty">EBITDA, working capital, treasury forecast, supplier score, and capacity are not calculated by the ERP or CRM reads this shell consumes. The centres do not show those as zero.</p>
+            </section>
+        }
+        else if (_view is not null)
+        {
+            @if (_view.Attention.ReadAtUtc is DateTimeOffset readAt)
+            {
+                <p class="epc-role__unread">Read @_view.Attention.Context.Host at @readAt.ToString("yyyy-MM-dd HH:mm:ss'Z'", CultureInfo.InvariantCulture).</p>
+            }
+            @foreach (var note in _view.Attention.Unread)
+            {
+                <p class="epc-role__unread">@note</p>
+            }
+
+            <div class="epc-role-kpis" aria-label="@_view.Title sourced KPIs">
+                @foreach (var kpi in _view.Kpis)
+                {
+                    <a class="epc-role-kpi @(kpi.Sourced ? null : "is-unsourced")" href="@kpi.DrillHref">
+                        <strong>@(kpi.Sourced ? kpi.ValueText : "Not sourced")</strong>
+                        <span>@kpi.Label</span>
+                        <em>@kpi.SourceLabel</em>
+                    </a>
+                }
+            </div>
+
+            @if (_view.NotSourced.Count > 0)
+            {
+                <section class="epc-role-panel">
+                    <h2>Not sourced</h2>
+                    <p class="epc-role__empty">@_view.Title does not invent @string.Join(", ", _view.NotSourced).</p>
+                </section>
+            }
+
+            <section class="epc-role-panel" aria-label="Source transactions">
+                <h2>Source transactions</h2>
+                <p>KPI → variance → cause → the documents below. Act on the ERP or CRM record.</p>
+                @{
+                    var rows = _view.Attention.TenantRows.Concat(_view.Attention.CompanyRows).ToList();
+                }
+                @if (rows.Count == 0)
+                {
+                    <p class="epc-role__empty">@(_view.Attention.SourcesEmpty ? "No open records in the sources this centre can read." : "No sourced rows for this role.")</p>
+                }
+                else
+                {
+                    <table>
+                        <thead><tr><th>Record</th><th>Status</th><th>Amount</th><th>Open</th></tr></thead>
+                        <tbody>
+                        @foreach (var row in rows)
+                        {
+                            <tr>
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(row.Reference) ? row.Title : row.Reference)
+                                    @if (!string.IsNullOrWhiteSpace(row.Title) && !string.Equals(row.Title, row.Reference, StringComparison.Ordinal))
+                                    {
+                                        <div>@row.Title</div>
+                                    }
+                                </td>
+                                <td>@row.Status</td>
+                                <td>@row.AmountText</td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(row.DrillHref))
+                                    {
+                                        <a href="@row.DrillHref">Open</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                }
+            </section>
+        }
+    </div>
+</PhpBosDesktopChrome>
+
+@code {
+    private bool _signedIn;
+    private bool _isAdmin;
+    private bool _index;
+    private string? _role;
+    private int? _companyId;
+    private string _pageTitle = "Role centres · Super BOS";
+    private string _chromeTitle = "Role centres";
+    private string _heading = "Role centres";
+    private string _job = OperatingNavigationContext.StatementBos;
+    private BosRoleCentreView? _view;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var http = Http.HttpContext;
+        if (http is null)
+        {
+            return;
+        }
+
+        var path = http.Request.Path.Value ?? "";
+        _role = RoleFromPath(path) ?? OperatingNavigationContext.NormalizeRole(http.Request.Query["role"].FirstOrDefault());
+        _index = _role is null;
+        var spec = _index ? null : BosRoleCentreComposer.SpecFor(_role);
+        _heading = spec?.Title is string title ? title + " role centre" : "Role centres";
+        _job = spec?.Job ?? "Five role centres over the same ERP and CRM reads.";
+        _chromeTitle = spec?.Title ?? "Role centres";
+        _pageTitle = _heading + " · Super BOS";
+
+        var requestedCompany = ErpHostContext.ActiveCompanyIdFromQuery(http.Request);
+        var session = await Sessions.ValidateAsync(http, http.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        _signedIn = _isAdmin
+            && (session.HasBackendAccess
+                || session.Capabilities.Contains("cp")
+                || session.Capabilities.Contains("erp")
+                || session.Capabilities.Contains("bos"));
+        if (!_signedIn)
+        {
+            return;
+        }
+
+        IReadOnlyList<OperatingCompanyRef> companies = [];
+        try
+        {
+            var digest = await Dashboards.BuildErpCompaniesDigestAsync(50, http.RequestAborted);
+            companies = digest.Companies
+                .Where(company => company.Id > 0 && company.Id <= int.MaxValue)
+                .Select(company => new OperatingCompanyRef((int)company.Id, company.Code ?? string.Empty, company.Name ?? string.Empty))
+                .ToList();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            companies = [];
+        }
+
+        var context = OperatingNavigationContext.Resolve(
+            "bos",
+            http.Request.Host.Host,
+            requestedCompany,
+            companies,
+            session.Email,
+            _role);
+        _companyId = context.CompanyId;
+
+        var canErp = session.Capabilities.Contains("erp");
+        var canCrm = session.Capabilities.Contains("cp");
+        if (!canErp && !canCrm)
+        {
+            var denied = BosCommandCentreView.Denied(context, null);
+            _view = new BosRoleCentreView(_role ?? "ceo", _chromeTitle, _job, denied, [], spec?.NotSourcedLabels ?? []);
+            return;
+        }
+
+        var load = await Reads.LoadAsync(http.RequestAborted);
+        var attention = BosCommandCentreComposer.Project(context, load, canErp, canCrm);
+        _view = BosRoleCentreComposer.Project(_role ?? "ceo", context, load, attention);
+    }
+
+    private static string? RoleFromPath(string path)
+    {
+        if (path.Contains("/role-ceo", StringComparison.OrdinalIgnoreCase)) return "ceo";
+        if (path.Contains("/role-cfo", StringComparison.OrdinalIgnoreCase)) return "cfo";
+        if (path.Contains("/role-sales", StringComparison.OrdinalIgnoreCase)) return "sales";
+        if (path.Contains("/role-purchasing", StringComparison.OrdinalIgnoreCase)) return "purchasing";
+        if (path.Contains("/role-operations", StringComparison.OrdinalIgnoreCase)) return "operations";
+        return null;
+    }
+}
