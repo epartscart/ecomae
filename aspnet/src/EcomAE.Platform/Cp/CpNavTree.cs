@@ -140,6 +140,10 @@ public static class CpNavTree
         ["epc_cp_group_portal"] = "Portal",
         ["epc_cp_group_tenant_hub"] = "Platform",
         ["epc_cp_group_operator"] = "Operator",
+        ["Catalogue Editor"] = "Catalogue",
+        ["Modules Manager"] = "Modules",
+        ["Content Tree"] = "Content",
+        ["Config"] = "Config",
     };
 
     public static readonly IReadOnlyDictionary<string, string> GroupSubtitles = new Dictionary<string, string>(StringComparer.Ordinal)
