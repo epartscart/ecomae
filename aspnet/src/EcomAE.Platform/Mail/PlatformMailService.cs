@@ -1,3 +1,4 @@
+using EcomAE.Platform.Services;
 using Microsoft.Extensions.Options;
 
 namespace EcomAE.Platform.Mail;
@@ -9,6 +10,7 @@ public interface IPlatformMailService
     bool HasApiToken();
     string TokenHint();
     SmtpDefaults SmtpFor(string address);
+    IReadOnlyList<TenantMailTarget> PlanTenantDomains(IReadOnlyList<(string Hostname, string SiteKey)> tenants);
     Task<PlatformMailWriteResult> WriteAsync(PlatformMailWriteRequest request, CancellationToken cancellationToken);
 }
 
@@ -50,9 +52,35 @@ public sealed class PlatformMailService : IPlatformMailService
             "refresh_dns" => await RefreshDnsAsync(request, cancellationToken).ConfigureAwait(false),
             "create_mailbox" => await CreateMailboxAsync(request, cancellationToken).ConfigureAwait(false),
             "set_mailbox_password" => SetMailboxPassword(request),
+            "setup_tenants" => await SetupTenantsAsync(request, cancellationToken).ConfigureAwait(false),
+            "register_login" => await RegisterLoginAsync(request, cancellationToken).ConfigureAwait(false),
             "delete_mailbox" => await DeleteMailboxAsync(request, cancellationToken).ConfigureAwait(false),
             _ => new PlatformMailWriteResult(false, 0, "unknown_action", "Unknown platform mail action."),
         };
+    }
+
+    public IReadOnlyList<TenantMailTarget> PlanTenantDomains(IReadOnlyList<(string Hostname, string SiteKey)> tenants)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var rows = new List<TenantMailTarget>();
+        foreach (var (hostname, siteKey) in tenants)
+        {
+            var domain = PlatformMailNormalize.Domain(hostname);
+            if (domain.Length == 0 || !domain.Contains('.', StringComparison.Ordinal) || !seen.Add(domain))
+            {
+                continue;
+            }
+
+            if (PlatformHostPolicy.IsSuperCpHost(domain) || string.Equals(domain, PurelymailDns.FirstDomain, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var key = PlatformMailNormalize.SiteKey(siteKey, superCpHost: true, requestHost: domain);
+            rows.Add(new TenantMailTarget(domain, key, hostname, _directory.FindDomain(domain) is not null));
+        }
+
+        return rows;
     }
 
     private PlatformMailWriteResult SaveToken(PlatformMailWriteRequest request)
@@ -205,6 +233,71 @@ public sealed class PlatformMailService : IPlatformMailService
 
         _directory.UpsertMailbox(existing with { LastError = string.Empty, Password = request.Password });
         return new PlatformMailWriteResult(true, 1, "ok", "Password stored for " + address + ". It is never shown again.");
+    }
+
+    private async Task<PlatformMailWriteResult> SetupTenantsAsync(PlatformMailWriteRequest request, CancellationToken cancellationToken)
+    {
+        var plan = PlanTenantDomains(request.Tenants ?? []);
+        if (plan.Count == 0)
+        {
+            return new PlatformMailWriteResult(true, 0, "empty_fleet", "No extra tenant domains to add. ecomae.com is already the platform domain.");
+        }
+
+        var writes = 0;
+        var added = 0;
+        foreach (var row in plan)
+        {
+            if (row.DomainReady)
+            {
+                continue;
+            }
+
+            var result = await AddDomainAsync(new PlatformMailWriteRequest("add_domain", Domain: row.Domain, SiteKey: row.SiteKey), cancellationToken).ConfigureAwait(false);
+            writes += result.Writes;
+            if (result.Succeeded)
+            {
+                added++;
+            }
+        }
+
+        return new PlatformMailWriteResult(
+            true,
+            writes,
+            added == 0 ? "ok" : "ok",
+            added == 0
+                ? "Every tenant domain is already on the platform mail directory."
+                : "Added " + added.ToString(System.Globalization.CultureInfo.InvariantCulture) + " tenant domain(s). Publish DNS, then create each login mailbox.");
+    }
+
+    private async Task<PlatformMailWriteResult> RegisterLoginAsync(PlatformMailWriteRequest request, CancellationToken cancellationToken)
+    {
+        var address = (request.Address ?? string.Empty).Trim().ToLowerInvariant();
+        if (!PlatformMailNormalize.IsEmail(address))
+        {
+            return new PlatformMailWriteResult(false, 0, "invalid_address", "Enter the tenant login email to register as a mailbox.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Password))
+        {
+            var (local, domain) = PlatformMailNormalize.SplitAddress(address);
+            var siteKey = PlatformMailNormalize.SiteKey(request.SiteKey, superCpHost: true, requestHost: domain);
+            if (_directory.FindDomain(domain) is null)
+            {
+                _directory.UpsertDomain(new PlatformMailDomain(domain, siteKey, DateTimeOffset.UtcNow));
+            }
+
+            var existing = _directory.FindMailbox(address);
+            _directory.UpsertMailbox(new PlatformMailbox(
+                address,
+                local,
+                domain,
+                siteKey,
+                existing?.CreatedUtc ?? DateTimeOffset.UtcNow,
+                FirstWorking: string.Equals(address, PurelymailDns.FirstMailbox, StringComparison.OrdinalIgnoreCase)));
+            return new PlatformMailWriteResult(true, 1, "local_only", "Login mailbox " + address + " is listed for site_key " + siteKey + ". Store the password so CP/ERP can read IMAP.");
+        }
+
+        return await CreateMailboxAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<PlatformMailWriteResult> DeleteMailboxAsync(PlatformMailWriteRequest request, CancellationToken cancellationToken)

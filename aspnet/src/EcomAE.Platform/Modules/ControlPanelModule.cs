@@ -6388,6 +6388,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             IPlatformMailService mail,
+            ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
             if (!SuperCpHostGate.IsAllowed(context))
@@ -6448,8 +6449,17 @@ public sealed class ControlPanelModule : ISurfaceModule
                 });
             }
 
+            IReadOnlyList<(string Domain, string SiteKey)>? tenants = null;
+            if (string.Equals(action, "setup_tenants", StringComparison.OrdinalIgnoreCase))
+            {
+                var fleet = await dashboards.ListPortalTenantsAsync(500, cancellationToken);
+                tenants = fleet.Tenants
+                    .Select(t => (t.Hostname, t.SiteKey))
+                    .ToArray();
+            }
+
             var written = await mail.WriteAsync(
-                new PlatformMailWriteRequest(action, domain, siteKey, localPart, address, password, apiToken),
+                new PlatformMailWriteRequest(action, domain, siteKey, localPart, address, password, apiToken, tenants),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,

@@ -34,6 +34,8 @@ public class PlatformMailTests
         Assert.Contains("name=\"confirmWrites\"", super);
         Assert.Contains("value=\"true\"", super);
         Assert.Contains("yawer@ecomae.com", super);
+        Assert.Contains("setup_tenants", super);
+        Assert.Contains("register_login", super);
         Assert.Contains("SuperCpHostGate.IsAllowed", super);
         Assert.Contains("type=\"password\"", super);
         Assert.Contains("Sessions.ValidateAsync", super);
@@ -44,12 +46,14 @@ public class PlatformMailTests
         var cp = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpTenantMailboxApp.razor"));
         Assert.Contains("@page \"/cp/mailbox-app\"", cp);
         Assert.Contains("site_key", cp);
+        Assert.Contains("PreferLoginAddress", cp);
         Assert.Contains("Sessions.ValidateAsync", cp);
         Assert.DoesNotContain("mint", cp, StringComparison.OrdinalIgnoreCase);
 
         var erp = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpTenantMailboxApp.razor"));
         Assert.Contains("@page \"/erp/mailbox-app\"", erp);
         Assert.Contains("site_key", erp);
+        Assert.Contains("PreferLoginAddress", erp);
         Assert.DoesNotContain("confirmWrites", erp);
     }
 
@@ -117,6 +121,41 @@ public class PlatformMailTests
         Assert.Contains(all, m => m.Address == "ops@acme.test");
         Assert.Contains(all, m => m.Address == "ops@beta.test");
         Assert.Contains(all, m => m.Address == "yawer@ecomae.com");
+
+        Assert.Equal("ops@acme.test", inbox.PreferLoginAddress(acme, "ops@acme.test", ""));
+        Assert.Equal("ops@beta.test", inbox.PreferLoginAddress(all, "ops@beta.test", ""));
+        Assert.Equal("ops@acme.test", inbox.PreferLoginAddress(all, "ops@beta.test", "ops@acme.test"));
+    }
+
+    [Fact]
+    public async Task Setup_tenants_adds_every_shop_domain_and_skips_platform_host()
+    {
+        var dir = new PlatformMailDirectory(null, Path.Combine(Path.GetTempPath(), "ecomae-mail-" + Guid.NewGuid().ToString("n") + ".json"));
+        var mail = new PlatformMailService(dir, new InMemoryPurelymailApi(), Options.Create(new PurelymailOptions()));
+        var plan = mail.PlanTenantDomains(
+        [
+            ("www.ecomae.com", "platform"),
+            ("acme.test", "acme"),
+            ("www.beta.test", "beta"),
+            ("acme.test", "acme"),
+        ]);
+        Assert.DoesNotContain(plan, p => p.Domain == "ecomae.com");
+        Assert.Contains(plan, p => p.Domain == "acme.test" && p.SiteKey == "acme" && !p.DomainReady);
+        Assert.Contains(plan, p => p.Domain == "beta.test" && p.SiteKey == "beta");
+
+        var written = await mail.WriteAsync(
+            new PlatformMailWriteRequest(
+                "setup_tenants",
+                Tenants: [("acme.test", "acme"), ("www.beta.test", "beta"), ("ecomae.com", "platform")]),
+            CancellationToken.None);
+        Assert.True(written.Succeeded);
+        Assert.True(written.Writes >= 2);
+        Assert.NotNull(dir.FindDomain("acme.test"));
+        Assert.NotNull(dir.FindDomain("beta.test"));
+
+        var login = await mail.WriteAsync(new PlatformMailWriteRequest("register_login", Address: "ops@acme.test", SiteKey: "acme"), CancellationToken.None);
+        Assert.True(login.Succeeded);
+        Assert.NotNull(dir.FindMailbox("ops@acme.test"));
     }
 
     [Fact]

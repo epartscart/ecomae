@@ -15,7 +15,7 @@
 <PageTitle>Mailbox · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Mailbox" BreadcrumbArea="Workspace" BreadcrumbTab="Mailbox">
-    <PhpErpModulePageHeader Title="Mailbox" Subtitle="This tenant’s login and ops mail only — isolated by site_key. Super CP / BOS provisions domains; ERP never reads another tenant." PhpTabHref="" />
+    <PhpErpModulePageHeader Title="Mailbox" Subtitle="This tenant’s login and ops mail only — isolated by site_key. Opens the signed-in login email when Super CP has created that mailbox." PhpTabHref="" />
 
     @if (!_isAdmin)
     {
@@ -35,6 +35,7 @@
         <div class="kpi"><div class="lbl">site_key</div><div class="val">@_siteKey</div></div>
         <div class="kpi"><div class="lbl">Mailboxes</div><div class="val">@_boxes.Count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Opened</div><div class="val">@(string.IsNullOrWhiteSpace(_opened) ? "—" : _opened)</div></div>
+        <div class="kpi"><div class="lbl">Login email</div><div class="val">@(string.IsNullOrWhiteSpace(_loginEmail) ? "—" : _loginEmail)</div></div>
     </div>
 
     @if (_boxes.Count == 0)
@@ -104,6 +105,7 @@
     private bool _isSuper;
     private string _siteKey = "tenant";
     private string _opened = "";
+    private string _loginEmail = "";
     private string _flashOk = "";
     private string _flashErr = "";
     private IReadOnlyList<PlatformMailbox> _boxes = [];
@@ -121,17 +123,14 @@
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         _isSuper = SuperCpHostGate.IsAllowed(ctx);
         _siteKey = PlatformMailNormalize.SiteKey(ctx.Request.Query["site_key"].ToString(), _isSuper, ctx.Request.Host.Host);
+        _loginEmail = session.Email ?? "";
         _boxes = Inbox.ListForCaller(_siteKey, _isSuper);
         if (!_isAdmin)
         {
             return;
         }
 
-        _opened = ctx.Request.Query["address"].ToString();
-        if (string.IsNullOrWhiteSpace(_opened) && _boxes.Count == 1)
-        {
-            _opened = _boxes[0].Address;
-        }
+        _opened = Inbox.PreferLoginAddress(_boxes, _loginEmail, ctx.Request.Query["address"].ToString());
 
         if (string.IsNullOrWhiteSpace(_opened))
         {

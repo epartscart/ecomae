@@ -58,7 +58,10 @@ public sealed record PlatformMailWriteRequest(
     string? LocalPart = null,
     string? Address = null,
     string? Password = null,
-    string? ApiToken = null);
+    string? ApiToken = null,
+    IReadOnlyList<(string Domain, string SiteKey)>? Tenants = null);
+
+public sealed record TenantMailTarget(string Domain, string SiteKey, string Hostname, bool DomainReady);
 
 public sealed record PlatformMailWriteResult(bool Succeeded, int Writes, string Code, string Message);
 

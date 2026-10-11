@@ -10,6 +10,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject IPlatformMailService Mail
+@inject ISurfaceDashboardSummaryReporter Dashboards
 
 <PageTitle>Platform mail · Super CP · ECOM AE</PageTitle>
 <PhpChromeStyles Surface="@_surface" />
@@ -155,6 +156,36 @@ else
                     <span class="text-muted">Outgoing SMTP defaults to @PurelymailDns.SmtpHost:@PurelymailDns.SmtpPort TLS. Password is never returned.</span>
                 </form>
             </div>
+            <div class="col-md-6">
+                <form method="post" action="/cp/super-mail/write" class="well">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="setup_tenants" />
+                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                    <p>Add every active tenant hostname from the fleet registry as a mail domain (ecomae.com is already first).</p>
+                    <p class="text-muted">@_fleetHint</p>
+                    <button type="submit" class="btn btn-primary">Setup mail for all tenants</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form method="post" action="/cp/super-mail/write" class="well">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="register_login" />
+                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                    <div class="form-group">
+                        <label>Register tenant login email</label>
+                        <input type="email" class="form-control" name="address" placeholder="ops@client.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>site_key</label>
+                        <input type="text" class="form-control" name="site_key" placeholder="client-com" />
+                    </div>
+                    <div class="form-group">
+                        <label>Mailbox password (optional now)</label>
+                        <input type="password" class="form-control" name="password" autocomplete="new-password" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Register login mailbox</button>
+                </form>
+            </div>
         }
 
         <div class="col-lg-12">
@@ -272,6 +303,7 @@ else
     private string _flashErr = "";
     private IReadOnlyList<PlatformMailDomain> _domains = [];
     private IReadOnlyList<PlatformMailbox> _mailboxes = [];
+    private string _fleetHint = "Fleet registry not loaded.";
 
     protected override async Task OnInitializedAsync()
     {
@@ -293,5 +325,11 @@ else
         _mailboxes = Mail.ListMailboxes(PurelymailDns.PlatformSiteKey, superCp: true);
         _flashOk = ctx.Request.Query["ok"].ToString();
         _flashErr = ctx.Request.Query["err"].ToString();
+        var fleet = await Dashboards.ListPortalTenantsAsync(500, ctx.RequestAborted);
+        var plan = Mail.PlanTenantDomains(fleet.Tenants.Select(t => (t.Hostname, t.SiteKey)).ToArray());
+        var missing = plan.Count(p => !p.DomainReady);
+        _fleetHint = fleet.Tenants.Count == 0
+            ? (string.IsNullOrWhiteSpace(fleet.Message) ? "No tenant rows in the registry yet." : fleet.Message)
+            : missing + " tenant domain(s) still need mail setup · " + plan.Count + " shop host(s) in the fleet.";
     }
 }

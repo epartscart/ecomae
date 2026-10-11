@@ -15,6 +15,7 @@ public interface IMailboxImapClient
 public interface IMailboxInboxService
 {
     IReadOnlyList<PlatformMailbox> ListForCaller(string siteKey, bool superCp);
+    string PreferLoginAddress(IReadOnlyList<PlatformMailbox> boxes, string? loginEmail, string? queryAddress);
     Task<(bool Ok, string Code, string Message, IReadOnlyList<MailboxMessage> Messages)> ReadAsync(
         string siteKey,
         bool superCp,
@@ -36,6 +37,27 @@ public sealed class MailboxInboxService : IMailboxInboxService
 
     public IReadOnlyList<PlatformMailbox> ListForCaller(string siteKey, bool superCp)
         => _directory.ListMailboxes(siteKey, superCp);
+
+    public string PreferLoginAddress(IReadOnlyList<PlatformMailbox> boxes, string? loginEmail, string? queryAddress)
+    {
+        var query = (queryAddress ?? string.Empty).Trim().ToLowerInvariant();
+        if (query.Length > 0 && boxes.Any(b => string.Equals(b.Address, query, StringComparison.OrdinalIgnoreCase)))
+        {
+            return query;
+        }
+
+        var login = (loginEmail ?? string.Empty).Trim().ToLowerInvariant();
+        if (login.Length > 0)
+        {
+            var match = boxes.FirstOrDefault(b => string.Equals(b.Address, login, StringComparison.OrdinalIgnoreCase));
+            if (match is not null)
+            {
+                return match.Address;
+            }
+        }
+
+        return boxes.Count == 1 ? boxes[0].Address : string.Empty;
+    }
 
     public async Task<(bool Ok, string Code, string Message, IReadOnlyList<MailboxMessage> Messages)> ReadAsync(
         string siteKey,

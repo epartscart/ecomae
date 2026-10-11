@@ -25,6 +25,7 @@
             <div class="panel-body">
                 <p>
                     This tenant’s login and ops mail only — isolated by <code>site_key=@_siteKey</code>.
+                    Signed-in login email: <strong>@(string.IsNullOrWhiteSpace(_loginEmail) ? "not signed in" : _loginEmail)</strong>.
                     Super CP / BOS creates the domain and mailbox. This page never shows another tenant’s inbox.
                 </p>
             </div>
@@ -127,6 +128,7 @@
     private bool _isSuper;
     private string _siteKey = "tenant";
     private string _opened = "";
+    private string _loginEmail = "";
     private string _flashOk = "";
     private string _flashErr = "";
     private IReadOnlyList<PlatformMailbox> _boxes = [];
@@ -144,17 +146,14 @@
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         _isSuper = SuperCpHostGate.IsAllowed(ctx);
         _siteKey = PlatformMailNormalize.SiteKey(ctx.Request.Query["site_key"].ToString(), _isSuper, ctx.Request.Host.Host);
+        _loginEmail = session.Email ?? "";
         _boxes = Inbox.ListForCaller(_siteKey, _isSuper);
         if (!_isAdmin)
         {
             return;
         }
 
-        _opened = ctx.Request.Query["address"].ToString();
-        if (string.IsNullOrWhiteSpace(_opened) && _boxes.Count == 1)
-        {
-            _opened = _boxes[0].Address;
-        }
+        _opened = Inbox.PreferLoginAddress(_boxes, _loginEmail, ctx.Request.Query["address"].ToString());
 
         if (string.IsNullOrWhiteSpace(_opened))
         {
