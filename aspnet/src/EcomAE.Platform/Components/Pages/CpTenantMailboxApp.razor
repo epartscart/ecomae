@@ -35,6 +35,10 @@
         </div>
     </div>
 
+    <div class="col-lg-12">
+        <MailboxVisualGuide Audience="@(_isSuper ? "erp" : "tenant")" Domain="@(_isSuper ? PurelymailDns.FirstDomain : _tenantDomain)" />
+    </div>
+
     @if (!_isAdmin)
     {
         <div class="col-lg-12"><div class="alert alert-info" role="status">Sign in with a Control Panel admin session to read this tenant’s mailbox.</div></div>

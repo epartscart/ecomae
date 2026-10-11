@@ -45,6 +45,7 @@ public class PlatformMailTests
         Assert.Contains("epartscart.com", super);
         Assert.Contains("register_login", super);
         Assert.Contains("succeed_operator", super);
+        Assert.Contains("MailboxVisualGuide", super);
         Assert.Contains("ecomaedxb@gmail.com", super);
         Assert.Contains("SuperCpHostGate.IsAllowed", super);
         Assert.Contains("type=\"password\"", super);
@@ -64,7 +65,19 @@ public class PlatformMailTests
         Assert.Contains("name=\"confirmWrites\"", cp);
         Assert.Contains("action\" value=\"send\"", cp);
         Assert.Contains("ownInboxOnly", cp);
+        Assert.Contains("MailboxVisualGuide", cp);
         Assert.DoesNotContain("mint", cp, StringComparison.OrdinalIgnoreCase);
+
+        var guide = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Shared/MailboxVisualGuide.razor"));
+        Assert.Contains("Mailbox visual guide", guide);
+        Assert.Contains("data-mail-guide", guide);
+        Assert.Contains("Operator steps", guide);
+        Assert.Contains("Tenant steps", guide);
+        Assert.Contains("ERP customer steps", guide);
+        Assert.Contains("Publish Cloudflare DNS", guide);
+        Assert.Contains("Compose and send", guide);
+        Assert.Contains("own inbox", guide);
+        Assert.DoesNotContain("mint", guide, StringComparison.OrdinalIgnoreCase);
 
         var erp = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpTenantMailboxApp.razor"));
         Assert.Contains("@page \"/erp/mailbox-app\"", erp);
@@ -75,6 +88,7 @@ public class PlatformMailTests
         Assert.Contains("action\" value=\"send\"", erp);
         Assert.Contains("create_staff", erp);
         Assert.Contains("ownInboxOnly", erp);
+        Assert.Contains("MailboxVisualGuide", erp);
         Assert.Contains("ecomae.com", erp);
     }
 

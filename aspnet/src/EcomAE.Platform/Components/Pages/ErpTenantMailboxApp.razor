@@ -22,6 +22,8 @@
         <div class="alert alert-info" role="status">Sign in with an ERP / CP admin session to read this tenant’s mailbox.</div>
     }
 
+    <MailboxVisualGuide Audience="@(_isSuper ? "erp" : "tenant")" Domain="@(_isSuper ? PurelymailDns.FirstDomain : _mailDomain)" />
+
     <p>
         <a href="/cp/mailbox-app">Open in Control Panel</a>
         · <a href="/cp/tenant-email-app">Outgoing SMTP</a>
