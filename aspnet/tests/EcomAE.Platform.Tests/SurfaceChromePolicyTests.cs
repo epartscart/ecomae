@@ -179,6 +179,8 @@ public sealed class SurfaceChromePolicyTests
         Assert.DoesNotContain("!IsSuperHome", chrome, StringComparison.Ordinal);
         Assert.Contains("PhpSuperCpBocTopnav", chrome, StringComparison.Ordinal);
         Assert.Contains("epc-boc-mode", chrome, StringComparison.Ordinal);
+        Assert.Contains(".epc-cp-shell.epc-boc-mode #header { display:none !important; }", chrome, StringComparison.Ordinal);
+        Assert.DoesNotContain("fixed-navbar epc-cp epc-cp-shell", chrome, StringComparison.Ordinal);
         Assert.Contains("margin-left:0 !important", chrome, StringComparison.Ordinal);
         Assert.Contains("flex-wrap:wrap", chrome, StringComparison.Ordinal);
         Assert.Contains(":not(:has(#epc_boc_topnav))", css, StringComparison.Ordinal);

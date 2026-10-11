@@ -135,6 +135,8 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Contains("epc_boc_topnav", boc, StringComparison.Ordinal);
         Assert.Contains("flex-direction:row !important", boc, StringComparison.Ordinal);
         Assert.Contains("list-style:none !important", boc, StringComparison.Ordinal);
+        Assert.Contains("/cp/logout", boc, StringComparison.Ordinal);
+        Assert.Contains("<PhpBocTopnavBinder", boc, StringComparison.Ordinal);
         // Fleet console must not query tenant shop digests.
         Assert.DoesNotContain("ListCpOrdersAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpProductCatalogueDigestAsync", text, StringComparison.Ordinal);

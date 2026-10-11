@@ -66,6 +66,13 @@ else
     .epc-cp-shell.epc-boc-mode .epc-boc__topnav,
     .epc-cp-shell.epc-boc-mode #epc_boc_topnav { width:100% !important; display:block !important; }
     .epc-cp-shell.epc-boc-mode .epc-boc__topnav-inner { width:min(1600px, 100%); margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; }
+    /* Super: the blue #header is position:fixed and covers the BOC row. Hide it. */
+    .epc-cp-shell.epc-boc-mode #header { display:none !important; }
+    .epc-cp-shell.epc-boc-mode #epc_boc_topnav {
+        position:sticky !important; top:0 !important; z-index:40 !important;
+        background:linear-gradient(135deg,#b91c1c,#7f1d1d) !important;
+    }
+    .epc-cp-shell.epc-boc-mode #wrapper { margin-top:0 !important; }
     .epc-cp-shell .splash { position:fixed; z-index:2000; background:#fff; color:#64748b; inset:0; }
     .epc-cp-shell .splash-title { text-align:center; max-width:500px; margin:15% auto; padding:20px; }
     .epc-cp-shell .splash-title h1 { font-size:26px; margin:0 0 .35rem; }
@@ -113,6 +120,13 @@ else
     .epc-cp-shell.epc-boc-mode .epc-boc__topnav,
     .epc-cp-shell.epc-boc-mode #epc_boc_topnav { width:100% !important; display:block !important; }
     .epc-cp-shell.epc-boc-mode .epc-boc__topnav-inner { width:min(1600px, 100%); margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; }
+    /* Super: the blue #header is position:fixed and covers the BOC row. Hide it. */
+    .epc-cp-shell.epc-boc-mode #header { display:none !important; }
+    .epc-cp-shell.epc-boc-mode #epc_boc_topnav {
+        position:sticky !important; top:0 !important; z-index:40 !important;
+        background:linear-gradient(135deg,#b91c1c,#7f1d1d) !important;
+    }
+    .epc-cp-shell.epc-boc-mode #wrapper { margin-top:0 !important; }
     .epc-cp-shell .splash { position:fixed; z-index:2000; background:#fff; color:#64748b; inset:0; }
     .epc-cp-shell .splash-title { text-align:center; max-width:500px; margin:15% auto; padding:20px; }
     .epc-cp-shell .splash-title h1 { font-size:26px; margin:0 0 .35rem; }
@@ -344,7 +358,10 @@ else
                     <div class="epc-module-visual-frame__scope">@_brand.Label · @(_industryLabel ?? "Tenant workspace")</div>
                 </div>
                 }
-                <OperatingNavigationContextBar Surface="cp" />
+                @if (!_showBos)
+                {
+                    <OperatingNavigationContextBar Surface="cp" />
+                }
                 <div class="row">
                     <!--epc-cp-main-begin-->
                     @ChildContent
@@ -517,14 +534,15 @@ else
     {
         get
         {
-            var cls = "fixed-navbar epc-cp epc-cp-shell epc-premium-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root";
+            var cls = "epc-cp epc-cp-shell epc-premium-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root";
             if (_showBos)
             {
+                // No fixed-navbar: that pins #header over the red BOC menu.
                 cls += " epc-cp-bos-host epc-boc-mode";
             }
             else
             {
-                cls += " fixed-sidebar";
+                cls += " fixed-navbar fixed-sidebar";
                 if (!string.IsNullOrWhiteSpace(_industryCode))
                 {
                     cls += " epc-cp--" + _industryCode;

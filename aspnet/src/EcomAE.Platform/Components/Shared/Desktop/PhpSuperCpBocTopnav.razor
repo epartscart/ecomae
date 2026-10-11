@@ -68,7 +68,7 @@
     <div class="epc-boc__topnav-inner">
         <a class="epc-boc__topnav-brand" href="/cp" title="Super CP — Business Operation Control">
             <PhpEcomaeAnimatedLogo Variant="compact" ShowWordmark="true" />
-            <span>BOS</span><small class="epc-boc__topnav-brand-sub">Control</small>
+            <span>BOS</span><small class="epc-boc__topnav-brand-sub"> · Control</small>
         </a>
         <ul class="epc-boc__topnav-list" role="menubar">
             @foreach (var (group, areas) in PhpSuperCpBocNav.Nav())
@@ -112,17 +112,22 @@
                 <a class="epc-boc__topnav-erp" href="/erp/fleet-app" title="Leave Super CP and open Super ERP fleet" data-epc-erp-switcher="1"><i class="fa fa-sitemap"></i> Fleet ERP</a>
             }
             <a class="epc-boc__topnav-erp" href="/cp/super-mail-app" title="Platform mail"><i class="fa fa-inbox"></i> Mail</a>
-            <span class="epc-boc__scope" title="Platform fleet vs active tenant CP"><i class="fa fa-globe"></i> All units · Fleet</span>
-            <span class="epc-boc__env"><i class="fa fa-circle" style="font-size:7px;vertical-align:middle;color:#16a34a"></i> Production</span>
-            <span class="epc-boc__avatar" title="Operator">OP</span>
+            @if (!string.IsNullOrWhiteSpace(_userLabel))
+            {
+                <span class="epc-boc__avatar" title="@_userLabel">@_userInitials</span>
+                <a class="epc-boc__topnav-erp" href="/cp/logout" title="Log out"><i class="fa fa-sign-out"></i> Log out</a>
+            }
         </div>
     </div>
 </nav>
+<PhpBocTopnavBinder />
 
 @code {
     [Parameter] public string ActiveGroup { get; set; } = "command";
 
     private bool _showErp;
+    private string _userLabel = "";
+    private string _userInitials = "OP";
 
     protected override async Task OnInitializedAsync()
     {
@@ -134,6 +139,12 @@
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _showErp = SurfaceChromePolicy.ShowErpSwitcher(session, SurfaceChromePolicy.ModeOf(ctx));
+        if (session.Kind == LegacySessionKind.Admin && !string.IsNullOrWhiteSpace(session.Email))
+        {
+            _userLabel = session.Email!;
+            var local = _userLabel.Split('@', 2)[0];
+            _userInitials = local.Length >= 2 ? local[..2].ToUpperInvariant() : local.ToUpperInvariant();
+        }
     }
 
     private static IEnumerable<(IReadOnlyList<PhpSuperCpBocNav.BocArea> Chunk, int Index)> Chunk(IReadOnlyList<PhpSuperCpBocNav.BocArea> areas, int size)
