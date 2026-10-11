@@ -1,0 +1,185 @@
+@using EcomAE.Platform.Mail
+
+<div class="epc-mail-guide" data-mail-guide="@Audience">
+    <style>
+        .epc-mail-guide { margin: 0 0 16px; font-size: 13px; color: #243746; }
+        .epc-mail-guide * { box-sizing: border-box; }
+        .epc-mail-guide__hero { background: linear-gradient(135deg,#e8f1f8,#fff); border: 1px solid #c5d4de; border-radius: 6px; padding: 14px 16px; margin-bottom: 12px; }
+        .epc-mail-guide__hero h3 { margin: 0 0 6px; font-size: 16px; color: #1e3a4c; }
+        .epc-mail-guide__hero p { margin: 0; line-height: 1.45; color: #334155; }
+        .epc-mail-guide__map { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin: 12px 0; }
+        .epc-mail-guide__who { border: 1px solid #c5d4de; border-radius: 6px; padding: 10px 12px; background: #fff; min-height: 92px; }
+        .epc-mail-guide__who.is-you { border-color: #1d4ed8; box-shadow: 0 0 0 2px #dbeafe; }
+        .epc-mail-guide__who .lbl { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #1d4ed8; margin-bottom: 4px; }
+        .epc-mail-guide__who h4 { margin: 0 0 4px; font-size: 14px; }
+        .epc-mail-guide__who p { margin: 0; color: #475569; line-height: 1.4; }
+        .epc-mail-guide__steps { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 8px; margin: 0 0 12px; }
+        .epc-mail-guide__step { display: grid; grid-template-columns: 36px 1fr; gap: 8px; border: 1px solid #c5d4de; border-radius: 6px; padding: 10px; background: #fff; }
+        .epc-mail-guide__num { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; background: #e8f1f8; color: #1e3a4c; font-weight: 700; }
+        .epc-mail-guide__step h5 { margin: 0 0 4px; font-size: 13px; }
+        .epc-mail-guide__step p { margin: 0; color: #475569; line-height: 1.4; }
+        .epc-mail-guide__tips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .epc-mail-guide__ok { background: #ecfdf5; border: 1px solid #86efac; border-radius: 6px; padding: 10px 12px; }
+        .epc-mail-guide__no { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; padding: 10px 12px; }
+        .epc-mail-guide__ok h5, .epc-mail-guide__no h5 { margin: 0 0 6px; font-size: 13px; }
+        .epc-mail-guide ul { margin: 0; padding-left: 18px; }
+        .epc-mail-guide li { margin: 0 0 4px; }
+        @@media (max-width: 900px) {
+            .epc-mail-guide__map, .epc-mail-guide__tips { grid-template-columns: 1fr; }
+        }
+    </style>
+
+    <div class="epc-mail-guide__hero">
+        <h3>Mailbox visual guide</h3>
+        <p>
+            One mail system for the whole platform. Shop tenants use <strong>their own domain</strong>.
+            Customer and supplier order mail is sent from <code>orders@@</code> / <code>info@@</code> on that domain — never Gmail.
+            Only ERP customers get <code>@@ecomae.com</code>. Everyone opens inbox, composes, sends, and reads received mail from <strong>their own mailbox</strong>.
+            @if (!string.IsNullOrWhiteSpace(Domain))
+            {
+                <text> You are on <code>@Domain</code>.</text>
+            }
+        </p>
+    </div>
+
+    <div class="epc-mail-guide__map" aria-label="Who uses which email domain">
+        <div class="epc-mail-guide__who @(Audience == "super" ? "is-you" : null)">
+            <span class="lbl">@(Audience == "super" ? "You are here" : "Super CP")</span>
+            <h4>Platform operator</h4>
+            <p>Publish Cloudflare DNS, add shop domains, create the business mailbox set. Reserved names stay here: yawer, info, hello, support.</p>
+        </div>
+        <div class="epc-mail-guide__who @(Audience == "tenant" ? "is-you" : null)">
+            <span class="lbl">@(Audience == "tenant" ? "You are here" : "Shop tenant")</span>
+            <h4>Your shop domain</h4>
+            <p>Create as many <code>name@@your-shop.com</code> users as you need. Open inbox, compose, send, receive. Never @@ecomae.com.</p>
+        </div>
+        <div class="epc-mail-guide__who @(Audience == "erp" ? "is-you" : null)">
+            <span class="lbl">@(Audience == "erp" ? "You are here" : "ERP customer")</span>
+            <h4>ecomae.com only</h4>
+            <p>Create <code>firstname.lastname@@ecomae.com</code> in Super ERP. You see and send only your own inbox.</p>
+        </div>
+    </div>
+
+    <h4 style="margin:0 0 8px">@(Audience == "super" ? "Operator steps" : Audience == "erp" ? "ERP customer steps" : "Tenant steps")</h4>
+    <div class="epc-mail-guide__steps">
+        @foreach (var step in Steps)
+        {
+            <div class="epc-mail-guide__step">
+                <div class="epc-mail-guide__num">@step.Num</div>
+                <div>
+                    <h5>@step.Title</h5>
+                    <p>@step.Body</p>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="epc-mail-guide__tips">
+        <div class="epc-mail-guide__ok">
+            <h5>Do this</h5>
+            <ul>
+                @foreach (var tip in DoTips)
+                {
+                    <li>@tip</li>
+                }
+            </ul>
+        </div>
+        <div class="epc-mail-guide__no">
+            <h5>Do not</h5>
+            <ul>
+                @foreach (var tip in DontTips)
+                {
+                    <li>@tip</li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+@code {
+    public sealed record GuideStep(string Num, string Title, string Body);
+
+    [Parameter] public string Audience { get; set; } = "tenant";
+    [Parameter] public string Domain { get; set; } = "";
+
+    private IReadOnlyList<GuideStep> Steps => Audience switch
+    {
+        "super" =>
+        [
+            new("1", "Publish Cloudflare DNS", "On ecomae.com and every shop zone add MX, SPF, DKIM, DMARC, and the ownership TXT from the table below. Wait until DNS is live."),
+            new("2", "Save the API token once", "Paste the Purelymail API token on this page. It is never shown again."),
+            new("3", "Add tenant domains here", "On Super CP / Super BOS click Add all shop domains. Do not create shop zones on purelymail.com/manage/domains."),
+            new("4", "Create shop business mail", "Click Create mail for all shop tenants. Each shop gets info, hello, support, sales, accounts, orders, billing."),
+            new("5", "Refresh DNS", "After Cloudflare is published, Refresh DNS so Purelymail can send and receive."),
+            new("6", "ERP customers on ecomae.com", "In Super ERP mailbox create firstname.lastname@@ecomae.com. Do not give shop tenants @@ecomae.com."),
+            new("7", "Each person uses their inbox", "Open inbox, compose, send, and read received mail from that person’s own address only."),
+        ],
+        "erp" =>
+        [
+            new("1", "Sign in to Super ERP", "Use your ERP login on ecomae.com / cp.ecomae.com. Shop tenants stay on their own host."),
+            new("2", "Open Mailbox", "Go to /erp/mailbox-app. This page never lists another customer’s inbox."),
+            new("3", "Create your @@ecomae.com box", "Type a local part such as firstname.lastname. Reserved names (info, hello, yawer, admin) are blocked."),
+            new("4", "Sign in with that address", "The mailbox and ERP login use the same email and password you set."),
+            new("5", "Open your inbox", "Received mail for your address only. You cannot open info@ or another customer."),
+            new("6", "Compose and send", "To, Subject, Message, then Send. Mail goes out from your own @@ecomae.com address."),
+            new("7", "Read replies here", "Incoming mail appears in Inbox on this page. Same view exists under Control Panel mailbox."),
+        ],
+        _ =>
+        [
+            new("1", "Sign in on your shop", "Use your shop Control Panel or ERP (your domain). Do not create mail on ecomae.com."),
+            new("2", "Create a person mailbox", "Type a name such as ops or sales. It becomes name@@" + ShopDomain + " plus a login with the same password."),
+            new("3", "Or create the business set", "One click makes info, hello, support, sales, accounts, orders, billing on " + ShopDomain + "."),
+            new("4", "Open inbox", "Click Open inbox on a mailbox you own. This page never shows another tenant."),
+            new("5", "Compose and send", "Fill To, Subject, Message. Send from the opened mailbox."),
+            new("6", "Read received mail", "New messages appear in Inbox under When / From / Subject / Excerpt."),
+            new("7", "Add more users anytime", "Create as many name@@" + ShopDomain + " addresses as the business needs. Super CP only sets DNS once."),
+        ]
+    };
+
+    private IReadOnlyList<string> DoTips => Audience switch
+    {
+        "super" =>
+        [
+            "Publish the Cloudflare pack on every shop before Create mail.",
+            "Keep yawer@@ecomae.com as the Super admin login.",
+            "Send ERP customers to Super ERP mailbox for @@ecomae.com.",
+        ],
+        "erp" =>
+        [
+            "Create and use only your own @@ecomae.com mailbox.",
+            "Compose from the address you signed in with.",
+            "Ask Super CP if the inbox says the password is not stored yet.",
+        ],
+        _ =>
+        [
+            "Create mailboxes only on " + ShopDomain + ".",
+            "Share the mailbox password with that person once — it is never shown again.",
+            "Use Open inbox → Compose to send; received mail stays on this page.",
+        ]
+    };
+
+    private IReadOnlyList<string> DontTips => Audience switch
+    {
+        "super" =>
+        [
+            "Do not add shop domains on purelymail.com — Super CP / Super BOS does that.",
+            "Do not give shop tenants @@ecomae.com addresses.",
+            "Do not paste the API token into chat or git.",
+            "Do not skip the ownership TXT — Purelymail will reject the domain.",
+        ],
+        "erp" =>
+        [
+            "Do not open or send from another customer’s mailbox.",
+            "Do not create info@@, hello@@, yawer@@, or admin@@ — those are platform boxes.",
+            "Do not use a shop domain here. Shop mail stays on the tenant host.",
+        ],
+        _ =>
+        [
+            "Do not create @@ecomae.com addresses. That is ERP customers only.",
+            "Do not try another tenant’s domain. The page will refuse it.",
+            "Do not expect to see Super CP or other shops in this inbox.",
+        ]
+    };
+
+    private string ShopDomain => string.IsNullOrWhiteSpace(Domain) ? "your-shop.com" : Domain;
+}

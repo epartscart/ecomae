@@ -103,6 +103,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CataloguePagePath, ["GET", "POST"], CataloguePageAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CatalogueStyleCookiePath, ["GET", "POST"], CatalogueStyleCookieAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.PickupTimingPath, ["GET", "POST"], PickupTimingAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.DemandMetaPath, ["GET", "POST"], DemandMetaAsync)
@@ -1146,6 +1148,27 @@ public static class StorefrontPhpAjaxEndpoints
                     context.Request.Cookies[StorefrontCustomerOffices.CityCookie]).ConfigureAwait(false);
             },
             StorefrontPhpAjax.NoDbConnect);
+
+    private static async Task<IResult> CatalogueStyleCookieAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        var raw = await FieldAsync(context, "products_style", cancellationToken).ConfigureAwait(false);
+        if (!StorefrontPrintProducts.TryStyleCookie(raw, out var style))
+        {
+            return Results.Text(string.Empty, "text/html; charset=utf-8");
+        }
+
+        context.Response.Cookies.Append(
+            StorefrontPrintProducts.StyleCookieName,
+            style.ToString(CultureInfo.InvariantCulture),
+            new CookieOptions
+            {
+                Path = "/",
+                Expires = DateTimeOffset.UtcNow.AddSeconds(9999999),
+                HttpOnly = false,
+                Secure = false
+            });
+        return Results.Text(StorefrontPrintProducts.StyleCookieJson(style), "application/json; charset=utf-8");
+    }
 
     private static Task<IResult> PickupTimingAsync(
         HttpContext context,

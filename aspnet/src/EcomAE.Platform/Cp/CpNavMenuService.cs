@@ -41,7 +41,9 @@ public sealed class CpNavMenuService : ICpNavMenuService
     }
 
     public async Task<IReadOnlyList<CpNavGroup>> BuildAsync(string? host, LegacySessionContext session, CancellationToken cancellationToken = default) =>
-        Presentation.TopMenuLinks.DedupeCp(await BuildPhpTreeAsync(host, session, cancellationToken).ConfigureAwait(false));
+        Presentation.TopMenuLinks.ForHost(
+            Presentation.TopMenuLinks.DedupeCp(await BuildPhpTreeAsync(host, session, cancellationToken).ConfigureAwait(false)),
+            host);
 
     private async Task<IReadOnlyList<CpNavGroup>> BuildPhpTreeAsync(string? host, LegacySessionContext session, CancellationToken cancellationToken)
     {

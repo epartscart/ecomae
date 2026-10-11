@@ -408,6 +408,8 @@ public static class LegacyDesktopChromeCatalog
             || h.Contains("tenant_hub", StringComparison.OrdinalIgnoreCase)
             || h.Contains("epc_tenant_control", StringComparison.OrdinalIgnoreCase)
             || h.Contains("/cp/tenants-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/tenant-hub-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/lifeos-", StringComparison.OrdinalIgnoreCase)
             || h.Contains("/cp/demo-tenants-app", StringComparison.OrdinalIgnoreCase)
             || h.Contains("epc_demo_tenants", StringComparison.OrdinalIgnoreCase)
             || h.Contains("epc_boc_audit_log", StringComparison.OrdinalIgnoreCase)
@@ -435,7 +437,7 @@ public static class LegacyDesktopChromeCatalog
         return false;
     }
 
-    private static bool IsSuperOnlyNavGroup(string label)
+    internal static bool IsSuperOnlyNavGroup(string label)
         => label.Equals("Platform", StringComparison.OrdinalIgnoreCase)
            || label.Equals("Operator", StringComparison.OrdinalIgnoreCase);
 

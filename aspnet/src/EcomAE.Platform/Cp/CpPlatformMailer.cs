@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// PHP <c>DocpartMailer</c> twin: HTML e-mail through the platform SMTP group of <c>config.php</c>
+/// PHP <c>lib/DocpartMailer/docpart_mailer.php</c> twin: HTML e-mail through the platform SMTP group of <c>config.php</c>
 /// (<c>smtp_host</c>/<c>smtp_port</c>/<c>smtp_encryption</c>/<c>smtp_username</c>/<c>smtp_password</c>, <c>from_email</c>/<c>from_name</c>).
 /// </summary>
 public interface ICpPlatformMailer
@@ -22,6 +22,8 @@ public interface ICpPlatformMailer
 
 public sealed class CpPlatformMailer : ICpPlatformMailer
 {
+    public const string DocpartMailerPath = "lib/DocpartMailer/docpart_mailer.php";
+
     private readonly PhpReferenceOptions _reference;
 
     public CpPlatformMailer(IOptions<PhpReferenceOptions> reference)

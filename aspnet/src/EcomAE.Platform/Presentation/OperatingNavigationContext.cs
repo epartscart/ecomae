@@ -156,6 +156,17 @@ public sealed record OperatingNavigationContext(
             : EcomAE.Platform.Routing.EcomAeRoutes.Attention + "?" + string.Join('&', parts);
     }
 
+    public static string RoleCentreHref(string? role, int? companyId)
+    {
+        var normalized = NormalizeRole(role);
+        var path = normalized is null
+            ? EcomAE.Platform.Routing.EcomAeRoutes.BosRoleCentresApp
+            : "/bos/role-" + normalized + "-app";
+        return companyId is > 0
+            ? path + "?company=" + companyId.Value.ToString(CultureInfo.InvariantCulture)
+            : path;
+    }
+
     public static string ClearCompanyHref(HttpRequest request)
     {
         var path = request.Path.HasValue ? request.Path.Value! : "/";

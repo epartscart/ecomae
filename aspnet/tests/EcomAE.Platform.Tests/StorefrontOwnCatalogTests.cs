@@ -1,6 +1,7 @@
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Routing;
+using EcomAE.Platform.Storefront;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -100,6 +101,9 @@ public sealed class StorefrontOwnCatalogTests
         Assert.Contains("@page \"/storefront/own-catalog-app\"", app, StringComparison.Ordinal);
         Assert.Contains("id=\"epc-own-catalog\"", app, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontCatalogueTreeAsync", app, StringComparison.Ordinal);
+        Assert.Contains("StorefrontPrintProductsListing", app, StringComparison.Ordinal);
+        Assert.Contains("sort_select", app, StringComparison.Ordinal);
+        Assert.Contains("not sourced on this listing", app, StringComparison.OrdinalIgnoreCase);
 
         Assert.Contains(
             "SelectStorefrontCatalogueCategories",
@@ -111,6 +115,23 @@ public sealed class StorefrontOwnCatalogTests
             StringComparison.Ordinal);
         Assert.True(File.Exists(Find("content/general_pages/epc_own_catalog_menu.js")));
         Assert.True(File.Exists(Find("content/general_pages/epc_own_catalog.css")));
+    }
+
+    [Fact]
+    public void PrintProductsListing_SortsNamesAndKeepsPriceUnsourced()
+    {
+        Assert.Equal("name_asc", StorefrontPrintProductsListing.NormalizeSort("price_asc", priceSourced: false));
+        Assert.Equal("price_desc", StorefrontPrintProductsListing.NormalizeSort("price_desc", priceSourced: true));
+        Assert.Equal(2, StorefrontPrintProductsListing.NormalizeStyle("2"));
+        var rows = StorefrontPrintProductsListing.SortByName(
+            [
+                new StorefrontProductDigest(2, "Filter", "f", 1, "Bosch", "1", true),
+                new StorefrontProductDigest(1, "Brake", "b", 1, "TRW", "2", true),
+            ],
+            "name_desc",
+            product => product.Caption);
+        Assert.Equal(new[] { "Filter", "Brake" }, rows.Select(row => row.Caption).ToArray());
+        Assert.Contains("sort=name_asc", StorefrontPrintProductsListing.ListingHref("/storefront/own-catalog-app", 9, null, null, "name_asc", 1), StringComparison.Ordinal);
     }
 
     private static string Find(string relative)

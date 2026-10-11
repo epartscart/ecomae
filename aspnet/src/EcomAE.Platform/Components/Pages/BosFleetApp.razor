@@ -48,17 +48,20 @@
 <PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Command Center">
 
         <section class="epc-bosapp-hero">
-            <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.15)" />
-            <h1>Super BOS · Fleet Command Center</h1>
-            <p>
-                Product Super BOS on ecomae.com (<code>/bos</code>) — separate from Super CP (<code>/cp</code> red BOC console).
-                Tenant control, readiness, health, and audit in the black BOS shell.
-            </p>
-            <p style="margin:.65rem 0 0">
-                <a href="/cp" style="color:#7dd3fc;font-weight:700">← Back to Super CP</a>
-                · <a href="/erp" style="color:#7dd3fc;font-weight:700">Super ERP</a>
-                · <a href="/ip" style="color:#7dd3fc;font-weight:700">Intelligence Platform</a>
-            </p>
+            <div>
+                <div class="epc-bosapp-hero__kicker">Business Operation System</div>
+                <h1>Super BOS · Fleet Command Center</h1>
+                <p>
+                    Product Super BOS on ecomae.com (<code>/bos</code>) — separate from Super CP (<code>/cp</code>).
+                    Tenant control, readiness, health, and audit in the enterprise BOS shell.
+                </p>
+            </div>
+            <div class="epc-bosapp-hero__actions">
+                <a href="/cp">Super CP</a>
+                <a class="ghost" href="/erp">Super ERP</a>
+                <a class="ghost" href="/bos/mail-app">Platform mail</a>
+                <a class="ghost" href="/ip">Intelligence</a>
+            </div>
         </section>
 
         @if (!_isAdmin)
@@ -91,6 +94,7 @@
                     <li><a href="/bos/fleet-health-app">Fleet health</a><span>@_active active</span></li>
                     <li><a href="/bos/fleet-readiness-app">Readiness</a><span>@_withDb DB-ready</span></li>
                     <li><a href="/bos/fleet-summary-app">Fleet summary</a><span>Roll-up</span></li>
+                    <li><a href="/bos/role-centres-app">Role centres</a><span>CEO to Operations</span></li>
                 </ul>
             </section>
             <section class="epc-bosapp-panel">
@@ -110,6 +114,8 @@
             <a class="epc-bosapp-card epc-bosapp-tile" href="/bos/fleet-readiness-app"><i class="fa fa-check-circle"></i><strong>Readiness</strong><span>Cutover and gate checks</span><em>Ready</em></a>
             <a class="epc-bosapp-card epc-bosapp-tile" href="/bos/fleet-summary-app"><i class="fa fa-dashboard"></i><strong>Fleet summary</strong><span>Roll-up KPIs</span><em>Summary</em></a>
             <a class="epc-bosapp-card epc-bosapp-tile" href="/bos/audit-log-app"><i class="fa fa-list-alt"></i><strong>Audit log</strong><span>Operator events</span><em>Audit</em></a>
+            <a class="epc-bosapp-card epc-bosapp-tile" href="/bos/role-centres-app"><i class="fa fa-sitemap"></i><strong>Role centres</strong><span>CEO, CFO, Sales, Purchasing, Operations</span><em>Attention</em></a>
+            <a class="epc-bosapp-card epc-bosapp-tile" href="/bos/mail-app"><i class="fa fa-inbox"></i><strong>Platform mail</strong><span>Unlimited domains and mailboxes</span><em>Mail</em></a>
             <a class="epc-bosapp-card epc-bosapp-tile" href="/cp"><i class="fa fa-th-large"></i><strong>Control panel</strong><span>Commerce ops</span><em>CP</em></a>
             <a class="epc-bosapp-card epc-bosapp-tile" href="/erp"><i class="fa fa-line-chart"></i><strong>ERP workspace</strong><span>Finance and stock</span><em>ERP</em></a>
             <a class="epc-bosapp-card epc-bosapp-tile" href="/"><i class="fa fa-shopping-cart"></i><strong>Storefront</strong><span>Customer browse</span><em>Shop</em></a>

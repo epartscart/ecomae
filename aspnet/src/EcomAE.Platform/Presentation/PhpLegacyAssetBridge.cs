@@ -86,6 +86,10 @@ public static class PhpLegacyAssetBridge
             });
         }
 
+        // wwwroot CSS — UseStaticFiles is off, so /css/*.css 404s unless mapped.
+        endpoints.MapGet("/css/{fileName}.css", (IWebHostEnvironment host, string fileName) =>
+            ServeWwwrootCss(host, fileName + ".css"));
+
         // Uploaded media root managed by the CP file manager (PHP served this directly from the docroot).
         var filesRoot = Path.GetFullPath(Path.Combine(repoRoot, "content", "files"));
         endpoints.MapGet("/content/files/{**relativePath}", (string? relativePath) =>
@@ -502,6 +506,40 @@ public static class PhpLegacyAssetBridge
 
             return Results.Text(PhpEpartsCartLogoAssets.EcomaeMarkSvg, "image/svg+xml");
         });
+    }
+
+    private static IResult ServeWwwrootCss(IWebHostEnvironment host, string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName)
+            || fileName.Contains("..", StringComparison.Ordinal)
+            || fileName.Contains('/', StringComparison.Ordinal)
+            || fileName.Contains('\\', StringComparison.Ordinal)
+            || !fileName.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
+        {
+            return Results.NotFound();
+        }
+
+        var candidates = new List<string>();
+        var webRoot = string.IsNullOrWhiteSpace(host.WebRootPath)
+            ? Path.Combine(host.ContentRootPath, "wwwroot")
+            : host.WebRootPath;
+        candidates.Add(Path.GetFullPath(Path.Combine(webRoot, "css", fileName)));
+        candidates.Add(Path.GetFullPath(Path.Combine(host.ContentRootPath, "wwwroot", "css", fileName)));
+        var repoCss = Path.GetFullPath(Path.Combine(FindRepoRoot(host), "aspnet", "src", "EcomAE.Platform", "wwwroot", "css", fileName));
+        candidates.Add(repoCss);
+
+        foreach (var path in candidates)
+        {
+            var root = Path.GetFullPath(Path.GetDirectoryName(path)!);
+            if (!path.StartsWith(root, StringComparison.Ordinal) || !File.Exists(path))
+            {
+                continue;
+            }
+
+            return Results.File(path, "text/css; charset=utf-8");
+        }
+
+        return Results.NotFound();
     }
 
     private static IResult ServeRepoFile(string repoRoot, string relative, string contentType)

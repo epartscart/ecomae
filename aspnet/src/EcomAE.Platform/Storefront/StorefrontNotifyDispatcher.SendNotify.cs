@@ -183,7 +183,11 @@ public sealed partial class StorefrontNotifyDispatcher
                 emailNode["tried_to_send"] = true;
                 emailNode["email_confirmed"] = emailConfirmed.DeepClone();
                 wrapped ??= await WrapAsync(connection, translator, subject, body, cancellationToken).ConfigureAwait(false);
-                var sent = await _mailer.SendHtmlAsync(email, subject, wrapped, cancellationToken).ConfigureAwait(false);
+                CpSmsSendOutcome sent;
+                using (EcomAE.Platform.Mail.TenantTransactionalMail.UseNotification(name))
+                {
+                    sent = await _mailer.SendHtmlAsync(email, subject, wrapped, cancellationToken).ConfigureAwait(false);
+                }
                 emailNode["status"] = sent.Ok;
                 await RecordDebugAsync(connection, "email", sent.Ok, sent.Message, cancellationToken).ConfigureAwait(false);
             }

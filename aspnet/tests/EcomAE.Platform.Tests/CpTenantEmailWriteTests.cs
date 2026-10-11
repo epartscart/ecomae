@@ -35,6 +35,8 @@ public class CpTenantEmailWriteTests
         Assert.Contains("Activate in 3 steps", razor);
         Assert.Contains("Modern auth settings", razor);
         Assert.Contains("SuperCpHostGate.IsAllowed", razor);
+        Assert.Contains("data-mail-workspace", razor);
+        Assert.Contains("epc-mail-hub", razor);
     }
 
     [Fact]

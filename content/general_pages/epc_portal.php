@@ -403,6 +403,26 @@ function epc_portal_sites()
 			'trade_name' => 'Taxofin CA',
 			'from_email' => 'hello@taxofinca.com',
 		),
+		'www.epartscart.com' => array(
+			'industry' => 'auto_parts',
+			'site_key' => 'epartscart',
+			'system_name' => 'eParts Cart',
+			'hub_name' => 'Electronic World Group',
+			'tagline' => 'Auto parts catalogue and B2B ordering',
+			'domain_path' => 'https://www.epartscart.com/',
+			'trade_name' => 'eParts Cart',
+			'from_email' => 'hello@epartscart.com',
+		),
+		'epartscart.com' => array(
+			'industry' => 'auto_parts',
+			'site_key' => 'epartscart',
+			'system_name' => 'eParts Cart',
+			'hub_name' => 'Electronic World Group',
+			'tagline' => 'Auto parts catalogue and B2B ordering',
+			'domain_path' => 'https://www.epartscart.com/',
+			'trade_name' => 'eParts Cart',
+			'from_email' => 'hello@epartscart.com',
+		),
 	);
 }
 
@@ -806,7 +826,7 @@ function epc_portal_site_profile()
 				$profile['industry'] = 'auto_parts';
 				$profile['trade_name'] = 'eParts Cart';
 				$profile['hub_name'] = 'Electronic World Group';
-				$profile['from_email'] = 'epartscart@gmail.com';
+				$profile['from_email'] = 'hello@epartscart.com';
 			}
 		}
 		$profile['domain_path'] = 'https://' . $host . '/';

@@ -140,6 +140,10 @@ public static class CpNavTree
         ["epc_cp_group_portal"] = "Portal",
         ["epc_cp_group_tenant_hub"] = "Platform",
         ["epc_cp_group_operator"] = "Operator",
+        ["Catalogue Editor"] = "Catalogue",
+        ["Modules Manager"] = "Modules",
+        ["Content Tree"] = "Content",
+        ["Config"] = "Config",
     };
 
     public static readonly IReadOnlyDictionary<string, string> GroupSubtitles = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -245,6 +249,42 @@ public static class CpNavTree
     ];
 
     private static readonly string[] SuperOnlyNeedles = ["epc_super_cp_", "epc_pos_tenant_manage"];
+
+    /// <summary>Raw PHP captions that must never reach the top menu as transliteration or shouting-snake keys.</summary>
+    public static readonly IReadOnlyDictionary<string, string> CaptionAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["EPC_PRICE_MANAGEMENT"] = "Price management",
+        ["Nastrojka Kursov Valyut"] = "Currency rates",
+        ["Sao States Statuses Link"] = "SAO status links",
+        ["Sms Operatory"] = "SMS operators",
+        ["Ip Php"] = "Server IP",
+        ["Dopolnitelnye Teksty"] = "Additional texts",
+        ["Usergroups"] = "User groups",
+        ["Filemanager"] = "File manager",
+        ["Cp Guideline"] = "Control guideline",
+        ["Lang"] = "Languages",
+        ["Catalogue Editor"] = "Catalogue",
+        ["Customer Mgmt"] = "Customers",
+        ["Prices Send"] = "Send prices",
+        ["Demand Countries"] = "Demand intelligence",
+        ["Account Operations"] = "Credit limits",
+        ["Manufacturers Synonyms"] = "Brand synonyms",
+        ["Returns Manager"] = "Returns",
+        ["Whatsapp Guide"] = "WhatsApp guide",
+        ["Cp Auth Settings"] = "Sign-in security",
+        ["Api Clients Manage"] = "API clients",
+        ["Cp Group Customers"] = "Customers",
+        ["Cp Group Documents"] = "Documents",
+        ["Cp Group Erp"] = "ERP",
+        ["Cp Group Procurement"] = "Purchasing",
+        ["Cp Group Channels"] = "Channels",
+        ["Cp Group Logistics"] = "Logistics",
+        ["Cp Group Ai"] = "AI",
+        ["Cp Group Marketing"] = "Marketing",
+        ["Cp Group Payments"] = "Payments",
+        ["Cp Group Integrations"] = "Integrations",
+        ["Cp Group Portal"] = "Portal",
+    };
 
     private static readonly Regex NamedKeyRegex = new("^[A-Za-z][A-Za-z0-9_]*$", RegexOptions.Compiled);
     private static readonly Regex DigitsRegex = new("^\\d+$", RegexOptions.Compiled);
@@ -425,17 +465,28 @@ public static class CpNavTree
 
         if (caption.Length > 0)
         {
+            if (CaptionAliases.TryGetValue(caption, out var alias))
+            {
+                return alias;
+            }
+
             var tr = translate(caption);
-            if (!string.IsNullOrWhiteSpace(tr) && tr.Trim() != caption)
+            if (!string.IsNullOrWhiteSpace(tr) && tr.Trim() != caption && !IsPlaceholderLabel(tr))
             {
                 label = tr.Trim();
+            }
+
+            if (label.Length > 0 && CaptionAliases.TryGetValue(label, out var translatedAlias))
+            {
+                return translatedAlias;
             }
 
             if (label.Length == 0
                 && LettersRegex.IsMatch(caption)
                 && !DigitsRegex.IsMatch(caption)
                 && !GeneratedKeyRegex.IsMatch(caption)
-                && !caption.StartsWith("epc_", StringComparison.Ordinal))
+                && !caption.StartsWith("epc_", StringComparison.Ordinal)
+                && !IsShoutingSnake(caption))
             {
                 label = caption;
             }
@@ -461,8 +512,16 @@ public static class CpNavTree
             }
         }
 
+        if (CaptionAliases.TryGetValue(label, out var finalAlias))
+        {
+            return finalAlias;
+        }
+
         return label;
     }
+
+    private static bool IsPlaceholderLabel(string? value)
+        => string.Equals((value ?? string.Empty).Trim(), "Menu item", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>PHP <c>epc_portal_cp_menu_humanize_url</c>: shop/orders/orders → Orders.</summary>
     public static string HumanizeUrl(string url)
@@ -487,6 +546,11 @@ public static class CpNavTree
         part = NoisyPrefixRegex.Replace(part, string.Empty);
         return UcWords(part.Replace('-', ' ').Replace('_', ' ').ToLowerInvariant());
     }
+
+    private static bool IsShoutingSnake(string caption)
+        => caption.Contains('_', StringComparison.Ordinal)
+           && caption.Equals(caption.ToUpperInvariant(), StringComparison.Ordinal)
+           && caption.Any(char.IsLetter);
 
     /// <summary>PHP <c>epc_portal_cp_menu_humanize_key</c>.</summary>
     public static string HumanizeKey(string key)
@@ -618,6 +682,26 @@ public static class CpNavTree
 
             var ck = tab.Group.Caption;
             var caption = ResolveLabel(ck, string.Empty, translate);
+            if (IsPlaceholderLabel(caption) || DigitsRegex.IsMatch(caption) || string.Equals(caption, ck, StringComparison.Ordinal))
+            {
+                if (GroupShortLabels.TryGetValue(ck, out var named))
+                {
+                    caption = named;
+                }
+                else if (GroupShortLabels.TryGetValue(tab.Group.Id.ToString(CultureInfo.InvariantCulture), out named))
+                {
+                    caption = named;
+                }
+                else if (tab.Items.Count > 0)
+                {
+                    var inferred = HumanizeUrl(tab.Items[0].Url);
+                    if (!string.IsNullOrWhiteSpace(inferred) && !IsPlaceholderLabel(inferred))
+                    {
+                        caption = inferred;
+                    }
+                }
+            }
+
             ordered.Add(new CpNavGroup(
                 tab.Group.Id.ToString(CultureInfo.InvariantCulture),
                 ck,

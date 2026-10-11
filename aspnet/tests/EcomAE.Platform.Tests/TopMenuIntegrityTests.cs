@@ -26,10 +26,12 @@ public sealed class TopMenuIntegrityTests
         // Linked from other pages, not from the top menu.
         "CpDashboardSummaryApp.razor", "ErpDashboardSummaryApp.razor", "ErpNavigationCoverageApp.razor",
         "CpPriceListsApp.razor", "CpPricesEditApp.razor", "CpPoApprovalsApp.razor", "CpCrmActivitiesApp.razor",
+        "CpCustomer360App.razor",
         "CpAdminSessionsApp.razor", "CpPrintDocsApp.razor", "CpBulkUploadApp.razor", "CpFinanceCloseApp.razor",
         // No row in the production CP menu snapshots; open menu placement items in the tracker.
         "CpIntegrationsGuideApp.razor", "CpLifeOsClientsApp.razor", "CpLifeOsGuideApp.razor", "CpOpsGuidesApp.razor",
         "CpVinFieldsApp.razor", "CpWorkshopApp.razor", "ErpMultiEntityApp.razor", "ErpUserControlApp.razor",
+        "ErpTenantMailboxApp.razor",
     ];
 
     public static IEnumerable<object[]> Menus()
@@ -84,6 +86,25 @@ public sealed class TopMenuIntegrityTests
     }
 
     [Fact]
+    public void Tenant_epartscart_menu_hides_jewellery_bos_and_super_fleet()
+    {
+        var file = Directory.GetFiles(Path.Combine(FindRepoRoot(), "content/files/epc_cache"), "epc_cp_menu_rows_v1_*.json")
+            .Order(StringComparer.Ordinal)
+            .First();
+        var rows = CpNavMenuService.ParseSnapshot(File.ReadAllText(file), Path.GetFileName(file));
+        Assert.NotNull(rows);
+        var groups = TopMenuLinks.ForHost(
+            TopMenuLinks.DedupeCp(CpNavTree.Build(rows.Groups, rows.Items, CpNavPolicy.Tenant(), static _ => null)),
+            "www.epartscart.com");
+        var hrefs = groups.SelectMany(g => g.Items).Select(i => CpNavTree.AspNetHref(i.Url)).ToList();
+        Assert.DoesNotContain(hrefs, h => h.Contains("jewell", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(hrefs, h => h.Contains("/bos", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(hrefs, h => h.Contains("tenant-hub-app", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(hrefs, h => h.Contains("tenants-app", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(hrefs, h => h.Contains("/cp/orders", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void Proper_modules_for_previously_merged_entries()
     {
         Assert.Equal("/cp/price-management-app", CpNavTree.AspNetHref("/cp/shop/price-management"));
@@ -100,7 +121,9 @@ public sealed class TopMenuIntegrityTests
             Assert.NotNull(rows);
             foreach (var (view, policy) in new[] { ("tenant", CpNavPolicy.Tenant()), ("super", CpNavPolicy.SuperOperator()) })
             {
-                var groups = TopMenuLinks.DedupeCp(CpNavTree.Build(rows.Groups, rows.Items, policy, static _ => null));
+                var groups = TopMenuLinks.ForHost(
+                    TopMenuLinks.DedupeCp(CpNavTree.Build(rows.Groups, rows.Items, policy, static _ => null)),
+                    view == "tenant" ? "www.epartscart.com" : "www.ecomae.com");
                 Assert.All(groups, g => Assert.NotEmpty(g.Items));
                 menus.Add(($"CP {Path.GetFileNameWithoutExtension(file)} {view}",
                     groups.SelectMany(g => g.Items).Select(i => (i.Label, CpNavTree.AspNetHref(i.Url))).ToList()));

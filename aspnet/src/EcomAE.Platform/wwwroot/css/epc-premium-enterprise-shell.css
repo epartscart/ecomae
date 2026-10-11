@@ -1,0 +1,653 @@
+/* Premium enterprise Super CP / Super BOS / tenant CP shell.
+   Loaded last so dashboard-to-end pages inherit one look without rewriting forms. */
+:root {
+    --epc-navy: #0b1f3a;
+    --epc-navy-mid: #123d68;
+    --epc-blue: #1769aa;
+    --epc-cyan: #0ea5e9;
+    --epc-ink: #15253d;
+    --epc-muted: #61728a;
+    --epc-line: #d9e2ec;
+    --epc-surface: #ffffff;
+    --epc-canvas: #f3f6fa;
+    --epc-ok: #166534;
+    --epc-warn: #9a3412;
+    --epc-shadow: 0 12px 28px rgba(15, 35, 60, .08);
+    --epc-radius: 14px;
+}
+
+/* ---------- Control Panel chrome ---------- */
+.epc-cp-shell.epc-premium-shell,
+.epc-cp-shell {
+    --cp-ink: var(--epc-ink);
+    --cp-line: var(--epc-line);
+    --cp-bg: var(--epc-canvas);
+    --epc-cp-primary: var(--epc-blue);
+    background:
+        radial-gradient(900px 280px at 0% 0%, rgba(23, 105, 170, .08), transparent 55%),
+        radial-gradient(700px 240px at 100% 0%, rgba(14, 165, 233, .07), transparent 50%),
+        var(--epc-canvas);
+    color: var(--epc-ink);
+}
+
+.epc-cp-shell .epc-cp-header-bar {
+    background: linear-gradient(115deg, #0b1f3a 0%, #123d68 68%, #1769aa 100%) !important;
+    border-bottom: 0 !important;
+    color: #fff !important;
+    box-shadow: 0 8px 22px rgba(11, 31, 58, .22);
+    padding: .65rem 1.15rem !important;
+    min-height: 58px;
+}
+
+.epc-cp-shell .epc-cp-header-bar a,
+.epc-cp-shell .epc-cp-header-actions,
+.epc-cp-shell .epc-cp-header-user,
+.epc-cp-shell .epc-cp-header-breadcrumb,
+.epc-cp-shell .epc-cp-header-breadcrumb a,
+.epc-cp-shell .epc-cp-header-breadcrumb .active,
+.epc-cp-shell .epc-cp-top-connectivity a {
+    color: rgba(255, 255, 255, .9) !important;
+}
+
+.epc-cp-shell .epc-cp-header-bar a:hover {
+    color: #fff !important;
+}
+
+.epc-cp-shell .epc-cp-header-logo img {
+    height: 32px;
+    filter: brightness(1.08);
+}
+
+.epc-cp-shell .epc-cp-topbar-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .38rem .8rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .12) !important;
+    border: 1px solid rgba(255, 255, 255, .2) !important;
+    box-shadow: none !important;
+    color: #fff !important;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .02em;
+}
+
+.epc-cp-shell .epc-cp-topbar-cta:hover {
+    background: rgba(255, 255, 255, .2) !important;
+}
+
+.epc-cp-shell .epc-cp-topbar-cta--erp {
+    background: rgba(248, 113, 113, .18) !important;
+    border-color: rgba(254, 202, 202, .35) !important;
+}
+
+.epc-cp-shell .epc-cp-header-actions {
+    gap: .45rem !important;
+    font-size: 12px !important;
+}
+
+.epc-cp-shell .epc-cp-header-actions > a,
+.epc-cp-shell .epc-cp-header-user,
+.epc-cp-shell .epc-cp-industry-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .28rem .7rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .12);
+}
+
+.epc-cp-shell .epc-cp-header-user {
+    max-width: 16rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+}
+
+.epc-cp-shell .epc-cp-header-logout {
+    background: rgba(254, 226, 226, .16) !important;
+    border-color: rgba(254, 202, 202, .28) !important;
+}
+
+.epc-cp-shell .epc-cp-topnav {
+    background: #fff;
+    border-bottom: 1px solid var(--epc-line);
+    box-shadow: 0 4px 14px rgba(15, 35, 60, .06);
+}
+
+.epc-cp-shell .epc-cp-topnav-btn {
+    min-height: 48px;
+    font-weight: 700;
+    letter-spacing: .01em;
+}
+
+.epc-cp-shell .epc-cp-topnav-item.is-active .epc-cp-topnav-btn,
+.epc-cp-shell .epc-cp-topnav-item.is-open .epc-cp-topnav-btn {
+    color: var(--epc-blue);
+    box-shadow: inset 0 -3px 0 var(--epc-blue);
+}
+
+.epc-cp-shell .epc-cp-topnav-panel {
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 18px 40px rgba(11, 31, 58, .16);
+}
+
+.epc-cp-shell .epc-cp-main-pane {
+    padding: 1.15rem 1.35rem 2.4rem;
+}
+
+.epc-cp-shell .epc-cp-content-inner {
+    width: min(1600px, calc(100% - .4rem));
+}
+
+.epc-cp-shell .footer {
+    background: #fff;
+    border-top: 1px solid var(--epc-line);
+    color: var(--epc-muted);
+}
+
+.epc-cp-shell .epc-cp-guest-banner {
+    margin: 0 0 1rem;
+    padding: .85rem 1rem;
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    border-radius: 12px;
+    color: #9a3412;
+    font-size: .88rem;
+    line-height: 1.45;
+}
+
+.epc-cp-shell .epc-module-visual-frame {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 14px;
+    margin: 0 0 16px;
+    padding: 14px 16px;
+    border: 1px solid var(--epc-line);
+    border-radius: var(--epc-radius);
+    background:
+        linear-gradient(100deg, rgba(255, 255, 255, .96), rgba(247, 251, 254, .96));
+    box-shadow: var(--epc-shadow);
+}
+
+.epc-cp-shell .epc-module-visual-frame__title {
+    font-size: 18px;
+    letter-spacing: -.02em;
+}
+
+.epc-cp-shell .panel,
+.epc-cp-shell .hpanel,
+.epc-cp-shell .well,
+.epc-cp-shell .ibox,
+.epc-cp-shell .epc-scp-module {
+    background: var(--epc-surface);
+    border: 1px solid var(--epc-line);
+    border-radius: var(--epc-radius);
+    box-shadow: var(--epc-shadow);
+    overflow: hidden;
+}
+
+.epc-cp-shell .panel-heading,
+.epc-cp-shell .hpanel .panel-heading,
+.epc-cp-shell .hbuilt {
+    background: linear-gradient(180deg, #f8fbfe, #eef4f9);
+    border-bottom: 1px solid var(--epc-line);
+    color: var(--epc-ink);
+    font-weight: 750;
+    padding: .85rem 1rem;
+}
+
+.epc-cp-shell .panel-body,
+.epc-cp-shell .hpanel .panel-body {
+    padding: 1rem 1.05rem;
+}
+
+.epc-cp-shell input,
+.epc-cp-shell select,
+.epc-cp-shell textarea,
+.epc-cp-shell .form-control {
+    min-height: 38px;
+    border: 1px solid #c8d4e2;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 2px rgba(15, 35, 60, .04);
+}
+
+.epc-cp-shell input:focus,
+.epc-cp-shell select:focus,
+.epc-cp-shell textarea:focus,
+.epc-cp-shell .form-control:focus {
+    border-color: var(--epc-blue);
+    box-shadow: 0 0 0 3px rgba(23, 105, 170, .14);
+    outline: 0;
+}
+
+.epc-cp-shell .btn,
+.epc-cp-shell button[type="submit"] {
+    border-radius: 9px;
+    font-weight: 700;
+}
+
+.epc-cp-shell .btn-primary,
+.epc-cp-shell .btn-success,
+.epc-cp-shell button[type="submit"] {
+    background: linear-gradient(135deg, #1769aa, #0e83b5);
+    border-color: #125989;
+    box-shadow: 0 4px 10px rgba(23, 105, 170, .2);
+    color: #fff;
+}
+
+.epc-cp-shell .table > thead > tr > th,
+.epc-cp-shell table thead th {
+    background: #eef4f9;
+    border-bottom: 2px solid #c9d8e6;
+    color: #314762;
+    font-size: 11px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.epc-cp-shell .table > tbody > tr:hover {
+    background: #f5f9fc;
+}
+
+.epc-cp-shell .alert {
+    border-radius: 12px;
+    border-width: 1px;
+    box-shadow: none;
+}
+
+.epc-cp-shell .breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+}
+
+/* Tenant command dashboard */
+.epc-cp-shell .cp-dash-hero,
+.epc-cp-shell .cp-dash-hero-panel {
+    border-radius: 16px;
+    box-shadow: var(--epc-shadow);
+}
+
+.epc-cp-shell .cp-dash-metric,
+.epc-cp-shell .cp-dash-chip {
+    border-radius: 12px;
+}
+
+/* ---------- Super CP BOC command centre ---------- */
+.epc-boc.epc-premium-shell,
+.epc-boc--topnav.epc-premium-shell {
+    background:
+        radial-gradient(900px 320px at 0% 0%, rgba(159, 18, 57, .08), transparent 50%),
+        radial-gradient(800px 280px at 100% 0%, rgba(23, 105, 170, .08), transparent 48%),
+        #f3f6fa !important;
+}
+
+.epc-boc.epc-premium-shell .epc-boc__topnav {
+    background: linear-gradient(115deg, #0b1f3a 0%, #1e293b 58%, #7f1d1d 100%) !important;
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(11, 31, 58, .28);
+}
+
+.epc-boc.epc-premium-shell .epc-boc__topnav-btn {
+    color: rgba(255, 255, 255, .9);
+    font-weight: 750;
+    padding: 14px 12px;
+}
+
+.epc-boc.epc-premium-shell .epc-boc__topnav-item.is-active > .epc-boc__topnav-btn {
+    box-shadow: inset 0 -3px 0 #fecaca;
+}
+
+.epc-boc.epc-premium-shell .epc-boc__canvas {
+    width: min(1600px, calc(100% - 1.5rem));
+    margin: 0 auto;
+    padding: 18px 0 36px;
+}
+
+.epc-boc.epc-premium-shell .epc-boc__platform-banner {
+    background: #fff;
+    border: 1px solid var(--epc-line);
+    border-left: 4px solid #9f1239;
+    border-radius: 14px;
+    box-shadow: var(--epc-shadow);
+}
+
+.epc-boc.epc-premium-shell .epc-boc__hero {
+    background:
+        linear-gradient(120deg, rgba(255, 255, 255, .08), transparent 42%),
+        linear-gradient(135deg, #0b1220 0%, #1e293b 52%, #7f1d1d 100%);
+    border-radius: 18px;
+    padding: 22px 24px;
+    box-shadow: var(--epc-shadow);
+}
+
+.epc-boc.epc-premium-shell .epc-boc__hero h2 {
+    font-size: clamp(1.45rem, 2.6vw, 1.95rem);
+    letter-spacing: -.02em;
+}
+
+.epc-boc.epc-premium-shell .epc-boc__btn {
+    border-radius: 999px;
+    padding: 9px 14px;
+}
+
+.epc-boc.epc-premium-shell .epc-boc__tiles {
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+    gap: 12px;
+}
+
+.epc-boc.epc-premium-shell .epc-boc__tile,
+.epc-boc.epc-premium-shell .epc-boc__panel,
+.epc-boc.epc-premium-shell .epc-boc__fleet-card,
+.epc-boc.epc-premium-shell .epc-boc__card {
+    background: #fff;
+    border: 1px solid var(--epc-line);
+    border-radius: 14px;
+    box-shadow: var(--epc-shadow);
+}
+
+.epc-boc.epc-premium-shell .epc-boc__tile {
+    padding: 14px 16px;
+    min-height: 118px;
+}
+
+.epc-boc.epc-premium-shell .epc-boc__tile-val {
+    font-size: 28px;
+    letter-spacing: -.03em;
+}
+
+.epc-boc.epc-premium-shell .epc-boc__card {
+    padding: 14px;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.epc-boc.epc-premium-shell .epc-boc__card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgba(15, 35, 60, .12);
+}
+
+/* ---------- Super BOS chrome ---------- */
+.bos-body--topnav.epc-premium-shell,
+.bos-body--topnav {
+    --bos-topbar-height: 58px;
+    --bos-bg: var(--epc-canvas);
+    --bos-ink: var(--epc-ink);
+    --bos-primary: var(--epc-cyan);
+    background:
+        radial-gradient(900px 280px at 0% 0%, rgba(14, 165, 233, .08), transparent 55%),
+        var(--epc-canvas);
+}
+
+.bos-body--topnav .bos-topnav {
+    height: var(--bos-topbar-height);
+    background: linear-gradient(90deg, #05070b 0%, #0b1220 72%, #0c4a6e 100%);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .28);
+}
+
+.bos-body--topnav .bos-topnav__brand {
+    letter-spacing: .08em;
+    font-size: 13px;
+}
+
+.bos-body--topnav .bos-topnav__btn {
+    font-size: .8rem;
+}
+
+.bos-body--topnav .bos-topnav__panel {
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .24);
+}
+
+.bos-body--topnav .bos-topnav__right > a,
+.bos-body--topnav .bos-topnav__user {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .28rem .65rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .12);
+    color: #f8fafc !important;
+}
+
+.bos-body--topnav .bos-topnav__login {
+    color: #7dd3fc !important;
+}
+
+.bos-body--topnav .bos-main {
+    width: min(1600px, calc(100% - 1.5rem));
+    padding: 1.2rem 0 2.6rem;
+}
+
+.bos-body--topnav .bos-main__header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: .75rem;
+    margin-bottom: 1rem;
+    padding: .85rem 1rem;
+    border: 1px solid var(--epc-line);
+    border-radius: var(--epc-radius);
+    background: #fff;
+    box-shadow: var(--epc-shadow);
+}
+
+.bos-body--topnav .bos-main__breadcrumb {
+    font-size: 13px;
+    font-weight: 750;
+    color: var(--epc-ink);
+    letter-spacing: -.01em;
+}
+
+.bos-body--topnav .bos-tag {
+    border-radius: 999px;
+    background: #e8f1ff;
+    color: #1e3a8a;
+}
+
+.bos-body--topnav .panel,
+.bos-body--topnav .hpanel,
+.bos-body--topnav .well,
+.bos-body--topnav form,
+.bos-body--topnav table {
+    border-radius: 12px;
+}
+
+.bos-body--topnav input,
+.bos-body--topnav select,
+.bos-body--topnav textarea,
+.bos-body--topnav .form-control {
+    min-height: 38px;
+    border: 1px solid #c8d4e2;
+    border-radius: 8px;
+}
+
+.bos-body--topnav button,
+.bos-body--topnav .btn {
+    border-radius: 9px;
+    font-weight: 700;
+}
+
+.bos-body--topnav button[type="submit"],
+.bos-body--topnav .btn-primary {
+    background: linear-gradient(135deg, #0c4a6e, #0ea5e9);
+    border-color: #0369a1;
+    color: #fff;
+}
+
+/* BOS dashboards — specificity beats page-local heroes */
+.bos-body--topnav .epc-bosapp-hero,
+.bos-body--topnav .epc-fs-hero,
+.bos-body--topnav .epc-bt-hero,
+.bos-body--topnav .epc-fh-hero,
+.bos-body--topnav .epc-fr-hero,
+.bos-body--topnav .epc-al-hero {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 0 0 1rem;
+    padding: 1.25rem 1.35rem;
+    border-radius: 18px;
+    color: #fff;
+    background:
+        linear-gradient(120deg, rgba(255, 255, 255, .08), transparent 42%),
+        linear-gradient(135deg, #05070b 0%, #0c4a6e 58%, #0ea5e9 100%);
+    box-shadow: var(--epc-shadow);
+}
+
+.bos-body--topnav .epc-bosapp-hero h1,
+.bos-body--topnav .epc-fs-hero h1,
+.bos-body--topnav .epc-bt-hero h1,
+.bos-body--topnav .epc-fh-hero h1,
+.bos-body--topnav .epc-fr-hero h1,
+.bos-body--topnav .epc-al-hero h1 {
+    margin: .15rem 0 .35rem;
+    font-size: clamp(1.4rem, 2.6vw, 1.95rem);
+    letter-spacing: -.02em;
+}
+
+.bos-body--topnav .epc-bosapp-hero p,
+.bos-body--topnav .epc-fs-hero p,
+.bos-body--topnav .epc-bt-hero p,
+.bos-body--topnav .epc-fh-hero p,
+.bos-body--topnav .epc-fr-hero p,
+.bos-body--topnav .epc-al-hero p {
+    margin: 0;
+    max-width: 46rem;
+    color: rgba(255, 255, 255, .88);
+}
+
+.bos-body--topnav .epc-bosapp-hero__kicker,
+.bos-body--topnav .epc-fs-hero__kicker {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #7dd3fc;
+}
+
+.bos-body--topnav .epc-bosapp-hero__actions a,
+.bos-body--topnav .epc-fs-cta a,
+.bos-body--topnav .epc-bt-cta a,
+.bos-body--topnav .epc-fh-cta a,
+.bos-body--topnav .epc-fr-cta a,
+.bos-body--topnav .epc-al-cta a {
+    display: inline-flex;
+    align-items: center;
+    padding: .45rem .85rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: .8rem;
+    text-decoration: none;
+    color: #0b1f3a;
+    background: #e0f2fe;
+}
+
+.bos-body--topnav .epc-fs-cta a.ghost,
+.bos-body--topnav .epc-bt-cta a.ghost,
+.bos-body--topnav .epc-fh-cta a.ghost,
+.bos-body--topnav .epc-fr-cta a.ghost,
+.bos-body--topnav .epc-al-cta a.ghost,
+.bos-body--topnav .epc-bosapp-hero__actions a.ghost {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, .35);
+    color: #fff;
+}
+
+.bos-body--topnav .epc-bosapp-strip,
+.bos-body--topnav .epc-bosapp-grid,
+.bos-body--topnav .epc-fs-kpis,
+.bos-body--topnav .epc-bt-kpis {
+    gap: 12px;
+}
+
+.bos-body--topnav .epc-bosapp-chip,
+.bos-body--topnav .epc-bosapp-card,
+.bos-body--topnav .epc-bosapp-panel,
+.bos-body--topnav .epc-bosapp-note,
+.bos-body--topnav .epc-fs-kpi,
+.bos-body--topnav .epc-fs-note,
+.bos-body--topnav .epc-bt-kpi,
+.bos-body--topnav .epc-bt-table-wrap,
+.bos-body--topnav .epc-bt-note,
+.bos-body--topnav .epc-fh-kpi,
+.bos-body--topnav .epc-fh-table-wrap,
+.bos-body--topnav .epc-fh-note,
+.bos-body--topnav .epc-fr-kpi,
+.bos-body--topnav .epc-fr-note,
+.bos-body--topnav .epc-al-kpi,
+.bos-body--topnav .epc-al-note {
+    background: #fff;
+    border: 1px solid var(--epc-line);
+    border-radius: 14px;
+    box-shadow: var(--epc-shadow);
+}
+
+.bos-body--topnav .epc-bosapp-chip,
+.bos-body--topnav .epc-fs-kpi,
+.bos-body--topnav .epc-bt-kpi {
+    padding: .9rem 1rem;
+}
+
+.bos-body--topnav .epc-bosapp-chip strong,
+.bos-body--topnav .epc-bosapp-card strong,
+.bos-body--topnav .epc-fs-kpi strong,
+.bos-body--topnav .epc-bt-kpi strong {
+    font-size: 1.45rem;
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.bos-body--topnav .epc-bosapp-tile {
+    min-height: 7rem;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.bos-body--topnav .epc-bosapp-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgba(15, 35, 60, .12);
+}
+
+.bos-body--topnav .epc-bosapp-tile i {
+    color: #0369a1;
+}
+
+.bos-body--topnav .epc-bt-table th {
+    background: #eef4f9;
+    color: #314762;
+    letter-spacing: .04em;
+}
+
+/* Context bar */
+.epc-op-context {
+    border-radius: 12px !important;
+    box-shadow: 0 4px 14px rgba(15, 35, 60, .05);
+}
+
+@media (max-width: 900px) {
+    .bos-body--topnav .epc-bosapp-strip,
+    .bos-body--topnav .epc-bosapp-band,
+    .bos-body--topnav .epc-fs-kpis,
+    .bos-body--topnav .epc-bt-kpis {
+        grid-template-columns: 1fr 1fr;
+    }
+    .epc-cp-shell .epc-module-visual-frame {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .bos-body--topnav .epc-bosapp-strip,
+    .bos-body--topnav .epc-bosapp-band,
+    .bos-body--topnav .epc-fs-kpis,
+    .bos-body--topnav .epc-bt-kpis {
+        grid-template-columns: 1fr;
+    }
+}

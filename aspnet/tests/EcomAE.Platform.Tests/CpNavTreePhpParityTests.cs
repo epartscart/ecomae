@@ -242,6 +242,13 @@ public sealed class CpNavTreePhpParityTests
         var fallback = CpNavTree.ResolveLabel("999", "/cp/control/portal/epc_price_management", Translate);
         Assert.DoesNotContain("999", fallback, StringComparison.Ordinal);
         Assert.Contains("Price", fallback, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("Price management", CpNavTree.ResolveLabel("EPC_PRICE_MANAGEMENT", "/cp/price-management-app", Translate));
+        Assert.Equal("Currency rates", CpNavTree.ResolveLabel("Nastrojka Kursov Valyut", "/cp/currencies-app", Translate));
+        Assert.Equal("SAO status links", CpNavTree.ResolveLabel("Sao States Statuses Link", "/cp/sao-app", Translate));
+        Assert.Equal("SMS operators", CpNavTree.ResolveLabel("Sms Operatory", "/cp/sms-whatsapp-app", Translate));
+        Assert.Equal("Server IP", CpNavTree.ResolveLabel("Ip Php", "/cp/server-ip-app", Translate));
+        Assert.Equal("Currency rates", CpNavTree.ResolveLabel("748", "/cp/currencies-app", key => key == "748" ? "Nastrojka Kursov Valyut" : null));
+        Assert.Equal("Additional texts", CpNavTree.ResolveLabel("Dopolnitelnye Teksty", "/cp/additional-texts-app", Translate));
     }
 
     [Fact]

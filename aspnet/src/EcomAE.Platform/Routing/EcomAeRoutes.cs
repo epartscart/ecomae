@@ -183,6 +183,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCrmBoard = "/cp/crm-board";
     /// <summary>CP CRM Blazor board (JSON digest remains <see cref="ControlPanelCrmBoard"/>).</summary>
     public const string ControlPanelCrmBoardApp = "/cp/crm-board-app";
+    /// <summary>One customer workspace composed from CRM and ERP reads. JSON 360 digest stays on the CRM action.</summary>
+    public const string ControlPanelCustomer360App = "/cp/customer-360-app";
     /// <summary>CRM convert_lead. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Quote email stays Classic.</summary>
     public const string CpCrmLeadConvert = "/cp/crm/leads/convert";
     /// <summary>CP document control templates (HTML/bank secrets omitted).</summary>
@@ -529,6 +531,18 @@ public static class EcomAeRoutes
     public const string ControlPanelTenantEmailSave = "/cp/tenant-email/save";
     /// <summary>PHP <c>test_tenant_smtp</c>. <c>confirmWrites=true</c> sends via saved tenant SMTP.</summary>
     public const string ControlPanelTenantEmailTest = "/cp/tenant-email/test";
+    /// <summary>Super-CP / BOS Purelymail platform setup (unlimited domains + mailboxes).</summary>
+    public const string ControlPanelSuperMailApp = "/cp/super-mail-app";
+    /// <summary>Super-CP Purelymail write. <c>confirmWrites=true</c> saves token, domains, and mailboxes.</summary>
+    public const string ControlPanelSuperMailWrite = "/cp/super-mail/write";
+    /// <summary>Tenant CP inbox for mailboxes assigned to this <c>site_key</c>.</summary>
+    public const string ControlPanelMailboxApp = "/cp/mailbox-app";
+    /// <summary>Tenant CP mailbox + staff create on this tenant domain only. <c>confirmWrites=true</c>.</summary>
+    public const string ControlPanelMailboxWrite = "/cp/mailbox/write";
+    /// <summary>Tenant ERP chrome inbox for the same <c>site_key</c> mailboxes.</summary>
+    public const string ErpMailboxApp = "/erp/mailbox-app";
+    /// <summary>Tenant ERP compose / mailbox write. Same isolation as <see cref="ControlPanelMailboxWrite"/>.</summary>
+    public const string ErpMailboxWrite = "/erp/mailbox/write";
     public const string ControlPanelDataMigrations = "/cp/data-migrations";
     /// <summary>CP Data migrations Blazor list (JSON digest remains <see cref="ControlPanelDataMigrations"/>).</summary>
     public const string ControlPanelDataMigrationsApp = "/cp/data-migrations-app";
@@ -2210,6 +2224,13 @@ public static class EcomAeRoutes
     public const string BosApp = "/bos/app";
     /// <summary>BOS attention shell. Tenant-scoped reads of ERP and CRM rows. Not the Super-CP fleet.</summary>
     public const string Attention = "/attention";
+    /// <summary>BOS role-centre index. Five centres consume the same ERP/CRM attention reads.</summary>
+    public const string BosRoleCentresApp = "/bos/role-centres-app";
+    public const string BosRoleCeoApp = "/bos/role-ceo-app";
+    public const string BosRoleCfoApp = "/bos/role-cfo-app";
+    public const string BosRoleSalesApp = "/bos/role-sales-app";
+    public const string BosRolePurchasingApp = "/bos/role-purchasing-app";
+    public const string BosRoleOperationsApp = "/bos/role-operations-app";
     public const string BosParity = "/bos/parity";
     public const string BosFleetSummary = "/bos/fleet-summary";
     /// <summary>BOS fleet summary Blazor KPI UI (JSON digest remains <see cref="BosFleetSummary"/>).</summary>
@@ -2352,6 +2373,8 @@ public static class EcomAeRoutes
     public const string BosAuditLog = "/bos/audit-log";
     /// <summary>BOS audit log Blazor list (JSON digest remains <see cref="BosAuditLog"/>).</summary>
     public const string BosAuditLogApp = "/bos/audit-log-app";
+    /// <summary>Super BOS alias of platform mail setup (same Super-CP host gate).</summary>
+    public const string BosMailApp = "/bos/mail-app";
 
     /// <summary>Intelligence Platform hub (Super-CP only) — ecosystem over BOS + ambient OS products.</summary>
     public const string Ip = "/ip";

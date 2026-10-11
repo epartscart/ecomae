@@ -1,0 +1,26 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+
+<PhpChromeStyles Surface="cp" />
+<PhpCpDesktopChrome>
+    <div class="col-lg-12 epc-module-visual-frame" data-epc-super-denied="1">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Super CP only</div>
+            <div class="panel-body">
+                <p>@Message</p>
+                <p>
+                    <a href="/cp">Open Control Panel</a>
+                    @if (ExtraLinks is not null)
+                    {
+                        @ExtraLinks
+                    }
+                </p>
+            </div>
+        </div>
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    [Parameter] public string Message { get; set; } = "This control is available on the platform Super CP host only.";
+    [Parameter] public RenderFragment? ExtraLinks { get; set; }
+}
