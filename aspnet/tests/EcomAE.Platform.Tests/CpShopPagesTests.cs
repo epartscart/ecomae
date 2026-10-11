@@ -1,4 +1,5 @@
 using EcomAE.Platform.Cp;
+using EcomAE.Platform.Presentation;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -46,6 +47,10 @@ public sealed class CpShopPagesTests
         Assert.Equal("cp/content/shop/crosses/crosses.php", CpShopDeskPages.CrossesPath);
         Assert.Equal("/cp/crosses-app", CpShopDeskPages.CrossesHref);
         Assert.Equal("cp/content/shop/marketing/marketing_main.php", CpShopDeskPages.MarketingMainPath);
+        Assert.Contains("content/general_pages/epc_ecomae_platform_home.php", EcomaeGeneralPages.Paths);
+        Assert.Contains("cp/content/control/portal/epc_auto_price_engine.php", CpControlPortalPages.Paths);
+        Assert.Contains("templates/expan/desktop.php", EcomaeFrontShell.Paths);
+        Assert.Contains("core/dp_core.php", EcomaeFrontShell.Paths);
     }
 
     private static string Find(string relative)

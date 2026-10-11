@@ -215,7 +215,7 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - `content/shop/catalogue`: done on own-catalog, product, compare, bookmarks and SKU/search includes (`printProducts.php`, `printProducts_2.php`, `printCategories.php`, `set_cookie_products_style.php`, `text_search_algorithm.php`, `compare/compare.php`, `bookmarks/bookmarks.php`, `epc_sku_media.php`, tree-list and search-tab includes).
    - `content/shop/docpart`: done on `/storefront/search-app` plus the existing garage/demand/ingest ajax (`part_search_page.php`, `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest).
    - `modules/*`: done for login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats). Debug modules stay ops.
-   - Front templates `expan`, `modex` and `limo`; `core/dp_core.php` and `dp_helper.php` behaviour; plugins (metadata handler, phone/tablet, error pages, shop cart).
+   - Front templates `expan`, `modex` and `limo`; `core/dp_core.php` and `dp_helper.php` behaviour: done on the existing storefront chrome. Plugins (metadata handler, phone/tablet, error pages, shop cart) remain.
 2. **Checkout and order side effects still on PHP.**
    - Done: process-flow sync (`epc_pf_sync_order_case` and `epc_pf_sync_po_case` in `content/shop/finance/epc_erp_processflow.php`). See the checkpoint below.
    - Done: sales-invoice sale-demand capture (`epc_erp_inventory_record_sale_demand`). See the checkpoint below.
@@ -240,15 +240,15 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - `cp/content/users`, `cp/content/lang`, `cp/content/packs_control`, the file manager, `cp/content/requests`, the content structure dumps.
    - The CP plugins `2fa` and `authentication`; CP modules (bread crumbs, left menu, SSL check, logout).
 4. **Control Panel control and portal.**
-   - `cp/content/control/portal` (52 files): the auto price engine shell, social media hub, auth settings, tax toolkit, industry kit, licence trends and consolidation, marketing broadcast, the visual page editor, the fleet dashboard, the customer board, tenant e-mail settings, governance, POS tenant management, mobile apps, the BOC panels, and the guides.
+   - `cp/content/control/portal` (52 files): done on Super CP (auto price engine shell, social media hub, auth settings, tax toolkit, industry kit, licence trends and consolidation, marketing broadcast, the visual page editor, the fleet dashboard, the customer board, tenant e-mail settings, governance, POS tenant management, mobile apps, the BOC panels, and the guides).
    - Version control and admin-access check.
    - Root CP includes: `epc_cp_mainstream_menu.php`, `epc_oms_menu_guide_lib.php`, `epc_storefront_stub_redirect.php`, `epc_static_serve.php`, `epc_deploy_auth.php`.
 5. **Marketing, platform, tenant, BOS and industries (`content/general_pages`, 205 files plus 31 industry templates).**
-   - The ecomae.com platform pages, router, data, capability guides, FAQ and legal content; the brochures; the free tools; the portal demo; the web tracker.
-   - The auth common, MFA, SMTP and OAuth providers; the API v1 and webhooks; Power BI.
-   - Commerce isolation, tenant data protection, and the portal tenant pages and intro.
-   - The BOS unified and blockchain BOS pages, and the BOC console, with the BOS operator login `epc_bos_ajax_login.php` (it fills the PHP BOS session these pages read).
-   - The industry consolidation and the industry templates (`_base_template.php`, the sub-industry page and 28 industries).
+   - Done: the ecomae.com platform pages, router, data, capability guides, FAQ and legal content; the brochures; the free tools; the portal demo; the web tracker; industry templates.
+   - Done: the auth common, MFA, SMTP and OAuth providers; the API v1 and webhooks; Power BI.
+   - Done: commerce isolation, tenant data protection, and the portal tenant pages and intro.
+   - Done: the BOS unified and blockchain BOS pages, and the BOC console, with the BOS operator login `epc_bos_ajax_login.php`.
+   - Done: the industry consolidation and the industry templates (`_base_template.php`, the sub-industry page and 28 industries).
    - `epc_cloudpanel_helpers.php` is moved to ops workers, not ported as a page.
 6. **Price engine.** `content/shop/price_engine` (23 files, including the 6,768-line `epc_auto_price_engine.php` and the discovery adapters) plus the CP auto-price shell. This must stay on the existing importer.
 7. **ERP to 100%, after the steps above.**
