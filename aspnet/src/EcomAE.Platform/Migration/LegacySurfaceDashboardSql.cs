@@ -5562,6 +5562,19 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Jewellery tag register rows.</summary>
+    public const string SelectCpJewelleryMastersTags = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`tag_no`,'') AS tag_no,
+               IFNULL(`barcode`,'') AS barcode, IFNULL(`item_type`,'') AS item_type,
+               IFNULL(`karat`,'') AS karat, IFNULL(`net_weight`,0) AS net_weight,
+               IFNULL(`sell_price`,0) AS sell_price, IFNULL(`status`,'') AS status,
+               IFNULL(`location`,'') AS location
+        FROM `epc_jw_tags`
+        WHERE @companyId = 0 OR `company_id` = @companyId
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>Jewellery currency masters.</summary>
     public const string SelectCpJewelleryMastersCurrencies = """
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`curr_code`,'') AS curr_code,

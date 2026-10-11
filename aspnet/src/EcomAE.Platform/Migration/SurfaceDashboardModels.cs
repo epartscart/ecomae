@@ -4487,6 +4487,18 @@ public sealed record CpJewelleryMastersBarcodeDigest(
     decimal TagPrice,
     int Printed);
 
+public sealed record CpJewelleryMastersTagDigest(
+    long Id,
+    long CompanyId,
+    string TagNo,
+    string Barcode,
+    string ItemType,
+    string Karat,
+    decimal NetWeight,
+    decimal SellPrice,
+    string Status,
+    string Location);
+
 public sealed record CpJewelleryMastersDigestResult(
     CpJewelleryMastersSummary Summary,
     IReadOnlyList<CpJewelleryMastersKaratDigest> Karats,
@@ -4497,6 +4509,7 @@ public sealed record CpJewelleryMastersDigestResult(
     IReadOnlyList<CpJewelleryMastersPearlDigest> Pearls,
     IReadOnlyList<CpJewelleryMastersColorStoneDigest> ColorStones,
     IReadOnlyList<CpJewelleryMastersBarcodeDigest> BarcodeRows,
+    IReadOnlyList<CpJewelleryMastersTagDigest> Tags,
     int Count,
     string Source,
     string Message);
