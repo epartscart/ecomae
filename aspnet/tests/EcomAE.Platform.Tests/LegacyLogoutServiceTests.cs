@@ -108,6 +108,7 @@ public sealed class LegacyLogoutServiceTests
         {
             var text = Read(relative);
             Assert.Contains("location = /erp/logout", text, StringComparison.Ordinal);
+            Assert.Contains("location = /erp/logout/", text, StringComparison.Ordinal);
             Assert.Contains("location = /cp/logout", text, StringComparison.Ordinal);
             Assert.Contains("127.0.0.1:5100", text, StringComparison.Ordinal);
             Assert.Contains("erp-logout", text, StringComparison.OrdinalIgnoreCase);

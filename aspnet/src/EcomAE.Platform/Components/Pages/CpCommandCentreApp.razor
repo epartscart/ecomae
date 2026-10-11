@@ -596,8 +596,8 @@ else
 }
     <PhpHybridModuleDirectory
         Title="Complete Control Panel feature directory"
-        Subtitle="@($"{PhpModuleCatalog.CpBrochureFeatureCount} CP features")"
-        Links="@PhpModuleCatalog.CpBrochureFeatures"
+        Subtitle="@($"{_directoryLinks.Count} CP features")"
+        Links="@_directoryLinks"
         PhpWorkspaceBase="/cp/app" />
 </PhpCpDesktopChrome>
 
@@ -641,6 +641,7 @@ else
     private string _industryLabel = "Auto parts";
     private string _industryCode = "auto_parts";
     private string _industryIcon = "fa-car";
+    private IReadOnlyList<PhpModuleCatalog.ModuleLink> _directoryLinks = PhpModuleCatalog.CpBrochureFeatures;
 
     private static readonly DashTile[] MoreTools =
     [
@@ -673,6 +674,7 @@ else
         // BOC fleet console; tenant hosts get THEIR OWN tenant Command Centre.
         var host = ctx.Request.Host.Host;
         _isSuperHost = Services.PlatformHostPolicy.IsSuperCpHost(host);
+        _directoryLinks = LegacyDesktopChromeCatalog.BrochureFeaturesForHost(PhpModuleCatalog.CpBrochureFeatures, host);
         if (_isSuperHost)
         {
             _pageTitle = "Platform Super CP · ECOM AE";

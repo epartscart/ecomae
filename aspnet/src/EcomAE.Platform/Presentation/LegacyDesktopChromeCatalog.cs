@@ -1,4 +1,5 @@
 using System.Linq;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Presentation;
 
@@ -282,6 +283,25 @@ public static class LegacyDesktopChromeCatalog
         }
 
         return groups;
+    }
+
+    /// <summary>
+    /// Tenant CP brochure directory: drop jewellery ERP shells and Super-only fleet links.
+    /// Super CP keeps the full brochure list.
+    /// </summary>
+    public static IReadOnlyList<PhpModuleCatalog.ModuleLink> BrochureFeaturesForHost(
+        IReadOnlyList<PhpModuleCatalog.ModuleLink> links,
+        string? host)
+    {
+        if (PlatformHostPolicy.IsSuperCpHost(host))
+        {
+            return links;
+        }
+
+        var jewellery = ErpIndustryNav.ShowJewelleryModules(ErpHostContext.Resolve(host).IndustryCode, company: null);
+        return links
+            .Where(link => (jewellery || !IsJewelleryCpLink(link)) && !IsSuperOnlyCpLink(link.Href, link.Group))
+            .ToList();
     }
 
     /// <summary>Jewellery / JW brochure + app links — hidden on non-jewellery tenant CP (PHP industry filter).</summary>

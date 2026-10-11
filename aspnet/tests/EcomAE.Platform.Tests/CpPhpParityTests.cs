@@ -350,11 +350,30 @@ public sealed class CpPhpParityTests
     }
 
     [Fact]
+    public void EpartscartCommandCentreDirectory_DropsJewelleryAndSuperOnly()
+    {
+        var links = LegacyDesktopChromeCatalog.BrochureFeaturesForHost(
+            PhpModuleCatalog.CpBrochureFeatures,
+            "www.epartscart.com");
+        Assert.NotEmpty(links);
+        Assert.True(links.Count < PhpModuleCatalog.CpBrochureFeatures.Count);
+        Assert.DoesNotContain(links, LegacyDesktopChromeCatalog.IsJewelleryCpLink);
+        Assert.DoesNotContain(links, l => LegacyDesktopChromeCatalog.IsSuperOnlyCpLink(l.Href, l.Group));
+        var page = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor"));
+        Assert.Contains("BrochureFeaturesForHost", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("Links=\"@PhpModuleCatalog.CpBrochureFeatures\"", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void JewelleryTenantTopnav_KeepsJewelleryLinks()
     {
         var groups = LegacyDesktopChromeCatalog.ControlPanelTopnav(includeSuperOnly: false, industryCode: "jewellery");
         var all = groups.SelectMany(g => g.Links).ToList();
         Assert.Contains(all, LegacyDesktopChromeCatalog.IsJewelleryCpLink);
+        var directory = LegacyDesktopChromeCatalog.BrochureFeaturesForHost(
+            PhpModuleCatalog.CpBrochureFeatures,
+            "www.thejewellerytrend.com");
+        Assert.Contains(directory, LegacyDesktopChromeCatalog.IsJewelleryCpLink);
     }
 
     private static string Find(string relative)

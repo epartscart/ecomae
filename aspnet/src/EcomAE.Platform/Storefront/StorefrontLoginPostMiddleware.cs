@@ -68,9 +68,13 @@ public sealed class StorefrontLoginPostMiddleware
         context.Request.EnableBuffering();
         var form = await context.Request.ReadFormAsync(context.RequestAborted).ConfigureAwait(false);
         context.Request.Body.Position = 0;
-        if (!form.TryGetValue("authentication", out var flag) || AuthEmailOtp.PhpEmpty(flag.ToString()))
+        var authentication = form.TryGetValue("authentication", out var flag) && !AuthEmailOtp.PhpEmpty(flag.ToString());
+        var hasContact = HasNonEmpty(form, "auth_contact") || HasNonEmpty(form, "email") || HasNonEmpty(form, "contact");
+        var hasPassword = HasNonEmpty(form, "password") || HasNonEmpty(form, "code");
+        if (!authentication && !(hasContact && hasPassword))
         {
-            await _next(context).ConfigureAwait(false);
+            // Never fall through to Blazor antiforgery — that returns an empty HTTP 400.
+            await RenderAsGetAsync(context, null).ConfigureAwait(false);
             return;
         }
 
@@ -87,6 +91,11 @@ public sealed class StorefrontLoginPostMiddleware
             && (path.AsSpan(3).StartsWith("/users/login", StringComparison.Ordinal) || (offer && path.AsSpan(3).StartsWith("/shop/", StringComparison.Ordinal)));
         var lang = langInPath ? path.Substring(1, 2) : "en";
         var post = form.ToDictionary(p => p.Key, p => p.Value.Count > 0 ? p.Value[^1] ?? string.Empty : string.Empty, StringComparer.Ordinal);
+        if (!authentication)
+        {
+            post["authentication"] = "true";
+        }
+
         if (offer && post.TryGetValue("target", out var target) && target == StorefrontCheckoutLoginOffer.Target)
         {
             post["target"] = LoginOfferTarget(lang, langInPath);
@@ -198,6 +207,9 @@ public sealed class StorefrontLoginPostMiddleware
             persons,
             cancellationToken).ConfigureAwait(false);
     }
+
+    private static bool HasNonEmpty(IFormCollection form, string key)
+        => form.TryGetValue(key, out var value) && !AuthEmailOtp.PhpEmpty(value.ToString());
 
     private static IReadOnlyDictionary<string, string> PhpConfig(HttpContext context)
     {

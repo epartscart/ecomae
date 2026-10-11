@@ -61,6 +61,11 @@ public sealed class CpDemoTenantsServiceTests
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
 
+        var service = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Cp/CpDemoTenantsService.cs"));
+        Assert.Contains("ITenantDbConnectionFactory", service, StringComparison.Ordinal);
+        Assert.Contains("OpenRegistryAsync", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("IErpWriteConnectionFactory", service, StringComparison.Ordinal);
+
         var program = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Program.cs"));
         Assert.Contains("ICpDemoTenantsService, EcomAE.Platform.Cp.CpDemoTenantsService", program, StringComparison.Ordinal);
         var module = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));

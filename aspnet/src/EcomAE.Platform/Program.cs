@@ -1794,7 +1794,11 @@ app.MapMethods(EcomAeRoutes.LegacyLogout, ["GET", "POST"], async (HttpContext co
 });
 app.MapMethods(EcomAeRoutes.ControlPanelLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
     => PerformLegacyLogout(context, logout, "cp", null));
+app.MapMethods(EcomAeRoutes.ControlPanelLogout + "/", ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
+    => PerformLegacyLogout(context, logout, "cp", null));
 app.MapMethods(EcomAeRoutes.ErpLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
+    => PerformLegacyLogout(context, logout, "erp", null));
+app.MapMethods(EcomAeRoutes.ErpLogout + "/", ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
     => PerformLegacyLogout(context, logout, "erp", null));
 app.MapMethods(EcomAeRoutes.BosLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
     => PerformLegacyLogout(context, logout, "bos", null));

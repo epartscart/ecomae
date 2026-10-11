@@ -2,7 +2,7 @@
   "note": "DESIGN ONLY \u2014 not loaded by Program.cs. Nginx remains the CloudPanel edge. Generated from nginx exact-route shadow allowlists. Future YARP must proxy exact approved routes only; never catch-all /api, /cp, /erp, /bos, or /.",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
-  "routeCount": 411,
+  "routeCount": 429,
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
@@ -1340,6 +1340,18 @@
           }
         ]
       },
+      "cp-logout": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/logout"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-logout-bridge"
+          }
+        ]
+      },
       "erp-login": {
         "ClusterId": "ecomae-platform",
         "Match": {
@@ -1376,6 +1388,18 @@
           }
         ]
       },
+      "bos-logout": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/bos/logout"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "bos-logout-bridge"
+          }
+        ]
+      },
       "storefront-login": {
         "ClusterId": "ecomae-platform",
         "Match": {
@@ -1385,6 +1409,18 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "storefront-login-bridge"
+          }
+        ]
+      },
+      "storefront-logout": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/storefront/logout"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "storefront-logout-bridge"
           }
         ]
       },
@@ -4937,6 +4973,186 @@
           {
             "RequestHeader": "X-EcomAE-Route-Cutover",
             "Set": "erp-workflows-app-presentation-preview"
+          }
+        ]
+      },
+      "cp-mailbox-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/mailbox-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-mailbox-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-super-mail-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/super-mail-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-super-mail-app-read-ui-preview"
+          }
+        ]
+      },
+      "cp-customer-360-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/cp/customer-360-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "cp-customer-360-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-mailbox-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/mailbox-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-mailbox-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-syncron-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/syncron-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-syncron-app-read-ui-preview"
+          }
+        ]
+      },
+      "bos-mail-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/bos/mail-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "bos-mail-app-read-ui-preview"
+          }
+        ]
+      },
+      "bos-role-centres-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/bos/role-centres-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "bos-role-centres-app-read-ui-preview"
+          }
+        ]
+      },
+      "bos-role-ceo-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/bos/role-ceo-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "bos-role-ceo-app-read-ui-preview"
+          }
+        ]
+      },
+      "bos-role-cfo-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/bos/role-cfo-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "bos-role-cfo-app-read-ui-preview"
+          }
+        ]
+      },
+      "bos-role-operations-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/bos/role-operations-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "bos-role-operations-app-read-ui-preview"
+          }
+        ]
+      },
+      "bos-role-purchasing-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/bos/role-purchasing-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "bos-role-purchasing-app-read-ui-preview"
+          }
+        ]
+      },
+      "bos-role-sales-app": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/bos/role-sales-app"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "bos-role-sales-app-read-ui-preview"
+          }
+        ]
+      },
+      "erp-logout-426": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/erp/logout/"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "erp-logout-bridge"
+          }
+        ]
+      },
+      "storefront": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/storefront"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "storefront-alias-preview"
+          }
+        ]
+      },
+      "robots.txt": {
+        "ClusterId": "ecomae-platform",
+        "Match": {
+          "Path": "/robots.txt"
+        },
+        "Transforms": [
+          {
+            "RequestHeader": "X-EcomAE-Route-Cutover",
+            "Set": "robots-txt-preview"
           }
         ]
       }

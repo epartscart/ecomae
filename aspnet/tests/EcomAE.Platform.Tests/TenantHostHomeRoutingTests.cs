@@ -37,6 +37,12 @@ public sealed class TenantHostHomeRoutingTests
         Assert.Equal("storefront", kind);
         Assert.False(PublicHomeRewriteMiddleware.TryMap(host, "/cp", out _, out _));
         Assert.False(PublicHomeRewriteMiddleware.TryMap(host, "/en/", out _, out _));
+        Assert.True(PublicHomeRewriteMiddleware.TryMap(host, "/storefront", out var alias, out var aliasKind));
+        Assert.Equal("/storefront/app", alias);
+        Assert.Equal("storefront-alias", aliasKind);
+        Assert.True(PublicHomeRewriteMiddleware.TryMap(host, "/storefront/", out var slash, out var slashKind));
+        Assert.Equal("/storefront/app", slash);
+        Assert.Equal("storefront-alias", slashKind);
     }
 
     [Fact]

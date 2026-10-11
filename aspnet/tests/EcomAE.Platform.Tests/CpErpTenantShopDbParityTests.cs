@@ -92,6 +92,14 @@ public sealed class CpErpTenantShopDbParityTests
     }
 
     [Fact]
+    public void DemoTenantsService_UsesOpenRegistryAsync()
+    {
+        var text = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Cp/CpDemoTenantsService.cs"));
+        Assert.Contains("OpenRegistryAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("_connections.OpenAsync(", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AuthGate_DoesNotJsonTrapDashboardSummaryApps()
     {
         Assert.False(EcomAE.Platform.Middleware.AdminSurfaceAuthGateMiddleware.IsJsonChallengePath("/cp/dashboard-summary-app"));

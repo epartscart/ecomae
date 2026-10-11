@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using EcomAE.Platform.Data;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
@@ -71,9 +72,9 @@ public sealed class CpDemoTenantsService : ICpDemoTenantsService
         "ALTER TABLE `epc_portal_tenants` ADD COLUMN `demo_extended_count` INT NOT NULL DEFAULT 0",
     ];
 
-    private readonly IErpWriteConnectionFactory _connections;
+    private readonly ITenantDbConnectionFactory _connections;
 
-    public CpDemoTenantsService(IErpWriteConnectionFactory connections)
+    public CpDemoTenantsService(ITenantDbConnectionFactory connections)
     {
         _connections = connections;
     }
@@ -127,7 +128,7 @@ public sealed class CpDemoTenantsService : ICpDemoTenantsService
 
         try
         {
-            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var active = (int)await ErpDb.LongAsync(connection, null, CountActiveSql, cancellationToken, now).ConfigureAwait(false);
@@ -183,7 +184,7 @@ public sealed class CpDemoTenantsService : ICpDemoTenantsService
 
         try
         {
-            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             var current = await ErpDb.ScalarAsync(
                 connection, null,
@@ -225,7 +226,7 @@ public sealed class CpDemoTenantsService : ICpDemoTenantsService
 
         try
         {
-            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             if (!await IsDemoAsync(connection, key, cancellationToken).ConfigureAwait(false))
             {
@@ -259,7 +260,7 @@ public sealed class CpDemoTenantsService : ICpDemoTenantsService
 
         try
         {
-            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             string dbName;
             string dbUser;
