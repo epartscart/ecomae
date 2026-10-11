@@ -816,6 +816,48 @@ internal static class ErpLazySchema
             return; // table could not be created/read on this tenant — leave unscoped
         }
 
+        // PHP epc_co_profile_get → epc_co_ensure_schema: profile tables are created
+        // lazily on first read, so a fresh tenant's seed still has a real (empty) profile row source.
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_co_profile` (" +
+            "`id` tinyint(1) NOT NULL DEFAULT 1," +
+            "`legal_name` varchar(200) NOT NULL DEFAULT ''," +
+            "`trade_name` varchar(200) NOT NULL DEFAULT ''," +
+            "`logo_url` varchar(255) NOT NULL DEFAULT ''," +
+            "`stamp_url` varchar(255) NOT NULL DEFAULT ''," +
+            "`address` varchar(500) NOT NULL DEFAULT ''," +
+            "`city` varchar(120) NOT NULL DEFAULT ''," +
+            "`country` varchar(2) NOT NULL DEFAULT ''," +
+            "`phone` varchar(60) NOT NULL DEFAULT ''," +
+            "`email` varchar(160) NOT NULL DEFAULT ''," +
+            "`website` varchar(160) NOT NULL DEFAULT ''," +
+            "`trn` varchar(40) NOT NULL DEFAULT ''," +
+            "`tax_label` varchar(20) NOT NULL DEFAULT 'TRN'," +
+            "`trade_license` varchar(60) NOT NULL DEFAULT ''," +
+            "`reg_no` varchar(60) NOT NULL DEFAULT ''," +
+            "`bank_details` varchar(500) NOT NULL DEFAULT ''," +
+            "`base_currency` varchar(3) NOT NULL DEFAULT ''," +
+            "`fy_start` varchar(5) NOT NULL DEFAULT '01-01'," +
+            "`invoice_terms` varchar(1000) NOT NULL DEFAULT ''," +
+            "`header_html` text," +
+            "`footer_html` text," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Single-row tenant company profile'",
+            ct).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_co_branch_profile` (" +
+            "`branch_id` int(11) NOT NULL," +
+            "`name` varchar(200) NOT NULL DEFAULT ''," +
+            "`address` varchar(500) NOT NULL DEFAULT ''," +
+            "`phone` varchar(60) NOT NULL DEFAULT ''," +
+            "`email` varchar(160) NOT NULL DEFAULT ''," +
+            "`trn` varchar(40) NOT NULL DEFAULT ''," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`branch_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Per-branch document overrides'",
+            ct).ConfigureAwait(false);
+
         var legalName = string.Empty;
         var tradeName = string.Empty;
         var baseCurrency = string.Empty;
