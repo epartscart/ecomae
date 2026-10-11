@@ -1,0 +1,255 @@
+@page "/erp/account-operations-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@inject IErpAccountingCodesService Codes
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Account operations · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Account operations" BreadcrumbArea="Finance" BreadcrumbTab="Account operations">
+
+    <PhpErpModulePageHeader Title="User balance operations" Subtitle="Ledger of shop_users_accounting — the PHP account_operations page. Filter by date range, direction, operation, order or customer; the footer shows the running balance (saldo) over the same filters." />
+    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+
+    @if (_isAdmin)
+    {
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Filter</div>
+            <div class="panel-body">
+                <form method="get" action="@_listHref" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0">
+                    <label>From <input type="datetime-local" name="time_from" value="@_timeFromLocal" /></label>
+                    <label>To <input type="datetime-local" name="time_to" value="@_timeToLocal" /></label>
+                    <label>Direction
+                        <select name="income">
+                            <option value="-1">All</option>
+                            <option value="1" selected="@(_fIncome == 1)">Income</option>
+                            <option value="0" selected="@(_fIncome == 0)">Expense</option>
+                        </select>
+                    </label>
+                    <label>Operation
+                        <select name="operation_code">
+                            <option value="-1">All</option>
+                            @foreach (var c in _codes)
+                            {
+                                <option value="@c.Id" selected="@(_fOpCode == c.Id)">#@c.Id @c.Name (@(c.Income == 1 ? "income" : "expense"))</option>
+                            }
+                        </select>
+                    </label>
+                    <label>Order <input type="number" name="order_id" min="0" value="@(_fOrderId?.ToString(CultureInfo.InvariantCulture) ?? "")" style="width:7rem" /></label>
+                    <label>User <input type="number" name="user_id" min="0" value="@(_fUserId?.ToString(CultureInfo.InvariantCulture) ?? "")" style="width:7rem" /></label>
+                    <input type="hidden" name="sort" value="@_sortField" />
+                    <input type="hidden" name="dir" value="@(_ascending ? "asc" : "desc")" />
+                    <button type="submit" class="btn btn-success">Apply</button>
+                    <a class="btn btn-default" href="@_listHref">Reset</a>
+                </form>
+            </div>
+        </div>
+
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">New manual operation</div>
+            <div class="panel-body">
+                <form method="post" action="/erp/operations/create-entry" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@Nav.Uri" />
+                    <label>User id <input type="number" name="user_id" min="0" required value="0" style="width:7rem" /></label>
+                    <label>Direction
+                        <select name="income">
+                            <option value="0" selected>expense</option>
+                            <option value="1">income</option>
+                        </select>
+                    </label>
+                    <label>Operation
+                        <select name="operation_code" required>
+                            @foreach (var c in _codes.Where(c => c.ManualAvailable == 1))
+                            {
+                                <option value="@c.Id">#@c.Id @c.Name (@(c.Income == 1 ? "income" : "expense"))</option>
+                            }
+                        </select>
+                    </label>
+                    <label>Amount <input type="number" name="amount" step="0.01" min="0.01" required style="width:8rem" /></label>
+                    <button type="submit">Create entry</button>
+                </form>
+            </div>
+        </div>
+    }
+
+    <div class="hpanel">
+        <div class="panel-heading hbuilt">Operations</div>
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead>
+                <tr>
+                    <th><a href="@SortHref("id")">ID@SortMark("id")</a></th>
+                    <th><a href="@SortHref("time")">Time@SortMark("time")</a></th>
+                    <th><a href="@SortHref("amount")">Amount@SortMark("amount")</a></th>
+                    <th><a href="@SortHref("order_id")">Order@SortMark("order_id")</a></th>
+                    <th><a href="@SortHref("income")">Direction@SortMark("income")</a></th>
+                    <th><a href="@SortHref("user_id")">Customer@SortMark("user_id")</a></th>
+                    <th><a href="@SortHref("operation_code")">Operation@SortMark("operation_code")</a></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_page is null || _page.Rows.Count == 0)
+                {
+                    <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No operations found." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _page.Rows)
+                    {
+                        var bg = row.Income == 1 ? "background-color:#d4ffd0;" : "background-color:#ffecec;";
+                        var when = DateTimeOffset.FromUnixTimeSeconds(row.Time);
+                        <tr style="@bg">
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@when.ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture)</td>
+                            <td>@(row.Income == 1 ? "+" : "-")@row.Amount.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                            <td>@(row.OrderId > 0 ? row.OrderId.ToString(CultureInfo.InvariantCulture) : "-")</td>
+                            <td>@(row.Income == 1 ? "Income" : "Expense")</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Customer) ? "ID " + row.UserId.ToString(CultureInfo.InvariantCulture) : row.Customer)</td>
+                            <td>#@row.OperationCode.ToString(CultureInfo.InvariantCulture) @row.OperationName</td>
+                        </tr>
+                    }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td></td>
+                        <td>@_page.Rows.Where(r => r.Income == 1).Sum(r => r.Amount).ToString("0.00", CultureInfo.InvariantCulture) in / @_page.Rows.Where(r => r.Income == 0).Sum(r => r.Amount).ToString("0.00", CultureInfo.InvariantCulture) out</td>
+                        <td></td>
+                        <td>@_page.Rows.Count(r => r.Income == 1) in / @_page.Rows.Count(r => r.Income == 0) out</td>
+                        <td></td>
+                        <td>@_page.Rows.Count of @_page.TotalRows rows</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="panel-footer" style="padding:.5rem 1rem">
+            Balance (saldo): <strong>@((_page?.Balance ?? 0m).ToString("0.00", CultureInfo.InvariantCulture))</strong>
+            &nbsp;·&nbsp; Page @(_pageIndex + 1) of @_pageCount
+            @if (_pageIndex > 0)
+            {
+                <a class="btn btn-default btn-xs" href="@PageHref(_pageIndex - 1)">‹ Prev</a>
+            }
+            @if (_pageIndex + 1 < _pageCount)
+            {
+                <a class="btn btn-default btn-xs" href="@PageHref(_pageIndex + 1)">Next ›</a>
+            }
+        </div>
+    </div>
+
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private IReadOnlyList<ErpAccountingCodeRow> _codes = [];
+    private ErpAccountOperationsPage? _page;
+    private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private const string _listHref = "/erp/account-operations-app";
+
+    private string _sortField = "id";
+    private bool _ascending;
+    private int _pageIndex;
+    private int _pageCount = 1;
+    private const int RowsPerPage = 50;
+
+    private long _fTimeFrom;
+    private long _fTimeTo;
+    private int _fIncome = -1;
+    private long _fOpCode = -1;
+    private long? _fUserId;
+    private long? _fOrderId;
+    private string _timeFromLocal = "";
+    private string _timeToLocal = "";
+
+    private static readonly string[] Sortable = { "id", "time", "user_id", "amount", "operation_code", "income", "order_id" };
+
+    private string SortMark(string field)
+        => _sortField == field ? (_ascending ? " ▲" : " ▼") : "";
+
+    private string SortHref(string field)
+    {
+        var asc = _sortField == field ? !_ascending : false;
+        return BuildHref(field, asc, _pageIndex);
+    }
+
+    private string PageHref(int page) => BuildHref(_sortField, _ascending, page);
+
+    private string BuildHref(string sort, bool asc, int page)
+    {
+        var q = $"?sort={sort}&dir={(asc ? "asc" : "desc")}&page={page}";
+        if (_fTimeFrom > 0) q += $"&time_from={ToLocal(_fTimeFrom)}";
+        if (_fTimeTo > 0) q += $"&time_to={ToLocal(_fTimeTo)}";
+        if (_fIncome >= 0) q += $"&income={_fIncome}";
+        if (_fOpCode > 0) q += $"&operation_code={_fOpCode}";
+        if (_fUserId is not null) q += $"&user_id={_fUserId}";
+        if (_fOrderId is not null) q += $"&order_id={_fOrderId}";
+        return _listHref + q;
+    }
+
+    private static string ToLocal(long unix)
+        => DateTimeOffset.FromUnixTimeSeconds(unix).ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+
+    private static long ParseLocal(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return 0;
+        return DateTimeOffset.TryParse(raw, CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal,
+            out var dto)
+            ? dto.ToUnixTimeSeconds()
+            : 0;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
+        {
+            _message = "Sign in for live data.";
+            return;
+        }
+
+        var q = ctx.Request.Query;
+        _sortField = q["sort"].ToString();
+        if (!Sortable.Contains(_sortField)) _sortField = "id";
+        _ascending = string.Equals(q["dir"].ToString(), "asc", StringComparison.OrdinalIgnoreCase);
+        _pageIndex = int.TryParse(q["page"], out var p) && p > 0 ? p : 0;
+
+        _timeFromLocal = q["time_from"].ToString();
+        _timeToLocal = q["time_to"].ToString();
+        _fTimeFrom = ParseLocal(_timeFromLocal);
+        _fTimeTo = ParseLocal(_timeToLocal);
+        _fIncome = int.TryParse(q["income"], out var inc) ? inc : -1;
+        _fOpCode = long.TryParse(q["operation_code"], out var oc) ? oc : -1;
+        _fUserId = long.TryParse(q["user_id"], out var uid) && uid > 0 ? uid : null;
+        _fOrderId = long.TryParse(q["order_id"], out var oid) && oid > 0 ? oid : null;
+
+        _codes = await Codes.ListAsync(ctx.RequestAborted);
+        var filter = new ErpAccountOperationsFilter(_fTimeFrom, _fTimeTo, _fIncome, _fOpCode, _fUserId, _fOrderId, null);
+        _page = await Codes.ListOperationsAsync(filter, _sortField, _ascending, _pageIndex * RowsPerPage, RowsPerPage, ctx.RequestAborted);
+        if (_page is null)
+        {
+            _message = "Accounting ledger is not provisioned.";
+            return;
+        }
+        _pageCount = Math.Max(1, (int)Math.Ceiling(_page.TotalRows / (double)RowsPerPage));
+    }
+}

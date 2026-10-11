@@ -997,6 +997,10 @@ public static class EcomAeRoutes
     public const string ErpOperationsSave = "/erp/operations/save";
     /// <summary>Live PHP operations_editor delete_operations twin.</summary>
     public const string ErpOperationsDelete = "/erp/operations/delete";
+    /// <summary>Live PHP create_operation.php action=create twin (manual user balance entry).</summary>
+    public const string ErpOperationsCreateEntry = "/erp/operations/create-entry";
+    /// <summary>Account operations ledger app — PHP account_operations.php twin.</summary>
+    public const string ErpAccountOperationsApp = "/erp/account-operations-app";
     /// <summary>Department workflow board from <c>epc_erp_workflow_tasks</c> (not process-flow cases).</summary>
     public const string ErpWorkflowTasks = "/erp/workflow-tasks";
     public const string ErpWorkflowApp = "/erp/workflow-app";
