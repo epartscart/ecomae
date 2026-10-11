@@ -247,6 +247,8 @@ public sealed class CpNavTreePhpParityTests
         Assert.Equal("SAO status links", CpNavTree.ResolveLabel("Sao States Statuses Link", "/cp/sao-app", Translate));
         Assert.Equal("SMS operators", CpNavTree.ResolveLabel("Sms Operatory", "/cp/sms-whatsapp-app", Translate));
         Assert.Equal("Server IP", CpNavTree.ResolveLabel("Ip Php", "/cp/server-ip-app", Translate));
+        Assert.Equal("Currency rates", CpNavTree.ResolveLabel("748", "/cp/currencies-app", key => key == "748" ? "Nastrojka Kursov Valyut" : null));
+        Assert.Equal("Additional texts", CpNavTree.ResolveLabel("Dopolnitelnye Teksty", "/cp/additional-texts-app", Translate));
     }
 
     [Fact]

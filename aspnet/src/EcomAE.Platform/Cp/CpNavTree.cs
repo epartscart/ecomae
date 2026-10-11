@@ -254,6 +254,32 @@ public static class CpNavTree
         ["Sao States Statuses Link"] = "SAO status links",
         ["Sms Operatory"] = "SMS operators",
         ["Ip Php"] = "Server IP",
+        ["Dopolnitelnye Teksty"] = "Additional texts",
+        ["Usergroups"] = "User groups",
+        ["Filemanager"] = "File manager",
+        ["Cp Guideline"] = "Control guideline",
+        ["Lang"] = "Languages",
+        ["Catalogue Editor"] = "Catalogue",
+        ["Customer Mgmt"] = "Customers",
+        ["Prices Send"] = "Send prices",
+        ["Demand Countries"] = "Demand intelligence",
+        ["Account Operations"] = "Credit limits",
+        ["Manufacturers Synonyms"] = "Brand synonyms",
+        ["Returns Manager"] = "Returns",
+        ["Whatsapp Guide"] = "WhatsApp guide",
+        ["Cp Auth Settings"] = "Sign-in security",
+        ["Api Clients Manage"] = "API clients",
+        ["Cp Group Customers"] = "Customers",
+        ["Cp Group Documents"] = "Documents",
+        ["Cp Group Erp"] = "ERP",
+        ["Cp Group Procurement"] = "Purchasing",
+        ["Cp Group Channels"] = "Channels",
+        ["Cp Group Logistics"] = "Logistics",
+        ["Cp Group Ai"] = "AI",
+        ["Cp Group Marketing"] = "Marketing",
+        ["Cp Group Payments"] = "Payments",
+        ["Cp Group Integrations"] = "Integrations",
+        ["Cp Group Portal"] = "Portal",
     };
 
     private static readonly Regex NamedKeyRegex = new("^[A-Za-z][A-Za-z0-9_]*$", RegexOptions.Compiled);
@@ -441,9 +467,14 @@ public static class CpNavTree
             }
 
             var tr = translate(caption);
-            if (!string.IsNullOrWhiteSpace(tr) && tr.Trim() != caption)
+            if (!string.IsNullOrWhiteSpace(tr) && tr.Trim() != caption && !IsPlaceholderLabel(tr))
             {
                 label = tr.Trim();
+            }
+
+            if (label.Length > 0 && CaptionAliases.TryGetValue(label, out var translatedAlias))
+            {
+                return translatedAlias;
             }
 
             if (label.Length == 0
@@ -477,8 +508,16 @@ public static class CpNavTree
             }
         }
 
+        if (CaptionAliases.TryGetValue(label, out var finalAlias))
+        {
+            return finalAlias;
+        }
+
         return label;
     }
+
+    private static bool IsPlaceholderLabel(string? value)
+        => string.Equals((value ?? string.Empty).Trim(), "Menu item", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>PHP <c>epc_portal_cp_menu_humanize_url</c>: shop/orders/orders → Orders.</summary>
     public static string HumanizeUrl(string url)
@@ -639,6 +678,26 @@ public static class CpNavTree
 
             var ck = tab.Group.Caption;
             var caption = ResolveLabel(ck, string.Empty, translate);
+            if (IsPlaceholderLabel(caption) || DigitsRegex.IsMatch(caption) || string.Equals(caption, ck, StringComparison.Ordinal))
+            {
+                if (GroupShortLabels.TryGetValue(ck, out var named))
+                {
+                    caption = named;
+                }
+                else if (GroupShortLabels.TryGetValue(tab.Group.Id.ToString(CultureInfo.InvariantCulture), out named))
+                {
+                    caption = named;
+                }
+                else if (tab.Items.Count > 0)
+                {
+                    var inferred = HumanizeUrl(tab.Items[0].Url);
+                    if (!string.IsNullOrWhiteSpace(inferred) && !IsPlaceholderLabel(inferred))
+                    {
+                        caption = inferred;
+                    }
+                }
+            }
+
             ordered.Add(new CpNavGroup(
                 tab.Group.Id.ToString(CultureInfo.InvariantCulture),
                 ck,
