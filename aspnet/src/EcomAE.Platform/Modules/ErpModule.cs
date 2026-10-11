@@ -19425,8 +19425,8 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var confirm = false;
-        var companyId = 0L; var channelId = 0L; var itemId = 0L;
-        var qty = 0.0; var unitPrice = 0.0; var taxRate = 0.0;
+        var companyId = 0L; var channelId = 0L; var itemId = 0L; var warehouseId = 0L;
+        var qty = 0m; var unitPrice = 0m; var taxRate = 0m;
         var tender = "cash";
         if (context.Request.HasFormContentType)
         {
@@ -19435,9 +19435,10 @@ public sealed class ErpModule : ISurfaceModule
             companyId = LiveWriteFormBinder.Long(form, "company_id", "companyId", "company");
             channelId = LiveWriteFormBinder.Long(form, "channel_id", "channelId");
             itemId = LiveWriteFormBinder.Long(form, "item_id", "itemId");
-            qty = (double)LiveWriteFormBinder.Dec(form, "qty");
-            unitPrice = (double)LiveWriteFormBinder.Dec(form, "unit_price", "unitPrice");
-            taxRate = (double)LiveWriteFormBinder.Dec(form, "tax_rate", "taxRate");
+            warehouseId = LiveWriteFormBinder.Long(form, "warehouse_id", "warehouseId");
+            qty = LiveWriteFormBinder.Dec(form, "qty");
+            unitPrice = LiveWriteFormBinder.Dec(form, "unit_price", "unitPrice");
+            taxRate = LiveWriteFormBinder.Dec(form, "tax_rate", "taxRate");
             var t = LiveWriteFormBinder.Text(form, "tender");
             if (t.Length > 0) tender = t;
         }
@@ -19448,6 +19449,7 @@ public sealed class ErpModule : ISurfaceModule
             companyId = body?.CompanyId ?? 0;
             channelId = body?.ChannelId ?? 0;
             itemId = body?.ItemId ?? 0;
+            warehouseId = body?.WarehouseId ?? 0;
             qty = body?.Qty ?? 0;
             unitPrice = body?.UnitPrice ?? 0;
             taxRate = body?.TaxRate ?? 0;
@@ -19460,7 +19462,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var result = await writes.SaleAsync(
-            new EcomAE.Platform.Erp.ErpRtlPosSaleRequest(companyId, channelId, [new ErpRtlPosSaleLine(itemId, qty, unitPrice)], tender, taxRate),
+            new EcomAE.Platform.Erp.ErpRtlPosSaleRequest(companyId, channelId, [new ErpRtlPosSaleLine(itemId, qty, unitPrice)], tender, taxRate, warehouseId, session.UserId),
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
@@ -27181,10 +27183,11 @@ public sealed class ErpModule : ISurfaceModule
         long CompanyId = 0,
         long ChannelId = 0,
         long ItemId = 0,
-        double Qty = 0,
-        double UnitPrice = 0,
+        decimal Qty = 0,
+        decimal UnitPrice = 0,
         string? Tender = null,
-        double TaxRate = 0);
+        decimal TaxRate = 0,
+        long WarehouseId = 0);
     private sealed record ErpInsClaimStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpPrjSaveBody(
         long Id = 0,
