@@ -96,6 +96,49 @@
         </div>
     }
 
+    @if (_byWarehouse.Count > 0 || _byItem.Count > 0)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+            <p style="margin:0 0 .4rem"><strong>Movements by warehouse</strong> <span class="text-muted">(top 10)</span></p>
+            <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Warehouse</th><th class="text-right">Lines</th><th class="text-right">Qty in</th><th class="text-right">Qty out</th><th class="text-right">Cost</th></tr></thead>
+                <tbody>
+                    @foreach (var w in _byWarehouse)
+                    {
+                        <tr>
+                            <td>@(string.IsNullOrWhiteSpace(w.WarehouseName) ? ("#" + w.WarehouseId.ToString(CultureInfo.InvariantCulture)) : w.WarehouseName)</td>
+                            <td class="text-right">@w.Lines</td>
+                            <td class="text-right">@w.QtyIn.ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@w.QtyOut.ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@w.Cost.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+            <div>
+            <p style="margin:0 0 .4rem"><strong>Movements by item</strong> <span class="text-muted">(top 10)</span></p>
+            <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Item</th><th class="text-right">Lines</th><th class="text-right">Net qty</th><th class="text-right">Cost</th></tr></thead>
+                <tbody>
+                    @foreach (var r in _byItem)
+                    {
+                        <tr>
+                            <td>@(string.IsNullOrWhiteSpace(r.Label) ? "—" : r.Label)</td>
+                            <td class="text-right">@r.Lines</td>
+                            <td class="text-right">@r.NetQty.ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@r.Cost.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+            </div>
+        </div>
+    }
+
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
@@ -147,7 +190,12 @@
     private long _openedId;
     private ErpInventoryMovementDetail? _opened;
     private IReadOnlyList<ErpInventoryMovementDigest> _openedSiblings = [];
+    private IReadOnlyList<MoveWarehouseRow> _byWarehouse = [];
+    private IReadOnlyList<MoveItemRow> _byItem = [];
     private IReadOnlyList<string> MovementWorkspaceTabs => ["General", "Quantity", "Costing", "Traceability"];
+
+    private sealed record MoveWarehouseRow(long WarehouseId, string WarehouseName, int Lines, decimal QtyIn, decimal QtyOut, decimal Cost);
+    private sealed record MoveItemRow(long ItemId, string Label, int Lines, decimal NetQty, decimal Cost);
 
     private IReadOnlyList<ErpDocumentWorkspaceField> MovementWorkspaceFields => _opened is null
         ? []
@@ -210,6 +258,30 @@
         _summary = result.Summary;
         _movements = result.Movements;
         _message = result.Message;
+
+        _byWarehouse = _movements
+            .GroupBy(m => (m.WarehouseId, m.WarehouseName))
+            .Select(g => new MoveWarehouseRow(
+                g.Key.WarehouseId,
+                g.Key.WarehouseName,
+                g.Count(),
+                g.Where(m => m.SignedQty >= 0).Sum(m => m.Qty),
+                g.Where(m => m.SignedQty < 0).Sum(m => m.Qty),
+                g.Sum(m => m.TotalCost)))
+            .OrderByDescending(w => w.Cost)
+            .Take(10)
+            .ToList();
+        _byItem = _movements
+            .GroupBy(m => (m.ItemId, string.IsNullOrWhiteSpace(m.Sku) ? m.ItemName : m.Sku))
+            .Select(g => new MoveItemRow(
+                g.Key.ItemId,
+                g.Key.Item2 ?? "",
+                g.Count(),
+                g.Sum(m => m.SignedQty),
+                g.Sum(m => m.TotalCost)))
+            .OrderByDescending(r => r.Cost)
+            .Take(10)
+            .ToList();
 
         if (_openedId > 0)
         {
