@@ -21,6 +21,9 @@ public interface IPlatformMailDirectory
 
 public sealed class PlatformMailDirectory : IPlatformMailDirectory
 {
+    public const string SharedDataDirectory = "/var/lib/ecomae-aspnet";
+    public const string DataDirectoryEnv = "ECOMAE_APP_DATA";
+
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -35,9 +38,7 @@ public sealed class PlatformMailDirectory : IPlatformMailDirectory
 
     public PlatformMailDirectory(IHostEnvironment? hostEnvironment = null, string? persistPath = null)
     {
-        _persistPath = persistPath ?? (hostEnvironment is null
-            ? null
-            : Path.Combine(hostEnvironment.ContentRootPath, "App_Data", "platform-mail.json"));
+        _persistPath = persistPath ?? ResolveDataFile(hostEnvironment, "platform-mail.json");
         if (!TryLoad())
         {
             SeedFirstMailbox();
@@ -47,6 +48,31 @@ public sealed class PlatformMailDirectory : IPlatformMailDirectory
         {
             EnsureFirstMailbox();
         }
+    }
+
+    /// <summary>
+    /// Release trees are root-owned. www-data cannot create ContentRoot/App_Data.
+    /// Prefer a shared writable dir; never throw from the singleton constructor.
+    /// </summary>
+    public static string? ResolveDataFile(IHostEnvironment? hostEnvironment, string fileName)
+    {
+        var env = Environment.GetEnvironmentVariable(DataDirectoryEnv);
+        if (!string.IsNullOrWhiteSpace(env))
+        {
+            return Path.Combine(env.Trim(), fileName);
+        }
+
+        if (Directory.Exists(SharedDataDirectory))
+        {
+            return Path.Combine(SharedDataDirectory, fileName);
+        }
+
+        if (hostEnvironment is not null)
+        {
+            return Path.Combine(hostEnvironment.ContentRootPath, "App_Data", fileName);
+        }
+
+        return null;
     }
 
     public IReadOnlyList<PlatformMailDomain> ListDomains()
@@ -276,7 +302,7 @@ public sealed class PlatformMailDirectory : IPlatformMailDirectory
             _mailboxes.AddRange((state.Mailboxes ?? []).Select(FromStored));
             return _domains.Count > 0 || _mailboxes.Count > 0;
         }
-        catch (Exception ex) when (ex is JsonException or IOException)
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
         {
             return false;
         }
@@ -289,15 +315,28 @@ public sealed class PlatformMailDirectory : IPlatformMailDirectory
             return;
         }
 
-        Directory.CreateDirectory(Path.GetDirectoryName(_persistPath)!);
-        var state = new DirectoryState(
-            _apiToken,
-            _domains.ToArray(),
-            _mailboxes.Select(ToStored).ToArray());
-        var tmp = _persistPath + ".tmp";
-        File.WriteAllText(tmp, JsonSerializer.Serialize(state, JsonOpts));
-        File.Copy(tmp, _persistPath, overwrite: true);
-        File.Delete(tmp);
+        try
+        {
+            var folder = Path.GetDirectoryName(_persistPath);
+            if (!string.IsNullOrWhiteSpace(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            var state = new DirectoryState(
+                _apiToken,
+                _domains.ToArray(),
+                _mailboxes.Select(ToStored).ToArray());
+            var tmp = _persistPath + ".tmp";
+            File.WriteAllText(tmp, JsonSerializer.Serialize(state, JsonOpts));
+            File.Copy(tmp, _persistPath, overwrite: true);
+            File.Delete(tmp);
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or DirectoryNotFoundException)
+        {
+            // In-memory directory stays available. A root-owned release App_Data
+            // must not 500 every request that resolves this singleton.
+        }
     }
 
     private static StoredMailbox ToStored(PlatformMailbox mailbox) => new(

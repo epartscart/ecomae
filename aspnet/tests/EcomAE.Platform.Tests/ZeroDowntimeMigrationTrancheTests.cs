@@ -15,6 +15,8 @@ public sealed class ZeroDowntimeMigrationTrancheTests
         Assert.Contains("/migration/release", waitScript, StringComparison.Ordinal);
         Assert.Contains("commitSha", waitScript, StringComparison.Ordinal);
         Assert.Contains("RELEASE_SHA", deployScript, StringComparison.Ordinal);
+        Assert.Contains("/var/lib/ecomae-aspnet", deployScript, StringComparison.Ordinal);
+        Assert.Contains("chown www-data:www-data", deployScript, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -120,6 +120,45 @@ public class PlatformMailTests
     }
 
     [Fact]
+    public void Unwritable_persist_path_does_not_throw_and_keeps_in_memory_seed()
+    {
+        var parent = Path.Combine(Path.GetTempPath(), "ecomae-mail-ro-" + Guid.NewGuid().ToString("n"));
+        Directory.CreateDirectory(parent);
+        var blocker = Path.Combine(parent, "App_Data");
+        File.WriteAllText(blocker, "not-a-directory");
+        try
+        {
+            var path = Path.Combine(blocker, "platform-mail.json");
+            var dir = new PlatformMailDirectory(null, path);
+            Assert.Contains(dir.ListMailboxes("platform", superCp: false), m => m.Address == "yawer@ecomae.com");
+            dir.UpsertDomain(new PlatformMailDomain("client.test", "client", DateTimeOffset.UtcNow));
+            Assert.NotNull(dir.FindDomain("client.test"));
+            Assert.True(File.Exists(blocker));
+            Assert.False(File.Exists(path));
+        }
+        finally
+        {
+            Directory.Delete(parent, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Data_file_prefers_ECOMAE_APP_DATA_over_release_App_Data()
+    {
+        var previous = Environment.GetEnvironmentVariable(PlatformMailDirectory.DataDirectoryEnv);
+        try
+        {
+            Environment.SetEnvironmentVariable(PlatformMailDirectory.DataDirectoryEnv, "/var/lib/ecomae-aspnet");
+            var path = PlatformMailDirectory.ResolveDataFile(null, "platform-mail.json");
+            Assert.Equal("/var/lib/ecomae-aspnet/platform-mail.json", path);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(PlatformMailDirectory.DataDirectoryEnv, previous);
+        }
+    }
+
+    [Fact]
     public void Domain_and_site_key_normalize()
     {
         Assert.Equal("client.com", PlatformMailNormalize.Domain("WWW.Client.COM."));
