@@ -7,6 +7,7 @@
 @using System.Globalization
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject NavigationManager Nav
 
@@ -14,6 +15,19 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
     <link rel="stylesheet" href="/platform-assets/epc_own_catalog.css?v=20260808own" />
+    <style>
+        .epc-own-cat__turning { display:flex; flex-wrap:wrap; gap:.6rem 1rem; align-items:center; margin:.75rem 0 1rem; }
+        .epc-own-cat__turning .showSort_wrap select { min-width:12rem; }
+        .epc-own-cat__turning .showRestyle_wrap { display:flex; gap:.35rem; }
+        .epc-own-cat__turning .showRestyle {
+            padding:.3rem .55rem; border:1px solid #cbd5e1; border-radius:.35rem; text-decoration:none; font-weight:700; font-size:.78rem; color:#0f172a; background:#fff;
+        }
+        .epc-own-cat__turning .showRestyle.is-active { border-color:#2563eb; background:#eff6ff; color:#1d4ed8; }
+        .epc-own-cat__grid--style-2 { display:flex; flex-direction:column; gap:.55rem; }
+        .epc-own-cat__grid--style-3 { display:block; }
+        .epc-own-cat__grid--style-3 .epc-own-cat__card { display:grid; grid-template-columns:2fr 1fr auto; gap:.75rem; align-items:center; }
+        @@media (max-width:720px){ .epc-own-cat__grid--style-3 .epc-own-cat__card { grid-template-columns:1fr; } }
+    </style>
 </HeadContent>
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
@@ -75,6 +89,25 @@
                             <span>@_productsMessage</span>
                         }
                     </div>
+                    @if (_loadedProducts)
+                    {
+                        <div class="epc-own-cat__turning products_area_turning" aria-label="Catalogue listing">
+                            <label class="showSort_name" for="sort_select">Sort</label>
+                            <div class="showSort_wrap">
+                                <select id="sort_select" class="form-control" onchange="location.href=this.value">
+                                    <option value="@ListingHref(StorefrontPrintProductsListing.SortNameAsc, _style)" selected="@(_sort == StorefrontPrintProductsListing.SortNameAsc)">Name A–Z</option>
+                                    <option value="@ListingHref(StorefrontPrintProductsListing.SortNameDesc, _style)" selected="@(_sort == StorefrontPrintProductsListing.SortNameDesc)">Name Z–A</option>
+                                    <option value="@ListingHref(_sort, _style)" disabled>Price (not sourced on this listing)</option>
+                                </select>
+                            </div>
+                            <div class="showRestyle_name">View</div>
+                            <div class="showRestyle_wrap">
+                                <a class="showRestyle @(_style == 1 ? "is-active" : null)" href="@ListingHref(_sort, 1)" id="showRestyle_1">Grid</a>
+                                <a class="showRestyle @(_style == 2 ? "is-active" : null)" href="@ListingHref(_sort, 2)" id="showRestyle_2">List</a>
+                                <a class="showRestyle @(_style == 3 ? "is-active" : null)" href="@ListingHref(_sort, 3)" id="showRestyle_3">Table</a>
+                            </div>
+                        </div>
+                    }
                     @if (_products.Count == 0 && _loadedProducts)
                     {
                         <div class="epc-own-cat__empty">
@@ -90,13 +123,11 @@
                     }
                     else if (_products.Count > 0)
                     {
-                        <div class="epc-own-cat__grid">
+                        <div class="epc-own-cat__grid epc-own-cat__grid--style-@_style">
                             @foreach (var p in _products)
                             {
                                 var href = StorefrontSurfaceLinks.ForProduct(p.Id);
-                                var title = string.IsNullOrWhiteSpace(p.Caption)
-                                    ? (string.IsNullOrWhiteSpace(p.Alias) ? ("#" + p.Id) : p.Alias)
-                                    : p.Caption;
+                                var title = ProductCaption(p);
                                 <article class="epc-own-cat__card">
                                     <strong>@title</strong>
                                     @if (!string.IsNullOrWhiteSpace(p.Manufacturer) || !string.IsNullOrWhiteSpace(p.Article))
@@ -123,6 +154,8 @@
     private string _treeError = "";
     private string _productsMessage = "";
     private int _categoryId;
+    private int _style = 1;
+    private string _sort = StorefrontPrintProductsListing.SortNameAsc;
     private bool _loadedProducts;
 
     protected override async Task OnInitializedAsync()
@@ -144,6 +177,12 @@
         {
             _categoryId = id;
         }
+
+        _sort = StorefrontPrintProductsListing.NormalizeSort(
+            query.TryGetValue("sort", out var sort) ? sort.ToString() : null,
+            priceSourced: false);
+        _style = StorefrontPrintProductsListing.NormalizeStyle(
+            query.TryGetValue("s", out var style) ? style.ToString() : null);
 
         try
         {
@@ -169,7 +208,7 @@
                 var products = await Dashboards.ListStorefrontCatalogueProductsAsync(
                     _categoryId, _categoryUrl, _search, 48);
                 _loadedProducts = true;
-                _products = products.Rows;
+                _products = StorefrontPrintProductsListing.SortByName(products.Rows, _sort, ProductCaption);
                 _categoryId = products.CategoryId;
                 _categoryUrl = products.CategoryUrl;
                 _categoryValue = products.CategoryValue;
@@ -217,4 +256,12 @@
 
         builder.CloseElement();
     };
+
+    private static string ProductCaption(StorefrontProductDigest product)
+        => string.IsNullOrWhiteSpace(product.Caption)
+            ? (string.IsNullOrWhiteSpace(product.Alias) ? ("#" + product.Id.ToString(CultureInfo.InvariantCulture)) : product.Alias)
+            : product.Caption;
+
+    private string ListingHref(string sort, int style)
+        => StorefrontPrintProductsListing.ListingHref("/storefront/own-catalog-app", _categoryId, _categoryUrl, _search, sort, style);
 }
