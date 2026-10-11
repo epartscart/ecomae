@@ -811,6 +811,11 @@ internal static class ErpLazySchema
             var count = await ErpDb.LongAsync(c, null,
                 "SELECT COUNT(*) FROM `epc_erp_pm_legal_entities` WHERE `active` = 1",
                 ct).ConfigureAwait(false);
+            if (count > 1)
+            {
+                await DeactivateUnusedRacedDefaultCompaniesAsync(c, ct).ConfigureAwait(false);
+            }
+
             if (count > 0)
             {
                 return;
@@ -903,8 +908,16 @@ internal static class ErpLazySchema
         }
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var locked = false;
         try
         {
+            locked = await ErpDb.LongAsync(c, null,
+                "SELECT COALESCE(GET_LOCK('epc_erp_pm_legal_entities_main', 5), 0)", ct).ConfigureAwait(false) == 1;
+            if (!locked)
+            {
+                return; // another request is seeding the default company; it will exist on the next ensure
+            }
+
             await ErpDb.ExecuteAsync(c, null,
                 "INSERT INTO `epc_erp_pm_legal_entities`" +
                 " (`code`,`name`,`country_code`,`currency_code`,`trn`,`note`,`active`,`time_created`,`time_updated`)" +
@@ -921,6 +934,108 @@ internal static class ErpLazySchema
         {
             // Insert raced another request seeding the same row — PHP treats ensure as best-effort too.
         }
+        finally
+        {
+            if (locked)
+            {
+                await ErpDb.TryExecuteAsync(c, "SELECT RELEASE_LOCK('epc_erp_pm_legal_entities_main')", ct).ConfigureAwait(false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Auto-created MAIN rows that raced in on a fresh tenant are one logical company. Keep the lowest id
+    /// (PHP epc_erp_active_company_id picks the first active row) and deactivate the others — but only when
+    /// no company-scoped table references them, so existing records never become unreachable.
+    /// </summary>
+    private static async Task DeactivateUnusedRacedDefaultCompaniesAsync(DbConnection c, CancellationToken ct)
+    {
+        var ids = new List<long>();
+        await using (var command = c.CreateCommand())
+        {
+            command.CommandText =
+                "SELECT `id` FROM `epc_erp_pm_legal_entities`" +
+                " WHERE `code`='MAIN' AND `note`='Auto-created default company' AND `active`=1 ORDER BY `id`";
+            await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                ids.Add(reader.GetInt64(0));
+            }
+        }
+
+        if (ids.Count < 2)
+        {
+            return;
+        }
+
+        var scopedTables = new List<string>();
+        await using (var command = c.CreateCommand())
+        {
+            command.CommandText =
+                "SELECT `TABLE_NAME` FROM information_schema.COLUMNS" +
+                " WHERE `TABLE_SCHEMA` = DATABASE() AND `COLUMN_NAME` = 'company_id'" +
+                " AND `TABLE_NAME` <> 'epc_erp_pm_legal_entities'";
+            await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                scopedTables.Add(reader.GetString(0));
+            }
+        }
+
+        foreach (var duplicateId in ids.Skip(1))
+        {
+            var referenced = false;
+            foreach (var table in scopedTables)
+            {
+                var rows = await ErpDb.LongAsync(c, null,
+                    "SELECT COUNT(*) FROM `" + table.Replace("`", "``") + "` WHERE `company_id` = @p0",
+                    ct, duplicateId).ConfigureAwait(false);
+                if (rows > 0)
+                {
+                    referenced = true;
+                    break;
+                }
+            }
+
+            if (!referenced)
+            {
+                await ErpDb.TryExecuteAsync(c,
+                    "UPDATE `epc_erp_pm_legal_entities` SET `active`=0, `time_updated`=UNIX_TIMESTAMP()" +
+                    " WHERE `id`=" + duplicateId.ToString(System.Globalization.CultureInfo.InvariantCulture) +
+                    " AND `code`='MAIN' AND `note`='Auto-created default company'", ct).ConfigureAwait(false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// PHP <c>epc_erp_active_company_id</c> twin for write services: the caller's hint when it is an
+    /// active legal entity, otherwise the first active legal entity (0 when none exist).
+    /// </summary>
+    public static async Task<long> ResolveActiveCompanyIdAsync(DbConnection c, long hint, CancellationToken ct)
+    {
+        await EnsureCompanyContextAsync(c, ct).ConfigureAwait(false);
+        var ids = new List<long>();
+        try
+        {
+            await using var command = c.CreateCommand();
+            command.CommandText = "SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `active`=1 ORDER BY `id`";
+            await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                ids.Add(reader.GetInt64(0));
+            }
+        }
+        catch (DbException)
+        {
+            return hint > 0 ? hint : 0;
+        }
+
+        if (ids.Count == 0)
+        {
+            return 0;
+        }
+
+        return hint > 0 && ids.Contains(hint) ? hint : ids[0];
     }
 
     /// <summary>
@@ -1098,6 +1213,22 @@ internal static class ErpLazySchema
 
         await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "barcode", "varchar(128) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
         await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "reorder_level", "decimal(14,3) NOT NULL DEFAULT 0.000", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "search_name", "varchar(255) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "product_type", "varchar(16) NOT NULL DEFAULT 'item'", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "item_group", "varchar(64) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "costing_method", "varchar(24) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "purchase_unit", "varchar(16) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "sales_unit", "varchar(16) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "default_warehouse_id", "int(11) NOT NULL DEFAULT 0", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "default_vendor_id", "int(11) NOT NULL DEFAULT 0", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "sales_tax_group", "varchar(64) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "purchase_tax_group", "varchar(64) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "net_weight", "decimal(14,3) NOT NULL DEFAULT 0.000", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "gross_weight", "decimal(14,3) NOT NULL DEFAULT 0.000", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "standard_cost", "decimal(14,4) NOT NULL DEFAULT 0.0000", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "sales_price", "decimal(14,4) NOT NULL DEFAULT 0.0000", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "purchase_price", "decimal(14,4) NOT NULL DEFAULT 0.0000", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_inv_items", "notes", "varchar(1000) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
         await AddColumnIfMissingAsync(c, "epc_erp_inv_movements", "serial_no", "varchar(128) DEFAULT NULL", ct).ConfigureAwait(false);
         await AddColumnIfMissingAsync(c, "epc_erp_inv_field_defs", "field_role", "enum('inventory','non_inventory') NOT NULL DEFAULT 'inventory'", ct).ConfigureAwait(false);
         await AddColumnIfMissingAsync(c, "epc_erp_inv_field_defs", "source_pack", "varchar(64) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);

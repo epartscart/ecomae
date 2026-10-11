@@ -17,7 +17,8 @@ public sealed record ErpJwSeedResult(
     int Repairs,
     int GlEntries,
     int Compliance,
-    IReadOnlyList<string> Errors);
+    IReadOnlyList<string> Errors,
+    int SkippedRepairs = 0);
 
 /// <summary>
 /// Live PHP <c>epc_jw_seed_sample_data</c> / ajax <c>jw_seed_sample_data</c> twin.
@@ -53,6 +54,7 @@ public sealed class ErpJwSeedWriteService : IErpJwSeedWriteService
     public async Task<ErpJwSeedResult> SeedAsync(int adminId, CancellationToken cancellationToken = default)
     {
         var errors = new List<string>();
+        var skipped = new Dictionary<string, int>(StringComparer.Ordinal) { ["repairs"] = 0 };
         var seeded = new Dictionary<string, int>(StringComparer.Ordinal)
         {
             ["warehouses"] = 0, ["items"] = 0, ["suppliers"] = 0, ["customers"] = 0,
@@ -63,6 +65,7 @@ public sealed class ErpJwSeedWriteService : IErpJwSeedWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
         // epc_erp_adv_set_setting($db, 'erp_industry_profile', 'jewellery')
@@ -306,6 +309,15 @@ public sealed class ErpJwSeedWriteService : IErpJwSeedWriteService
             try
             {
                 var repairNo = "RPR-" + Md5Hex("seed_" + ri + "_" + rp.Name)[..6].ToUpperInvariant();
+                var exists = await ErpDb.LongAsync(
+                    connection, null,
+                    ErpDb.Positional("SELECT COUNT(*) FROM `epc_erp_jw_repairs` WHERE `repair_no` = ?"),
+                    cancellationToken, repairNo).ConfigureAwait(false);
+                if (exists > 0)
+                {
+                    skipped["repairs"]++;
+                    continue;
+                }
                 await ErpDb.ExecuteAsync(
                     connection, null,
                     ErpDb.Positional(
@@ -356,7 +368,7 @@ public sealed class ErpJwSeedWriteService : IErpJwSeedWriteService
         return new ErpJwSeedResult(
             seeded["warehouses"], seeded["items"], seeded["suppliers"], seeded["customers"],
             seeded["purchases"], seeded["sales"], seeded["repairs"], seeded["gl_entries"],
-            seeded["compliance"], errors);
+            seeded["compliance"], errors, skipped["repairs"]);
     }
 
     private sealed record WeightLedgerEntry(
