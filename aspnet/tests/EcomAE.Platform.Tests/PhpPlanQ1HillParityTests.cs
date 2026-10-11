@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using EcomAE.Platform.Presentation;
@@ -31,7 +32,7 @@ public sealed class PhpPlanQ1HillParityTests
             {
                 var exp = expected.GetRawText();
                 var got = Json(actual);
-                failures.Add(name + " exp=" + FirstDiff(exp, got) + " gotLen=" + got.Length + " expLen=" + exp.Length);
+                failures.Add(name + " " + FirstDiff(exp, got));
             }
         }
 
@@ -110,7 +111,8 @@ public sealed class PhpPlanQ1HillParityTests
         var guide = PhpPlanQ1Hill.EpcFreeToolsGuide("vat");
         var disabled = PhpPlanQ1Hill.EpcFreeToolsDisabledMap();
         var active = PhpPlanQ1Hill.EpcFreeToolsIsActive("vat");
-        return new object[] { baseNone, baseFb, baseHost, seoHub["title"], seoVat["title"], faq, guide["what"], disabled, active };
+        object disabledJson = disabled.Count == 0 ? new List<object>() : disabled;
+        return new object[] { baseNone, baseFb, baseHost, seoHub["title"]!, seoVat["title"]!, faq, guide["what"]!, disabledJson, active };
     }
 
     private static object Live()
@@ -129,8 +131,8 @@ public sealed class PhpPlanQ1HillParityTests
             vat.Contains("Create free account", StringComparison.Ordinal) ? 1 : 0,
             bad.Contains("Free business tools", StringComparison.Ordinal) ? 1 : 0,
             json.Contains("FAQPage", StringComparison.Ordinal) ? 1 : 0,
-            styles.Length,
-            scripts.Length,
+            Encoding.UTF8.GetByteCount(styles),
+            Encoding.UTF8.GetByteCount(scripts),
             fields.Contains("data-eft-field=\"standard_sales\"", StringComparison.Ordinal) ? 1 : 0,
             hub,
             vat

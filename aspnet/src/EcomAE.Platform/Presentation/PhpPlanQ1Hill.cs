@@ -590,10 +590,9 @@ public static class PhpPlanQ1Hill
             sb.Append("</a>\n\t\t\t");
         }
 
+        sb.Append("\t\t</div>\n");
         sb.Append("\t</div>\n");
-        sb.Append("\t</div>\n");
-        sb.Append("\t").Append(EpcFreeToolsFaqHtml("")).Append("\n");
-        sb.Append("\t<div class=\"eft-upsell\">\n");
+        sb.Append("\t").Append(EpcFreeToolsFaqHtml("")).Append("\t<div class=\"eft-upsell\">\n");
         sb.Append("\t\t<h3>Ready for the full picture?</h3>\n");
         sb.Append("\t\t<p>These tools are a taste of the ECOM AE Business Operating System — full ERP, commerce, compliance and CRM, with your data carried across when you upgrade.</p>\n");
         sb.Append("\t\t<div class=\"epm-cta\">\n");
@@ -712,13 +711,12 @@ public static class PhpPlanQ1Hill
             sb.Append("\t\t</div>\n");
             sb.Append("\t</div>\n");
             sb.Append("\t").Append(EpcFreeToolsGuideHtml(key, meta)).Append("\n");
-            sb.Append("\t").Append(EpcFreeToolsFaqHtml(key)).Append("\n");
+            sb.Append("\t").Append(EpcFreeToolsFaqHtml(key));
             sb.Append("</div>\n");
             sb.Append(EpcFreeToolsJsonld(baseUrl, key));
             return sb.ToString();
         }
 
-        sb.Append("\n");
         sb.Append("\t<div class=\"eft-gate\" id=\"eft_gate\">\n");
         sb.Append("\t\t<div class=\"eft-gate__tabs\">\n");
         sb.Append("\t\t\t<button type=\"button\" class=\"eft-tab is-active\" id=\"eft_tab_register\"><i class=\"fa fa-user-plus\"></i> Register free</button>\n");
@@ -785,7 +783,7 @@ public static class PhpPlanQ1Hill
         sb.Append("\t\t\t</div>\n");
         sb.Append("\t\t</div>\n");
         sb.Append("\t</div>\n\n");
-        sb.Append("\t").Append(EpcFreeToolsGuideHtml(key, meta)).Append("\n\n");
+        sb.Append("\t").Append(EpcFreeToolsGuideHtml(key, meta)).Append("\n");
         sb.Append("\t<div class=\"eft-app\" id=\"eft_app\" hidden>\n");
         sb.Append("\t\t<div class=\"eft-app__bar\">\n");
         sb.Append("\t\t\t<span id=\"eft_who\"></span>\n");
@@ -810,7 +808,7 @@ public static class PhpPlanQ1Hill
         sb.Append("\t\t</div>\n");
         sb.Append("\t\t<div class=\"eft-split\">\n");
         sb.Append("\t\t\t<form class=\"eft-inputs\" id=\"eft_form\" onsubmit=\"return false;\">\n");
-        sb.Append("\t\t\t\t").Append(EpcFreeToolsFieldsHtml(key)).Append("\n");
+        sb.Append("\t\t\t\t").Append(EpcFreeToolsFieldsHtml(key));
         sb.Append("\t\t\t\t<button type=\"button\" class=\"epm-btn epm-btn--primary\" id=\"eft_compute\"><i class=\"fa fa-calculator\"></i> Calculate</button>\n");
         sb.Append("\t\t\t</form>\n");
         sb.Append("\t\t\t<div class=\"eft-result\" id=\"eft_result\">\n");
@@ -818,7 +816,7 @@ public static class PhpPlanQ1Hill
         sb.Append("\t\t\t</div>\n");
         sb.Append("\t\t</div>\n");
         sb.Append("\t</div>\n");
-        sb.Append("\t").Append(EpcFreeToolsFaqHtml(key)).Append("\n");
+        sb.Append("\t").Append(EpcFreeToolsFaqHtml(key));
         sb.Append("</div>\n");
         sb.Append(EpcFreeToolsJsonld(baseUrl, key));
         sb.Append("\t\t");
@@ -949,7 +947,8 @@ public static class PhpPlanQ1Hill
     public static string EpcFreeToolsScripts(string baseUrl)
     {
         var endpoint = baseUrl + "content/general_pages/ajax_epc_free_tools.php";
-        var js = PhpPlanQ1HillData.ScriptsTemplate.Replace("__ENDPOINT__", JsonSerializer.Serialize(endpoint, JsonOpts), StringComparison.Ordinal);
+        var encoded = "\"" + endpoint.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal).Replace("/", "\\/", StringComparison.Ordinal) + "\"";
+        var js = PhpPlanQ1HillData.ScriptsTemplate.Replace("__ENDPOINT__", encoded, StringComparison.Ordinal);
         return "<script>" + js + "</script>";
     }
 
