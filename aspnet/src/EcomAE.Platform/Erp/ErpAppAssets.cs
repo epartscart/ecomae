@@ -13,6 +13,7 @@ public static class ErpAppAssets
         "erp-sales-orders.js",
         "erp-cash-entries.js",
         "erp-inventory-stock.js",
+        "erp-purchase-orders.js",
     };
 
     public static void Map(IEndpointRouteBuilder endpoints)

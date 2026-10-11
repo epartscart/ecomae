@@ -323,7 +323,125 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
             }
         }
 
+        var portalCountry = await ResolvePortalCountryAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (portalCountry.Length > 0)
+        {
+            return portalCountry;
+        }
+
         return null;
+    }
+
+    /// <summary>
+    /// epc_tax_toolkit_read_portal_country: the CP industry-settings row (epc_portal_site_settings)
+    /// carries the tenant country as an ISO column and inside contact_json (country / country_code).
+    /// </summary>
+    private static async Task<string> ResolvePortalCountryAsync(
+        System.Data.Common.DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        if (!await TableExistsAsync(connection, "epc_portal_site_settings", cancellationToken).ConfigureAwait(false)
+            || !await ColumnExistsAsync(connection, "epc_portal_site_settings", "contact_json", cancellationToken).ConfigureAwait(false))
+        {
+            return string.Empty;
+        }
+
+        var hasCountryColumn = await ColumnExistsAsync(connection, "epc_portal_site_settings", "country_code", cancellationToken).ConfigureAwait(false);
+        var sql = hasCountryColumn
+            ? "SELECT COALESCE(`country_code`, ''), COALESCE(`contact_json`, '') FROM `epc_portal_site_settings` ORDER BY `updated_at` DESC LIMIT 1"
+            : "SELECT '', COALESCE(`contact_json`, '') FROM `epc_portal_site_settings` ORDER BY `updated_at` DESC LIMIT 1";
+
+        string column;
+        string contactJson;
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return string.Empty;
+            }
+
+            column = Convert.ToString(reader.GetValue(0)) ?? string.Empty;
+            contactJson = Convert.ToString(reader.GetValue(1)) ?? string.Empty;
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return string.Empty;
+        }
+
+        var iso = CountryNameToIso(column);
+        if (iso.Length > 0)
+        {
+            return iso;
+        }
+
+        if (contactJson.Trim().Length == 0)
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(contactJson);
+            if (doc.RootElement.ValueKind != System.Text.Json.JsonValueKind.Object)
+            {
+                return string.Empty;
+            }
+
+            if (doc.RootElement.TryGetProperty("country_code", out var codeEl) && codeEl.ValueKind == System.Text.Json.JsonValueKind.String)
+            {
+                iso = CountryNameToIso(codeEl.GetString());
+                if (iso.Length > 0)
+                {
+                    return iso;
+                }
+            }
+
+            if (doc.RootElement.TryGetProperty("country", out var nameEl) && nameEl.ValueKind == System.Text.Json.JsonValueKind.String)
+            {
+                return CountryNameToIso(nameEl.GetString());
+            }
+        }
+        catch (System.Text.Json.JsonException)
+        {
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>epc_tax_toolkit_country_name_to_iso: UAE/UK/USA aliases, then bare two-letter codes.</summary>
+    public static string CountryNameToIso(string? countryName)
+    {
+        var raw = (countryName ?? string.Empty).Trim();
+        var name = raw.ToLowerInvariant();
+        if (name.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        if (name is "uae" or "u.a.e." or "u.a.e" or "are" || name.Contains("emirates", StringComparison.Ordinal))
+        {
+            return "AE";
+        }
+
+        if (name is "uk" or "united kingdom" or "great britain" or "gbr")
+        {
+            return "GB";
+        }
+
+        if (name is "usa" or "united states" or "united states of america")
+        {
+            return "US";
+        }
+
+        if (raw.Length == 2 && char.IsLetter(raw[0]) && char.IsLetter(raw[1]))
+        {
+            return raw.ToUpperInvariant();
+        }
+
+        return string.Empty;
     }
 
     private static string NormalizeRegisteredCountry(string? raw)

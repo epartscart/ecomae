@@ -114,6 +114,7 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
             var id = await RecordMovementCoreAsync(connection, request, type, cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok("Inventory movement recorded", id);
         }
@@ -153,6 +154,7 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
             var row = await GetStockRowAsync(connection, request.FromWarehouseId, request.ItemId, batch, variant, cancellationToken)
                 .ConfigureAwait(false);
             if (row is null || row.QtyOnHand < request.Qty)
@@ -237,6 +239,7 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
         var existing = await ErpDb.LongAsync(
             connection,
             null,
@@ -269,6 +272,7 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
         var tables = await ErpDb.LongAsync(
             connection,
             null,
@@ -363,6 +367,7 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
         var existing = await ErpDb.LongAsync(
             connection,
             null,
@@ -450,6 +455,7 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
         var sql = """
             SELECT s.`warehouse_id`, s.`item_id`, s.`qty_on_hand`, s.`avg_unit_cost`
             FROM `epc_erp_inv_stock` s
@@ -527,6 +533,7 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
         var posted = 0;
         var errors = new List<string>();
         for (var i = 0; i < parsed.Count; i++)

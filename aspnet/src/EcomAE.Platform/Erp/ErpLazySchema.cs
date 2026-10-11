@@ -1069,4 +1069,48 @@ internal static class ErpLazySchema
             // best-effort seed
         }
     }
+
+    /// <summary>epc_erp_inventory_ensure_schema (epc_erp_inventory.php): item master, warehouses, stock, movements.</summary>
+    public static async Task EnsureInventoryAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_warehouses` (`id` int(11) NOT NULL AUTO_INCREMENT, `storage_id` int(11) NOT NULL DEFAULT 0, `code` varchar(32) NOT NULL DEFAULT '', `name` varchar(255) NOT NULL, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_code` (`code`), KEY `x_storage` (`storage_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_field_defs` (`id` int(11) NOT NULL AUTO_INCREMENT, `field_key` varchar(32) NOT NULL, `label` varchar(120) NOT NULL, `field_type` enum('text','number','date','select') NOT NULL DEFAULT 'text', `options_json` text, `sort_order` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`id`), UNIQUE KEY `x_key` (`field_key`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_items` (`id` int(11) NOT NULL AUTO_INCREMENT, `sku` varchar(64) NOT NULL, `name` varchar(255) NOT NULL, `product_id` int(11) NOT NULL DEFAULT 0, `item_type` enum('standard','perishable','serialized') NOT NULL DEFAULT 'standard', `track_expiry` tinyint(1) NOT NULL DEFAULT 0, `unit` varchar(16) NOT NULL DEFAULT 'pcs', `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_sku` (`sku`), KEY `x_product` (`product_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_item_fields` (`item_id` int(11) NOT NULL, `field_key` varchar(32) NOT NULL, `value` varchar(512) NOT NULL DEFAULT '', PRIMARY KEY (`item_id`,`field_key`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_stock` (`id` int(11) NOT NULL AUTO_INCREMENT, `warehouse_id` int(11) NOT NULL, `item_id` int(11) NOT NULL, `qty_on_hand` decimal(14,3) NOT NULL DEFAULT 0.000, `avg_unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `expiry_date` date DEFAULT NULL, `batch_no` varchar(64) DEFAULT NULL, `variant_label` varchar(120) DEFAULT NULL, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_wh_item_batch` (`warehouse_id`,`item_id`,`batch_no`,`variant_label`), KEY `x_item` (`item_id`), KEY `x_expiry` (`expiry_date`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_movements` (`id` int(11) NOT NULL AUTO_INCREMENT, `movement_type` enum('opening','purchase_in','sale_out','transfer_in','transfer_out','adjustment','return_in','return_out') NOT NULL, `warehouse_id` int(11) NOT NULL, `item_id` int(11) NOT NULL, `qty` decimal(14,3) NOT NULL DEFAULT 0.000, `unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `total_cost` decimal(14,2) NOT NULL DEFAULT 0.00, `transfer_warehouse_id` int(11) NOT NULL DEFAULT 0, `purchase_id` int(11) NOT NULL DEFAULT 0, `order_id` int(11) NOT NULL DEFAULT 0, `batch_no` varchar(64) DEFAULT NULL, `expiry_date` date DEFAULT NULL, `reference` varchar(128) DEFAULT NULL, `note` text, `movement_date` int(11) NOT NULL DEFAULT 0, `admin_id` int(11) NOT NULL DEFAULT 0, `opening_batch_id` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`id`), KEY `x_wh_item` (`warehouse_id`,`item_id`,`movement_date`), KEY `x_type` (`movement_type`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_closing` (`id` int(11) NOT NULL AUTO_INCREMENT, `period_end` date NOT NULL, `warehouse_id` int(11) NOT NULL DEFAULT 0, `item_id` int(11) NOT NULL, `qty_closing` decimal(14,3) NOT NULL DEFAULT 0.000, `avg_unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `value_closing` decimal(14,2) NOT NULL DEFAULT 0.00, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_period` (`period_end`,`warehouse_id`,`item_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_purchase_inv_lines` (`id` int(11) NOT NULL AUTO_INCREMENT, `purchase_id` int(11) NOT NULL, `warehouse_id` int(11) NOT NULL, `item_id` int(11) NOT NULL, `qty` decimal(14,3) NOT NULL DEFAULT 0.000, `unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `batch_no` varchar(64) DEFAULT NULL, `expiry_date` date DEFAULT NULL, `movement_id` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_purchase` (`purchase_id`), KEY `x_item` (`item_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_inv_serials` (`id` int(11) NOT NULL AUTO_INCREMENT, `item_id` int(11) NOT NULL, `serial_no` varchar(128) NOT NULL, `warehouse_id` int(11) NOT NULL DEFAULT 0, `batch_no` varchar(64) DEFAULT NULL, `status` enum('in_stock','sold','returned','scrapped','in_transit') NOT NULL DEFAULT 'in_stock', `in_movement_id` int(11) NOT NULL DEFAULT 0, `out_movement_id` int(11) NOT NULL DEFAULT 0, `unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `note` varchar(255) DEFAULT NULL, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_item_serial` (`item_id`,`serial_no`), KEY `x_status` (`status`), KEY `x_wh` (`warehouse_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Serial-number register'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+
+        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_items` ADD COLUMN `barcode` varchar(128) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_movements` ADD COLUMN `serial_no` varchar(128) DEFAULT NULL", ct).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_field_defs` ADD COLUMN `field_role` enum('inventory','non_inventory') NOT NULL DEFAULT 'inventory'", ct).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_inv_field_defs` ADD COLUMN `source_pack` varchar(64) NOT NULL DEFAULT ''", ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// epc_erp_period_close_ensure_schema (epc_erp_period_close.php) + epc_erp_fiscal_ensure_schema
+    /// (epc_erp_fiscal_periods.php): period rows, close log and fiscal locks.
+    /// </summary>
+    public static async Task EnsurePeriodCloseAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_erp_periods` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `year_month` CHAR(7) NOT NULL, `year` SMALLINT NOT NULL, `month` TINYINT NOT NULL, `status` ENUM('open','soft_close','locked') NOT NULL DEFAULT 'open', `closed_by` INT NOT NULL DEFAULT 0, `closed_at` INT NOT NULL DEFAULT 0, `locked_by` INT NOT NULL DEFAULT 0, `locked_at` INT NOT NULL DEFAULT 0, `note` VARCHAR(512) NOT NULL DEFAULT '', `checklist_json` TEXT, `created_at` INT NOT NULL DEFAULT 0, `updated_at` INT NOT NULL DEFAULT 0, UNIQUE KEY `idx_year_month` (`year_month`), INDEX `idx_status` (`status`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_period_close_log` (`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `year_month` CHAR(7) NOT NULL, `action` VARCHAR(32) NOT NULL, `old_status` VARCHAR(16) NOT NULL DEFAULT '', `new_status` VARCHAR(16) NOT NULL DEFAULT '', `admin_id` INT NOT NULL DEFAULT 0, `note` VARCHAR(512) NOT NULL DEFAULT '', `created_at` INT NOT NULL DEFAULT 0, INDEX `idx_period` (`year_month`, `created_at`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_fiscal_locks` (`id` int(11) NOT NULL AUTO_INCREMENT, `lock_date` int(11) NOT NULL, `note` varchar(255) DEFAULT NULL, `admin_id` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_active_date` (`active`,`lock_date`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='BOS fiscal-period locks'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
 }
