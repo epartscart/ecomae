@@ -2093,6 +2093,55 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.Equal("content/general_pages/epc_electronicae_home_product_lines.php", PhpPlanQ1Firth.ElectronicaeHomeProductLinesPath);
     }
 
+    [Fact]
+    public void EpartsCartProductLines_TilesStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Creek.Reset();
+        PhpPlanQ1Creek.HasPdo = () => true;
+        PhpPlanQ1Creek.LangHref = () => "/en";
+        PhpPlanQ1Creek.AllLinesHref = _ => "/acme/lines";
+        PhpPlanQ1Creek.PerfCacheGet = _ => new List<Dictionary<string, object?>>
+        {
+            new(StringComparer.Ordinal)
+            {
+                ["name"] = "Acme Brakes",
+                ["href"] = "/acme-brakes",
+                ["image"] = "/img/acme-brakes.jpg",
+                ["icon"] = "fa-car",
+                ["product_count"] = 4
+            }
+        };
+        var acme = PhpPlanQ1Creek.EpcEpartscartHomeProductLines();
+        PhpPlanQ1Creek.LangHref = () => "/ar";
+        PhpPlanQ1Creek.AllLinesHref = _ => "/beta/lines";
+        PhpPlanQ1Creek.PerfCacheGet = _ => null;
+        PhpPlanQ1Creek.ProductLineTiles = _ => new List<Dictionary<string, object?>>
+        {
+            new(StringComparer.Ordinal)
+            {
+                ["name"] = "Beta Engine",
+                ["href"] = "/beta-engine",
+                ["image"] = "",
+                ["icon"] = "fa-cogs",
+                ["product_count"] = 0
+            }
+        };
+        var beta = PhpPlanQ1Creek.EpcEpartscartHomeProductLines();
+        Assert.Contains("Acme Brakes", acme, StringComparison.Ordinal);
+        Assert.Contains("/en/acme-brakes", acme, StringComparison.Ordinal);
+        Assert.Contains("/en/acme/lines", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("Beta Engine", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("/beta-engine", acme, StringComparison.Ordinal);
+        Assert.Contains("Beta Engine", beta, StringComparison.Ordinal);
+        Assert.Contains("/ar/beta-engine", beta, StringComparison.Ordinal);
+        Assert.Contains("/ar/beta/lines", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("Acme Brakes", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("/acme-brakes", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Creek.EpartscartHomeProductLinesPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Creek.EpartscartHomeProductLinesPath, StringComparison.Ordinal);
+        Assert.Equal("content/general_pages/epc_epartscart_home_product_lines.php", PhpPlanQ1Creek.EpartscartHomeProductLinesPath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2187,6 +2236,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Tarn.LoginModulePath,
             PhpPlanQ1Beck.SliderModulePath,
             PhpPlanQ1Firth.ElectronicaeHomeProductLinesPath,
+            PhpPlanQ1Creek.EpartscartHomeProductLinesPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
