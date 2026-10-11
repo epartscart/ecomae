@@ -11,6 +11,7 @@ public static class ErpAppAssets
     private static readonly HashSet<string> ScriptAllow = new(StringComparer.OrdinalIgnoreCase)
     {
         "erp-sales-orders.js",
+        "erp-cash-entries.js",
     };
 
     public static void Map(IEndpointRouteBuilder endpoints)

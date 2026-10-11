@@ -12790,6 +12790,41 @@ public sealed class ErpModule : ISurfaceModule
             return html is null ? Results.NotFound() : Results.Content(html, "text/html; charset=utf-8");
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpInvoiceOpenBalance, async (
+            HttpContext context,
+            long id,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for invoice open-balance readback.");
+            }
+
+            var result = await dashboards.BuildErpInvoiceDetailAsync(id, cancellationToken);
+            if (result.Invoice is null)
+            {
+                return Results.NotFound(new { ok = false, error = "not_found", id });
+            }
+
+            var inv = result.Invoice;
+            return Results.Ok(new
+            {
+                ok = true,
+                id = inv.Id,
+                invoiceNumber = inv.InvoiceNumber,
+                currency = inv.CurrencyCode,
+                status = inv.Status,
+                totalInclVat = inv.TotalInclVat,
+                paidAmount = inv.PaidAmount,
+                amountDue = inv.AmountDue,
+                customerUserId = inv.UserId,
+                orderId = inv.OrderId,
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpInvoicePrint, async (
             HttpContext context,
             long id,
