@@ -24,8 +24,8 @@ public sealed record ErpPmListingSaveRequest(
     string? ResourceType = null,
     string? Title = null,
     string? Description = null,
-    double Qty = 0,
-    double Rate = 0,
+    decimal Qty = 0m,
+    decimal Rate = 0m,
     string? VoucherRef = null,
     string? Status = null);
 
