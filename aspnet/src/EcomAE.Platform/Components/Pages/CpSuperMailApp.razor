@@ -1,0 +1,404 @@
+@page "/cp/super-mail-app"
+@page "/bos/mail-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Mail
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IPlatformMailService Mail
+@inject ISurfaceDashboardSummaryReporter Dashboards
+
+<PageTitle>Platform mail · Super CP · ECOM AE</PageTitle>
+<PhpChromeStyles Surface="@_surface" />
+
+@if (_allowed)
+{
+    @if (_surface == "bos")
+    {
+        <PhpBosDesktopChrome IsAdmin="_isAdmin" Title="Platform mail">
+            @BodyBlock
+        </PhpBosDesktopChrome>
+    }
+    else
+    {
+        <PhpCpDesktopChrome IsAdmin="_isAdmin">
+            @BodyBlock
+        </PhpCpDesktopChrome>
+    }
+}
+else
+{
+    <div style="padding:2rem;font-family:sans-serif;">
+        <h1>Not found</h1>
+        <p>Platform mail setup is Super CP / Super BOS only. Each tenant reads its own mailboxes on its own Control Panel or ERP.</p>
+        <p>
+            <a href="/cp/mailbox-app">Tenant mailbox</a>
+            · <a href="/cp/tenant-email-app">Tenant SMTP</a>
+            · <a href="/cp">Control Panel</a>
+        </p>
+    </div>
+}
+
+@code {
+    private RenderFragment BodyBlock => @<text>
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    <span class="label label-primary">Super CP / BOS</span> Platform mail — unlimited domains
+                    <a class="btn btn-xs btn-default pull-right" href="/cp/mailbox-app">Platform inbox</a>
+                    <a class="btn btn-xs btn-default pull-right" href="/bos/app" style="margin-right:.4rem">BOS</a>
+                </div>
+                <div class="panel-body">
+                    <p>
+                        One Purelymail account covers Super CP, Super ERP, BOS, and every tenant.
+                        Shop tenants get mailboxes on their own domain (same business set as ecomae.com).
+                        Only ERP customers create personal boxes on <code>ecomae.com</code> from Super ERP mailbox — they see and send only their own inbox.
+                        Shop tenants never create <code>@@ecomae.com</code> addresses.
+                    </p>
+                    <p>
+                        Super CP / Super BOS / Super ERP admin login: <strong>yawer@ecomae.com</strong>
+                        (same password as the previous <code>ecomaedxb@gmail.com</code> operator).
+                        First working mailbox: <strong>yawer@ecomae.com</strong>
+                        · SMTP <code>@PurelymailDns.SmtpHost:@PurelymailDns.SmtpPort</code> TLS
+                        · IMAP <code>@PurelymailDns.ImapHost:@PurelymailDns.ImapPort</code>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <MailboxVisualGuide Audience="super" Domain="ecomae.com" />
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_flashOk))
+        {
+            <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+        }
+        @if (!string.IsNullOrWhiteSpace(_flashErr))
+        {
+            <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+        }
+
+        @if (!_isAdmin)
+        {
+            <div class="col-lg-12"><div class="alert alert-info" role="status">Sign in with a Super CP admin session to add domains and mailboxes.</div></div>
+        }
+
+        <div class="col-lg-12">
+            <div class="well well-sm">
+                <strong>API token:</strong> @_tokenHint
+                @if (!_hasToken)
+                {
+                    <text> — generate at <a href="https://purelymail.com/manage/account" target="_blank" rel="noopener">purelymail.com/manage/account</a> or set <code>ECOMAE_PURELYMAIL_API_TOKEN</code>.</text>
+                }
+            </div>
+        </div>
+
+        @if (_isAdmin)
+        {
+            <div class="col-md-6">
+                <form method="post" action="/cp/super-mail/write" class="well">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="save_token" />
+                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                    <div class="form-group">
+                        <label>Purelymail API token</label>
+                        <input type="password" class="form-control" name="api_token" autocomplete="off" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save token</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form method="post" action="/cp/super-mail/write" class="well">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="add_domain" />
+                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                    <div class="form-group">
+                        <label>Add client domain</label>
+                        <input type="text" class="form-control" name="domain" placeholder="client.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>Tenant site_key</label>
+                        <input type="text" class="form-control" name="site_key" placeholder="client-com" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add domain</button>
+                </form>
+            </div>
+            <div class="col-lg-12">
+                <form method="post" action="/cp/super-mail/write" class="well">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="create_mailbox" />
+                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Local part</label>
+                                <input type="text" class="form-control" name="local_part" placeholder="ops" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Domain</label>
+                                <input type="text" class="form-control" name="domain" placeholder="client.com" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>site_key</label>
+                                <input type="text" class="form-control" name="site_key" placeholder="client-com" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Mailbox password</label>
+                                <input type="password" class="form-control" name="password" autocomplete="new-password" />
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create mailbox</button>
+                    <span class="text-muted">Outgoing SMTP defaults to @PurelymailDns.SmtpHost:@PurelymailDns.SmtpPort TLS. Password is never returned.</span>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form method="post" action="/cp/super-mail/write" class="well">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="setup_tenants" />
+                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                    <p>Add every named shop domain (epartscart.com, electronicae.com, stylenlook.com, thejewellerytrend.com, taxofinca.com) plus registry hosts. ecomae.com stays the platform domain for ERP customers only.</p>
+                    <p class="text-muted">@_fleetHint</p>
+                    <button type="submit" class="btn btn-primary">Add tenant domains</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form method="post" action="/cp/super-mail/write" class="well">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="setup_fleet" />
+                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                    <p>Create the same business mailbox set as ecomae.com on the platform domain and every shop domain: info, hello, support, sales, accounts, orders, billing plus contact/office/admin/noreply routing.</p>
+                    <button type="submit" class="btn btn-primary">Create mail for all shop tenants</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form method="post" action="/cp/super-mail/write" class="well">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="setup_business" />
+                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                    <div class="form-group">
+                        <label>Create standard business mailboxes</label>
+                        <input type="text" class="form-control" name="domain" value="ecomae.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>site_key</label>
+                        <input type="text" class="form-control" name="site_key" value="platform" />
+                    </div>
+                    <p class="text-muted">Creates info, hello, support, sales, accounts, orders, billing plus contact/office/admin/noreply routing to info at that domain.</p>
+                    <button type="submit" class="btn btn-primary">Create business mailboxes</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form method="post" action="/cp/super-mail/write" class="well">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="succeed_operator" />
+                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                    <p>Move the Super CP / Super BOS / Super ERP login from <code>ecomaedxb@gmail.com</code> to <code>yawer@ecomae.com</code>. The stored password hash is not rewritten.</p>
+                    <button type="submit" class="btn btn-primary">Set yawer@ecomae.com as Super admin</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form method="post" action="/cp/super-mail/write" class="well">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="register_login" />
+                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                    <div class="form-group">
+                        <label>Register tenant login email</label>
+                        <input type="email" class="form-control" name="address" placeholder="ops@client.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>site_key</label>
+                        <input type="text" class="form-control" name="site_key" placeholder="client-com" />
+                    </div>
+                    <div class="form-group">
+                        <label>Mailbox password (optional now)</label>
+                        <input type="password" class="form-control" name="password" autocomplete="new-password" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Register login mailbox</button>
+                </form>
+            </div>
+        }
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Cloudflare records — same as ecomae.com</div>
+                <div class="panel-body" style="overflow:auto">
+                    <p>Publish these on ecomae.com and every shop domain. After DNS is live, Refresh DNS so Purelymail can send and receive.</p>
+                    @{
+                        var cloudflareHosts = new List<(string Hostname, string SiteKey)> { (PurelymailDns.FirstDomain, PurelymailDns.PlatformSiteKey) };
+                        cloudflareHosts.AddRange(KnownShopMailTenants.Rows);
+                    }
+                    @foreach (var shop in cloudflareHosts)
+                    {
+                        var owned = Mail.ListDomains().FirstOrDefault(d => string.Equals(d.Domain, shop.Hostname, StringComparison.OrdinalIgnoreCase));
+                        <h4>@shop.Hostname <small>site_key=@shop.SiteKey</small></h4>
+                        <table class="table table-condensed">
+                            <thead><tr><th>Type</th><th>Name</th><th>Content</th></tr></thead>
+                            <tbody>
+                            @foreach (var row in CloudflareDnsPack.ForDomain(shop.Hostname, owned?.OwnershipCode ?? ""))
+                            {
+                                <tr><td>@row.Type</td><td><code>@row.Name</code></td><td><code>@row.Content</code></td></tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">DNS for every domain</div>
+                <div class="panel-body" style="overflow:auto">
+                    <table class="table table-striped">
+                        <thead><tr><th>Host</th><th>Type</th><th>Value</th><th></th></tr></thead>
+                        <tbody>
+                        @foreach (var row in PurelymailDns.Records)
+                        {
+                            <tr>
+                                <td>@row.Host</td>
+                                <td>@row.Kind</td>
+                                <td><code>@row.Target</code></td>
+                                <td>@row.Hint</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Domains (@_domains.Count.ToString(CultureInfo.InvariantCulture))</div>
+                <div class="panel-body" style="overflow:auto">
+                    <table class="table table-striped">
+                        <thead><tr><th>Domain</th><th>site_key</th><th>DNS</th><th>Ownership TXT</th><th></th></tr></thead>
+                        <tbody>
+                        @if (_domains.Count == 0)
+                        {
+                            <tr><td colspan="5">No domains yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var domain in _domains)
+                            {
+                                <tr>
+                                    <td>@domain.Domain @(domain.FirstPlatform ? "(platform)" : "")</td>
+                                    <td>@domain.SiteKey</td>
+                                    <td>@(string.IsNullOrWhiteSpace(domain.DnsStatus) ? "—" : domain.DnsStatus)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(domain.OwnershipCode) ? "—" : domain.OwnershipCode)</td>
+                                    <td>
+                                        @if (_isAdmin)
+                                        {
+                                            <form method="post" action="/cp/super-mail/write" style="display:inline">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="action" value="refresh_dns" />
+                                                <input type="hidden" name="domain" value="@domain.Domain" />
+                                                <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                                                <button type="submit" class="btn btn-xs btn-default">Refresh DNS</button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Mailboxes (@_mailboxes.Count.ToString(CultureInfo.InvariantCulture))</div>
+                <div class="panel-body" style="overflow:auto">
+                    <table class="table table-striped">
+                        <thead><tr><th>Address</th><th>site_key</th><th>Password</th><th>Purelymail</th><th></th></tr></thead>
+                        <tbody>
+                        @foreach (var box in _mailboxes)
+                        {
+                            <tr>
+                                <td>
+                                    @box.Address
+                                    @if (box.FirstWorking)
+                                    {
+                                        <span class="label label-success">first working</span>
+                                    }
+                                </td>
+                                <td>@box.SiteKey</td>
+                                <td>@(box.HasPassword ? "stored" : "set on Super CP")</td>
+                                <td>@(box.ApiSynced ? "synced" : (string.IsNullOrWhiteSpace(box.LastError) ? "local" : box.LastError))</td>
+                                <td>
+                                    @if (_isAdmin)
+                                    {
+                                        <form method="post" action="/cp/super-mail/write" style="display:inline-flex;gap:.35rem;align-items:center">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="action" value="set_mailbox_password" />
+                                            <input type="hidden" name="address" value="@box.Address" />
+                                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                                            <input type="password" name="password" placeholder="IMAP password" autocomplete="off" />
+                                            <button type="submit" class="btn btn-xs btn-default">Store password</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </text>;
+
+    private bool _allowed;
+    private bool _isAdmin;
+    private bool _hasToken;
+    private string _tokenHint = "not set";
+    private string _surface = "cp";
+    private string _returnUrl = "/cp/super-mail-app";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private IReadOnlyList<PlatformMailDomain> _domains = [];
+    private IReadOnlyList<PlatformMailbox> _mailboxes = [];
+    private string _fleetHint = "Fleet registry not loaded.";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        _allowed = SuperCpHostGate.IsAllowed(ctx);
+        if (!_allowed || ctx is null)
+        {
+            return;
+        }
+
+        var path = ctx.Request.Path.Value ?? string.Empty;
+        _surface = path.StartsWith("/bos", StringComparison.OrdinalIgnoreCase) ? "bos" : "cp";
+        _returnUrl = _surface == "bos" ? "/bos/mail-app" : "/cp/super-mail-app";
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _hasToken = Mail.HasApiToken();
+        _tokenHint = Mail.TokenHint();
+        _domains = Mail.ListDomains();
+        _mailboxes = Mail.ListMailboxes(PurelymailDns.PlatformSiteKey, superCp: true);
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
+        var fleet = await Dashboards.ListPortalTenantsAsync(500, ctx.RequestAborted);
+        var plan = Mail.PlanTenantDomains(fleet.Tenants.Select(t => (t.Hostname, t.SiteKey)).ToArray());
+        var missing = plan.Count(p => !p.DomainReady);
+        _fleetHint = fleet.Tenants.Count == 0
+            ? (string.IsNullOrWhiteSpace(fleet.Message) ? "No tenant rows in the registry yet." : fleet.Message)
+            : missing + " tenant domain(s) still need mail setup · " + plan.Count + " shop host(s) in the fleet.";
+    }
+}

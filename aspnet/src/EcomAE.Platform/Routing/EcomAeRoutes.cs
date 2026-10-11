@@ -529,6 +529,18 @@ public static class EcomAeRoutes
     public const string ControlPanelTenantEmailSave = "/cp/tenant-email/save";
     /// <summary>PHP <c>test_tenant_smtp</c>. <c>confirmWrites=true</c> sends via saved tenant SMTP.</summary>
     public const string ControlPanelTenantEmailTest = "/cp/tenant-email/test";
+    /// <summary>Super-CP / BOS Purelymail platform setup (unlimited domains + mailboxes).</summary>
+    public const string ControlPanelSuperMailApp = "/cp/super-mail-app";
+    /// <summary>Super-CP Purelymail write. <c>confirmWrites=true</c> saves token, domains, and mailboxes.</summary>
+    public const string ControlPanelSuperMailWrite = "/cp/super-mail/write";
+    /// <summary>Tenant CP inbox for mailboxes assigned to this <c>site_key</c>.</summary>
+    public const string ControlPanelMailboxApp = "/cp/mailbox-app";
+    /// <summary>Tenant CP mailbox + staff create on this tenant domain only. <c>confirmWrites=true</c>.</summary>
+    public const string ControlPanelMailboxWrite = "/cp/mailbox/write";
+    /// <summary>Tenant ERP chrome inbox for the same <c>site_key</c> mailboxes.</summary>
+    public const string ErpMailboxApp = "/erp/mailbox-app";
+    /// <summary>Tenant ERP compose / mailbox write. Same isolation as <see cref="ControlPanelMailboxWrite"/>.</summary>
+    public const string ErpMailboxWrite = "/erp/mailbox/write";
     public const string ControlPanelDataMigrations = "/cp/data-migrations";
     /// <summary>CP Data migrations Blazor list (JSON digest remains <see cref="ControlPanelDataMigrations"/>).</summary>
     public const string ControlPanelDataMigrationsApp = "/cp/data-migrations-app";
@@ -2332,6 +2344,8 @@ public static class EcomAeRoutes
     public const string BosAuditLog = "/bos/audit-log";
     /// <summary>BOS audit log Blazor list (JSON digest remains <see cref="BosAuditLog"/>).</summary>
     public const string BosAuditLogApp = "/bos/audit-log-app";
+    /// <summary>Super BOS alias of platform mail setup (same Super-CP host gate).</summary>
+    public const string BosMailApp = "/bos/mail-app";
 
     /// <summary>Intelligence Platform hub (Super-CP only) — ecosystem over BOS + ambient OS products.</summary>
     public const string Ip = "/ip";

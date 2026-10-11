@@ -30,6 +30,7 @@ public sealed class TopMenuIntegrityTests
         // No row in the production CP menu snapshots; open menu placement items in the tracker.
         "CpIntegrationsGuideApp.razor", "CpLifeOsClientsApp.razor", "CpLifeOsGuideApp.razor", "CpOpsGuidesApp.razor",
         "CpVinFieldsApp.razor", "CpWorkshopApp.razor", "ErpMultiEntityApp.razor", "ErpUserControlApp.razor",
+        "ErpTenantMailboxApp.razor",
     ];
 
     public static IEnumerable<object[]> Menus()

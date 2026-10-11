@@ -1,0 +1,207 @@
+@page "/erp/mailbox-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Mail
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Components.Shared.Desktop
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IMailboxInboxService Inbox
+@inject IPlatformMailService Mail
+
+<PageTitle>Mailbox · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Mailbox" BreadcrumbArea="Workspace" BreadcrumbTab="Mailbox">
+    <PhpErpModulePageHeader Title="Mailbox" Subtitle="Own inbox only. Shop tenants use their domain; only ERP customers create @@ecomae.com mailboxes." PhpTabHref="" />
+
+    @if (!_isAdmin)
+    {
+        <div class="alert alert-info" role="status">Sign in with an ERP / CP admin session to read this tenant’s mailbox.</div>
+    }
+
+    <MailboxVisualGuide Audience="@(_isSuper ? "erp" : "tenant")" Domain="@(_isSuper ? PurelymailDns.FirstDomain : _mailDomain)" />
+
+    <p>
+        <a href="/cp/mailbox-app">Open in Control Panel</a>
+        · <a href="/cp/tenant-email-app">Outgoing SMTP</a>
+        @if (_isSuper)
+        {
+            <text> · <a href="/cp/super-mail-app">Platform mail setup</a></text>
+        }
+    </p>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Mailbox KPIs">
+        <div class="kpi"><div class="lbl">site_key</div><div class="val">@_siteKey</div></div>
+        <div class="kpi"><div class="lbl">Mailboxes</div><div class="val">@_boxes.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Opened</div><div class="val">@(string.IsNullOrWhiteSpace(_opened) ? "—" : _opened)</div></div>
+        <div class="kpi"><div class="lbl">Login email</div><div class="val">@(string.IsNullOrWhiteSpace(_loginEmail) ? "—" : _loginEmail)</div></div>
+    </div>
+
+    @if (_isAdmin && _canCreate)
+    {
+        <form method="post" action="/erp/mailbox/write" class="well">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="action" value="create_staff" />
+            <input type="hidden" name="returnUrl" value="/erp/mailbox-app" />
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>New mailbox on @_mailDomain</label>
+                        <input type="text" class="form-control" name="local_part" placeholder="@(_isSuper ? "firstname.lastname" : "ops")" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Mailbox + login password</label>
+                        <input type="password" class="form-control" name="password" autocomplete="new-password" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary btn-block">@(_isSuper ? "Create ERP customer mailbox on ecomae.com" : "Create mailbox and login")</button>
+                    </div>
+                </div>
+            </div>
+            @if (_isSuper)
+            {
+                <p class="text-muted">Only ERP customers get @@ecomae.com addresses. Reserved locals (info, hello, yawer, admin, …) stay Super CP.</p>
+            }
+        </form>
+    }
+
+    @if (_boxes.Count == 0)
+    {
+                <div class="alert alert-warning" role="status">No mailbox is assigned yet. Create one above, or ask Super CP to run Create mail for all shop tenants.</div>
+    }
+    else
+    {
+        <div class="epc-erp-table-wrap">
+            <table class="table">
+                <thead><tr><th>Mailbox</th><th>SMTP</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var box in _boxes)
+                {
+                    var smtp = Mail.SmtpFor(box.Address);
+                    <tr>
+                        <td>@box.Address</td>
+                        <td>@smtp.Host:@smtp.Port @smtp.Encryption</td>
+                        <td><a href="/erp/mailbox-app?address=@Uri.EscapeDataString(box.Address)">Open inbox</a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status">@_flashErr</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status">@_flashOk</div>
+    }
+
+    @if (_isAdmin && !string.IsNullOrWhiteSpace(_opened))
+    {
+        <form method="post" action="/erp/mailbox/write" class="well" style="margin-top:12px">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="action" value="send" />
+            <input type="hidden" name="address" value="@_opened" />
+            <input type="hidden" name="returnUrl" value="/erp/mailbox-app?address=@Uri.EscapeDataString(_opened)" />
+            <h4>Compose from @_opened</h4>
+            <div class="form-group"><label>To</label><input type="email" class="form-control" name="to" /></div>
+            <div class="form-group"><label>Subject</label><input type="text" class="form-control" name="subject" /></div>
+            <div class="form-group"><label>Message</label><textarea class="form-control" name="body" rows="6"></textarea></div>
+            <button type="submit" class="btn btn-primary">Send</button>
+        </form>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(_opened))
+    {
+        <div class="epc-erp-table-wrap" style="margin-top:12px">
+            <strong>Inbox · @_opened</strong>
+            <table class="table">
+                <thead><tr><th>When</th><th>From</th><th>Subject</th><th>Excerpt</th></tr></thead>
+                <tbody>
+                @if (_messages.Count == 0)
+                {
+                    <tr><td colspan="4">No messages yet.</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _messages)
+                    {
+                        <tr>
+                            <td>@row.ReceivedUtc.ToString("u", CultureInfo.InvariantCulture)</td>
+                            <td>@row.From</td>
+                            <td>@row.Subject</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Body) ? row.Excerpt : row.Body)</td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private bool _isSuper;
+    private bool _canCreate;
+    private string _siteKey = "tenant";
+    private string _mailDomain = "";
+    private string _opened = "";
+    private string _loginEmail = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private IReadOnlyList<PlatformMailbox> _boxes = [];
+    private IReadOnlyList<MailboxMessage> _messages = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isSuper = SuperCpHostGate.IsAllowed(ctx);
+        _siteKey = PlatformMailNormalize.SiteKey(ctx.Request.Query["site_key"].ToString(), _isSuper, ctx.Request.Host.Host);
+        _mailDomain = _isSuper ? PurelymailDns.FirstDomain : PlatformMailNormalize.Domain(ctx.Request.Host.Host);
+        _canCreate = _isAdmin && !string.IsNullOrWhiteSpace(_mailDomain);
+        _loginEmail = session.Email ?? "";
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
+        _boxes = Inbox.ListForCaller(_siteKey, superCp: false, _loginEmail, ownInboxOnly: _isSuper);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _opened = Inbox.PreferLoginAddress(_boxes, _loginEmail, _isSuper ? _loginEmail : ctx.Request.Query["address"].ToString());
+
+        if (string.IsNullOrWhiteSpace(_opened))
+        {
+            return;
+        }
+
+        var read = await Inbox.ReadAsync(_siteKey, superCp: false, _opened, 40, ctx.RequestAborted, _loginEmail, ownInboxOnly: _isSuper);
+        _messages = read.Messages;
+        if (read.Ok)
+        {
+            _flashOk = read.Message;
+        }
+        else
+        {
+            _flashErr = read.Message;
+        }
+    }
+}

@@ -60,7 +60,8 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
             var hasBackend = userGroups.Any(backendSet.Contains);
             var effectiveGroups = await ExpandGroupAncestryAsync(connection, userGroups, cancellationToken).ConfigureAwait(false);
             var modules = await LoadModuleAclAsync(connection, effectiveGroups, cancellationToken).ConfigureAwait(false);
-            return new LegacyAdminIdentity(email, userGroups, hasBackend, modules);
+            return PlatformOperatorIdentity.WithCanonicalEmail(
+                new LegacyAdminIdentity(email, userGroups, hasBackend, modules));
         }
         catch
         {
