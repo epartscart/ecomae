@@ -63,6 +63,7 @@ public sealed class ErpJwSeedWriteService : IErpJwSeedWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
         // epc_erp_adv_set_setting($db, 'erp_industry_profile', 'jewellery')
