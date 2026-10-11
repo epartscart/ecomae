@@ -53,13 +53,15 @@ public sealed class ErpCostmTxnAddWriteService : IErpCostmTxnAddWriteService
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
-        var companyId = request.CompanyId < 0 ? 0 : request.CompanyId;
         var qty = decimal.Round(request.Qty, 4, MidpointRounding.AwayFromZero);
         var unitCost = decimal.Round(request.UnitCost, 4, MidpointRounding.AwayFromZero);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var txnDate = request.TxnDate > 0 ? request.TxnDate : now;
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureCostModelsAsync(connection, cancellationToken).ConfigureAwait(false);
+        var companyId = await ErpFinAdvancedCompany.ResolveAsync(connection, request.CompanyId, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_costm_txn", "txn_type", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_costm_txn", "qty", cancellationToken).ConfigureAwait(false))
         {

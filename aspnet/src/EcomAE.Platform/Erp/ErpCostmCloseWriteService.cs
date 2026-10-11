@@ -43,6 +43,8 @@ public sealed class ErpCostmCloseWriteService : IErpCostmCloseWriteService
         if (!_connections.IsConfigured) return new(false, "TenantRegistry DB is not configured.", 0, string.Empty, 0m, 0m, 0m, 0m, 0);
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureCostModelsAsync(connection, cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
         var companyId = await ErpFinAdvancedCompany.ResolveAsync(connection, 0, cancellationToken).ConfigureAwait(false);

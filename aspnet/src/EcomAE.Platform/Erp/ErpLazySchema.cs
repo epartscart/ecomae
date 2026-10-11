@@ -698,4 +698,83 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Withholding tax transactions'",
             ct);
     }
+
+    /// <summary>epc_cc_centers + epc_cc_allocations (epc_erp_costing.php ensure)</summary>
+    public static async Task EnsureCostCentersAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_cc_centers` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`code` varchar(30) NOT NULL," +
+            "`name` varchar(160) NOT NULL DEFAULT ''," +
+            "`branch_id` int(11) NOT NULL DEFAULT 0," +
+            "`active` tinyint(1) NOT NULL DEFAULT 1," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "UNIQUE KEY `x_code` (`code`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Cost centers'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_cc_allocations` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`run_label` varchar(80) NOT NULL DEFAULT ''," +
+            "`source_cost` decimal(16,2) NOT NULL DEFAULT 0.00," +
+            "`cost_center_id` int(11) NOT NULL DEFAULT 0," +
+            "`amount` decimal(16,2) NOT NULL DEFAULT 0.00," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_run` (`run_label`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Cost allocation results'",
+            ct);
+    }
+
+    /// <summary>epc_costm_item + epc_costm_txn (epc_erp_cost_models.php ensure)</summary>
+    public static async Task EnsureCostModelsAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_costm_item` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`item_id` int(11) NOT NULL DEFAULT 0," +
+            "`model` varchar(16) NOT NULL DEFAULT 'moving_avg'," +
+            "`std_cost` decimal(18,4) NOT NULL DEFAULT 0.0000," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "UNIQUE KEY `x_company_item` (`company_id`,`item_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Per-item costing model assignment'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_costm_txn` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`item_id` int(11) NOT NULL DEFAULT 0," +
+            "`txn_type` varchar(8) NOT NULL DEFAULT 'receipt'," +
+            "`qty` decimal(18,4) NOT NULL DEFAULT 0.0000," +
+            "`unit_cost` decimal(18,4) NOT NULL DEFAULT 0.0000," +
+            "`txn_date` int(11) NOT NULL DEFAULT 0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_company` (`company_id`)," +
+            "KEY `x_item` (`item_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Costing model transactions'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_costm_close` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`item_id` int(11) NOT NULL DEFAULT 0," +
+            "`model` varchar(16) NOT NULL DEFAULT 'moving_avg'," +
+            "`label` varchar(40) NOT NULL DEFAULT ''," +
+            "`cogs` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`closing_qty` decimal(18,4) NOT NULL DEFAULT 0.0000," +
+            "`closing_value` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`variance` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`detail_json` mediumtext," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_company` (`company_id`)," +
+            "KEY `x_item` (`item_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Inventory closing/recalculation runs'",
+            ct);
+    }
 }
