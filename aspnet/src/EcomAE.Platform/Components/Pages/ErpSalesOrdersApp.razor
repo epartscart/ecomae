@@ -333,14 +333,16 @@
                     <th>When</th>
                     <th>Customer</th>
                     <th>Status</th>
+                    <th>VAT</th>
                     <th>Total</th>
+                    <th>Invoice</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @if (_orders.Count == 0)
                 {
-                    <tr><td colspan="6" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No sales orders." : _message) : "Sign in with ERP capability for live sales orders.")</td></tr>
+                    <tr><td colspan="8" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No sales orders." : _message) : "Sign in with ERP capability for live sales orders.")</td></tr>
                 }
                 else
                 {
@@ -351,7 +353,18 @@
                             <td>@FormatTime(o.TimeCreated)</td>
                             <td>@o.CustomerUserId</td>
                             <td><span class="label label-@ErpPhpStatusLabel.Class(o.Status)">@o.Status</span></td>
+                            <td>@o.VatAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@o.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>
+                                @if (o.SalesInvoiceId > 0)
+                                {
+                                    <a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href("/erp/invoices-app", "inv_id", o.SalesInvoiceId)">INV-@o.SalesInvoiceId</a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
                             <td>
                                 <a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/sales-orders-app", "so_id", o.Id)">Open</a>
                                 @if (_isAdmin)
@@ -371,7 +384,7 @@
                         @if (o.Lines.Count > 0)
                         {
                             <tr class="epc-erp-doc-lines">
-                                <td colspan="6">
+                                <td colspan="8">
                                     <table class="table table-condensed table-bordered" style="margin-bottom:0">
                                         <thead>
                                             <tr>

@@ -935,7 +935,9 @@ public sealed record ErpSalesOrderDigest(
     decimal TotalAmount,
     string Status,
     long TimeCreated,
-    IReadOnlyList<ErpDocumentLineDigest> Lines);
+    IReadOnlyList<ErpDocumentLineDigest> Lines,
+    decimal VatAmount = 0m,
+    int SalesInvoiceId = 0);
 
 public sealed record ErpSalesOrderListResult(
     IReadOnlyList<ErpSalesOrderDigest> Orders,
