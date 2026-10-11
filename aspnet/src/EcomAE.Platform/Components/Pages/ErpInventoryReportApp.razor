@@ -169,6 +169,15 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "invrep_snap_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td></td>
+                        <td class="text-right">@_snapshots.Sum(r => r.TotalSkus).ToString(CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_snapshots.Sum(r => r.TotalQty).ToString("N3", CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_snapshots.Sum(r => r.TotalValue).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td></td>
+                        <td class="text-muted">@_snapshots.Count snapshots</td>
+                    </tr>
                 }
             </tbody>
         </table>

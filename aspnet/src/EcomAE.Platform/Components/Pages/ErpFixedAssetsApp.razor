@@ -135,6 +135,13 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "asset_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="4"></td>
+                        <td>@_assets.Sum(r => r.Cost).ToString("0.00", CultureInfo.InvariantCulture)</td>
+                        <td>@_assets.Sum(r => r.BookValue).ToString("0.00", CultureInfo.InvariantCulture)</td>
+                        <td colspan="3" class="text-muted">@_assets.Count assets</td>
+                    </tr>
                 }
             </tbody>
         </table>
