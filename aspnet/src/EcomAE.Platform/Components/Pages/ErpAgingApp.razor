@@ -72,10 +72,19 @@
                                     <td>@r.Bucket1.ToString("N2", CultureInfo.InvariantCulture)</td>
                                     <td>@r.Bucket2.ToString("N2", CultureInfo.InvariantCulture)</td>
                                     <td>@r.Bucket3.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                    <td>@r.Bucket4.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td style="@(r.Bucket4 > 0 ? "color:#b3261e;font-weight:600" : "")">@r.Bucket4.ToString("N2", CultureInfo.InvariantCulture)</td>
                                     <td>@r.Total.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 </tr>
                             }
+                            <tr style="font-weight:600;background:#f2f6fa">
+                                <td>Total</td>
+                                <td>@rows.Sum(r => r.Bucket0).ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@rows.Sum(r => r.Bucket1).ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@rows.Sum(r => r.Bucket2).ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@rows.Sum(r => r.Bucket3).ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@rows.Sum(r => r.Bucket4).ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@rows.Sum(r => r.Total).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            </tr>
                         }
                     </tbody>
                 </table>
