@@ -383,6 +383,14 @@ Not complete.
 - 273 ASP.NET stamps under `/var/www/ecomae-aspnet/releases` are **24G**. Live `current` is `20261010085717`. `scripts/cloudpanel_prune_aspnet_releases.sh` dry-runs and, with `CONFIRM=I_HAVE_READ_THE_LIST`, deletes only older stamps. It refuses a missing current or a non-200 `/health`.
 - Do not prune the ten running PHP-FPM versions. Do not delete `/opt/ecomae-aspnet-source`, `/home/ecomae/htdocs`, or `/home/mysql`. Journal / syslog (~2.6G) and CloudPanel snapshots (1.5G) are second cuts.
 
+### Checkpoint 2026-10-11 — plan Q1-hunt (CP tenant email/SMTP page)
+
+Not complete.
+
+- Ratchet 411 to 410. One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Hunt` `cp/content/control/portal/epc_tenant_email_settings.php` (`epc_int_h`, `epc_int_backend`, `epc_integrations_feature_enabled`, `epc_integrations_load_tenant_config`, `epc_auth_smtp_diagnose`, `epc_cp_page_frame_open`, `epc_cp_page_frame_close`; empty / gates / live / tenant isolation; leftover unique portal, leftover unique page-frame parent, leftover unique user helper, leftover portal-db parent, and Super-CP host stay unnamed). Super-CP banner prints first and does not return. Tenant CP with `email_smtp` on sees the form. PHP `??` keeps an empty host (does not fall through to diagnose). GET does not mint a session.
+- Area functionality gained tenant-email isolation (`/acme/` ajax stays off `/beta/`; tenant form has no Super-CP banner; denied admin shows no SMTP form).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Hunt` (4). Hunt + area **5 / 5**. Last full suite after Foam **6344 / 6344**; Hunt suite **5 / 5**. CP-page mentioned 278 to 279 of 523. Unnamed PHP functions stay 6,031. Ready ≤200-line non-ERP functions stay 46. The weighted headline stays about 20.4%. Non-ERP pending: 244 files / 132,069 lines (was 245 / 132,211). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-11 — plan Q1-howe (CP mobile-apps page)
 
 Not complete.

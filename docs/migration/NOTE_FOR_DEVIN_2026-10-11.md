@@ -11,13 +11,13 @@ ERP acceptance is still **0 / 15**. The weighted headline is still about **20.4%
 
 ## What Cursor did since 9 Oct
 
-Cursor ran leftover non-ERP twins on `cursor/small-gaps-storefront-done-5dbd` (stacked leftover queue). Latest measured inventory after PlanQ1Howe; Hunt (tenant email/SMTP) is the current leftover twin and is not ratcheted yet:
+Cursor ran leftover non-ERP twins on `cursor/small-gaps-storefront-done-5dbd` (stacked leftover queue). Latest measured inventory after PlanQ1Hunt:
 
 | | Files | Lines |
 |---|---:|---:|
-| Non-ERP still open (Cursor) | **245** | **132,211** |
+| Non-ERP still open (Cursor) | **244** | **132,069** |
 | ERP finance still open (Devin) | **166** | **66,191** |
-| Total PHP gap | **411** | **198,402** |
+| Total PHP gap | **410** | **198,260** |
 
 Unmentioned functions: **6,031** of 9,870. Ready ≤200-line non-ERP rows: 46, mostly Q2/Q3 (catalogue list, APE, `*_h` guides). Cursor is not closing those by mention-only.
 
