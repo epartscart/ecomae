@@ -193,6 +193,27 @@ public sealed class SurfaceChromePolicyTests
         Assert.DoesNotContain("epc-cp-topnav-panel-hub", tenant, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void DeployProbes_StayOnRealHealthEndpoints()
+    {
+        var program = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Program.cs"));
+        Assert.DoesNotContain("ProbeBypassMiddleware", program, StringComparison.Ordinal);
+        Assert.Contains("app.MapHealthChecks(EcomAeRoutes.Health)", program, StringComparison.Ordinal);
+        Assert.Contains("app.MapGet(EcomAeRoutes.Readiness", program, StringComparison.Ordinal);
+
+        var isolationPaste = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "scripts/cloudpanel_deploy_cp_erp_chrome_isolation_now.sh"));
+        Assert.Contains("REFUSED", isolationPaste, StringComparison.Ordinal);
+        Assert.DoesNotContain("ECOMAE_EMERGENCY_PUBLISH=\"${ECOMAE_EMERGENCY_PUBLISH:-1}\"", isolationPaste, StringComparison.Ordinal);
+
+        var gated = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "scripts/cloudpanel_deploy_main_gated.sh"));
+        Assert.Contains("ECOMAE_EMERGENCY_PUBLISH=0", gated, StringComparison.Ordinal);
+        Assert.Contains("wait_for_aspnet_health.sh", gated, StringComparison.Ordinal);
+        Assert.Contains("\"$BRANCH\" != \"main\"", gated, StringComparison.Ordinal);
+    }
+
     private static string PathOnly(string href)
     {
         var key = TopMenuLinks.DestinationKey(href);

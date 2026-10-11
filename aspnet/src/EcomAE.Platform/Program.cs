@@ -1331,9 +1331,8 @@ app.UseResponseCompression();
             "KeepPhpProjectAvailable must stay true until a separate ReadyToRemovePhp / readyForPhpRemoval gate.");
     }
 }
-// Loopback /health /ready /migration/release must not touch tenant DB or Blazor.
-// CloudPanel rolls back the new binary if those probes 500 for 60s.
-app.UseMiddleware<ProbeBypassMiddleware>();
+// /health and /ready stay on MapHealthChecks / MapGet below — do not short-circuit
+// them here. CloudPanel rolls back the binary if those probes stay non-200.
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<PhpServingDeactivatedMiddleware>();
 app.UseMiddleware<BlockchainVerifyJsonMiddleware>();
