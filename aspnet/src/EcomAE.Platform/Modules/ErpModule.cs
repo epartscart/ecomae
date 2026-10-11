@@ -1334,6 +1334,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsSubmitDeclaration, HandleCsSubmitDeclarationAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsDeleteDeclaration, HandleCsDeleteDeclarationAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsListDeclarations, HandleCsListDeclarationsAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpCustomShippingReportsExport, HandleCsReportsExportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsImportDeclarationPdf, HandleCsImportDeclarationPdfAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutList, HandleShortcutListAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutAdd, async (
@@ -20308,6 +20309,56 @@ public sealed class ErpModule : ISurfaceModule
             result.Ok,
             result.Message,
             new { ok = result.Ok, writes = result.Writes, phpAuthoritative = false, message = result.Message, declarations = result.Declarations, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleCsReportsExportAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCsReportsReadService reports,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/custom-shipping-reports");
+        }
+
+        var q = context.Request.Query;
+        var reportKey = q["cs_report"].ToString();
+        if (reportKey.Length == 0)
+        {
+            reportKey = "search_results";
+        }
+        var filters = new ErpCsDeclarationsFilters(
+            Category: q["cs_category"].ToString(),
+            Status: q["cs_status"].ToString(),
+            DeclarationType: q["cs_type"].ToString(),
+            From: q["from"].ToString(),
+            To: q["to"].ToString(),
+            Company: q["cs_company"].ToString(),
+            CustomsEmirate: q["cs_emirate"].ToString(),
+            Q: q["cs_q"].ToString(),
+            ExpiryDays: int.TryParse(q["cs_expiry_days"], out var ed) && ed > 0 ? ed : 30);
+
+        ErpCsCostSummaryResult? cost = null;
+        IReadOnlyList<Dictionary<string, object?>>? duty = null;
+        IReadOnlyList<ErpCsReexportRow>? reexport = null;
+        IReadOnlyList<ErpCsExpiryRow>? expiry = null;
+        ErpCsDeclarationsResult? search = null;
+        switch (reportKey)
+        {
+            case "cost_summary": cost = await reports.CostSummaryAsync(filters, cancellationToken); break;
+            case "duty_report": duty = await reports.DutyLinesAsync(filters, cancellationToken); break;
+            case "reexport_tracking": reexport = await reports.ReexportTrackingAsync(filters, cancellationToken); break;
+            case "document_expiry": expiry = await reports.DocumentExpiryAsync(filters, cancellationToken); break;
+            default: search = await reports.SearchResultsAsync(filters, cancellationToken); break;
+        }
+
+        var csv = reports.Csv(reportKey, cost, duty, reexport, expiry, search);
+        return Results.File(
+            System.Text.Encoding.UTF8.GetBytes(csv),
+            "text/csv",
+            "cs_report_" + reportKey + ".csv");
     }
 
     private static async Task<IResult> HandleBosComplianceFetchAsync(

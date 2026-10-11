@@ -1169,6 +1169,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWhtRecordWriteService, EcomAE
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWhtCertificateWriteService, EcomAE.Platform.Erp.ErpWhtCertificateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAccountingCodesService, EcomAE.Platform.Erp.ErpAccountingCodesService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPaymentSystemsService, EcomAE.Platform.Erp.ErpPaymentSystemsService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCsReportsReadService, EcomAE.Platform.Erp.ErpCsReportsReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOmsWriteService, EcomAE.Platform.Cp.CpOmsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpFulfillmentQueueWriteService, EcomAE.Platform.Cp.CpFulfillmentQueueWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPosWriteService, EcomAE.Platform.Cp.CpPosWriteService>();
