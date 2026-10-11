@@ -328,7 +328,9 @@ public static class LegacyDesktopChromeCatalog
             || h.Contains("epc_jewel", StringComparison.OrdinalIgnoreCase)
             || h.Contains("gold_rate", StringComparison.OrdinalIgnoreCase)
             || h.Contains("jewellery_tag", StringComparison.OrdinalIgnoreCase)
-            || h.Contains("gold_scheme", StringComparison.OrdinalIgnoreCase))
+            || h.Contains("gold_scheme", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("retail_barcode", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("jewellery-retail", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
@@ -337,7 +339,8 @@ public static class LegacyDesktopChromeCatalog
         if (h.Contains("area=retail", StringComparison.OrdinalIgnoreCase)
             || h.Contains("area=service_mgmt", StringComparison.OrdinalIgnoreCase)
             || h.Contains("tab=retail_commerce", StringComparison.OrdinalIgnoreCase)
-            || h.Contains("tab=jw_retail_sales", StringComparison.OrdinalIgnoreCase))
+            || h.Contains("tab=jw_retail_sales", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("tab=retail_barcode", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }

@@ -359,6 +359,8 @@ public sealed class CpPhpParityTests
         Assert.True(links.Count < PhpModuleCatalog.CpBrochureFeatures.Count);
         Assert.DoesNotContain(links, LegacyDesktopChromeCatalog.IsJewelleryCpLink);
         Assert.DoesNotContain(links, l => LegacyDesktopChromeCatalog.IsSuperOnlyCpLink(l.Href, l.Group));
+        Assert.DoesNotContain(links, l => (l.Href ?? "").Contains("retail_barcode", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(links, l => (l.Href ?? "").Contains("jewellery-retail", StringComparison.OrdinalIgnoreCase));
         var page = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor"));
         Assert.Contains("BrochureFeaturesForHost", page, StringComparison.Ordinal);
         Assert.DoesNotContain("Links=\"@PhpModuleCatalog.CpBrochureFeatures\"", page, StringComparison.Ordinal);
