@@ -471,7 +471,12 @@ public sealed record ErpPurchaseDetailResult(
     ErpPurchaseDetail? Purchase,
     IReadOnlyList<ErpPurchaseDigest> Siblings,
     string Source,
-    string Message);
+    string Message)
+{
+    public IReadOnlyList<ErpAuditTrailRow> AuditTrail { get; init; } = [];
+    public IReadOnlyList<ErpDocumentAttachmentRow> Attachments { get; init; } = [];
+    public IReadOnlyList<ErpDocumentLineDigest> Lines { get; init; } = [];
+}
 
 public sealed record StorefrontGarageVehicleDigest(
     long Id,
@@ -1192,7 +1197,12 @@ public sealed record ErpPurchaseOrderDetailResult(
     ErpPurchaseOrderDetail? Order,
     IReadOnlyList<ErpPurchaseOrderDigest> Siblings,
     string Source,
-    string Message);
+    string Message)
+{
+    public IReadOnlyList<ErpAuditTrailRow> AuditTrail { get; init; } = [];
+    public IReadOnlyList<ErpDocumentAttachmentRow> Attachments { get; init; } = [];
+    public IReadOnlyList<ErpDocumentLineDigest> Lines { get; init; } = [];
+}
 
 public sealed record ErpInventoryStockSummaryResult(
     long RowCount,

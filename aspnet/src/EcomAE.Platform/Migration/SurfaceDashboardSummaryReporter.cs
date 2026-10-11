@@ -2071,7 +2071,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
-            return new(header, siblings, "database", string.Empty);
+            var auditTrail = await LoadEntityAuditTrailAsync(connection, "purchase", id, cancellationToken).ConfigureAwait(false);
+            var attachments = await LoadEntityAttachmentsAsync(connection, "purchase", id, cancellationToken).ConfigureAwait(false);
+            var lines = await LoadDocumentLinesAsync(connection, LegacySurfaceDashboardSql.SelectErpPurchaseLines, id, cancellationToken).ConfigureAwait(false);
+
+            return new(header, siblings, "database", string.Empty) { AuditTrail = auditTrail, Attachments = attachments, Lines = lines };
         }
         catch (Exception ex)
         {
@@ -2908,12 +2912,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         return rows;
     }
 
-    private static async Task<List<ErpDocumentLineDigest>> LoadSalesOrderLinesAsync(
-        System.Data.Common.DbConnection connection, long id, CancellationToken cancellationToken)
+    private static async Task<List<ErpDocumentLineDigest>> LoadDocumentLinesAsync(
+        System.Data.Common.DbConnection connection, string sql, long id, CancellationToken cancellationToken)
     {
         var rows = new List<ErpDocumentLineDigest>();
         await using var cmd = connection.CreateCommand();
-        cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSalesOrderLinesForDetail;
+        cmd.CommandText = sql;
         AddParameter(cmd, "@id", id);
         await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -2927,6 +2931,28 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 ReadDec(reader, "unit_price_ex_vat"),
                 ReadDec(reader, "line_ex_vat"),
                 ReadDec(reader, "qty_received")));
+        }
+        return rows;
+    }
+
+    private static async Task<List<ErpAuditTrailRow>> LoadEntityAuditTrailAsync(
+        System.Data.Common.DbConnection connection, string entityType, long entityId, CancellationToken cancellationToken)
+    {
+        var rows = new List<ErpAuditTrailRow>();
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = LegacySurfaceDashboardSql.SelectErpEntityAuditTrail;
+        AddParameter(cmd, "@entity_type", entityType);
+        AddParameter(cmd, "@entity_id", entityId);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new(
+                ReadI64(reader, "id"),
+                ReadI64(reader, "time"),
+                ReadI32(reader, "admin_id"),
+                ReadStr(reader, "action"),
+                ReadStr(reader, "summary"),
+                ReadStr(reader, "detail_json")));
         }
         return rows;
     }
@@ -3755,7 +3781,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             var attachments = await LoadEntityAttachmentsAsync(connection, "order", id, cancellationToken).ConfigureAwait(false);
 
-            var lines = await LoadSalesOrderLinesAsync(connection, id, cancellationToken).ConfigureAwait(false);
+            var lines = await LoadDocumentLinesAsync(connection, LegacySurfaceDashboardSql.SelectErpSalesOrderLinesForDetail, id, cancellationToken).ConfigureAwait(false);
 
             return new(header, siblings, "database", string.Empty) { AuditTrail = auditTrail, Attachments = attachments, Lines = lines };
         }
@@ -7455,7 +7481,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
-            return new(header, siblings, "database", string.Empty);
+            var auditTrail = await LoadEntityAuditTrailAsync(connection, "purchase_order", id, cancellationToken).ConfigureAwait(false);
+            var attachments = await LoadEntityAttachmentsAsync(connection, "purchase_order", id, cancellationToken).ConfigureAwait(false);
+            var lines = await LoadDocumentLinesAsync(connection, LegacySurfaceDashboardSql.SelectErpPurchaseOrderLinesForDetail, id, cancellationToken).ConfigureAwait(false);
+
+            return new(header, siblings, "database", string.Empty) { AuditTrail = auditTrail, Attachments = attachments, Lines = lines };
         }
         catch (Exception ex)
         {

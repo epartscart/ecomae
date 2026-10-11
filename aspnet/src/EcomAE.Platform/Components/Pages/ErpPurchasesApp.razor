@@ -114,6 +114,7 @@
             {
                 <p class="text-muted" style="margin:.85rem 0 0">No note excerpt yet.</p>
             }
+            <ErpDocumentReadbacks Lines="_openedLines" Attachments="_openedAttachments" AuditTrail="_openedAuditTrail" />
             @if (_openedSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
@@ -228,6 +229,9 @@
     private ErpPurchaseDigest? _openedPurchase;
     private ErpPurchaseDetail? _openedDetail;
     private IReadOnlyList<ErpPurchaseDigest> _openedSiblings = [];
+    private IReadOnlyList<ErpAuditTrailRow> _openedAuditTrail = [];
+    private IReadOnlyList<ErpDocumentAttachmentRow> _openedAttachments = [];
+    private IReadOnlyList<ErpDocumentLineDigest> _openedLines = [];
 
     private bool OpenedFound => _openedDetail is not null || _openedPurchase is not null;
 
@@ -267,6 +271,9 @@
             var detail = await Dashboards.BuildErpPurchaseDetailAsync(_openedId, ctx.RequestAborted);
             _openedDetail = detail.Purchase;
             _openedSiblings = detail.Siblings;
+            _openedAuditTrail = detail.AuditTrail;
+            _openedAttachments = detail.Attachments;
+            _openedLines = detail.Lines;
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
                 _message = detail.Message;

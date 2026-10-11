@@ -1,0 +1,73 @@
+@* Shared ERP document readbacks: line grid, attachments, audit trail.
+   All three sections render only when rows exist; callers pass the
+   per-id result lists loaded by the reporter. *@
+@using System.Globalization
+
+@if (Lines.Count > 0)
+{
+    <p class="text-muted" style="margin:1rem 0 .4rem">Lines</p>
+    <table class="table table-bordered table-condensed table-epc epc-erp-table">
+        <thead><tr><th>Item</th><th>Description</th><th class="text-right">Qty</th><th class="text-right">Unit price (ex VAT)</th><th class="text-right">Amount (ex VAT)</th><th class="text-right">Received</th></tr></thead>
+        <tbody>
+            @foreach (var line in Lines)
+            {
+                <tr>
+                    <td>@(string.IsNullOrWhiteSpace(line.ItemCode) ? "—" : line.ItemCode)</td>
+                    <td>@(string.IsNullOrWhiteSpace(line.Description) ? "—" : line.Description)</td>
+                    <td class="text-right">@line.Qty.ToString("N2", CultureInfo.InvariantCulture)</td>
+                    <td class="text-right">@line.UnitPriceExVat.ToString("N2", CultureInfo.InvariantCulture)</td>
+                    <td class="text-right">@line.LineExVat.ToString("N2", CultureInfo.InvariantCulture)</td>
+                    <td class="text-right">@(line.QtyReceived != 0 ? line.QtyReceived.ToString("N2", CultureInfo.InvariantCulture) : "—")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@if (Attachments.Count > 0)
+{
+    <p class="text-muted" style="margin:1rem 0 .4rem">Attachments</p>
+    <table class="table table-bordered table-condensed table-epc epc-erp-table">
+        <thead><tr><th>File</th><th>Category</th><th>Reference</th><th class="text-right">Size</th><th class="text-right">Uploaded</th><th>By</th></tr></thead>
+        <tbody>
+            @foreach (var at in Attachments)
+            {
+                <tr>
+                    <td>@(string.IsNullOrWhiteSpace(at.FileName) ? "—" : at.FileName)</td>
+                    <td>@(string.IsNullOrWhiteSpace(at.DocCategory) ? "—" : at.DocCategory)</td>
+                    <td>@(string.IsNullOrWhiteSpace(at.ReferenceNo) ? "—" : at.ReferenceNo)</td>
+                    <td class="text-right">@(at.FileSize > 0 ? at.FileSize.ToString("N0", CultureInfo.InvariantCulture) + " B" : "—")</td>
+                    <td class="text-right">@FormatTime(at.UploadedAt)</td>
+                    <td>@(at.UploadedBy > 0 ? at.UploadedBy.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@if (AuditTrail.Count > 0)
+{
+    <p class="text-muted" style="margin:1rem 0 .4rem">Audit trail</p>
+    <table class="table table-bordered table-condensed table-epc epc-erp-table">
+        <thead><tr><th>Action</th><th>Summary</th><th class="text-right">Admin</th><th class="text-right">Time</th><th>Detail</th></tr></thead>
+        <tbody>
+            @foreach (var a in AuditTrail)
+            {
+                <tr>
+                    <td>@(string.IsNullOrWhiteSpace(a.Action) ? "—" : a.Action)</td>
+                    <td>@(string.IsNullOrWhiteSpace(a.Summary) ? "—" : a.Summary)</td>
+                    <td class="text-right">@(a.AdminId > 0 ? a.AdminId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                    <td class="text-right">@FormatTime(a.Time)</td>
+                    <td>@(string.IsNullOrWhiteSpace(a.DetailJson) ? "—" : a.DetailJson)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<ErpDocumentLineDigest> Lines { get; set; } = [];
+    [Parameter] public IReadOnlyList<ErpDocumentAttachmentRow> Attachments { get; set; } = [];
+    [Parameter] public IReadOnlyList<ErpAuditTrailRow> AuditTrail { get; set; } = [];
+
+    private static string FormatTime(long value)
+        => value > 0 ? DateTimeOffset.FromUnixTimeSeconds(value).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) : "—";
+}

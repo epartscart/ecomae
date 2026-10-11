@@ -1228,6 +1228,29 @@ public static class LegacySurfaceDashboardSql
         ORDER BY `line_no`, `id`
         """;
 
+    /// <summary>Purchase order line rows for one PO (epc_erp_po_lines — PHP po_save line shape).</summary>
+    public const string SelectErpPurchaseOrderLinesForDetail = """
+        SELECT `id` AS `line_id`, `po_id` AS `document_id`,
+               IFNULL(`item_code`, '') AS `item_code`, IFNULL(`description`, '') AS `description`,
+               IFNULL(`qty`, 0) AS `qty`, IFNULL(`unit_cost_ex_vat`, 0) AS `unit_price_ex_vat`,
+               IFNULL(`line_ex_vat`, 0) AS `line_ex_vat`, IFNULL(`qty_received`, 0) AS `qty_received`
+        FROM `epc_erp_po_lines`
+        WHERE `po_id` = @id
+        ORDER BY `line_no`, `id`
+        """;
+
+    /// <summary>Received purchase (bill) line rows for one purchase (epc_erp_purchase_inv_lines).</summary>
+    public const string SelectErpPurchaseLines = """
+        SELECT `id` AS `line_id`, `purchase_id` AS `document_id`,
+               CAST(`item_id` AS CHAR) AS `item_code`,
+               CONCAT('warehouse ', `warehouse_id`, IF(`batch_no` = '', '', CONCAT(' · batch ', `batch_no`))) AS `description`,
+               IFNULL(`qty`, 0) AS `qty`, IFNULL(`unit_cost`, 0) AS `unit_price_ex_vat`,
+               IFNULL(`qty`, 0) * IFNULL(`unit_cost`, 0) AS `line_ex_vat`, 0 AS `qty_received`
+        FROM `epc_erp_purchase_inv_lines`
+        WHERE `purchase_id` = @id
+        ORDER BY `id`
+        """;
+
     /// <summary>E-invoice line rows for one invoice document (PINT-AE line grid).</summary>
     public const string SelectErpInvoiceLines = """
         SELECT `id`, `line_no`, `item_name`, `item_description`, `quantity`, `uom_code`,
