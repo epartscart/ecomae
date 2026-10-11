@@ -672,7 +672,6 @@ epc_ecomae_platform_try_exit_standalone	EpcEcomaePlatformTryExitStandalone	conte
 epc_is_ecomae_marketing_root_request	EpcIsEcomaeMarketingRootRequest	content/general_pages/epc_ecomae_platform_router.php	php	863	gap	later
 epc_render_ecomae_marketing_home_and_exit	EpcRenderEcomaeMarketingHomeAndExit	content/general_pages/epc_ecomae_platform_router.php	php	863	gap	later
 epc_render_industry_subdomain_page	EpcRenderIndustrySubdomainPage	content/general_pages/epc_ecomae_platform_router.php	php	863	gap	later
-epc_el_pl_href	EpcElPlHref	content/general_pages/epc_electronicae_home_product_lines.php	php	70	gap	ready
 browseBackHref	BrowseBackHref	content/general_pages/epc_epartscart_accessories.php	js	837	gap	browser-js
 clearDetail	ClearDetail	content/general_pages/epc_epartscart_accessories.php	js	837	gap	browser-js
 facetList	FacetList	content/general_pages/epc_epartscart_accessories.php	js	837	gap	browser-js

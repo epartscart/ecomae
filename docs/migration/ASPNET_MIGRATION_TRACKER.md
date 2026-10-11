@@ -375,6 +375,14 @@ Not complete.
 - Ratchet 509 to 507. Two files now have PHP 8.3 goldens and ASP.NET twins (`PhpPlanQ1Keep`): `epc_industry_seo.php` (crc32 presentation; live-bridge / groups injected), `epc_boc_tenant_scope.php` (unified tenant-list and Super-CP host injected). Empty demo `cp_url` becomes `https://www.ecomae.com/` plus the path. Live-bridge categories apply only when a template row parses empty.
 - Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Keep` (4). PlanQ1 suites 113 of 113. Inventory content 532 to 534 of 952. Unnamed PHP functions 7,011 to 6,985. Ready ≤200-line non-ERP functions stay 71. The weighted headline stays about 20.4%. Non-ERP pending: 341 files / 173,489 lines (was 343 / 174,225). ERP finance (Devin) unchanged: 166 / 66,191. GET does not mint a guest session. Leftover `ecomae_cpw_%` schemas: 0.
 
+### Checkpoint 2026-10-11 — plan Q1-firth (Electronicae home product lines)
+
+Not complete.
+
+- Ratchet 422 to 421. One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Firth` `content/general_pages/epc_electronicae_home_product_lines.php` (`epc_el_pl_href`; empty / tiles / escape / tenant isolation; Haven storefront helpers injected and not re-opened). GET does not mint a session.
+- Area functionality gained product-line isolation (`Acme Phones` / `/en/acme/lines` stay off the Beta Town `/ar/beta-laptops` grid).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Firth` (4). Firth + area **6 / 6**. Last full suite after Foam **6344 / 6344**; Firth suite pending while leftovers continue. Content mentioned 596 to 597 of 952. Unnamed PHP functions 6,036 to 6,035. Ready ≤200-line non-ERP functions 48 to 47. The weighted headline stays about 20.4%. Non-ERP pending: 255 files / 132,822 lines (was 256 / 132,892). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-11 — plan Q1-beck (storefront slider module)
 
 Not complete.

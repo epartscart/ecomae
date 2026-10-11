@@ -4,20 +4,19 @@ The inventory count **functions_unmentioned** is not a set of anonymous closures
 
 | Class | Count | What to do |
 |---|---:|---|
-| Real PHP (non-ERP), gap file ≤200 lines | 48 | Build next — listed below |
+| Real PHP (non-ERP), gap file ≤200 lines | 47 | Build next — listed below |
 | Real PHP (non-ERP), larger gap file | 1060 | Build with the parent kernel |
 | Real PHP already on a mentioned file | 867 | Finish leftover helpers on that twin |
 | JS functions written inside PHP templates | 1354 | Port as browser JS, not C# methods |
 | Vendor (PHPExcel, PclZip, …) | 255 | Do not port |
 | ERP finance (Devin) | 2030 | Leave for Devin |
-| **Total unmentioned** | **6036** | |
+| **Total unmentioned** | **6035** | |
 
 ## Ready to build (non-ERP PHP, gap file ≤200 lines)
 
 | PHP name | C# twin | File | Lines |
 |---|---|---|---:|
 | `epc_ecomae_h` | `EpcEcomaeH` | `content/general_pages/epc_ecomae_platform_home.php` | 118 |
-| `epc_el_pl_href` | `EpcElPlHref` | `content/general_pages/epc_electronicae_home_product_lines.php` | 70 |
 | `epc_ep_pl_href` | `EpcEpPlHref` | `content/general_pages/epc_epartscart_home_product_lines.php` | 81 |
 | `epc_cpi_header_href` | `EpcCpiHeaderHref` | `content/general_pages/epc_portal_consulting_primeinvest_header.php` | 113 |
 | `epc_er_header_href` | `EpcErHeaderHref` | `content/general_pages/epc_portal_electronics_retail_header.php` | 162 |
