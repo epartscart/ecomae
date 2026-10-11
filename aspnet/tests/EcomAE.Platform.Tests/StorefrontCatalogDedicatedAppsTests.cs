@@ -135,8 +135,8 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.DoesNotContain("epc-w22-hero", sms, StringComparison.Ordinal);
 
         var email = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpTenantEmailApp.razor"));
-        Assert.Contains("class=\"hpanel\"", email, StringComparison.Ordinal);
-        Assert.Contains("well well-sm", email, StringComparison.Ordinal);
+        Assert.Contains("epc-mail-hub", email, StringComparison.Ordinal);
+        Assert.Contains("data-mail-workspace", email, StringComparison.Ordinal);
         Assert.Contains("This tenant", email, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("/cp/tenant-email/save", email, StringComparison.Ordinal);
         Assert.Contains("/cp/tenant-email/test", email, StringComparison.Ordinal);

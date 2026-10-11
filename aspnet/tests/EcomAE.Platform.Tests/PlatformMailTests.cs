@@ -54,22 +54,32 @@ public class PlatformMailTests
         Assert.Contains("SuperCpHostGate.IsAllowed", super);
         Assert.Contains("type=\"password\"", super);
         Assert.Contains("Sessions.ValidateAsync", super);
+        Assert.Contains("data-mail-workspace", super);
+        Assert.Contains("data-mail-next", super);
+        Assert.Contains("epc-mail-hub", super);
         Assert.DoesNotContain("mint", super, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("api_token\" value=", super);
         Assert.DoesNotContain("password\" value=", super);
+
+        var inbox = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Shared/MailboxInboxWorkspace.razor"));
+        Assert.Contains("action=\"@WritePath\"", inbox);
+        Assert.Contains("create_staff", inbox);
+        Assert.Contains("setup_business", inbox);
+        Assert.Contains("name=\"confirmWrites\"", inbox);
+        Assert.Contains("action\" value=\"send\"", inbox);
+        Assert.Contains("MailboxVisualGuide", inbox);
+        Assert.Contains("data-mail-workspace", inbox);
+        Assert.Contains("Compose from", inbox);
+        Assert.DoesNotContain("mint", inbox, StringComparison.OrdinalIgnoreCase);
 
         var cp = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpTenantMailboxApp.razor"));
         Assert.Contains("@page \"/cp/mailbox-app\"", cp);
         Assert.Contains("site_key", cp);
         Assert.Contains("PreferLoginAddress", cp);
         Assert.Contains("Sessions.ValidateAsync", cp);
-        Assert.Contains("action=\"/cp/mailbox/write\"", cp);
-        Assert.Contains("create_staff", cp);
-        Assert.Contains("setup_business", cp);
-        Assert.Contains("name=\"confirmWrites\"", cp);
-        Assert.Contains("action\" value=\"send\"", cp);
+        Assert.Contains("WritePath=\"/cp/mailbox/write\"", cp);
         Assert.Contains("ownInboxOnly", cp);
-        Assert.Contains("MailboxVisualGuide", cp);
+        Assert.Contains("MailboxInboxWorkspace", cp);
         Assert.DoesNotContain("mint", cp, StringComparison.OrdinalIgnoreCase);
 
         var guide = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Shared/MailboxVisualGuide.razor"));
@@ -89,13 +99,19 @@ public class PlatformMailTests
         Assert.Contains("@page \"/erp/mailbox-app\"", erp);
         Assert.Contains("site_key", erp);
         Assert.Contains("PreferLoginAddress", erp);
-        Assert.Contains("/erp/mailbox/write", erp);
-        Assert.Contains("name=\"confirmWrites\"", erp);
-        Assert.Contains("action\" value=\"send\"", erp);
-        Assert.Contains("create_staff", erp);
+        Assert.Contains("WritePath=\"/erp/mailbox/write\"", erp);
         Assert.Contains("ownInboxOnly", erp);
-        Assert.Contains("MailboxVisualGuide", erp);
+        Assert.Contains("MailboxInboxWorkspace", erp);
         Assert.Contains("ecomae.com", erp);
+    }
+
+    [Fact]
+    public void Mailbox_time_labels_are_operator_readable()
+    {
+        Assert.Equal("ok", MailboxTime.DnsTone("on_purelymail"));
+        Assert.Equal("warn", MailboxTime.DnsTone("needs_cloudflare"));
+        Assert.Equal("Cloudflare", MailboxTime.DnsLabel("needs_cloudflare"));
+        Assert.Equal("just now", MailboxTime.Rel(DateTimeOffset.UtcNow.AddSeconds(-10)));
     }
 
     [Fact]
