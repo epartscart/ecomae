@@ -1094,7 +1094,9 @@ public static class LegacySurfaceDashboardSql
     public const string SelectErpCashEntries = """
         SELECT e.`id`, e.`account_id`, a.`name` AS account_name, a.`account_type`,
                e.`time`, e.`direction`, e.`amount`,
-               IFNULL(e.`reference`, '') AS reference, IFNULL(e.`note`, '') AS note
+               IFNULL(e.`reference`, '') AS reference, IFNULL(e.`note`, '') AS note,
+               IFNULL(e.`voucher_no`, '') AS voucher_no, IFNULL(e.`is_advance`, 0) AS is_advance,
+               IFNULL(e.`sales_invoice_id`, 0) AS sales_invoice_id
         FROM `epc_erp_cash_bank_entries` e
         INNER JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = e.`account_id`
         WHERE e.`active` = 1
@@ -1105,7 +1107,9 @@ public static class LegacySurfaceDashboardSql
     public const string SelectErpCashEntriesForAccount = """
         SELECT e.`id`, e.`account_id`, a.`name` AS account_name, a.`account_type`,
                e.`time`, e.`direction`, e.`amount`,
-               IFNULL(e.`reference`, '') AS reference, IFNULL(e.`note`, '') AS note
+               IFNULL(e.`reference`, '') AS reference, IFNULL(e.`note`, '') AS note,
+               IFNULL(e.`voucher_no`, '') AS voucher_no, IFNULL(e.`is_advance`, 0) AS is_advance,
+               IFNULL(e.`sales_invoice_id`, 0) AS sales_invoice_id
         FROM `epc_erp_cash_bank_entries` e
         INNER JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = e.`account_id`
         WHERE e.`active` = 1 AND e.`account_id` = @accountId
@@ -1139,7 +1143,9 @@ public static class LegacySurfaceDashboardSql
     public const string SelectErpCashEntryTypeSiblings = """
         SELECT e.`id`, e.`account_id`, IFNULL(a.`name`, '') AS account_name, IFNULL(a.`account_type`, '') AS account_type,
                e.`time`, e.`direction`, e.`amount`,
-               IFNULL(e.`reference`, '') AS reference, IFNULL(e.`note`, '') AS note
+               IFNULL(e.`reference`, '') AS reference, IFNULL(e.`note`, '') AS note,
+               IFNULL(e.`voucher_no`, '') AS voucher_no, IFNULL(e.`is_advance`, 0) AS is_advance,
+               IFNULL(e.`sales_invoice_id`, 0) AS sales_invoice_id
         FROM `epc_erp_cash_bank_entries` e
         LEFT JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = e.`account_id`
         WHERE IFNULL(e.`entry_type`, '') = @entry_type AND e.`id` <> @id AND e.`active` = 1

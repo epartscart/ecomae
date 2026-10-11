@@ -233,13 +233,14 @@
                     <th>Amount</th>
                     <th>Reference</th>
                     <th>Note</th>
+                    <th>Voucher / invoice</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_entries.Count == 0)
                 {
-                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -254,6 +255,20 @@
                             <td>@e.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Reference) ? "—" : e.Reference)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Note) ? "—" : e.Note)</td>
+                            <td>
+                                @if (e.IsAdvance)
+                                {
+                                    <span class="label label-info">advance</span>
+                                }
+                                @if (e.SalesInvoiceId > 0)
+                                {
+                                    <a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href("/erp/invoices-app", "inv_id", e.SalesInvoiceId)">INV-@e.SalesInvoiceId</a>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(e.VoucherNo))
+                                {
+                                    <span class="text-muted">@e.VoucherNo</span>
+                                }
+                            </td>
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/cash-entries-app", "entry_id", e.Id)">Open</a></td>
                         </tr>
                     }
