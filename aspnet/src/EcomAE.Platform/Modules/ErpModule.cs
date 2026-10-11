@@ -25323,6 +25323,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var rows = await integrity.ScanAsync(cancellationToken);
+        var accounting = await integrity.ScanAccountingAsync(cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/command-center-app",
@@ -25335,6 +25336,7 @@ public sealed class ErpModule : ISurfaceModule
                 phpAuthoritative = false,
                 message = "Scan complete",
                 relationships = rows.Select(r => new { child = r.Child, col = r.Col, parent = r.Parent, pcol = r.Pcol, orphans = r.Orphans, status = r.Status }).ToArray(),
+                accounting = accounting.Select(r => new { check = r.Check, label = r.Label, issues = r.Issues, variance = r.Variance, status = r.Status }).ToArray(),
                 session = SessionPayload(session),
             });
     }

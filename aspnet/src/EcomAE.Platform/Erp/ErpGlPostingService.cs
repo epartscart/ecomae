@@ -69,7 +69,8 @@ public interface IErpGlPostingService
         DbConnection connection,
         long cashEntryId,
         int adminId,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        DbTransaction? transaction = null);
 
     /// <summary>
     /// Sales-invoice recognition (Dr 1100 AR / Cr 4000 revenue / Cr 2100 VAT output), the same
@@ -131,22 +132,23 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         if (ambient is null)
         {
             await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            await _vouchers.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         }
 
         var journalDate = header.JournalDate > 0 ? header.JournalDate : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         await AssertPostingPeriodOpenAsync(connection, ambient, journalDate, cancellationToken).ConfigureAwait(false);
 
-        // Voucher numbering runs DDL, which MySQL implicitly commits — resolve it
-        // before the journal transaction opens, exactly as PHP does.
-        var journalNo = await _vouchers.NextAsync(connection, ambient, "GV", cancellationToken).ConfigureAwait(false);
-        var companyId = header.CompanyId > 0
-            ? header.CompanyId
-            : await DefaultCompanyIdAsync(connection, ambient, cancellationToken).ConfigureAwait(false);
-
         var transaction = ambient ?? await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         var owned = ambient is null;
         try
         {
+            // Numbering inside the transaction keeps vouchers gap-free when the journal
+            // fails; the sequence table's DDL ran above (or on the caller's side under ambient).
+            var journalNo = await _vouchers.NextAsync(connection, transaction, "GV", cancellationToken).ConfigureAwait(false);
+            var companyId = header.CompanyId > 0
+                ? header.CompanyId
+                : await DefaultCompanyIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+
             await ErpDb.ExecuteAsync(
                 connection,
                 transaction,
@@ -210,12 +212,18 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         DbConnection connection,
         long cashEntryId,
         int adminId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        DbTransaction? transaction = null)
     {
         ArgumentNullException.ThrowIfNull(connection);
-        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (transaction is null)
+        {
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            await _vouchers.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
 
         await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
         command.CommandText = ErpDb.Positional(
             "SELECT e.`time`, e.`direction`, e.`amount`, e.`counterparty_type`, e.`reference`, e.`gl_journal_id`,"
             + " a.`coa_id`, a.`account_type`"
@@ -262,6 +270,7 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         {
             cashCoaId = await CoaIdByCodeAsync(
                 connection,
+                transaction,
                 string.Equals(accountType, "bank", StringComparison.Ordinal) ? "1010" : "1000",
                 cancellationToken).ConfigureAwait(false);
         }
@@ -275,7 +284,7 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         if (string.Equals(counterpartyType, "internal", StringComparison.Ordinal))
         {
             // Transfer legs net to zero on the clearing account and leave revenue and expense untouched.
-            var transit = await TransitCoaIdAsync(connection, cancellationToken).ConfigureAwait(false);
+            var transit = await TransitCoaIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
             lines.Add(direction == 1
                 ? new ErpGlLine(cashCoaId, amount, 0m, "Transfer in")
                 : new ErpGlLine(cashCoaId, 0m, amount, "Transfer out"));
@@ -287,7 +296,7 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         {
             lines.Add(new ErpGlLine(cashCoaId, amount, 0m, "Receipt"));
             var receivable = string.Equals(counterpartyType, "customer", StringComparison.Ordinal)
-                ? await CoaIdByCodeAsync(connection, "1100", cancellationToken).ConfigureAwait(false)
+                ? await CoaIdByCodeAsync(connection, transaction, "1100", cancellationToken).ConfigureAwait(false)
                 : 0L;
             if (receivable > 0)
             {
@@ -295,7 +304,7 @@ public sealed class ErpGlPostingService : IErpGlPostingService
             }
             else
             {
-                var revenue = await CoaIdByCodeAsync(connection, "4000", cancellationToken).ConfigureAwait(false);
+                var revenue = await CoaIdByCodeAsync(connection, transaction, "4000", cancellationToken).ConfigureAwait(false);
                 if (revenue <= 0)
                 {
                     throw new ErpWriteException("Revenue COA missing");
@@ -308,7 +317,7 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         {
             lines.Add(new ErpGlLine(cashCoaId, 0m, amount, "Payment"));
             var payable = string.Equals(counterpartyType, "supplier", StringComparison.Ordinal)
-                ? await CoaIdByCodeAsync(connection, "2000", cancellationToken).ConfigureAwait(false)
+                ? await CoaIdByCodeAsync(connection, transaction, "2000", cancellationToken).ConfigureAwait(false)
                 : 0L;
             if (payable > 0)
             {
@@ -316,7 +325,7 @@ public sealed class ErpGlPostingService : IErpGlPostingService
             }
             else
             {
-                var expense = await CoaIdByCodeAsync(connection, "6100", cancellationToken).ConfigureAwait(false);
+                var expense = await CoaIdByCodeAsync(connection, transaction, "6100", cancellationToken).ConfigureAwait(false);
                 if (expense <= 0)
                 {
                     throw new ErpWriteException("Expense COA missing");
@@ -328,6 +337,7 @@ public sealed class ErpGlPostingService : IErpGlPostingService
 
         var journalId = await PostJournalAsync(
             connection,
+            transaction,
             new ErpGlJournalHeader
             {
                 JournalDate = entryTime,
@@ -342,7 +352,7 @@ public sealed class ErpGlPostingService : IErpGlPostingService
 
         await ErpDb.ExecuteAsync(
             connection,
-            null,
+            transaction,
             ErpDb.Positional("UPDATE `epc_erp_cash_bank_entries` SET `gl_journal_id` = ? WHERE `id` = ?"),
             cancellationToken,
             journalId,
@@ -594,12 +604,12 @@ public sealed class ErpGlPostingService : IErpGlPostingService
     private static Task<long> CoaIdByCodeAsync(DbConnection connection, string code, CancellationToken cancellationToken)
         => CoaIdByCodeAsync(connection, null, code, cancellationToken);
 
-    private static async Task<long> TransitCoaIdAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static async Task<long> TransitCoaIdAsync(DbConnection connection, DbTransaction? transaction, CancellationToken cancellationToken)
     {
         var transit = ErpGlChartOfAccountsSeeder.SystemAccounts.First(a => a.Code == ErpGlChartOfAccountsSeeder.CashInTransitCode);
         await ErpDb.ExecuteAsync(
             connection,
-            null,
+            transaction,
             ErpDb.Positional(
                 "INSERT IGNORE INTO `epc_erp_coa_accounts` (`code`, `name`, `account_type`, `normal_side`, `description`, `system_flag`, `time_created`)"
                 + " VALUES (?, ?, ?, ?, ?, 1, ?)"),
@@ -613,7 +623,7 @@ public sealed class ErpGlPostingService : IErpGlPostingService
 
         var type = await ErpDb.StringAsync(
             connection,
-            null,
+            transaction,
             ErpDb.Positional("SELECT `account_type` FROM `epc_erp_coa_accounts` WHERE `code` = ? AND `active` = 1 LIMIT 1"),
             cancellationToken,
             transit.Code).ConfigureAwait(false);
@@ -622,7 +632,7 @@ public sealed class ErpGlPostingService : IErpGlPostingService
             throw new ErpWriteException("Account " + transit.Code + " must be an active asset account to post cash transfers");
         }
 
-        return await CoaIdByCodeAsync(connection, transit.Code, cancellationToken).ConfigureAwait(false);
+        return await CoaIdByCodeAsync(connection, transaction, transit.Code, cancellationToken).ConfigureAwait(false);
     }
 
     private static Task<long> CoaIdByCodeAsync(DbConnection connection, DbTransaction? transaction, string code, CancellationToken cancellationToken)
