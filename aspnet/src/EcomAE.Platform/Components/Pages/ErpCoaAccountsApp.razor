@@ -129,6 +129,13 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "account_id", a.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="4"></td>
+                        <td>@_accounts.Sum(a => a.OpeningBalance).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@_accounts.Sum(a => a.Balance).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td colspan="2" class="text-muted">@_accounts.Count accounts</td>
+                    </tr>
                 }
             </tbody>
         </table>
