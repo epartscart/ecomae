@@ -70,7 +70,6 @@ public sealed class PhpPlanQ1FirthParityTests
         PhpPlanQ1Firth.HasPdo = () => false;
         var none = PhpPlanQ1Firth.EpcElectronicaeHomeProductLines();
         PhpPlanQ1Firth.HasPdo = () => true;
-        PhpPlanQ1Firth.LangHref = () => null;
         PhpPlanQ1Firth.SiteKey = () => "electronicae";
         PhpPlanQ1Firth.ProductLineTiles = _ => new List<Dictionary<string, object?>>();
         PhpPlanQ1Firth.AllLinesHref = _ => "/catalogue/lines";
