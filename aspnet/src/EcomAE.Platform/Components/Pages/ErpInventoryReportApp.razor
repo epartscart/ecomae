@@ -88,7 +88,7 @@
                 PartyLabel="Company"
                 Party="@(_openedSnapshot.CompanyId > 0 ? _openedSnapshot.CompanyId.ToString(CultureInfo.InvariantCulture) : "Tenant")"
                 ReferenceLabel="Category"
-                Reference="@(_openedSnapshot.CategoryId > 0 ? _openedSnapshot.CategoryId.ToString(CultureInfo.InvariantCulture) : "—")"
+                Reference="@CategoryLabel(_openedSnapshot.CategoryId)"
                 Status="Captured"
                 ApprovalState="Read-only snapshot"
                 CompanyContext="Tenant / company"
@@ -139,7 +139,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.Code) ? "—" : row.Code)</td>
                             <td><strong>@(string.IsNullOrWhiteSpace(row.Name) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.Name)</strong></td>
                             <td class="text-right">@row.Level.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(row.ParentId > 0 ? row.ParentId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@CategoryLabel(row.ParentId)</td>
                             <td><span class="label label-default">@(row.IsActive ? "active" : "inactive")</span></td>
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "invrep_cat_id", row.Id)">Open</a></td>
                         </tr>
@@ -161,7 +161,7 @@
                     {
                         <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedSnapshotId)">
                             <td>@(string.IsNullOrWhiteSpace(row.SnapshotDate) ? "—" : row.SnapshotDate)</td>
-                            <td>@(row.CategoryId > 0 ? row.CategoryId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@CategoryLabel(row.CategoryId)</td>
                             <td class="text-right">@row.TotalSkus.ToString(CultureInfo.InvariantCulture)</td>
                             <td class="text-right">@row.TotalQty.ToString("N3", CultureInfo.InvariantCulture)</td>
                             <td class="text-right">@row.TotalValue.ToString("N2", CultureInfo.InvariantCulture)</td>
@@ -198,13 +198,21 @@
     private IReadOnlyList<ErpInventoryReportSnapshotDigest> _openedSnapshotSiblings = [];
     private IReadOnlyList<string> InventoryWorkspaceTabs => ["General", "Classification", "Metrics", "Audit"];
 
+    private string CategoryLabel(long categoryId)
+    {
+        if (categoryId <= 0) return "—";
+        var cat = _categories.FirstOrDefault(c => c.Id == categoryId);
+        if (cat is null) return categoryId.ToString(CultureInfo.InvariantCulture);
+        return string.IsNullOrWhiteSpace(cat.Code) ? cat.Name : $"{cat.Code} — {cat.Name}";
+    }
+
     private IReadOnlyList<ErpDocumentWorkspaceField> CategoryWorkspaceFields => _openedCategory is null
         ? []
         : [
             new("Code", _openedCategory.Code, "General"),
             new("Name", _openedCategory.Name, "General"),
             new("Level", _openedCategory.Level.ToString(CultureInfo.InvariantCulture), "Classification"),
-            new("Parent", _openedCategory.ParentId > 0 ? _openedCategory.ParentId.ToString(CultureInfo.InvariantCulture) : "—", "Classification"),
+            new("Parent", CategoryLabel(_openedCategory.ParentId), "Classification"),
             new("Sort order", _openedCategory.SortOrder.ToString(CultureInfo.InvariantCulture), "Classification"),
             new("Company", _openedCategory.CompanyId > 0 ? _openedCategory.CompanyId.ToString(CultureInfo.InvariantCulture) : "—", "General"),
             new("Created", FormatTime(_openedCategory.TimeCreated), "Audit")
@@ -219,7 +227,7 @@
         ? []
         : [
             new("Snapshot date", _openedSnapshot.SnapshotDate, "General"),
-            new("Category", _openedSnapshot.CategoryId > 0 ? _openedSnapshot.CategoryId.ToString(CultureInfo.InvariantCulture) : "—", "Classification"),
+            new("Category", CategoryLabel(_openedSnapshot.CategoryId), "Classification"),
             new("SKUs", _openedSnapshot.TotalSkus.ToString(CultureInfo.InvariantCulture), "Metrics"),
             new("Quantity", _openedSnapshot.TotalQty.ToString("N3", CultureInfo.InvariantCulture), "Metrics"),
             new("Value", _openedSnapshot.TotalValue.ToString("N2", CultureInfo.InvariantCulture), "Metrics"),
