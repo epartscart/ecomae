@@ -247,6 +247,14 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/invoices-app", "inv_id", inv.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="4"></td>
+                        <td>@_visible.Sum(i => i.TotalInclVat).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@_visible.Sum(i => i.PaidAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@_visible.Sum(i => i.AmountDue).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="text-muted">@_visible.Count invoices</td>
+                    </tr>
                 }
             </tbody>
         </table>

@@ -268,6 +268,15 @@
                             </tr>
                         }
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="3"></td>
+                        <td>@_purchases.Sum(p => p.TotalAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@_purchases.Sum(p => p.PaidAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@_purchases.Sum(p => p.AmountDue).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td></td>
+                        <td class="text-muted">@_purchases.Count bills</td>
+                    </tr>
                 }
             </tbody>
         </table>
