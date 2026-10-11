@@ -14,7 +14,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Fulfilment queue · Control Panel · eParts Cart</PageTitle>
+<PageTitle>Fulfilment queue · @(Http.HttpContext?.Request.Path.StartsWithSegments("/erp") == true ? "ERP" : "Control Panel") · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 @foreach (var href in LegacyPresentationAssets.CpOrdersOmsStylesheets)
 {
