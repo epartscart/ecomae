@@ -2222,6 +2222,33 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.Equal("cp/content/control/epc_cp_brochure_page.php", PhpPlanQ1Eddy.CpBrochurePagePath);
     }
 
+    [Fact]
+    public void BocProductBrochure_LinksStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Ford.Reset();
+        PhpPlanQ1Ford.IsSuperCp = () => true;
+        PhpPlanQ1Ford.BackendDir = "acme";
+        PhpPlanQ1Ford.FrameFileExists = true;
+        PhpPlanQ1Ford.HasFrameOpen = true;
+        PhpPlanQ1Ford.HasFrameClose = true;
+        var acme = PhpPlanQ1Ford.EpcBocProductBrochure();
+        PhpPlanQ1Ford.BackendDir = "beta";
+        var beta = PhpPlanQ1Ford.EpcBocProductBrochure();
+        PhpPlanQ1Ford.IsSuperCp = () => false;
+        PhpPlanQ1Ford.BackendDir = "acme";
+        var denied = PhpPlanQ1Ford.EpcBocProductBrochure();
+        Assert.Contains("/acme/control/cp_brochure", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("/beta/", acme, StringComparison.Ordinal);
+        Assert.Contains("/beta/control/cp_brochure", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("/acme/", beta, StringComparison.Ordinal);
+        Assert.Contains("Super CP only", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("/acme/", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("/beta/", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Ford.BocProductBrochurePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Ford.BocProductBrochurePath, StringComparison.Ordinal);
+        Assert.Equal("cp/content/control/portal/epc_boc_product_brochure.php", PhpPlanQ1Ford.BocProductBrochurePath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2319,6 +2346,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Creek.EpartscartHomeProductLinesPath,
             PhpPlanQ1Delta.EpartscartHomeNewArrivalsPath,
             PhpPlanQ1Eddy.CpBrochurePagePath,
+            PhpPlanQ1Ford.BocProductBrochurePath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
