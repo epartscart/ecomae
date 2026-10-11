@@ -203,19 +203,21 @@ public static class PhpPlanQ1Hike
         foreach (var tenant in tenants)
         {
             var key = Str(tenant.GetValueOrDefault("site_key"));
-            html += "\t\t\t\t<option value=\"" + EpcScpH(key) + "\"" + (tenantFilter == key ? " selected" : "") + ">" + EpcScpH(tenant.GetValueOrDefault("label")) + "</option>\n";
+            html += "\t\t\t\t<option value=\"" + EpcScpH(key) + "\"" + (tenantFilter == key ? " selected" : "") + ">" + EpcScpH(tenant.GetValueOrDefault("label")) + "</option>\n"
+                + "\t\t\t\t";
         }
 
-        html += "\t\t\t\t</select>\n"
+        html += "\t\t\t</select>\n"
             + "\t\t</div>\n"
             + "\t\t<button type=\"submit\" class=\"btn btn-primary btn-sm\"><i class=\"fa fa-search\"></i> Search</button>\n"
             + "\t\t";
         if (search != "" || tenantFilter != "")
         {
-            html += "\t\t<a class=\"btn btn-default btn-sm\" href=\"" + EpcScpH(selfUrl) + "\">Clear</a>\n";
+            html += "\t\t<a class=\"btn btn-default btn-sm\" href=\"" + EpcScpH(selfUrl) + "\">Clear</a>\n"
+                + "\t\t";
         }
 
-        html += "\t\t</form>\n"
+        html += "\t</form>\n"
             + "</div>\n"
             + "\n<div class=\"epc-scp-table-card\">\n"
             + "\t<div class=\"table-responsive\">\n"
@@ -291,7 +293,7 @@ public static class PhpPlanQ1Hike
             html += "</div>";
         }
 
-        html += "</div>\n</div>";
+        html += "</div>\n</div>\n";
         return html;
     }
 
@@ -337,22 +339,25 @@ public static class PhpPlanQ1Hike
             + "\t\t\t\t\t\t";
         if (!PhpEmpty(links.GetValueOrDefault("crm")))
         {
-            html += "\t\t\t\t\t\t<a class=\"btn btn-xs btn-default\" href=\"" + EpcScpH(links.GetValueOrDefault("crm")) + "\" target=\"_blank\" rel=\"noopener\"><i class=\"fa fa-address-book\"></i> CRM</a>\n";
+            html += "\t\t\t\t\t\t<a class=\"btn btn-xs btn-default\" href=\"" + EpcScpH(links.GetValueOrDefault("crm")) + "\" target=\"_blank\" rel=\"noopener\"><i class=\"fa fa-address-book\"></i> CRM</a>\n"
+                + "\t\t\t\t\t\t";
         }
 
         html += "\t\t\t\t\t\t";
         if (!PhpEmpty(links.GetValueOrDefault("erp")))
         {
-            html += "\t\t\t\t\t\t<a class=\"btn btn-xs btn-primary\" href=\"" + EpcScpH(links.GetValueOrDefault("erp")) + "\" target=\"_blank\" rel=\"noopener\"><i class=\"fa fa-university\"></i> ERP</a>\n";
+            html += "\t\t\t\t\t\t<a class=\"btn btn-xs btn-primary\" href=\"" + EpcScpH(links.GetValueOrDefault("erp")) + "\" target=\"_blank\" rel=\"noopener\"><i class=\"fa fa-university\"></i> ERP</a>\n"
+                + "\t\t\t\t\t\t";
         }
 
         html += "\t\t\t\t\t\t";
         if (!PhpEmpty(links.GetValueOrDefault("cp")))
         {
-            html += "\t\t\t\t\t\t<a class=\"btn btn-xs btn-default\" href=\"" + EpcScpH(links.GetValueOrDefault("cp")) + "\" target=\"_blank\" rel=\"noopener\"><i class=\"fa fa-external-link\"></i> CP</a>\n";
+            html += "\t\t\t\t\t\t<a class=\"btn btn-xs btn-default\" href=\"" + EpcScpH(links.GetValueOrDefault("cp")) + "\" target=\"_blank\" rel=\"noopener\"><i class=\"fa fa-external-link\"></i> CP</a>\n"
+                + "\t\t\t\t\t\t";
         }
 
-        html += "\t\t\t\t\t\t</td>\n"
+        html += "\t\t\t\t\t</td>\n"
             + "\t\t\t\t</tr>\n"
             + "\t\t\t";
         return html;
