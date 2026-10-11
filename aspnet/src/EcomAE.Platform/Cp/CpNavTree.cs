@@ -246,6 +246,16 @@ public static class CpNavTree
 
     private static readonly string[] SuperOnlyNeedles = ["epc_super_cp_", "epc_pos_tenant_manage"];
 
+    /// <summary>Raw PHP captions that must never reach the top menu as transliteration or shouting-snake keys.</summary>
+    public static readonly IReadOnlyDictionary<string, string> CaptionAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["EPC_PRICE_MANAGEMENT"] = "Price management",
+        ["Nastrojka Kursov Valyut"] = "Currency rates",
+        ["Sao States Statuses Link"] = "SAO status links",
+        ["Sms Operatory"] = "SMS operators",
+        ["Ip Php"] = "Server IP",
+    };
+
     private static readonly Regex NamedKeyRegex = new("^[A-Za-z][A-Za-z0-9_]*$", RegexOptions.Compiled);
     private static readonly Regex DigitsRegex = new("^\\d+$", RegexOptions.Compiled);
     private static readonly Regex GeneratedKeyRegex = new("^[0-9]+_[0-9]+_", RegexOptions.Compiled);
@@ -425,6 +435,11 @@ public static class CpNavTree
 
         if (caption.Length > 0)
         {
+            if (CaptionAliases.TryGetValue(caption, out var alias))
+            {
+                return alias;
+            }
+
             var tr = translate(caption);
             if (!string.IsNullOrWhiteSpace(tr) && tr.Trim() != caption)
             {
@@ -435,7 +450,8 @@ public static class CpNavTree
                 && LettersRegex.IsMatch(caption)
                 && !DigitsRegex.IsMatch(caption)
                 && !GeneratedKeyRegex.IsMatch(caption)
-                && !caption.StartsWith("epc_", StringComparison.Ordinal))
+                && !caption.StartsWith("epc_", StringComparison.Ordinal)
+                && !IsShoutingSnake(caption))
             {
                 label = caption;
             }
@@ -487,6 +503,11 @@ public static class CpNavTree
         part = NoisyPrefixRegex.Replace(part, string.Empty);
         return UcWords(part.Replace('-', ' ').Replace('_', ' ').ToLowerInvariant());
     }
+
+    private static bool IsShoutingSnake(string caption)
+        => caption.Contains('_', StringComparison.Ordinal)
+           && caption.Equals(caption.ToUpperInvariant(), StringComparison.Ordinal)
+           && caption.Any(char.IsLetter);
 
     /// <summary>PHP <c>epc_portal_cp_menu_humanize_key</c>.</summary>
     public static string HumanizeKey(string key)
