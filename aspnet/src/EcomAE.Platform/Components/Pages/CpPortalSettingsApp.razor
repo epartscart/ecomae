@@ -101,16 +101,13 @@
 }
 else
 {
-    <div style="padding:2rem;font-family:sans-serif;">
-        <h1>Not found</h1>
-        <p>Portal fleet settings are available on the platform Super CP host only. This tenant Control Panel is independent — it does not show Super CP site inventory or deploy secrets.</p>
-        <p>
-            <a href="/cp">Open Control Panel</a>
+    <SuperCpTenantDenied Message="Portal fleet settings are available on the platform Super CP host only. This tenant Control Panel is independent — it does not show Super CP site inventory or deploy secrets.">
+        <ExtraLinks>
             · <a href="/cp/config-items-app">Tenant config</a>
             · <a href="/cp/tenant-email-app">Tenant email / SMTP</a>
             · <a href="/cp/industry-packs-app">Industry packs</a>
-        </p>
-    </div>
+        </ExtraLinks>
+    </SuperCpTenantDenied>
 }
 
 @code {

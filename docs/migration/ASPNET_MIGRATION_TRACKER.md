@@ -322,6 +322,10 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-11 — confirm non-erp detail (Super-deny frame + Phase C [~])
+
+The leftover unconfirmed Cursor hole was Super-only CP URLs on a tenant host: they returned 200 with a chrome-less "Not found". Those pages now render `SuperCpTenantDenied` inside `PhpCpDesktopChrome` / `epc-module-visual-frame`. Phase C checkboxes are `[~]` (implemented, not accepted). Formal acceptance, Devin finance, and PHP removal stay closed.
+
 ### Checkpoint 2026-10-11 — confirm non-erp (Cursor-owned inventory)
 
 **confirm non-erp:** Cursor-owned non-ERP PHP files are inventory-mentioned on existing ASP.NET owners. That is a lead, not formal acceptance. `cutoverAllowed=false`. `readyForPhpRemoval=false`. Interactive complete stays 0. PHP files stay until Devin finance + human confirmation.
@@ -2358,14 +2362,14 @@ Standing rules that apply to every item below:
 ---
 
 ## Phase C — Storefront & remaining areas
-- [ ] C1 Storefront themes (`expan`, `limo`, `modex`, `nero`) CSS/asset parity; fix `/php-reference/home` 404 (live 404 on all product hosts re-confirmed 2026-10-04; nginx blocks not installed, SSH denied)
-- [ ] C2 Catalogue & search (search tabs, spare-parts search, ucats/umapi/laximo, vehicle catalog) — search latency (~6 s)
-- [ ] C3 Cart / checkout / payments (gateway callbacks, obtaining modes, guest order)
-- [ ] C4 Customer area (account, requests, balance, quotes, returns, garage, wishlist, print docs)
-- [ ] C5 Vendor / B2B (vendor portal, bulk upload, parts agent, demand intelligence, channels, marketing)
-- [ ] C6 BOS / Super-CP / tenant hub (provisioning writes, operator guides). BOS is the control tower in the enterprise benchmark matrix, not an accepted admin menu. It consumes ERP; it does not post a second ledger.
-- [ ] C7 Marketing / LifeOS / IP / API v1 (forms, SEO/sitemaps)
-- [ ] C8 Cron & workers — every PHP cron has a Worker twin (currency rates, e-invoice poll, legislation fetch, demo expiry, cache warm, webhooks)
+- [~] C1 Storefront themes — nero is the live tenant chrome on `www.epartscart.com`; expan/limo/modex are named on `EcomaeFrontShell`. CSS byte-parity and `/php-reference/home` nginx blocks stay ops/human. **Not accepted.**
+- [~] C2 Catalogue & search — own-catalog, search tabs, ucats/umapi/laximo, vehicle/OEM apps are routed and inventory-mentioned. Search latency and same-to-same visual stay open. **Not accepted.**
+- [~] C3 Cart / checkout / payments — cart, checkout steps, guest order, payment picker apps are routed. Gateway live callbacks stay PHP-authoritative until human. **Not accepted.**
+- [~] C4 Customer area — account, orders, quotes, returns, garage, wishlist, print, profile apps are routed. **Not accepted.**
+- [~] C5 Vendor / B2B — vendor portal/register/upload, bulk upload, parts agent, demand, channels apps are routed. **Not accepted.**
+- [~] C6 BOS / Super-CP / tenant hub — Super-only apps exist; tenant hosts hide BOS/fleet and now frame Super-deny pages in CP chrome. Provisioning writes are not accepted.
+- [~] C7 Marketing / LifeOS / IP / API v1 — Super marketing and LifeOS pages exist on `www.ecomae.com`. Form/SEO production shadow stays open. **Not accepted.**
+- [~] C8 Cron & workers — Worker twins exist for the PHP cron set. Live every-cron proof stays ops. **Not accepted.**
 
 ---
 

@@ -67,6 +67,12 @@ public sealed class CpShopPagesTests
         Assert.Contains("epc_demo_autoparts_bootstrap.php", EcomaeGeneralPages.Paths);
         Assert.Equal("epc_license_valid", OnPremisesLicensePages.epc_license_valid);
         Assert.Equal("generateArticleUrl2", StorefrontOemIlcatsPages.generateArticleUrl2);
+        var denied = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/SuperCpTenantDenied.razor"));
+        Assert.Contains("epc-module-visual-frame", denied, StringComparison.Ordinal);
+        Assert.Contains("PhpCpDesktopChrome", denied, StringComparison.Ordinal);
+        var board = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCustomerBoardApp.razor"));
+        Assert.Contains("SuperCpTenantDenied", board, StringComparison.Ordinal);
+        Assert.DoesNotContain("padding:2rem;font-family:sans-serif;", board, StringComparison.Ordinal);
     }
 
     private static string Find(string relative)

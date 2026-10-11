@@ -32,15 +32,12 @@
 }
 else
 {
-    <div style="padding:2rem;font-family:sans-serif;">
-        <h1>Not found</h1>
-        <p>Platform mail setup is Super CP / Super BOS only. Each tenant reads its own mailboxes on its own Control Panel or ERP.</p>
-        <p>
-            <a href="/cp/mailbox-app">Tenant mailbox</a>
+    <SuperCpTenantDenied Message="Platform mail setup is Super CP / Super BOS only. Each tenant reads its own mailboxes on its own Control Panel or ERP.">
+        <ExtraLinks>
+            · <a href="/cp/mailbox-app">Tenant mailbox</a>
             · <a href="/cp/tenant-email-app">Tenant SMTP</a>
-            · <a href="/cp">Control Panel</a>
-        </p>
-    </div>
+        </ExtraLinks>
+    </SuperCpTenantDenied>
 }
 
 @code {
