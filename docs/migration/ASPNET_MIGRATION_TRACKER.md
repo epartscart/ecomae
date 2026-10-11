@@ -383,6 +383,14 @@ Not complete.
 - 273 ASP.NET stamps under `/var/www/ecomae-aspnet/releases` are **24G**. Live `current` is `20261010085717`. `scripts/cloudpanel_prune_aspnet_releases.sh` dry-runs and, with `CONFIRM=I_HAVE_READ_THE_LIST`, deletes only older stamps. It refuses a missing current or a non-200 `/health`.
 - Do not prune the ten running PHP-FPM versions. Do not delete `/opt/ecomae-aspnet-source`, `/home/ecomae/htdocs`, or `/home/mysql`. Journal / syslog (~2.6G) and CloudPanel snapshots (1.5G) are second cuts.
 
+### Checkpoint 2026-10-11 — plan Q1-hike (Super-CP customer board)
+
+Not complete.
+
+- Ratchet 410 to 409. One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Hike` `cp/content/control/portal/epc_super_cp_customer_board.php` (`epc_scp_h`, `epc_scp_backend`, `epc_scp_guard_super_admin`, `epc_scp_customer_board_search`, `epc_scp_tenant_options`, `epc_scp_render_hero`, `epc_scp_render_workspace_intro`, `epc_scp_render_empty_state`, `epc_scp_operator_guide_url`; empty / gates / live / tenant isolation; leftover unique portal, leftover unique operator-guide page, leftover unique user helper, and leftover portal PDO stay unnamed). Tenant CP is denied and does not see customer rows. Super-CP live render stays on the configured `backend_dir`. GET does not mint a session.
+- Area functionality gained customer-board isolation (`/acme/crm/11` stays off `/beta/`; denied admin shows no customer names).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Hike` (4). Hike + area **5 / 5**. Last full suite after Foam **6344 / 6344**; Hike suite **5 / 5**. CP-page mentioned 279 to 280 of 523. Unnamed PHP functions stay 6,031. Ready ≤200-line non-ERP functions stay 46. The weighted headline stays about 20.4%. Non-ERP pending: 243 files / 131,904 lines (was 244 / 132,069). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-11 — plan Q1-hunt (CP tenant email/SMTP page)
 
 Not complete.
