@@ -60,6 +60,7 @@
             <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="/erp/invoices-app">Close</a>
+                <a class="btn btn-xs btn-default" href="/erp/invoice-print?id=@_openedDetail.Id" target="_blank" rel="noopener">Print</a>
             </p>
             <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
                 <dt>Invoice id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>

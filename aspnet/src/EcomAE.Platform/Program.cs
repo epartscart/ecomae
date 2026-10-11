@@ -472,6 +472,7 @@ builder.Services.AddSingleton<IErpSaveRfqDryRun, ErpSaveRfqDryRun>();
 builder.Services.AddSingleton<IErpDeliveryNoteCreateDryRun, ErpDeliveryNoteCreateDryRun>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDeliveryNoteWriteService, EcomAE.Platform.Erp.ErpDeliveryNoteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDeliveryNoteDocumentService, EcomAE.Platform.Erp.ErpDeliveryNoteDocumentService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpO2cDocumentPrintService, EcomAE.Platform.Erp.ErpO2cDocumentPrintService>();
 builder.Services.AddSingleton<IErpSaveContactDryRun, ErpSaveContactDryRun>();
 builder.Services.AddSingleton<IErpSyncContactsDryRun, ErpSyncContactsDryRun>();
 builder.Services.AddSingleton<IErpDocumentUploadDryRun, ErpDocumentUploadDryRun>();

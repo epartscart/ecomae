@@ -34,7 +34,7 @@ public sealed class ErpDeliveryNoteDocumentService : IErpDeliveryNoteDocumentSer
             FROM `epc_erp_delivery_notes` d
             LEFT JOIN `shop_orders` o ON o.`id` = d.`order_id`
             LEFT JOIN `users` u ON u.`user_id` = o.`user_id`
-            WHERE d.`id` = @id
+            WHERE d.`id` = @p0
             LIMIT 1
             """;
         ErpDb.AddParameters(command, id);

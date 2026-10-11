@@ -885,6 +885,8 @@ public static class EcomAeRoutes
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";
+    /// <summary>Printable invoice document (HTML, admin-gated).</summary>
+    public const string ErpInvoicePrint = "/erp/invoice-print";
     public const string ErpGlJournals = "/erp/gl-journals";
     /// <summary>GL journals Blazor list (JSON digest remains <see cref="ErpGlJournals"/>).</summary>
     public const string ErpGlJournalsApp = "/erp/gl-journals-app";
@@ -897,6 +899,8 @@ public static class EcomAeRoutes
     public const string ErpSalesOrders = "/erp/sales-orders";
     /// <summary>Batch 4: sales orders Blazor list (JSON digest remains <see cref="ErpSalesOrders"/>).</summary>
     public const string ErpSalesOrdersApp = "/erp/sales-orders-app";
+    /// <summary>Printable sales order document (HTML, admin-gated).</summary>
+    public const string ErpSalesOrderPrint = "/erp/sales-order-print";
     public const string ErpPurchaseOrders = "/erp/purchase-orders";
     /// <summary>Purchase orders Blazor list (JSON digest remains <see cref="ErpPurchaseOrders"/>).</summary>
     public const string ErpPurchaseOrdersApp = "/erp/purchase-orders-app";
