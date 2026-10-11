@@ -2,13 +2,13 @@
 
 Executable queue for the PHP→ASP.NET storefront / CP / BOS / marketing / tenant
 migration. ERP stays Devin. Regenerated from `scripts/php_reference_gap_inventory.py`
-after PlanQ1Hike (`--max-gap 410` passed; current gap **409**).
+after PlanQ1Hill (`--max-gap 409` passed; current gap **408**).
 
 Refresh the table:
 
 ```bash
 python3 scripts/php_reference_gap_inventory.py --json /tmp/gap_inv.json \
-  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 409
+  --md docs/migration/inventory/PHP_REFERENCE_GAP_INVENTORY.md --max-gap 408
 python3 scripts/php_non_erp_gap_buckets.py --inventory-json /tmp/gap_inv.json
 python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_inv.json
 ```
@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 24 | 12,698 |
 | 3 | CP shop smaller | 22 | 7,537 |
 | 4 | CP control/portal | 27 | 8,097 |
-| 5 | Marketing/BOS/industries | 67 | 35,874 |
+| 5 | Marketing/BOS/industries | 66 | 32,679 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **409** | **198,095** |
+| | **Total** | **408** | **194,900** |
 
-- Non-ERP (Cursor): **243 files / 131,904 lines**
+- Non-ERP (Cursor): **242 files / 128,709 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **6,031** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **46**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **5,974** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **46**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 

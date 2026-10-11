@@ -11,15 +11,15 @@ ERP acceptance is still **0 / 15**. The weighted headline is still about **20.4%
 
 ## What Cursor did since 9 Oct
 
-Cursor ran leftover non-ERP twins on `cursor/small-gaps-storefront-done-5dbd` (stacked leftover queue). Latest measured inventory after PlanQ1Hike:
+Cursor ran leftover non-ERP twins on `cursor/small-gaps-storefront-done-5dbd` (stacked leftover queue). Latest measured inventory after PlanQ1Hill:
 
 | | Files | Lines |
 |---|---:|---:|
-| Non-ERP still open (Cursor) | **243** | **131,904** |
+| Non-ERP still open (Cursor) | **242** | **128,709** |
 | ERP finance still open (Devin) | **166** | **66,191** |
-| Total PHP gap | **409** | **198,095** |
+| Total PHP gap | **408** | **194,900** |
 
-Unmentioned functions: **6,031** of 9,870. Ready ≤200-line non-ERP rows: 46, mostly Q2/Q3 (catalogue list, APE, `*_h` guides). Cursor is not closing those by mention-only.
+Unmentioned functions: **5,974** of 9,870. Ready ≤200-line non-ERP rows: 46, mostly Q2/Q3 (catalogue list, APE, `*_h` guides). Cursor is not closing those by mention-only. The public Free Tools page is now a PHP 8.3 golden (`PhpPlanQ1Hill`); compute was already golden. Cursor did not name leftover finance engines.
 
 **No file under `aspnet/src/EcomAE.Platform/Erp/` was edited on this leftover stream.** Finance PHP was not edited. Do not treat leftover BOC wrappers (channel / command-center / vendor / warehouse / audit-log) as ERP process work. They are Super-CP shells; the finance collectors stay yours.
 

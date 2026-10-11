@@ -383,6 +383,14 @@ Not complete.
 - 273 ASP.NET stamps under `/var/www/ecomae-aspnet/releases` are **24G**. Live `current` is `20261010085717`. `scripts/cloudpanel_prune_aspnet_releases.sh` dry-runs and, with `CONFIRM=I_HAVE_READ_THE_LIST`, deletes only older stamps. It refuses a missing current or a non-200 `/health`.
 - Do not prune the ten running PHP-FPM versions. Do not delete `/opt/ecomae-aspnet-source`, `/home/ecomae/htdocs`, or `/home/mysql`. Journal / syslog (~2.6G) and CloudPanel snapshots (1.5G) are second cuts.
 
+### Checkpoint 2026-10-11 — plan Q1-hill (public Free Tools catalog and page)
+
+Not complete.
+
+- Ratchet 409 to 408. One file now has a PHP 8.3 golden and ASP.NET twin: `PhpPlanQ1Hill` `content/general_pages/epc_ecomae_free_tools.php` (`epc_free_tools_h`, `epc_free_tools_countries`, `epc_free_tools_cit_rate`, `epc_free_tools_catalog`, `epc_free_tools_seo`, `epc_free_tools_jsonld`, `epc_free_tools_site_base`, `epc_free_tools_faq_html`, `epc_free_tools_round`, `epc_free_tools_num`, `epc_free_tools_authority`, `epc_free_tools_parse_csv`, `epc_free_tools_finding`, `epc_ecomae_platform_page_free_tools`, `epc_free_tools_render_hub`, `epc_free_tools_guide`, `epc_free_tools_preview`, `epc_free_tools_preview_html`, `epc_free_tools_guide_html`, `epc_free_tools_render_tool`, `epc_free_tools_fields_html`, `epc_free_tools_einvoice_line_html`, `epc_free_tools_styles`, `epc_free_tools_scripts`, plus the compute/account identifiers already golden in `FreeToolsCompute` / `FreeToolsAccounts`; empty / gates / live / tenant isolation). Compute stays on the existing golden. Site base is always `https` even when `HTTPS` is `off`. GET never mints a session. Leftover unique portal / console parents stay unnamed.
+- Area functionality gained host isolation (`https://acme.example/platform/free-tools/vat` stays off `beta.example`; the VAT tool stays on the configured host).
+- Evidence: PHP 8.3.6 produced `Fixtures/PlanQ1Hill` (4). Hill + area **5 / 5**. Last full suite after Foam **6344 / 6344**; Hill suite **5 / 5**. CP-page mentioned stays 280 of 523. Unnamed PHP functions 6,031 to 5,974. Ready ≤200-line non-ERP functions stay 46. The weighted headline stays about 20.4%. Non-ERP pending: 242 files / 128,709 lines (was 243 / 131,904). ERP finance (Devin) unchanged: 166 / 66,191. Leftover `ecomae_cpw_%` schemas: 0. Production-like local counts unchanged (`docpart.users` 2, `ecomae.users` 2).
+
 ### Checkpoint 2026-10-11 — plan Q1-hike (Super-CP customer board)
 
 Not complete.
