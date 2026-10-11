@@ -109,6 +109,7 @@ public sealed class ErpRtlPosSaleWriteService : IErpRtlPosSaleWriteService
         }
 
         var postStock = request.WarehouseId > 0 && await InventoryReadyAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var glReady = await GlAccountsReadyAsync(connection, cancellationToken).ConfigureAwait(false);
         if (glReady)
         {
