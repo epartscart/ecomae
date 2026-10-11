@@ -304,4 +304,16 @@ public sealed class ErpNavMatrixTests
         Assert.Contains(all, ErpIndustryNav.IsJewelleryTab);
         Assert.Contains(core, t => t.Id == "finance/coa");
     }
+
+    [Fact]
+    public void DirectoryTabsHideProjectAccountingForNonFitOutCompany()
+    {
+        var fitOut = ErpIndustryNav.DirectoryTabs(jewelleryCompany: false, fitOutCompany: true);
+        var core = ErpIndustryNav.DirectoryTabs(jewelleryCompany: false, fitOutCompany: false);
+
+        Assert.Contains(fitOut, ErpIndustryNav.IsFitOutTab);
+        Assert.DoesNotContain(core, ErpIndustryNav.IsFitOutTab);
+        Assert.Equal(fitOut.Count - 1, core.Count);
+        Assert.Contains(core, t => t.Id == "finance/coa");
+    }
 }
