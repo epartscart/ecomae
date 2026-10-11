@@ -976,7 +976,9 @@ public static class LegacySurfaceDashboardSql
                LEFT(IFNULL(p.`note`, ''), 280) AS note_excerpt,
                CHAR_LENGTH(IFNULL(p.`note`, '')) AS note_len,
                IFNULL(p.`admin_id`, 0) AS admin_id,
-               IFNULL(p.`time_created`, 0) AS time_created
+               IFNULL(p.`time_created`, 0) AS time_created,
+               IFNULL((SELECT SUM(a.`amount`) FROM `epc_erp_supplier_accounting` a
+                       WHERE a.`purchase_id` = p.`id` AND a.`active` = 1 AND a.`is_credit` = 0), 0) AS paid
         FROM `epc_erp_purchases` p
         LEFT JOIN `epc_erp_suppliers` s ON s.`id` = p.`supplier_id`
         WHERE p.`id` = @id

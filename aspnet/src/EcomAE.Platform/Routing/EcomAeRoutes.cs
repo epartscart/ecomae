@@ -889,6 +889,7 @@ public static class EcomAeRoutes
     public const string ErpInvoicePrint = "/erp/invoice-print";
     /// <summary>JSON open-balance readback for the receipt-voucher form.</summary>
     public const string ErpInvoiceOpenBalance = "/erp/invoice-open-balance";
+    public const string ErpPurchaseOpenBalance = "/erp/purchase-open-balance";
     public const string ErpGlJournals = "/erp/gl-journals";
     /// <summary>GL journals Blazor list (JSON digest remains <see cref="ErpGlJournals"/>).</summary>
     public const string ErpGlJournalsApp = "/erp/gl-journals-app";

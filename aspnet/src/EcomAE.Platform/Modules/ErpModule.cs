@@ -12825,6 +12825,40 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpPurchaseOpenBalance, async (
+            HttpContext context,
+            long id,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for purchase open-balance readback.");
+            }
+
+            var result = await dashboards.BuildErpPurchaseDetailAsync(id, cancellationToken);
+            if (result.Purchase is null)
+            {
+                return Results.NotFound(new { ok = false, error = "not_found", id });
+            }
+
+            var p = result.Purchase;
+            return Results.Ok(new
+            {
+                ok = true,
+                id = p.Id,
+                invoiceNumber = p.InvoiceNumber,
+                status = p.Status,
+                totalInclVat = p.TotalAmount,
+                paidAmount = p.PaidAmount,
+                amountDue = p.AmountDue,
+                supplierId = p.SupplierId,
+                orderId = p.OrderId,
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpInvoicePrint, async (
             HttpContext context,
             long id,

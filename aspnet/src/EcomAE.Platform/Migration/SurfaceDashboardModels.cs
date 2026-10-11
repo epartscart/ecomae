@@ -467,7 +467,9 @@ public sealed record ErpPurchaseDetail(
     string NoteExcerpt,
     int NoteLen,
     int AdminId,
-    long TimeCreated);
+    long TimeCreated,
+    decimal PaidAmount,
+    decimal AmountDue);
 
 public sealed record ErpPurchaseDetailResult(
     ErpPurchaseDetail? Purchase,

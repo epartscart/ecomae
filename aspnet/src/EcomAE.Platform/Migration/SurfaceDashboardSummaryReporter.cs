@@ -2033,6 +2033,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
+                    var total = ReadDec(reader, "total_amount");
+                    var paid = ReadDec(reader, "paid");
                     header = new ErpPurchaseDetail(
                         ReadI64(reader, "id"),
                         ReadI64(reader, "supplier_id"),
@@ -2041,14 +2043,16 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         ReadStr(reader, "invoice_number"),
                         ReadDec(reader, "amount_ex_vat"),
                         ReadDec(reader, "vat_amount"),
-                        ReadDec(reader, "total_amount"),
+                        total,
                         ReadStr(reader, "status"),
                         ReadI64(reader, "order_id"),
                         ReadI32(reader, "storage_id"),
                         ReadStr(reader, "note_excerpt"),
                         ReadI32(reader, "note_len"),
                         ReadI32(reader, "admin_id"),
-                        ReadI64(reader, "time_created"));
+                        ReadI64(reader, "time_created"),
+                        paid,
+                        Math.Max(total - paid, 0m));
                 }
             }
 
