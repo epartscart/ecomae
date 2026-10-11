@@ -10006,7 +10006,7 @@ public const string SelectCpOpsGuidesStats = """
 
     /// <summary>PHP <c>epc_inventory_forecast</c>.</summary>
     public const string SelectErpInventoryForecast = """
-        SELECT `id`, IFNULL(`sku`,'') AS sku,
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`sku`,'') AS sku,
                IFNULL(`product_name`,'') AS product_name,
                IFNULL(`current_stock`,0) AS current_stock,
                IFNULL(`avg_daily_demand`,0) AS avg_daily_demand,
