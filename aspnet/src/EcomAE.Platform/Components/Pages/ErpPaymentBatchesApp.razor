@@ -179,6 +179,13 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "batch_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="2"></td>
+                        <td>@_batches.Sum(r => r.TotalAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td>@_batches.Sum(r => r.LineCount).ToString(CultureInfo.InvariantCulture)</td>
+                        <td colspan="3" class="text-muted">@_batches.Count batches</td>
+                    </tr>
                 }
             </tbody>
         </table>

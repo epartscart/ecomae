@@ -290,6 +290,12 @@
                             </tr>
                         }
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="4"></td>
+                        <td>@_orders.Sum(o => o.TotalAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="text-muted">@_orders.Count orders</td>
+                    </tr>
                 }
             </tbody>
         </table>
