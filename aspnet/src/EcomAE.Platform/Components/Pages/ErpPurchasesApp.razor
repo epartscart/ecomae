@@ -31,6 +31,50 @@
         <div class="kpi"><div class="lbl">Page total amount</div><div class="val">@_totalAmount.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
+    @if (_bySupplier.Count > 0 || _byItem.Count > 0)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+            <p style="margin:0 0 .4rem"><strong>Purchases by supplier</strong> <span class="text-muted">(top 10)</span></p>
+            <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Supplier</th><th class="text-right">Bills</th><th class="text-right">Paid</th><th class="text-right">Open</th><th class="text-right">Bill value</th><th class="text-right">Due</th></tr></thead>
+                <tbody>
+                    @foreach (var s in _bySupplier)
+                    {
+                        <tr>
+                            <td>@(string.IsNullOrWhiteSpace(s.SupplierName) ? ("#" + s.SupplierId.ToString(CultureInfo.InvariantCulture)) : s.SupplierName)</td>
+                            <td class="text-right">@s.Bills</td>
+                            <td class="text-right">@s.Settled</td>
+                            <td class="text-right">@s.Open</td>
+                            <td class="text-right">@s.Total.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@s.Due.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+            <div>
+            <p style="margin:0 0 .4rem"><strong>Purchases by item</strong> <span class="text-muted">(top 10)</span></p>
+            <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Item</th><th class="text-right">Qty bought</th><th class="text-right">Bill lines</th><th class="text-right">Value</th></tr></thead>
+                <tbody>
+                    @foreach (var r in _byItem)
+                    {
+                        <tr>
+                            <td>@(string.IsNullOrWhiteSpace(r.ItemCode) ? "—" : r.ItemCode)</td>
+                            <td class="text-right">@r.Qty.ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@r.Lines</td>
+                            <td class="text-right">@r.Total.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+            </div>
+        </div>
+    }
+
     @if (_openedDetail is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
@@ -250,6 +294,8 @@
     private decimal _apAging31To60;
     private decimal _apAging61To90;
     private decimal _apAging90Plus;
+    private IReadOnlyList<BillSupplierRow> _bySupplier = [];
+    private IReadOnlyList<BillItemRow> _byItem = [];
     private IReadOnlyList<ErpAuditTrailRow> _openedAuditTrail = [];
     private IReadOnlyList<ErpDocumentAttachmentRow> _openedAttachments = [];
     private IReadOnlyList<ErpDocumentLineDigest> _openedLines = [];
@@ -314,6 +360,27 @@
         _apAging90Plus = openAp.Where(p => nowUnixAp - p.PurchaseDate > 90L * 86400).Sum(p => p.AmountDue);
         _apAgingTotal = _apAging0To30 + _apAging31To60 + _apAging61To90 + _apAging90Plus;
 
+        _bySupplier = _purchases
+            .GroupBy(p => (p.SupplierId, p.SupplierName))
+            .Select(g => new BillSupplierRow(
+                g.Key.SupplierId,
+                g.Key.SupplierName,
+                g.Count(),
+                g.Count(p => p.AmountDue <= 0.005m),
+                g.Count(p => p.AmountDue > 0.005m),
+                g.Sum(p => p.TotalAmount),
+                g.Sum(p => p.AmountDue)))
+            .OrderByDescending(s => s.Total)
+            .Take(10)
+            .ToList();
+        _byItem = _purchases
+            .SelectMany(p => p.Lines)
+            .GroupBy(l => l.ItemCode)
+            .Select(g => new BillItemRow(g.Key, g.Sum(l => l.Qty), g.Count(), g.Sum(l => l.LineExVat)))
+            .OrderByDescending(r => r.Total)
+            .Take(10)
+            .ToList();
+
         _open = _purchases.Count(p => !string.Equals(p.Status, "closed", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(p.Status, "cancelled", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(p.Status, "canceled", StringComparison.OrdinalIgnoreCase)
@@ -329,4 +396,8 @@
         if (unix <= 0) return "—";
         return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     }
+
+    private sealed record BillSupplierRow(long SupplierId, string SupplierName, int Bills, int Settled, int Open, decimal Total, decimal Due);
+
+    private sealed record BillItemRow(string ItemCode, decimal Qty, int Lines, decimal Total);
 }
