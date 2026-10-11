@@ -904,6 +904,8 @@ public static class EcomAeRoutes
     public const string ErpSalesOrdersApp = "/erp/sales-orders-app";
     /// <summary>Printable sales order document (HTML, admin-gated).</summary>
     public const string ErpSalesOrderPrint = "/erp/sales-order-print";
+    public const string ErpPurchaseOrderPrint = "/erp/purchase-order-print";
+    public const string ErpPurchasePrint = "/erp/purchase-print";
     public const string ErpPurchaseOrders = "/erp/purchase-orders";
     /// <summary>Purchase orders Blazor list (JSON digest remains <see cref="ErpPurchaseOrders"/>).</summary>
     public const string ErpPurchaseOrdersApp = "/erp/purchase-orders-app";
