@@ -325,6 +325,235 @@
 
     .epc-infographic__foot strong { color: var(--epc-enterprise-ink); }
 
+    /* ===== Premium enterprise ERP shell polish =====
+       (guaranteed-render copy lives in content/shop/finance/epc_erp_aspnet_module_parity.css —
+        HeadContent is dropped by live SSR on product shells) */
+    .epc-erp-cp-shell {
+        --epc-erp-accent: #1769aa;
+        --epc-erp-accent-soft: #e8f2f9;
+        --epc-erp-good: #15803d;
+        --epc-erp-warn: #b45309;
+        --epc-erp-bad: #b91c1c;
+    }
+
+    .epc-erp-cp-shell .epc-erp-shell--layout {
+        margin: 0;
+    }
+
+    .epc-erp-cp-shell .hpanel,
+    .epc-erp-cp-shell .panel,
+    .epc-erp-cp-shell .ns-port,
+    .epc-erp-cp-shell .epc-erp-section {
+        border: 1px solid #dbe4ee;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(15, 35, 60, .05), 0 10px 26px rgba(15, 35, 60, .05);
+        margin-bottom: 14px;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-heading,
+    .epc-erp-cp-shell .panel-heading,
+    .epc-erp-cp-shell .epc-erp-section > h4,
+    .epc-erp-cp-shell .epc-erp-section-title,
+    .epc-erp-cp-shell .ns-port > h4 {
+        position: relative;
+        padding: 10px 14px;
+        border-bottom: 1px solid #e6edf4;
+        border-radius: 12px 12px 0 0;
+        background: linear-gradient(180deg, #fbfdfe, #f4f8fb);
+        color: #1f3251;
+        font-size: 12.5px;
+        font-weight: 750;
+        letter-spacing: .02em;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-heading::before,
+    .epc-erp-cp-shell .epc-erp-section > h4::before,
+    .epc-erp-cp-shell .epc-erp-section-title::before,
+    .epc-erp-cp-shell .ns-port > h4::before {
+        display: inline-block;
+        width: 4px;
+        height: 14px;
+        margin-right: 8px;
+        border-radius: 2px;
+        background: linear-gradient(180deg, var(--epc-erp-accent), var(--epc-enterprise-cyan));
+        content: "";
+        vertical-align: -2px;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-body,
+    .epc-erp-cp-shell .panel-body {
+        padding: 14px;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-body form label,
+    .epc-erp-cp-shell .panel-body label,
+    .epc-erp-cp-shell .form-inline label {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 3px;
+        color: #4a5d77;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .03em;
+        text-transform: none;
+    }
+
+    .epc-erp-cp-shell .hpanel .panel-body form label input,
+    .epc-erp-cp-shell .hpanel .panel-body form label select {
+        min-width: 140px;
+    }
+
+    .epc-erp-cp-shell .table {
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 12.5px;
+    }
+
+    .epc-erp-cp-shell .table > thead > tr > th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        padding: 8px 10px;
+        background: linear-gradient(180deg, #f2f7fb, #eaf1f7);
+        border-top: 0;
+        border-bottom: 2px solid #c9d8e6;
+        color: #2c405e;
+    }
+
+    .epc-erp-cp-shell .table > tbody > tr > td,
+    .epc-erp-cp-shell .table > thead > tr > th {
+        border-color: #e6edf4;
+    }
+
+    .epc-erp-cp-shell .table.table-striped > tbody > tr:nth-of-type(odd) > td {
+        background: #fbfdff;
+    }
+
+    .epc-erp-cp-shell .table > tbody > tr:hover > td {
+        background: #eff6fc;
+    }
+
+    .epc-erp-cp-shell .table td.text-right,
+    .epc-erp-cp-shell .table th.text-right {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+    }
+
+    .epc-erp-cp-shell .table td[style*="font-weight:600"],
+    .epc-erp-cp-shell .table td[style*="font-weight: 600"] {
+        border-top: 2px solid #c9d8e6;
+    }
+
+    .epc-erp-cp-shell .epc-erp-kpi .kpi,
+    .epc-erp-cp-shell .kpi {
+        min-width: 150px;
+        padding: 12px 16px;
+        border: 1px solid #dbe4ee;
+        border-radius: 12px;
+        background: linear-gradient(160deg, #ffffff 0%, #f4f9fd 100%);
+        box-shadow: 0 1px 2px rgba(15, 35, 60, .05), 0 8px 20px rgba(15, 35, 60, .05);
+    }
+
+    .epc-erp-cp-shell .epc-erp-kpi .kpi .lbl,
+    .epc-erp-cp-shell .kpi .lbl {
+        color: #5a6f8a;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .epc-erp-cp-shell .epc-erp-kpi .kpi .val,
+    .epc-erp-cp-shell .kpi .val {
+        margin-top: 4px;
+        color: #15253d;
+        font-size: 20px;
+        font-weight: 850;
+        letter-spacing: -.02em;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .epc-erp-cp-shell .epc-erp-kpi {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .epc-erp-cp-shell .btn {
+        border-radius: 8px;
+        font-weight: 650;
+    }
+
+    .epc-erp-cp-shell .btn-default {
+        border: 1px solid #c8d4e2;
+        background: linear-gradient(180deg, #ffffff, #f2f6fa);
+        color: #2c405e;
+    }
+
+    .epc-erp-cp-shell .btn-default:hover {
+        background: #eaf2f8;
+        border-color: #a9bfcf;
+    }
+
+    .epc-erp-cp-shell .btn-success {
+        background: linear-gradient(135deg, #15803d, #16a34a);
+        border-color: #146f37;
+        box-shadow: 0 4px 10px rgba(21, 128, 61, .18);
+        font-weight: 700;
+    }
+
+    .epc-erp-cp-shell .btn-danger {
+        background: linear-gradient(135deg, #b91c1c, #dc2626);
+        border-color: #a11818;
+    }
+
+    .epc-erp-cp-shell .label,
+    .epc-erp-cp-shell .badge {
+        border-radius: 999px;
+        padding: 3px 9px;
+        font-size: 10px;
+        font-weight: 750;
+        letter-spacing: .03em;
+    }
+
+    .epc-erp-cp-shell a {
+        color: var(--epc-erp-accent);
+    }
+
+    .epc-erp-cp-shell a:hover {
+        color: #0e5a93;
+        text-decoration: none;
+    }
+
+    .epc-erp-cp-shell .alert {
+        border-radius: 10px;
+        border-width: 1px;
+        font-size: 12.5px;
+    }
+
+    .epc-erp-cp-shell .alert-info {
+        border-color: #bfdbfe;
+        background: #eff6ff;
+        color: #1e40af;
+    }
+
+    .epc-erp-cp-shell .alert-warning {
+        border-color: #fde68a;
+        background: #fffbeb;
+        color: #92400e;
+    }
+
+    .epc-erp-cp-shell .table-epc,
+    .epc-erp-cp-shell .epc-erp-table {
+        background: #fff;
+    }
+
+    .epc-erp-cp-shell .text-muted {
+        color: #61728a;
+    }
+
     .epc-module-visual-frame {
         display: grid;
         grid-template-columns: auto minmax(0, 1fr) auto;
