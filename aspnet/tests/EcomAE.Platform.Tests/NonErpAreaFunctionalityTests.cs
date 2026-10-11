@@ -1951,6 +1951,45 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.Equal("modules/shop/cart/cart.php", PhpPlanQ1Mere.CartModulePath);
     }
 
+    [Fact]
+    public void LoginModule_NameAndCsrfStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Tarn.Reset();
+        PhpPlanQ1Tarn.TranslateById = raw => raw switch
+        {
+            "4758" => "Sign in",
+            "4760" => "Welcome",
+            "4668" => "Profile",
+            "4761" => "Edit",
+            "3996" => "Logout",
+            "4762" => "Customer",
+            _ => raw
+        };
+        PhpPlanQ1Tarn.LangHref = () => "/en";
+        PhpPlanQ1Tarn.GetUserId = () => 7;
+        PhpPlanQ1Tarn.GetUserSession = () => new Dictionary<string, object?>(StringComparer.Ordinal) { ["csrf_guard_key"] = "tok-acme" };
+        PhpPlanQ1Tarn.GetUserProfile = () => new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = "AcmeUser" };
+        var acme = PhpPlanQ1Tarn.EpcLoginModule();
+        PhpPlanQ1Tarn.LangHref = () => "/ar";
+        PhpPlanQ1Tarn.GetUserId = () => 8;
+        PhpPlanQ1Tarn.GetUserSession = () => new Dictionary<string, object?>(StringComparer.Ordinal) { ["csrf_guard_key"] = "tok-beta" };
+        PhpPlanQ1Tarn.GetUserProfile = () => new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = "BetaUser" };
+        var beta = PhpPlanQ1Tarn.EpcLoginModule();
+        Assert.Contains("AcmeUser", acme, StringComparison.Ordinal);
+        Assert.Contains("tok-acme", acme, StringComparison.Ordinal);
+        Assert.Contains("/en/users/profile", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("BetaUser", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("tok-beta", acme, StringComparison.Ordinal);
+        Assert.Contains("BetaUser", beta, StringComparison.Ordinal);
+        Assert.Contains("tok-beta", beta, StringComparison.Ordinal);
+        Assert.Contains("/ar/users/editform", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("AcmeUser", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("tok-acme", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Tarn.LoginModulePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Tarn.LoginModulePath, StringComparison.Ordinal);
+        Assert.DoesNotContain("dp_user.php", PhpPlanQ1Tarn.LoginModulePath, StringComparison.Ordinal);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2042,6 +2081,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Loch.SearchStringPath,
             PhpPlanQ1Reed.BalanceModulePath,
             PhpPlanQ1Mere.CartModulePath,
+            PhpPlanQ1Tarn.LoginModulePath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,
