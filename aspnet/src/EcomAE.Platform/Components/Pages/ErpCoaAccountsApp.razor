@@ -40,7 +40,7 @@
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Name) ? "—" : _opened.Name)</dd>
                 <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_opened.AccountType) ? "—" : _opened.AccountType)</dd>
                 <dt>Normal</dt><dd>@(string.IsNullOrWhiteSpace(_opened.NormalSide) ? "—" : _opened.NormalSide)</dd>
-                <dt>Parent</dt><dd>@(_opened.ParentId > 0 ? _opened.ParentId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Parent</dt><dd>@AccountLabel(_opened.ParentId)</dd>
                 <dt>Opening</dt><dd>@_opened.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</dd>
                 <dt>System</dt><dd>@(_opened.SystemFlag ? "yes" : "no")</dd>
                 <dt>Active</dt><dd>@(_opened.Active ? "yes" : "no")</dd>
@@ -122,7 +122,7 @@
                             <td>@(string.IsNullOrWhiteSpace(a.Name) ? "—" : a.Name)</td>
                             <td><span class="label label-default">@a.AccountType</span></td>
                             <td>@(string.IsNullOrWhiteSpace(a.NormalSide) ? "—" : a.NormalSide)</td>
-                            <td>@(a.ParentId > 0 ? a.ParentId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@AccountLabel(a.ParentId)</td>
                             <td>@a.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@a.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(a.Active ? "yes" : "no")</td>
@@ -201,6 +201,14 @@
                 }
             }
         }
+    }
+
+    private string AccountLabel(long accountId)
+    {
+        if (accountId <= 0) return "—";
+        var acc = _accounts.FirstOrDefault(a => a.Id == accountId);
+        if (acc is null) return accountId.ToString(CultureInfo.InvariantCulture);
+        return string.IsNullOrWhiteSpace(acc.Code) ? acc.Name : $"{acc.Code} — {acc.Name}";
     }
 
     private static string FormatTime(long unix)
