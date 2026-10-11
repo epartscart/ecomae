@@ -252,6 +252,13 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "mcgl_entry_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="3"></td>
+                        <td class="text-right">@_entries.Sum(r => r.TxnAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_entries.Sum(r => r.BaseAmount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td colspan="2" class="text-muted">@_entries.Count entries</td>
+                    </tr>
                 }
             </tbody>
         </table>
