@@ -3164,6 +3164,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpGlJournals;
             AddParameter(command, "@limit", safeLimit);
@@ -3205,6 +3206,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             ErpGlJournalDetail? header = null;
             await using (var cmd = connection.CreateCommand())
             {
@@ -3494,6 +3496,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpCoaAccounts;
             AddParameter(command, "@limit", safeLimit);
@@ -3536,6 +3539,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             ErpCoaAccountDetail? header = null;
             await using (var cmd = connection.CreateCommand())
             {
