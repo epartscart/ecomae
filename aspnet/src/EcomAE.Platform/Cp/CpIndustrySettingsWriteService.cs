@@ -187,6 +187,7 @@ public sealed class CpIndustrySettingsWriteService : ICpIndustrySettingsWriteSer
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await CpPortalSchema.EnsureSiteSettingsAsync(connection, cancellationToken).ConfigureAwait(false);
             var writes = await ErpDb.ExecuteAsync(
                 connection,
                 null,
