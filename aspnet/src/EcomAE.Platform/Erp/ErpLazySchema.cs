@@ -777,4 +777,101 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Inventory closing/recalculation runs'",
             ct);
     }
+
+    /// <summary>
+    /// epc_erp_company_context_ensure (epc_erp_company_context.php): the legal-entity
+    /// master must exist AND a fresh tenant auto-seeds one default company from the
+    /// single-row tenant profile (epc_co_profile id=1) so GL/company resolution has a
+    /// real id — without this a new tenant silently posts company_id=0.
+    /// </summary>
+    public static async Task EnsureCompanyContextAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_pm_legal_entities` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`code` varchar(40) NOT NULL DEFAULT ''," +
+            "`name` varchar(190) NOT NULL DEFAULT ''," +
+            "`country_code` varchar(4) NOT NULL DEFAULT ''," +
+            "`currency_code` varchar(8) NOT NULL DEFAULT ''," +
+            "`trn` varchar(40) NOT NULL DEFAULT ''," +
+            "`note` varchar(255) NOT NULL DEFAULT ''," +
+            "`active` tinyint(1) NOT NULL DEFAULT 1," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            ct).ConfigureAwait(false);
+
+        try
+        {
+            var count = await ErpDb.LongAsync(c, null,
+                "SELECT COUNT(*) FROM `epc_erp_pm_legal_entities` WHERE `active` = 1",
+                ct).ConfigureAwait(false);
+            if (count > 0)
+            {
+                return;
+            }
+        }
+        catch (DbException)
+        {
+            return; // table could not be created/read on this tenant — leave unscoped
+        }
+
+        var legalName = string.Empty;
+        var tradeName = string.Empty;
+        var baseCurrency = string.Empty;
+        var country = string.Empty;
+        var trn = string.Empty;
+        try
+        {
+            await using var command = c.CreateCommand();
+            command.CommandText =
+                "SELECT COALESCE(`legal_name`,''), COALESCE(`trade_name`,'')," +
+                " COALESCE(`base_currency`,''), COALESCE(`country`,''), COALESCE(`trn`,'')" +
+                " FROM `epc_co_profile` WHERE `id` = 1 LIMIT 1";
+            await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            if (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                legalName = Convert.ToString(reader.GetValue(0)) ?? string.Empty;
+                tradeName = Convert.ToString(reader.GetValue(1)) ?? string.Empty;
+                baseCurrency = Convert.ToString(reader.GetValue(2)) ?? string.Empty;
+                country = Convert.ToString(reader.GetValue(3)) ?? string.Empty;
+                trn = Convert.ToString(reader.GetValue(4)) ?? string.Empty;
+            }
+        }
+        catch (DbException)
+        {
+            // epc_co_profile may be absent on lean tenants — seed defaults like PHP.
+        }
+
+        var name = (legalName.Length > 0 ? legalName : tradeName).Trim();
+        if (name.Length == 0)
+        {
+            name = "Main Company";
+        }
+
+        var currency = baseCurrency.Trim().ToUpperInvariant();
+        if (currency.Length == 0)
+        {
+            currency = "AED";
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        try
+        {
+            await ErpDb.ExecuteAsync(c, null,
+                "INSERT INTO `epc_erp_pm_legal_entities`" +
+                " (`code`,`name`,`country_code`,`currency_code`,`trn`,`note`,`active`,`time_created`,`time_updated`)" +
+                " VALUES ('MAIN', @p0, @p1, @p2, @p3, 'Auto-created default company', 1, @p4, @p4)",
+                ct,
+                name,
+                country.Trim().ToUpperInvariant()[..Math.Min(4, country.Trim().ToUpperInvariant().Length)],
+                currency,
+                trn.Trim(),
+                now).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            // Insert raced another request seeding the same row — PHP treats ensure as best-effort too.
+        }
+    }
 }

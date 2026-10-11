@@ -9773,6 +9773,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            // PHP epc_erp_company_context_ensure: ensure schema and auto-seed the
+            // default legal entity from the tenant profile on first use so a fresh
+            // tenant resolves a real company id instead of posting company_id=0.
+            await ErpLazySchema.EnsureCompanyContextAsync(connection, cancellationToken).ConfigureAwait(false);
             var packs = new Dictionary<long, string>();
             try
             {
