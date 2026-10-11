@@ -65,6 +65,9 @@
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_orders.Count</div></div>
         <div class="kpi"><div class="lbl">Non-closed in page</div><div class="val">@_open</div></div>
         <div class="kpi"><div class="lbl">Page total amount</div><div class="val">@_totalAmount.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Open PO value</div><div class="val">@_backlogValue.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Open 30d+</div><div class="val">@_backlogAged30</div></div>
+        <div class="kpi"><div class="lbl">Open 30d+ value</div><div class="val">@_backlogAged30Value.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
     @if (_openedDetail is not null)
@@ -317,6 +320,9 @@
     private IReadOnlyList<ErpInventoryItemPickerDigest> _items = [];
     private int _open;
     private decimal _totalAmount;
+    private int _backlogAged30;
+    private decimal _backlogValue;
+    private decimal _backlogAged30Value;
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
@@ -427,6 +433,15 @@
             && !string.Equals(o.Status, "canceled", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(o.Status, "received", StringComparison.OrdinalIgnoreCase));
         _totalAmount = _orders.Sum(o => o.TotalAmount);
+        var nowUnixPo = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var openOrders = _orders.Where(o => !string.Equals(o.Status, "closed", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(o.Status, "cancelled", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(o.Status, "canceled", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(o.Status, "received", StringComparison.OrdinalIgnoreCase)).ToList();
+        _backlogValue = openOrders.Sum(o => o.TotalAmount);
+        var aged = openOrders.Where(o => nowUnixPo - o.TimeCreated > 30L * 86400).ToList();
+        _backlogAged30 = aged.Count;
+        _backlogAged30Value = aged.Sum(o => o.TotalAmount);
         _source = result.Source;
         _message = result.Message;
     }
