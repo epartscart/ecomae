@@ -48,6 +48,17 @@ public sealed class AdminSurfaceAuthGateMiddleware
         }
 
         var session = await sessions.ValidateAsync(context, context.RequestAborted).ConfigureAwait(false);
+        if (session.Kind == LegacySessionKind.Admin && !HasSurfaceCapability(path, session))
+        {
+            // A signed-in admin without the surface's capability (CP-only user on /erp, ERP-only user on /cp)
+            // is refused here, before any module renders.
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            context.Response.Headers["x-ecomae-surface-ownership"] = IsControlPanelPath(path) ? "cp-capability-required" : "erp-capability-required";
+            context.Response.Headers["Cache-Control"] = "no-store";
+            await context.Response.WriteAsync("This account has no access to this surface.").ConfigureAwait(false);
+            return;
+        }
+
         if (session.Kind == LegacySessionKind.Admin && session.HasBackendAccess)
         {
             context.Response.Headers[ChallengeHeader] = "ok";
@@ -88,6 +99,26 @@ public sealed class AdminSurfaceAuthGateMiddleware
 
         context.Response.StatusCode = StatusCodes.Status302Found;
         context.Response.Headers.Location = target;
+    }
+
+    public static bool IsErpPath(string path)
+        => path.Equals("/erp", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>CP paths need the <c>cp</c> capability, ERP paths the <c>erp</c> capability; other admin surfaces keep the any-capability rule.</summary>
+    public static bool HasSurfaceCapability(string path, LegacySessionContext session)
+    {
+        if (IsControlPanelPath(path))
+        {
+            return session.Capabilities.Contains("cp", StringComparer.OrdinalIgnoreCase);
+        }
+
+        if (IsErpPath(path))
+        {
+            return session.Capabilities.Contains("erp", StringComparer.OrdinalIgnoreCase);
+        }
+
+        return true;
     }
 
     public static bool IsControlPanelPath(string path)

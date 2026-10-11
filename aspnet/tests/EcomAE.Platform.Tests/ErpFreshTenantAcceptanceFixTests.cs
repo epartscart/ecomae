@@ -235,6 +235,33 @@ public sealed class ErpFreshTenantAcceptanceFixTests
     }
 
     [Fact]
+    public void Surface_capability_is_per_surface_for_cp_only_and_erp_only_users()
+    {
+        var cpOnly = new EcomAE.Platform.Auth.LegacySessionContext(
+            EcomAE.Platform.Auth.LegacySessionKind.Admin, 7, "s", new[] { EcomAE.Platform.Security.EcomAePermissions.TenantCpAccess }, HasBackendAccess: true);
+        var erpOnly = new EcomAE.Platform.Auth.LegacySessionContext(
+            EcomAE.Platform.Auth.LegacySessionKind.Admin, 8, "s", new[] { EcomAE.Platform.Security.EcomAePermissions.TenantErpAccess }, HasBackendAccess: true);
+        var both = new EcomAE.Platform.Auth.LegacySessionContext(
+            EcomAE.Platform.Auth.LegacySessionKind.Admin, 9, "s",
+            new[] { EcomAE.Platform.Security.EcomAePermissions.TenantCpAccess, EcomAE.Platform.Security.EcomAePermissions.TenantErpAccess }, HasBackendAccess: true);
+
+        var gate = typeof(EcomAE.Platform.Middleware.AdminSurfaceAuthGateMiddleware);
+        Assert.True(EcomAE.Platform.Middleware.AdminSurfaceAuthGateMiddleware.HasSurfaceCapability("/cp/orders-app", cpOnly));
+        Assert.False(EcomAE.Platform.Middleware.AdminSurfaceAuthGateMiddleware.HasSurfaceCapability("/erp/fin-advanced-app", cpOnly));
+        Assert.False(EcomAE.Platform.Middleware.AdminSurfaceAuthGateMiddleware.HasSurfaceCapability("/erp/pos-overview-app", cpOnly));
+        Assert.True(EcomAE.Platform.Middleware.AdminSurfaceAuthGateMiddleware.HasSurfaceCapability("/erp/pos-overview-app", erpOnly));
+        Assert.False(EcomAE.Platform.Middleware.AdminSurfaceAuthGateMiddleware.HasSurfaceCapability("/cp", erpOnly));
+        Assert.True(EcomAE.Platform.Middleware.AdminSurfaceAuthGateMiddleware.HasSurfaceCapability("/cp/orders-app", both));
+        Assert.True(EcomAE.Platform.Middleware.AdminSurfaceAuthGateMiddleware.HasSurfaceCapability("/erp/fin-advanced-app", both));
+        Assert.True(EcomAE.Platform.Middleware.AdminSurfaceAuthGateMiddleware.HasSurfaceCapability("/bos/fleet", cpOnly));
+        Assert.NotNull(gate);
+
+        var pos = Read("aspnet/src/EcomAE.Platform/Components/Pages/CpPosOverviewApp.razor");
+        Assert.Contains("session.Capabilities.Contains(\"erp\")", pos);
+        Assert.DoesNotContain("session.Capabilities.Contains(\"cp\")", pos);
+    }
+
+    [Fact]
     public void Cp_surface_is_denied_on_erp_only_tenants()
     {
         var gate = Read("aspnet/src/EcomAE.Platform/Middleware/AdminSurfaceAuthGateMiddleware.cs");

@@ -47,7 +47,7 @@
         <div class="col-lg-12">
             <div class="hpanel">
                 <div class="panel-heading hbuilt">POS Terminal</div>
-                <div class="panel-body"><p>Sign in to the Control Panel to use the register.</p></div>
+                <div class="panel-body"><p>Sign in to the ERP to use the register.</p></div>
             </div>
         </div>
     }
@@ -401,7 +401,7 @@
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
         {
             return;
