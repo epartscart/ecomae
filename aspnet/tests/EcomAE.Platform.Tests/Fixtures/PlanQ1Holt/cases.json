@@ -1,0 +1,8 @@
+{
+  "cases": [
+    { "name": "empty" },
+    { "name": "page" },
+    { "name": "live" },
+    { "name": "tenant" }
+  ]
+}

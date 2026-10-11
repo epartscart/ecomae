@@ -1,0 +1,166 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "empty",
+            "output": "",
+            "result": [
+                "",
+                "0",
+                "A &amp; B &lt;x&gt; &quot;q&quot; 'z'",
+                "Price on request",
+                "Price on request",
+                "AED 1,234",
+                "Price on request",
+                "/en/accessories-spare-parts",
+                "/ar/accessories-spare-parts",
+                "",
+                "1 min ago",
+                "2 min ago",
+                "2 hours ago",
+                "2 days ago",
+                "11/6/2023",
+                "/en/accessories-spare-parts",
+                "/en/accessories-spare-parts",
+                "/en/accessories-spare-parts?id=7",
+                "/old?id=7",
+                "/en/accessories-spare-parts?id=99&category=brakes&subcategory=pads",
+                2,
+                "https://cdn/b.jpg",
+                1,
+                "https://cdn/only.jpg",
+                "/en/accessories-spare-parts",
+                "/en/accessories-spare-parts?category=brakes&subcategory=pads",
+                1,
+                0,
+                0,
+                1,
+                "/en/accessories-spare-parts?q=oil&category=car-care&make=Toyota&page=2",
+                "oil",
+                "Toyota",
+                "2",
+                "<li><button type=\"button\" class=\"is-active\" data-value=\"\">All categories</button></li><li><button type=\"button\" class=\"\" data-value=\"brakes\"><span>Brakes</span><span class=\"count\">4</span></button></li><li><button type=\"button\" class=\"\" data-value=\"interior\"><span>Interior</span><span class=\"count\">2</span></button></li>",
+                "<li><button type=\"button\" class=\"\" data-value=\"\">All categories</button></li><li><button type=\"button\" class=\" is-active\" data-value=\"brakes\"><span>Brakes</span><span class=\"count\">4</span></button></li><li><button type=\"button\" class=\"\" data-value=\"interior\"><span>Interior</span><span class=\"count\">2</span></button></li>",
+                "<option value=\"\">Any make</option><option value=\"Toyota\" selected>Toyota</option><option value=\"BMW\">BMW</option>",
+                "",
+                "<button type=\"button\" data-page=\"2\">Prev</button><button type=\"button\" class=\"\" data-page=\"1\">1</button><button type=\"button\" class=\"\" data-page=\"2\">2</button><button type=\"button\" class=\"is-active\" data-page=\"3\">3</button><button type=\"button\" class=\"\" data-page=\"4\">4</button><button type=\"button\" class=\"\" data-page=\"5\">5</button><button type=\"button\" data-page=\"4\">Next</button>",
+                "",
+                "/content/shop/docpart/ajax_epc_accessories_search.php?q=oil&category=car-care&make=Toyota&sort=updated-desc&page=2&per_page=24",
+                "<strong>1 – 24</strong> of <strong>40</strong> results",
+                "<strong>0</strong> results — categories ready, ads will be added category by category",
+                "Showing listing <strong>#99</strong>",
+                {
+                    "view": "grid",
+                    "resultsList": 0,
+                    "gridActive": 1,
+                    "listActive": 0
+                },
+                {
+                    "view": "list",
+                    "resultsList": 1,
+                    "gridActive": 0,
+                    "listActive": 1
+                },
+                {
+                    "email": "yawer@ecomae.com",
+                    "created_at": 1700000000000,
+                    "filters": {
+                        "q": "oil",
+                        "category": "car-care",
+                        "subcategory": "",
+                        "make": "Toyota",
+                        "model": "",
+                        "city": "Dubai",
+                        "condition": "new",
+                        "price_min": "10",
+                        "price_max": "90"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "page",
+            "output": "",
+            "result": [
+                {
+                    "root": 1,
+                    "api": 1,
+                    "hero": 1,
+                    "search": 1,
+                    "notify": 1,
+                    "saved": 1,
+                    "version": 1,
+                    "css": 1,
+                    "session": 0,
+                    "lang_en": 1,
+                    "lang_ar": 0,
+                    "prefix": "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_accessories.css?v=202607"
+                },
+                0,
+                1,
+                1,
+                1,
+                1
+            ]
+        },
+        {
+            "name": "live",
+            "output": "",
+            "result": [
+                "<div class=\"epc-acc__detail-bar\"><a class=\"epc-acc__detail-back\" href=\"/en/accessories-spare-parts?category=filters&amp;subcategory=cabin\" id=\"epc-acc-detail-back\"><i class=\"fa fa-arrow-left\" aria-hidden=\"true\"></i> Back to listings</a><span class=\"epc-acc__detail-id\">Ad #42</span></div><div class=\"epc-acc__detail-grid\"><div class=\"epc-acc__detail-gallery\"><div class=\"epc-acc__detail-main\"><img id=\"epc-acc-detail-main-img\" src=\"https://cdn/a.jpg\" alt=\"Cabin Filter &lt;OEM&gt;\" /></div><div class=\"epc-acc__detail-thumbs\" role=\"list\"><button type=\"button\" class=\"is-active\" data-src=\"https://cdn/a.jpg\" aria-label=\"Photo 1\"><img src=\"https://cdn/a.jpg\" alt=\"\" loading=\"lazy\" /></button><button type=\"button\" class=\"\" data-src=\"https://cdn/b.jpg\" aria-label=\"Photo 2\"><img src=\"https://cdn/b.jpg\" alt=\"\" loading=\"lazy\" /></button></div></div><div class=\"epc-acc__detail-info\"><div class=\"epc-acc__meta\"><span>Filters</span><span>Cabin</span><span>Dubai</span><span>New</span></div><h2 class=\"epc-acc__detail-title\">Cabin Filter &lt;OEM&gt;</h2><p class=\"epc-acc__article\">Toyota · Corolla · 2018 · 12 min ago</p><div class=\"epc-acc__price\">AED 120<span class=\"epc-acc__compare\">AED 180</span></div><div class=\"epc-acc__stock\">3 in stock</div><div class=\"epc-acc__detail-specs\"><table><tbody><tr><th scope=\"row\">Make</th><td>Toyota</td></tr><tr><th scope=\"row\">Model</th><td>Corolla</td></tr><tr><th scope=\"row\">Year</th><td>2018</td></tr><tr><th scope=\"row\">City</th><td>Dubai</td></tr><tr><th scope=\"row\">Condition</th><td>New</td></tr><tr><th scope=\"row\">Category</th><td>Filters / Cabin</td></tr></tbody></table></div><div class=\"epc-acc__detail-desc\"><h3>Details</h3><p>Fits Corolla 2015-2019 &amp; &quot;Yaris&quot;.</p></div><div class=\"epc-acc__actions epc-acc__detail-actions\"><button type=\"button\" class=\"secondary epc-acc__save\" data-id=\"42\" id=\"epc-acc-detail-save\">Save Ad</button><a class=\"primary\" href=\"https://seller.example/ad\" target=\"_blank\" rel=\"noopener\">Seller link</a></div></div></div>",
+                "<div class=\"epc-acc__detail-bar\"><a class=\"epc-acc__detail-back\" href=\"/en/accessories-spare-parts?category=filters&amp;subcategory=cabin\" id=\"epc-acc-detail-back\"><i class=\"fa fa-arrow-left\" aria-hidden=\"true\"></i> Back to listings</a><span class=\"epc-acc__detail-id\">Ad #42</span></div><div class=\"epc-acc__detail-grid\"><div class=\"epc-acc__detail-gallery\"><div class=\"epc-acc__detail-main\"><img id=\"epc-acc-detail-main-img\" src=\"https://cdn/a.jpg\" alt=\"Cabin Filter &lt;OEM&gt;\" /></div><div class=\"epc-acc__detail-thumbs\" role=\"list\"><button type=\"button\" class=\"is-active\" data-src=\"https://cdn/a.jpg\" aria-label=\"Photo 1\"><img src=\"https://cdn/a.jpg\" alt=\"\" loading=\"lazy\" /></button><button type=\"button\" class=\"\" data-src=\"https://cdn/b.jpg\" aria-label=\"Photo 2\"><img src=\"https://cdn/b.jpg\" alt=\"\" loading=\"lazy\" /></button></div></div><div class=\"epc-acc__detail-info\"><div class=\"epc-acc__meta\"><span>Filters</span><span>Cabin</span><span>Dubai</span><span>New</span></div><h2 class=\"epc-acc__detail-title\">Cabin Filter &lt;OEM&gt;</h2><p class=\"epc-acc__article\">Toyota · Corolla · 2018 · 12 min ago</p><div class=\"epc-acc__price\">AED 120<span class=\"epc-acc__compare\">AED 180</span></div><div class=\"epc-acc__stock\">3 in stock</div><div class=\"epc-acc__detail-specs\"><table><tbody><tr><th scope=\"row\">Make</th><td>Toyota</td></tr><tr><th scope=\"row\">Model</th><td>Corolla</td></tr><tr><th scope=\"row\">Year</th><td>2018</td></tr><tr><th scope=\"row\">City</th><td>Dubai</td></tr><tr><th scope=\"row\">Condition</th><td>New</td></tr><tr><th scope=\"row\">Category</th><td>Filters / Cabin</td></tr></tbody></table></div><div class=\"epc-acc__detail-desc\"><h3>Details</h3><p>Fits Corolla 2015-2019 &amp; &quot;Yaris&quot;.</p></div><div class=\"epc-acc__actions epc-acc__detail-actions\"><button type=\"button\" class=\"secondary epc-acc__save is-saved\" data-id=\"42\" id=\"epc-acc-detail-save\">Saved</button><a class=\"primary\" href=\"https://seller.example/ad\" target=\"_blank\" rel=\"noopener\">Seller link</a></div></div></div>",
+                "<div class=\"epc-acc__empty\"><strong>No ads in this search yet</strong><p>Browse by category, make, model, and city. Listings will appear here as they are added category by category.</p><p class=\"epc-acc__empty-hint\">Catalog is ready — start by adding products under Car Care, Interior, Exterior, Brakes, and other categories.</p></div>",
+                "<div class=\"epc-acc__empty\"><strong>No saved ads yet</strong><p>Browse by category, make, model, and city. Listings will appear here as they are added category by category.</p></div>",
+                "<button type=\"button\" data-cat=\"filters\">Filters (3)</button><button type=\"button\" data-cat=\"brakes\">Brakes (2)</button>",
+                "/en/accessories-spare-parts?id=42&category=filters&subcategory=cabin",
+                "/en/accessories-spare-parts?category=filters&subcategory=cabin",
+                "AED 120",
+                "Cabin Filter &lt;OEM&gt;"
+            ]
+        },
+        {
+            "name": "tenant",
+            "output": "",
+            "result": [
+                {
+                    "root": 1,
+                    "api": 1,
+                    "hero": 1,
+                    "search": 1,
+                    "notify": 1,
+                    "saved": 1,
+                    "version": 1,
+                    "css": 1,
+                    "session": 0,
+                    "lang_en": 0,
+                    "lang_ar": 1,
+                    "prefix": "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_accessories.css?v=202607"
+                },
+                {
+                    "root": 1,
+                    "api": 1,
+                    "hero": 1,
+                    "search": 1,
+                    "notify": 1,
+                    "saved": 1,
+                    "version": 1,
+                    "css": 1,
+                    "session": 0,
+                    "lang_en": 1,
+                    "lang_ar": 0,
+                    "prefix": "<link rel=\"stylesheet\" href=\"/content/general_pages/epc_accessories.css?v=202607"
+                },
+                1,
+                1,
+                0,
+                0,
+                "/ar/accessories-spare-parts",
+                "/en/accessories-spare-parts",
+                "/ar/accessories-spare-parts?id=7&category=brakes",
+                "/en/accessories-spare-parts?id=7&category=brakes",
+                0,
+                0
+            ]
+        }
+    ]
+}
