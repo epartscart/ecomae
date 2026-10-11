@@ -6366,7 +6366,8 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`party_name`,'') AS party_name, IFNULL(`metal`,'') AS metal,
                IFNULL(`karat`,'') AS karat, IFNULL(`fix_rate`,0) AS fix_rate,
                IFNULL(`fix_qty_gms`,0) AS fix_qty_gms,
-               IFNULL(`fix_amount`,0) AS fix_amount, IFNULL(`reference_voc`,'') AS reference_voc,
+               IFNULL(`fix_amount`,0) AS fix_amount, IFNULL(`unfixed_qty`,0) AS unfixed_qty,
+               IFNULL(`reference_voc`,'') AS reference_voc,
                IFNULL(`status`,'') AS status,
                IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_fixing`
@@ -6401,7 +6402,8 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`party_name`,'') AS party_name, IFNULL(`metal`,'') AS metal,
                IFNULL(`karat`,'') AS karat, IFNULL(`fix_rate`,0) AS fix_rate,
                IFNULL(`fix_qty_gms`,0) AS fix_qty_gms,
-               IFNULL(`fix_amount`,0) AS fix_amount, IFNULL(`reference_voc`,'') AS reference_voc,
+               IFNULL(`fix_amount`,0) AS fix_amount, IFNULL(`unfixed_qty`,0) AS unfixed_qty,
+               IFNULL(`reference_voc`,'') AS reference_voc,
                IFNULL(`status`,'') AS status,
                IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_fixing`

@@ -5360,7 +5360,8 @@ public sealed record CpJewelleryFixingRowDigest(
     string Status,
     string CreatedBy,
     decimal FixRate = 0,
-    string ReferenceVoc = "");
+    string ReferenceVoc = "",
+    decimal UnfixedQty = 0);
 
 public sealed record CpJewelleryFixingDigestResult(
     CpJewelleryFixingSummary Summary,

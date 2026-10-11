@@ -18481,7 +18481,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToDecimal(reader["fix_rate"] is DBNull ? 0 : reader["fix_rate"], CultureInfo.InvariantCulture),
-                        Convert.ToString(reader["reference_voc"] is DBNull ? string.Empty : reader["reference_voc"], CultureInfo.InvariantCulture) ?? string.Empty));
+                        Convert.ToString(reader["reference_voc"] is DBNull ? string.Empty : reader["reference_voc"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["unfixed_qty"] is DBNull ? 0 : reader["unfixed_qty"], CultureInfo.InvariantCulture)));
                 }
             }
 
@@ -18574,7 +18575,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToDecimal(reader["fix_rate"] is DBNull ? 0 : reader["fix_rate"], CultureInfo.InvariantCulture),
-                        Convert.ToString(reader["reference_voc"] is DBNull ? string.Empty : reader["reference_voc"], CultureInfo.InvariantCulture) ?? string.Empty));
+                        Convert.ToString(reader["reference_voc"] is DBNull ? string.Empty : reader["reference_voc"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["unfixed_qty"] is DBNull ? 0 : reader["unfixed_qty"], CultureInfo.InvariantCulture)));
                 }
             }
 
