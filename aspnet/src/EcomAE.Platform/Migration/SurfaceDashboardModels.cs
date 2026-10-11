@@ -977,11 +977,22 @@ public sealed record ErpSalesOrderDetail(
     long TimeCreated,
     long TimeUpdated);
 
+public sealed record ErpAuditTrailRow(
+    long Id,
+    long Time,
+    int AdminId,
+    string Action,
+    string Summary,
+    string DetailJson);
+
 public sealed record ErpSalesOrderDetailResult(
     ErpSalesOrderDetail? Order,
     IReadOnlyList<ErpSalesOrderDigest> Siblings,
     string Source,
-    string Message);
+    string Message)
+{
+    public IReadOnlyList<ErpAuditTrailRow> AuditTrail { get; init; } = [];
+}
 
 public sealed record CpMenuDigest(
     int Id,

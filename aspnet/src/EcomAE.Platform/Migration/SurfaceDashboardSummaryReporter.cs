@@ -3653,7 +3653,26 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
-            return new(header, siblings, "database", string.Empty);
+            var auditTrail = new List<ErpAuditTrailRow>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpEntityAuditTrail;
+                AddParameter(cmd, "@entity_type", "sales_order");
+                AddParameter(cmd, "@entity_id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    auditTrail.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "time"),
+                        ReadI32(reader, "admin_id"),
+                        ReadStr(reader, "action"),
+                        ReadStr(reader, "summary"),
+                        ReadStr(reader, "detail_json")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty) { AuditTrail = auditTrail };
         }
         catch (Exception ex)
         {

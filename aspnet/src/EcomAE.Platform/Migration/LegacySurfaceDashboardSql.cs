@@ -1211,6 +1211,17 @@ public static class LegacySurfaceDashboardSql
         LIMIT 50
         """;
 
+    /// <summary>Audit trail rows for one ERP entity (Open key audit).</summary>
+    public const string SelectErpEntityAuditTrail = """
+        SELECT `id`, `time`, `admin_id`, IFNULL(`action`, '') AS action,
+               IFNULL(`summary`, '') AS summary,
+               LEFT(IFNULL(`detail_json`, ''), 280) AS detail_json
+        FROM `epc_erp_audit_log`
+        WHERE `entity_type` = @entity_type AND `entity_id` = @entity_id
+        ORDER BY `time` DESC, `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Receipts settled against one sales invoice (Open key inv_id).</summary>
     public const string SelectErpInvoiceSettlements = """
         SELECT e.`id`, IFNULL(e.`voucher_no`, '') AS voucher_no, e.`time`,

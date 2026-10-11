@@ -269,9 +269,32 @@
             {
                 <p class="text-muted" style="margin:.85rem 0 0">No notes excerpt yet.</p>
             }
+            @if (_openedAuditTrail.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Audit trail</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Action</th><th>Summary</th><th class="text-right">Admin</th><th class="text-right">Time</th><th>Detail</th></tr></thead>
+                    <tbody>
+                        @foreach (var a in _openedAuditTrail)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(a.Action) ? "—" : a.Action)</td>
+                                <td>@(string.IsNullOrWhiteSpace(a.Summary) ? "—" : a.Summary)</td>
+                                <td class="text-right">@(a.AdminId > 0 ? a.AdminId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                <td class="text-right">@FormatTime(a.Time)</td>
+                                <td>@(string.IsNullOrWhiteSpace(a.DetailJson) ? "—" : a.DetailJson)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">No audit events recorded for this order yet.</p>
+            }
             @if (_openedSiblings.Count > 0)
             {
-                <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
+
                 <table class="table table-bordered table-condensed table-epc epc-erp-table">
                     <thead><tr><th>SO #</th><th>Customer</th><th class="text-right">Total</th><th></th></tr></thead>
                     <tbody>
@@ -549,6 +572,7 @@
     private ErpSalesOrderDigest? _openedOrder;
     private ErpSalesOrderDetail? _openedDetail;
     private IReadOnlyList<ErpSalesOrderDigest> _openedSiblings = [];
+    private IReadOnlyList<ErpAuditTrailRow> _openedAuditTrail = [];
 
     private bool OpenedFound => _openedDetail is not null || _openedOrder is not null;
 
@@ -612,6 +636,7 @@
             _openedDetail = detail.Order;
             _openedDimensionLinks = await DimensionLinks.LoadAsync("sales_order", _openedId, ctx.RequestAborted);
             _openedSiblings = detail.Siblings;
+            _openedAuditTrail = detail.AuditTrail;
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
                 _message = detail.Message;
