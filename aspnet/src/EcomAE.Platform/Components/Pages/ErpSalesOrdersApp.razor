@@ -171,10 +171,12 @@
         <div class="kpi"><div class="lbl">Aged 30d+</div><div class="val">@_backlogAged</div></div>
     </div>
 
-    @if (_byCustomer.Count > 0)
+    @if (_byCustomer.Count > 0 || _byItem.Count > 0)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
-            <p style="margin:0 0 .4rem"><strong>Sales by customer</strong> <span class="text-muted">(page window, top 10 by value)</span></p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+            <p style="margin:0 0 .4rem"><strong>Sales by customer</strong> <span class="text-muted">(top 10)</span></p>
             <table class="table table-bordered table-condensed table-epc epc-erp-table">
                 <thead><tr><th>Customer</th><th class="text-right">Orders</th><th class="text-right">Invoiced</th><th class="text-right">Open backlog</th><th class="text-right">Order value</th></tr></thead>
                 <tbody>
@@ -190,6 +192,25 @@
                     }
                 </tbody>
             </table>
+            </div>
+            <div>
+            <p style="margin:0 0 .4rem"><strong>Sales by item</strong> <span class="text-muted">(top 10)</span></p>
+            <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Item</th><th class="text-right">Qty sold</th><th class="text-right">Order lines</th><th class="text-right">Value</th></tr></thead>
+                <tbody>
+                    @foreach (var r in _byItem)
+                    {
+                        <tr>
+                            <td>@(string.IsNullOrWhiteSpace(r.ItemCode) ? "—" : r.ItemCode)</td>
+                            <td class="text-right">@r.Qty.ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@r.Lines</td>
+                            <td class="text-right">@r.Total.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+            </div>
         </div>
     }
 
@@ -517,6 +538,8 @@
     private int _backlogAged;
     private sealed record SoCustomerRow(int CustomerUserId, int Orders, int Invoiced, int Backlog, decimal Total);
     private IReadOnlyList<SoCustomerRow> _byCustomer = [];
+    private sealed record SoItemRow(string ItemCode, decimal Qty, int Lines, decimal Total);
+    private IReadOnlyList<SoItemRow> _byItem = [];
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
@@ -615,6 +638,13 @@
                 g.Count(o => o.SalesInvoiceId <= 0 && !string.Equals(o.Status, "closed", StringComparison.OrdinalIgnoreCase) && !o.Status.Contains("cancel", StringComparison.OrdinalIgnoreCase)),
                 g.Sum(o => o.TotalAmount)))
             .OrderByDescending(c => c.Total)
+            .Take(10)
+            .ToList();
+        _byItem = _orders
+            .SelectMany(o => o.Lines)
+            .GroupBy(l => l.ItemCode)
+            .Select(g => new SoItemRow(g.Key, g.Sum(l => l.Qty), g.Count(), g.Sum(l => l.LineExVat)))
+            .OrderByDescending(r => r.Total)
             .Take(10)
             .ToList();
         _source = result.Source;
