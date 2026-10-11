@@ -45,6 +45,7 @@ public sealed class ErpCollectionsCaseStatusWriteService : IErpCollectionsCaseSt
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpCreditSchema.EnsureCollectionsAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,

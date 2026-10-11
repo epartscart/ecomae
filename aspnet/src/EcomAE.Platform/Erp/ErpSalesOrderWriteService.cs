@@ -509,7 +509,7 @@ public sealed class ErpSalesOrderWriteService : IErpSalesOrderWriteService
     }
 
     /// <summary>Subset of PHP <c>epc_erp_vouchers_ensure_schema</c> for the tables this service writes.</summary>
-    private static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+    internal static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await ErpDb.TryExecuteAsync(
             connection,

@@ -3712,6 +3712,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpSalesOrderWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpSalesOrders;
             AddParameter(command, "@limit", safeLimit);
@@ -12469,6 +12470,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
             case "ar_customer_list":
             {
+                await ErpCreditSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
                 await using var command = connection.CreateCommand();
                 command.CommandText = LegacySurfaceDashboardSql.SelectErpCreditProfiles;
                 AddParameter(command, "@limit", safeLimit);
@@ -12476,6 +12478,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
             case "credit_holds":
             {
+                await ErpCreditSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
                 await using var command = connection.CreateCommand();
                 command.CommandText = LegacySurfaceDashboardSql.SelectErpCreditHolds;
                 AddParameter(command, "@limit", safeLimit);
