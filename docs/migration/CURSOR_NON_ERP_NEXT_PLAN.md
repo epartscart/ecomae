@@ -27,15 +27,15 @@ python3 scripts/php_unmentioned_functions_catalog.py --inventory-json /tmp/gap_i
 | 3 | CP shop core (orders, catalogue, price upload) | 24 | 12,698 |
 | 3 | CP shop smaller | 22 | 7,537 |
 | 4 | CP control/portal | 27 | 8,097 |
-| 5 | Marketing/BOS/industries | 64 | 28,624 |
+| 5 | Marketing/BOS/industries | 63 | 27,585 |
 | 6 | Price engine | 18 | 16,113 |
 | 7 | ERP finance (Devin) | 166 | 66,191 |
 | 8 | Core/root | 3 | 1,455 |
-| | **Total** | **406** | **190,845** |
+| | **Total** | **405** | **189,806** |
 
-- Non-ERP (Cursor): **240 files / 124,654 lines**
+- Non-ERP (Cursor): **239 files / 123,615 lines**
 - ERP finance (Devin): **166 / 66,191** — do not edit
-- Functions unmentioned: **5,899** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **46**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
+- Functions unmentioned: **5,845** of 9,870. Ready non-ERP PHP on gap files ≤200 lines: **46**. Catalog: `docs/migration/inventory/PHP_UNMENTIONED_FUNCTIONS.md`
 
 Bucket rules live in `scripts/php_non_erp_gap_buckets.py` (first path-prefix match). The table always sums to the inventory.
 
