@@ -204,5 +204,13 @@ public static class EcomaeGeneralPages
         "content/general_pages/industry_templates/sports.php",
         "content/general_pages/industry_templates/wholesale.php",
         "content/general_pages/users_agreement.php",
+        "epc_demo_autoparts_bootstrap.php",
     ];
+
+    public const string epc_demo_autoparts_bootstrap_preset_path = nameof(epc_demo_autoparts_bootstrap_preset_path);
+    public const string epc_demo_autoparts_bootstrap_preset = nameof(epc_demo_autoparts_bootstrap_preset);
+    public const string epc_demo_autoparts_bootstrap_clone_tables = nameof(epc_demo_autoparts_bootstrap_clone_tables);
+    public const string epc_demo_autoparts_bootstrap_docpart_pdo = nameof(epc_demo_autoparts_bootstrap_docpart_pdo);
+    public const string epc_demo_autoparts_bootstrap_apply = nameof(epc_demo_autoparts_bootstrap_apply);
+    public const string epc_demo_autoparts_bootstrap_verify_db = nameof(epc_demo_autoparts_bootstrap_verify_db);
 }

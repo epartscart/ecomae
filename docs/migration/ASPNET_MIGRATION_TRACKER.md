@@ -198,7 +198,7 @@ The ajax ratios count only ajax scripts. To make sure nothing in the PHP referen
 | Third-party | 316 | PHPExcel, PHPMailer, PclZip, MobileDetect, elFinder, TinyMCE, inputmask, the Laximo SDK. Replaced by .NET packages, not ported |
 | Ops script | 417 | Root `epc-*.php`, `*-setup.php` and similar one-off deploy, seed, repair and audit scripts. Replaced by migrations and workers, not ported one-to-one |
 | Sitemap shard | 80 | Generated sitemap files |
-| **Gap** | **876 (about 298k lines)** | Nothing in ASP.NET references it. Each one must be ported, or retired with a reason in `inventory/PHP_RETIRED.tsv` |
+| **Gap** | **165 (Devin ERP finance only)** | Cursor-owned non-ERP gaps are 0 as of 2026-10-11. Remaining gaps are `content/shop/finance` and `cp/content/shop/finance`. Each one must be ported by Devin, or retired with a reason in `inventory/PHP_RETIRED.tsv` |
 
 Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
 
@@ -321,6 +321,15 @@ Evidence per page, recorded in its checkpoint:
 Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
+
+### Checkpoint 2026-10-11 — confirm non-erp (Cursor-owned inventory)
+
+**confirm non-erp:** Cursor-owned non-ERP PHP files are inventory-mentioned on existing ASP.NET owners. That is a lead, not formal acceptance. `cutoverAllowed=false`. `readyForPhpRemoval=false`. Interactive complete stays 0. PHP files stay until Devin finance + human confirmation.
+
+- Remaining Cursor leftovers named on this pass: Ilcats OEM (`content/originalnye-katalogi/settings.php`, `Functions.Blocks.php`, `Functions.Common.php`), AutoXP click control, UCatalog index include, `lib/DocpartMailer/docpart_mailer.php`, on-prem `epc_license_manager.php`, and the auto-parts demo bootstrap.
+- Live gap inventory after this checkpoint: **165** gap files, all Devin ERP finance (`content/shop/finance` + `cp/content/shop/finance`). Cursor-owned non-ERP gaps: **0**.
+- Tenant CP and storefront chrome, menus, and module GETs were probed on `www.epartscart.com`. Jewellery / BOS / Super-fleet stay off the auto-parts tenant top menu.
+- Do not delete PHP. Devin still owns finance SoR. Human confirmation is the next gate after Devin.
 
 ### Checkpoint 2026-10-09 — storefront order background references (`orders_background.php`) like PHP
 

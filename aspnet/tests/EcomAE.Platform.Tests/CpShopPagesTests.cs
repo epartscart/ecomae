@@ -1,3 +1,4 @@
+using EcomAE.Platform;
 using EcomAE.Platform.Cp;
 using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Storefront;
@@ -58,6 +59,14 @@ public sealed class CpShopPagesTests
         Assert.Contains("content/shop/tenant_hub/epc_tenant_hub_helpers.php", StorefrontShopExtras.Paths);
         Assert.Contains("cp/modules/logout/module.php", CpChromePages.Paths);
         Assert.Contains("content/shop/crm/epc_crm_helpers.php", StorefrontShopExtras.Paths);
+        Assert.Equal("content/originalnye-katalogi/settings.php", StorefrontOemIlcatsPages.SettingsPath);
+        Assert.Equal("autoxp_clicks_control.php", StorefrontOemIlcatsPages.AutoxpClicksPath);
+        Assert.Equal("api/UCatalog/ucatalog_index.php", StorefrontOemIlcatsPages.UCatalogIndexPath);
+        Assert.Equal("deploy/on-premises/epc_license_manager.php", OnPremisesLicensePages.LicenseManagerPath);
+        Assert.Equal("lib/DocpartMailer/docpart_mailer.php", CpPlatformMailer.DocpartMailerPath);
+        Assert.Contains("epc_demo_autoparts_bootstrap.php", EcomaeGeneralPages.Paths);
+        Assert.Equal("epc_license_valid", OnPremisesLicensePages.epc_license_valid);
+        Assert.Equal("generateArticleUrl2", StorefrontOemIlcatsPages.generateArticleUrl2);
     }
 
     private static string Find(string relative)
