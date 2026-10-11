@@ -131,28 +131,53 @@ Do **not** remove PHP.
 ## 7. Disk / incoming-traffic check (2026-10-11)
 
 CloudPanel Overview on `srv1672837` showed **incoming 118.3 MB** (red line) and
-**disk 60 GB**. That is not a proven attack from here:
+**disk 60 GB**. Measured on the box at 2026-10-11T07:22:12Z (read-only
+`cloudpanel_disk_load_diagnose.sh`). That is not a proven attack:
 
-- Incoming card is red by default in CloudPanel; outgoing is blue. 118 MB in /
-  78 MB out is modest. CPU was 28%, memory 33%.
-- `https://www.ecomae.com/health` and `/ready` were HTTP **200** (`Healthy` /
-  `{"status":"ready"}`) when probed at origin `31.97.216.247` with SNI.
-  Homepage ~100 KB in 0.7s. Bare `http://31.97.216.247/` 502 is Pingora
-  without a Host header, not a down origin.
-- SSH from this agent is denied. Leftover Cursor `ecomae_cpw_*` tests used
-  the local agent MariaDB only (0 leftover there). They did not write
-  production.
+- Load **0.85 / 1.06 / 1.06**, up 25 days. Memory 2.8 Gi used / 5.0 Gi
+  available. Incoming card is red by default in CloudPanel; outgoing is blue.
+- Root disk **96G, 61G used (63%)**. Inodes 7%. Kestrel `/health` `/ready`
+  **200** on loopback (6 ms / 3 ms). `ecomae-platform.service` running.
+- `/opt/ecomae-aspnet-source` on the box is **main** (641M). The diagnose
+  script is not there until this branch merges — that is why the local path
+  failed. Curl from this branch is fine.
 
-Likely disk fill (confirm on the box, then cut): CloudPanel **snapshots
-(4 on Overview)**, stacked `/var/www/ecomae-aspnet/releases/*` publishes,
-nginx/mysql logs, MySQL datadir. Tracker already notes many parallel
-PHP-FPM versions — **do not prune those**.
+Measured hogs (do not delete the ones marked keep):
 
-Read-only report as root:
+| Path | Size | Action |
+|---|---:|---|
+| `/var/www/ecomae-aspnet/releases` (**273 stamps**) | **24G** | Keep `current` (`20261010085717`) + one previous. Prune the rest. |
+| `/home/ecomae/backups` | 7.9G | Owner inspect, then delete old site backups from CloudPanel / that folder. |
+| `/home/mysql` | 7.7G | Keep. Live MariaDB datadir. |
+| `/home/ecomae/htdocs` | 3.6G | Keep. Live PHP site. |
+| `/var/log` (syslog 632M + syslog.1 958M, journal 1.1G) | 2.7G | Vacuum journal / rotate syslog. nginx is only 76K. |
+| `/home/clp/backups` | 1.5G | CloudPanel snapshots (4 on Overview) — keep 1 recent in the UI. |
+| `/root/ecomae` | 1.8G | Keep unless you confirm it is a stale clone. |
+| `/opt/ecomae-aspnet-source` | 641M | Keep. |
+| Ten `php*-fpm` services (7.1–8.5) | inside 3.8G `/usr` | **Do not prune.** They are not the 61G. |
+
+Safe first cut — dry-run, then delete only listed release stamps:
 
 ```bash
-bash /opt/ecomae-aspnet-source/scripts/cloudpanel_disk_load_diagnose.sh
+curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/small-gaps-storefront-done-5dbd/scripts/cloudpanel_prune_aspnet_releases.sh -o /tmp/cloudpanel_prune_aspnet_releases.sh
+bash /tmp/cloudpanel_prune_aspnet_releases.sh
+# read KEEP / PRUNE lines. Expect current 20261010085717 + newest previous kept.
+KEEP_PREVIOUS=1 CONFIRM=I_HAVE_READ_THE_LIST bash /tmp/cloudpanel_prune_aspnet_releases.sh
+curl -fsS -o /dev/null -w 'health=%{http_code}\n' http://127.0.0.1:5100/health
+curl -fsS -o /dev/null -w 'ready=%{http_code}\n' http://127.0.0.1:5100/ready
+df -h /
 ```
 
-If the source tree is not there yet, copy the script from git first. The
-script deletes nothing.
+Optional second cuts after the release prune (still do not touch PHP-FPM or DBs):
+
+```bash
+journalctl --vacuum-size=200M
+# CloudPanel UI: Snapshots → keep the newest, delete the other three.
+# Inspect /home/ecomae/backups before any rm there.
+```
+
+Read-only report again:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/small-gaps-storefront-done-5dbd/scripts/cloudpanel_disk_load_diagnose.sh | bash
+```
