@@ -57,6 +57,8 @@ public sealed class ErpCostCenterWriteService : IErpCostCenterWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureCostCentersAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_cc_centers", "code", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Cost-centre table is not provisioned.");
@@ -112,6 +114,8 @@ public sealed class ErpCostCenterWriteService : IErpCostCenterWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureCostCentersAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_cc_allocations", "cost_center_id", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Cost-allocation table is not provisioned.");
