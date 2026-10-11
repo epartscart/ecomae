@@ -50,6 +50,7 @@ public sealed class ErpFyCreateWriteService : IErpFyCreateWriteService
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsurePeriodCloseAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_fy_years", "label", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_fy_years", "start_date", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_fy_years", "end_date", cancellationToken).ConfigureAwait(false))

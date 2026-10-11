@@ -1,4 +1,3 @@
-@page "/cp/tenant-config-app"
 @page "/erp/tenant-config-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
@@ -10,8 +9,8 @@
 @inject IHttpContextAccessor Http
 
 <PageTitle>Tenant config · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -20,12 +19,12 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/tenant-config-app")</p>
+                <p>@CpPhpModuleCopy.PurposeFor("/erp/tenant-config-app")</p>
                 <p>Save tenant ERP settings, RBAC, platform jobs, and org calendar here. Open a row for the stored value and history.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/tenant-config-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+    <PhpParityModuleBody AppPath="/erp/tenant-config-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedDetail is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -146,7 +145,7 @@
         </div>
     </div>
 
-</PhpCpDesktopChrome>
+</PhpErpDesktopChrome>
 
 <ErpPhpCreateWell Title="ERP settings">
 <form method="post" action="/erp/tenant-config/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
@@ -326,7 +325,7 @@
     private long _openedId;
     private CpTenantConfigEntryDetail? _openedDetail;
     private IReadOnlyList<CpTenantConfigHistoryDigest> _openedHistory = [];
-    private string _listHref = "/cp/tenant-config-app";
+    private string _listHref = "/erp/tenant-config-app";
 
     private string OpenedCaption => _openedDetail is null
         ? ""
@@ -341,7 +340,7 @@
         var path = ctx.Request.Path.Value;
         _listHref = string.Equals(path, "/erp/tenant-config-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/tenant-config-app"
-            : "/cp/tenant-config-app";
+            : "/erp/tenant-config-app";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "config_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -376,5 +375,5 @@
             }
         }
     }
-    private string _returnUrl => "/cp/tenant-config-app";
+    private string _returnUrl => "/erp/tenant-config-app";
 }

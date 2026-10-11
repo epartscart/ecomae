@@ -1,6 +1,7 @@
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Routing;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Middleware;
 
@@ -34,6 +35,15 @@ public sealed class AdminSurfaceAuthGateMiddleware
         if (!RequiresAdmin(path))
         {
             await _next(context);
+            return;
+        }
+
+        if (IsControlPanelPath(path) && !await TenantHasControlPanelAsync(context).ConfigureAwait(false))
+        {
+            // ERP-only tenants have no Control Panel surface: /cp never renders there.
+            context.Response.Headers["x-ecomae-surface-ownership"] = "erp-only-tenant";
+            context.Response.Headers["Cache-Control"] = "no-store";
+            context.Response.Redirect(EcomAeRoutes.Erp, permanent: false);
             return;
         }
 
@@ -78,6 +88,31 @@ public sealed class AdminSurfaceAuthGateMiddleware
 
         context.Response.StatusCode = StatusCodes.Status302Found;
         context.Response.Headers.Location = target;
+    }
+
+    public static bool IsControlPanelPath(string path)
+        => path.Equals("/cp", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase);
+
+    internal static async Task<bool> TenantHasControlPanelAsync(HttpContext context)
+    {
+        if (context.Items[TenantResolutionMiddleware.HttpContextItemKey] is not TenantContext tenant)
+        {
+            return true;
+        }
+
+        if (tenant.Mode is TenantMode.ErpOnlyTenant)
+        {
+            return false;
+        }
+
+        if (tenant.Mode is TenantMode.DemoTenant
+            && context.RequestServices.GetService(typeof(ITenantRegistry)) is ITenantRegistry registry)
+        {
+            var record = await registry.FindByHostAsync(tenant.Host, context.RequestAborted).ConfigureAwait(false);
+            return record?.ControlPanelEnabled ?? true;
+        }
+
+        return true;
     }
 
     public static bool RequiresAdmin(string path)

@@ -12,7 +12,7 @@ public static class ErpCapabilityCatalog
         new("Sales", "sales", "Quotations, orders, fulfilment, invoices, collections, and returns", "/erp/sales-orders-app", "fa-line-chart", "rust"),
         new("Inventory", "inventory", "Warehouses, stock, transfers, counts, planning, and quality", "/erp/inventory-stock-app", "fa-cubes", "slate"),
         new("Projects / fit-out", "projects", "BOQ, contracts, cost codes, site reports, claims, and project P&L", "/erp/project-accounting-app", "fa-building", "amber"),
-        new("Jewellery", "jewellery", "Metal and diamond masters, karat, workshop, tourist VAT, and verification", "/cp/jewellery-masters-app", "fa-diamond", "gold"),
+        new("Jewellery", "jewellery", "Metal and diamond masters, karat, workshop, tourist VAT, and verification", "/erp/jewellery-masters-app", "fa-diamond", "gold"),
         new("HR / payroll", "people", "People, leave, attendance, payroll, and recruitment", "/erp/payroll-app", "fa-users", "teal"),
         new("Administration", "administration", "Setup, users, roles, module packs, audit, and integrations", "/erp/user-control-app", "fa-shield", "blue"),
     ];

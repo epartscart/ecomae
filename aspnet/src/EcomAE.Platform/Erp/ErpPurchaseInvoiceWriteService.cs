@@ -355,7 +355,7 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
     }
 
     /// <summary>Subset of PHP <c>epc_erp_ensure_schema</c> for the purchase + supplier ledger tables.</summary>
-    private static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+    internal static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await ErpDb.TryExecuteAsync(
             connection,

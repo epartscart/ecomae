@@ -201,7 +201,7 @@ public sealed class ErpUntestedWriteServicesTests
                 + " `unit_cost` decimal(14,4) NOT NULL DEFAULT 0, `total_cost` decimal(14,2) NOT NULL DEFAULT 0,"
                 + " `transfer_warehouse_id` int(11) NOT NULL DEFAULT 0, `purchase_id` int(11) NOT NULL DEFAULT 0, `order_id` int(11) NOT NULL DEFAULT 0,"
                 + " `batch_no` varchar(64), `expiry_date` varchar(20), `reference` varchar(64) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '',"
-                + " `movement_date` varchar(20) NOT NULL DEFAULT '', `admin_id` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`))");
+                + " `movement_date` int(11) NOT NULL DEFAULT 0, `admin_id` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`))");
             await Db.Exec(cs, "INSERT INTO `epc_erp_inv_warehouses` (`id`,`code`,`name`) VALUES (1,'MAIN','Main')");
             await Db.Exec(cs, "INSERT INTO `epc_erp_inv_items` (`id`,`code`) VALUES (7,'I7'),(8,'I8')");
             await Db.Exec(cs, "INSERT INTO `epc_erp_inv_stock` (`warehouse_id`,`item_id`,`qty_on_hand`,`avg_unit_cost`) VALUES (1,7,10,90),(1,8,5,40)");

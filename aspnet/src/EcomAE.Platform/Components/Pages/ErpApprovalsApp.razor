@@ -2,8 +2,8 @@
 @page "/erp/approvals"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
-@using EcomAE.Platform.Auth
 @using EcomAE.Platform.Components.Shared.Desktop
+@using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -339,7 +339,7 @@
         "unposted_gl" => "/erp/gl-journals-app",
         "overdue_invoices" => "/erp/invoices-app",
         "low_stock" => "/erp/inventory-stock-app",
-        "pending_einvoice" => "/cp/einvoice-documents-app",
+        "pending_einvoice" => "/erp/einvoice-documents-app",
         _ => "/erp/dashboard-summary-app",
     };
 

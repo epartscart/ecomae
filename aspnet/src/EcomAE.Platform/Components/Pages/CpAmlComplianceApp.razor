@@ -1,4 +1,3 @@
-@page "/cp/aml-compliance-app"
 @page "/erp/aml-compliance-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
@@ -10,8 +9,8 @@
 @inject IHttpContextAccessor Http
 
 <PageTitle>AML compliance · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -20,12 +19,12 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/aml-compliance-app")</p>
+                <p>@CpPhpModuleCopy.PurposeFor("/erp/aml-compliance-app")</p>
                 <p>Save a KYC record or set an AML alert status here. Open a row to see notes, ID details, and customer transactions. Fetch FTA legislation for goAML / sanctions-adjacent tax instruments.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/aml-compliance-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+    <PhpParityModuleBody AppPath="/erp/aml-compliance-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -245,7 +244,7 @@
         </div>
     </div>
 
-</PhpCpDesktopChrome>
+</PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=aml_compliance";
@@ -259,8 +258,8 @@
     private long _openedId;
     private CpAmlComplianceKycDetail? _openedDetail;
     private IReadOnlyList<CpAmlComplianceKycTxnDigest> _openedTxns = [];
-    private string _listHref = "/cp/aml-compliance-app";
-    private string _returnHref = "/cp/aml-compliance-app";
+    private string _listHref = "/erp/aml-compliance-app";
+    private string _returnHref = "/erp/aml-compliance-app";
 
     private string OpenedCaption => _openedDetail is null
         ? ""
@@ -303,7 +302,7 @@
         var path = ctx.Request.Path.Value;
         _listHref = string.Equals(path, "/erp/aml-compliance-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/aml-compliance-app"
-            : "/cp/aml-compliance-app";
+            : "/erp/aml-compliance-app";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "kyc_id", "kyc");
         _returnHref = _openedId > 0
             ? ErpRecordOpen.Href(_listHref, "kyc_id", _openedId).Split('#')[0]

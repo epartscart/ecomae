@@ -876,7 +876,7 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
     }
 
     /// <summary>Subset of PHP <c>epc_einvoice_ensure_schema</c> / <c>epc_erp_invoices_ensure_schema</c>.</summary>
-    private static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+    internal static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await ErpDb.TryExecuteAsync(
             connection,

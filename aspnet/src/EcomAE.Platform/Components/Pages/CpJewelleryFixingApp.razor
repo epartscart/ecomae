@@ -1,4 +1,3 @@
-@page "/cp/jewellery-fixing-app"
 @page "/erp/jewellery-fixing-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
@@ -256,9 +255,9 @@
     private bool _isAdmin;
     private int _company;
     private string _tab = "jw_purchase_fixing";
-    private string _appPath = "/cp/jewellery-fixing-app";
-    private string _tabBase = "/cp/jewellery-fixing-app";
-    private string _returnHere = "/cp/jewellery-fixing-app?tab=jw_purchase_fixing";
+    private string _appPath = "/erp/jewellery-fixing-app";
+    private string _tabBase = "/erp/jewellery-fixing-app";
+    private string _returnHere = "/erp/jewellery-fixing-app?tab=jw_purchase_fixing";
     private ErpJewelleryModuleChrome.TabSpec _spec = ErpJewelleryModuleChrome.FixingSpec("jw_purchase_fixing");
     private CpJewelleryFixingSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<FixRow> _display = [];
@@ -266,7 +265,7 @@
     private string _message = "";
     private string _ok = "";
     private string _err = "";
-    private string _listHref = "/cp/jewellery-fixing-app";
+    private string _listHref = "/erp/jewellery-fixing-app";
     private long _openedId;
     private CpJewelleryFixingDetail? _opened;
     private IReadOnlyList<CpJewelleryFixingRowDigest> _openedSiblings = [];
@@ -287,10 +286,10 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
-        var path = ctx.Request.Path.Value ?? "/cp/jewellery-fixing-app";
+        var path = ctx.Request.Path.Value ?? "/erp/jewellery-fixing-app";
         _appPath = path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
             ? "/erp/jewellery-fixing-app"
-            : "/cp/jewellery-fixing-app";
+            : "/erp/jewellery-fixing-app";
         _listHref = _appPath;
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "fixing_id");
         _company = ErpJewelleryModuleChrome.CompanyFromQuery(ctx.Request.Query["company"].ToString());

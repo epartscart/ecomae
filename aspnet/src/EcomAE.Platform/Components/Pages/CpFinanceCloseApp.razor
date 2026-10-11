@@ -1,4 +1,4 @@
-@page "/cp/finance-close-app"
+@page "/erp/finance-close-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
@@ -9,8 +9,8 @@
 @inject IHttpContextAccessor Http
 
 <PageTitle>Finance close · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -19,12 +19,12 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/finance-close-app")</p>
+                <p>@CpPhpModuleCopy.PurposeFor("/erp/finance-close-app")</p>
                 <p>Open a batch to see the note and opening lines.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/finance-close-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+    <PhpParityModuleBody AppPath="/erp/finance-close-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedBatch is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -150,11 +150,11 @@
         </div>
     </div>
 
-</PhpCpDesktopChrome>
+</PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=opening_balances";
-    private const string _listHref = "/cp/finance-close-app";
+    private const string _listHref = "/erp/finance-close-app";
     private bool _isAdmin;
     private CpFinanceCloseSummary _summary = new(0, 0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpFinanceCloseRowDigest> _rows = [];

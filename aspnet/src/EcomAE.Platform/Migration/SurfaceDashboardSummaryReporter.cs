@@ -1966,6 +1966,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await EcomAE.Platform.Erp.ErpPurchaseInvoiceWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpPurchases;
             AddParameter(command, "@limit", safeLimit);
@@ -2112,6 +2113,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInvOnHand;
             AddParameter(cmd, "@warehouseId", warehouseId);
@@ -2761,6 +2763,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await EcomAE.Platform.Erp.ErpCashWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             if (accountId is > 0)
             {
@@ -2917,6 +2920,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await EcomAE.Platform.Erp.ErpSalesInvoiceWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpInvoices;
             AddParameter(command, "@limit", safeLimit);
@@ -7434,6 +7438,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await EcomAE.Platform.Erp.ErpPurchaseOrderWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpPurchaseOrders;
             AddParameter(command, "@limit", safeLimit);
@@ -7658,6 +7663,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpLazySchema.EnsureInventoryAsync(connection, cancellationToken).ConfigureAwait(false);
             var summary = empty with { Source = "database", Message = string.Empty };
             await using (var stats = connection.CreateCommand())
             {
@@ -13535,6 +13541,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await EcomAE.Platform.Erp.ErpSalesInvoiceWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             var docs = 0; var open = 0; var submitted = 0; var total = 0m;
             await using (var stats = connection.CreateCommand())
             {
@@ -13601,7 +13608,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     SELECT `setting_key`, `setting_value`
                     FROM `epc_einvoice_settings`
                     WHERE `setting_key` IN ('seller_name', 'seller_trn', 'seller_tin', 'seller_city',
-                                            'seller_emirate', 'seller_country_code', 'seller_email')
+                                            'seller_emirate', 'seller_country_code', 'seller_email',
+                                            'seller_legal_reg_no', 'seller_legal_reg_type', 'seller_authority_name',
+                                            'seller_address_line1', 'seller_phone')
                     """;
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -13641,7 +13650,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 companyCountry,
                 vatRegistered,
                 "database",
-                "");
+                "",
+                settings.GetValueOrDefault("seller_legal_reg_no", ""),
+                settings.GetValueOrDefault("seller_legal_reg_type", "TL"),
+                settings.GetValueOrDefault("seller_authority_name", ""),
+                settings.GetValueOrDefault("seller_address_line1", ""),
+                settings.GetValueOrDefault("seller_phone", ""));
         }
         catch (Exception ex)
         {

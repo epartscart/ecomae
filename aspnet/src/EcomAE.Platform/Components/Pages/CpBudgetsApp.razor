@@ -1,4 +1,3 @@
-@page "/cp/budgets-app"
 @page "/erp/budgets-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
@@ -13,9 +12,9 @@
 @inject IErpOrganizationMasterReadService OrganizationMasters
 
 <PageTitle>Budgets · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
+<PhpChromeStyles Surface="erp" />
 
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -28,7 +27,7 @@
             </div>
         </div>
     </div>
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/budgets-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/budgets-app" IsAdmin="_isAdmin" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedBudget is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -464,7 +463,7 @@
             </form>
 </ErpPhpCreateWell>
 
-</PhpCpDesktopChrome>
+</PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=budgeting&tab=budgeting&epc_erp_shell=1";
@@ -477,7 +476,7 @@
     private IReadOnlyList<ErpOrganizationMasterRow> _dimensions = [];
     private string _source = "n/a";
     private string _message = "";
-    private string _listHref = "/cp/budgets-app";
+    private string _listHref = "/erp/budgets-app";
     private long _openedId;
     private CpBudgetDetail? _openedBudget;
     private IReadOnlyList<CpBudgetLineDigest> _openedLines = [];
@@ -502,7 +501,7 @@
         var path = ctx.Request.Path.Value;
         _listHref = string.Equals(path, "/erp/budgets-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/budgets-app"
-            : "/cp/budgets-app";
+            : "/erp/budgets-app";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "budget_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);

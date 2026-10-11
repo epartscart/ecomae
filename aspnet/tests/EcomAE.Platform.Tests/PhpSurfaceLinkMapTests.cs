@@ -66,7 +66,7 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/CP/shop/finance/epc_custom_shipping", "/cp/carriers-app")]
     [InlineData("/CP/shop/logistics/custom_shipping", "/cp/carriers-app")]
     [InlineData("/CP/shop/logistics/carriers", "/cp/carriers-app")]
-    [InlineData("/CP/control/shop/pos", "/cp/pos-overview-app")]
+    [InlineData("/CP/control/shop/pos", "/erp/pos-overview-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=logistics&tab=custom_shipping", "/erp/carriers-app")]
     [InlineData("/CP/shop/finance/erp?area=logistics&tab=custom_shipping&epc_erp_shell=1", "/erp/carriers-app")]
     public void AspNetPrimaryHref_MapsPhpProductToAspNet(string phpHref, string expected)

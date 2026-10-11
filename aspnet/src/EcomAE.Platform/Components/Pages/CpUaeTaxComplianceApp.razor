@@ -1,12 +1,11 @@
-@page "/cp/uae-tax-compliance-app"
 @page "/erp/uae-tax-compliance-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
-@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -40,12 +39,12 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/uae-tax-compliance-app")</p>
+                <p>@CpPhpModuleCopy.PurposeFor("/erp/uae-tax-compliance-app")</p>
                 <p>Open a row for the 280-character ERP summary excerpt. Save tourist VAT, CT adjustments, and checklist status here. Fetch FTA legislation to ingest VAT, Corporate Tax, e-invoicing, and excise instruments into this library. Ask the stored library or regen summaries without leaving this page. PDF excerpts stay on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/uae-tax-compliance-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/uae-tax-compliance-app" IsAdmin="_isAdmin" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -62,7 +61,7 @@
     {
         <form method="post" action="@EcomAeRoutes.ErpJewelleryTouristVatSaveForm" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/uae-tax-compliance-app?tab=jw_tourist_vat" />
+            <input type="hidden" name="returnUrl" value="/erp/uae-tax-compliance-app?tab=jw_tourist_vat" />
             <label>Tourist name <input type="text" name="tourist_name" required maxlength="120" /></label>
             <label>Passport <input type="text" name="passport_no" maxlength="20" /></label>
             <label>Nationality <input type="text" name="nationality" maxlength="50" /></label>
@@ -109,8 +108,8 @@
         <div class="panel-body">
             <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
                 <a class="btn btn-default btn-sm" href="@(_listHref.StartsWith("/erp/", StringComparison.Ordinal) ? "/erp/vat-app" : "/cp/tax-toolkits-app")">VAT returns and boxes</a>
-                <a class="btn btn-default btn-sm" href="@(_listHref.StartsWith("/erp/", StringComparison.Ordinal) ? "/erp/einvoice-documents-app" : "/cp/einvoice-documents-app")">E-invoice documents</a>
-                <a class="btn btn-default btn-sm" href="@(_listHref.StartsWith("/erp/", StringComparison.Ordinal) ? "/erp/tax-external-reporting-app" : "/cp/tax-external-reporting-app")">External reporting</a>
+                <a class="btn btn-default btn-sm" href="@(_listHref.StartsWith("/erp/", StringComparison.Ordinal) ? "/erp/einvoice-documents-app" : "/erp/einvoice-documents-app")">E-invoice documents</a>
+                <a class="btn btn-default btn-sm" href="@(_listHref.StartsWith("/erp/", StringComparison.Ordinal) ? "/erp/tax-external-reporting-app" : "/erp/tax-external-reporting-app")">External reporting</a>
                 <a class="btn btn-default btn-sm" href="/erp/guide-app">Process guides</a>
             </div>
             <p class="text-muted" style="margin:.65rem 0 0;">
@@ -311,7 +310,7 @@
     private IReadOnlyList<CpUaeTaxItemDigest> _items = [];
     private string _source = "n/a";
     private string _message = "";
-    private string _listHref = "/cp/uae-tax-compliance-app";
+    private string _listHref = "/erp/uae-tax-compliance-app";
     private long _openedId;
     private CpUaeTaxItemDetail? _opened;
     private IReadOnlyList<CpUaeTaxItemDigest> _openedSiblings = [];
@@ -329,7 +328,7 @@
         var path = ctx.Request.Path.Value;
         _listHref = string.Equals(path, "/erp/uae-tax-compliance-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/uae-tax-compliance-app"
-            : "/cp/uae-tax-compliance-app";
+            : "/erp/uae-tax-compliance-app";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "leg_id");
         _tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim();
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";

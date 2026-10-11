@@ -1318,6 +1318,7 @@ app.UseMiddleware<PublicAnonymousPagesMiddleware>();
 app.UseMiddleware<CpLegacyPhpAjaxLinkMiddleware>();
 // Deep /CP|/ERP|/BOS|/shop product paths → ASP.NET; PHP only via /php-reference/* (503 when serving deactivated).
 app.UseMiddleware<PhpProductPathRedirectMiddleware>();
+app.UseMiddleware<CpErpModulePathRedirectMiddleware>();
 // Thin /marketing/{slug} stubs → PHP canonical full pages (except /marketing/app home). Skipped when PHP serving off.
 app.UseMiddleware<MarketingStubToPhpRedirectMiddleware>();
 // PHP-rendered marketing pages at canonical URLs on www.ecomae.com (whole marketing

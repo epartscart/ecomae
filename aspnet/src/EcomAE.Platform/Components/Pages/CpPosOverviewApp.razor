@@ -1,4 +1,3 @@
-@page "/cp/pos-overview-app"
 @page "/erp/pos-overview-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
@@ -14,7 +13,7 @@
 @inject ICpPosTerminalService Terminal
 
 <PageTitle>POS Terminal · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
+<PhpChromeStyles Surface="erp" />
 <HeadContent>
     <link rel="stylesheet" href="/platform-assets/epc_pos.css?v=20260922pos" />
 <style>
@@ -32,7 +31,7 @@
 </HeadContent>
 
 
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<PhpErpDesktopChrome IsAdmin="_isAdmin">
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -240,7 +239,7 @@
                 <h2>Save settings</h2>
                 <form method="post" action="/cp/pos/save-settings">
                     <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <input type="hidden" name="returnUrl" value="/erp/pos-overview-app" />
                     <label>Enabled
                         <select name="posEnabled">
                             @if (_ctx.PosEnabled)
@@ -274,7 +273,7 @@
                 <h2>Jewellery POS advance</h2>
                 <form method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm">
                     <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <input type="hidden" name="returnUrl" value="/erp/pos-overview-app" />
                     <input type="hidden" name="action" value="jw_pos_advance_save" />
                     <input type="hidden" name="voc_type" value="PAD" />
                     <label>Customer <input type="text" name="customer_name" required /></label>
@@ -286,7 +285,7 @@
                 <h2>Open register (no-script)</h2>
                 <form method="post" action="/cp/pos/open-session">
                     <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <input type="hidden" name="returnUrl" value="/erp/pos-overview-app" />
                     <label>Opening float <input type="text" name="openingFloat" value="0" inputmode="decimal" /></label>
                     <label>Register <input type="text" name="registerName" value="@_ctx.RegisterName" /></label>
                     <button type="submit">Open session</button>
@@ -296,7 +295,7 @@
                 <h2>Close register (no-script)</h2>
                 <form method="post" action="/cp/pos/close-session">
                     <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <input type="hidden" name="returnUrl" value="/erp/pos-overview-app" />
                     <label>Session id <input type="text" name="sessionId" value="@(_sessionId > 0 ? _sessionId.ToString(CultureInfo.InvariantCulture) : "")" inputmode="numeric" placeholder="open session" /></label>
                     <label>Closing cash <input type="text" name="closingCash" value="0" inputmode="decimal" /></label>
                     <label>Notes <input type="text" name="notes" /></label>
@@ -307,7 +306,7 @@
                 <h2>Complete sale (no-script, single line)</h2>
                 <form method="post" action="/cp/pos/complete-sale">
                     <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <input type="hidden" name="returnUrl" value="/erp/pos-overview-app" />
                     <input type="hidden" name="sessionId" value="@(_sessionId > 0 ? _sessionId.ToString(CultureInfo.InvariantCulture) : "")" />
                     <label>Name <input type="text" name="name" required /></label>
                     <label>Qty <input type="text" name="qty" value="1" inputmode="decimal" /></label>
@@ -382,7 +381,7 @@
         </div>
     }
 
-</PhpCpDesktopChrome>
+</PhpErpDesktopChrome>
 
 @code {
     private bool _isAdmin;
