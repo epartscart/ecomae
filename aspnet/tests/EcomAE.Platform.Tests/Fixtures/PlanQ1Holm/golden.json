@@ -1,0 +1,41 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "empty",
+            "output": "",
+            "result": [
+                "<div class=\"alert alert-warning\">Command Center is available on <strong>BOC</strong> (www.ecomae.com Super CP) only.</div>",
+                "<div class=\"alert alert-warning\">Command Center is available on <strong>BOC</strong> (www.ecomae.com Super CP) only.</div>"
+            ]
+        },
+        {
+            "name": "gates",
+            "output": "",
+            "result": [
+                "<div class=\"alert alert-warning\">Please <a href=\"/acme/\">log in to BOC</a>.</div>",
+                "<div class=\"alert alert-warning\">Please <a href=\"/acme&quot;&gt;&lt;x/\">log in to BOC</a>.</div>",
+                "<div class=\"alert alert-danger\">Platform database unavailable.</div>",
+                "<div class=\"alert alert-danger\">Platform database unavailable.</div>"
+            ]
+        },
+        {
+            "name": "live",
+            "output": "",
+            "result": [
+                "CONSOLE_OPEN:command_center|Command Center|/cp|Operator|All units · Fleet|fleetCOMMAND:/cpCONSOLE_CLOSE",
+                "CONSOLE_OPEN:command_center|Command Center|/cp|Ada|All units · Fleet|user:7COMMAND:/cpCONSOLE_CLOSE",
+                "CONSOLE_OPEN:command_center|Command Center|/|Ada|All units · Fleet|user:7COMMAND:/CONSOLE_CLOSE"
+            ]
+        },
+        {
+            "name": "tenant",
+            "output": "",
+            "result": [
+                "CONSOLE_OPEN:command_center|Command Center|/acme|Ada|All units · Fleet|user:7COMMAND:/acmeCONSOLE_CLOSE",
+                "CONSOLE_OPEN:command_center|Command Center|/beta|Ada|All units · Fleet|user:7COMMAND:/betaCONSOLE_CLOSE",
+                "<div class=\"alert alert-warning\">Command Center is available on <strong>BOC</strong> (www.ecomae.com Super CP) only.</div>"
+            ]
+        }
+    ]
+}
