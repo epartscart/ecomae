@@ -142,13 +142,15 @@
                     <th>Customer</th>
                     <th>Status</th>
                     <th>Total incl. VAT</th>
+                    <th>Paid</th>
+                    <th>Due</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_visible.Count == 0)
                 {
-                    <tr><td colspan="7" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No invoices." : _message) : "Sign in with ERP capability for live invoices.")</td></tr>
+                    <tr><td colspan="9" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No invoices." : _message) : "Sign in with ERP capability for live invoices.")</td></tr>
                 }
                 else
                 {
@@ -161,6 +163,8 @@
                             <td>@(string.IsNullOrWhiteSpace(inv.CustomerEmail) ? $"user {inv.UserId}" : inv.CustomerEmail)</td>
                             <td><span class="label label-@ErpPhpStatusLabel.Class(inv.Status)">@inv.Status</span></td>
                             <td>@inv.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@inv.PaidAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@(inv.AmountDue > 0 ? inv.AmountDue.ToString("N2", CultureInfo.InvariantCulture) : "—")</td>
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/invoices-app", "inv_id", inv.Id)">Open</a></td>
                         </tr>
                     }

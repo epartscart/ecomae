@@ -689,7 +689,9 @@ public sealed record ErpInvoiceDigest(
     string CustomerEmail,
     long IssueDate,
     string Status,
-    decimal TotalInclVat);
+    decimal TotalInclVat,
+    decimal PaidAmount = 0m,
+    decimal AmountDue = 0m);
 
 public sealed record ErpInvoiceListResult(
     IReadOnlyList<ErpInvoiceDigest> Invoices,
