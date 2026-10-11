@@ -747,6 +747,7 @@ public sealed record ErpInvoiceDetailResult(
 {
     public IReadOnlyList<ErpInvoiceSettlementRow> Settlements { get; init; } = [];
     public IReadOnlyList<ErpDocumentAttachmentRow> Attachments { get; init; } = [];
+    public IReadOnlyList<ErpInvoiceLineRow> Lines { get; init; } = [];
 }
 
 public sealed record ErpGlJournalDigest(
@@ -989,6 +990,20 @@ public sealed record ErpAuditTrailRow(
     string Summary,
     string DetailJson);
 
+public sealed record ErpInvoiceLineRow(
+    long Id,
+    int LineNo,
+    string ItemName,
+    string ItemDescription,
+    decimal Quantity,
+    string UomCode,
+    decimal UnitPrice,
+    decimal LineNet,
+    string TaxCategory,
+    decimal TaxRate,
+    decimal TaxAmount,
+    decimal GrossAmount);
+
 public sealed record ErpDocumentAttachmentRow(
     long Id,
     string DocCategory,
@@ -1007,6 +1022,7 @@ public sealed record ErpSalesOrderDetailResult(
 {
     public IReadOnlyList<ErpAuditTrailRow> AuditTrail { get; init; } = [];
     public IReadOnlyList<ErpDocumentAttachmentRow> Attachments { get; init; } = [];
+    public IReadOnlyList<ErpDocumentLineDigest> Lines { get; init; } = [];
 }
 
 public sealed record CpMenuDigest(

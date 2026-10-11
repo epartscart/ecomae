@@ -2908,6 +2908,56 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         return rows;
     }
 
+    private static async Task<List<ErpDocumentLineDigest>> LoadSalesOrderLinesAsync(
+        System.Data.Common.DbConnection connection, long id, CancellationToken cancellationToken)
+    {
+        var rows = new List<ErpDocumentLineDigest>();
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSalesOrderLinesForDetail;
+        AddParameter(cmd, "@id", id);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new(
+                ReadI64(reader, "line_id"),
+                ReadI64(reader, "document_id"),
+                ReadStr(reader, "item_code"),
+                ReadStr(reader, "description"),
+                ReadDec(reader, "qty"),
+                ReadDec(reader, "unit_price_ex_vat"),
+                ReadDec(reader, "line_ex_vat"),
+                ReadDec(reader, "qty_received")));
+        }
+        return rows;
+    }
+
+    private static async Task<List<ErpInvoiceLineRow>> LoadInvoiceLinesAsync(
+        System.Data.Common.DbConnection connection, long id, CancellationToken cancellationToken)
+    {
+        var rows = new List<ErpInvoiceLineRow>();
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInvoiceLines;
+        AddParameter(cmd, "@id", id);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new(
+                ReadI64(reader, "id"),
+                ReadInt(reader, "line_no"),
+                ReadStr(reader, "item_name"),
+                ReadStr(reader, "item_description"),
+                ReadDec(reader, "quantity"),
+                ReadStr(reader, "uom_code"),
+                ReadDec(reader, "unit_price"),
+                ReadDec(reader, "line_net"),
+                ReadStr(reader, "tax_category"),
+                ReadDec(reader, "tax_rate"),
+                ReadDec(reader, "tax_amount"),
+                ReadDec(reader, "gross_amount")));
+        }
+        return rows;
+    }
+
     public async Task<ErpInvoiceDetailResult> BuildErpInvoiceDetailAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
@@ -3010,7 +3060,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             var attachments = await LoadEntityAttachmentsAsync(connection, "invoice", id, cancellationToken).ConfigureAwait(false);
 
-            return new(header, siblings, "database", string.Empty) { Settlements = settlements, Attachments = attachments };
+            var lines = await LoadInvoiceLinesAsync(connection, id, cancellationToken).ConfigureAwait(false);
+
+            return new(header, siblings, "database", string.Empty) { Settlements = settlements, Attachments = attachments, Lines = lines };
         }
         catch (Exception ex)
         {
@@ -3703,7 +3755,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             var attachments = await LoadEntityAttachmentsAsync(connection, "order", id, cancellationToken).ConfigureAwait(false);
 
-            return new(header, siblings, "database", string.Empty) { AuditTrail = auditTrail, Attachments = attachments };
+            var lines = await LoadSalesOrderLinesAsync(connection, id, cancellationToken).ConfigureAwait(false);
+
+            return new(header, siblings, "database", string.Empty) { AuditTrail = auditTrail, Attachments = attachments, Lines = lines };
         }
         catch (Exception ex)
         {

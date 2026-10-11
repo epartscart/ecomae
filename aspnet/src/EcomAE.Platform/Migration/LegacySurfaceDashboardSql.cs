@@ -1217,6 +1217,26 @@ public static class LegacySurfaceDashboardSql
         LIMIT 50
         """;
 
+    /// <summary>Sales order line rows for one order (item_code/description/qty/price — PHP epc_erp_sales_order_parse_lines shape).</summary>
+    public const string SelectErpSalesOrderLinesForDetail = """
+        SELECT `id` AS `line_id`, `sales_order_id` AS `document_id`,
+               IFNULL(`item_code`, '') AS `item_code`, IFNULL(`description`, '') AS `description`,
+               IFNULL(`qty`, 0) AS `qty`, IFNULL(`unit_price_ex_vat`, 0) AS `unit_price_ex_vat`,
+               IFNULL(`line_ex_vat`, 0) AS `line_ex_vat`, 0 AS `qty_received`
+        FROM `epc_erp_sales_order_lines`
+        WHERE `sales_order_id` = @id
+        ORDER BY `line_no`, `id`
+        """;
+
+    /// <summary>E-invoice line rows for one invoice document (PINT-AE line grid).</summary>
+    public const string SelectErpInvoiceLines = """
+        SELECT `id`, `line_no`, `item_name`, `item_description`, `quantity`, `uom_code`,
+               `unit_price`, `line_net`, `tax_category`, `tax_rate`, `tax_amount`, `gross_amount`
+        FROM `epc_einvoice_lines`
+        WHERE `document_id` = @id
+        ORDER BY `line_no`, `id`
+        """;
+
     /// <summary>Document attachments for one ERP entity (entity_type per PHP doc-control: order/invoice/purchase_order/purchase/project/lead).</summary>
     public const string SelectErpEntityAttachments = """
         SELECT `id`, IFNULL(`doc_category`, '') AS doc_category,
