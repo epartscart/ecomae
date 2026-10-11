@@ -283,6 +283,8 @@ Ordering: 6.5 (credential encryption) and 6.6 (exit package) are compliance prom
 
 ### Step 7 — ERP intake: study Devin's ERP plan before any ERP code (owner request 2026-10-08)
 
+**Status: intake DONE — `ERP_STEP7_INTAKE_2026-10-11.md`** (Devin, 2026-10-11; ERP is back with Devin per owner message — Cursor keeps storefront/CP/BOS/CRM/marketing/tenants). The six open findings are placed into waves there: findings 1/2/4 + the untested write services in Wave 1, finding 3 + floating-point money in the Inventory/WMS wave.
+
 When the non-ERP surfaces are done and ERP work starts, the first session reads Devin's plan and its later updates in full and reconciles them with this roadmap. No ERP code is written until that reconciliation is committed. Devin's ERP PRs are merged on `main` through #2026. Cursor's ERP fixes (#2030) are merged on top.
 
 Read, in this order:
