@@ -314,8 +314,16 @@
         _source = result.Source;
         _message = result.Message;
         var showFixings = _tab is "jw_purchase_fixing" or "jw_sales_fixing" or "fix_unfix";
+        var wantedType = _tab switch
+        {
+            "jw_purchase_fixing" => "PF",
+            "jw_sales_fixing" => "SF",
+            _ => null,
+        };
         _display = showFixings
-            ? result.Fixings.Select((r, i) => new FixRow(
+            ? result.Fixings
+                .Where(r => wantedType is null || string.Equals(r.FixType, wantedType, StringComparison.OrdinalIgnoreCase))
+                .Select((r, i) => new FixRow(
             r.Id,
             (i + 1).ToString(CultureInfo.InvariantCulture),
             r.FixNo.ToString(CultureInfo.InvariantCulture),

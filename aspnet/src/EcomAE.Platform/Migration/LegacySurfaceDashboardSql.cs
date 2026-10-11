@@ -6342,6 +6342,22 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(*) FROM `epc_jewel_voucher` WHERE (@companyId = 0 OR `company_id` = @companyId) AND IFNULL(`voc_type`,'')='PCV') AS petty_cash_count
         """;
 
+    /// <summary>Jewellery retail sales analysis grouped by voucher date.</summary>
+    public const string SelectCpJewellerySalesAnalysis = """
+        SELECT v.`voc_date` AS group_key, COUNT(DISTINCT v.`id`) AS voc_count,
+               IFNULL(SUM(vl.`pcs`),0) AS total_pcs, IFNULL(SUM(vl.`gr_wt`),0) AS total_wt,
+               IFNULL(SUM(vl.`metal_amount`),0) AS metal_total,
+               IFNULL(SUM(vl.`mkg_amount`),0) AS making_total,
+               IFNULL(SUM(vl.`total_amount`),0) AS grand_total
+        FROM `epc_jewel_voucher` v
+        JOIN `epc_jewel_voucher_lines` vl ON vl.`voucher_id` = v.`id`
+        WHERE (@companyId = 0 OR v.`company_id` = @companyId)
+          AND v.`voc_type` IN ('RIN','MSL','RSL')
+        GROUP BY v.`voc_date`
+        ORDER BY v.`voc_date` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>Jewellery fixing rows — remarks/notes omitted.</summary>
     public const string SelectCpJewelleryFixingRows = """
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`branch`,'') AS branch,

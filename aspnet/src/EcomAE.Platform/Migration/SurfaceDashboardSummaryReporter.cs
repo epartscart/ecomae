@@ -9883,7 +9883,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var empty = new CpJewelleryRetailSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
         if (!_connections.IsConfigured)
         {
-            return new(empty, [], 0, "migration", empty.Message);
+            return new(empty, [], [], 0, "migration", empty.Message);
         }
 
         try
@@ -9926,13 +9926,33 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
+            var analysisRows = new List<CpJewellerySalesAnalysisRow>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectCpJewellerySalesAnalysis;
+                AddParameter(list, "@limit", safeLimit);
+                AddParameter(list, "@companyId", Math.Max(0, companyId));
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    analysisRows.Add(new CpJewellerySalesAnalysisRow(
+                        Convert.ToString(reader["group_key"] is DBNull ? string.Empty : reader["group_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["voc_count"] is DBNull ? 0 : reader["voc_count"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_pcs"] is DBNull ? 0 : reader["total_pcs"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_wt"] is DBNull ? 0 : reader["total_wt"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["metal_total"] is DBNull ? 0 : reader["metal_total"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["making_total"] is DBNull ? 0 : reader["making_total"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["grand_total"] is DBNull ? 0 : reader["grand_total"], CultureInfo.InvariantCulture)));
+                }
+            }
+
             var summary = new CpJewelleryRetailSummary(vouchers, open, tags, metal, "database", string.Empty);
-            return new(summary, rows, rows.Count, "database", string.Empty);
+            return new(summary, rows, analysisRows, rows.Count, "database", string.Empty);
         }
         catch (Exception ex)
         {
             var err = empty with { Source = "database-error", Message = ex.Message };
-            return new(err, [], 0, "database-error", ex.Message);
+            return new(err, [], [], 0, "database-error", ex.Message);
         }
     }
 

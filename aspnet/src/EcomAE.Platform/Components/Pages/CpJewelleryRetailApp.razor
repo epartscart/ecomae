@@ -371,6 +371,46 @@
         </form>
     }
 
+    @if (_tab == "jw_sales_analysis")
+    {
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Period</th><th class="text-right">Invoices</th><th class="text-right">Pcs</th><th class="text-right">Net wt</th><th class="text-right">Metal</th><th class="text-right">Making</th><th class="text-right">Total</th></tr></thead>
+                <tbody>
+                    @if (_analysis.Count == 0)
+                    {
+                        <tr><td colspan="7" class="text-muted">@(_isAdmin ? _spec.EmptyCopy : "Sign in with ERP or Control Panel capability for live rows.")</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _analysis)
+                        {
+                            <tr>
+                                <td><strong>@(string.IsNullOrWhiteSpace(row.GroupKey) ? "—" : row.GroupKey)</strong></td>
+                                <td class="text-right">@row.VocCount.ToString(CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@row.TotalPcs.ToString("N0", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@row.TotalWt.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@row.MetalTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@row.MakingTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@row.GrandTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            </tr>
+                        }
+                        <tr style="font-weight:600;background:#f2f6fa">
+                            <td>Total</td>
+                            <td class="text-right">@_analysis.Sum(r => r.VocCount).ToString(CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_analysis.Sum(r => r.TotalPcs).ToString("N0", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_analysis.Sum(r => r.TotalWt).ToString("N4", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_analysis.Sum(r => r.MetalTotal).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_analysis.Sum(r => r.MakingTotal).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_analysis.Sum(r => r.GrandTotal).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
     <div class="epc-erp-table-wrap">
         <table class="table table-bordered table-condensed table-epc epc-erp-table">
             <thead>
@@ -410,6 +450,7 @@
             </tbody>
         </table>
     </div>
+    }
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_source. Retail vouchers bind from <code>epc_jewel_voucher</code>. Voucher save is live when confirmed. Other retail forms stay dry-run.
@@ -427,6 +468,7 @@
     private ErpJewelleryModuleChrome.TabSpec _spec = ErpJewelleryModuleChrome.RetailSpec("jw_retail_sales");
     private CpJewelleryRetailSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<SaleRow> _display = [];
+    private IReadOnlyList<CpJewellerySalesAnalysisRow> _analysis = [];
     private string _source = "n/a";
     private string _message = "";
     private string _ok = "";
@@ -509,6 +551,7 @@
                 _lookupMessage = lookup.Message;
             }
         }
+        _analysis = _tab == "jw_sales_analysis" ? result.SalesAnalysis : [];
         _showVouchers = _tab is "jw_retail_sales" or "jewellery" or "retail_commerce" or "jw_metal_sales" or "jw_sales_return";
         _display = _showVouchers
             ? result.Vouchers.Select((v, i) => new SaleRow(
