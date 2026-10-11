@@ -10844,6 +10844,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWhtCertificate, HandleWhtCertificateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpOperationsSave, HandleOperationsSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpOperationsDelete, HandleOperationsDeleteAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpOperationsCreateEntry, HandleOperationsCreateEntryAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWhtSettle, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -14218,6 +14219,64 @@ public sealed class ErpModule : ISurfaceModule
             deleted.Succeeded,
             deleted.Message,
             new { ok = deleted.Succeeded, writes = deleted.Writes, phpAuthoritative = false, validation_code = deleted.Code, message = deleted.Message, id = deleted.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleOperationsCreateEntryAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpAccountingCodesService codes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/account-operations-app", "Admin ERP capability required for manual balance entry.");
+        }
+
+        long userId = 0, operationCode = 0, officeId = 0;
+        int income = 0;
+        decimal amount = 0;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            userId = LiveWriteFormBinder.Long(form, "user_id", "userId");
+            income = LiveWriteFormBinder.Flag(form, "income") ? 1 : 0;
+            if (form.ContainsKey("income"))
+            {
+                var raw = LiveWriteFormBinder.Text(form, "income");
+                income = raw == "1" ? 1 : 0;
+            }
+            operationCode = LiveWriteFormBinder.Long(form, "operation_code", "operationCode");
+            amount = LiveWriteFormBinder.Dec(form, "amount");
+            officeId = LiveWriteFormBinder.Long(form, "office_id", "officeId");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpOperationsCreateEntryBody>(context, cancellationToken) ?? new();
+            userId = body.UserId;
+            income = body.Income;
+            operationCode = body.OperationCode;
+            amount = body.Amount;
+            officeId = body.OfficeId;
+            confirm = body.ConfirmWrites;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dry_run = true, message = "Dry-run only: pass confirmWrites to write.", session = SessionPayload(session) });
+        }
+
+        var written = await codes.CreateUserOperationAsync(
+            new ErpUserOperationRequest(userId, income, operationCode, amount, officeId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/account-operations-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleWhtRecordAsync(
@@ -27112,6 +27171,13 @@ public sealed class ErpModule : ISurfaceModule
         int Income = 0,
         string? Name = null,
         int? ManualAvailable = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpOperationsCreateEntryBody(
+        long UserId = 0,
+        int Income = 0,
+        long OperationCode = 0,
+        decimal Amount = 0,
+        long OfficeId = 0,
         bool ConfirmWrites = false);
     private sealed record ErpErFormatSaveBody(
         long Id = 0,
