@@ -6,6 +6,9 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Bos;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   cp/content/shop/finance/erp/erp_voice_command.php
 /// <summary>
 /// Live PHP <c>ajax_epc_bos.php</c> <c>tenant_config</c> <c>set</c> / <c>bulk_set</c>
 /// / <c>epc_tenant_config_set</c> / <c>epc_tenant_config_bulk_set</c>.

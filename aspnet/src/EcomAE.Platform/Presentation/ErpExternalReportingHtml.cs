@@ -4,6 +4,10 @@ using System.Text;
 
 namespace EcomAE.Platform.Presentation;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_external_reports.php
+//   content/shop/finance/epc_erp_external_reports_build.php
 /// <summary>PHP <c>epc_ext_kv_table</c> / <c>epc_ext_field_guide</c> / <c>epc_ext_commentary</c> / <c>epc_ext_cover_page</c> / print JS twin.</summary>
 public static class ErpExternalReportingHtml
 {

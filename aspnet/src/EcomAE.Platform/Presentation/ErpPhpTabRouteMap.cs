@@ -1,5 +1,14 @@
 namespace EcomAE.Platform.Presentation;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_card_reader.php
+//   content/shop/finance/epc_erp_crm_integration.php
+//   content/shop/finance/epc_erp_data_migration.php
+//   content/shop/finance/epc_erp_drilldown.php
+//   content/shop/finance/epc_erp_inventory_report.php
+//   content/shop/finance/epc_erp_modules_ajax.php
+//   content/shop/finance/epc_erp_ecommerce_integration.php
 /// <summary>
 /// PHP erp_tabs_* → ASP.NET primary app map (PHP remains write-authoritative).
 /// Generated for full tab coverage; unmapped tabs fall through to area hubs or /erp/module-app.

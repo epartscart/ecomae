@@ -3,6 +3,10 @@ using System.Text.Json;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_industry_packs.php
+//   content/shop/finance/epc_erp_product_structure.php
 public sealed record ErpIndustryField(string Key, string Label, string Type, string[]? Options = null);
 
 public sealed record ErpIndustryBlueprint(

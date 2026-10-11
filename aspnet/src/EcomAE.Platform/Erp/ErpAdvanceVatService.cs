@@ -3,6 +3,9 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_uae_vat.php
 /// <summary>VAT-inclusive advance split (PHP <c>epc_uae_vat_split_inclusive</c>).</summary>
 public sealed record ErpAdvanceVatSplit(decimal AmountExVat, decimal VatAmount, decimal VatRate);
 

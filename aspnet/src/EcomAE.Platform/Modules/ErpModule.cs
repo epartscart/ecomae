@@ -14,6 +14,12 @@ using EcomAE.Platform.Security;
 
 namespace EcomAE.Platform.Modules;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_modules.php
+//   content/shop/finance/epc_erp_supplier_portal.php
+//   content/shop/finance/epc_erp_menu_link.php
+//   cp/content/shop/finance/erp/erp_launcher.php
 public sealed class ErpModule : ISurfaceModule
 {
     public SurfaceModuleDescriptor Descriptor { get; } = new(

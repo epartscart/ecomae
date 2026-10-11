@@ -2,6 +2,9 @@ using System.Data.Common;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_projects.php
 /// <summary>
 /// Live PHP <c>epc_prj_task_save</c> twin. INSERT/UPDATE <c>epc_prj_tasks</c>.
 /// Schema ensure, project save, and timesheet log stay PHP. Does not CREATE tables.

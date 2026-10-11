@@ -9,6 +9,11 @@ using Microsoft.Extensions.Options;
 
 namespace EcomAE.Platform.Storefront;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_portal_router.php
+//   cp/content/shop/finance/erp/erp_provider_console.php
+//   cp/content/shop/finance/erp/erp_provider_console_page.php
 /// <summary>
 /// PHP <c>plugins/authentication/plugin.php</c> guest session + checkout cookies
 /// (<c>products_in_cart</c>, <c>created_order</c>).

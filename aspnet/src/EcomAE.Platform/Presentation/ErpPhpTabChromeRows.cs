@@ -1,5 +1,17 @@
 namespace EcomAE.Platform.Presentation;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_ui.php
+//   content/shop/finance/epc_erp_theme.php
+//   content/shop/finance/epc_erp_topbar_brand.php
+//   content/shop/finance/epc_erp_portal_body.php
+//   content/shop/finance/epc_erp_portal_home.php
+//   content/shop/finance/epc_erp_header_link.php
+//   content/shop/finance/epc_pwa.php
+//   content/shop/finance/epc_erp_cp_shell.php
+//   content/shop/finance/epc_i18n.php
+//   cp/content/shop/finance/erp/erp_pm_render.php
 /// <summary>PHP table chrome (title + columns) extracted from erp_tabs_*.php.</summary>
 public static class ErpPhpTabChromeRows
 {

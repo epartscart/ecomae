@@ -4,6 +4,11 @@ using System.Text;
 
 namespace EcomAE.Platform.Presentation;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/erp_portal.php
+//   cp/content/shop/finance/erp/erp_dashboard.php
+//   cp/content/shop/finance/erp/erp_dashboard_page.php
 /// <summary>
 /// Public read-only ERP demo. PHP <c>erp_demo_dashboard.php</c> plus
 /// <c>epc_demo_kpis</c> in <c>epc_erp_demo.php</c>. Sample numbers only —

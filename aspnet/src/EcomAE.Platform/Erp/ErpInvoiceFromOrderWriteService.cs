@@ -5,6 +5,11 @@ using System.Xml.Linq;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_order_courier_vat.php
+//   content/shop/finance/epc_order_erp_pipeline.php
+//   content/shop/finance/epc_erp_ecommerce.php
 /// <summary>
 /// Live ASP.NET port of PHP <c>epc_erp_invoice_from_order</c>: builds a PINT-AE tax invoice from a
 /// legacy <c>shop_orders</c> row (only <c>successfully_created = 1</c>), persists it with lines,

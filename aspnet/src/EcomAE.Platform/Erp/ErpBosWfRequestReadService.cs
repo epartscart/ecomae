@@ -2,6 +2,9 @@ using System.Data.Common;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_bos_workflow.php
 /// <summary>
 /// Read twin of PHP <c>epc_bos_wf_summary</c>, <c>epc_bos_wf_requests</c> and
 /// <c>epc_bos_wf_request_log</c> used by <c>erp_tabs_approvals.php</c> (queue and

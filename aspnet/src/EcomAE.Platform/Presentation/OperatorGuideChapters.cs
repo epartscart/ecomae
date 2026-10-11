@@ -1,5 +1,8 @@
 namespace EcomAE.Platform.Presentation;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   cp/content/shop/finance/erp/erp_only_operator_guide_page.php
 /// <summary>PHP-extracted chapter bodies for <see cref="OperatorGuidesCatalog"/>.</summary>
 internal static class OperatorGuideChapters
 {

@@ -6,6 +6,9 @@ using System.Text.RegularExpressions;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_aml_compliance.php
 /// <summary>
 /// Live PHP <c>epc_aml_check_transaction</c> twin (ajax <c>aml_check</c>):
 /// ensures the AML schema, seeds default rules, scores the transaction, inserts

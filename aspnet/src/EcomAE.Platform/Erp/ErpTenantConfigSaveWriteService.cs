@@ -5,6 +5,9 @@ using System.Text.Json;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_advanced.php
 /// <summary>
 /// Live PHP ajax <c>tenant_config_save</c> / <c>epc_erp_adv_set_setting</c> twin.
 /// UPSERT whitelist keys into <c>epc_price_settings</c> as <c>erp_{key}</c>.

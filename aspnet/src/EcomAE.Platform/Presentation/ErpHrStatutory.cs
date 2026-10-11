@@ -1,5 +1,8 @@
 namespace EcomAE.Platform.Presentation;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_payroll.php
 /// <summary>PHP <c>epc_erp_payroll_calc</c> + UAE <c>epc_hr_gratuity</c> / leave (AE default).</summary>
 public static class ErpHrStatutory
 {

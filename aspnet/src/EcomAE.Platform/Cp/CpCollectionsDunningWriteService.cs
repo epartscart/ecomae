@@ -5,6 +5,9 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_collections_dunning.php
 /// <summary>
 /// Live PHP <c>epc_dunning_update_status</c> / <c>epc_dunning_record_payment</c> /
 /// <c>epc_dunning_profile_create</c> / <c>epc_dunning_add_invoice</c> /

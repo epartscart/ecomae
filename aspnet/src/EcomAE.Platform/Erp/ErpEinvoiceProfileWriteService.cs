@@ -2,6 +2,10 @@ using System.Text.RegularExpressions;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_tax_toolkit_world.php
+//   content/shop/finance/epc_erp_einvoice.php
 /// <summary>
 /// Live PHP <c>einvoice_save_seller</c> / <c>einvoice_save_buyer</c> / <c>einvoice_save_asp</c> twins.
 /// Document creation, API-mode submission, credit-note, and ASP-poll workflows stay Classic; manual ASP-portal submission is live in its dedicated write service. Schema-ensure stays PHP.

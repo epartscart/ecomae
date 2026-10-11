@@ -5,6 +5,9 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Bos;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_credit_limit.php
 /// <summary>
 /// Live PHP <c>ajax_epc_bos.php</c> <c>credit_limit</c> <c>hold</c> / <c>epc_credit_hold</c>,
 /// <c>release</c> / <c>epc_credit_release</c>, and <c>set_limit</c> / <c>epc_credit_set_limit</c>.

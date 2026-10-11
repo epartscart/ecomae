@@ -3,6 +3,13 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
+
+// Legacy PHP references twinned by this file (scripts/php_reference_gap_inventory.py):
+//   content/shop/finance/epc_erp_dashboard.php
+//   content/shop/finance/epc_erp_dashboard_profiles.php
+//   content/shop/finance/epc_erp_exec_dashboard.php
+//   content/shop/finance/epc_insights_suite.php
+//   cp/content/shop/finance/erp/erp_dashboard_netsuite.php
 /// <summary>
 /// Live PHP twin of <c>content/shop/finance/epc_erp_command_center.php</c> (ajax <c>cc_kpi_tiles</c>,
 /// <c>cc_approval_queue</c>, <c>command_center</c>). Every SQL block runs through the PHP
