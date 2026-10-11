@@ -166,6 +166,9 @@
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_orders.Count</div></div>
         <div class="kpi"><div class="lbl">Non-closed in page</div><div class="val">@_open</div></div>
         <div class="kpi"><div class="lbl">Page total amount</div><div class="val">@_totalAmount.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Backlog (uninvoiced)</div><div class="val">@_backlogCount</div></div>
+        <div class="kpi"><div class="lbl">Backlog value</div><div class="val">@_backlogAmount.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Aged 30d+</div><div class="val">@_backlogAged</div></div>
     </div>
 
     @if (_openedDetail is not null)
@@ -487,6 +490,9 @@
         : null;
     private int _open;
     private decimal _totalAmount;
+    private int _backlogCount;
+    private decimal _backlogAmount;
+    private int _backlogAged;
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
@@ -569,6 +575,13 @@
             && !string.Equals(o.Status, "cancelled", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(o.Status, "canceled", StringComparison.OrdinalIgnoreCase));
         _totalAmount = _orders.Sum(o => o.TotalAmount);
+        var nowUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var backlog = _orders.Where(o => o.SalesInvoiceId <= 0
+            && !string.Equals(o.Status, "closed", StringComparison.OrdinalIgnoreCase)
+            && !o.Status.Contains("cancel", StringComparison.OrdinalIgnoreCase)).ToList();
+        _backlogCount = backlog.Count;
+        _backlogAmount = backlog.Sum(o => o.TotalAmount);
+        _backlogAged = backlog.Count(o => nowUnix - o.TimeCreated > 30L * 86400);
         _source = result.Source;
         _message = result.Message;
     }
