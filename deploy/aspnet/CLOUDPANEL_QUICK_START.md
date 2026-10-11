@@ -4,6 +4,20 @@ The command `bash scripts/preflight_aspnet_production.sh` must be run from the r
 
 **Do not use `/var/www/ecomae`.** That path is usually missing. Source checkouts live under `/root/ecomae` or `/opt/ecomae-aspnet-source`. Published releases live under `/var/www/ecomae-aspnet`.
 
+## Logout still signed in after refresh?
+
+Production is still on the old ASP.NET binary until you deploy `cursor/erp-logout-everywhere-5dbd`. Diagnose first (no restart), then deploy:
+
+```bash
+# See current Set-Cookie / X-EcomAE-Logout (no git change):
+ECOMAE_LOGOUT_DEPLOY=0 bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/erp-logout-everywhere-5dbd/scripts/cloudpanel_deploy_logout_everywhere.sh)"
+
+# Deploy the logout branch, restart ASP.NET, probe again:
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/erp-logout-everywhere-5dbd/scripts/cloudpanel_deploy_logout_everywhere.sh)"
+```
+
+The script never prints cookie values. After deploy, `/erp/logout` must send `X-EcomAE-Logout: cleared` and expire `admin_session` with `Secure`. Then refresh `/erp` — you should stay on `/erp/login`.
+
 PR #603 (ensure→issue smoke unlock) is on **main**. Preferred paste-safe redeploy + capture:
 
 ```bash
