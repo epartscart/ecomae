@@ -2017,6 +2017,22 @@ Local Kestrel (www.epartscart.com / www.ecomae.com, port 5080):
 
 ERP posting paths were not changed.
 
+### Checkpoint 2026-10-11 — Fresh ERP-only tenant onboarding; cross-tree CP fix
+
+Fresh throwaway tenants (`ecomae_cpw_onb1/onb2`) surfaced PHP lazy-schema gaps that
+ASP.NET refused instead of provisioning: `epc_credit_profiles`/`epc_coll_*` (#2151,
+`ErpCreditSchema` twin of `epc_credit_ensure_schema`), `epc_erp_sales_orders` list read
+(#2151), company/profile/PM/COA/industry seeds (#2145–#2150).
+
+**Cross-tree (CP-owned, touched by ERP stream):** CP Industry settings save failed on a
+fresh tenant because `epc_portal_site_settings` is created lazily by PHP
+`epc_portal_db_ensure()` and ASP.NET never created it; the reader also ordered by an `id`
+column the PHP table (PRIMARY KEY `host`) does not have. Added `Cp/CpPortalSchema.cs`
+(verbatim PHP DDL + additive columns) and call it in `CpIndustrySettingsService` /
+`CpIndustrySettingsWriteService`; reader orders by `host`. Reason: ERP-only tenant
+onboarding depends on this page to set the tenant industry. Cursor owns any further
+CP/portal changes.
+
 ### Checkpoint 2026-10-04 — Cursor review tranche and live fallback-route probe
 
 Merged (local evidence only, PHP fallback and release locks unchanged):
