@@ -1,0 +1,194 @@
+@page "/cp/customer-360-app"
+@page "/erp/customer-360-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ICpCrmDeskService Desk
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Customer 360 · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<HeadContent>
+<style>
+    .epc-c360 { color:#0f172a; }
+    .epc-c360-hero {
+        margin:0 0 1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
+        background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 55%,#2563eb 100%);
+    }
+    .epc-c360-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.3rem,2.6vw,1.75rem); }
+    .epc-c360-hero p { margin:0; max-width:46rem; color:rgba(255,255,255,.9); font-size:.92rem; }
+    .epc-c360-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+    .epc-c360-cta a, .epc-c360-cta button {
+        display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+        text-decoration:none; color:#1e3a8a; background:#dbeafe; border:0;
+    }
+    .epc-c360-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+    .epc-c360-find { display:flex; flex-wrap:wrap; gap:.4rem; align-items:end; }
+    .epc-c360-find input { min-width:10rem; color:#0f172a; }
+    .epc-c360-kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.55rem; margin:0 0 1rem; }
+    .epc-c360-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.75rem .85rem; text-decoration:none; color:inherit; display:block; }
+    .epc-c360-kpi strong { display:block; font-size:1.05rem; font-variant-numeric:tabular-nums; }
+    .epc-c360-kpi span, .epc-c360-kpi em { display:block; color:#64748b; font-size:.74rem; font-style:normal; }
+    .epc-c360-kpi.is-unsourced { background:#f8fafc; }
+    .epc-c360-kpi.is-unsourced strong { color:#94a3b8; font-size:.86rem; }
+    .epc-c360-tabs { display:flex; flex-wrap:wrap; gap:.35rem; margin:0 0 1rem; }
+    .epc-c360-tabs a {
+        padding:.35rem .6rem; border:1px solid #e2e8f0; border-radius:.4rem; background:#fff;
+        text-decoration:none; font-weight:700; font-size:12px; color:#0f172a;
+    }
+    .epc-c360-tabs a[aria-current="page"] { border-color:#2563eb; background:#eff6ff; color:#1e3a8a; }
+    .epc-c360-panel { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:1rem 1.1rem; margin:0 0 1rem; }
+    .epc-c360-panel h2 { margin:.1rem 0 .45rem; font-size:1rem; }
+    .epc-c360 table { width:100%; border-collapse:collapse; }
+    .epc-c360 th, .epc-c360 td { text-align:left; padding:.45rem .5rem; border-bottom:1px solid #e2e8f0; vertical-align:top; }
+    .epc-c360__empty { color:#334155; }
+    @@media (max-width:720px) {
+        .epc-c360 table, .epc-c360 thead, .epc-c360 tbody, .epc-c360 tr, .epc-c360 th, .epc-c360 td { display:block; }
+        .epc-c360 thead { display:none; }
+    }
+</style>
+</HeadContent>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <div class="col-lg-12 epc-c360">
+        <section class="epc-c360-hero">
+            <div>
+                <div class="epc-c360-hero__kicker">Control Panel · CRM</div>
+                <h1>Customer 360</h1>
+                <p>One workspace per customer. CRM keeps the relationship. Orders, invoices, credit and returns stay on the ERP or shop record. Unread finance fields are labelled not sourced.</p>
+            </div>
+            <div class="epc-c360-cta">
+                <a href="/cp/crm-board-app?tab=accounts">CRM accounts</a>
+                <a class="ghost" href="/cp/customer-board-app">Customer board</a>
+                <a class="ghost" href="/cp/orders-app">Orders</a>
+                <a class="ghost" href="/erp">ERP</a>
+            </div>
+        </section>
+
+        <form class="epc-c360-find epc-c360-panel" method="get" action="@EcomAeRoutes.ControlPanelCustomer360App">
+            <label>Customer user ID
+                <input class="form-control input-sm" type="number" name="user_id" min="1" value="@(_userId > 0 ? _userId.ToString(CultureInfo.InvariantCulture) : "")" required />
+            </label>
+            <button class="btn btn-sm btn-primary" type="submit">Open workspace</button>
+        </form>
+
+        @if (!_isAdmin)
+        {
+            <p class="epc-c360__empty">Sign in with a Control Panel or ERP session to read this customer.</p>
+        }
+        else if (_userId <= 0)
+        {
+            <p class="epc-c360__empty">Enter a shop user ID to open the workspace. Accounts on the CRM board link here.</p>
+        }
+        else if (_workspace is { DatabaseConfigured: false })
+        {
+            <p class="epc-c360__empty">Tenant database is not configured.</p>
+        }
+        else if (_workspace is { Found: false })
+        {
+            <p class="epc-c360__empty">Customer #@_userId.ToString(CultureInfo.InvariantCulture) was not found. @(_workspace.LoadError ?? "")</p>
+        }
+        else if (_workspace is not null)
+        {
+            <div class="epc-c360-kpis" aria-label="Customer 360 header">
+                @foreach (var field in _workspace.Header)
+                {
+                    <a class="epc-c360-kpi @(field.Sourced ? null : "is-unsourced")" href="@field.DrillHref">
+                        <strong>@(field.Sourced ? (field.ValueText ?? "—") : "Not sourced")</strong>
+                        <span>@field.Label</span>
+                        <em>@field.SourceNote</em>
+                    </a>
+                }
+            </div>
+
+            <nav class="epc-c360-tabs" aria-label="Customer 360 tabs">
+                @foreach (var tab in CpCrmCustomer360Composer.TabOrder)
+                {
+                    <a href="@CpCrmCustomer360Composer.Href(_userId, tab.Key)" aria-current="@(_tab == tab.Key ? "page" : null)">@tab.Label</a>
+                }
+            </nav>
+
+            @if (_active is not null)
+            {
+                <section class="epc-c360-panel">
+                    <h2>@_active.Label</h2>
+                    <p class="epc-c360__empty">@_active.SourceNote <a href="@_active.ListHref">Open source list</a></p>
+                    @if (_active.SourceKind == "not-sourced")
+                    {
+                        <p class="epc-c360__empty">This tab does not invent a figure. Use the ERP document when that read exists.</p>
+                    }
+                    else if (_active.Lines.Count == 0)
+                    {
+                        <p class="epc-c360__empty">No sourced records on this tab.</p>
+                    }
+                    else
+                    {
+                        <table>
+                            <thead><tr><th>Record</th><th>Status</th><th>Amount</th><th>Open</th></tr></thead>
+                            <tbody>
+                            @foreach (var line in _active.Lines)
+                            {
+                                <tr>
+                                    <td>@line.Caption</td>
+                                    <td>@line.Status</td>
+                                    <td>@line.AmountText</td>
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(line.DrillHref))
+                                        {
+                                            <a href="@line.DrillHref">Open</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
+                </section>
+            }
+        }
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private long _userId;
+    private string _tab = "overview";
+    private CpCrmCustomer360Workspace? _workspace;
+    private CpCrmCustomer360Tab? _active;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var http = Http.HttpContext;
+        if (http is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(http, http.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin
+            && (session.HasBackendAccess
+                || session.Capabilities.Contains("cp")
+                || session.Capabilities.Contains("erp"));
+        if (long.TryParse(http.Request.Query["user_id"].FirstOrDefault(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var userId)
+            && userId > 0)
+        {
+            _userId = userId;
+        }
+
+        var requestedTab = http.Request.Query["tab"].FirstOrDefault();
+        _tab = CpCrmCustomer360Composer.IsTab(requestedTab) ? requestedTab!.Trim() : "overview";
+
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _workspace = await Desk.Workspace360Async(_userId, http.RequestAborted);
+        _active = _workspace.Tabs.FirstOrDefault(tab => tab.Key == _tab);
+    }
+}

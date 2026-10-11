@@ -45,6 +45,18 @@ public sealed class PublicHomeRewriteMiddleware
     {
         rewrite = string.Empty;
         kind = string.Empty;
+        if (path is "/storefront" or "/storefront/")
+        {
+            if (!LiveTenantPresentationLock.IsLockedHost(host))
+            {
+                return false;
+            }
+
+            rewrite = "/storefront/app";
+            kind = "storefront-alias";
+            return true;
+        }
+
         if (path is not (null or "" or "/"))
         {
             return false;

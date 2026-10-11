@@ -1,3 +1,5 @@
+using EcomAE.Platform.Services;
+
 namespace EcomAE.Platform.Presentation;
 
 public static class LoginErrorHelper
@@ -15,6 +17,7 @@ public static class LoginErrorHelper
             return null;
         }
 
+        var superHost = PlatformHostPolicy.IsSuperCpHost(parsed.Host);
         return code.ToString() switch
         {
             "bridge_not_configured" => "ASP.NET login bridge is not configured. On the server run: ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES bash scripts/cloudpanel_sync_secret_succession_from_php.sh — then use the same PHP admin email/password.",
@@ -27,7 +30,9 @@ public static class LoginErrorHelper
             "rate_limited" => "Too many failed attempts. Please wait "
                 + (query.TryGetValue("wait", out var wait) && int.TryParse(wait, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var minutes) && minutes > 0 ? minutes : 15)
                 + " minutes before trying again.",
-            _ => "Incorrect login or password. Use the tenant host where the account was registered (e.g. taxofinca.com vs epartscart.com). If PHP login works on this same host, operator must sync SecretSuccession + shop db_name."
+            _ => superHost
+                ? "Incorrect login or password. Super CP / Super BOS / Super ERP on www.ecomae.com uses yawer@ecomae.com with the same password as ecomaedxb@gmail.com. This account lives in the platform registry, not a shop db_name. If PHP still accepts the Gmail login here, run scripts/cloudpanel_enable_super_operator_yawer.sh then retry."
+                : "Incorrect login or password. Use the tenant host where the account was registered (e.g. taxofinca.com vs epartscart.com). If PHP login works on this same host, operator must sync SecretSuccession + shop db_name."
         };
     }
 }

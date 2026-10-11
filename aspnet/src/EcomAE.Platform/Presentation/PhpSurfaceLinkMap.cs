@@ -131,6 +131,8 @@ public static class PhpSurfaceLinkMap
         ("system/debug", "/cp/debug-console-app"),
         // Tenant SMTP is independent of Super CP portal fleet inventory.
         ("epc_tenant_email_settings", "/cp/tenant-email-app"),
+        ("platform-mail", "/cp/super-mail-app"),
+        ("mailbox-app", "/cp/mailbox-app"),
         ("users/customer_approvals", "/cp/users-app"),
         ("customer_approvals", "/cp/users-app"),
         ("users/polya-registracii", "/cp/users-app"),
@@ -1979,6 +1981,8 @@ public static class PhpSurfaceLinkMap
                 "audit_log" or "boc_audit" => "/bos/audit-log-app",
                 "isolation_audit" => "/cp/isolation-audit-app",
                 "tenant_email" => "/cp/tenant-email-app",
+                "platform_mail" => "/cp/super-mail-app",
+                "tenant_mailbox" => "/cp/mailbox-app",
                 "license_trends" or "industry_license_trends" => "/cp/industry-packs-app",
                 "data_policy" or "tenant_data_policy" => "/cp/platform-governance-app",
                 _ => null,

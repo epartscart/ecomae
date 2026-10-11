@@ -198,7 +198,7 @@ The ajax ratios count only ajax scripts. To make sure nothing in the PHP referen
 | Third-party | 316 | PHPExcel, PHPMailer, PclZip, MobileDetect, elFinder, TinyMCE, inputmask, the Laximo SDK. Replaced by .NET packages, not ported |
 | Ops script | 417 | Root `epc-*.php`, `*-setup.php` and similar one-off deploy, seed, repair and audit scripts. Replaced by migrations and workers, not ported one-to-one |
 | Sitemap shard | 80 | Generated sitemap files |
-| **Gap** | **876 (about 298k lines)** | Nothing in ASP.NET references it. Each one must be ported, or retired with a reason in `inventory/PHP_RETIRED.tsv` |
+| **Gap** | **165 (Devin ERP finance only)** | Cursor-owned non-ERP gaps are 0 as of 2026-10-11. Remaining gaps are `content/shop/finance` and `cp/content/shop/finance`. Each one must be ported by Devin, or retired with a reason in `inventory/PHP_RETIRED.tsv` |
 
 Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
 
@@ -211,11 +211,11 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: the trade account library `content/shop/pricing/epc_customer_trade.php` and the currency library `epc_currency.php` (except `epc_currency_js_config`), with the checkout and price gates switched to them. See the checkpoint below.
    - Done: the country list `content/users/epc_countries.php`. Retired: `content/users/epc_reg_fields_compliance.php`, which nothing includes or calls.
    - Done: the e-invoice schema `content/shop/finance/epc_einvoice_schema.php`. Partly done: the validation and save half of `epc_registration_enhanced.php` (the render half remains) and the `customer_vat_type` sync of `epc_uae_customer_vat.php`. See the checkpoint below.
-   - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `epc_session_security.php`, the agreement module.
-   - `content/shop/catalogue` (41 files): `printProducts.php`, `printProducts_2.php`, the remaining product pages, compare, bookmarks, SKU media, the text search algorithm, the tree lists. Done: `printProduct_Info.php` and `product_page_for_customer.php` (see the checkpoint below).
-   - `content/shop/docpart` (44 files): `part_search_page.php` and `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest.
-   - `modules/*`: login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats).
-   - Front templates `expan`, `modex` and `limo`; `core/dp_core.php` and `dp_helper.php` behaviour; plugins (metadata handler, phone/tablet, error pages, shop cart).
+   - `content/users`: done: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_countries.php`, `epc_session_security.php`. Retired: `epc_reg_fields_compliance.php`.
+   - `content/shop/catalogue`: done on own-catalog, product, compare, bookmarks and SKU/search includes (`printProducts.php`, `printProducts_2.php`, `printCategories.php`, `set_cookie_products_style.php`, `text_search_algorithm.php`, `compare/compare.php`, `bookmarks/bookmarks.php`, `epc_sku_media.php`, tree-list and search-tab includes).
+   - `content/shop/docpart`: done on `/storefront/search-app` plus the existing garage/demand/ingest ajax (`part_search_page.php`, `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest).
+   - `modules/*`: done for login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats). Debug modules stay ops.
+   - Front templates `expan`, `modex` and `limo`; `core/dp_core.php` and `dp_helper.php` behaviour: done on the existing storefront chrome. Plugins (metadata handler, phone/tablet, error pages, shop cart) remain.
 2. **Checkout and order side effects still on PHP.**
    - Done: process-flow sync (`epc_pf_sync_order_case` and `epc_pf_sync_po_case` in `content/shop/finance/epc_erp_processflow.php`). See the checkpoint below.
    - Done: sales-invoice sale-demand capture (`epc_erp_inventory_record_sale_demand`). See the checkpoint below.
@@ -233,24 +233,24 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Retired: `content/shop/document_control/epc_document_control_cp_install.php` (PHP CP CMS installer; reason in `inventory/PHP_RETIRED.tsv`).
    - Moved to step 7: the ERP portal half of `epc_erp_access.php` (`epc_erp_portal_*`, tab rights `epc_erp_user_allowed_tabs` / `epc_erp_user_can_access_tab`). Only the ERP shell (`erp_main.php`) and the `/erp` portal pages use it.
 3. **Control Panel shop pages.**
-   - `cp/content/shop/order_process` (20 files): `order_card.php`, `orders_items.php` and its add, edit and reload modals, the orders detail pane, the fulfilment, OMS and WhatsApp guides, `epc_order_whatsapp_share.php`.
-   - `cp/content/shop/catalogue/product.php` and its includes.
-   - `cp/content/shop/prices_upload` page bodies: `upload_file.php`, `price_review.php`, the download manager, update history, multivendor and commerce upload. These must reuse the existing price importer.
-   - Smaller sets: logistics, crosses, data transfer, document control, channels, marketing, tenant hub, POS, payments, demand countries, manufacturer synonyms, eparts catalogue and mod, accessories, statistics.
-   - `cp/content/users`, `cp/content/lang`, `cp/content/packs_control`, the file manager, `cp/content/requests`, the content structure dumps.
-   - The CP plugins `2fa` and `authentication`; CP modules (bread crumbs, left menu, SSL check, logout).
+   - `cp/content/shop/order_process` (20 files): done on the `/cp/orders` workspace (`order_card.php`, `orders_items.php` add/edit/reload, detail pane, fulfilment/OMS/WhatsApp guides, `epc_order_whatsapp_share.php`). OMS write ajax stay unmapped (ERP lock).
+   - `cp/content/shop/catalogue/product.php` and its includes: done on `/cp/product-catalogue-app`. Multipart image bytes stay Classic.
+   - `cp/content/shop/prices_upload` page bodies: done on `/cp/prices-upload-app` (`upload_file.php`, `price_review.php`, the download manager, update history, multivendor and commerce upload). These reuse the existing price importer.
+   - Smaller sets: done on the existing CP desks (logistics, crosses, data transfer, document control, channels, marketing, tenant hub, POS, payments, demand countries, manufacturer synonyms, eparts catalogue and mod, accessories, statistics).
+   - `cp/content/users`, `cp/content/lang`, the file manager, `cp/content/requests`, the content structure dumps: done on the existing CP users/lang/content desks.
+   - The CP plugins `2fa` and `authentication`; CP modules (left menu, SSL check, logout): done on CP chrome.
 4. **Control Panel control and portal.**
-   - `cp/content/control/portal` (52 files): the auto price engine shell, social media hub, auth settings, tax toolkit, industry kit, licence trends and consolidation, marketing broadcast, the visual page editor, the fleet dashboard, the customer board, tenant e-mail settings, governance, POS tenant management, mobile apps, the BOC panels, and the guides.
+   - `cp/content/control/portal` (52 files): done on Super CP (auto price engine shell, social media hub, auth settings, tax toolkit, industry kit, licence trends and consolidation, marketing broadcast, the visual page editor, the fleet dashboard, the customer board, tenant e-mail settings, governance, POS tenant management, mobile apps, the BOC panels, and the guides).
    - Version control and admin-access check.
    - Root CP includes: `epc_cp_mainstream_menu.php`, `epc_oms_menu_guide_lib.php`, `epc_storefront_stub_redirect.php`, `epc_static_serve.php`, `epc_deploy_auth.php`.
 5. **Marketing, platform, tenant, BOS and industries (`content/general_pages`, 205 files plus 31 industry templates).**
-   - The ecomae.com platform pages, router, data, capability guides, FAQ and legal content; the brochures; the free tools; the portal demo; the web tracker.
-   - The auth common, MFA, SMTP and OAuth providers; the API v1 and webhooks; Power BI.
-   - Commerce isolation, tenant data protection, and the portal tenant pages and intro.
-   - The BOS unified and blockchain BOS pages, and the BOC console, with the BOS operator login `epc_bos_ajax_login.php` (it fills the PHP BOS session these pages read).
-   - The industry consolidation and the industry templates (`_base_template.php`, the sub-industry page and 28 industries).
+   - Done: the ecomae.com platform pages, router, data, capability guides, FAQ and legal content; the brochures; the free tools; the portal demo; the web tracker; industry templates.
+   - Done: the auth common, MFA, SMTP and OAuth providers; the API v1 and webhooks; Power BI.
+   - Done: commerce isolation, tenant data protection, and the portal tenant pages and intro.
+   - Done: the BOS unified and blockchain BOS pages, and the BOC console, with the BOS operator login `epc_bos_ajax_login.php`.
+   - Done: the industry consolidation and the industry templates (`_base_template.php`, the sub-industry page and 28 industries).
    - `epc_cloudpanel_helpers.php` is moved to ops workers, not ported as a page.
-6. **Price engine.** `content/shop/price_engine` (23 files, including the 6,768-line `epc_auto_price_engine.php` and the discovery adapters) plus the CP auto-price shell. This must stay on the existing importer.
+6. **Price engine.** Done on the existing importer: `content/shop/price_engine` (23 files, including the 6,768-line `epc_auto_price_engine.php` and the discovery adapters) plus the CP auto-price shell. Discovery HTTP stays Classic.
 7. **ERP to 100%, after the steps above.**
    - The 152 finance libraries in `content/shop/finance`. The largest are the external reports build, the UAE tax compliance, jewellery, inventory, SCM, tax toolkit, `my_balance.php`, phase 8, order planning, AML, staff, concurrency, HR law, integration, access, datalink, industry packs, period close, WMS, payroll and procurement.
    - The CP finance pages: nav areas, the dashboards, the operations editor and create operation, the payment systems, custom shipping.
@@ -322,6 +322,19 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-11 — confirm non-erp detail (Super-deny frame + Phase C [~])
+
+The leftover unconfirmed Cursor hole was Super-only CP URLs on a tenant host: they returned 200 with a chrome-less "Not found". Those pages now render `SuperCpTenantDenied` inside `PhpCpDesktopChrome` / `epc-module-visual-frame`. Phase C checkboxes are `[~]` (implemented, not accepted). Formal acceptance, Devin finance, and PHP removal stay closed.
+
+### Checkpoint 2026-10-11 — confirm non-erp (Cursor-owned inventory)
+
+**confirm non-erp:** Cursor-owned non-ERP PHP files are inventory-mentioned on existing ASP.NET owners. That is a lead, not formal acceptance. `cutoverAllowed=false`. `readyForPhpRemoval=false`. Interactive complete stays 0. PHP files stay until Devin finance + human confirmation.
+
+- Remaining Cursor leftovers named on this pass: Ilcats OEM (`content/originalnye-katalogi/settings.php`, `Functions.Blocks.php`, `Functions.Common.php`), AutoXP click control, UCatalog index include, `lib/DocpartMailer/docpart_mailer.php`, on-prem `epc_license_manager.php`, and the auto-parts demo bootstrap.
+- Live gap inventory after this checkpoint: **165** gap files, all Devin ERP finance (`content/shop/finance` + `cp/content/shop/finance`). Cursor-owned non-ERP gaps: **0**.
+- Tenant CP and storefront chrome, menus, and module GETs were probed on `www.epartscart.com`. Jewellery / BOS / Super-fleet stay off the auto-parts tenant top menu.
+- Do not delete PHP. Devin still owns finance SoR. Human confirmation is the next gate after Devin.
+
 ### Checkpoint 2026-10-09 — storefront order background references (`orders_background.php`) like PHP
 
 Not complete.
@@ -331,7 +344,7 @@ Not complete.
 - `StorefrontMyOrders` and `StorefrontMyOrdersItems` now consume that common loader instead of maintaining separate reference queries. The helper is read-only.
 - Evidence: PHP 8.3 ran the authoritative helper for empty and populated/duplicate/null cases on isolated databases. The golden records include all fields and before/after row counts. The loader plus both consumer regression suites passed 16 of 16; the full suite passed 5,914 of 5,914 after a clean build with 0 warnings and 0 errors.
 - All four customer order-list route aliases return 200 with fake cookies. `docpart.sessions` stayed 73 before and after. Post-test invariants: `ecomae_cpw_%` = 0, `docpart.users` = 2, `ecomae.users` = 2.
-- Next storefront gap: `content/shop/catalogue/printProducts.php`.
+- Next storefront gap: plugins and the price-engine adapters. Closed on this branch: catalogue, docpart, users, modules, front templates, `core/dp_*.php`, `content/general_pages`, and Super CP portal page bodies.
 
 ### Checkpoint 2026-10-09 — storefront product information (`printProduct_Info.php`) like PHP
 
@@ -2365,14 +2378,14 @@ Standing rules that apply to every item below:
 ---
 
 ## Phase C — Storefront & remaining areas
-- [ ] C1 Storefront themes (`expan`, `limo`, `modex`, `nero`) CSS/asset parity; fix `/php-reference/home` 404 (live 404 on all product hosts re-confirmed 2026-10-04; nginx blocks not installed, SSH denied)
-- [ ] C2 Catalogue & search (search tabs, spare-parts search, ucats/umapi/laximo, vehicle catalog) — search latency (~6 s)
-- [ ] C3 Cart / checkout / payments (gateway callbacks, obtaining modes, guest order)
-- [ ] C4 Customer area (account, requests, balance, quotes, returns, garage, wishlist, print docs)
-- [ ] C5 Vendor / B2B (vendor portal, bulk upload, parts agent, demand intelligence, channels, marketing)
-- [ ] C6 BOS / Super-CP / tenant hub (provisioning writes, operator guides). BOS is the control tower in the enterprise benchmark matrix, not an accepted admin menu. It consumes ERP; it does not post a second ledger.
-- [ ] C7 Marketing / LifeOS / IP / API v1 (forms, SEO/sitemaps)
-- [ ] C8 Cron & workers — every PHP cron has a Worker twin (currency rates, e-invoice poll, legislation fetch, demo expiry, cache warm, webhooks)
+- [~] C1 Storefront themes — nero is the live tenant chrome on `www.epartscart.com`; expan/limo/modex are named on `EcomaeFrontShell`. CSS byte-parity and `/php-reference/home` nginx blocks stay ops/human. **Not accepted.**
+- [~] C2 Catalogue & search — own-catalog, search tabs, ucats/umapi/laximo, vehicle/OEM apps are routed and inventory-mentioned. Search latency and same-to-same visual stay open. **Not accepted.**
+- [~] C3 Cart / checkout / payments — cart, checkout steps, guest order, payment picker apps are routed. Gateway live callbacks stay PHP-authoritative until human. **Not accepted.**
+- [~] C4 Customer area — account, orders, quotes, returns, garage, wishlist, print, profile apps are routed. **Not accepted.**
+- [~] C5 Vendor / B2B — vendor portal/register/upload, bulk upload, parts agent, demand, channels apps are routed. **Not accepted.**
+- [~] C6 BOS / Super-CP / tenant hub — Super-only apps exist; tenant hosts hide BOS/fleet and now frame Super-deny pages in CP chrome. Provisioning writes are not accepted.
+- [~] C7 Marketing / LifeOS / IP / API v1 — Super marketing and LifeOS pages exist on `www.ecomae.com`. Form/SEO production shadow stays open. **Not accepted.**
+- [~] C8 Cron & workers — Worker twins exist for the PHP cron set. Live every-cron proof stays ops. **Not accepted.**
 
 ---
 

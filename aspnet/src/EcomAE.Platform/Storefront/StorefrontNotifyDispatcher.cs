@@ -215,7 +215,11 @@ public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispat
             if (contacts.Email.Length > 0 && emailOn)
             {
                 wrapped ??= await WrapAsync(connection, translator, subject, body, cancellationToken).ConfigureAwait(false);
-                var sent = await _mailer.SendHtmlAsync(contacts.Email, subject, wrapped, cancellationToken).ConfigureAwait(false);
+                CpSmsSendOutcome sent;
+                using (EcomAE.Platform.Mail.TenantTransactionalMail.UseNotification(name))
+                {
+                    sent = await _mailer.SendHtmlAsync(contacts.Email, subject, wrapped, cancellationToken).ConfigureAwait(false);
+                }
                 result = new StorefrontNotifyPersonResult(person, true, sent.Ok, sent.Message);
             }
 

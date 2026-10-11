@@ -101,7 +101,7 @@
                 }
                 @if (_showControlPanel)
                 {
-                    <a href="/cp">Control panel</a>
+                    <a href="/cp" data-epc-cp-switcher="1">Control panel</a>
                 }
                 <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/")" target="_blank" rel="noopener">Classic ERP</a>
                 @if (_showControlPanel)
@@ -265,7 +265,7 @@
         ERP · <a href="@ErpHomeHref">Dashboard</a>
         @if (_showControlPanel)
         {
-            <text> · <a href="/cp">Control panel</a></text>
+            <text> · <a href="/cp" data-epc-cp-switcher="1">Control panel</a></text>
         }
         @if (_showBos)
         {
@@ -469,17 +469,15 @@
             return;
         }
 
-        // ERP-only tenants have no Control Panel surface — never advertise /cp.
-        if (ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant)
+        var tenantMode = SurfaceChromePolicy.ModeOf(ctx);
+        var demoCpEnabled = true;
+        if (ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant
+            && tenant.Mode is TenantMode.DemoTenant)
         {
-            _showControlPanel = tenant.Mode is not TenantMode.ErpOnlyTenant;
-            if (_showControlPanel && tenant.Mode is TenantMode.DemoTenant)
-            {
-                // Demo rows keep erp_only_shared alongside is_demo; the registry record is the
-                // only place that still says whether the tenant has a Control Panel surface.
-                var record = await Registry.FindByHostAsync(tenant.Host, ctx.RequestAborted);
-                _showControlPanel = record?.ControlPanelEnabled ?? true;
-            }
+            // Demo rows keep erp_only_shared alongside is_demo; the registry record is the
+            // only place that still says whether the tenant has a Control Panel surface.
+            var record = await Registry.FindByHostAsync(tenant.Host, ctx.RequestAborted);
+            demoCpEnabled = record?.ControlPanelEnabled ?? true;
         }
 
         var companies = ErpIndustryNav.EnsureSwitchableCompanies(
@@ -525,5 +523,8 @@
         {
             _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
         }
+
+        _showControlPanel = demoCpEnabled
+            && SurfaceChromePolicy.ShowCpSwitcher(session, tenantMode);
     }
 }

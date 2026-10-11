@@ -30,23 +30,22 @@ else
 <meta name="ecomae-cp-chrome-css" content="body-inline" />
 <style>
     .epc-cp-shell {
-        --epc-cp-primary:#2563eb; --epc-cp-primary-dark:#1d4ed8; --epc-blue-900:#0c4a6e; --epc-blue-700:#0369a1; --epc-blue-500:#0ea5e9;
-        --cp-ink:#0f172a; --cp-line:#e2e8f0; --cp-bg:#f0f9ff;
+        --epc-cp-primary:#1769aa; --epc-cp-primary-dark:#125989; --epc-blue-900:#0b1f3a; --epc-blue-700:#123d68; --epc-blue-500:#0ea5e9;
+        --cp-ink:#15253d; --cp-line:#d9e2ec; --cp-bg:#f3f6fa;
         background:var(--cp-bg); color:var(--cp-ink); min-height:100vh;
         font-family: @(LegacyPhpFontAssets.StackFor("cp")); font-size: @(LegacyPhpFontAssets.BaseFontSize);
     }
     .epc-cp-shell a { color:inherit; text-decoration:none; }
-    .epc-cp-header-bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem; padding:.55rem 1rem; background:rgba(255,255,255,.98); border-bottom:1px solid var(--cp-line); }
-    .epc-cp-header-logo img { height:34px; }
+    .epc-cp-header-bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem; padding:.65rem 1.15rem; background:linear-gradient(115deg,#0b1f3a 0%,#123d68 68%,#1769aa 100%); color:#fff; border-bottom:0; box-shadow:0 8px 22px rgba(11,31,58,.22); }
+    .epc-cp-header-logo img { height:32px; }
     .epc-cp-topbar-ctas { display:flex; gap:.45rem; flex-wrap:wrap; }
     .epc-cp-topbar-cta {
-        display:inline-flex; align-items:center; padding:.4rem .85rem; border-radius:10px;
-        background:linear-gradient(135deg,#b91c1c 0%,#dc2626 55%,#ef4444 100%);
-        border:1px solid #991b1b; box-shadow:0 4px 12px rgba(185,28,28,.28);
-        color:#fff !important; font-weight:700; font-size:13px;
+        display:inline-flex; align-items:center; padding:.38rem .8rem; border-radius:999px;
+        background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+        color:#fff !important; font-weight:700; font-size:12px;
     }
-    .epc-cp-header-actions { display:flex; gap:.75rem; align-items:center; font-size:13px; font-weight:600; }
-    .epc-cp-header-login { color:var(--epc-cp-primary) !important; }
+    .epc-cp-header-actions { display:flex; gap:.45rem; align-items:center; font-size:12px; font-weight:600; }
+    .epc-cp-header-login { color:#bfdbfe !important; }
     .epc-cp-main-pane { padding:1rem 1.25rem 2rem; font-size:14px; }
     .epc-cp-main-pane h1 { font-size:22px; }
     .epc-cp-main-pane h2 { font-size:18px; }
@@ -56,34 +55,51 @@ else
     .epc-cp-shell #header, .epc-cp-shell .epc-cp-topnav { width:100%; }
     .epc-cp-shell .epc-cp-header-bar, .epc-cp-shell .epc-cp-topnav-inner { width:min(1480px, 100%); margin:0 auto; }
     .epc-cp-shell .footer { padding:1rem; border-top:1px solid var(--cp-line); color:#64748b; font-size:13px; background:#fff; }
+    .epc-cp-shell #wrapper,
+    .epc-cp-shell.fixed-sidebar #wrapper { margin-left:0 !important; width:100% !important; max-width:100% !important; left:0 !important; }
+    .epc-cp-topnav-inner, .epc-cp-topnav-list { flex-wrap:wrap; overflow:visible; }
+    .epc-cp-shell.epc-boc-mode #menu,
+    .epc-cp-shell.epc-boc-mode .epc-cp-sidebar-toggle-tab,
+    .epc-cp-shell.epc-boc-mode .epc-cp-sidebar-edge-toggle { display:none !important; }
+    .epc-cp-shell.epc-boc-mode #wrapper,
+    .epc-cp-shell.epc-boc-mode.fixed-sidebar #wrapper { margin-left:0 !important; width:100% !important; max-width:100% !important; left:0 !important; }
+    .epc-cp-shell.epc-boc-mode .epc-boc__topnav,
+    .epc-cp-shell.epc-boc-mode #epc_boc_topnav { width:100% !important; display:block !important; }
+    .epc-cp-shell.epc-boc-mode .epc-boc__topnav-inner { width:min(1600px, 100%); margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; }
+    /* Super: the blue #header is position:fixed and covers the BOC row. Hide it. */
+    .epc-cp-shell.epc-boc-mode #header { display:none !important; }
+    .epc-cp-shell.epc-boc-mode #epc_boc_topnav {
+        position:sticky !important; top:0 !important; z-index:40 !important;
+        background:linear-gradient(135deg,#b91c1c,#7f1d1d) !important;
+    }
+    .epc-cp-shell.epc-boc-mode #wrapper { margin-top:0 !important; }
     .epc-cp-shell .splash { position:fixed; z-index:2000; background:#fff; color:#64748b; inset:0; }
     .epc-cp-shell .splash-title { text-align:center; max-width:500px; margin:15% auto; padding:20px; }
     .epc-cp-shell .splash-title h1 { font-size:26px; margin:0 0 .35rem; }
     .epc-cp-shell .splash .spinner { display:flex; gap:4px; justify-content:center; margin-top:12px; }
     .epc-cp-shell .splash .spinner > div { width:6px; height:28px; background:#2563eb; }
     .epc-cp-header-icons { display:flex; align-items:center; gap:.35rem; margin:0; padding:0; list-style:none; }
-    .epc-cp-top-connectivity a { display:inline-flex; align-items:center; gap:.25rem; padding:.25rem .45rem; color:#334155 !important; }
+    .epc-cp-top-connectivity a { display:inline-flex; align-items:center; gap:.25rem; padding:.25rem .45rem; color:rgba(255,255,255,.88) !important; }
 </style>
 </HeadContent>
 <style>
     .epc-cp-shell {
-        --epc-cp-primary:#2563eb; --epc-cp-primary-dark:#1d4ed8; --epc-blue-900:#0c4a6e; --epc-blue-700:#0369a1; --epc-blue-500:#0ea5e9;
-        --cp-ink:#0f172a; --cp-line:#e2e8f0; --cp-bg:#f0f9ff;
+        --epc-cp-primary:#1769aa; --epc-cp-primary-dark:#125989; --epc-blue-900:#0b1f3a; --epc-blue-700:#123d68; --epc-blue-500:#0ea5e9;
+        --cp-ink:#15253d; --cp-line:#d9e2ec; --cp-bg:#f3f6fa;
         background:var(--cp-bg); color:var(--cp-ink); min-height:100vh;
         font-family: @(LegacyPhpFontAssets.StackFor("cp")); font-size: @(LegacyPhpFontAssets.BaseFontSize);
     }
     .epc-cp-shell a { color:inherit; text-decoration:none; }
-    .epc-cp-header-bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem; padding:.55rem 1rem; background:rgba(255,255,255,.98); border-bottom:1px solid var(--cp-line); }
-    .epc-cp-header-logo img { height:34px; }
+    .epc-cp-header-bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem; padding:.65rem 1.15rem; background:linear-gradient(115deg,#0b1f3a 0%,#123d68 68%,#1769aa 100%); color:#fff; border-bottom:0; box-shadow:0 8px 22px rgba(11,31,58,.22); }
+    .epc-cp-header-logo img { height:32px; }
     .epc-cp-topbar-ctas { display:flex; gap:.45rem; flex-wrap:wrap; }
     .epc-cp-topbar-cta {
-        display:inline-flex; align-items:center; padding:.4rem .85rem; border-radius:10px;
-        background:linear-gradient(135deg,#b91c1c 0%,#dc2626 55%,#ef4444 100%);
-        border:1px solid #991b1b; box-shadow:0 4px 12px rgba(185,28,28,.28);
-        color:#fff !important; font-weight:700; font-size:13px;
+        display:inline-flex; align-items:center; padding:.38rem .8rem; border-radius:999px;
+        background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+        color:#fff !important; font-weight:700; font-size:12px;
     }
-    .epc-cp-header-actions { display:flex; gap:.75rem; align-items:center; font-size:13px; font-weight:600; }
-    .epc-cp-header-login { color:var(--epc-cp-primary) !important; }
+    .epc-cp-header-actions { display:flex; gap:.45rem; align-items:center; font-size:12px; font-weight:600; }
+    .epc-cp-header-login { color:#bfdbfe !important; }
     .epc-cp-main-pane { padding:1rem 1.25rem 2rem; font-size:14px; }
     .epc-cp-main-pane h1 { font-size:22px; }
     .epc-cp-main-pane h2 { font-size:18px; }
@@ -93,16 +109,35 @@ else
     .epc-cp-shell #header, .epc-cp-shell .epc-cp-topnav { width:100%; }
     .epc-cp-shell .epc-cp-header-bar, .epc-cp-shell .epc-cp-topnav-inner { width:min(1480px, 100%); margin:0 auto; }
     .epc-cp-shell .footer { padding:1rem; border-top:1px solid var(--cp-line); color:#64748b; font-size:13px; background:#fff; }
+    .epc-cp-shell #wrapper,
+    .epc-cp-shell.fixed-sidebar #wrapper { margin-left:0 !important; width:100% !important; max-width:100% !important; left:0 !important; }
+    .epc-cp-topnav-inner, .epc-cp-topnav-list { flex-wrap:wrap; overflow:visible; }
+    .epc-cp-shell.epc-boc-mode #menu,
+    .epc-cp-shell.epc-boc-mode .epc-cp-sidebar-toggle-tab,
+    .epc-cp-shell.epc-boc-mode .epc-cp-sidebar-edge-toggle { display:none !important; }
+    .epc-cp-shell.epc-boc-mode #wrapper,
+    .epc-cp-shell.epc-boc-mode.fixed-sidebar #wrapper { margin-left:0 !important; width:100% !important; max-width:100% !important; left:0 !important; }
+    .epc-cp-shell.epc-boc-mode .epc-boc__topnav,
+    .epc-cp-shell.epc-boc-mode #epc_boc_topnav { width:100% !important; display:block !important; }
+    .epc-cp-shell.epc-boc-mode .epc-boc__topnav-inner { width:min(1600px, 100%); margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; }
+    /* Super: the blue #header is position:fixed and covers the BOC row. Hide it. */
+    .epc-cp-shell.epc-boc-mode #header { display:none !important; }
+    .epc-cp-shell.epc-boc-mode #epc_boc_topnav {
+        position:sticky !important; top:0 !important; z-index:40 !important;
+        background:linear-gradient(135deg,#b91c1c,#7f1d1d) !important;
+    }
+    .epc-cp-shell.epc-boc-mode #wrapper { margin-top:0 !important; }
     .epc-cp-shell .splash { position:fixed; z-index:2000; background:#fff; color:#64748b; inset:0; }
     .epc-cp-shell .splash-title { text-align:center; max-width:500px; margin:15% auto; padding:20px; }
     .epc-cp-shell .splash-title h1 { font-size:26px; margin:0 0 .35rem; }
     .epc-cp-shell .splash .spinner { display:flex; gap:4px; justify-content:center; margin-top:12px; }
     .epc-cp-shell .splash .spinner > div { width:6px; height:28px; background:#2563eb; }
     .epc-cp-header-icons { display:flex; align-items:center; gap:.35rem; margin:0; padding:0; list-style:none; }
-    .epc-cp-top-connectivity a { display:inline-flex; align-items:center; gap:.25rem; padding:.25rem .45rem; color:#334155 !important; }
+    .epc-cp-top-connectivity a { display:inline-flex; align-items:center; gap:.25rem; padding:.25rem .45rem; color:rgba(255,255,255,.88) !important; }
 </style>
 
 <div class="@ShellClass">
+    <link rel="stylesheet" href="/css/epc-premium-enterprise-shell.css?v=20261011premium" />
     <div class="splash">
         <div class="color-line"></div>
         <div class="splash-title">
@@ -126,13 +161,16 @@ else
             </a>
             <div class="epc-cp-topbar-strip hidden-xs">
                 <nav class="epc-cp-topbar-ctas" aria-label="Quick destinations">
-                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--erp" href="/erp" title="Open ERP">
+                    @if (_showErp)
+                    {
+                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--erp" href="/erp" title="Open ERP workspace" data-epc-erp-switcher="1">
                         <span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-briefcase"></i></span>
                         <span class="epc-cp-topbar-cta__text">
                             <span class="epc-cp-topbar-cta__label">ERP</span>
                             <span class="epc-cp-topbar-cta__host">Operations</span>
                         </span>
                     </a>
+                    }
                     <a class="epc-cp-topbar-cta epc-cp-topbar-cta--storefront" href="/" target="_blank" rel="noopener noreferrer" title="Open public storefront">
                         <span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-shopping-bag"></i></span>
                         <span class="epc-cp-topbar-cta__text">
@@ -165,7 +203,10 @@ else
                     </button>
                     <div class="collapse mobile-navbar" id="mobile-collapse">
                         <ul class="nav navbar-nav">
-                            <li><a href="/erp"><i class="fa fa-briefcase"></i> ERP</a></li>
+                            @if (_showErp)
+                            {
+                            <li><a href="/erp" data-epc-erp-switcher="1"><i class="fa fa-briefcase"></i> ERP</a></li>
+                            }
                             <li>
                                 <a href="/" target="_blank" rel="noopener noreferrer">
                                     <i class="fa fa-shopping-bag"></i> Storefront@(string.IsNullOrWhiteSpace(_storefrontHost) ? "" : " · " + _storefrontHost)
@@ -201,10 +242,14 @@ else
                 <a href="/cp">Control panel</a>
                 <a href="/attention">Attention</a>
                 <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/")" target="_blank" rel="noopener">Classic CP</a>
-                <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/")" target="_blank" rel="noopener">Classic ERP</a>
+                @if (_showErp)
+                {
+                    <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/")" target="_blank" rel="noopener">Classic ERP</a>
+                }
                 @if (_showBos)
                 {
                     <a href="/bos">BOS</a>
+                    <a href="/cp/super-mail-app" title="Platform mail">Mail</a>
                 }
                 <PhpCpTranslate Context="cp" />
                 @if (!_signedIn)
@@ -213,14 +258,20 @@ else
                 }
                 else
                 {
-                    <span class="epc-cp-header-user" title="@_userLabel">@_userLabel</span>
+                    <span class="epc-cp-header-user" title="@_userLabel"><i class="fa fa-user-circle" aria-hidden="true"></i> @_userLabel</span>
                     <a class="epc-cp-header-logout" href="/cp/logout" title="Log out"><i class="fa fa-sign-out" aria-hidden="true"></i> Log out</a>
                 }
             </nav>
         </div>
     </div>
 
-    <nav class="epc-cp-topnav" id="epc_cp_topnav" aria-label="Control Panel top navigation">
+    @if (_showSuperBocChrome)
+    {
+        <PhpSuperCpBocTopnav />
+    }
+    else if (!_hideCpMegaMenu)
+    {
+    <nav class="epc-cp-topnav" id="epc_cp_topnav" aria-label="Control Panel top navigation" data-epc-surface="cp">
         <div class="epc-cp-topnav-inner">
             <a class="epc-cp-topnav-brand" href="/cp/app">
                 <i class="fa fa-th-large" aria-hidden="true"></i><span>Control</span>
@@ -231,7 +282,6 @@ else
                     var itemClass = "epc-cp-topnav-item";
                     if (GroupIsActive(group)) { itemClass += " is-active"; }
                     if (group.IsAdvanced) { itemClass += " epc-cp-topnav-item--advanced"; }
-                    var firstHref = CpNavTree.AspNetHref(group.Items[0].Url);
                     <li class="@itemClass" data-group="@group.Key" role="none">
                         <button type="button"
                                 class="epc-cp-topnav-btn"
@@ -253,7 +303,6 @@ else
                                         <span class="epc-cp-topnav-panel-sub">@group.Subtitle</span>
                                     }
                                 </div>
-                                <a class="epc-cp-topnav-panel-hub" href="@firstHref">Open first <i class="fa fa-arrow-right"></i></a>
                             </div>
                             <div class="epc-cp-topnav-cols">
                                 @foreach (var col in CpNavTree.Chunk(group.Items))
@@ -279,6 +328,7 @@ else
             </ul>
         </div>
     </nav>
+    }
 
     <div id="wrapper">
         <div class="content epc-cp-main-pane">
@@ -292,6 +342,8 @@ else
                         <a href="/cp/login" style="margin-left:.35rem;font-weight:700;color:#c2410c;">Sign in</a>
                     </div>
                 }
+                @if (!_showBos)
+                {
                 <div class="epc-module-visual-frame" aria-label="Control Panel module presentation">
                     <span class="epc-module-visual-frame__icon" aria-hidden="true"><i class="fa fa-th-large"></i></span>
                     <div>
@@ -305,7 +357,11 @@ else
                     </div>
                     <div class="epc-module-visual-frame__scope">@_brand.Label · @(_industryLabel ?? "Tenant workspace")</div>
                 </div>
-                <OperatingNavigationContextBar Surface="cp" />
+                }
+                @if (!_showBos)
+                {
+                    <OperatingNavigationContextBar Surface="cp" />
+                }
                 <div class="row">
                     <!--epc-cp-main-begin-->
                     @ChildContent
@@ -315,7 +371,11 @@ else
         </div>
         <footer class="footer">
             <div>
-                Control Panel · <a href="/cp">Open control panel</a> · <a href="/erp">ERP</a>
+                Control Panel · <a href="/cp">Open control panel</a>
+                @if (_showErp)
+                {
+                    <text> · <a href="/erp" data-epc-erp-switcher="1">ERP</a></text>
+                }
                 @if (_showBos)
                 {
                     <text> · <a href="/bos">BOS</a></text>
@@ -456,6 +516,9 @@ else
     private string _erpTitle = "Module";
     private string _erpArea = "Modules";
     private bool _showBos;
+    private bool _showErp;
+    private bool _hideCpMegaMenu;
+    private bool _showSuperBocChrome;
     private LoginHostBrand.Brand _brand = LoginHostBrand.Resolve(null, "cp");
     private bool _signedIn;
     private string _userLabel = "Admin session";
@@ -471,14 +534,19 @@ else
     {
         get
         {
-            var cls = "fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root";
+            var cls = "epc-cp epc-cp-shell epc-premium-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root";
             if (_showBos)
             {
+                // No fixed-navbar: that pins #header over the red BOC menu.
                 cls += " epc-cp-bos-host epc-boc-mode";
             }
-            else if (!string.IsNullOrWhiteSpace(_industryCode))
+            else
             {
-                cls += " epc-cp--" + _industryCode;
+                cls += " fixed-navbar fixed-sidebar";
+                if (!string.IsNullOrWhiteSpace(_industryCode))
+                {
+                    cls += " epc-cp--" + _industryCode;
+                }
             }
 
             return cls;
@@ -501,6 +569,10 @@ else
         var host = Http.HttpContext?.Request.Host.Host;
         _brand = LoginHostBrand.Resolve(host, "cp");
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
+        // Super CP: one full-width BOC mega-menu on home AND inner pages.
+        // Never the tenant shop mega-menu (stacked chrome + half-width left rail).
+        _hideCpMegaMenu = _showBos;
+        _showSuperBocChrome = _showBos;
         // Tenant industry (epartscart → auto_parts) drives jewellery menu filtering.
         if (!_showBos && !string.IsNullOrWhiteSpace(host))
         {
@@ -531,6 +603,7 @@ else
             _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
         }
 
+        _showErp = SurfaceChromePolicy.ShowErpSwitcher(session, SurfaceChromePolicy.ModeOf(ctx));
         _navGroups = await NavMenu.BuildAsync(host, session, ctx.RequestAborted);
     }
 

@@ -61,14 +61,19 @@
 </HeadContent>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <div class="epc-prices-page" data-epc-prices-ssr="1">
+    <div class="epc-prices-page" data-epc-prices-ssr="1"
+         data-upload-file="@CpPricesUploadPages.UploadFilePath"
+         data-price-review="@CpPricesUploadPages.PriceReviewPath"
+         data-download-manager="@CpPricesUploadPages.PriceDownloadManagerPath">
         <div class="epc-prices-toolbar" role="navigation" aria-label="Price list tools">
-            <a href="/cp/shop/prices"><i class="fa fa-list"></i> Price lists</a>
+            <a href="@CpPricesUploadPages.DownloadManagerHref"><i class="fa fa-list"></i> Price lists</a>
             <a href="/cp/shop/prices/price"><i class="fa fa-plus"></i> Add list</a>
             <a href="/cp/prices-edit-app"><i class="fa fa-pencil"></i> Prices edit</a>
-            <a href="/cp/shop/prices/multivendor"><i class="fa fa-sitemap"></i> Multi-vendor</a>
+            <a href="@CpPricesUploadPages.UploadHref"><i class="fa fa-upload"></i> Upload file</a>
+            <a href="@CpPricesUploadPages.ReviewHref"><i class="fa fa-check"></i> Price review</a>
+            <a href="@CpPricesUploadPages.MultivendorHref"><i class="fa fa-sitemap"></i> Multi-vendor</a>
             <a href="/cp/shop/prices/guide"><i class="fa fa-book"></i> Upload guide</a>
-            <a href="/cp/prices-upload-app#epc-upload-history"><i class="fa fa-history"></i> Upload history</a>
+            <a href="@CpPricesUploadPages.HistoryHref"><i class="fa fa-history"></i> Upload history</a>
             <a href="/cp/price-lists-app"><i class="fa fa-tags"></i> Commerce lists</a>
             <a href="/cp">Command centre</a>
         </div>
@@ -159,7 +164,15 @@
             <p class="help-block">The minute job is GET /cp/prices/cron-tick?key=tech_key&amp;wait=1. It imports every linked FTP, e-mail or URL list that is due.</p>
         }
 
-        @if (_view == "guide")
+        @if (_view == "review")
+        {
+            <div class="epc-prices-note" id="epc-price-review">
+                Price review is <code>@CpPricesUploadPages.PriceReviewPath</code>.
+                The dry-run ajax already evaluates MIN/MAX/AVG and synonym rules and does not write <code>price</code> or <code>reviewed</code>.
+                Confirm writes stay on the mapped review endpoint.
+            </div>
+        }
+        else if (_view == "guide")
         {
             <div class="epc-prices-note">
                 Upload guide: <a href="/cp/guides-app?g=prices-upload">/cp/guides-app?g=prices-upload</a>.

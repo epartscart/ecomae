@@ -36,6 +36,7 @@
         {
             <a href="@OperatingNavigationContext.AttentionHref(_companyId, role)" aria-current="@(_role == role ? "page" : null)">@role</a>
         }
+        <a href="@OperatingNavigationContext.RoleCentreHref(_role, _companyId)">Role centre</a>
     </nav>
 
     @if (!_signedIn)

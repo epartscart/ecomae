@@ -1,6 +1,8 @@
 using System.Data.Common;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Mail;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Cp;
 
@@ -23,10 +25,12 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
     private static readonly Regex SiteKeySafe = new("[^a-z0-9_]", RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IPlatformMailService? _mail;
 
-    public CpTenantsWriteService(IErpWriteConnectionFactory connections)
+    public CpTenantsWriteService(IErpWriteConnectionFactory connections, IPlatformMailService? mail = null)
     {
         _connections = connections;
+        _mail = mail;
     }
 
     /// <summary>PHP <c>preg_replace('/[^a-z0-9_]/', '', strtolower($site_key))</c>.</summary>
@@ -70,6 +74,26 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
                 connection, null,
                 ErpDb.Positional("UPDATE `epc_portal_tenants` SET `is_active`=?, `updated_at`=? WHERE `site_key`=?"),
                 cancellationToken, active, now, siteKey).ConfigureAwait(false);
+
+            if (request.Active && _mail is not null)
+            {
+                var hostname = await ErpDb.StringAsync(
+                    connection, null,
+                    ErpDb.Positional("SELECT IFNULL(`hostname`,'') FROM `epc_portal_tenants` WHERE `site_key`=? LIMIT 1"),
+                    cancellationToken, siteKey).ConfigureAwait(false);
+                var domain = PlatformMailNormalize.Domain(hostname);
+                if (domain.Length > 0
+                    && !string.Equals(domain, PurelymailDns.FirstDomain, StringComparison.OrdinalIgnoreCase)
+                    && !PlatformHostPolicy.IsSuperCpHost(domain))
+                {
+                    await _mail.WriteAsync(
+                        new PlatformMailWriteRequest("add_domain", Domain: domain, SiteKey: siteKey),
+                        cancellationToken).ConfigureAwait(false);
+                    await _mail.WriteAsync(
+                        new PlatformMailWriteRequest("setup_business", Domain: domain, SiteKey: siteKey),
+                        cancellationToken).ConfigureAwait(false);
+                }
+            }
 
             return ErpSimpleWriteResult.Ok(ToggleMessage(request.Active), id);
         }

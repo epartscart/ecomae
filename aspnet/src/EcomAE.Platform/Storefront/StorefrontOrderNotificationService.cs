@@ -164,7 +164,7 @@ public sealed class StorefrontOrderNotificationService : IStorefrontOrderNotific
         var admin = contact.AdminEmail.Length > 0 ? contact.AdminEmail : from;
         if (admin.Length > 0)
         {
-            return admin;
+            return Mail.TenantTransactionalMail.PreferDomainInbox(admin, host, "orders");
         }
 
         var email = configFromEmail.Trim();

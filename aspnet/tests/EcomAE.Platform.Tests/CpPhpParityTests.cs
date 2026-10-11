@@ -350,11 +350,39 @@ public sealed class CpPhpParityTests
     }
 
     [Fact]
-    public void JewelleryTenantTopnav_KeepsJewelleryLinks()
+    public void EpartscartCommandCentreDirectory_DropsJewelleryAndSuperOnly()
+    {
+        var links = LegacyDesktopChromeCatalog.BrochureFeaturesForHost(
+            PhpModuleCatalog.CpBrochureFeatures,
+            "www.epartscart.com");
+        Assert.NotEmpty(links);
+        Assert.True(links.Count < PhpModuleCatalog.CpBrochureFeatures.Count);
+        Assert.DoesNotContain(links, LegacyDesktopChromeCatalog.IsJewelleryCpLink);
+        Assert.DoesNotContain(links, l => LegacyDesktopChromeCatalog.IsSuperOnlyCpLink(l.Href, l.Group));
+        Assert.DoesNotContain(links, l => (l.Href ?? "").Contains("retail_barcode", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(links, l => (l.Href ?? "").Contains("jewellery-retail", StringComparison.OrdinalIgnoreCase));
+        var page = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor"));
+        Assert.Contains("BrochureFeaturesForHost", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("Links=\"@PhpModuleCatalog.CpBrochureFeatures\"", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void JewelleryTenant_KeepsJewelleryInErpChrome_NotCpWindowDump()
     {
         var groups = LegacyDesktopChromeCatalog.ControlPanelTopnav(includeSuperOnly: false, industryCode: "jewellery");
         var all = groups.SelectMany(g => g.Links).ToList();
-        Assert.Contains(all, LegacyDesktopChromeCatalog.IsJewelleryCpLink);
+        Assert.DoesNotContain(all, l => SurfaceChromePolicy.IsErpDestination(l.Href));
+
+        var erp = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience("current", "jewellery", null, false));
+        var erpLinks = erp.SelectMany(g => g.Columns ?? []).SelectMany(c => c.Tabs).ToList();
+        Assert.Contains(erpLinks, ErpIndustryNav.IsJewelleryTab);
+
+        var directory = LegacyDesktopChromeCatalog.BrochureFeaturesForHost(
+            PhpModuleCatalog.CpBrochureFeatures,
+            "www.thejewellerytrend.com");
+        Assert.DoesNotContain(directory, l => SurfaceChromePolicy.IsErpDestination(l.Href));
     }
 
     private static string Find(string relative)

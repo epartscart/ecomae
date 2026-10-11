@@ -60,6 +60,7 @@ public sealed class StorefrontOrderNotificationTests
     [InlineData("{\"from_email\":\"from@x.ae\"}", "cfg@x.ae", "from@x.ae")]
     [InlineData("{}", "noreply@x.ae", "noreply@x.ae")]
     [InlineData("", "", "admin@epartscart.com")]
+    [InlineData("{\"admin_email\":\"epartscart@gmail.com\"}", "cfg@x.ae", "orders@epartscart.com")]
     public void AdminEmail_FollowsSiteContextThenFallback(string contactJson, string configFrom, string expected)
         => Assert.Equal(
             expected,

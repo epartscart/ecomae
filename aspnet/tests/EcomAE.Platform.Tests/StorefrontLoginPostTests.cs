@@ -175,6 +175,27 @@ public sealed class StorefrontLoginPostTests
         Assert.False(StorefrontLoginPostMiddleware.IsLoginPagePath("/en/users/loginx"));
     }
 
+    [Fact]
+    public void LoginPostMiddleware_DoesNotFallThroughToAntiforgery()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            var candidate = Path.Combine(dir.FullName, "aspnet/src/EcomAE.Platform/Storefront/StorefrontLoginPostMiddleware.cs");
+            if (File.Exists(candidate))
+            {
+                var text = File.ReadAllText(candidate);
+                Assert.Contains("Never fall through to Blazor antiforgery", text, StringComparison.Ordinal);
+                Assert.Contains("post[\"authentication\"] = \"true\"", text, StringComparison.Ordinal);
+                return;
+            }
+
+            dir = dir.Parent;
+        }
+
+        throw new FileNotFoundException("StorefrontLoginPostMiddleware.cs");
+    }
+
     private static string Canonical(JsonElement rows)
         => JsonSerializer.Serialize(rows.EnumerateArray().Select(r => r.EnumerateArray().Select(v => v.GetString()!).ToArray()).ToList());
 

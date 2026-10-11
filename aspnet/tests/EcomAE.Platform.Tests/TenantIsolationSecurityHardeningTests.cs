@@ -41,6 +41,10 @@ public sealed class TenantIsolationSecurityHardeningTests
         Assert.Contains(EcomAE.Platform.Security.EcomAePermissions.SuperBosAccess, super);
         Assert.DoesNotContain(EcomAE.Platform.Security.EcomAePermissions.SuperBosAccess, tenant);
         Assert.Contains(EcomAE.Platform.Security.EcomAePermissions.TenantCpAccess, tenant);
+
+        var erpOnly = LegacyAdminPermissionSets.ForRequest("www.taxofinca.com", TenantMode.ErpOnlyTenant);
+        Assert.DoesNotContain(EcomAE.Platform.Security.EcomAePermissions.TenantCpAccess, erpOnly);
+        Assert.Contains(EcomAE.Platform.Security.EcomAePermissions.TenantErpAccess, erpOnly);
     }
 
     [Fact]

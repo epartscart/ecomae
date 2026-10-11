@@ -1,4 +1,5 @@
 using EcomAE.Platform.Observability;
+using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Security;
 
 namespace EcomAE.Platform.Auth;
@@ -82,7 +83,9 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                             LegacySessionKind.Admin,
                             adminUser,
                             adminSession,
-                            LegacyAdminPermissionSets.ForRequestHost(httpContext.Request.Host.Host),
+                            LegacyAdminPermissionSets.ForRequest(
+                                httpContext.Request.Host.Host,
+                                SurfaceChromePolicy.ModeOf(httpContext)),
                             identity.Email,
                             identity.GroupIds,
                             HasBackendAccess: true,
@@ -100,7 +103,9 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                     LegacySessionKind.Admin,
                     adminUser,
                     adminSession,
-                    LegacyAdminPermissionSets.ForRequestHost(httpContext.Request.Host.Host),
+                    LegacyAdminPermissionSets.ForRequest(
+                        httpContext.Request.Host.Host,
+                        SurfaceChromePolicy.ModeOf(httpContext)),
                     HasBackendAccess: true);
             }
         }

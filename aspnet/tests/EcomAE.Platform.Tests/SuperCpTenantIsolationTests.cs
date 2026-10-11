@@ -124,10 +124,19 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Contains("BuildBosFleetHealthAsync", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__hero", text, StringComparison.Ordinal);
         // Full BOC console chrome (top mega-menu + fleet + platform banner).
-        Assert.Contains("epc-boc__topnav", text, StringComparison.Ordinal);
+        Assert.Contains("epc-boc--in-chrome", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("position:fixed!important;inset:0!important;z-index:4000!important", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("<PhpSuperCpBocTopnav", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__platform-banner", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__fleet-grid", text, StringComparison.Ordinal);
-        Assert.Contains("PhpSuperCpBocNav.Nav()", text, StringComparison.Ordinal);
+        Assert.Contains("epc-premium-shell", text, StringComparison.Ordinal);
+        var boc = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpBocTopnav.razor"));
+        Assert.Contains("PhpSuperCpBocNav.Nav()", boc, StringComparison.Ordinal);
+        Assert.Contains("epc_boc_topnav", boc, StringComparison.Ordinal);
+        Assert.Contains("flex-direction:row !important", boc, StringComparison.Ordinal);
+        Assert.Contains("list-style:none !important", boc, StringComparison.Ordinal);
+        Assert.Contains("/cp/logout", boc, StringComparison.Ordinal);
+        Assert.Contains("<PhpBocTopnavBinder", boc, StringComparison.Ordinal);
         // Fleet console must not query tenant shop digests.
         Assert.DoesNotContain("ListCpOrdersAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpProductCatalogueDigestAsync", text, StringComparison.Ordinal);
@@ -155,9 +164,12 @@ public sealed class SuperCpTenantIsolationTests
                 $"area {area.Key} href {area.Href} left the raw PHP shell path");
         }
 
-        // Every group renders (no empty groups in the mega menu).
+        // Rendered Super CP menu drops ERP / tenant-shop groups so chrome stays on Super CP.
         var nav = EcomAE.Platform.Presentation.PhpSuperCpBocNav.Nav().ToList();
-        Assert.Equal(15, nav.Count);
+        Assert.True(nav.Count > 0 && nav.Count < 15, $"expected a slimmer Super CP menu, found {nav.Count}");
+        Assert.DoesNotContain(nav, n => n.Group.Key == "erp");
+        Assert.Contains(nav, n => n.Group.Key == "command");
+        Assert.Contains(nav, n => n.Group.Key == "lifecycle");
     }
 
     [Fact]

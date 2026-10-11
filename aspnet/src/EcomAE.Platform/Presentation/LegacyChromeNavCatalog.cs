@@ -98,6 +98,9 @@ public static class LegacyChromeNavCatalog
         new("Marketplace apps", "/cp/marketplace-apps-app"),
         new("Notifications", "/cp/notifications-app"),
         new("Portal settings", "/cp/portal-settings-app"),
+        new("Platform mail", "/cp/super-mail-app"),
+        new("Mailbox", "/cp/mailbox-app"),
+        new("Data migrations", "/cp/data-migrations-app"),
         new("Geo / regions", "/cp/geo-regions-app"),
         new("Product filters", "/cp/product-filters-app"),
         new("Order statuses", "/cp/order-statuses-app"),
@@ -155,6 +158,7 @@ public static class LegacyChromeNavCatalog
         new("Staff", "/erp/hr-overview-app"),
         new("Income Statement", "/erp/report-center-app"),
         new("Balance Sheet", "/erp/report-center-app"),
+        new("Mailbox", "/erp/mailbox-app"),
     ];
 
     /// <summary>BOS sidebar sections → ASP.NET BOS / CP / ERP routes only.</summary>
@@ -171,6 +175,7 @@ public static class LegacyChromeNavCatalog
         new("Auto Parts", "/storefront/search-app", "Parts search"),
         new("Tax & Advisory", "/erp/uae-tax-compliance-app", "Tax"),
         new("Platform", "/cp/tenants-app", "Portal"),
+        new("Platform mail", "/bos/mail-app", "Unlimited domains"),
     ];
 
     public static readonly IReadOnlyList<NavItem> BosQuickActions =
@@ -182,6 +187,7 @@ public static class LegacyChromeNavCatalog
         new("Fleet summary KPIs", "/bos/fleet-summary-app"),
         new("Fleet command", "/bos/app"),
         new("Native BOS", "/bos"),
+        new("Platform mail", "/bos/mail-app"),
     ];
 
     public static readonly IReadOnlyList<NavItem> Storefront =

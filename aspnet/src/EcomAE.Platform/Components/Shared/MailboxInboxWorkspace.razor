@@ -1,0 +1,261 @@
+@using System.Globalization
+@using EcomAE.Platform.Mail
+
+<div class="epc-mail-hub" data-mail-workspace="@Surface">
+    <MailboxWorkspaceStyles />
+
+    <div class="epc-mail-brand">
+        <div class="epc-mail-brand__mark"><i class="fa fa-envelope-open"></i></div>
+        <div>
+            <div class="epc-mail-brand__name">@(Surface == "erp" ? "ERP mailbox" : "Mailbox")</div>
+            <div class="epc-mail-brand__sub">
+                Own inbox on <code>@TenantDomain</code> · isolated by <code>site_key=@SiteKey</code>.
+                @(IsSuper ? "Super ERP customers create @@ecomae.com here. Shop tenants stay on their domain." : "Create as many name@@" + TenantDomain + " mailboxes as you need. Never @@ecomae.com.")
+            </div>
+        </div>
+        <div class="epc-mail-brand__actions">
+            @if (Surface == "cp")
+            {
+                <a class="epc-mail-chip" href="/erp/mailbox-app">ERP mailbox</a>
+                <a class="epc-mail-chip" href="/cp/tenant-email-app">Outgoing SMTP</a>
+            }
+            else
+            {
+                <a class="epc-mail-chip" href="/cp/mailbox-app">Open in Control Panel</a>
+                <a class="epc-mail-chip" href="/cp/tenant-email-app">Outgoing SMTP</a>
+            }
+            @if (IsSuper)
+            {
+                <a class="epc-mail-chip" href="/cp/super-mail-app">Platform mail setup</a>
+            }
+        </div>
+    </div>
+
+    <div class="epc-mail-kpi" aria-label="Mailbox KPIs">
+        <div class="epc-mail-kpi__item">
+            <div class="epc-mail-kpi__val">@Boxes.Count.ToString(CultureInfo.InvariantCulture)</div>
+            <div class="epc-mail-kpi__label">Mailboxes</div>
+        </div>
+        <div class="epc-mail-kpi__item">
+            <div class="epc-mail-kpi__val">@(string.IsNullOrWhiteSpace(Opened) ? "—" : LocalOf(Opened))</div>
+            <div class="epc-mail-kpi__label">Opened</div>
+        </div>
+        <div class="epc-mail-kpi__item">
+            <div class="epc-mail-kpi__val">@Unread.ToString(CultureInfo.InvariantCulture)</div>
+            <div class="epc-mail-kpi__label">Unread</div>
+        </div>
+        <div class="epc-mail-kpi__item">
+            <div class="epc-mail-kpi__val">@(string.IsNullOrWhiteSpace(LoginEmail) ? "—" : LoginEmail)</div>
+            <div class="epc-mail-kpi__label">Login email</div>
+        </div>
+        <div class="epc-mail-kpi__item">
+            <div class="epc-mail-kpi__val">@SiteKey</div>
+            <div class="epc-mail-kpi__label">site_key</div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(FlashOk))
+    {
+        <div class="alert alert-success epc-mail-flash" role="status">@FlashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(FlashErr))
+    {
+        <div class="alert alert-danger epc-mail-flash" role="status">@FlashErr</div>
+    }
+    @if (!IsAdmin)
+    {
+        <div class="alert alert-info epc-mail-flash" role="status">Sign in with a @(Surface == "erp" ? "ERP / CP" : "Control Panel") admin session to read this tenant’s mailbox.</div>
+    }
+
+    <details class="epc-mail-guide-wrap" open="@(Boxes.Count == 0)">
+        <summary>How this mailbox works</summary>
+        <MailboxVisualGuide Audience="@(IsSuper ? "erp" : "tenant")" Domain="@(IsSuper ? PurelymailDns.FirstDomain : TenantDomain)" />
+    </details>
+
+    @if (IsAdmin && CanCreate)
+    {
+        <div class="epc-mail-panel">
+            <div class="epc-mail-panel__head"><h4>Create a person mailbox</h4></div>
+            <div class="epc-mail-panel__body">
+                <form method="post" action="@WritePath" class="epc-mail-form">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="create_staff" />
+                    <input type="hidden" name="returnUrl" value="@ReturnBase" />
+                    <div class="epc-mail-form-grid">
+                        <div class="form-group">
+                            <label>New mailbox on @TenantDomain</label>
+                            <input type="text" class="form-control" name="local_part" placeholder="@(IsSuper ? "firstname.lastname" : "ops")" />
+                        </div>
+                        <div class="form-group">
+                            <label>Mailbox + login password</label>
+                            <input type="password" class="form-control" name="password" autocomplete="new-password" />
+                        </div>
+                    </div>
+                    <div class="epc-mail-actions">
+                        <button type="submit" class="epc-mail-btn">@CreateButton</button>
+                    </div>
+                    <p class="epc-mail-note">@CreateHint</p>
+                </form>
+                @if (ShowBusinessSetup)
+                {
+                    <form method="post" action="@WritePath" class="epc-mail-form" style="margin-top:14px">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="action" value="setup_business" />
+                        <input type="hidden" name="returnUrl" value="@ReturnBase" />
+                        <p class="epc-mail-note">Create info, hello, support, sales, accounts, orders, billing on <code>@TenantDomain</code>.</p>
+                        <button type="submit" class="epc-mail-btn epc-mail-btn--ghost">Create standard business mailboxes</button>
+                    </form>
+                }
+            </div>
+        </div>
+    }
+
+    @if (Boxes.Count == 0)
+    {
+        <div class="epc-mail-panel">
+            <div class="epc-mail-empty">
+                <h4>No mailbox is assigned yet</h4>
+                <p>@(IsSuper ? "Create one above, or ask Super CP to run Create mail for all shop tenants." : "Create one above, or ask Super CP to add the domain.")</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="epc-mail-inbox">
+            <div class="epc-mail-col">
+                <div class="epc-mail-col__head">Mailboxes</div>
+                <div class="epc-mail-col__body">
+                    @foreach (var box in Boxes)
+                    {
+                        var smtp = SmtpFor is null ? null : SmtpFor(box.Address);
+                        <a class="epc-mail-box @(string.Equals(box.Address, Opened, StringComparison.OrdinalIgnoreCase) ? "is-active" : null)"
+                           href="@InboxHref(box.Address)">
+                            <strong>
+                                @box.Address
+                                @if (box.FirstWorking)
+                                {
+                                    <span class="epc-mail-badge epc-mail-badge--ok">first working</span>
+                                }
+                            </strong>
+                            <span>@(smtp is null ? "" : smtp.Host + ":" + smtp.Port + " " + smtp.Encryption)</span>
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="epc-mail-col">
+                <div class="epc-mail-col__head">Inbox · @(string.IsNullOrWhiteSpace(Opened) ? "choose a mailbox" : Opened)</div>
+                <div class="epc-mail-col__body">
+                    @if (string.IsNullOrWhiteSpace(Opened))
+                    {
+                        <div class="epc-mail-empty"><h4>Open inbox</h4><p>Choose a mailbox you own. This page never shows another tenant.</p></div>
+                    }
+                    else if (Messages.Count == 0)
+                    {
+                        <div class="epc-mail-empty"><h4>No messages yet.</h4><p>Compose on the right. Received mail for this address only.</p></div>
+                    }
+                    else
+                    {
+                        @foreach (var row in Messages)
+                        {
+                            <a class="epc-mail-msg @(row.Unread ? "is-unread" : null) @(Selected?.Id == row.Id ? "is-active" : null)"
+                               href="@MessageHref(Opened, row.Id)">
+                                <div class="epc-mail-msg__top">
+                                    <strong>@(string.IsNullOrWhiteSpace(row.Subject) ? "(no subject)" : row.Subject)</strong>
+                                    <em title="@MailboxTime.Stamp(row.ReceivedUtc)">@MailboxTime.Rel(row.ReceivedUtc)</em>
+                                </div>
+                                <span>@row.From</span>
+                                <span>@(string.IsNullOrWhiteSpace(row.Excerpt) ? row.Body : row.Excerpt)</span>
+                            </a>
+                        }
+                    }
+                </div>
+            </div>
+            <div class="epc-mail-col">
+                <div class="epc-mail-col__head">@(Selected is null ? "Read & compose" : Selected.Subject)</div>
+                <div class="epc-mail-col__body">
+                    @if (Selected is not null)
+                    {
+                        <div class="epc-mail-reader">
+                            <h3>@(string.IsNullOrWhiteSpace(Selected.Subject) ? "(no subject)" : Selected.Subject)</h3>
+                            <p class="epc-mail-reader__meta">
+                                From @Selected.From · To @Selected.To · @MailboxTime.Stamp(Selected.ReceivedUtc)
+                            </p>
+                            <div class="epc-mail-reader__body">@(string.IsNullOrWhiteSpace(Selected.Body) ? Selected.Excerpt : Selected.Body)</div>
+                        </div>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(Opened))
+                    {
+                        <div class="epc-mail-empty"><h4>Nothing selected</h4><p>Pick a message, or compose a new one below.</p></div>
+                    }
+                    else
+                    {
+                        <div class="epc-mail-empty"><h4>Own inbox only</h4><p>Open a mailbox first. You cannot read another customer or tenant.</p></div>
+                    }
+
+                    @if (IsAdmin && !string.IsNullOrWhiteSpace(Opened))
+                    {
+                        <form method="post" action="@WritePath" class="epc-mail-compose epc-mail-form">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="action" value="send" />
+                            <input type="hidden" name="address" value="@Opened" />
+                            <input type="hidden" name="returnUrl" value="@InboxHref(Opened)" />
+                            <h4>Compose from @Opened</h4>
+                            <div class="form-group">
+                                <label>To</label>
+                                <input type="email" class="form-control" name="to" placeholder="customer@example.com" />
+                            </div>
+                            <div class="form-group">
+                                <label>Subject</label>
+                                <input type="text" class="form-control" name="subject" placeholder="Subject" />
+                            </div>
+                            <div class="form-group">
+                                <label>Message</label>
+                                <textarea class="form-control" name="body" rows="7" placeholder="Write a clear message…"></textarea>
+                            </div>
+                            <button type="submit" class="epc-mail-btn">Send</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Surface { get; set; } = "cp";
+    [Parameter] public string WritePath { get; set; } = "/cp/mailbox/write";
+    [Parameter] public string ReturnBase { get; set; } = "/cp/mailbox-app";
+    [Parameter] public bool IsAdmin { get; set; }
+    [Parameter] public bool IsSuper { get; set; }
+    [Parameter] public bool CanCreate { get; set; }
+    [Parameter] public bool ShowBusinessSetup { get; set; }
+    [Parameter] public string SiteKey { get; set; } = "tenant";
+    [Parameter] public string TenantDomain { get; set; } = "";
+    [Parameter] public string LoginEmail { get; set; } = "";
+    [Parameter] public string Opened { get; set; } = "";
+    [Parameter] public string SelectedMessageId { get; set; } = "";
+    [Parameter] public string FlashOk { get; set; } = "";
+    [Parameter] public string FlashErr { get; set; } = "";
+    [Parameter] public string CreateButton { get; set; } = "Create mailbox and CP user";
+    [Parameter] public string CreateHint { get; set; } = "Creates a mailbox and a login with the same address.";
+    [Parameter] public IReadOnlyList<PlatformMailbox> Boxes { get; set; } = [];
+    [Parameter] public IReadOnlyList<MailboxMessage> Messages { get; set; } = [];
+    [Parameter] public Func<string, SmtpDefaults>? SmtpFor { get; set; }
+
+    private int Unread => Messages.Count(m => m.Unread);
+    private MailboxMessage? Selected =>
+        Messages.FirstOrDefault(m => string.Equals(m.Id, SelectedMessageId, StringComparison.Ordinal))
+        ?? Messages.FirstOrDefault();
+
+    private string InboxHref(string address)
+        => ReturnBase + "?address=" + Uri.EscapeDataString(address);
+
+    private string MessageHref(string address, string id)
+        => InboxHref(address) + "&msg=" + Uri.EscapeDataString(id);
+
+    private static string LocalOf(string address)
+    {
+        var at = address.IndexOf('@');
+        return at > 0 ? address[..at] : address;
+    }
+}

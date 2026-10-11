@@ -2,6 +2,8 @@
 @page "/cp/orders-app"
 @page "/cp/shop/orders/orders"
 @page "/cp/shop/orders/order"
+@page "/cp/shop/orders/order_card"
+@page "/cp/shop/orders/orders_items"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
@@ -24,7 +26,12 @@
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-<div class="col-lg-12 epc-scp-panel epc-scp-orders-page epc-orders-page" data-epc-oms-ssr="1">
+<div class="col-lg-12 epc-scp-panel epc-scp-orders-page epc-orders-page"
+     data-epc-oms-ssr="1"
+     data-order-card="@CpOrderProcessPages.OrderCardPath"
+     data-orders-items="@CpOrderProcessPages.OrdersItemsPath"
+     data-detail-pane="@CpOrderProcessPages.OrdersDetailPanePath"
+     data-whatsapp-share="@CpOrderProcessPages.WhatsappSharePath">
     <div class="epc-orders-page__hero">
         <div>
             <h2><i class="fa fa-shopping-basket"></i> Orders</h2>
@@ -40,7 +47,10 @@
         }
         <div class="epc-orders-page__hero-actions">
             <a class="btn btn-default btn-sm" href="/cp/order-statuses-app"><i class="fa fa-tags"></i> Order statuses</a>
-            <a class="btn btn-default btn-sm" href="/cp/fulfillment-queue-app"><i class="fa fa-truck"></i> Fulfilment queue</a>
+            <a class="btn btn-default btn-sm" href="@CpOrderProcessPages.FulfilmentHref"><i class="fa fa-truck"></i> Fulfilment queue</a>
+            <a class="btn btn-default btn-sm" href="@CpOrderProcessPages.FulfilmentGuideHref"><i class="fa fa-book"></i> Fulfilment guide</a>
+            <a class="btn btn-default btn-sm" href="@CpOrderProcessPages.OmsGuideHref"><i class="fa fa-calendar"></i> OMS daily</a>
+            <a class="btn btn-default btn-sm" href="@CpOrderProcessPages.WhatsappGuideHref"><i class="fa fa-whatsapp"></i> WhatsApp</a>
             <a class="btn btn-default btn-sm" href="/cp/returns-rma-app"><i class="fa fa-undo"></i> Returns</a>
             <a class="btn btn-default btn-sm" href="/cp/carts-app"><i class="fa fa-shopping-cart"></i> Carts</a>
         </div>
@@ -51,6 +61,14 @@
         <a class="epc-orders-tab is-completed @(_filter.Tab == "completed" ? "is-active" : null)" href="@TabHref("completed")">Completed</a>
         <a class="epc-orders-tab @(_filter.Tab == "all" ? "is-active" : null)" href="@TabHref("all")">All orders</a>
     </div>
+
+    @if (!string.IsNullOrEmpty(_guideTitle))
+    {
+        <div class="alert alert-info" id="epc-order-guide" role="status">
+            <strong>@_guideTitle</strong>
+            <p style="margin:.35rem 0 0">@_guideBody</p>
+        </div>
+    }
 
     @if (!_isAdmin)
     {
@@ -668,6 +686,8 @@
     private string _detailTab = "manage";
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _guideTitle = "";
+    private string _guideBody = "";
 
     private static readonly (string Key, string Label)[] DetailTabs =
     [
@@ -716,6 +736,9 @@
         var q = ctx.Request.Query;
         _flashOk = q["ok"].ToString() ?? "";
         _flashErr = q["err"].ToString() ?? "";
+        var guide = q["guide"].ToString();
+        _guideTitle = CpOrderProcessPages.GuideTitle(guide);
+        _guideBody = CpOrderProcessPages.GuideBody(guide);
         if (long.TryParse(q["order_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var oid) && oid > 0)
         {
             _selectedId = oid;

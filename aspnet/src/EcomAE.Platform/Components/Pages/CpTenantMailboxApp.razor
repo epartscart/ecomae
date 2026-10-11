@@ -1,0 +1,96 @@
+@page "/cp/mailbox-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Mail
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IMailboxInboxService Inbox
+@inject IPlatformMailService Mail
+
+<PageTitle>Mailbox · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <div class="col-lg-12">
+        <MailboxInboxWorkspace
+            Surface="cp"
+            WritePath="/cp/mailbox/write"
+            ReturnBase="/cp/mailbox-app"
+            IsAdmin="_isAdmin"
+            IsSuper="_isSuper"
+            CanCreate="@(_isAdmin && !_isSuper && !string.IsNullOrWhiteSpace(_tenantDomain))"
+            ShowBusinessSetup="true"
+            SiteKey="@_siteKey"
+            TenantDomain="@_tenantDomain"
+            LoginEmail="@_loginEmail"
+            Opened="@_opened"
+            SelectedMessageId="@_msg"
+            FlashOk="@_flashOk"
+            FlashErr="@_flashErr"
+            CreateButton="Create mailbox and CP user"
+            CreateHint="@_createHint"
+            Boxes="_boxes"
+            Messages="_messages"
+            SmtpFor="Mail.SmtpFor" />
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private bool _isSuper;
+    private string _siteKey = "tenant";
+    private string _opened = "";
+    private string _msg = "";
+    private string _loginEmail = "";
+    private string _tenantDomain = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private IReadOnlyList<PlatformMailbox> _boxes = [];
+    private IReadOnlyList<MailboxMessage> _messages = [];
+    private const string _createHint = "Creates local@this shop domain on Purelymail and a Control Panel login with the same address. Other tenant domains are refused.";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isSuper = SuperCpHostGate.IsAllowed(ctx);
+        _siteKey = PlatformMailNormalize.SiteKey(ctx.Request.Query["site_key"].ToString(), _isSuper, ctx.Request.Host.Host);
+        _tenantDomain = PlatformMailNormalize.Domain(ctx.Request.Host.Host);
+        _loginEmail = session.Email ?? "";
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
+        _msg = ctx.Request.Query["msg"].ToString();
+        _boxes = Inbox.ListForCaller(_siteKey, superCp: false, _loginEmail, ownInboxOnly: _isSuper);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _opened = Inbox.PreferLoginAddress(_boxes, _loginEmail, _isSuper ? _loginEmail : ctx.Request.Query["address"].ToString());
+
+        if (string.IsNullOrWhiteSpace(_opened))
+        {
+            return;
+        }
+
+        var read = await Inbox.ReadAsync(_siteKey, superCp: false, _opened, 40, ctx.RequestAborted, _loginEmail, ownInboxOnly: _isSuper);
+        _messages = read.Messages;
+        if (read.Ok)
+        {
+            _flashOk = read.Message;
+        }
+        else
+        {
+            _flashErr = read.Message;
+        }
+    }
+}

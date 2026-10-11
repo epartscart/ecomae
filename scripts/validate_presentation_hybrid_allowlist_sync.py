@@ -71,9 +71,11 @@ SHELLS_LOGINS_AUTH = frozenset(
         "/erp/login",
         "/bos/login",
         "/storefront/login",
+        "/storefront",
         "/auth/login/admin",
         "/cp/orders-digest",
         "/erp/delivery-note-document",
+        "/robots.txt",
     }
 )
 

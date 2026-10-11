@@ -146,6 +146,10 @@ public sealed class TenantIsolationAndSessionCacheTests
             TenantContext.ForKnownTenant("b", "tenant-a.example", TenantMode.LiveTenant, TenantSurface.Erp, "/erp", "db_b");
         Assert.True(await store.AdminSessionExistsAsync("tok", 7));
         Assert.Equal(2, inner.AdminCalls);
+
+        store.Forget("tenant-a.example", "tok", 7, "", 0);
+        Assert.True(await store.AdminSessionExistsAsync("tok", 7));
+        Assert.Equal(3, inner.AdminCalls);
     }
 
     private sealed class CountingSessionStore : ILegacySessionStore

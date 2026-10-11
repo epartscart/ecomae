@@ -1,0 +1,101 @@
+@page "/erp/mailbox-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Mail
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Components.Shared.Desktop
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IMailboxInboxService Inbox
+@inject IPlatformMailService Mail
+
+<PageTitle>Mailbox · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Mailbox" BreadcrumbArea="Workspace" BreadcrumbTab="Mailbox">
+    <PhpErpModulePageHeader Title="Mailbox" Subtitle="@_subtitle" PhpTabHref="" />
+
+    <MailboxInboxWorkspace
+        Surface="erp"
+        WritePath="/erp/mailbox/write"
+        ReturnBase="/erp/mailbox-app"
+        IsAdmin="_isAdmin"
+        IsSuper="_isSuper"
+        CanCreate="_canCreate"
+        ShowBusinessSetup="false"
+        SiteKey="@_siteKey"
+        TenantDomain="@_mailDomain"
+        LoginEmail="@_loginEmail"
+        Opened="@_opened"
+        SelectedMessageId="@_msg"
+        FlashOk="@_flashOk"
+        FlashErr="@_flashErr"
+        CreateButton="@(_isSuper ? "Create ERP customer mailbox on ecomae.com" : "Create mailbox and login")"
+        CreateHint="@_createHint"
+        Boxes="_boxes"
+        Messages="_messages"
+        SmtpFor="Mail.SmtpFor" />
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private bool _isSuper;
+    private bool _canCreate;
+    private string _siteKey = "tenant";
+    private string _mailDomain = "";
+    private string _opened = "";
+    private string _msg = "";
+    private string _loginEmail = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private IReadOnlyList<PlatformMailbox> _boxes = [];
+    private IReadOnlyList<MailboxMessage> _messages = [];
+    private const string _subtitle = "Own inbox only. Shop tenants use their domain; only ERP customers create @ecomae.com mailboxes.";
+    private string _createHint => _isSuper
+        ? "Only ERP customers get @ecomae.com addresses. Reserved locals (info, hello, yawer, admin, …) stay Super CP."
+        : "Creates a mailbox and a login with the same address on this shop domain.";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isSuper = SuperCpHostGate.IsAllowed(ctx);
+        _siteKey = PlatformMailNormalize.SiteKey(ctx.Request.Query["site_key"].ToString(), _isSuper, ctx.Request.Host.Host);
+        _mailDomain = _isSuper ? PurelymailDns.FirstDomain : PlatformMailNormalize.Domain(ctx.Request.Host.Host);
+        _canCreate = _isAdmin && !string.IsNullOrWhiteSpace(_mailDomain);
+        _loginEmail = session.Email ?? "";
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
+        _msg = ctx.Request.Query["msg"].ToString();
+        _boxes = Inbox.ListForCaller(_siteKey, superCp: false, _loginEmail, ownInboxOnly: _isSuper);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _opened = Inbox.PreferLoginAddress(_boxes, _loginEmail, _isSuper ? _loginEmail : ctx.Request.Query["address"].ToString());
+
+        if (string.IsNullOrWhiteSpace(_opened))
+        {
+            return;
+        }
+
+        var read = await Inbox.ReadAsync(_siteKey, superCp: false, _opened, 40, ctx.RequestAborted, _loginEmail, ownInboxOnly: _isSuper);
+        _messages = read.Messages;
+        if (read.Ok)
+        {
+            _flashOk = read.Message;
+        }
+        else
+        {
+            _flashErr = read.Message;
+        }
+    }
+}

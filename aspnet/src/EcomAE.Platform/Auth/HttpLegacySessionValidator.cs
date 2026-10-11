@@ -1,3 +1,4 @@
+using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Security;
 
 namespace EcomAE.Platform.Auth;
@@ -30,7 +31,9 @@ public sealed class HttpLegacySessionValidator : ILegacySessionValidator
                 LegacySessionKind.Admin,
                 adminUser,
                 adminSession,
-                LegacyAdminPermissionSets.ForRequestHost(httpContext.Request.Host.Host)));
+                LegacyAdminPermissionSets.ForRequest(
+                    httpContext.Request.Host.Host,
+                    SurfaceChromePolicy.ModeOf(httpContext))));
         }
 
         var customerSession = httpContext.Request.Cookies["session"];

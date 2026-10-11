@@ -282,6 +282,11 @@ if [[ ! -f "$SERVICE_ENV_DIR/platform.env" ]]; then
 fi
 
 if [[ "$RUN_SYSTEMD" == "1" ]]; then
+    APP_DATA_DIR="${ECOMAE_APP_DATA:-/var/lib/ecomae-aspnet}"
+    install -d -m 0750 "$APP_DATA_DIR"
+    if id www-data >/dev/null 2>&1; then
+        chown www-data:www-data "$APP_DATA_DIR"
+    fi
     install -d /etc/systemd/system "$SERVICE_ENV_DIR"
     install -m 0644 "$ROOT/deploy/aspnet/ecomae-platform.service" /etc/systemd/system/ecomae-platform.service
     install -m 0644 "$ROOT/deploy/aspnet/ecomae-workers.service" /etc/systemd/system/ecomae-workers.service

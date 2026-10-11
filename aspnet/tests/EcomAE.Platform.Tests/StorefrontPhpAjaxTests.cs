@@ -189,10 +189,9 @@ public sealed class StorefrontPhpAjaxTests
             Assert.Equal(501, guest.Code);
 
             await ExecuteAsync(connectionString, "DROP TABLE shop_carts");
-            var missingCart = (StorefrontPhpAjax.StatusBody)await StorefrontPhpAjax.CartInfoAsync(connection, 7, 1, true, CancellationToken.None);
-            Assert.False(missingCart.Status);
-            Assert.Equal("Cart is not in this database.", missingCart.Message);
-            Assert.DoesNotContain("doesn't exist", missingCart.Message, StringComparison.OrdinalIgnoreCase);
+            var missingCart = (StorefrontPhpAjax.CartBody)await StorefrontPhpAjax.CartInfoAsync(connection, 7, 1, true, CancellationToken.None);
+            Assert.Equal(0, missingCart.CartItemsCount);
+            Assert.Equal(string.Empty, missingCart.CartItemsSum);
 
             await ExecuteAsync(connectionString, "DROP TABLE users_vin");
             var missingVin = (StorefrontPhpAjax.VinBody)await StorefrontPhpAjax.VinUnreadAsync(connection, 7, CancellationToken.None);

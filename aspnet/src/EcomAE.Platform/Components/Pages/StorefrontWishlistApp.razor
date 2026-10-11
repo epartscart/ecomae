@@ -5,6 +5,7 @@
 @using System.Globalization
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IHttpContextAccessor Http
 
@@ -38,6 +39,7 @@
 
 <StorefrontTenantChrome>
 
+    <div data-bookmarks-php="@StorefrontComparePages.BookmarksPath" hidden></div>
     <PhpStorefrontPageHeader Title="Bookmarks"
                             Subtitle="Products you saved from the catalogue.">
         <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.OwnCatalog">Own catalog</a>

@@ -1,4 +1,5 @@
 using System.Linq;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Presentation;
 
@@ -185,11 +186,17 @@ public static class LegacyDesktopChromeCatalog
                 continue;
             }
 
+            if (nav.Label.Equals("ERP", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             var id = Slug(nav.Label);
             var links = PhpModuleCatalog.CpBrochureFeatures
                 .Where(f => MatchesGroup(f, nav.Label, nav.Href))
                 .Where(f => includeSuperOnly || !IsSuperOnlyCpLink(f.Href, f.Group))
                 .Where(f => jewelleryIndustry || !IsJewelleryCpLink(f))
+                .Where(f => !SurfaceChromePolicy.IsErpDestination(f.Href))
                 .ToList();
 
             foreach (var extra in PhpLegacyGroupParityLinks(nav.Label))
@@ -200,6 +207,11 @@ public static class LegacyDesktopChromeCatalog
                 }
 
                 if (!jewelleryIndustry && IsJewelleryCpLink(extra))
+                {
+                    continue;
+                }
+
+                if (SurfaceChromePolicy.IsErpDestination(extra.Href))
                 {
                     continue;
                 }
@@ -284,6 +296,26 @@ public static class LegacyDesktopChromeCatalog
         return groups;
     }
 
+    /// <summary>
+    /// Tenant CP brochure directory: drop jewellery ERP shells, Super-only fleet links,
+    /// and ERP-window destinations. Super CP keeps Super-operator brochure links only.
+    /// </summary>
+    public static IReadOnlyList<PhpModuleCatalog.ModuleLink> BrochureFeaturesForHost(
+        IReadOnlyList<PhpModuleCatalog.ModuleLink> links,
+        string? host)
+    {
+        var isolated = SurfaceChromePolicy.KeepCpBrochure(links, host);
+        if (PlatformHostPolicy.IsSuperCpHost(host))
+        {
+            return isolated;
+        }
+
+        var jewellery = ErpIndustryNav.ShowJewelleryModules(ErpHostContext.Resolve(host).IndustryCode, company: null);
+        return isolated
+            .Where(link => jewellery || !IsJewelleryCpLink(link))
+            .ToList();
+    }
+
     /// <summary>Jewellery / JW brochure + app links — hidden on non-jewellery tenant CP (PHP industry filter).</summary>
     public static bool IsJewelleryCpLink(PhpModuleCatalog.ModuleLink link)
         => IsJewelleryHrefOrLabel(link.Href, link.Label)
@@ -308,7 +340,9 @@ public static class LegacyDesktopChromeCatalog
             || h.Contains("epc_jewel", StringComparison.OrdinalIgnoreCase)
             || h.Contains("gold_rate", StringComparison.OrdinalIgnoreCase)
             || h.Contains("jewellery_tag", StringComparison.OrdinalIgnoreCase)
-            || h.Contains("gold_scheme", StringComparison.OrdinalIgnoreCase))
+            || h.Contains("gold_scheme", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("retail_barcode", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("jewellery-retail", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
@@ -317,7 +351,8 @@ public static class LegacyDesktopChromeCatalog
         if (h.Contains("area=retail", StringComparison.OrdinalIgnoreCase)
             || h.Contains("area=service_mgmt", StringComparison.OrdinalIgnoreCase)
             || h.Contains("tab=retail_commerce", StringComparison.OrdinalIgnoreCase)
-            || h.Contains("tab=jw_retail_sales", StringComparison.OrdinalIgnoreCase))
+            || h.Contains("tab=jw_retail_sales", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("tab=retail_barcode", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
@@ -408,6 +443,8 @@ public static class LegacyDesktopChromeCatalog
             || h.Contains("tenant_hub", StringComparison.OrdinalIgnoreCase)
             || h.Contains("epc_tenant_control", StringComparison.OrdinalIgnoreCase)
             || h.Contains("/cp/tenants-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/tenant-hub-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/lifeos-", StringComparison.OrdinalIgnoreCase)
             || h.Contains("/cp/demo-tenants-app", StringComparison.OrdinalIgnoreCase)
             || h.Contains("epc_demo_tenants", StringComparison.OrdinalIgnoreCase)
             || h.Contains("epc_boc_audit_log", StringComparison.OrdinalIgnoreCase)
@@ -435,7 +472,7 @@ public static class LegacyDesktopChromeCatalog
         return false;
     }
 
-    private static bool IsSuperOnlyNavGroup(string label)
+    internal static bool IsSuperOnlyNavGroup(string label)
         => label.Equals("Platform", StringComparison.OrdinalIgnoreCase)
            || label.Equals("Operator", StringComparison.OrdinalIgnoreCase);
 
