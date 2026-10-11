@@ -2442,6 +2442,39 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.Equal("cp/content/control/portal/epc_mobile_apps.php", PhpPlanQ1Howe.MobileAppsPath);
     }
 
+    [Fact]
+    public void BocTenantEmailSettings_LinksStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Hunt.Reset();
+        PhpPlanQ1Hunt.IsAdmin = () => true;
+        PhpPlanQ1Hunt.IsSuperCp = () => true;
+        PhpPlanQ1Hunt.FeatureEnabled = () => true;
+        PhpPlanQ1Hunt.BackendDir = "acme";
+        PhpPlanQ1Hunt.AdminEmail = "ada@acme.test";
+        var acme = PhpPlanQ1Hunt.EpcTenantEmailSettingsPage();
+        PhpPlanQ1Hunt.IsSuperCp = () => false;
+        PhpPlanQ1Hunt.BackendDir = "beta";
+        PhpPlanQ1Hunt.AdminEmail = "bea@beta.test";
+        var beta = PhpPlanQ1Hunt.EpcTenantEmailSettingsPage();
+        PhpPlanQ1Hunt.IsAdmin = () => false;
+        PhpPlanQ1Hunt.IsSuperCp = () => true;
+        PhpPlanQ1Hunt.BackendDir = "acme";
+        var denied = PhpPlanQ1Hunt.EpcTenantEmailSettingsPage();
+        Assert.Contains("data-ajax-url=\"/acme/content/control/portal/ajax_integrations.php\"", acme, StringComparison.Ordinal);
+        Assert.Contains("/acme/control/portal/epc_cp_auth_settings", acme, StringComparison.Ordinal);
+        Assert.Contains("ada@acme.test", acme, StringComparison.Ordinal);
+        Assert.DoesNotContain("/beta/", acme, StringComparison.Ordinal);
+        Assert.Contains("data-ajax-url=\"/beta/content/control/portal/ajax_integrations.php\"", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("Modern auth settings", beta, StringComparison.Ordinal);
+        Assert.DoesNotContain("/acme/", beta, StringComparison.Ordinal);
+        Assert.Contains("/acme/control/portal/epc_cp_auth_settings", denied, StringComparison.Ordinal);
+        Assert.Contains(PhpPlanQ1Hunt.DeniedAdmin, denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-tenant-smtp-form", denied, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Hunt.TenantEmailSettingsPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Hunt.TenantEmailSettingsPath, StringComparison.Ordinal);
+        Assert.Equal("cp/content/control/portal/epc_tenant_email_settings.php", PhpPlanQ1Hunt.TenantEmailSettingsPath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2546,6 +2579,7 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Hope.BocWarehouseControlPath,
             PhpPlanQ1Horn.BocAuditLogPath,
             PhpPlanQ1Howe.MobileAppsPath,
+            PhpPlanQ1Hunt.TenantEmailSettingsPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,

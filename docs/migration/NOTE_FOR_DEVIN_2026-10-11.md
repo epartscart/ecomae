@@ -11,7 +11,7 @@ ERP acceptance is still **0 / 15**. The weighted headline is still about **20.4%
 
 ## What Cursor did since 9 Oct
 
-Cursor ran leftover non-ERP twins on `cursor/small-gaps-storefront-done-5dbd` (stacked leftover queue). Latest measured inventory after PlanQ1Howe:
+Cursor ran leftover non-ERP twins on `cursor/small-gaps-storefront-done-5dbd` (stacked leftover queue). Latest measured inventory after PlanQ1Howe; Hunt (tenant email/SMTP) is the current leftover twin and is not ratcheted yet:
 
 | | Files | Lines |
 |---|---:|---:|
