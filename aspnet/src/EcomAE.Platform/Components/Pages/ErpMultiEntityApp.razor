@@ -175,6 +175,12 @@
                                 <td>@(string.IsNullOrWhiteSpace(mem.Consolidation) ? "—" : mem.Consolidation)</td>
                             </tr>
                         }
+                        <tr style="font-weight:600;background:#f2f6fa">
+                            <td>Total</td>
+                            <td></td>
+                            <td class="text-right">@_openedMembers.Sum(m => m.OwnershipPct).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-muted">@_openedMembers.Count members</td>
+                        </tr>
                     </tbody>
                 </table>
             }
@@ -324,6 +330,12 @@
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "me_ic_id", row.Id)">Open</a></td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td></td>
+                        <td class="text-right">@_ic.Sum(r => r.Amount).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td colspan="4" class="text-muted">@_ic.Count transactions</td>
+                    </tr>
                 }
             </tbody>
         </table>
