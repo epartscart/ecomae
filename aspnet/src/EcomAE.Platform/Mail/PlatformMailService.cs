@@ -11,6 +11,7 @@ public interface IPlatformMailService
     string TokenHint();
     SmtpDefaults SmtpFor(string address);
     IReadOnlyList<TenantMailTarget> PlanTenantDomains(IReadOnlyList<(string Hostname, string SiteKey)> tenants);
+    IReadOnlyList<TenantMailFleetRow> ListFleet(IReadOnlyList<(string Hostname, string SiteKey)>? tenants);
     Task<PlatformMailWriteResult> WriteAsync(PlatformMailWriteRequest request, CancellationToken cancellationToken);
 }
 
@@ -54,6 +55,7 @@ public sealed class PlatformMailService : IPlatformMailService
             "set_mailbox_password" => SetMailboxPassword(request),
             "setup_tenants" => await SetupTenantsAsync(request, cancellationToken).ConfigureAwait(false),
             "setup_fleet" => await SetupFleetAsync(request, cancellationToken).ConfigureAwait(false),
+            "sync_domains" => await SyncDomainsAsync(cancellationToken).ConfigureAwait(false),
             "setup_business" => await SetupBusinessAsync(request, cancellationToken).ConfigureAwait(false),
             "register_login" => await RegisterLoginAsync(request, cancellationToken).ConfigureAwait(false),
             "delete_mailbox" => await DeleteMailboxAsync(request, cancellationToken).ConfigureAwait(false),
@@ -85,6 +87,43 @@ public sealed class PlatformMailService : IPlatformMailService
         return rows;
     }
 
+    public IReadOnlyList<TenantMailFleetRow> ListFleet(IReadOnlyList<(string Hostname, string SiteKey)>? tenants)
+    {
+        var rows = new Dictionary<string, TenantMailFleetRow>(StringComparer.OrdinalIgnoreCase);
+        void Put(string domain, string siteKey)
+        {
+            var existing = _directory.FindDomain(domain);
+            rows[domain] = new TenantMailFleetRow(
+                domain,
+                existing?.SiteKey ?? siteKey,
+                existing is not null,
+                existing?.ApiSynced == true,
+                string.IsNullOrWhiteSpace(existing?.DnsStatus)
+                    ? (existing is null ? "planned" : "local")
+                    : existing!.DnsStatus,
+                existing?.OwnershipCode ?? string.Empty);
+        }
+
+        Put(PurelymailDns.FirstDomain, PurelymailDns.PlatformSiteKey);
+        foreach (var row in PlanTenantDomains(tenants ?? []))
+        {
+            Put(row.Domain, row.SiteKey);
+        }
+
+        foreach (var domain in _directory.ListDomains())
+        {
+            if (!rows.ContainsKey(domain.Domain))
+            {
+                Put(domain.Domain, domain.SiteKey);
+            }
+        }
+
+        return rows.Values
+            .OrderBy(r => string.Equals(r.Domain, PurelymailDns.FirstDomain, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .ThenBy(r => r.Domain, StringComparer.Ordinal)
+            .ToArray();
+    }
+
     private PlatformMailWriteResult SaveToken(PlatformMailWriteRequest request)
     {
         var token = (request.ApiToken ?? string.Empty).Trim();
@@ -108,26 +147,95 @@ public sealed class PlatformMailService : IPlatformMailService
         var siteKey = PlatformMailNormalize.SiteKey(request.SiteKey, superCpHost: true, requestHost: domain);
         var api = await _api.AddDomainAsync(domain, cancellationToken).ConfigureAwait(false);
         var existing = _directory.FindDomain(domain);
+        var already = AlreadyOnPurelymail(api);
+        var needsDns = NeedsCloudflare(api);
         _directory.UpsertDomain(new PlatformMailDomain(
             domain,
             siteKey,
             existing?.AddedUtc ?? DateTimeOffset.UtcNow,
             FirstPlatform: string.Equals(domain, PurelymailDns.FirstDomain, StringComparison.OrdinalIgnoreCase),
             OwnershipCode: existing?.OwnershipCode ?? string.Empty,
-            DnsStatus: api.Ok ? "added" : api.Code,
-            ApiSynced: api.Ok));
+            DnsStatus: api.Ok || already ? "added" : needsDns ? "needs_cloudflare" : api.Code,
+            ApiSynced: api.Ok || already));
 
-        if (!api.Ok && api.Code != "token_missing")
+        if (api.Code == "token_missing")
+        {
+            return new PlatformMailWriteResult(true, 1, "local_only", "Domain saved on Super CP. Set the API token, then Add tenant domains — do not create it on purelymail.com.");
+        }
+
+        if (!api.Ok && already)
+        {
+            return new PlatformMailWriteResult(true, 1, "ok", "Domain " + domain + " is already on Purelymail. Manage it from Super CP / Super BOS.");
+        }
+
+        if (!api.Ok && needsDns)
+        {
+            return new PlatformMailWriteResult(
+                true,
+                1,
+                "needs_cloudflare",
+                "Domain " + domain + " is listed on Super CP. Publish the Cloudflare pack, then Refresh DNS. Do not add it on purelymail.com/manage/domains.");
+        }
+
+        if (!api.Ok)
         {
             return new PlatformMailWriteResult(false, 1, api.Code, api.Message);
         }
 
-        if (api.Code == "token_missing")
+        return new PlatformMailWriteResult(true, 1, "ok", "Domain " + domain + " added from Super CP. Publish Cloudflare DNS, then refresh DNS.");
+    }
+
+    private async Task<PlatformMailWriteResult> SyncDomainsAsync(CancellationToken cancellationToken)
+    {
+        var listed = await _api.ListDomainsAsync(cancellationToken).ConfigureAwait(false);
+        if (!listed.Ok && listed.Code == "token_missing")
         {
-            return new PlatformMailWriteResult(true, 1, "local_only", "Domain saved locally. Set the API token so Super CP can add it on Purelymail.");
+            EnsurePlannedDomainsLocal([]);
+            return new PlatformMailWriteResult(true, 1, "local_only", "Shop domains are listed on Super CP. Save the API token to see which ones Purelymail already has.");
         }
 
-        return new PlatformMailWriteResult(true, 1, "ok", "Domain " + domain + " is ready. Add the DNS records, then refresh DNS.");
+        if (!listed.Ok)
+        {
+            return new PlatformMailWriteResult(false, 0, listed.Code, listed.Message);
+        }
+
+        var names = PurelymailHttpApi.ParseDomainNames(listed.Raw);
+        if (names.Count == 0)
+        {
+            names = listed.Message.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        }
+
+        var writes = 0;
+        foreach (var name in names)
+        {
+            var domain = PlatformMailNormalize.Domain(name);
+            if (domain.Length == 0 || !domain.Contains('.', StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var existing = _directory.FindDomain(domain);
+            var siteKey = existing?.SiteKey
+                          ?? PlatformMailNormalize.SiteKey(null, superCpHost: true, requestHost: domain);
+            _directory.UpsertDomain(new PlatformMailDomain(
+                domain,
+                siteKey,
+                existing?.AddedUtc ?? DateTimeOffset.UtcNow,
+                FirstPlatform: string.Equals(domain, PurelymailDns.FirstDomain, StringComparison.OrdinalIgnoreCase),
+                OwnershipCode: existing?.OwnershipCode ?? string.Empty,
+                DnsStatus: "on_purelymail",
+                ApiSynced: true));
+            writes++;
+        }
+
+        writes += EnsurePlannedDomainsLocal([]);
+        return new PlatformMailWriteResult(
+            true,
+            writes,
+            "ok",
+            "Super CP now lists shop domains plus "
+            + names.Count.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            + " Purelymail domain(s). Missing shop zones stay here until you click Add tenant domains.");
     }
 
     private async Task<PlatformMailWriteResult> RefreshDnsAsync(PlatformMailWriteRequest request, CancellationToken cancellationToken)
@@ -240,20 +348,15 @@ public sealed class PlatformMailService : IPlatformMailService
     private async Task<PlatformMailWriteResult> SetupTenantsAsync(PlatformMailWriteRequest request, CancellationToken cancellationToken)
     {
         var plan = PlanTenantDomains(request.Tenants ?? []);
+        var writes = EnsurePlannedDomainsLocal(request.Tenants ?? []);
         if (plan.Count == 0)
         {
-            return new PlatformMailWriteResult(true, 0, "empty_fleet", "No extra tenant domains to add. ecomae.com is already the platform domain.");
+            return new PlatformMailWriteResult(true, writes, "empty_fleet", "No extra tenant domains to add. ecomae.com is already the platform domain.");
         }
 
-        var writes = 0;
         var added = 0;
         foreach (var row in plan)
         {
-            if (row.DomainReady)
-            {
-                continue;
-            }
-
             var result = await AddDomainAsync(new PlatformMailWriteRequest("add_domain", Domain: row.Domain, SiteKey: row.SiteKey), cancellationToken).ConfigureAwait(false);
             writes += result.Writes;
             if (result.Succeeded)
@@ -414,5 +517,49 @@ public sealed class PlatformMailService : IPlatformMailService
         }
 
         return new PlatformMailWriteResult(true, 1, "ok", "Mailbox " + address + " removed from the platform directory.");
+    }
+
+    private int EnsurePlannedDomainsLocal(IReadOnlyList<(string Hostname, string SiteKey)> tenants)
+    {
+        var writes = 0;
+        if (_directory.FindDomain(PurelymailDns.FirstDomain) is null)
+        {
+            _directory.UpsertDomain(new PlatformMailDomain(
+                PurelymailDns.FirstDomain,
+                PurelymailDns.PlatformSiteKey,
+                DateTimeOffset.UtcNow,
+                FirstPlatform: true,
+                DnsStatus: "planned"));
+            writes++;
+        }
+
+        foreach (var row in PlanTenantDomains(tenants))
+        {
+            if (_directory.FindDomain(row.Domain) is not null)
+            {
+                continue;
+            }
+
+            _directory.UpsertDomain(new PlatformMailDomain(row.Domain, row.SiteKey, DateTimeOffset.UtcNow, DnsStatus: "planned"));
+            writes++;
+        }
+
+        return writes;
+    }
+
+    private static bool AlreadyOnPurelymail(PurelymailCallResult api)
+    {
+        var text = (api.Code + " " + api.Message).ToLowerInvariant();
+        return text.Contains("exist", StringComparison.Ordinal)
+               || text.Contains("already", StringComparison.Ordinal);
+    }
+
+    private static bool NeedsCloudflare(PurelymailCallResult api)
+    {
+        var text = (api.Code + " " + api.Message).ToLowerInvariant();
+        return text.Contains("ownership", StringComparison.Ordinal)
+               || text.Contains("dns", StringComparison.Ordinal)
+               || text.Contains("verify", StringComparison.Ordinal)
+               || text.Contains("not own", StringComparison.Ordinal);
     }
 }

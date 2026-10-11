@@ -55,6 +55,7 @@ else
                 <div class="panel-body">
                     <p>
                         One Purelymail account covers Super CP, Super ERP, BOS, and every tenant.
+                        <strong>Do not add shop domains on purelymail.com</strong> — Super CP / Super BOS lists and adds them here.
                         Shop tenants get mailboxes on their own domain (same business set as ecomae.com).
                         Only ERP customers create personal boxes on <code>ecomae.com</code> from Super ERP mailbox — they see and send only their own inbox.
                         Shop tenants never create <code>@@ecomae.com</code> addresses.
@@ -95,6 +96,58 @@ else
                 {
                     <text> — generate at <a href="https://purelymail.com/manage/account" target="_blank" rel="noopener">purelymail.com/manage/account</a> or set <code>ECOMAE_PURELYMAIL_API_TOKEN</code>.</text>
                 }
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Shop tenant domains — managed here (@_fleet.Count.ToString(CultureInfo.InvariantCulture))</div>
+                <div class="panel-body" style="overflow:auto">
+                    <p>These shop zones always appear on Super CP / Super BOS. Purelymail’s domain page only shows a zone after Cloudflare ownership is live — you do not create them there.</p>
+                    <table class="table table-striped" data-mail-fleet="1">
+                        <thead><tr><th>Domain</th><th>site_key</th><th>Super CP</th><th>Purelymail</th><th>DNS</th><th></th></tr></thead>
+                        <tbody>
+                        @foreach (var row in _fleet)
+                        {
+                            <tr>
+                                <td>@row.Domain @(string.Equals(row.Domain, "ecomae.com", StringComparison.OrdinalIgnoreCase) ? "(platform)" : "")</td>
+                                <td>@row.SiteKey</td>
+                                <td>@(row.InDirectory ? "listed" : "planned")</td>
+                                <td>@(row.OnPurelymail ? "yes" : "not yet — add from this page")</td>
+                                <td>@row.DnsStatus</td>
+                                <td>
+                                    @if (_isAdmin)
+                                    {
+                                        <form method="post" action="/cp/super-mail/write" style="display:inline">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="action" value="add_domain" />
+                                            <input type="hidden" name="domain" value="@row.Domain" />
+                                            <input type="hidden" name="site_key" value="@row.SiteKey" />
+                                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                                            <button type="submit" class="btn btn-xs btn-primary">Add from Super CP</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                    @if (_isAdmin)
+                    {
+                        <form method="post" action="/cp/super-mail/write" style="display:inline;margin-right:.6rem">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="action" value="setup_tenants" />
+                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                            <button type="submit" class="btn btn-primary">Add all shop domains</button>
+                        </form>
+                        <form method="post" action="/cp/super-mail/write" style="display:inline">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="action" value="sync_domains" />
+                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                            <button type="submit" class="btn btn-default">Refresh Purelymail list</button>
+                        </form>
+                    }
+                </div>
             </div>
         </div>
 
@@ -168,7 +221,7 @@ else
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="action" value="setup_tenants" />
                     <input type="hidden" name="returnUrl" value="@_returnUrl" />
-                    <p>Add every named shop domain (epartscart.com, electronicae.com, stylenlook.com, thejewellerytrend.com, taxofinca.com) plus registry hosts. ecomae.com stays the platform domain for ERP customers only.</p>
+                    <p>Add every named shop domain (epartscart.com, electronicae.com, stylenlook.com, thejewellerytrend.com, taxofinca.com) plus registry hosts from Super CP — not from purelymail.com. ecomae.com stays the platform domain for ERP customers only.</p>
                     <p class="text-muted">@_fleetHint</p>
                     <button type="submit" class="btn btn-primary">Add tenant domains</button>
                 </form>
@@ -372,6 +425,7 @@ else
     private string _flashErr = "";
     private IReadOnlyList<PlatformMailDomain> _domains = [];
     private IReadOnlyList<PlatformMailbox> _mailboxes = [];
+    private IReadOnlyList<TenantMailFleetRow> _fleet = [];
     private string _fleetHint = "Fleet registry not loaded.";
 
     protected override async Task OnInitializedAsync()
@@ -395,10 +449,12 @@ else
         _flashOk = ctx.Request.Query["ok"].ToString();
         _flashErr = ctx.Request.Query["err"].ToString();
         var fleet = await Dashboards.ListPortalTenantsAsync(500, ctx.RequestAborted);
-        var plan = Mail.PlanTenantDomains(fleet.Tenants.Select(t => (t.Hostname, t.SiteKey)).ToArray());
+        var hosts = fleet.Tenants.Select(t => (t.Hostname, t.SiteKey)).ToArray();
+        var plan = Mail.PlanTenantDomains(hosts);
+        _fleet = Mail.ListFleet(hosts);
         var missing = plan.Count(p => !p.DomainReady);
         _fleetHint = fleet.Tenants.Count == 0
-            ? (string.IsNullOrWhiteSpace(fleet.Message) ? "No tenant rows in the registry yet." : fleet.Message)
+            ? (string.IsNullOrWhiteSpace(fleet.Message) ? "Named shop domains are still listed below even without registry rows." : fleet.Message)
             : missing + " tenant domain(s) still need mail setup · " + plan.Count + " shop host(s) in the fleet.";
     }
 }

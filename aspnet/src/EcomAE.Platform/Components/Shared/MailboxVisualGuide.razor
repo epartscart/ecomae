@@ -108,7 +108,7 @@
         [
             new("1", "Publish Cloudflare DNS", "On ecomae.com and every shop zone add MX, SPF, DKIM, DMARC, and the ownership TXT from the table below. Wait until DNS is live."),
             new("2", "Save the API token once", "Paste the Purelymail API token on this page. It is never shown again."),
-            new("3", "Add tenant domains", "Click Add tenant domains. Shop hosts are listed; ecomae.com stays the platform domain."),
+            new("3", "Add tenant domains here", "On Super CP / Super BOS click Add all shop domains. Do not create shop zones on purelymail.com/manage/domains."),
             new("4", "Create shop business mail", "Click Create mail for all shop tenants. Each shop gets info, hello, support, sales, accounts, orders, billing."),
             new("5", "Refresh DNS", "After Cloudflare is published, Refresh DNS so Purelymail can send and receive."),
             new("6", "ERP customers on ecomae.com", "In Super ERP mailbox create firstname.lastname@@ecomae.com. Do not give shop tenants @@ecomae.com."),
@@ -162,6 +162,7 @@
     {
         "super" =>
         [
+            "Do not add shop domains on purelymail.com — Super CP / Super BOS does that.",
             "Do not give shop tenants @@ecomae.com addresses.",
             "Do not paste the API token into chat or git.",
             "Do not skip the ownership TXT — Purelymail will reject the domain.",

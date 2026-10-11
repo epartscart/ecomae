@@ -41,6 +41,9 @@ public class PlatformMailTests
         Assert.Contains("yawer@ecomae.com", super);
         Assert.Contains("setup_tenants", super);
         Assert.Contains("setup_fleet", super);
+        Assert.Contains("sync_domains", super);
+        Assert.Contains("data-mail-fleet", super);
+        Assert.Contains("purelymail.com", super);
         Assert.Contains("setup_business", super);
         Assert.Contains("CloudflareDnsPack", super);
         Assert.Contains("epartscart.com", super);
@@ -200,6 +203,35 @@ public class PlatformMailTests
         var login = await mail.WriteAsync(new PlatformMailWriteRequest("register_login", Address: "ops@acme.test", SiteKey: "acme"), CancellationToken.None);
         Assert.True(login.Succeeded);
         Assert.NotNull(dir.FindMailbox("ops@acme.test"));
+    }
+
+    [Fact]
+    public async Task Fleet_lists_shop_domains_before_purelymail_accepts_them()
+    {
+        var dir = new PlatformMailDirectory(null, Path.Combine(Path.GetTempPath(), "ecomae-mail-" + Guid.NewGuid().ToString("n") + ".json"));
+        var api = new InMemoryPurelymailApi { Domains = { "ecomae.com" } };
+        var mail = new PlatformMailService(dir, api, Options.Create(new PurelymailOptions()));
+        var fleet = mail.ListFleet([]);
+        Assert.Contains(fleet, r => r.Domain == "ecomae.com");
+        Assert.Contains(fleet, r => r.Domain == "epartscart.com" && r.SiteKey == "epartscart");
+        Assert.Contains(fleet, r => r.Domain == "taxofinca.com");
+        Assert.Contains(fleet, r => r.Domain == "electronicae.com");
+        Assert.Contains(fleet, r => r.Domain == "stylenlook.com");
+        Assert.Contains(fleet, r => r.Domain == "thejewellerytrend.com");
+        Assert.DoesNotContain(fleet, r => r.Domain == "epartscart.com" && r.OnPurelymail);
+
+        var synced = await mail.WriteAsync(new PlatformMailWriteRequest("sync_domains"), CancellationToken.None);
+        Assert.True(synced.Succeeded);
+        Assert.True(dir.FindDomain("ecomae.com")?.ApiSynced);
+
+        api.FailNext = true;
+        var added = await mail.WriteAsync(new PlatformMailWriteRequest("add_domain", Domain: "epartscart.com", SiteKey: "epartscart"), CancellationToken.None);
+        Assert.True(added.Succeeded);
+        Assert.True(dir.FindDomain("epartscart.com")?.ApiSynced);
+
+        Assert.Contains(
+            PurelymailHttpApi.ParseDomainNames("""{"type":"success","result":{"domains":[{"name":"ecomae.com"},{"name":"epartscart.com"}]}}"""),
+            d => d == "epartscart.com");
     }
 
     [Fact]

@@ -64,6 +64,14 @@ public sealed record PlatformMailWriteRequest(
 
 public sealed record TenantMailTarget(string Domain, string SiteKey, string Hostname, bool DomainReady);
 
+public sealed record TenantMailFleetRow(
+    string Domain,
+    string SiteKey,
+    bool InDirectory,
+    bool OnPurelymail,
+    string DnsStatus,
+    string OwnershipCode);
+
 public sealed record PlatformMailWriteResult(bool Succeeded, int Writes, string Code, string Message);
 
 public sealed record SmtpDefaults(

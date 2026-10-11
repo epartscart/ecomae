@@ -142,6 +142,54 @@ public sealed class PurelymailHttpApi : IPurelymailApi
         }
     }
 
+    public static IReadOnlyList<string> ParseDomainNames(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return [];
+        }
+
+        try
+        {
+            var node = JsonNode.Parse(raw);
+            var found = new List<string>();
+            CollectDomains(node?["result"]?["domains"] ?? node?["result"] ?? node?["domains"], found);
+            return found
+                .Select(PlatformMailNormalize.Domain)
+                .Where(d => d.Length > 0 && d.Contains('.', StringComparison.Ordinal))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    private static void CollectDomains(JsonNode? node, List<string> found)
+    {
+        if (node is JsonArray array)
+        {
+            foreach (var item in array)
+            {
+                CollectDomains(item, found);
+            }
+
+            return;
+        }
+
+        var name = Read(node, "name") ?? Read(node, "domainName") ?? Read(node, "domain");
+        if (string.IsNullOrWhiteSpace(name) && node is JsonValue)
+        {
+            name = node.GetValue<string>();
+        }
+
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            found.Add(name);
+        }
+    }
+
     private static string? Read(JsonNode? node, string name)
         => node?[name]?.GetValue<string>();
 }
@@ -186,7 +234,10 @@ public sealed class InMemoryPurelymailApi : IPurelymailApi
     public Task<PurelymailCallResult> ListDomainsAsync(CancellationToken cancellationToken)
     {
         Calls.Add("listDomains");
-        return Task.FromResult(PurelymailCallResult.Success(string.Join(",", Domains)));
+        var json = "{\"type\":\"success\",\"result\":{\"domains\":["
+                   + string.Join(",", Domains.Select(d => "{\"name\":\"" + d + "\"}"))
+                   + "]}}";
+        return Task.FromResult(PurelymailCallResult.Success(string.Join(",", Domains), json));
     }
 
     public Task<PurelymailCallResult> RecheckDnsAsync(string domain, CancellationToken cancellationToken)
