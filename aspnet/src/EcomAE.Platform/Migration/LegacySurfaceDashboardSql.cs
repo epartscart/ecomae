@@ -5489,6 +5489,29 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Jewellery rate-type masters.</summary>
+    public const string SelectCpJewelleryMastersRateTypes = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`metal`,'') AS metal,
+               IFNULL(`rate_type`,'') AS rate_type, IFNULL(`conv_factor`,0) AS conv_factor,
+               IFNULL(`currency`,'') AS currency, IFNULL(`curr_rate`,0) AS curr_rate,
+               IFNULL(`status`,'') AS status, IFNULL(`is_default`,0) AS is_default
+        FROM `epc_jewel_rate_type`
+        WHERE @companyId = 0 OR `company_id` = @companyId
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Jewellery currency masters.</summary>
+    public const string SelectCpJewelleryMastersCurrencies = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`curr_code`,'') AS curr_code,
+               IFNULL(`description`,'') AS description, IFNULL(`symbol`,'') AS symbol,
+               IFNULL(`conv_rate`,0) AS conv_rate, IFNULL(`status`,'') AS status
+        FROM `epc_jewel_currency`
+        WHERE @companyId = 0 OR `company_id` = @companyId
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>Opened jewellery karat. description is a short excerpt.</summary>
     public const string SelectCpJewelleryMastersKaratDetail = """
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`karat_code`,'') AS karat_code,

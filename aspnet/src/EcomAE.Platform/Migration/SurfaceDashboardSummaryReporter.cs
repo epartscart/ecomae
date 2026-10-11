@@ -15738,7 +15738,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var empty = new CpJewelleryMastersSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
         if (!_connections.IsConfigured)
         {
-            return new(empty, [], 0, "migration", empty.Message);
+            return new(empty, [], [], [], 0, "migration", empty.Message);
         }
 
         try
@@ -15781,13 +15781,55 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
+            var rateTypes = new List<CpJewelleryMastersRateTypeDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryMastersRateTypes;
+                AddParameter(list, "@companyId", Math.Max(0, companyId));
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rateTypes.Add(new CpJewelleryMastersRateTypeDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["metal"] is DBNull ? string.Empty : reader["metal"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["rate_type"] is DBNull ? string.Empty : reader["rate_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["conv_factor"] is DBNull ? 0 : reader["conv_factor"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["currency"] is DBNull ? string.Empty : reader["currency"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["curr_rate"] is DBNull ? 0 : reader["curr_rate"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["is_default"] is DBNull ? 0 : reader["is_default"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            var currencies = new List<CpJewelleryMastersCurrencyDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryMastersCurrencies;
+                AddParameter(list, "@companyId", Math.Max(0, companyId));
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    currencies.Add(new CpJewelleryMastersCurrencyDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["curr_code"] is DBNull ? string.Empty : reader["curr_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["description"] is DBNull ? string.Empty : reader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["symbol"] is DBNull ? string.Empty : reader["symbol"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["conv_rate"] is DBNull ? 0 : reader["conv_rate"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
             var summary = new CpJewelleryMastersSummary(karats, rates, barcodes, diamonds, "database", string.Empty);
-            return new(summary, rows, rows.Count, "database", string.Empty);
+            return new(summary, rows, rateTypes, currencies, rows.Count, "database", string.Empty);
         }
         catch (Exception ex)
         {
             var err = empty with { Source = "database-error", Message = ex.Message };
-            return new(err, [], 0, "database-error", ex.Message);
+            return new(err, [], [], [], 0, "database-error", ex.Message);
         }
     }
 
