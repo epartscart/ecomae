@@ -1866,6 +1866,19 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Aggregated on-hand for one warehouse + item across batches/variants.</summary>
+    public const string SelectErpInvOnHand = """
+        SELECT s.`warehouse_id`, s.`item_id`,
+               IFNULL(i.`sku`, '') AS sku, IFNULL(i.`name`, '') AS name,
+               IFNULL(i.`reorder_level`, 0) AS reorder_level,
+               IFNULL(SUM(s.`qty_on_hand`), 0) AS qty_on_hand,
+               IFNULL(SUM(s.`qty_on_hand` * s.`avg_unit_cost`), 0) AS stock_value
+        FROM `epc_erp_inv_stock` s
+        LEFT JOIN `epc_erp_inv_items` i ON i.`id` = s.`item_id`
+        WHERE s.`warehouse_id` = @warehouseId AND s.`item_id` = @itemId
+        GROUP BY s.`warehouse_id`, s.`item_id`, i.`sku`, i.`name`, i.`reorder_level`
+        """;
+
     /// <summary>PHP <c>epc_erp_inventory_ledger</c> movement rows (running balance computed in reporter).</summary>
     public const string SelectErpInventoryMovements = """
         SELECT m.`id`, IFNULL(m.`movement_type`, '') AS movement_type,

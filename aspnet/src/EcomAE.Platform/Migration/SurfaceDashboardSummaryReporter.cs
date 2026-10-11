@@ -2097,6 +2097,49 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpInvOnHandResult> BuildErpInvOnHandAsync(long warehouseId, long itemId, CancellationToken cancellationToken = default)
+    {
+        if (warehouseId <= 0 || itemId <= 0)
+        {
+            return new(null, "n/a", "Warehouse and item are required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInvOnHand;
+            AddParameter(cmd, "@warehouseId", warehouseId);
+            AddParameter(cmd, "@itemId", itemId);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return new(null, "database", "No stock rows.");
+            }
+
+            var qty = ReadDec(reader, "qty_on_hand");
+            var value = ReadDec(reader, "stock_value");
+            return new(new ErpInvOnHandDigest(
+                ReadI64(reader, "warehouse_id"),
+                ReadI64(reader, "item_id"),
+                ReadStr(reader, "sku"),
+                ReadStr(reader, "name"),
+                ReadDec(reader, "reorder_level"),
+                qty,
+                qty != 0m ? value / qty : 0m,
+                value), "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, "database-error", ex.Message);
+        }
+    }
+
     public async Task<StorefrontGarageResult> ListStorefrontGarageAsync(int userId, int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 100);

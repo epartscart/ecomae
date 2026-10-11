@@ -1245,6 +1245,21 @@ public sealed record ErpInventoryLowStockDigest(
     decimal ReorderLevel,
     decimal AvgUnitCost);
 
+public sealed record ErpInvOnHandDigest(
+    long WarehouseId,
+    long ItemId,
+    string Sku,
+    string Name,
+    decimal ReorderLevel,
+    decimal QtyOnHand,
+    decimal AvgUnitCost,
+    decimal StockValue);
+
+public sealed record ErpInvOnHandResult(
+    ErpInvOnHandDigest? OnHand,
+    string Source,
+    string Message);
+
 public sealed record ErpInventoryStockDigestResult(
     ErpInventoryStockSummaryResult Summary,
     IReadOnlyList<ErpInventoryStockDigest> Stock,

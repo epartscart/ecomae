@@ -909,6 +909,8 @@ public static class EcomAeRoutes
     public const string ErpPurchaseOrders = "/erp/purchase-orders";
     /// <summary>Purchase orders Blazor list (JSON digest remains <see cref="ErpPurchaseOrders"/>).</summary>
     public const string ErpPurchaseOrdersApp = "/erp/purchase-orders-app";
+    public const string ErpInvOnHand = "/erp/inv-on-hand";
+
     public const string ErpInventoryStock = "/erp/inventory-stock";
     /// <summary>ERP inventory stock Blazor KPI UI (JSON digest remains <see cref="ErpInventoryStock"/>).</summary>
     public const string ErpInventoryStockApp = "/erp/inventory-stock-app";
