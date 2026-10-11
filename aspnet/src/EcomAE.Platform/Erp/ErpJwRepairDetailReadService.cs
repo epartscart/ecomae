@@ -39,6 +39,7 @@ public sealed class ErpJwRepairDetailReadService : IErpJwRepairDetailReadService
             return Empty("TenantRegistry DB is not configured.", "migration");
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var header = connection.CreateCommand();
         header.CommandText = ErpDb.Positional("""
             SELECT `id`,`company_id`,`branch`,`voc_type`,`voc_date`,`voc_no`,

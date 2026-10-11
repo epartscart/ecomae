@@ -44,6 +44,7 @@ public sealed class ErpRtlAssortmentSetWriteService : IErpRtlAssortmentSetWriteS
         var active = request.Active is null || request.Active != 0 ? 1 : 0;
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpRtlSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_rtl_assortment", "channel_id", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_rtl_assortment", "item_id", cancellationToken).ConfigureAwait(false))
         {

@@ -58,6 +58,7 @@ public sealed class ErpJwRepairPendingReadService : IErpJwRepairPendingReadServi
         var normalizedDivision = division?.Trim() ?? string.Empty;
         var normalizedBranch = branch?.Trim() ?? string.Empty;
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional("""
             SELECT r.`id`,r.`branch`,r.`voc_date`,r.`voc_no`,r.`customer_name`,

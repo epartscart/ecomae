@@ -39,11 +39,6 @@ public sealed class IndustrySpecificRouteGateMiddleware(
     private async Task<ErpCompanyDigest?> ResolveActiveCompanyAsync(HttpContext context)
     {
         var requested = ErpHostContext.ActiveCompanyIdFromQuery(context.Request);
-        if (requested is not > 0)
-        {
-            return null;
-        }
-
         try
         {
             var session = await _validator.ValidateAsync(context, context.RequestAborted);
@@ -52,7 +47,14 @@ public sealed class IndustrySpecificRouteGateMiddleware(
                 return null;
             }
 
-            return await _dashboards.BuildErpCompanyDigestAsync(requested.Value, context.RequestAborted);
+            if (requested is > 0)
+            {
+                return await _dashboards.BuildErpCompanyDigestAsync(requested.Value, context.RequestAborted);
+            }
+
+            // PHP epc_erp_active_company_id: no ?company= → lowest-id legal entity.
+            var companies = await _dashboards.BuildErpCompaniesDigestAsync(50, context.RequestAborted);
+            return companies.Companies.FirstOrDefault();
         }
         catch
         {
@@ -73,7 +75,6 @@ public static class IndustrySpecificRoutePolicy
         }
 
         if (path.Equals("/erp/project-accounting-app", StringComparison.OrdinalIgnoreCase)
-            || path.Equals("/erp/contracts-app", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/erp/fitout/", StringComparison.OrdinalIgnoreCase))
         {
             return "fitout";

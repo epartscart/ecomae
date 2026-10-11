@@ -62,6 +62,7 @@ public sealed class ErpJwTouristVatWriteService : IErpJwTouristVatWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_jewel_tourist_vat_refund", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Jewellery tourist VAT tables are not provisioned");

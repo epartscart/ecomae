@@ -62,6 +62,7 @@ public sealed class ErpJwFixingReadService : IErpJwFixingReadService
         var normalizedType = fixType?.Trim() ?? string.Empty;
         var boundedLimit = Math.Clamp(limit, 1, 200);
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional($"""
             SELECT `id`,`company_id`,`branch`,`fix_type`,`fix_date`,`fix_no`,

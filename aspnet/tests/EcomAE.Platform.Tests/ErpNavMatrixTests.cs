@@ -149,8 +149,10 @@ public sealed class ErpNavMatrixTests
     [InlineData("/erp/jewellery/stock-availability", "jewellery")]
     [InlineData("/cp/jewellery-masters-app", "jewellery")]
     [InlineData("/erp/project-accounting-app", "fitout")]
+    [InlineData("/erp/contracts-app", null)]
+    [InlineData("/erp/retail-commerce-app", null)]
     [InlineData("/erp/fitout/project-pnl", "fitout")]
-    public void IndustrySpecificRoutesDeclareTheirRequiredPack(string path, string industry)
+    public void IndustrySpecificRoutesDeclareTheirRequiredPack(string path, string? industry)
     {
         Assert.Equal(industry, IndustrySpecificRoutePolicy.RequiredIndustry(path));
     }
@@ -198,6 +200,20 @@ public sealed class ErpNavMatrixTests
     }
 
     [Fact]
+    public void TenantIndustryProfileFallbackDrivesJewelleryVisibility()
+    {
+        // Fresh tenant: MAIN legal entity with no per-company pack row; the digest
+        // falls back to the tenant-wide erp_industry_profile written by industry apply.
+        var main = new ErpCompanyDigest(1, "MAIN", "Main Company", "AED", "AE", "jewellery", true);
+        var autoParts = new ErpCompanyDigest(1, "MAIN", "Main Company", "AED", "AE", "auto_parts", true);
+
+        Assert.True(ErpIndustryNav.ShowJewelleryModules("auto_parts", main));
+        Assert.True(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", main));
+        Assert.False(ErpIndustryNav.ShowJewelleryModules("auto_parts", autoParts));
+        Assert.False(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", autoParts));
+    }
+
+    [Fact]
     public void SharedHostAllowsTrustedFitOutCompanyPack()
     {
         var company = new ErpCompanyDigest(3, "FITOUT", "Fit-out Company", "AED", "AE", "fitout_contracting", true);
@@ -213,5 +229,18 @@ public sealed class ErpNavMatrixTests
 
         Assert.False(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", company));
         Assert.False(IndustrySpecificRoutePolicy.Allows("fitout", "auto_parts", company));
+    }
+
+    [Fact]
+    public void DirectoryTabsHideJewelleryForNonJewelleryTenant()
+    {
+        var all = ErpIndustryNav.DirectoryTabs(jewelleryCompany: true);
+        var core = ErpIndustryNav.DirectoryTabs(jewelleryCompany: false);
+
+        Assert.Equal(PhpModuleCatalog.ErpTabs.Count, all.Count);
+        Assert.True(core.Count < all.Count);
+        Assert.DoesNotContain(core, ErpIndustryNav.IsJewelleryTab);
+        Assert.Contains(all, ErpIndustryNav.IsJewelleryTab);
+        Assert.Contains(core, t => t.Id == "finance/coa");
     }
 }

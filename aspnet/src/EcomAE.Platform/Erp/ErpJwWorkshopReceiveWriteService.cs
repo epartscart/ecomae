@@ -51,6 +51,7 @@ public sealed class ErpJwWorkshopReceiveWriteService : IErpJwWorkshopReceiveWrit
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_jewel_repair_workshop_receive", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Jewellery workshop receive tables are not provisioned");

@@ -5530,7 +5530,7 @@ public static class LegacySurfaceDashboardSql
     public const string SelectCpJewelleryMastersPearls = """
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`code`,'') AS code,
                IFNULL(`description`,'') AS description, IFNULL(`size`,'') AS size,
-               IFNULL(`color`,'') AS color, IFNULL(`rate`,0) AS rate
+               IFNULL(`color`,'') AS color, IFNULL(`cost_amount`,0) AS rate
         FROM `epc_jewel_pearl_master`
         WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
@@ -5542,7 +5542,7 @@ public static class LegacySurfaceDashboardSql
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`code`,'') AS code,
                IFNULL(`description`,'') AS description, IFNULL(`color`,'') AS color,
                IFNULL(`shape`,'') AS shape, IFNULL(`size`,'') AS size,
-               IFNULL(`rate`,0) AS rate
+               IFNULL(`cost_amount`,0) AS rate
         FROM `epc_jewel_color_stone_master`
         WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
