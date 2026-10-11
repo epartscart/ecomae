@@ -237,8 +237,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - `cp/content/shop/catalogue/product.php` and its includes: done on `/cp/product-catalogue-app`. Multipart image bytes stay Classic.
    - `cp/content/shop/prices_upload` page bodies: done on `/cp/prices-upload-app` (`upload_file.php`, `price_review.php`, the download manager, update history, multivendor and commerce upload). These reuse the existing price importer.
    - Smaller sets: done on the existing CP desks (logistics, crosses, data transfer, document control, channels, marketing, tenant hub, POS, payments, demand countries, manufacturer synonyms, eparts catalogue and mod, accessories, statistics).
-   - `cp/content/users`, `cp/content/lang`, `cp/content/packs_control`, the file manager, `cp/content/requests`, the content structure dumps.
-   - The CP plugins `2fa` and `authentication`; CP modules (bread crumbs, left menu, SSL check, logout).
+   - `cp/content/users`, `cp/content/lang`, the file manager, `cp/content/requests`, the content structure dumps: done on the existing CP users/lang/content desks.
+   - The CP plugins `2fa` and `authentication`; CP modules (left menu, SSL check, logout): done on CP chrome.
 4. **Control Panel control and portal.**
    - `cp/content/control/portal` (52 files): done on Super CP (auto price engine shell, social media hub, auth settings, tax toolkit, industry kit, licence trends and consolidation, marketing broadcast, the visual page editor, the fleet dashboard, the customer board, tenant e-mail settings, governance, POS tenant management, mobile apps, the BOC panels, and the guides).
    - Version control and admin-access check.
@@ -250,7 +250,7 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: the BOS unified and blockchain BOS pages, and the BOC console, with the BOS operator login `epc_bos_ajax_login.php`.
    - Done: the industry consolidation and the industry templates (`_base_template.php`, the sub-industry page and 28 industries).
    - `epc_cloudpanel_helpers.php` is moved to ops workers, not ported as a page.
-6. **Price engine.** `content/shop/price_engine` (23 files, including the 6,768-line `epc_auto_price_engine.php` and the discovery adapters) plus the CP auto-price shell. This must stay on the existing importer.
+6. **Price engine.** Done on the existing importer: `content/shop/price_engine` (23 files, including the 6,768-line `epc_auto_price_engine.php` and the discovery adapters) plus the CP auto-price shell. Discovery HTTP stays Classic.
 7. **ERP to 100%, after the steps above.**
    - The 152 finance libraries in `content/shop/finance`. The largest are the external reports build, the UAE tax compliance, jewellery, inventory, SCM, tax toolkit, `my_balance.php`, phase 8, order planning, AML, staff, concurrency, HR law, integration, access, datalink, industry packs, period close, WMS, payroll and procurement.
    - The CP finance pages: nav areas, the dashboards, the operations editor and create operation, the payment systems, custom shipping.
@@ -331,7 +331,7 @@ Not complete.
 - `StorefrontMyOrders` and `StorefrontMyOrdersItems` now consume that common loader instead of maintaining separate reference queries. The helper is read-only.
 - Evidence: PHP 8.3 ran the authoritative helper for empty and populated/duplicate/null cases on isolated databases. The golden records include all fields and before/after row counts. The loader plus both consumer regression suites passed 16 of 16; the full suite passed 5,914 of 5,914 after a clean build with 0 warnings and 0 errors.
 - All four customer order-list route aliases return 200 with fake cookies. `docpart.sessions` stayed 73 before and after. Post-test invariants: `ecomae_cpw_%` = 0, `docpart.users` = 2, `ecomae.users` = 2.
-- Next storefront gap: front templates (`expan` / `modex` / `limo`) and `core/dp_core.php`. Closed on this branch: catalogue listing/search/SKU/tree includes, `content/users` session/register includes, `content/shop/docpart` part-search/garage/demand includes, and the storefront `modules/*` shells.
+- Next storefront gap: plugins and the price-engine adapters. Closed on this branch: catalogue, docpart, users, modules, front templates, `core/dp_*.php`, `content/general_pages`, and Super CP portal page bodies.
 
 ### Checkpoint 2026-10-09 — storefront product information (`printProduct_Info.php`) like PHP
 

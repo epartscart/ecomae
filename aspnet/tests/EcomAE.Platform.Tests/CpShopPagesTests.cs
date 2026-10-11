@@ -1,5 +1,6 @@
 using EcomAE.Platform.Cp;
 using EcomAE.Platform.Presentation;
+using EcomAE.Platform.Storefront;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -51,6 +52,12 @@ public sealed class CpShopPagesTests
         Assert.Contains("cp/content/control/portal/epc_auto_price_engine.php", CpControlPortalPages.Paths);
         Assert.Contains("templates/expan/desktop.php", EcomaeFrontShell.Paths);
         Assert.Contains("core/dp_core.php", EcomaeFrontShell.Paths);
+        Assert.Contains("content/shop/price_engine/epc_auto_price_engine.php", CpPriceEnginePages.Paths);
+        Assert.Contains("cp/content/users/helper.php", CpUsersPages.Paths);
+        Assert.Contains("plugins/metadata_handler/metadata_handler.php", EcomaePluginPages.Paths);
+        Assert.Contains("content/shop/tenant_hub/epc_tenant_hub_helpers.php", StorefrontShopExtras.Paths);
+        Assert.Contains("cp/modules/logout/module.php", CpChromePages.Paths);
+        Assert.Contains("content/shop/crm/epc_crm_helpers.php", StorefrontShopExtras.Paths);
     }
 
     private static string Find(string relative)
