@@ -310,12 +310,12 @@ public static class PhpPlanQ1Hive
 
         if (focus == "catalog")
         {
-            return html + "<script>document.addEventListener('DOMContentLoaded',function(){var el=document.getElementById('catalog-api');if(el)el.scrollIntoView({behavior:'smooth'});});</script>\n\t";
+            return html + "<script>document.addEventListener('DOMContentLoaded',function(){var el=document.getElementById('catalog-api');if(el)el.scrollIntoView({behavior:'smooth'});});</script>\n\t\t";
         }
 
         if (focus == "price_pro")
         {
-            return html + "<script>document.addEventListener('DOMContentLoaded',function(){var el=document.getElementById('price-pro-api');if(el)el.scrollIntoView({behavior:'smooth'});});</script>\n\t";
+            return html + "<script>document.addEventListener('DOMContentLoaded',function(){var el=document.getElementById('price-pro-api');if(el)el.scrollIntoView({behavior:'smooth'});});</script>\n\t\t";
         }
 
         return html + "\t";
