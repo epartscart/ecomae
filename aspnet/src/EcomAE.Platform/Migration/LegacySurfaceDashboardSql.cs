@@ -5549,6 +5549,19 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Jewellery barcode stock rows.</summary>
+    public const string SelectCpJewelleryMastersBarcodes = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`stock_code`,'') AS stock_code,
+               IFNULL(`barcode`,'') AS barcode, IFNULL(`item_type`,'') AS item_type,
+               IFNULL(`karat`,'') AS karat, IFNULL(`gross_wt`,0) AS gross_wt,
+               IFNULL(`net_wt`,0) AS net_wt, IFNULL(`tag_price`,0) AS tag_price,
+               IFNULL(`printed`,0) AS printed
+        FROM `epc_jewel_barcode`
+        WHERE @companyId = 0 OR `company_id` = @companyId
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>Jewellery currency masters.</summary>
     public const string SelectCpJewelleryMastersCurrencies = """
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`curr_code`,'') AS curr_code,
