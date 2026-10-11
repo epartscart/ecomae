@@ -2315,6 +2315,44 @@ public sealed class NonErpAreaFunctionalityTests
         Assert.Equal("cp/content/control/portal/epc_boc_command_center.php", PhpPlanQ1Holm.BocCommandCenterPath);
     }
 
+    [Fact]
+    public void BocVendorAndWarehouse_LinksStayOnTheConfiguredSurface()
+    {
+        PhpPlanQ1Hope.Reset();
+        PhpPlanQ1Hope.IsSuperCp = () => true;
+        PhpPlanQ1Hope.IsAdmin = () => true;
+        PhpPlanQ1Hope.HasPdo = true;
+        PhpPlanQ1Hope.HasUserClass = true;
+        PhpPlanQ1Hope.HasGetName = true;
+        PhpPlanQ1Hope.HasGetUserId = true;
+        PhpPlanQ1Hope.HasNavForUser = true;
+        PhpPlanQ1Hope.OperatorName = "Ada";
+        PhpPlanQ1Hope.OperatorId = 7;
+        PhpPlanQ1Hope.BackendDir = "acme";
+        var vendorAcme = PhpPlanQ1Hope.EpcBocVendorControl();
+        var warehouseAcme = PhpPlanQ1Hope.EpcBocWarehouseControl();
+        PhpPlanQ1Hope.BackendDir = "beta";
+        var vendorBeta = PhpPlanQ1Hope.EpcBocVendorControl();
+        PhpPlanQ1Hope.IsSuperCp = () => false;
+        PhpPlanQ1Hope.BackendDir = "acme";
+        var vendorDenied = PhpPlanQ1Hope.EpcBocVendorControl();
+        var warehouseDenied = PhpPlanQ1Hope.EpcBocWarehouseControl();
+        Assert.Contains("VENDOR:/acme", vendorAcme, StringComparison.Ordinal);
+        Assert.DoesNotContain("/beta", vendorAcme, StringComparison.Ordinal);
+        Assert.Contains("WAREHOUSE:/acme", warehouseAcme, StringComparison.Ordinal);
+        Assert.DoesNotContain("VENDOR:", warehouseAcme, StringComparison.Ordinal);
+        Assert.Contains("VENDOR:/beta", vendorBeta, StringComparison.Ordinal);
+        Assert.DoesNotContain("/acme", vendorBeta, StringComparison.Ordinal);
+        Assert.Contains("Vendor control", vendorDenied, StringComparison.Ordinal);
+        Assert.Contains("Warehouse control", warehouseDenied, StringComparison.Ordinal);
+        Assert.DoesNotContain("/acme", vendorDenied, StringComparison.Ordinal);
+        Assert.DoesNotContain("/acme", warehouseDenied, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHPSESSID", PhpPlanQ1Hope.BocVendorControlPath, StringComparison.Ordinal);
+        Assert.DoesNotContain("/finance/", PhpPlanQ1Hope.BocWarehouseControlPath, StringComparison.Ordinal);
+        Assert.Equal("cp/content/control/portal/epc_boc_vendor_control.php", PhpPlanQ1Hope.BocVendorControlPath);
+        Assert.Equal("cp/content/control/portal/epc_boc_warehouse_control.php", PhpPlanQ1Hope.BocWarehouseControlPath);
+    }
+
     private static string Json(object? value)
         => System.Text.Json.JsonSerializer.Serialize(value);
 
@@ -2415,6 +2453,8 @@ public sealed class NonErpAreaFunctionalityTests
             PhpPlanQ1Ford.BocProductBrochurePath,
             PhpPlanQ1Gill.BocChannelControlPath,
             PhpPlanQ1Holm.BocCommandCenterPath,
+            PhpPlanQ1Hope.BocVendorControlPath,
+            PhpPlanQ1Hope.BocWarehouseControlPath,
             PhpPlanQ1Tide.FailoverPath,
             PhpPlanQ1Slip.BosAjaxLoginPath,
             PhpPlanQ1Dock.PortalTenantPath,

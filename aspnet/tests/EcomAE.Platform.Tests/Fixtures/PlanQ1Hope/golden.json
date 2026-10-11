@@ -1,0 +1,47 @@
+{
+    "php": "8.3.6",
+    "results": [
+        {
+            "name": "empty",
+            "output": "",
+            "result": [
+                "<div class=\"alert alert-warning\">Vendor control is available on <strong>BOC</strong> (Super CP) only.</div>",
+                "<div class=\"alert alert-warning\">Vendor control is available on <strong>BOC</strong> (Super CP) only.</div>",
+                "<div class=\"alert alert-warning\">Warehouse control is available on <strong>BOC</strong> (Super CP) only.</div>",
+                "<div class=\"alert alert-warning\">Warehouse control is available on <strong>BOC</strong> (Super CP) only.</div>"
+            ]
+        },
+        {
+            "name": "gates",
+            "output": "",
+            "result": [
+                "<div class=\"alert alert-warning\">Please <a href=\"/acme/\">log in to BOC</a>.</div>",
+                "<div class=\"alert alert-warning\">Please <a href=\"/acme&quot;&gt;&lt;x/\">log in to BOC</a>.</div>",
+                "<div class=\"alert alert-danger\">Platform database unavailable.</div>",
+                "<div class=\"alert alert-danger\">Platform database unavailable.</div>",
+                "<div class=\"alert alert-warning\">Please <a href=\"/acme/\">log in to BOC</a>.</div>"
+            ]
+        },
+        {
+            "name": "live",
+            "output": "",
+            "result": [
+                "CONSOLE_OPEN:vendor_control|Vendor & Sourcing|/cp|Operator|All units · Fleet|fleetVENDOR:/cpCONSOLE_CLOSE",
+                "CONSOLE_OPEN:vendor_control|Vendor & Sourcing|/cp|Ada|All units · Fleet|user:7VENDOR:/cpCONSOLE_CLOSE",
+                "CONSOLE_OPEN:vendor_control|Vendor & Sourcing|/|Ada|All units · Fleet|user:7VENDOR:/CONSOLE_CLOSE",
+                "CONSOLE_OPEN:warehouse_control|Warehouse & Inventory|/cp|Ada|All units · Fleet|user:7WAREHOUSE:/cpCONSOLE_CLOSE"
+            ]
+        },
+        {
+            "name": "tenant",
+            "output": "",
+            "result": [
+                "CONSOLE_OPEN:vendor_control|Vendor & Sourcing|/acme|Ada|All units · Fleet|user:7VENDOR:/acmeCONSOLE_CLOSE",
+                "CONSOLE_OPEN:vendor_control|Vendor & Sourcing|/beta|Ada|All units · Fleet|user:7VENDOR:/betaCONSOLE_CLOSE",
+                "<div class=\"alert alert-warning\">Vendor control is available on <strong>BOC</strong> (Super CP) only.</div>",
+                "CONSOLE_OPEN:warehouse_control|Warehouse & Inventory|/acme|Ada|All units · Fleet|user:7WAREHOUSE:/acmeCONSOLE_CLOSE",
+                "<div class=\"alert alert-warning\">Warehouse control is available on <strong>BOC</strong> (Super CP) only.</div>"
+            ]
+        }
+    ]
+}
