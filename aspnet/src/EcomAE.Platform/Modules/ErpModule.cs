@@ -10845,6 +10845,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpOperationsSave, HandleOperationsSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpOperationsDelete, HandleOperationsDeleteAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpOperationsCreateEntry, HandleOperationsCreateEntryAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpPaymentSystemsSaveStandart, HandlePaymentSystemsSaveStandartAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpPaymentSystemsSaveWholesaler, HandlePaymentSystemsSaveWholesalerAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWhtSettle, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -14277,6 +14279,128 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandlePaymentSystemsSaveStandartAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPaymentSystemsService paySystems,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/payment-systems-app", "Admin ERP capability required for payment systems.");
+        }
+
+        long systemId = 0;
+        var parametersValues = "{}";
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            systemId = LiveWriteFormBinder.Long(form, "system_id", "systemId");
+            parametersValues = CollectParamJson(form);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes", "save_action");
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPaymentSystemSaveBody>(context, cancellationToken) ?? new();
+            systemId = body.SystemId;
+            parametersValues = string.IsNullOrWhiteSpace(body.ParametersValues) ? "{}" : body.ParametersValues;
+            confirm = body.ConfirmWrites;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dry_run = true, message = "Dry-run only: pass confirmWrites to write.", session = SessionPayload(session) });
+        }
+
+        var written = await paySystems.SaveStandartAsync(systemId, parametersValues, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/payment-systems-app?tab=standart",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandlePaymentSystemsSaveWholesalerAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPaymentSystemsService paySystems,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/payment-systems-app?tab=wholesaler", "Admin ERP capability required for payment systems.");
+        }
+
+        long officeId = 0, systemId = 0;
+        var parametersValues = "{}";
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            officeId = LiveWriteFormBinder.Long(form, "office_id", "officeId");
+            systemId = LiveWriteFormBinder.Long(form, "system_id", "systemId");
+            parametersValues = CollectParamJson(form);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes", "save_action");
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPaymentSystemSaveBody>(context, cancellationToken) ?? new();
+            officeId = body.OfficeId;
+            systemId = body.SystemId;
+            parametersValues = string.IsNullOrWhiteSpace(body.ParametersValues) ? "{}" : body.ParametersValues;
+            confirm = body.ConfirmWrites;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dry_run = true, message = "Dry-run only: pass confirmWrites to write.", session = SessionPayload(session) });
+        }
+
+        var written = await paySystems.SaveWholesalerAsync(session.UserId, officeId, systemId, parametersValues, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/payment-systems-app?tab=wholesaler&office_id=" + officeId,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    /// <summary>Reassembles PHP parameters_values JSON from posted param_* fields (checkboxes → bool), falling back to raw parameters_values.</summary>
+    private static string CollectParamJson(IFormCollection form)
+    {
+        var values = new Dictionary<string, object?>(StringComparer.Ordinal);
+        foreach (var key in form.Keys)
+        {
+            if (!key.StartsWith("param_", StringComparison.Ordinal))
+            {
+                continue;
+            }
+            var name = key["param_".Length..];
+            var raw = form[key].ToString();
+            values[name] = raw is "on" or "true" ? true : raw is "false" ? false : (object?)raw;
+        }
+        if (values.Count == 0)
+        {
+            var raw = form["parameters_values"].ToString();
+            return string.IsNullOrWhiteSpace(raw) ? "{}" : raw;
+        }
+        // Checkbox inputs only post when checked; PHP JSON stores false for unchecked ones —
+        // callers send `bool_<name>` markers for every checkbox so missing keys become false.
+        var bools = form["checkbox_names"].ToString();
+        if (!string.IsNullOrWhiteSpace(bools))
+        {
+            foreach (var name in bools.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                values.TryAdd(name, false);
+            }
+        }
+        return JsonSerializer.Serialize(values);
     }
 
     private static async Task<IResult> HandleWhtRecordAsync(
@@ -27178,6 +27302,11 @@ public sealed class ErpModule : ISurfaceModule
         long OperationCode = 0,
         decimal Amount = 0,
         long OfficeId = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpPaymentSystemSaveBody(
+        long OfficeId = 0,
+        long SystemId = 0,
+        string? ParametersValues = null,
         bool ConfirmWrites = false);
     private sealed record ErpErFormatSaveBody(
         long Id = 0,
