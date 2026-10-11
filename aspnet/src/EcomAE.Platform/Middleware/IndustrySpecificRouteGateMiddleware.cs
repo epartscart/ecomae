@@ -75,7 +75,6 @@ public static class IndustrySpecificRoutePolicy
         }
 
         if (path.Equals("/erp/project-accounting-app", StringComparison.OrdinalIgnoreCase)
-            || path.Equals("/erp/contracts-app", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/erp/fitout/", StringComparison.OrdinalIgnoreCase))
         {
             return "fitout";

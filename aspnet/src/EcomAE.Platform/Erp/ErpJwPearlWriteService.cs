@@ -66,6 +66,7 @@ public sealed class ErpJwPearlWriteService : IErpJwPearlWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_jewel_pearl_master", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Jewellery pearl tables are not provisioned");

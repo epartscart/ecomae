@@ -46,6 +46,7 @@ public sealed class ErpJwMetalStockBalanceReadService : IErpJwMetalStockBalanceR
 
         var normalizedMetal = metal?.Trim() ?? string.Empty;
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional($"""
             SELECT `metal`,`karat`,SUM(`stock_pcs`),SUM(`stock_gms`),SUM(`stock_value`)

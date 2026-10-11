@@ -71,6 +71,7 @@ public sealed class ErpJwRepairWriteService : IErpJwRepairWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_erp_jw_repairs", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Jewellery repair tables are not provisioned");
@@ -141,6 +142,7 @@ public sealed class ErpJwRepairWriteService : IErpJwRepairWriteService
 
         var updatedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,

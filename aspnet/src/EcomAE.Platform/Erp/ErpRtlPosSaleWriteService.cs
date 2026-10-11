@@ -95,6 +95,7 @@ public sealed class ErpRtlPosSaleWriteService : IErpRtlPosSaleWriteService
         var lines = request.Lines ?? [];
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpRtlSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_rtl_txn", "receipt_no", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_rtl_txn_line", "line_net", cancellationToken).ConfigureAwait(false))
         {

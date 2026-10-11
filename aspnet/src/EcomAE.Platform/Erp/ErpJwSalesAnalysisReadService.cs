@@ -57,6 +57,7 @@ public sealed class ErpJwSalesAnalysisReadService : IErpJwSalesAnalysisReadServi
             _ => ("v.`voc_date`", "v.`voc_date`")
         };
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional($"""
             SELECT {grouping.Item1}, COUNT(DISTINCT v.`id`), SUM(vl.`pcs`),

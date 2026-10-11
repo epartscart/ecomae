@@ -149,8 +149,10 @@ public sealed class ErpNavMatrixTests
     [InlineData("/erp/jewellery/stock-availability", "jewellery")]
     [InlineData("/cp/jewellery-masters-app", "jewellery")]
     [InlineData("/erp/project-accounting-app", "fitout")]
+    [InlineData("/erp/contracts-app", null)]
+    [InlineData("/erp/retail-commerce-app", null)]
     [InlineData("/erp/fitout/project-pnl", "fitout")]
-    public void IndustrySpecificRoutesDeclareTheirRequiredPack(string path, string industry)
+    public void IndustrySpecificRoutesDeclareTheirRequiredPack(string path, string? industry)
     {
         Assert.Equal(industry, IndustrySpecificRoutePolicy.RequiredIndustry(path));
     }

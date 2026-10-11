@@ -88,6 +88,7 @@ public sealed class ErpJwGoldSchemeWriteService : IErpJwGoldSchemeWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_gold_schemes", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_gold_schemes", "scheme_code", cancellationToken).ConfigureAwait(false))
         {
@@ -145,6 +146,7 @@ public sealed class ErpJwGoldSchemeWriteService : IErpJwGoldSchemeWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_gold_schemes", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_gold_schemes", "scheme_code", cancellationToken).ConfigureAwait(false)
             || !await TableExistsAsync(connection, "epc_gold_scheme_enrollments", cancellationToken).ConfigureAwait(false))
@@ -241,6 +243,7 @@ public sealed class ErpJwGoldSchemeWriteService : IErpJwGoldSchemeWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_gold_scheme_enrollments", cancellationToken).ConfigureAwait(false)
             || !await TableExistsAsync(connection, "epc_gold_scheme_payments", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_gold_scheme_payments", "amount", cancellationToken).ConfigureAwait(false))

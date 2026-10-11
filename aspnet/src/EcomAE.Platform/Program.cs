@@ -1112,6 +1112,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAiReadService, EcomAE.Platfor
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDocControlWriteService, EcomAE.Platform.Erp.ErpDocControlWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEinvoiceAspPollService, EcomAE.Platform.Erp.ErpEinvoiceAspPollService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShortcutReadService, EcomAE.Platform.Erp.ErpShortcutReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRetailCommerceReadService, EcomAE.Platform.Erp.ErpRetailCommerceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryScanReadService, EcomAE.Platform.Erp.ErpInventoryScanReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlobalSearchReadService, EcomAE.Platform.Erp.ErpGlobalSearchReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpContactWriteService, EcomAE.Platform.Erp.ErpContactWriteService>();

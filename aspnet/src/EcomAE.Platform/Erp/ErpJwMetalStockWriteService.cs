@@ -86,6 +86,7 @@ public sealed class ErpJwMetalStockWriteService : IErpJwMetalStockWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_jewel_metal_stock", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Jewellery metal stock tables are not provisioned");

@@ -17879,7 +17879,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/jewellery-retail-app?tab=retail_commerce", "Admin ERP capability required for retail channel save.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/retail-commerce-app", "Admin ERP capability required for retail channel save.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRtlChannelSaveBody>(context, cancellationToken) ?? new();
@@ -17922,7 +17922,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/erp/jewellery-retail-app?tab=retail_commerce",
+            "/erp/retail-commerce-app?tab=channels",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -18876,7 +18876,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/jewellery-retail-app?tab=retail_commerce",
+            "/erp/retail-commerce-app?tab=channels",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -18982,7 +18982,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/cp/jewellery-retail-app?tab=retail_commerce",
+            "/erp/retail-commerce-app?tab=channels",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -19920,7 +19920,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/erp/app",
+            "/erp/retail-commerce-app?tab=pos",
             result.Ok,
             result.Message,
             new { ok = result.Ok, writes = result.Writes, phpAuthoritative = false, message = result.Message, res = new { id = result.Id, gross = result.Gross, discount = result.Discount, net = result.Net, tax = result.Tax, total = result.Total }, session = SessionPayload(session) });

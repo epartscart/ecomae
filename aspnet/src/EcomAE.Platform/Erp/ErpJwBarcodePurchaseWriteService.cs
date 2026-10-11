@@ -76,6 +76,7 @@ public sealed class ErpJwBarcodePurchaseWriteService : IErpJwBarcodePurchaseWrit
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_barcode_purchases", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_barcode_purchases", "barcode", cancellationToken).ConfigureAwait(false))
         {
@@ -189,6 +190,7 @@ public sealed class ErpJwBarcodePurchaseWriteService : IErpJwBarcodePurchaseWrit
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_barcode_purchases", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_barcode_purchases", "status", cancellationToken).ConfigureAwait(false))
         {

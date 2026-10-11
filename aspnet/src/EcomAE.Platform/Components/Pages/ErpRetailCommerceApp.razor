@@ -1,0 +1,413 @@
+@page "/erp/retail-commerce-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@inject IErpRetailCommerceReadService Retail
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Retail &amp; commerce · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Retail & commerce" BreadcrumbArea="Retail and commerce" BreadcrumbTab="@TabLabel">
+
+    <PhpErpModulePageHeader Title="Retail & commerce" Subtitle="Channels, assortments, periodic discounts, POS sales with end-of-day statement, and retail barcode labels. Industry-neutral: available to every ERP tenant." PhpTabHref="@PhpHref" />
+    <PhpErpD365ActionPane PhpTabHref="@PhpHref" RefreshHref="@Nav.Uri" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Retail KPIs">
+        <div class="kpi"><div class="lbl">Channels</div><div class="val">@_snap.ChannelCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active discounts</div><div class="val">@_snap.ActiveDiscountCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">POS transactions</div><div class="val">@_snap.TransactionCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Sales total</div><div class="val">@_snap.SalesTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    <div class="btn-group" role="tablist" style="margin:0 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem">
+        @foreach (var (key, label) in Tabs)
+        {
+            <a class="btn btn-sm @(key == _tab ? "btn-primary" : "btn-default")" href="@TabHref(key)">@label</a>
+        }
+    </div>
+
+    @if (!_isAdmin)
+    {
+        <p class="text-muted">@_message</p>
+    }
+    else if (_tab == "channels")
+    {
+        @if (_isAdmin)
+        {
+            <form method="post" action="/erp/retail/channels/save" class="epc-erp-form-row" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHere" />
+                <input type="hidden" name="company_id" value="@_snap.CompanyId.ToString(CultureInfo.InvariantCulture)" />
+                <strong style="width:100%">New channel</strong>
+                <label>Code <input name="code" required maxlength="40" style="width:7rem" /></label>
+                <label>Name <input name="name" required maxlength="160" style="width:12rem" /></label>
+                <label>Type
+                    <select name="channel_type">
+                        <option value="store">Store</option>
+                        <option value="online">Online</option>
+                        <option value="call">Call centre</option>
+                    </select>
+                </label>
+                <label>Currency <input name="currency" value="AED" maxlength="8" style="width:4rem" /></label>
+                <label>Active <select name="active"><option value="1">yes</option><option value="0">no</option></select></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save channel</button>
+            </form>
+        }
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Currency</th><th class="text-right">Assortment</th><th>Active</th><th></th></tr></thead>
+                <tbody>
+                    @if (_snap.Channels.Count == 0)
+                    {
+                        <tr><td colspan="7">@(string.IsNullOrWhiteSpace(_snap.Message) ? "No channels yet." : _snap.Message)</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var c in _snap.Channels)
+                        {
+                            <tr class="@(c.Id == _snap.SelectedChannelId ? "info" : "")">
+                                <td>@c.Code</td><td><strong>@c.Name</strong></td><td>@c.ChannelType</td><td>@c.Currency</td>
+                                <td class="text-right">@c.AssortCount.ToString(CultureInfo.InvariantCulture)</td>
+                                <td><span class="label @(c.Active ? "label-success" : "label-default")">@(c.Active ? "active" : "inactive")</span></td>
+                                <td><a class="btn btn-xs btn-default" href="@TabHref("channels", c.Id)">Assortment</a></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (_snap.SelectedChannelId > 0)
+        {
+            var sel = _snap.Channels.FirstOrDefault(c => c.Id == _snap.SelectedChannelId);
+            <h4 style="margin:1rem 0 .5rem">Assortment — @(sel?.Name ?? "channel")</h4>
+            <form method="post" action="/erp/retail/assortments/set" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHere" />
+                <input type="hidden" name="company_id" value="@_snap.CompanyId.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="channel_id" value="@_snap.SelectedChannelId.ToString(CultureInfo.InvariantCulture)" />
+                <label>Item
+                    <select name="item_id" required>
+                        @foreach (var it in _snap.Items)
+                        {
+                            <option value="@it.Id.ToString(CultureInfo.InvariantCulture)">@it.Sku — @it.Name</option>
+                        }
+                    </select>
+                </label>
+                <label>Listed <select name="active"><option value="1">yes</option><option value="0">no</option></select></label>
+                <button type="submit" class="btn btn-primary btn-sm">Update assortment</button>
+            </form>
+            <div class="epc-erp-table-wrap">
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Item id</th><th>SKU</th><th>Item</th><th>Listed</th></tr></thead>
+                    <tbody>
+                        @if (_snap.Assortment.Count == 0)
+                        {
+                            <tr><td colspan="4">No items listed on this channel yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var a in _snap.Assortment)
+                            {
+                                <tr><td>@a.ItemId.ToString(CultureInfo.InvariantCulture)</td><td>@a.Sku</td><td>@a.ItemName</td><td>@(a.Active ? "yes" : "no")</td></tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+    else if (_tab == "discounts")
+    {
+        <form method="post" action="/erp/retail/discounts/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@ReturnHere" />
+            <input type="hidden" name="company_id" value="@_snap.CompanyId.ToString(CultureInfo.InvariantCulture)" />
+            <strong style="width:100%">New periodic discount</strong>
+            <label>Channel
+                <select name="channel_id">
+                    <option value="0">All channels</option>
+                    @foreach (var c in _snap.Channels)
+                    {
+                        <option value="@c.Id.ToString(CultureInfo.InvariantCulture)">@c.Code — @c.Name</option>
+                    }
+                </select>
+            </label>
+            <label>Code <input name="code" required maxlength="40" style="width:7rem" /></label>
+            <label>Name <input name="name" required maxlength="160" style="width:12rem" /></label>
+            <label>Type <select name="disc_type"><option value="percent">Percent</option><option value="amount">Amount</option></select></label>
+            <label>Value <input type="number" name="value" min="0" step="0.0001" value="0" style="width:6rem" /></label>
+            <label>Active <select name="active"><option value="1">yes</option><option value="0">no</option></select></label>
+            <button type="submit" class="btn btn-primary btn-sm">Save discount</button>
+        </form>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Id</th><th>Channel</th><th>Code</th><th>Name</th><th>Type</th><th class="text-right">Value</th><th>Active</th></tr></thead>
+                <tbody>
+                    @if (_snap.Discounts.Count == 0)
+                    {
+                        <tr><td colspan="7">No discounts yet.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var d in _snap.Discounts)
+                        {
+                            <tr><td>@d.Id.ToString(CultureInfo.InvariantCulture)</td><td>@d.ChannelCode</td><td>@d.Code</td><td>@d.Name</td><td>@d.DiscType</td>
+                                <td class="text-right">@d.Value.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td><span class="label @(d.Active ? "label-success" : "label-default")">@(d.Active ? "active" : "inactive")</span></td></tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (_tab == "pos")
+    {
+        <form method="post" action="/erp/ajax/rtl-pos-sale" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@ReturnHere" />
+            <input type="hidden" name="company_id" value="@_snap.CompanyId.ToString(CultureInfo.InvariantCulture)" />
+            <strong style="width:100%">POS sale (posts GL journal + stock movement)</strong>
+            <label>Channel
+                <select name="channel_id" required>
+                    @foreach (var c in _snap.Channels)
+                    {
+                        <option value="@c.Id.ToString(CultureInfo.InvariantCulture)" selected="@(c.Id == _snap.SelectedChannelId)">@c.Code — @c.Name</option>
+                    }
+                </select>
+            </label>
+            <label>Item
+                <select name="item_id" required>
+                    @foreach (var it in _snap.Items)
+                    {
+                        <option value="@it.Id.ToString(CultureInfo.InvariantCulture)">@it.Sku — @it.Name</option>
+                    }
+                </select>
+            </label>
+            <label>Qty <input type="number" name="qty" min="0.01" step="0.01" value="1" style="width:5rem" /></label>
+            <label>Unit price <input type="number" name="unit_price" min="0" step="0.01" value="0" style="width:6rem" /></label>
+            <label>Tax % <input type="number" name="tax_rate" min="0" step="0.01" value="5" style="width:5rem" /></label>
+            <label>Tender <select name="tender"><option value="cash">Cash</option><option value="card">Card</option><option value="voucher">Voucher</option></select></label>
+            <label>Warehouse id <input type="number" name="warehouse_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-primary btn-sm">Record sale</button>
+        </form>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Receipt</th><th>Time</th><th>Tender</th><th class="text-right">Gross</th><th class="text-right">Discount</th><th class="text-right">Net</th><th class="text-right">Tax</th><th class="text-right">Total</th></tr></thead>
+                <tbody>
+                    @if (_snap.Transactions.Count == 0)
+                    {
+                        <tr><td colspan="8">No POS transactions on this channel yet.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var t in _snap.Transactions)
+                        {
+                            <tr><td>@t.ReceiptNo</td><td>@FormatTime(t.TxnTime)</td><td>@t.Tender</td>
+                                <td class="text-right">@t.Gross.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@t.Discount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@t.Net.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@t.Tax.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@t.Total.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                        }
+                        <tr style="font-weight:600;background:#f2f6fa">
+                            <td>End-of-day statement</td><td colspan="2">@_snap.Statement.Count.ToString(CultureInfo.InvariantCulture) receipts</td>
+                            <td class="text-right">@_snap.Statement.Gross.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_snap.Statement.Discount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_snap.Statement.Net.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_snap.Statement.Tax.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_snap.Statement.Total.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (_snap.Statement.ByTender.Count > 0)
+        {
+            <p class="text-muted" style="margin:.5rem 0 0">By tender: @string.Join(" · ", _snap.Statement.ByTender.Select(kv => kv.Key + " " + kv.Value.ToString("N2", CultureInfo.InvariantCulture)))</p>
+        }
+    }
+    else if (_tab == "barcode")
+    {
+        <h4 style="margin:0 0 .5rem"><i class="fa fa-print" aria-hidden="true"></i> Barcode printing</h4>
+        <p class="text-muted">Code 128 label preview for current SKUs (print this page to a label printer).</p>
+        @if (_snap.Items.Count == 0)
+        {
+            <p class="text-muted">No SKUs found in inventory.</p>
+        }
+        else
+        {
+            <div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:1rem">
+                @foreach (var it in _snap.Items.Take(60))
+                {
+                    <div style="border:1px solid #cbd5e1;border-radius:6px;padding:10px 12px;text-align:center;min-width:150px;background:#fff">
+                        <div style="font-size:11px;color:#475569;margin-bottom:4px">@it.Name</div>
+                        <div style="display:flex;justify-content:center;height:44px;align-items:flex-end;gap:1px">
+                            @foreach (var (w, h) in Bars(it.Sku))
+                            {
+                                <span style="display:inline-block;width:@(w)px;height:@(h)px;background:#0f172a"></span>
+                            }
+                        </div>
+                        <div style="font-family:monospace;font-size:12px;letter-spacing:1px;margin-top:3px">@it.Sku</div>
+                    </div>
+                }
+            </div>
+        }
+        <h4 style="margin:1rem 0 .5rem"><i class="fa fa-bar-chart" aria-hidden="true"></i> Retail report — items</h4>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>SKU</th><th>Item</th><th>Unit</th><th class="text-right">Qty on hand</th><th class="text-right">Avg cost</th><th class="text-right">Stock value</th></tr></thead>
+                <tbody>
+                    @if (_snap.Items.Count == 0)
+                    {
+                        <tr><td colspan="6">No retail items found.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var it in _snap.Items)
+                        {
+                            <tr><td>@it.Sku</td><td>@it.Name</td><td>@it.Unit</td>
+                                <td class="text-right">@it.Qty.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@it.AvgCost.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@((it.Qty * it.AvgCost).ToString("N2", CultureInfo.InvariantCulture))</td></tr>
+                        }
+                        <tr style="font-weight:600;background:#f2f6fa"><td colspan="5" class="text-right">Total stock value</td><td class="text-right">@_snap.Items.Sum(i => i.Qty * i.AvgCost).ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <h4 style="margin:1rem 0 .5rem"><i class="fa fa-barcode" aria-hidden="true"></i> Barcode formats</h4>
+        <form method="post" action="/erp/ajax/pm-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@ReturnHere" />
+            <input type="hidden" name="pm_table" value="epc_erp_pm_barcode_formats" />
+            <label>Code <input name="code" required placeholder="SKU128" maxlength="40" style="width:7rem" /></label>
+            <label>Name <input name="name" required maxlength="190" style="width:12rem" /></label>
+            <label>Symbology
+                <select name="symbology">
+                    <option value="CODE128">Code 128</option><option value="EAN13">EAN-13</option><option value="UPC">UPC-A</option><option value="QR">QR code</option><option value="CODE39">Code 39</option>
+                </select>
+            </label>
+            <label>Pattern <input name="pattern" placeholder="{SKU} or {SKU}-{PRICE}" style="width:10rem" /></label>
+            <label>Note <input name="note" style="width:10rem" /></label>
+            <input type="hidden" name="active" value="1" />
+            <button type="submit" class="btn btn-primary btn-sm">Save format</button>
+        </form>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Code</th><th>Name</th><th>Symbology</th><th>Pattern</th><th>Active</th></tr></thead>
+                <tbody>
+                    @if (_snap.BarcodeFormats.Count == 0)
+                    {
+                        <tr><td colspan="5">No barcode formats yet (defaults are seeded on first masters save).</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var f in _snap.BarcodeFormats)
+                        {
+                            <tr><td>@f.Code</td><td>@f.Name</td><td>@f.Symbology</td><td>@f.Pattern</td><td>@(f.Active ? "yes" : "no")</td></tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
+        Company @_snap.CompanyId.ToString(CultureInfo.InvariantCulture) · Source: epc_rtl_* (PHP epc_erp_retail parity)
+        @if (!string.IsNullOrWhiteSpace(_snap.Message)) { <span> · @_snap.Message</span> }
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string AppPath = "/erp/retail-commerce-app";
+
+    private static readonly (string Key, string Label)[] Tabs =
+    [
+        ("channels", "Channels & assortments"),
+        ("discounts", "Periodic discounts"),
+        ("pos", "POS & statement"),
+        ("barcode", "Retail barcode"),
+    ];
+
+    private bool _isAdmin;
+    private string _tab = "channels";
+    private long _channelId;
+    private int? _company;
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private string _message = "Sign in with ERP capability for live rows.";
+    private ErpRetailCommerceSnapshot _snap = ErpRetailCommerceSnapshot.Empty("");
+
+    private string TabLabel => Tabs.First(t => t.Key == _tab).Label;
+
+    private string PhpHref => _tab == "barcode"
+        ? "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=retail_barcode"
+        : "/ERP/?epc_erp_shell=1&area=retail&tab=retail_commerce";
+
+    private string ReturnHere => TabHref(_tab, _channelId);
+
+    private string TabHref(string tab, long channelId = 0)
+    {
+        var href = AppPath + "?tab=" + tab;
+        if (channelId > 0) href += "&channel_id=" + channelId.ToString(CultureInfo.InvariantCulture);
+        if (_company is > 0) href += "&company=" + _company.Value.ToString(CultureInfo.InvariantCulture);
+        return href;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        var tab = ctx.Request.Query["tab"].ToString();
+        _tab = tab switch
+        {
+            "retail_barcode" => "barcode",
+            "retail_commerce" or "" => "channels",
+            _ => Tabs.Any(t => t.Key == tab) ? tab : "channels",
+        };
+        var rv = ctx.Request.Query["rv"].ToString();
+        if (rv is "discounts" or "pos") _tab = rv;
+        _ = long.TryParse(ctx.Request.Query["channel_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _channelId);
+        _company = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request);
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin) return;
+
+        _snap = await Retail.LoadAsync(_company ?? 0, _channelId, ctx.RequestAborted);
+        _channelId = _snap.SelectedChannelId;
+    }
+
+    private static string FormatTime(long unix)
+        => unix <= 0 ? "—" : DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+
+    private static IEnumerable<(int W, int H)> Bars(string sku)
+    {
+        uint h = 2166136261;
+        foreach (var ch in sku)
+        {
+            h = (h ^ ch) * 16777619;
+        }
+        for (var i = 0; i < 36; i++)
+        {
+            var w = ((h >> (i % 28)) & 1) == 1 ? 3 : 1;
+            var bh = ((h >> ((i + 3) % 28)) & 1) == 1 ? 44 : 34;
+            yield return (w, bh);
+        }
+    }
+}

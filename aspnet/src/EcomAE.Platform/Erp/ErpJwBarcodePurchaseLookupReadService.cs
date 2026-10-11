@@ -70,6 +70,7 @@ public sealed class ErpJwBarcodePurchaseLookupReadService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional("""
             SELECT `id`,`company_id`,`barcode`,`item_description`,`supplier_name`,
