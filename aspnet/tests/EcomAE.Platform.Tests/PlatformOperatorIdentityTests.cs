@@ -18,6 +18,11 @@ public sealed class PlatformOperatorIdentityTests
         Assert.Contains("super-cp", PlatformOperatorIdentity.Surfaces);
         Assert.Contains("super-bos", PlatformOperatorIdentity.Surfaces);
         Assert.Contains("super-erp", PlatformOperatorIdentity.Surfaces);
+        var identity = PlatformOperatorIdentity.WithCanonicalEmail(
+            new LegacyAdminIdentity("ecomaedxb@gmail.com", [3], true));
+        Assert.Equal("yawer@ecomae.com", identity.Email);
+        Assert.Equal([3], identity.GroupIds);
+        Assert.True(identity.HasBackendAccess);
     }
 
     [Fact]
