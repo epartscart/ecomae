@@ -177,19 +177,57 @@ public sealed class ErpUntestedWriteServicesTests
                 cs,
                 "CREATE TABLE `epc_erp_pm_legal_entities` (`id` int(11) NOT NULL AUTO_INCREMENT, `active` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`id`))");
             await Db.Exec(cs, "INSERT INTO `epc_erp_pm_legal_entities` (`id`,`active`) VALUES (1,1)");
+            await Db.Exec(
+                cs,
+                "CREATE TABLE `epc_erp_coa_accounts` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(20) NOT NULL,"
+                + " `name` varchar(255) NOT NULL, `account_type` varchar(20) NOT NULL DEFAULT 'asset', `active` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`id`))");
+            await Db.Exec(cs, "INSERT INTO `epc_erp_coa_accounts` (`code`,`name`) VALUES ('1000','Cash'),('4000','Revenue'),('2100','VAT output')");
+            await Db.Exec(
+                cs,
+                "CREATE TABLE `epc_erp_inv_warehouses` (`id` int(11) NOT NULL AUTO_INCREMENT, `storage_id` int(11) NOT NULL DEFAULT 0,"
+                + " `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(255) NOT NULL DEFAULT '', `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`))");
+            await Db.Exec(
+                cs,
+                "CREATE TABLE `epc_erp_inv_items` (`id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(64) NOT NULL DEFAULT '', PRIMARY KEY (`id`))");
+            await Db.Exec(
+                cs,
+                "CREATE TABLE `epc_erp_inv_stock` (`id` int(11) NOT NULL AUTO_INCREMENT, `warehouse_id` int(11) NOT NULL,"
+                + " `item_id` int(11) NOT NULL, `qty_on_hand` decimal(14,4) NOT NULL DEFAULT 0, `avg_unit_cost` decimal(14,4) NOT NULL DEFAULT 0,"
+                + " `batch_no` varchar(64), `variant_label` varchar(120), `expiry_date` varchar(20), `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`))");
+            await Db.Exec(
+                cs,
+                "CREATE TABLE `epc_erp_inv_movements` (`id` int(11) NOT NULL AUTO_INCREMENT, `movement_type` varchar(24) NOT NULL,"
+                + " `warehouse_id` int(11) NOT NULL, `item_id` int(11) NOT NULL, `qty` decimal(14,4) NOT NULL,"
+                + " `unit_cost` decimal(14,4) NOT NULL DEFAULT 0, `total_cost` decimal(14,2) NOT NULL DEFAULT 0,"
+                + " `transfer_warehouse_id` int(11) NOT NULL DEFAULT 0, `purchase_id` int(11) NOT NULL DEFAULT 0, `order_id` int(11) NOT NULL DEFAULT 0,"
+                + " `batch_no` varchar(64), `expiry_date` varchar(20), `reference` varchar(64) NOT NULL DEFAULT '', `note` varchar(255) NOT NULL DEFAULT '',"
+                + " `movement_date` varchar(20) NOT NULL DEFAULT '', `admin_id` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`))");
+            await Db.Exec(cs, "INSERT INTO `epc_erp_inv_warehouses` (`id`,`code`,`name`) VALUES (1,'MAIN','Main')");
+            await Db.Exec(cs, "INSERT INTO `epc_erp_inv_items` (`id`,`code`) VALUES (7,'I7'),(8,'I8')");
+            await Db.Exec(cs, "INSERT INTO `epc_erp_inv_stock` (`warehouse_id`,`item_id`,`qty_on_hand`,`avg_unit_cost`) VALUES (1,7,10,90),(1,8,5,40)");
 
-            var service = new ErpRtlPosSaleWriteService(new Db.Connections(cs));
+            var vouchers = new ErpVoucherNumberService();
+            var service = new ErpRtlPosSaleWriteService(new Db.Connections(cs), new ErpGlPostingService(vouchers), vouchers);
             var result = await service.SaleAsync(
-                new ErpRtlPosSaleRequest(CompanyId: 1, ChannelId: 1, Tender: "card", TaxRate: 5, Lines:
+                new ErpRtlPosSaleRequest(CompanyId: 1, ChannelId: 1, Tender: "card", TaxRate: 5m, WarehouseId: 1, AdminId: 9, Lines:
                 [
-                    new ErpRtlPosSaleLine(7, 2, 100),
-                    new ErpRtlPosSaleLine(8, 1, 50),
+                    new ErpRtlPosSaleLine(7, 2m, 100m),
+                    new ErpRtlPosSaleLine(8, 1m, 50m),
                 ]));
 
             Assert.True(result.Ok, result.Message);
             Assert.Equal(250m, result.Gross);
             Assert.Equal(2, await Db.Dec(cs, "SELECT COUNT(*) FROM `epc_rtl_txn_line` WHERE `txn_id` = 1"));
             Assert.Equal(1m, await Db.Dec(cs, "SELECT `company_id` FROM `epc_rtl_txn` WHERE `id` = 1"));
+            // Audit finding 3: same transaction posts the GL journal and stock movements.
+            Assert.Equal(2, await Db.Dec(cs, "SELECT COUNT(*) FROM `epc_erp_inv_movements` WHERE `movement_type` = 'sale_out'"));
+            Assert.Equal(8m, await Db.Dec(cs, "SELECT `qty_on_hand` FROM `epc_erp_inv_stock` WHERE `warehouse_id` = 1 AND `item_id` = 7"));
+            Assert.Equal(4m, await Db.Dec(cs, "SELECT `qty_on_hand` FROM `epc_erp_inv_stock` WHERE `warehouse_id` = 1 AND `item_id` = 8"));
+            Assert.Equal(1, await Db.Dec(cs, "SELECT COUNT(*) FROM `epc_erp_gl_journals` WHERE `source_type` = 'sales' AND `reference` LIKE 'RTL-POS-%' AND `source_id` = 1"));
+            var dr = await Db.Dec(cs, "SELECT COALESCE(SUM(`debit`),0) FROM `epc_erp_gl_lines`");
+            var cr = await Db.Dec(cs, "SELECT COALESCE(SUM(`credit`),0) FROM `epc_erp_gl_lines`");
+            Assert.Equal(dr, cr);
+            Assert.Equal(262.5m, dr);
         }
         finally
         {

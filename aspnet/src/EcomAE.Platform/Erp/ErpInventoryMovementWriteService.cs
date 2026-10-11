@@ -1036,8 +1036,26 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         return movementId;
     }
 
+    internal static Task UpsertStockAsync(
+        DbConnection connection,
+        long warehouseId,
+        long itemId,
+        decimal qtyDelta,
+        decimal unitCost,
+        string batchNo,
+        string variant,
+        string? expiry,
+        CancellationToken cancellationToken) =>
+        UpsertStockAsync(connection, null, warehouseId, itemId, qtyDelta, unitCost, batchNo, variant, expiry, cancellationToken);
+
+    /// <summary>
+    /// Same as <see cref="UpsertStockAsync(DbConnection,long,long,decimal,decimal,string,string,string?,CancellationToken)"/>
+    /// but runs inside the caller's ambient transaction when <paramref name="ambient"/> is given:
+    /// no inner transaction is opened and nothing commits here (the caller owns commit/rollback).
+    /// </summary>
     internal static async Task UpsertStockAsync(
         DbConnection connection,
+        DbTransaction? ambient,
         long warehouseId,
         long itemId,
         decimal qtyDelta,
@@ -1047,7 +1065,8 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         string? expiry,
         CancellationToken cancellationToken)
     {
-        await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        var tx = ambient ?? await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        var ownsTx = ambient is null;
         try
         {
             var sql = "SELECT `id`, `qty_on_hand`, `avg_unit_cost` FROM `epc_erp_inv_stock` WHERE `warehouse_id` = ? AND `item_id` = ?";
@@ -1113,7 +1132,10 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
                     variant.Length == 0 ? null : variant,
                     string.IsNullOrWhiteSpace(expiry) ? null : expiry,
                     now);
-                await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+                if (ownsTx)
+                {
+                    await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+                }
                 return;
             }
 
@@ -1139,12 +1161,25 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
                 string.IsNullOrWhiteSpace(expiry) ? null : expiry,
                 now,
                 stockId);
-            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+            if (ownsTx)
+            {
+                await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
         catch
         {
-            await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            if (ownsTx)
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            }
             throw;
+        }
+        finally
+        {
+            if (ownsTx)
+            {
+                await tx.DisposeAsync().ConfigureAwait(false);
+            }
         }
     }
 
