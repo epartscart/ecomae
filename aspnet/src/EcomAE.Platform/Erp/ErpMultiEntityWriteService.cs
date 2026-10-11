@@ -99,6 +99,7 @@ public sealed class ErpMultiEntityWriteService : IErpMultiEntityWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureMultiEntityAsync(connection, cancellationToken).ConfigureAwait(false);
         try
         {
             await ErpDb.ExecuteAsync(
@@ -167,6 +168,7 @@ public sealed class ErpMultiEntityWriteService : IErpMultiEntityWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureMultiEntityAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await GroupExistsAsync(connection, groupId, cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Entity group not found.");
@@ -222,6 +224,7 @@ public sealed class ErpMultiEntityWriteService : IErpMultiEntityWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureMultiEntityAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await GroupExistsAsync(connection, groupId, cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Entity group not found.");
@@ -257,6 +260,7 @@ public sealed class ErpMultiEntityWriteService : IErpMultiEntityWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureMultiEntityAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await GroupExistsAsync(connection, groupId, cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Entity group not found.");

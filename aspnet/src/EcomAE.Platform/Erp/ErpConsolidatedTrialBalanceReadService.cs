@@ -42,6 +42,7 @@ public sealed class ErpConsolidatedTrialBalanceReadService : IErpConsolidatedTri
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            await ErpLazySchema.EnsureMultiEntityAsync(connection, cancellationToken).ConfigureAwait(false);
             var entities = await ErpDb.LongAsync(
                 connection,
                 null,

@@ -1278,4 +1278,19 @@ internal static class ErpLazySchema
             await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
         }
     }
+
+    /// <summary>PHP <c>epc_entity_ensure_schema</c> (content/shop/finance/epc_multi_entity.php).</summary>
+    public static async Task EnsureMultiEntityAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_entity_groups` (`id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, `group_code` VARCHAR(32) NOT NULL UNIQUE, `group_name` VARCHAR(128) NOT NULL, `parent_entity` VARCHAR(64) NOT NULL DEFAULT '', `base_currency` CHAR(3) NOT NULL DEFAULT 'AED', `fiscal_year_end` CHAR(5) NOT NULL DEFAULT '12-31', `status` ENUM('active','inactive') NOT NULL DEFAULT 'active', `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+            "CREATE TABLE IF NOT EXISTS `epc_entity_members` (`id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, `group_id` INT UNSIGNED NOT NULL, `site_key` VARCHAR(64) NOT NULL, `entity_name` VARCHAR(128) NOT NULL DEFAULT '', `ownership_pct` DECIMAL(5,2) NOT NULL DEFAULT 100.00, `local_currency` CHAR(3) NOT NULL DEFAULT 'AED', `consolidation` ENUM('full','proportional','equity','excluded') NOT NULL DEFAULT 'full', `joined_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY `uk_member` (`group_id`, `site_key`), INDEX `idx_group` (`group_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+            "CREATE TABLE IF NOT EXISTS `epc_intercompany_txns` (`id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, `group_id` INT UNSIGNED NOT NULL, `from_site_key` VARCHAR(64) NOT NULL, `to_site_key` VARCHAR(64) NOT NULL, `amount` DECIMAL(14,2) NOT NULL DEFAULT 0.00, `currency` CHAR(3) NOT NULL DEFAULT 'AED', `description` VARCHAR(255) NOT NULL DEFAULT '', `status` ENUM('pending','matched','eliminated') NOT NULL DEFAULT 'pending', `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX `idx_group` (`group_id`), INDEX `idx_status` (`status`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
 }
