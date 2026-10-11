@@ -256,7 +256,7 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The CP finance pages: nav areas, the dashboards, the operations editor and create operation, the payment systems, custom shipping.
    - The write side of the 118 mapped tabs.
    - The ERP portal half of `epc_erp_access.php`: portal URLs, the CP-admin session bridge, the guest session and auth post, and the tab rights by department (`epc_erp_staff_allowed_tabs`).
-   - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
+   - The deferred findings are closed in code: cash entries post atomically with their journal (#2074), the integrity scan gained unbalanced-journal and sub-ledger-vs-control checks (#2074), RTL POS posts GL journal + stock in the sale transaction (#2075), voucher numbers only consume post-commit (#2074), the seven untested write services have tests (#2074), and money is `decimal` in fulfillment/RTL POS/PF demo/OPL planning/PM listing (#2075, #2076). Remaining operational items: the emergency-publish flag on later deploys and reposting the wrong 4000/6100 production transfers, which still needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
