@@ -22020,7 +22020,7 @@ public sealed class ErpModule : ISurfaceModule
             : jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
         var nav = ErpIndustryNav.FilterTopnav(
             LegacyDesktopChromeCatalog.ErpTopnav(),
-            new ErpIndustryNav.ErpNavAudience("current", industry, active?.CountryCode, isSuper, rules.DisabledTabIds, rules.EnabledModuleIds));
+            new ErpIndustryNav.ErpNavAudience("current", ErpIndustryNav.NavIndustryCode(industry, active), active?.CountryCode, isSuper, rules.DisabledTabIds, rules.EnabledModuleIds));
 
         var r = await reads.SearchAsync(q, limit, nav, active?.Id ?? 0, cancellationToken);
         return Results.Ok(new

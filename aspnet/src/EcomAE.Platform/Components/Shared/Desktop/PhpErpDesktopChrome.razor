@@ -512,7 +512,7 @@
             LegacyDesktopChromeCatalog.ErpTopnav(),
             new ErpIndustryNav.ErpNavAudience(
                 "current",
-                _industryCode,
+                ErpIndustryNav.NavIndustryCode(_industryCode, active),
                 countryCode,
                 _showBos,
                 DisabledTabIds: tenantRules.DisabledTabIds,

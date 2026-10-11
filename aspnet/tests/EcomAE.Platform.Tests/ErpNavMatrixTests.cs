@@ -47,6 +47,34 @@ public sealed class ErpNavMatrixTests
             tab => tab.Id.EndsWith("/workflow_automation", StringComparison.OrdinalIgnoreCase));
     }
 
+    [Theory]
+    [InlineData("core", false, false)]
+    [InlineData("jewellery", false, false)]
+    [InlineData("fitout_contracting", false, true)]
+    [InlineData("core", true, false)]
+    [InlineData("construction", true, true)]
+    public void ProjectAccountingTabFollowsFitOutIndustryEvenForSuperErp(string industry, bool isSuper, bool expected)
+    {
+        var filtered = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience("current", industry, "AE", IsSuperErp: isSuper));
+
+        var visible = filtered.SelectMany(g => g.Links).Any(ErpIndustryNav.IsFitOutTab);
+        Assert.Equal(expected, visible);
+    }
+
+    [Fact]
+    public void SuperErpNavHidesJewelleryTabsForNonJewelleryCompany()
+    {
+        var filtered = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience("current", "core", "AE", IsSuperErp: true));
+
+        Assert.DoesNotContain(filtered.SelectMany(g => g.Links), ErpIndustryNav.IsJewelleryTab);
+        Assert.Equal("fitout", ErpIndustryNav.NavIndustryCode("core",
+            new ErpCompanyDigest(3, "FITOUT", "Fit-out Company", "AED", "AE", "fitout_contracting", true)));
+    }
+
     [Fact]
     public void GeneratedMatrixRetainsPhpDescriptionsGroupsAndVisibilityFlags()
     {

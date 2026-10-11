@@ -55,6 +55,22 @@ public static class ErpIndustryNav
             || code is "jw" or "jewellery";
     }
 
+    public static bool IsFitOutIndustry(string? industryCode)
+    {
+        var code = (industryCode ?? string.Empty).Trim().ToLowerInvariant();
+        return code.Contains("fitout", StringComparison.Ordinal)
+            || code.Contains("fit_out", StringComparison.Ordinal)
+            || code.Contains("fit-out", StringComparison.Ordinal)
+            || code.Contains("construction", StringComparison.Ordinal);
+    }
+
+    /// <summary>Industry code for topnav filtering: a fit-out company (by pack, code or name) counts as fit-out like the route gate.</summary>
+    public static string? NavIndustryCode(string? industryCode, ErpCompanyDigest? company)
+        => !IsFitOutIndustry(industryCode) && IsFitOutCompany(company) ? "fitout" : industryCode;
+
+    public static bool IsFitOutTab(PhpModuleCatalog.ModuleLink tab)
+        => string.Equals(TabKey(tab), "project_accounting", StringComparison.OrdinalIgnoreCase);
+
     public static bool IsFitOutCompany(ErpCompanyDigest? company)
     {
         if (company is null)
@@ -247,14 +263,18 @@ public static class ErpIndustryNav
         PhpModuleCatalog.ModuleLink tab,
         ErpNavAudience audience)
     {
-        if (!audience.IsSuperErp
-            && IsJewelleryTab(tab)
+        if (IsJewelleryTab(tab)
             && !IsJewelleryFromHostOrPack(
                 audience.IndustryCode,
                 audience.IndustryCode,
                 null))
         {
             return new(false, "industry", "Jewellery module requires the jewellery industry pack.");
+        }
+
+        if (IsFitOutTab(tab) && !IsFitOutIndustry(audience.IndustryCode))
+        {
+            return new(false, "industry", "Project accounting requires the fit-out / construction industry pack.");
         }
 
         if (audience.DisabledTabIds is { Count: > 0 }
