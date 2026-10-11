@@ -814,7 +814,15 @@ internal static class ErpLazySchema
                 ct).ConfigureAwait(false);
             if (count > 1 && DedupedDatabases.TryAdd(c.Database, 0))
             {
-                await DeactivateUnusedRacedDefaultCompaniesAsync(c, ct).ConfigureAwait(false);
+                try
+                {
+                    await DeactivateUnusedRacedDefaultCompaniesAsync(c, ct).ConfigureAwait(false);
+                }
+                catch
+                {
+                    DedupedDatabases.TryRemove(c.Database, out _);
+                    throw;
+                }
             }
 
             if (count > 0)
