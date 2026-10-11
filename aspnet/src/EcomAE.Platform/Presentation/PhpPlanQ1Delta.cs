@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Net;
 
 namespace EcomAE.Platform.Presentation;
 
@@ -217,7 +216,12 @@ public static class PhpPlanQ1Delta
     }
 
     private static string H(string value)
-        => WebUtility.HtmlEncode(value).Replace("&#39;", "&#039;", StringComparison.Ordinal);
+        => value
+            .Replace("&", "&amp;", StringComparison.Ordinal)
+            .Replace("<", "&lt;", StringComparison.Ordinal)
+            .Replace(">", "&gt;", StringComparison.Ordinal)
+            .Replace("\"", "&quot;", StringComparison.Ordinal)
+            .Replace("'", "&#039;", StringComparison.Ordinal);
 
     private static string PhpNumberFormat(double value)
         => value.ToString("N2", CultureInfo.GetCultureInfo("en-US"));
