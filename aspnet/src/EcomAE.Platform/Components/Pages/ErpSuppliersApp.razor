@@ -96,6 +96,16 @@
                                 <td class="text-right">@c.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
                             </tr>
                         }
+                        <tr style="font-weight:600;background:#f2f6fa">
+                            <td>Total</td>
+                            <td colspan="3"></td>
+                            <td class="text-right">@_cards.Sum(c => c.PoCount).ToString(CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_cards.Sum(c => c.Received).ToString(CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_cards.Sum(c => c.Spend).ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td colspan="4"></td>
+                            <td class="text-right">@_cards.Sum(c => c.RfqCount).ToString(CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@_cards.Sum(c => c.Balance).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
                     }
                 </tbody>
             </table>

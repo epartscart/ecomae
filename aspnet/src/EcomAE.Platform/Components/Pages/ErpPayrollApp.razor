@@ -186,6 +186,16 @@
                             </td>
                         </tr>
                     }
+                    <tr style="font-weight:600;background:#f2f6fa">
+                        <td>Total</td>
+                        <td colspan="3"></td>
+                        <td class="text-right">@_runs.Sum(r => r.EmployeeCount).ToString(CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_runs.Sum(r => r.TotalGross).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_runs.Sum(r => r.TotalDeductions).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td class="text-right">@_runs.Sum(r => r.TotalNet).ToString("N2", CultureInfo.InvariantCulture)</td>
+                        <td></td>
+                        <td class="text-muted">@_runs.Count runs</td>
+                    </tr>
                 }
             </tbody>
         </table>
