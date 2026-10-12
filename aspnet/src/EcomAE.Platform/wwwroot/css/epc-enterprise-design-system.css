@@ -359,3 +359,473 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ── Enterprise form / card / action layout (ERP + CP) ─────────────────
+   Restyles the common ASP.NET pattern: <form style="display:flex"> with
+   <label>Text <input></label> plus raw buttons. Table row-action forms
+   stay compact. Inline flex is overridden so every module aligns. */
+
+.epc-erp-content-body,
+.epc-cp-content-inner {
+    --epc-form-gap: .75rem 1rem;
+    --epc-field-min: 13.5rem;
+    --epc-control-h: 2.25rem;
+    --epc-card-pad: 1rem 1.1rem;
+}
+
+.epc-erp-content-body .well,
+.epc-erp-content-body .hpanel,
+.epc-erp-content-body .panel,
+.epc-erp-content-body .epc-erp-form-panel,
+.epc-erp-content-body .epc-fno-entry-shell,
+.epc-cp-content-inner .well,
+.epc-cp-content-inner .hpanel,
+.epc-cp-content-inner .panel {
+    border: 1px solid var(--epc-ui-line) !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .05) !important;
+    overflow: hidden;
+}
+
+.epc-erp-content-body .hpanel,
+.epc-erp-content-body .panel,
+.epc-cp-content-inner .hpanel,
+.epc-cp-content-inner .panel {
+    margin: 0 0 1rem !important;
+}
+
+.epc-erp-content-body .panel-heading,
+.epc-erp-content-body .hpanel .panel-heading,
+.epc-erp-content-body .epc-erp-form-panel__head,
+.epc-cp-content-inner .panel-heading,
+.epc-cp-content-inner .hpanel .panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .65rem;
+    padding: .7rem 1rem !important;
+    margin: 0 !important;
+    border-bottom: 1px solid var(--epc-ui-line) !important;
+    background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important;
+    color: var(--epc-ui-ink) !important;
+    font-size: 13px !important;
+    font-weight: 750 !important;
+}
+
+.epc-erp-content-body .panel-body,
+.epc-erp-content-body .hpanel .panel-body,
+.epc-cp-content-inner .panel-body,
+.epc-cp-content-inner .hpanel .panel-body {
+    padding: var(--epc-card-pad) !important;
+}
+
+.epc-erp-create-card,
+.epc-erp-content-body .well.epc-erp-section,
+.epc-cp-content-inner .well.epc-erp-section {
+    margin: 0 0 1rem;
+    padding: 0 !important;
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .05);
+    overflow: hidden;
+}
+
+.epc-erp-create-card__hd,
+.epc-erp-create-card > h5 {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    margin: 0 !important;
+    padding: .7rem 1rem !important;
+    border-bottom: 1px solid var(--epc-ui-line);
+    background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+    color: var(--epc-ui-ink);
+    font-size: 13px !important;
+    font-weight: 750 !important;
+}
+
+.epc-erp-create-card__bd {
+    padding: var(--epc-card-pad);
+}
+
+.epc-erp-doc-header {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 1fr));
+    gap: var(--epc-form-gap);
+    margin: 0 0 .15rem;
+    padding: .85rem .95rem;
+    border: 1px solid #d7e3f0;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #f8fbff, #fff);
+}
+
+.epc-erp-doc-header__title {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.epc-erp-doc-header label,
+.epc-erp-doc-header .epc-erp-field {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .35rem;
+    margin: 0;
+    min-width: 0;
+    color: #334155 !important;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.epc-erp-header-org-link {
+    align-self: flex-start;
+    margin: 0 !important;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.epc-erp-content-body form:not([data-epc-inline="1"]),
+.epc-cp-content-inner form:not([data-epc-inline="1"]) {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 1fr));
+    gap: var(--epc-form-gap);
+    align-items: end;
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 0 1rem !important;
+    padding: var(--epc-card-pad);
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .05);
+}
+
+.epc-erp-content-body .well form,
+.epc-erp-content-body .hpanel form,
+.epc-erp-content-body .panel form,
+.epc-erp-content-body .epc-erp-create-card form,
+.epc-erp-content-body .epc-erp-section form,
+.epc-erp-content-body .epc-erp-form-panel form,
+.epc-erp-content-body .epc-fno-entry-body form,
+.epc-cp-content-inner .well form,
+.epc-cp-content-inner .hpanel form,
+.epc-cp-content-inner .panel form,
+.epc-cp-content-inner .epc-erp-create-card form,
+.epc-cp-content-inner .epc-scp-table-card form {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+.epc-erp-content-body table form,
+.epc-erp-content-body td form,
+.epc-erp-content-body th form,
+.epc-erp-content-body .btn-group form,
+.epc-cp-content-inner table form,
+.epc-cp-content-inner td form,
+.epc-cp-content-inner th form,
+.epc-cp-content-inner .btn-group form {
+    display: inline-flex !important;
+    grid-template-columns: none !important;
+    gap: .35rem;
+    align-items: center;
+    width: auto;
+    max-width: none;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+.epc-erp-content-body form > label,
+.epc-erp-content-body .epc-fno-form .field,
+.epc-erp-content-body .form-group,
+.epc-cp-content-inner form > label,
+.epc-cp-content-inner .form-group {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .35rem;
+    margin: 0 !important;
+    min-width: 0;
+    color: #334155 !important;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.epc-erp-content-body form > label:has(> input[type="checkbox"]),
+.epc-erp-content-body form > label:has(> input[type="radio"]),
+.epc-cp-content-inner form > label:has(> input[type="checkbox"]),
+.epc-cp-content-inner form > label:has(> input[type="radio"]) {
+    flex-direction: row;
+    align-items: center;
+    gap: .45rem;
+    font-weight: 600;
+    min-height: var(--epc-control-h);
+}
+
+.epc-erp-content-body form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="file"]):not([type="image"]),
+.epc-erp-content-body form select,
+.epc-erp-content-body form textarea,
+.epc-erp-content-body .form-control,
+.epc-cp-content-inner form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="file"]):not([type="image"]),
+.epc-cp-content-inner form select,
+.epc-cp-content-inner form textarea,
+.epc-cp-content-inner .form-control {
+    width: 100%;
+    min-height: var(--epc-control-h);
+    padding: .4rem .6rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+    color: #0f172a;
+    font-size: 13px;
+    line-height: 1.3;
+    box-shadow: none;
+}
+
+.epc-erp-content-body form textarea,
+.epc-cp-content-inner form textarea {
+    min-height: 5rem;
+    resize: vertical;
+}
+
+.epc-erp-content-body form input:focus,
+.epc-erp-content-body form select:focus,
+.epc-erp-content-body form textarea:focus,
+.epc-cp-content-inner form input:focus,
+.epc-cp-content-inner form select:focus,
+.epc-cp-content-inner form textarea:focus {
+    border-color: #2563eb;
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .16);
+}
+
+.epc-erp-content-body form input[readonly],
+.epc-cp-content-inner form input[readonly] {
+    background: #f8fafc;
+    color: #334155;
+}
+
+.epc-erp-content-body form > button,
+.epc-erp-content-body form > .btn,
+.epc-erp-content-body form > .form-actions,
+.epc-erp-content-body .form-actions,
+.epc-cp-content-inner form > button,
+.epc-cp-content-inner form > .btn,
+.epc-cp-content-inner form > .form-actions,
+.epc-cp-content-inner .form-actions {
+    grid-column: 1 / -1;
+    justify-self: start;
+}
+
+.epc-erp-content-body .form-actions,
+.epc-cp-content-inner .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    width: 100%;
+    margin-top: .25rem;
+    padding-top: .85rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.epc-erp-content-body .btn,
+.epc-cp-content-inner .btn,
+.epc-erp-content-body button[type="submit"],
+.epc-cp-content-inner button[type="submit"] {
+    min-height: 2.15rem;
+    padding: .4rem .9rem;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.epc-erp-content-body .btn-primary,
+.epc-cp-content-inner .btn-primary,
+.epc-erp-content-body button[type="submit"]:not(.btn-default):not(.btn-warning):not(.btn-danger),
+.epc-cp-content-inner button[type="submit"]:not(.btn-default):not(.btn-warning):not(.btn-danger) {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .12);
+}
+
+.epc-erp-content-body .btn-primary:hover,
+.epc-cp-content-inner .btn-primary:hover,
+.epc-erp-content-body button[type="submit"]:not(.btn-default):not(.btn-warning):not(.btn-danger):hover,
+.epc-cp-content-inner button[type="submit"]:not(.btn-default):not(.btn-warning):not(.btn-danger):hover {
+    background: #1e40af;
+    border-color: #1e40af;
+    color: #fff;
+}
+
+.epc-erp-content-body .btn-default,
+.epc-cp-content-inner .btn-default,
+.epc-erp-content-body button[type="reset"],
+.epc-cp-content-inner button[type="reset"] {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+}
+
+.epc-erp-content-body .btn-xs,
+.epc-cp-content-inner .btn-xs {
+    min-height: 1.7rem;
+    padding: .2rem .55rem;
+    font-size: 11.5px;
+}
+
+.epc-erp-content-body table .btn,
+.epc-cp-content-inner table .btn {
+    min-height: 1.7rem;
+}
+
+.epc-org-tabs,
+.epc-erp-content-body .epc-fno-entry-tabs,
+.epc-cp-content-inner .nav-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin: 0 0 1rem;
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+.epc-org-tabs a,
+.epc-erp-content-body .epc-fno-entry-tabs a {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .7rem 1rem;
+    color: #334155;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+    border-right: 1px solid #e2e8f0;
+}
+
+.epc-org-tabs a:hover,
+.epc-org-tabs a.active,
+.epc-erp-content-body .epc-fno-entry-tabs a:hover,
+.epc-erp-content-body .epc-fno-entry-tabs a.active {
+    background: #fff;
+    color: #1d4ed8;
+    box-shadow: inset 0 -3px 0 #2563eb;
+}
+
+.epc-erp-content-body .epc-fno-form {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 64rem;
+}
+
+.epc-erp-content-body .epc-fno-form .field.wide,
+.epc-erp-content-body .epc-fno-form .form-actions {
+    grid-column: 1 / -1;
+}
+
+.epc-erp-content-body form > .epc-erp-table-wrap,
+.epc-erp-content-body form > .table-responsive,
+.epc-erp-content-body form > .help-block,
+.epc-erp-content-body form > p,
+.epc-erp-content-body form > .alert,
+.epc-erp-content-body form > fieldset,
+.epc-cp-content-inner form > .epc-erp-table-wrap,
+.epc-cp-content-inner form > .table-responsive,
+.epc-cp-content-inner form > .help-block,
+.epc-cp-content-inner form > p,
+.epc-cp-content-inner form > .alert,
+.epc-cp-content-inner form > fieldset {
+    grid-column: 1 / -1;
+}
+
+.epc-erp-content-body .epc-erp-form-panel form,
+.epc-erp-content-body .epc-fno-entry-body form {
+    padding: 0 !important;
+}
+
+.epc-fno-entry-body {
+    padding: var(--epc-card-pad);
+}
+
+.epc-erp-content-body form.epc-ui-toolbar,
+.epc-cp-content-inner form.epc-ui-toolbar,
+.epc-document-workspace form,
+.epc-finance-voucher form,
+.epc-document-workspace__actions form,
+.epc-finance-voucher__actions form {
+    display: flex !important;
+    grid-template-columns: none !important;
+    align-items: flex-end;
+    justify-content: space-between;
+    max-width: none;
+    width: 100%;
+}
+
+.epc-erp-content-body > form.form-inline,
+.epc-cp-content-inner > form.form-inline,
+.epc-erp-content-body > form[method="get"],
+.epc-cp-content-inner > form[method="get"] {
+    display: flex !important;
+    grid-template-columns: none !important;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: .55rem .75rem;
+    max-width: none;
+    padding: .65rem .85rem;
+}
+
+.epc-erp-content-body > form.form-inline > label,
+.epc-cp-content-inner > form.form-inline > label,
+.epc-erp-content-body > form[method="get"] > label,
+.epc-cp-content-inner > form[method="get"] > label {
+    flex-direction: row;
+    align-items: center;
+    gap: .4rem;
+}
+
+.epc-cp-content-inner .epc-scp-table-card {
+    margin: 0 0 1rem;
+    border: 1px solid var(--epc-ui-line) !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .05);
+}
+
+.epc-cp-content-inner .epc-scp-table-card > h3 {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    margin: 0 0 .85rem !important;
+    padding: 0 0 .65rem;
+    border-bottom: 1px solid var(--epc-ui-line);
+    color: var(--epc-ui-ink);
+    font-size: 13px !important;
+    font-weight: 750 !important;
+}
+
+@media (max-width: 720px) {
+    .epc-erp-content-body form:not([data-epc-inline="1"]),
+    .epc-cp-content-inner form:not([data-epc-inline="1"]),
+    .epc-erp-doc-header,
+    .epc-erp-content-body .epc-fno-form {
+        grid-template-columns: 1fr !important;
+    }
+}

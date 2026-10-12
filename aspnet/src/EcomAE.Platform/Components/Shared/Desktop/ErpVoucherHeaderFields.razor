@@ -6,9 +6,8 @@
   legal entity, business unit, and cost centre. Drop into any create form.
 *@
 
-<style>
-    .epc-erp-header-org-link { display:inline-block; margin-left:.35rem; font-size:11px; font-weight:700; }
-</style>
+<div class="epc-erp-doc-header" role="group" aria-label="Document identity">
+    <p class="epc-erp-doc-header__title">Document identity</p>
 <label>@DateLabel
     <input class="form-control input-sm" name="@DateFieldName" type="@DateInputType" value="@DateDefault" required="@DateRequired" />
 </label>
@@ -74,6 +73,7 @@
         <a class="epc-erp-header-org-link" href="/erp/organization-app?tab=cost_centres">Manage</a>
     </label>
 }
+</div>
 
 @code {
     [Parameter] public string DateLabel { get; set; } = "Voucher date";

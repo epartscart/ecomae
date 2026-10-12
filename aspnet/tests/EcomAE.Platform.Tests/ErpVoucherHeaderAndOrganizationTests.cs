@@ -31,6 +31,35 @@ public sealed class ErpVoucherHeaderAndOrganizationTests
         Assert.Contains("/erp/organization-app?tab=legal_entities", text, StringComparison.Ordinal);
         Assert.Contains("/erp/organization-app?tab=business_units", text, StringComparison.Ordinal);
         Assert.Contains("/erp/organization-app?tab=cost_centres", text, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-doc-header", text, StringComparison.Ordinal);
+        Assert.Contains("Document identity", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Shared_create_well_is_an_enterprise_card()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/ErpPhpCreateWell.razor"));
+
+        Assert.Contains("epc-erp-create-card", text, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-create-card__hd", text, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-create-card__bd", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Enterprise_design_system_aligns_erp_and_cp_forms()
+    {
+        var css = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/wwwroot/css/epc-enterprise-design-system.css"));
+
+        Assert.Contains(".epc-erp-content-body form:not([data-epc-inline=\"1\"])", css, StringComparison.Ordinal);
+        Assert.Contains(".epc-cp-content-inner form:not([data-epc-inline=\"1\"])", css, StringComparison.Ordinal);
+        Assert.Contains("display: grid !important", css, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-doc-header", css, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-create-card", css, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-content-body .form-actions", css, StringComparison.Ordinal);
+        Assert.Contains("table form", css, StringComparison.Ordinal);
+        Assert.Contains("display: inline-flex !important", css, StringComparison.Ordinal);
     }
 
     [Theory]

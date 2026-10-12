@@ -33,12 +33,12 @@
     @if (_isAdmin)
     {
         <ErpPhpCreateWell Title="New invoice from sales order">
-            <form method="post" action="@EcomAeRoutes.ErpAjaxSoToInvoice" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@EcomAeRoutes.ErpAjaxSoToInvoice">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/erp/invoices-app" />
                 <ErpVoucherHeaderFields DateLabel="Invoice date" DateFieldName="invoice_date" NumberLabel="Invoice no" NumberPreview="Auto" />
                 <label>Sales order id <input class="form-control input-sm" type="number" name="id" min="1" required /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Validate &amp; post invoice</button>
+                <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Validate &amp; post invoice</button></div>
             </form>
         </ErpPhpCreateWell>
     }

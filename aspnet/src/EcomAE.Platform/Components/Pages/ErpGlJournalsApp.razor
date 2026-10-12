@@ -31,16 +31,14 @@
                 <strong>Manual journal entry</strong>
                 <span class="text-muted">Validate, balance, then post to the general ledger.</span>
             </div>
-            <form method="post" action="@EcomAeRoutes.ErpGlJournalsManual" class="erp-journal-date-form" style="display:grid;gap:.65rem">
+            <form method="post" action="@EcomAeRoutes.ErpGlJournalsManual" class="erp-journal-date-form">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/erp/gl-journals-app" />
                 <input type="hidden" name="journalDate" value="@JournalDate" data-unix-date />
-                <div style="display:flex;flex-wrap:wrap;gap:.65rem;align-items:end">
-                    <label>Journal date <input type="datetime-local" value="@JournalDateInput" data-date-input required /></label>
-                    <ErpVoucherHeaderFields DateFieldName="voc_date" DateRequired="false" NumberLabel="Journal no" NumberPreview="Auto" />
-                    <label>Reference <input type="text" name="reference" required maxlength="80" /></label>
-                    <label>Description <input type="text" name="description" required maxlength="255" /></label>
-                </div>
+                <ErpVoucherHeaderFields DateFieldName="voc_date" DateRequired="false" NumberLabel="Journal no" NumberPreview="Auto" />
+                <label>Journal date <input type="datetime-local" value="@JournalDateInput" data-date-input required /></label>
+                <label>Reference <input type="text" name="reference" required maxlength="80" /></label>
+                <label>Description <input type="text" name="description" required maxlength="255" /></label>
                 <div class="epc-erp-table-wrap">
                     <table class="table table-bordered table-condensed table-epc epc-erp-table">
                         <thead><tr><th>COA account</th><th>Debit</th><th>Credit</th><th>Line note</th></tr></thead>
@@ -60,10 +58,10 @@
                         </tbody>
                     </table>
                 </div>
-                <div><button type="submit" class="btn btn-primary">Validate and post journal</button></div>
+                <div class="form-actions"><button type="submit" class="btn btn-primary">Validate and post journal</button></div>
             </form>
         </section>
-        <form id="erp-module-new" method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form id="erp-module-new" method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/gl-journals-app?tab=jw_journal_voucher" />
             <input type="hidden" name="action" value="jw_journal_voucher_save" />
@@ -71,7 +69,7 @@
             <ErpVoucherHeaderFields NumberPreview="Auto" />
             <label>Description <input type="text" name="party_name" required /></label>
             <label>Amount <input type="text" name="net_amount" value="0" style="width:6rem" /></label>
-            <button type="submit" class="btn btn-xs btn-primary">Save journal voucher</button>
+            <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save journal voucher</button></div>
         </form>
     }
 
