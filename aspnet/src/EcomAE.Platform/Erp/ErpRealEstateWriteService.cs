@@ -62,6 +62,9 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
                 "save_certificate" => await SaveCertificateAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
                 "save_document" => await SaveDocumentAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
                 "ack_alert" => await AckAlertAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "void" or "void_document" => await VoidDocumentAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "reverse" or "reverse_document" => await ReverseDocumentAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "delete" or "delete_draft" => await DeleteDraftAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
                 _ => ErpSimpleWriteResult.Fail("unknown_action", "Unknown real-estate action: " + action),
             };
 
@@ -498,6 +501,12 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
 
         if (r.Id > 0)
         {
+            var current = await ScalarText(c, tx, "SELECT `status` FROM `epc_erp_re_opportunities` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+            if (!ErpPostedTransactionPolicy.CanModify("opportunity", current))
+            {
+                return PostedBlock(current, "opportunity");
+            }
+
             await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
                 "UPDATE `epc_erp_re_opportunities` SET `name`=?,`stage`=?,`seller`=?,`emirate`=?,`city`=?,`asking_price`=?,`offer_price`=?,`indicative_value`=?,`expected_rent`=?,`opex`=?,`equity`=?,`legal_entity_id`=?,`notes`=?,`status`=? WHERE `id`=?"),
                 ct, name, Clip(r.Status, 40, "screening"), Clip(r.Counterparty, 190), Clip(r.Emirate, 40), Clip(r.City, 80),
@@ -523,6 +532,17 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         }
 
         var oppId = r.OpportunityId > 0 ? r.OpportunityId : r.Id;
+        var current = await ScalarText(c, tx, "SELECT `status` FROM `epc_erp_re_opportunities` WHERE `id`=?", ct, oppId).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(current))
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Opportunity was not found.");
+        }
+
+        if (!ErpPostedTransactionPolicy.CanModify("opportunity", current))
+        {
+            return PostedBlock(current, "opportunity");
+        }
+
         await using var command = c.CreateCommand();
         command.Transaction = tx;
         command.CommandText = ErpDb.Positional(
@@ -653,8 +673,19 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Acquisition id is required.");
         }
 
+        var current = await ScalarText(c, tx, "SELECT `status` FROM `epc_erp_re_acquisitions` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(current))
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Acquisition was not found.");
+        }
+
+        if (!ErpPostedTransactionPolicy.CanModify("acquisition", current))
+        {
+            return PostedBlock(current, "acquisition");
+        }
+
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
-            "UPDATE `epc_erp_re_acquisitions` SET `status`='completed',`completion_date`=COALESCE(`completion_date`, CURRENT_DATE) WHERE `id`=?"),
+            "UPDATE `epc_erp_re_acquisitions` SET `status`='completed',`completion_date`=COALESCE(`completion_date`, CURRENT_DATE) WHERE `id`=? AND `status`='draft'"),
             ct, r.Id).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "UPDATE `epc_erp_properties` p JOIN `epc_erp_re_acquisitions` a ON a.property_id=p.id SET p.status='active', p.acquired_date=COALESCE(p.acquired_date, CURRENT_DATE), p.acquisition_cost=a.purchase_price+a.eligible_costs WHERE a.id=?"),
@@ -797,6 +828,12 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Existing lease and new dates are required.");
         }
 
+        var leaseStatus = await ScalarText(c, tx, "SELECT `status` FROM `epc_erp_re_leases` WHERE `id`=?", ct, r.LeaseId).ConfigureAwait(false);
+        if (ErpPostedTransactionPolicy.IsVoided(leaseStatus))
+        {
+            return ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.AlreadyClosed);
+        }
+
         await using var command = c.CreateCommand();
         command.Transaction = tx;
         command.CommandText = ErpDb.Positional(
@@ -842,8 +879,14 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Lease id is required.");
         }
 
+        var current = await ScalarText(c, tx, "SELECT `status` FROM `epc_erp_re_leases` WHERE `id`=?", ct, r.LeaseId).ConfigureAwait(false);
+        if (ErpPostedTransactionPolicy.IsVoided(current))
+        {
+            return ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.AlreadyClosed);
+        }
+
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
-            "UPDATE `epc_erp_re_leases` SET `status`='terminated' WHERE `id`=?"),
+            "UPDATE `epc_erp_re_leases` SET `status`='terminated' WHERE `id`=? AND `status` NOT IN ('voided','reversed')"),
             ct, r.LeaseId).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "UPDATE `epc_erp_re_units` u JOIN `epc_erp_re_leases` l ON l.unit_id=u.id SET u.status='available' WHERE l.id=? AND u.status='occupied'"),
@@ -881,6 +924,15 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         if (r.Id <= 0 || !allowed.Contains(status))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Cheque id and a valid status are required.");
+        }
+
+        var current = await ScalarText(c, tx, "SELECT `status` FROM `epc_erp_re_cheques` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        if (ErpPostedTransactionPolicy.IsVoided(current)
+            || string.Equals(current, "cleared", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(current, "bounced", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(current, "replaced", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.RefuseModify);
         }
 
         if (status == "cleared")
@@ -1147,6 +1199,164 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             "UPDATE `epc_erp_re_alerts` SET `status`='acknowledged' WHERE `id`=?"),
             ct, r.Id).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Alert acknowledged", r.Id);
+    }
+
+    private static async Task<ErpSimpleWriteResult> VoidDocumentAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        var kind = ErpPostedTransactionPolicy.NormalizeKind(r.Category ?? r.Status);
+        if (r.Id <= 0 || kind.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Document kind and id are required to void.");
+        }
+
+        var map = TableFor(kind);
+        if (map is null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "That document kind cannot be voided.");
+        }
+
+        var current = await ScalarText(c, tx, "SELECT `status` FROM `" + map.Value.Table + "` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(current))
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Document was not found.");
+        }
+
+        if (!ErpPostedTransactionPolicy.CanVoid(kind, current))
+        {
+            return ErpPostedTransactionPolicy.IsDraft(kind, current)
+                ? ErpSimpleWriteResult.Fail("draft", "Drafts are deleted, not voided.")
+                : ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.IsVoided(current) ? ErpPostedTransactionPolicy.AlreadyClosed : ErpPostedTransactionPolicy.RefuseVoid);
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "UPDATE `" + map.Value.Table + "` SET `status`='voided' WHERE `id`=?"),
+            ct, r.Id).ConfigureAwait(false);
+        await UnwindAsync(c, tx, kind, r.Id, ct).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Posted " + kind + " voided. The original row stays on file.", r.Id);
+    }
+
+    private static async Task<ErpSimpleWriteResult> ReverseDocumentAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        var kind = ErpPostedTransactionPolicy.NormalizeKind(r.Category ?? r.Status);
+        if (r.Id <= 0 || kind.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Document kind and id are required to reverse.");
+        }
+
+        var map = TableFor(kind);
+        if (map is null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "That document kind cannot be reversed.");
+        }
+
+        var current = await ScalarText(c, tx, "SELECT `status` FROM `" + map.Value.Table + "` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        if (!ErpPostedTransactionPolicy.CanReverse(kind, current))
+        {
+            return ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.IsVoided(current) ? ErpPostedTransactionPolicy.AlreadyClosed : ErpPostedTransactionPolicy.RefuseModify);
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "UPDATE `" + map.Value.Table + "` SET `status`='reversed' WHERE `id`=?"),
+            ct, r.Id).ConfigureAwait(false);
+        await UnwindAsync(c, tx, kind, r.Id, ct).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Posted " + kind + " reversed. The original row stays on file.", r.Id);
+    }
+
+    private static async Task<ErpSimpleWriteResult> DeleteDraftAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        var kind = ErpPostedTransactionPolicy.NormalizeKind(r.Category ?? r.Status);
+        if (r.Id <= 0 || kind.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Document kind and id are required to delete a draft.");
+        }
+
+        var map = TableFor(kind);
+        if (map is null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "That document kind cannot be deleted.");
+        }
+
+        var current = await ScalarText(c, tx, "SELECT `status` FROM `" + map.Value.Table + "` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(current))
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Document was not found.");
+        }
+
+        if (!ErpPostedTransactionPolicy.CanDelete(kind, current))
+        {
+            return ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.RefuseDelete);
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "DELETE FROM `" + map.Value.Table + "` WHERE `id`=? AND `status` IN ('draft','open','screening','offer','due_diligence','received','held','due_for_deposit','planned')"),
+            ct, r.Id).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Draft " + kind + " deleted.", r.Id);
+    }
+
+    private static async Task UnwindAsync(DbConnection c, DbTransaction tx, string kind, long id, CancellationToken ct)
+    {
+        switch (kind)
+        {
+            case "acquisition":
+                await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                    "UPDATE `epc_erp_properties` p JOIN `epc_erp_re_acquisitions` a ON a.property_id=p.id SET p.status='under-evaluation' WHERE a.id=? AND p.status='active'"),
+                    ct, id).ConfigureAwait(false);
+                break;
+            case "disposal":
+                await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                    "UPDATE `epc_erp_properties` p JOIN `epc_erp_re_disposals` d ON d.property_id=p.id SET p.status='active', p.disposed_date=NULL WHERE d.id=?"),
+                    ct, id).ConfigureAwait(false);
+                break;
+            case "lease":
+                await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                    "UPDATE `epc_erp_re_units` u JOIN `epc_erp_re_leases` l ON l.unit_id=u.id SET u.status='available' WHERE l.id=? AND u.status='occupied'"),
+                    ct, id).ConfigureAwait(false);
+                break;
+            case "sale":
+                await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                    "UPDATE `epc_erp_re_units` u JOIN `epc_erp_re_sales` s ON s.unit_id=u.id SET u.status='available' WHERE s.id=?"),
+                    ct, id).ConfigureAwait(false);
+                break;
+            case "opportunity":
+                await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                    "UPDATE `epc_erp_re_opportunities` SET `stage`='screening' WHERE `id`=?"),
+                    ct, id).ConfigureAwait(false);
+                break;
+        }
+    }
+
+    private static (string Table, bool HasCode)? TableFor(string kind)
+        => kind switch
+        {
+            "acquisition" => ("epc_erp_re_acquisitions", true),
+            "disposal" => ("epc_erp_re_disposals", true),
+            "valuation" => ("epc_erp_re_valuations", true),
+            "lease" => ("epc_erp_re_leases", true),
+            "cheque" => ("epc_erp_re_cheques", true),
+            "deposit" => ("epc_erp_re_deposits", false),
+            "sale" => ("epc_erp_re_sales", true),
+            "certificate" => ("epc_erp_re_certificates", true),
+            "contract" => ("epc_erp_re_contracts", true),
+            "opportunity" => ("epc_erp_re_opportunities", true),
+            _ => null,
+        };
+
+    private static ErpSimpleWriteResult PostedBlock(string? status, string kind)
+        => ErpPostedTransactionPolicy.IsVoided(status)
+            ? ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.AlreadyClosed)
+            : ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.RefuseModify);
+
+    private static async Task<string> ScalarText(DbConnection c, DbTransaction tx, string sql, CancellationToken ct, params object[] args)
+    {
+        await using var command = c.CreateCommand();
+        command.Transaction = tx;
+        command.CommandText = ErpDb.Positional(sql);
+        ErpDb.AddParameters(command, args);
+        var value = await command.ExecuteScalarAsync(ct).ConfigureAwait(false);
+        return value is null or DBNull ? "" : Convert.ToString(value, CultureInfo.InvariantCulture) ?? "";
     }
 
     private static async Task<long> LastId(DbConnection c, DbTransaction tx, CancellationToken ct)
