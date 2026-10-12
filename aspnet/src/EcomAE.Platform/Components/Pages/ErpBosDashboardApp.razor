@@ -114,16 +114,10 @@
                 <div class="ns-hero-meta">
                     <span class="ns-chip"><i class="fa fa-calendar"></i> @_periodFrom → @_periodTo</span>
                     <span class="ns-chip"><i class="fa fa-money"></i> @_currency</span>
-                    <span class="ns-chip"><i class="fa fa-user"></i> @_profile.Label</span>
                     <span class="ns-chip"><i class="fa fa-building"></i> @_companyLabel</span>
-                    <span class="ns-chip"><i class="fa fa-filter"></i> Data scope: @_home.CompanyScope</span>
                     @if (!ErpNetsuiteDashboardCatalog.Can(_profile, "profit"))
                     {
                         <span class="ns-chip" title="Profit and margin are hidden for this profile"><i class="fa fa-lock"></i> Profit restricted</span>
-                    }
-                    @if (_fitOut)
-                    {
-                        <span class="ns-chip ns-chip--fitout"><i class="fa fa-building"></i> Fit-out company pack</span>
                     }
                 </div>
             </div>
@@ -140,7 +134,7 @@
             </div>
         </div>
 
-        <section class="epc-infographic" aria-label="ERP operating pulse">
+        <section class="epc-infographic epc-dash-repeat" aria-label="ERP operating pulse">
             <div class="epc-infographic__head">
                 <div>
                     <div class="epc-infographic__eyebrow">Executive operating map</div>
@@ -229,7 +223,7 @@
 
         @if (_workspaceGroups.Count > 0)
         {
-            <div class="ns-port">
+            <div class="ns-port epc-dash-repeat">
                 <div class="bd" style="padding-top:14px">
                     <h4 style="margin:0 0 12px;"><i class="fa fa-folder-open"></i> Area workspaces</h4>
                     <div class="ns-tiles">
@@ -246,7 +240,7 @@
             </div>
         }
 
-        <div class="ns-port">
+        <div class="ns-port epc-dash-repeat">
             <div class="bd" style="padding:12px">
                 <div class="epc-insights epc-insights--erp" id="epc-insights">
                     <div class="epc-insights__head">
@@ -703,11 +697,6 @@
             </div>
         </div>
     }
-    <PhpHybridModuleDirectory
-        Title="Workspaces"
-        Subtitle="@($"{PhpModuleCatalog.ErpAreaCount} ERP areas")"
-        Links="@PhpModuleCatalog.ErpAreas"
-        PhpWorkspaceBase="/erp/app" />
     <PhpHybridModuleDirectory
         Title="All modules"
         Subtitle="@($"{_directoryTabs.Count} ERP modules")"

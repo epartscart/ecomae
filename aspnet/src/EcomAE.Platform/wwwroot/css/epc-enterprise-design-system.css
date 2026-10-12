@@ -1285,3 +1285,31 @@ body:has(.epc-boc) {
     grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
     gap: 8px 18px;
 }
+
+/* ERP top search sits on the navy bar — never inherit #fff onto the white input. */
+.epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__input,
+.epc-erp-global-search__input {
+    color: #0f172a !important;
+    background: #fff !important;
+    caret-color: #0f172a;
+    -webkit-text-fill-color: #0f172a;
+}
+
+.epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__input::placeholder,
+.epc-erp-global-search__input::placeholder {
+    color: #64748b !important;
+    opacity: 1;
+    -webkit-text-fill-color: #64748b;
+}
+
+.epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__label,
+.epc-erp-global-search__label {
+    color: #64748b !important;
+}
+
+/* Dashboard home: header already has legal name / industry. Hide the repeating chrome strip. */
+.epc-erp-cp-shell:has(.ns-dash) .epc-module-visual-frame,
+.epc-erp-cp-shell:has(.ns-dash) .epc-op-context,
+.ns-dash .epc-dash-repeat {
+    display: none !important;
+}

@@ -153,8 +153,23 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("data-epc-dash=\"color-tiles\"", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ErpGlobalSearch", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor")), StringComparison.Ordinal);
         Assert.Contains("Search pages and workspaces", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/ErpGlobalSearch.razor")), StringComparison.Ordinal);
-        Assert.Contains("v=20261012prja", assets, StringComparison.Ordinal);
+        Assert.Contains("v=20261012home", assets, StringComparison.Ordinal);
+        Assert.DoesNotContain("v=20261012prja", assets, StringComparison.Ordinal);
         Assert.DoesNotContain("v=20261012wscolor", assets, StringComparison.Ordinal);
+
+        var chrome = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor"));
+        Assert.Contains("color:#0f172a !important", chrome, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-global-search__input::placeholder", chrome, StringComparison.Ordinal);
+        Assert.Contains(".ns-dash) .epc-module-visual-frame", chrome, StringComparison.Ordinal);
+
+        var dash = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
+        Assert.Contains("epc-dash-repeat", dash, StringComparison.Ordinal);
+        Assert.Contains("Title=\"All modules\"", dash, StringComparison.Ordinal);
+        Assert.DoesNotContain("Title=\"Workspaces\"", dash, StringComparison.Ordinal);
+        Assert.DoesNotContain("Data scope:", dash, StringComparison.Ordinal);
+
+        Assert.Contains("color: #0f172a !important", css, StringComparison.Ordinal);
+        Assert.Contains(".ns-dash .epc-dash-repeat", css, StringComparison.Ordinal);
     }
 
     [Fact]

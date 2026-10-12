@@ -48,6 +48,11 @@
     .epc-erp-host-sub { margin:0 0 .85rem; color:var(--muted); font-size:13px; font-weight:600; }
     .epc-erp-content-body { min-width:0; max-width:100%; overflow-x:auto; box-sizing:border-box; font-size:14px; }
     .epc-erp-foot { padding:.85rem 1rem; border-top:1px solid var(--line); background:#fff; color:var(--muted); font-size:13px; }
+    .epc-erp-global-search__label { color:#64748b !important; }
+    .epc-erp-global-search__input { background:#fff !important; color:#0f172a !important; caret-color:#0f172a; -webkit-text-fill-color:#0f172a; }
+    .epc-erp-global-search__input::placeholder { color:#64748b !important; opacity:1; -webkit-text-fill-color:#64748b; }
+    .epc-erp-cp-shell:has(.ns-dash) .epc-module-visual-frame,
+    .epc-erp-cp-shell:has(.ns-dash) .epc-op-context { display:none !important; }
 </style>
 </HeadContent>
 <style>
@@ -75,8 +80,11 @@
     .epc-erp-content-body { min-width:0; max-width:100%; overflow-x:auto; box-sizing:border-box; font-size:14px; }
     .epc-erp-foot { padding:.85rem 1rem; border-top:1px solid var(--line); background:#fff; color:var(--muted); font-size:13px; }
     .epc-erp-global-search { position:relative; flex:1 1 16rem; max-width:28rem; min-width:12rem; }
-    .epc-erp-global-search__label { position:absolute; left:.7rem; top:50%; transform:translateY(-50%); color:#64748b; pointer-events:none; }
-    .epc-erp-global-search__input { width:100%; height:2.15rem; padding:.35rem .7rem .35rem 2rem; border:1px solid #cbd5e1; border-radius:.4rem; background:#fff; font:inherit; }
+    .epc-erp-global-search__label { position:absolute; left:.7rem; top:50%; transform:translateY(-50%); color:#64748b !important; pointer-events:none; }
+    .epc-erp-global-search__input { width:100%; height:2.15rem; padding:.35rem .7rem .35rem 2rem; border:1px solid #cbd5e1; border-radius:.4rem; background:#fff !important; color:#0f172a !important; caret-color:#0f172a; font:inherit; -webkit-text-fill-color:#0f172a; }
+    .epc-erp-global-search__input::placeholder { color:#64748b !important; opacity:1; -webkit-text-fill-color:#64748b; }
+    .epc-erp-cp-shell:has(.ns-dash) .epc-module-visual-frame,
+    .epc-erp-cp-shell:has(.ns-dash) .epc-op-context { display:none !important; }
     .epc-erp-global-search__results { position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:5000; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 12px 28px rgba(15,23,42,.14); max-height:22rem; overflow:auto; }
     .epc-erp-global-search__hit { display:flex; gap:.55rem; align-items:center; padding:.55rem .7rem; color:#0f172a; text-decoration:none; }
     .epc-erp-global-search__hit:hover, .epc-erp-global-search__hit.is-active { background:#eff6ff; }
