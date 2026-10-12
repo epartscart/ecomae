@@ -3,34 +3,57 @@
 @*
   Module directory for product shells.
   Primary click = ASP.NET browse route. PHP only via explicit /php-reference/* link.
+  Lower ERP/CP modules render as Dynamics 365 F&O workspace tiles.
 *@
 
 
 <HeadContent>
 <style>
-    .epc-moddir { margin-top:1.25rem; }
-    .epc-moddir-head h2 { margin:0 0 .35rem; font-size:1.1rem; }
-    .epc-moddir-head p { margin:0 0 .55rem; color:#64748b; font-size:.88rem; line-height:1.4; }
+    .epc-moddir { margin-top:1.35rem; }
+    .epc-moddir-head h2 { margin:0 0 .35rem; font-size:1.15rem; font-weight:750; color:#0f172a; }
+    .epc-moddir-head p { margin:0 0 .45rem; color:#64748b; font-size:.88rem; line-height:1.4; }
     .epc-moddir-hint { color:#475569 !important; }
-    .epc-moddir-search { width:100%; max-width:28rem; padding:.55rem .7rem; border:1px solid #e2e8f0; border-radius:.4rem; margin-bottom:.85rem; font:inherit; }
-    .epc-moddir-group { margin:0 0 1rem; }
-    .epc-moddir-group h3 { margin:0 0 .45rem; font-size:.92rem; color:#334155; }
+    .epc-moddir-search { width:100%; max-width:28rem; padding:.55rem .7rem; border:1px solid #cbd5e1; border-radius:4px; margin-bottom:.95rem; font:inherit; background:#fff; }
+    .epc-moddir-group { margin:0 0 1.15rem; }
+    .epc-moddir-group h3 { margin:0 0 .65rem; padding-bottom:.35rem; border-bottom:2px solid #dbe4ee; font-size:.92rem; color:#1e293b; font-weight:750; }
     .epc-moddir-group h3 span { color:#94a3b8; font-weight:500; }
-    .epc-moddir-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:.4rem; }
-    .epc-moddir-item { display:flex; align-items:center; gap:.4rem; background:#fff; border:1px solid #e2e8f0; border-radius:.4rem; padding:.45rem .55rem; font-size:.8rem; }
-    .epc-moddir-item i { color:#64748b; width:1rem; text-align:center; }
-    .epc-moddir-link { flex:1; font-weight:600; color:#0f172a; text-decoration:none; }
-    .epc-moddir-link:hover { text-decoration:underline; color:#1d4ed8; }
+    .epc-moddir-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(15.75rem,1fr)); gap:.85rem; }
+    .epc-moddir-item.epc-ws-tile { display:flex; flex-direction:column; min-height:9.25rem; padding:0; overflow:hidden; background:#fff; border:1px solid #d4dbe4; border-radius:3px; box-shadow:0 2px 8px rgba(15,23,42,.07); text-decoration:none; }
+    .epc-ws-tile:hover { transform:translateY(-2px); box-shadow:0 10px 22px rgba(15,23,42,.14); }
+    .epc-ws-tile__bar { display:flex; align-items:center; min-height:2.7rem; padding:.45rem .75rem; background:var(--ws-accent,#0078d4); color:#fff; }
+    .epc-ws-tile__bar .epc-moddir-link, .epc-ws-tile__bar .epc-moddir-link:hover { color:#fff !important; font-size:13px; font-weight:700; text-decoration:none; line-height:1.25; }
+    .epc-ws-tile__body { display:flex; flex:1; flex-direction:column; justify-content:flex-end; gap:.45rem; padding:.85rem .8rem .75rem; background:#f8fafc; }
+    .epc-ws-tile__body i { width:auto; color:var(--ws-accent,#0078d4); font-size:1.65rem; }
+    .epc-ws-tile__body small { color:#475569; font-size:11.5px; font-weight:600; line-height:1.35; }
+    .epc-ws-tile.ws-blue { --ws-accent:#0078d4; }
+    .epc-ws-tile.ws-teal { --ws-accent:#008575; }
+    .epc-ws-tile.ws-orange { --ws-accent:#ca5010; }
+    .epc-ws-tile.ws-purple { --ws-accent:#5c2d91; }
+    .epc-ws-tile.ws-green { --ws-accent:#107c10; }
+    .epc-ws-tile.ws-crimson { --ws-accent:#a80000; }
+    .epc-ws-tile.ws-navy { --ws-accent:#00188f; }
+    .epc-ws-tile.ws-magenta { --ws-accent:#b146c2; }
 </style>
 </HeadContent>
+<style data-epc-moddir="d365-workspaces">
+    .epc-moddir-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(15.75rem,1fr)); gap:.85rem; }
+    .epc-moddir-item.epc-ws-tile { display:flex; flex-direction:column; min-height:9.25rem; padding:0; overflow:hidden; background:#fff; border:1px solid #d4dbe4; border-radius:3px; box-shadow:0 2px 8px rgba(15,23,42,.07); text-decoration:none; }
+    .epc-ws-tile__bar { display:flex; align-items:center; min-height:2.7rem; padding:.45rem .75rem; background:var(--ws-accent,#0078d4); color:#fff; }
+    .epc-ws-tile__bar .epc-moddir-link { color:#fff !important; font-weight:700; text-decoration:none; }
+    .epc-ws-tile__body { display:flex; flex:1; flex-direction:column; justify-content:flex-end; gap:.45rem; padding:.85rem .8rem .75rem; background:#f8fafc; }
+    .epc-ws-tile.ws-blue { --ws-accent:#0078d4; } .epc-ws-tile.ws-teal { --ws-accent:#008575; }
+    .epc-ws-tile.ws-orange { --ws-accent:#ca5010; } .epc-ws-tile.ws-purple { --ws-accent:#5c2d91; }
+    .epc-ws-tile.ws-green { --ws-accent:#107c10; } .epc-ws-tile.ws-crimson { --ws-accent:#a80000; }
+    .epc-ws-tile.ws-navy { --ws-accent:#00188f; } .epc-ws-tile.ws-magenta { --ws-accent:#b146c2; }
+</style>
 
 
 @* Primary module-directory marker: epc-moddir-aspnet. *@
-<div class="epc-moddir">
+<div class="epc-moddir" data-epc-moddir-style="d365-fno">
     <div class="epc-moddir-head">
         <h2>@Title</h2>
         <p>@Subtitle — <strong>@_links.Count</strong> modules.</p>
-        <p class="epc-moddir-hint">Open a module below to continue.</p>
+        <p class="epc-moddir-hint">Open a workspace tile below to continue.</p>
     </div>
 
     @if (!string.IsNullOrWhiteSpace(Search))
@@ -49,13 +72,20 @@
             <div class="epc-moddir-grid">
                 @foreach (var item in group)
                 {
-                    <div class="epc-moddir-item">
-                        @if (!string.IsNullOrWhiteSpace(item.Icon))
-                        {
-                            <i class="fa @item.Icon" aria-hidden="true"></i>
-                        }
-                        <a class="epc-moddir-link" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(item.Href)" title="Open module">@item.Label</a>
-                    </div>
+                    <a class="epc-moddir-item epc-ws-tile @WorkspaceTone(group.Key, item)"
+                       href="@PhpSurfaceLinkMap.AspNetPrimaryHref(item.Href)"
+                       title="Open module">
+                        <span class="epc-ws-tile__bar">
+                            <span class="epc-moddir-link">@item.Label</span>
+                        </span>
+                        <span class="epc-ws-tile__body">
+                            @if (!string.IsNullOrWhiteSpace(item.Icon))
+                            {
+                                <i class="fa @item.Icon" aria-hidden="true"></i>
+                            }
+                            <small>@(string.IsNullOrWhiteSpace(item.Description) ? group.Key : item.Description)</small>
+                        </span>
+                    </a>
                 }
             </div>
         </section>
@@ -68,6 +98,9 @@
     [Parameter] public IReadOnlyList<PhpModuleCatalog.ModuleLink> Links { get; set; } = Array.Empty<PhpModuleCatalog.ModuleLink>();
     [Parameter] public string? PhpWorkspaceBase { get; set; }
     [Parameter] public string Search { get; set; } = "";
+
+    private static readonly string[] ToneCycle =
+        ["ws-blue", "ws-teal", "ws-orange", "ws-purple", "ws-green", "ws-crimson", "ws-navy", "ws-magenta"];
 
     private IReadOnlyList<PhpModuleCatalog.ModuleLink> _links = Array.Empty<PhpModuleCatalog.ModuleLink>();
     private string _filter = "";
@@ -98,4 +131,46 @@
     }
 
     private void OnSearch(ChangeEventArgs e) => _filter = e.Value?.ToString() ?? "";
+
+    private static string WorkspaceTone(string group, PhpModuleCatalog.ModuleLink item)
+    {
+        var id = item.Id ?? "";
+        var grp = string.IsNullOrWhiteSpace(item.Group) ? group : item.Group!;
+        if (Matches(id, grp, "finance", "ledger", "budget", "consolidat", "cost_acct", "cost_mgmt", "record_to_report")) return "ws-navy";
+        if (Matches(id, grp, "banking", "cash", "treasury", "cash_treasury")) return "ws-teal";
+        if (Matches(id, grp, "sales", "order_to_cash", "receiv", "crm", "retail", "marketing", "credit_coll")) return "ws-blue";
+        if (IsExact(id, grp, "ar")) return "ws-blue";
+        if (Matches(id, grp, "purchas", "procure", "payab", "vendor", "supplier", "landed", "procure_to_pay")) return "ws-orange";
+        if (IsExact(id, grp, "ap")) return "ws-orange";
+        if (Matches(id, grp, "invent", "warehouse", "production", "pim", "fulfil")) return "ws-green";
+        if (Matches(id, grp, "people", "hr_payroll", "payroll", "leave", "staff")) return "ws-purple";
+        if (Matches(id, grp, "tax", "complian", "audit", "risk", "vat")) return "ws-crimson";
+        if (Matches(id, grp, "project", "asset", "fixed", "service", "fitout")) return "ws-magenta";
+        var h = 17;
+        foreach (var c in id)
+        {
+            h = (h * 31) + c;
+        }
+
+        return ToneCycle[Math.Abs(h) % ToneCycle.Length];
+    }
+
+    private static bool IsExact(string id, string group, string token)
+        => id.Equals(token, StringComparison.OrdinalIgnoreCase)
+           || group.Equals(token, StringComparison.OrdinalIgnoreCase)
+           || id.StartsWith(token + "/", StringComparison.OrdinalIgnoreCase);
+
+    private static bool Matches(string id, string group, params string[] needles)
+    {
+        foreach (var needle in needles)
+        {
+            if (id.Contains(needle, StringComparison.OrdinalIgnoreCase)
+                || group.Contains(needle, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

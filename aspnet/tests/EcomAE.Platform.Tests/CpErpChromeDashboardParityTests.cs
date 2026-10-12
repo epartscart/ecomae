@@ -125,7 +125,31 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("No supplier spend recorded yet.", src);
         Assert.Contains("No tasks tracked yet.", src);
         Assert.Contains("PhpHybridModuleDirectory", src);
+        Assert.Contains("epc-dash-customize", src);
+        Assert.Contains("dash_profile=", src);
         Assert.DoesNotContain("epc-erp-banner", src);
+    }
+
+    [Fact]
+    public void ErpDashboardKeepsColorfulTilesAndD365WorkspaceModules()
+    {
+        var css = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/wwwroot/css/epc-enterprise-design-system.css"));
+        var directory = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/PhpHybridModuleDirectory.razor"));
+        var assets = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs"));
+
+        Assert.Contains(".ns-tile.gold { background: linear-gradient(145deg, #1d4f91, #163a6b) !important; }", css, StringComparison.Ordinal);
+        Assert.Contains(".ns-tile.green { background: linear-gradient(145deg, #0f766e, #0b5c56) !important; }", css, StringComparison.Ordinal);
+        Assert.Contains(".ns-tile.rust { background: linear-gradient(145deg, #334155, #1e293b) !important; }", css, StringComparison.Ordinal);
+        Assert.Contains(".ns-tile.slate { background: linear-gradient(145deg, #b45309, #92400e) !important; }", css, StringComparison.Ordinal);
+        Assert.DoesNotContain(".ns-tile,\n.epc-erp-content-body .ns-port", css.Replace("\r\n", "\n"), StringComparison.Ordinal);
+        Assert.DoesNotContain(".ns-tile,\n.epc-erp-content-body .epc-infographic", css.Replace("\r\n", "\n"), StringComparison.Ordinal);
+
+        Assert.Contains("epc-ws-tile", directory, StringComparison.Ordinal);
+        Assert.Contains("data-epc-moddir-style=\"d365-fno\"", directory, StringComparison.Ordinal);
+        Assert.Contains("ws-teal", directory, StringComparison.Ordinal);
+        Assert.Contains("epc-moddir-aspnet", directory, StringComparison.Ordinal);
+        Assert.Contains("v=20261012color", assets, StringComparison.Ordinal);
+        Assert.DoesNotContain("v=20261012dash", assets, StringComparison.Ordinal);
     }
 
     [Fact]

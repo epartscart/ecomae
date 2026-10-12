@@ -890,7 +890,6 @@
 }
 
 .epc-erp-content-body .ns-metric3d,
-.epc-erp-content-body .ns-tile,
 .epc-erp-content-body .ns-port,
 .epc-erp-content-body .epc-infographic {
     border: 1px solid var(--epc-ui-line);
@@ -904,19 +903,184 @@
 .epc-erp-content-body .ns-kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
-    gap: .65rem;
+    gap: .75rem;
+}
+
+.epc-erp-content-body .ns-tile {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: .35rem;
+    min-height: 6.75rem;
+    padding: 1rem .95rem;
+    text-decoration: none;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, .14);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, .14);
 }
 
 .epc-erp-content-body .ns-tile,
+.epc-erp-content-body .ns-tile:link,
+.epc-erp-content-body .ns-tile:visited,
+.epc-erp-content-body .ns-tile:hover,
+.epc-erp-content-body .ns-tile:focus,
+.epc-erp-content-body .ns-tile .tl,
+.epc-erp-content-body .ns-tile .ic,
+.epc-erp-content-body .ns-tile small {
+    color: #fff !important;
+}
+
+.epc-erp-content-body .ns-tile.gold { background: linear-gradient(145deg, #1d4f91, #163a6b) !important; }
+.epc-erp-content-body .ns-tile.green { background: linear-gradient(145deg, #0f766e, #0b5c56) !important; }
+.epc-erp-content-body .ns-tile.rust { background: linear-gradient(145deg, #334155, #1e293b) !important; }
+.epc-erp-content-body .ns-tile.slate { background: linear-gradient(145deg, #b45309, #92400e) !important; }
+.epc-erp-content-body .ns-tile.blue { background: linear-gradient(145deg, #2563eb, #1d4ed8) !important; }
+.epc-erp-content-body .ns-tile.teal { background: linear-gradient(145deg, #0e7490, #155e75) !important; }
+.epc-erp-content-body .ns-tile.purple { background: linear-gradient(145deg, #5b21b6, #4c1d95) !important; }
+.epc-erp-content-body .ns-tile.orange { background: linear-gradient(145deg, #c2410c, #9a3412) !important; }
+
 .epc-erp-content-body .ns-qa {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: .4rem;
     min-height: 5.5rem;
     padding: .85rem .9rem;
     text-decoration: none;
+    background: #fff;
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
 }
+
+/* Dynamics 365 F&O workspace tiles — lower module / area directory */
+.epc-moddir {
+    margin-top: 1.35rem;
+}
+
+.epc-moddir-head h2 {
+    margin: 0 0 .35rem;
+    color: #0f172a;
+    font-size: 1.15rem;
+    font-weight: 750;
+}
+
+.epc-moddir-head p {
+    margin: 0 0 .45rem;
+    color: #64748b;
+    font-size: .88rem;
+    line-height: 1.4;
+}
+
+.epc-moddir-search {
+    width: 100%;
+    max-width: 28rem;
+    margin: 0 0 .95rem;
+    padding: .55rem .7rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #fff;
+    font: inherit;
+}
+
+.epc-moddir-group {
+    margin: 0 0 1.15rem;
+}
+
+.epc-moddir-group h3 {
+    margin: 0 0 .65rem;
+    padding-bottom: .35rem;
+    border-bottom: 2px solid #dbe4ee;
+    color: #1e293b;
+    font-size: .92rem;
+    font-weight: 750;
+}
+
+.epc-moddir-group h3 span {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.epc-moddir-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15.75rem, 1fr));
+    gap: .85rem;
+}
+
+.epc-moddir-item.epc-ws-tile,
+a.epc-ws-tile {
+    display: flex;
+    flex-direction: column;
+    min-height: 9.25rem;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #d4dbe4;
+    border-radius: 3px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .07);
+    text-decoration: none;
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.epc-ws-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, .14);
+}
+
+.epc-ws-tile__bar {
+    display: flex;
+    align-items: center;
+    min-height: 2.7rem;
+    padding: .45rem .75rem;
+    background: var(--ws-accent, #0078d4);
+    color: #fff;
+}
+
+.epc-ws-tile__bar .epc-moddir-link,
+.epc-ws-tile__bar .epc-moddir-link:link,
+.epc-ws-tile__bar .epc-moddir-link:visited,
+.epc-ws-tile__bar .epc-moddir-link:hover {
+    color: #fff !important;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.25;
+    text-decoration: none;
+}
+
+.epc-ws-tile__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: .45rem;
+    padding: .85rem .8rem .75rem;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, .08), transparent 40%),
+        #f8fafc;
+}
+
+.epc-ws-tile__body i {
+    width: auto;
+    color: var(--ws-accent, #0078d4);
+    font-size: 1.65rem;
+}
+
+.epc-ws-tile__body small {
+    color: #475569;
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.epc-ws-tile.ws-blue { --ws-accent: #0078d4; }
+.epc-ws-tile.ws-teal { --ws-accent: #008575; }
+.epc-ws-tile.ws-orange { --ws-accent: #ca5010; }
+.epc-ws-tile.ws-purple { --ws-accent: #5c2d91; }
+.epc-ws-tile.ws-green { --ws-accent: #107c10; }
+.epc-ws-tile.ws-crimson { --ws-accent: #a80000; }
+.epc-ws-tile.ws-navy { --ws-accent: #00188f; }
+.epc-ws-tile.ws-magenta { --ws-accent: #b146c2; }
 
 @media (max-width: 720px) {
     .epc-erp-content-body form:not([data-epc-inline="1"]),
@@ -926,5 +1090,9 @@
     .epc-erp-content-body .ns-hero,
     .epc-erp-content-body .ns-hero-metrics {
         grid-template-columns: 1fr !important;
+    }
+
+    .epc-moddir-grid {
+        grid-template-columns: 1fr;
     }
 }
