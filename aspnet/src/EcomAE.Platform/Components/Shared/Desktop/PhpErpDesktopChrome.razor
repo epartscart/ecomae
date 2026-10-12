@@ -124,7 +124,7 @@
                 else
                 {
                     <span title="@_userLabel">@_userLabel</span>
-                    <a class="btn btn-default btn-xs" href="/erp/logout" title="Log out"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>
+                    <a class="btn btn-default btn-xs" href="@LogoutHref" title="Log out" data-enhance-nav="false" rel="nofollow"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>
                 }
                 <a href="/erp">ERP workspace</a>
             </div>
@@ -407,6 +407,17 @@
     private IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> _nav = LegacyDesktopChromeCatalog.ErpTopnav();
 
     private string ErpHomeHref => _activeCompanyId > 0 ? $"/erp?company={_activeCompanyId}" : "/erp";
+
+    private string LogoutHref
+    {
+        get
+        {
+            var key = ClientErpPath.BoundSiteKey(Http.HttpContext);
+            return string.IsNullOrWhiteSpace(key)
+                ? "/erp/logout"
+                : ClientErpPath.PrefixErpPath(key, "/erp/logout");
+        }
+    }
 
     private string ModuleHref(string? href)
     {

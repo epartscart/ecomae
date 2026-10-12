@@ -173,7 +173,7 @@ else
                             </li>
                             @if (_signedIn)
                             {
-                                <li><a href="/cp/logout">Log out</a></li>
+                                <li><a href="/cp/logout" data-enhance-nav="false" rel="nofollow">Log out</a></li>
                             }
                             else
                             {
@@ -214,7 +214,7 @@ else
                 else
                 {
                     <span class="epc-cp-header-user" title="@_userLabel">@_userLabel</span>
-                    <a class="epc-cp-header-logout" href="/cp/logout" title="Log out"><i class="fa fa-sign-out" aria-hidden="true"></i> Log out</a>
+                    <a class="epc-cp-header-logout" href="/cp/logout" title="Log out" data-enhance-nav="false" rel="nofollow"><i class="fa fa-sign-out" aria-hidden="true"></i> Log out</a>
                 }
             </nav>
         </div>

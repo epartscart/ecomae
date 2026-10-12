@@ -1766,9 +1766,10 @@ app.MapGet(EcomAeRoutes.LegacyAdminLogin, () => Results.Redirect(EcomAeRoutes.Co
 // PHP-compatible logout — clears admin/customer cookies (+ best-effort sessions row delete).
 async Task<IResult> PerformLegacyLogout(HttpContext context, LegacyLogoutService logout, string? surface, string? returnUrl)
 {
+    var dest = LegacyLogoutService.RedirectAfterLogout(context, surface, returnUrl);
     await logout.LogoutAsync(context, context.RequestAborted);
-    var dest = LegacyLogoutService.RedirectForSurface(surface, returnUrl);
     context.Response.Headers["X-EcomAE-Logout"] = "cleared";
+    context.Response.Headers["Cache-Control"] = "no-store, no-cache";
     return Results.Redirect(dest);
 }
 

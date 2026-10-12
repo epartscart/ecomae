@@ -136,6 +136,27 @@ public sealed class ClientErpPathTests
     }
 
     [Fact]
+    public async Task CookieRedirect_DoesNotInterceptErpLogout()
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("www.ecomae.com");
+        ctx.Request.Path = "/erp/logout";
+        ctx.Request.Headers.Cookie = ClientErpPath.CookieName + "=indj";
+        var ranNext = false;
+        var mw = new ClientErpCookieRedirectMiddleware(_ =>
+        {
+            ranNext = true;
+            return Task.CompletedTask;
+        });
+
+        await mw.InvokeAsync(ctx);
+
+        Assert.True(ranNext);
+        Assert.True(ClientErpPath.IsLogoutPath("/erp/logout"));
+        Assert.True(ClientErpPath.IsLogoutPath("/cp/client-erp/indj/erp/logout"));
+    }
+
+    [Fact]
     public void ForErpOnly_IsCompanyMark_NotSuperCp()
     {
         var brand = LoginHostBrand.ForErpOnly("asap", "ASAP Autoparts", "auto_parts");

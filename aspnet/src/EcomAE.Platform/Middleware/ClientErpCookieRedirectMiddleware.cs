@@ -25,7 +25,7 @@ public sealed class ClientErpCookieRedirectMiddleware
         }
 
         var path = context.Request.Path.Value ?? "/";
-        if (ClientErpPath.IsClientErpPath(path))
+        if (ClientErpPath.IsClientErpPath(path) || ClientErpPath.IsLogoutPath(path))
         {
             return _next(context);
         }

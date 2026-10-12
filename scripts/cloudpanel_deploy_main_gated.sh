@@ -144,4 +144,9 @@ if [[ -f scripts/cloudpanel_prune_aspnet_releases.sh ]]; then
   bash scripts/cloudpanel_prune_aspnet_releases.sh \
     || printf 'WARN prune_aspnet_releases failed — disk cleanup skipped\n'
 fi
+if [[ -f scripts/cloudpanel_repair_erp_logout_nginx.sh ]]; then
+  printf 'REPAIR_ERP_LOGOUT_NGINX (unescape Host/Cookie on /erp/logout)...\n'
+  bash scripts/cloudpanel_repair_erp_logout_nginx.sh \
+    || printf 'WARN erp_logout_nginx_repair failed — HTTPS /erp/logout may 400 until Host \\$host is unescaped\n'
+fi
 printf 'RESULT=PASS GATED_DEPLOY_MAIN SHA=%s\n' "$SHA"

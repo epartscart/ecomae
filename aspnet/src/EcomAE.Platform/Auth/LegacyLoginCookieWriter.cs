@@ -24,7 +24,6 @@ public static class LegacyLoginCookieWriter
     /// <summary>Expire PHP-compatible auth cookies (admin + customer + ERP shell hints).</summary>
     public static void ClearAll(HttpResponse response)
     {
-        var expired = BuildOptions(DateTimeOffset.UnixEpoch);
         foreach (var name in new[]
                  {
                      "admin_session",
@@ -35,17 +34,21 @@ public static class LegacyLoginCookieWriter
                      ClientErpPath.CookieName,
                  })
         {
-            response.Cookies.Append(name, string.Empty, expired);
-            response.Cookies.Delete(name, new CookieOptions { Path = "/" });
+            // Expire both Secure=true and Secure=false so HTTPS and loopback cookies both die.
+            foreach (var secure in new[] { false, true })
+            {
+                response.Cookies.Append(name, string.Empty, BuildOptions(DateTimeOffset.UnixEpoch, secure));
+                response.Cookies.Delete(name, new CookieOptions { Path = "/", Secure = secure });
+            }
         }
     }
 
-    private static CookieOptions BuildOptions(DateTimeOffset? expires)
+    private static CookieOptions BuildOptions(DateTimeOffset? expires, bool secure = false)
         => new()
         {
             Path = "/",
             HttpOnly = true,
-            Secure = false, // matches PHP setcookie(..., secure=false, httponly=true)
+            Secure = secure,
             SameSite = SameSiteMode.Lax,
             IsEssential = true,
             Expires = expires,

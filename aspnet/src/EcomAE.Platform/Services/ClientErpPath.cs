@@ -119,6 +119,22 @@ public static class ClientErpPath
             || bare.Equals("/erp/super-mail-app", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>Logout must run on the first hop — never cookie-redirect it away.</summary>
+    public static bool IsLogoutPath(string? path)
+    {
+        var bare = NormalizeRequestPath(path);
+        return bare.Equals("/erp/logout", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/cp/logout", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/bos/logout", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/auth/logout", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/ip/logout", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/lifeos/logout", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/storefront/logout", StringComparison.OrdinalIgnoreCase)
+            || (bare.StartsWith(Prefix + "/", StringComparison.OrdinalIgnoreCase)
+                && (bare.EndsWith("/erp/logout", StringComparison.OrdinalIgnoreCase)
+                    || bare.EndsWith("/logout", StringComparison.OrdinalIgnoreCase)));
+    }
+
     public static string? BoundSiteKey(HttpContext? context)
     {
         if (context is null)

@@ -1,4 +1,5 @@
 using EcomAE.Platform.Auth;
+using EcomAE.Platform.Services;
 using Microsoft.AspNetCore.Http;
 using Xunit;
 
@@ -45,6 +46,29 @@ public sealed class LegacyLogoutServiceTests
         Assert.Contains("/storefront/logout", Read("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor"));
         Assert.Contains("ILegacySessionValidator", Read("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpDesktopChrome.razor"));
         Assert.Contains("Log out", Read("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpDesktopChrome.razor"));
+        Assert.Contains("data-enhance-nav=\"false\"", Read("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor"));
+        Assert.Contains("LogoutHref", Read("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor"));
+    }
+
+    [Fact]
+    public void RedirectAfterLogout_UsesClientErpLoginWhenBound()
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("www.ecomae.com");
+        ctx.Items[ClientErpPath.HttpContextItemKey] = "indj";
+        Assert.Equal("/cp/client-erp/indj/", LegacyLogoutService.RedirectAfterLogout(ctx, "erp", null));
+    }
+
+    [Fact]
+    public void NginxLogoutSnippetDoesNotEscapeHostVariables()
+    {
+        var text = Read("scripts/cloudpanel_STOP_PRODUCT_PHP_NOW.sh");
+        var start = text.IndexOf("location = /erp/logout", StringComparison.Ordinal);
+        Assert.True(start >= 0);
+        var chunk = text.Substring(start, 420);
+        Assert.Contains("proxy_set_header Host $host;", chunk, StringComparison.Ordinal);
+        Assert.DoesNotContain(@"\$host", chunk, StringComparison.Ordinal);
+        Assert.Contains("cloudpanel_repair_erp_logout_nginx.sh", Read("scripts/cloudpanel_deploy_main_gated.sh"), StringComparison.Ordinal);
     }
 
     [Fact]
