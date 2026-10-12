@@ -97,6 +97,14 @@ public interface IErpGlPostingService
         long purchaseId,
         int adminId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Same purchase posting inside the caller's ambient transaction (PI create).</summary>
+    Task<long> PostPurchaseAsync(
+        DbConnection connection,
+        DbTransaction transaction,
+        long purchaseId,
+        int adminId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpGlPostingService : IErpGlPostingService
@@ -495,16 +503,35 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         return lines;
     }
 
-    public async Task<long> PostPurchaseAsync(
+    public Task<long> PostPurchaseAsync(
         DbConnection connection,
         long purchaseId,
         int adminId,
         CancellationToken cancellationToken = default)
+        => PostPurchaseCoreAsync(connection, null, purchaseId, adminId, cancellationToken);
+
+    public Task<long> PostPurchaseAsync(
+        DbConnection connection,
+        DbTransaction transaction,
+        long purchaseId,
+        int adminId,
+        CancellationToken cancellationToken = default)
+        => PostPurchaseCoreAsync(connection, transaction, purchaseId, adminId, cancellationToken);
+
+    private async Task<long> PostPurchaseCoreAsync(
+        DbConnection connection,
+        DbTransaction? ambient,
+        long purchaseId,
+        int adminId,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(connection);
-        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (ambient is null)
+        {
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
 
-        var purchase = await LoadPurchaseAsync(connection, purchaseId, cancellationToken).ConfigureAwait(false)
+        var purchase = await LoadPurchaseAsync(connection, ambient, purchaseId, cancellationToken).ConfigureAwait(false)
             ?? throw new ErpWriteException("Purchase not found");
         if (purchase.GlJournalId > 0)
         {
@@ -513,25 +540,25 @@ public sealed class ErpGlPostingService : IErpGlPostingService
 
         var existing = await ErpDb.LongAsync(
             connection,
-            null,
+            ambient,
             ErpDb.Positional(
                 "SELECT `id` FROM `epc_erp_gl_journals` WHERE `source_type` = 'purchase' AND `source_id` = ? AND `active` = 1 LIMIT 1"),
             cancellationToken,
             purchaseId).ConfigureAwait(false);
         if (existing > 0)
         {
-            await LinkPurchaseJournalAsync(connection, purchaseId, existing, cancellationToken).ConfigureAwait(false);
+            await LinkPurchaseJournalAsync(connection, ambient, purchaseId, existing, cancellationToken).ConfigureAwait(false);
             return existing;
         }
 
-        var cogsId = await CoaIdByCodeAsync(connection, "5000", cancellationToken).ConfigureAwait(false);
-        var payableId = await CoaIdByCodeAsync(connection, "2000", cancellationToken).ConfigureAwait(false);
+        var cogsId = await CoaIdByCodeAsync(connection, ambient, "5000", cancellationToken).ConfigureAwait(false);
+        var payableId = await CoaIdByCodeAsync(connection, ambient, "2000", cancellationToken).ConfigureAwait(false);
         if (cogsId <= 0 || payableId <= 0)
         {
             throw new ErpWriteException("COA accounts missing — run ERP setup");
         }
 
-        var vatInputId = await CoaIdByCodeAsync(connection, "1150", cancellationToken).ConfigureAwait(false);
+        var vatInputId = await CoaIdByCodeAsync(connection, ambient, "1150", cancellationToken).ConfigureAwait(false);
         var lines = new List<ErpGlLine> { new(cogsId, purchase.AmountExVat, 0m, "Purchase ex VAT") };
         if (purchase.VatAmount > 0m && vatInputId > 0)
         {
@@ -542,6 +569,7 @@ public sealed class ErpGlPostingService : IErpGlPostingService
 
         var journalId = await PostJournalAsync(
             connection,
+            ambient,
             new ErpGlJournalHeader
             {
                 JournalDate = purchase.PurchaseDate,
@@ -555,18 +583,19 @@ public sealed class ErpGlPostingService : IErpGlPostingService
             adminId,
             cancellationToken).ConfigureAwait(false);
 
-        await LinkPurchaseJournalAsync(connection, purchaseId, journalId, cancellationToken).ConfigureAwait(false);
+        await LinkPurchaseJournalAsync(connection, ambient, purchaseId, journalId, cancellationToken).ConfigureAwait(false);
         return journalId;
     }
 
     private static Task LinkPurchaseJournalAsync(
         DbConnection connection,
+        DbTransaction? transaction,
         long purchaseId,
         long journalId,
         CancellationToken cancellationToken)
         => ErpDb.ExecuteAsync(
             connection,
-            null,
+            transaction,
             ErpDb.Positional("UPDATE `epc_erp_purchases` SET `gl_journal_id` = ? WHERE `id` = ?"),
             cancellationToken,
             journalId,
@@ -574,10 +603,12 @@ public sealed class ErpGlPostingService : IErpGlPostingService
 
     private static async Task<(decimal AmountExVat, decimal VatAmount, decimal TotalAmount, long PurchaseDate, string InvoiceNumber, string LegislationRef, long GlJournalId)?> LoadPurchaseAsync(
         DbConnection connection,
+        DbTransaction? transaction,
         long purchaseId,
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
         command.CommandText = ErpDb.Positional(
             "SELECT `amount_ex_vat`, `vat_amount`, `total_amount`, `purchase_date`, `invoice_number`,"
             + " `uae_tax_legislation_ref`, `gl_journal_id` FROM `epc_erp_purchases` WHERE `id` = ? AND `active` = 1 LIMIT 1");

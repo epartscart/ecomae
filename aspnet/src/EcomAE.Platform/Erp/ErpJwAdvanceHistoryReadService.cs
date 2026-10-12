@@ -34,7 +34,7 @@ public sealed class ErpJwAdvanceHistoryReadService : IErpJwAdvanceHistoryReadSer
                    `party_name`,`customer_name`,`mobile`,`salesman`,`net_amount`,
                    `vat_amount`,`total_with_vat`,`status`,`authorized`
             FROM `epc_jewel_voucher`
-            WHERE `company_id`=? AND `voc_type` IN ('PAD','PAR')
+            WHERE `company_id`=? AND `voc_type` IN ('ADV','PAD','PAR')
             ORDER BY `voc_date` DESC
             LIMIT {boundedLimit}
             """);

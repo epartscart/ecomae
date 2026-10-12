@@ -66,8 +66,8 @@ public static class ErpIndustryNav
     }
 
     /// <summary>Fit-out modules are allowed by the host industry or by the active company (pack, code or name), like the route gate.</summary>
-    public static bool ShowFitOutModules(string? hostIndustryCode, ErpCompanyDigest? company)
-        => IsFitOutIndustry(hostIndustryCode) || IsFitOutCompany(company);
+    public static bool ShowFitOutModules(string? hostIndustryCode, ErpCompanyDigest? company, string? tenantIndustry = null)
+        => IsFitOutIndustry(hostIndustryCode) || IsFitOutIndustry(tenantIndustry) || IsFitOutCompany(company);
 
     public static bool IsFitOutTab(PhpModuleCatalog.ModuleLink tab)
         => string.Equals(TabKey(tab), "project_accounting", StringComparison.OrdinalIgnoreCase);
@@ -113,8 +113,9 @@ public static class ErpIndustryNav
     /// modules — even when legal entity 1 is coded MAIN with an empty pack.
     /// Super CP / auto-parts hosts still require a jewellery company or pack.
     /// </summary>
-    public static bool ShowJewelleryModules(string? hostIndustryCode, ErpCompanyDigest? company)
-        => IsJewelleryFromHostOrPack(hostIndustryCode, company?.IndustryPack, company);
+    public static bool ShowJewelleryModules(string? hostIndustryCode, ErpCompanyDigest? company, string? tenantIndustry = null)
+        => IsJewelleryFromHostOrPack(hostIndustryCode, tenantIndustry, company)
+           || IsJewelleryFromHostOrPack(tenantIndustry, tenantIndustry, company);
 
     public static bool IsJewelleryTab(PhpModuleCatalog.ModuleLink tab)
     {
@@ -222,8 +223,37 @@ public static class ErpIndustryNav
             });
         }
 
+        if (audience.IsSuperErp)
+        {
+            var mailTabs = SuperErpMailTabs()
+                .Where(t => seenDestinations.Add(TopMenuLinks.DestinationKey(TopMenuLinks.ErpHref(t.Href))))
+                .ToList();
+            if (mailTabs.Count > 0)
+            {
+                var at = Math.Min(1, filtered.Count);
+                filtered.Insert(at, new LegacyDesktopChromeCatalog.MegaGroup(
+                    "mail",
+                    "Mail",
+                    mailTabs,
+                    "fa-inbox",
+                    "Mail",
+                    mailTabs[0].Href,
+                    [new LegacyDesktopChromeCatalog.MegaAreaColumn("mail", "Mailbox & SMTP", "fa-inbox", mailTabs)],
+                    "Platform mailboxes, SMTP and alerts"));
+            }
+        }
+
         return filtered;
     }
+
+    public static IReadOnlyList<PhpModuleCatalog.ModuleLink> SuperErpMailTabs() =>
+    [
+        new("mail/platform_mail", "Platform mailboxes", "/erp/super-mail-app", "fa-inbox", "mail"),
+        new("mail/tenant_email", "Tenant email / SMTP", "/erp/tenant-email-app", "fa-envelope", "mail"),
+        new("mail/communication", "Communication", "/erp/platform-communication-app", "fa-comments", "mail"),
+        new("mail/notifications", "Notifications", "/erp/notifications-app", "fa-bell", "mail"),
+        new("mail/sms", "SMS & WhatsApp", "/erp/sms-whatsapp-app", "fa-mobile", "mail"),
+    ];
 
     public static IReadOnlyList<string> DuplicateTabIds(
         IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> groups)
@@ -335,7 +365,7 @@ public static class ErpIndustryNav
     /// </summary>
     public static IReadOnlyList<ErpCompanyDigest> FallbackCompanies(string brandLabel)
     {
-        var mainName = string.IsNullOrWhiteSpace(brandLabel) ? "Main Company" : brandLabel + " — Main";
+        var mainName = LegalOrganizationLabel.Resolve("Main Company", null, brandLabel);
         return
         [
             new ErpCompanyDigest(1, "MAIN", mainName, "AED", "AE", "", true),

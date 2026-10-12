@@ -5,7 +5,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_erp_payroll_pay_run</c> twin. Posts an internal cash payment
-/// and marks the run/lines paid. Schema ensure and COA GL stay PHP.
+/// and marks the run/lines paid. COA GL posting stays PHP.
 /// </summary>
 public interface IErpPayrollPayWriteService
 {
@@ -44,6 +44,8 @@ public sealed class ErpPayrollPayWriteService : IErpPayrollPayWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsurePayrollAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpCashWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_payroll_runs", "cash_entry_id", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_erp_payroll_lines", "status", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_erp_cash_bank_accounts", "active", cancellationToken).ConfigureAwait(false)

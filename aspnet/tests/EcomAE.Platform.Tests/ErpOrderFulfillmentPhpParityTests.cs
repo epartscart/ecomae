@@ -42,12 +42,16 @@ public sealed class ErpOrderFulfillmentPhpParityTests
         {
             "BootstrapAsync", "StatusAsync", "SyncAsync", "PostPoInvoiceAsync",
             "PostSalesInvoiceAsync", "AutoPostAsync", "SwapLineSupplierAsync",
+            "EnsureReadyAsync", "ErpSalesOrderWriteService.EnsureSchemaAsync",
+            "ErpPurchaseOrderWriteService.EnsureSchemaAsync",
             "epc_erp_po_lines", "shop_order_item_id", "fulfillment_status",
             "Shop order not found", "t2_json_params",
         })
         {
             Assert.Contains(token, service, StringComparison.Ordinal);
         }
+
+        Assert.Equal(7, System.Text.RegularExpressions.Regex.Matches(service, "await EnsureReadyAsync\\(").Count);
     }
 
     [Fact]

@@ -34,6 +34,20 @@ public sealed class LoginIndustryContentTests
     }
 
     [Fact]
+    public void ErpOnlyJewellery_UsesSameJewelleryCopyAsTrend()
+    {
+        var brand = LoginHostBrand.ForErpOnly("indj", "INDJ Jewellery", "jewellery");
+        var trend = LoginIndustryContent.For(LoginHostBrand.Resolve("thejewellerytrend.com", "erp"), "erp");
+        var content = LoginIndustryContent.For(brand, "erp");
+        Assert.Equal(trend.IndustryCode, content.IndustryCode);
+        Assert.Equal(trend.FormTitle, content.FormTitle);
+        Assert.Equal(trend.HeroTagline, content.HeroTagline);
+        Assert.Equal(trend.SubmitLabel, content.SubmitLabel);
+        Assert.Equal(trend.Capabilities.Count, content.Capabilities.Count);
+        Assert.Equal("INDJ Jewellery", content.HeroTitle);
+    }
+
+    [Fact]
     public void SuperErp_KeepsFleetStats()
     {
         var brand = LoginHostBrand.Resolve("www.ecomae.com", "erp");

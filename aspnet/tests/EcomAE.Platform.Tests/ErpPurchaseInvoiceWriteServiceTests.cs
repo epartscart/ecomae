@@ -51,4 +51,24 @@ public sealed class ErpPurchaseInvoiceWriteServiceTests
         Assert.Equal("PI", ErpVoucherNumberService.NormalizeType("pi"));
         Assert.Equal("PI-2026-00007", ErpVoucherNumberService.Render("PI-", 2026, 7, 5));
     }
+
+    [Fact]
+    public void CreatePostsPurchaseJournalInsideTheDocumentTransaction()
+    {
+        var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpPurchaseInvoiceWriteService.cs"));
+        Assert.Contains("PostPurchaseAsync(connection, transaction, purchaseId", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("TryPostGlAsync", src, StringComparison.Ordinal);
+        Assert.Contains("NextAsync(connection, transaction, \"PI\"", src, StringComparison.Ordinal);
+    }
+
+    private static string FindRepoFile(string relative)
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "aspnet", "EcomAE.AspNetCore.sln")))
+        {
+            dir = dir.Parent;
+        }
+
+        return Path.Combine(dir!.FullName, relative);
+    }
 }

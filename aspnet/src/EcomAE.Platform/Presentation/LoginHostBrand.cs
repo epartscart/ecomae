@@ -14,6 +14,7 @@ public static class LoginHostBrand
         Platform,
         AnimatedEparts,
         TenantImage,
+        CompanyMark,
     }
 
     public sealed record Brand(
@@ -101,6 +102,67 @@ public static class LoginHostBrand
                     "rgba(255,255,255,.45)", "rgba(16,185,129,.5)"
                 ],
                 "bos-login--tenant-taxofinca"),
+        };
+
+    /// <summary>Company ERP-only login on www.ecomae.com/cp/client-erp/{key} — never Super CP fleet copy.</summary>
+    public static Brand ForErpOnly(string siteKey, string? tradeName, string? industryCode = null)
+    {
+        var key = ClientErpPath.NormalizeSiteKey(siteKey);
+        if (key.Length > 0 && TenantCatalog.TryGetValue(key, out var known))
+        {
+            return known;
+        }
+
+        var label = string.IsNullOrWhiteSpace(tradeName) ? (key.Length == 0 ? "Client ERP" : key.ToUpperInvariant()) : tradeName.Trim();
+        var site = key.Length == 0 ? "client_erp" : key;
+        var industry = (industryCode ?? string.Empty).Trim().ToLowerInvariant();
+        if (industry is "jewellery" or "jewelry")
+        {
+            var jewel = TenantCatalog["thejewellerytrend"];
+            return jewel with
+            {
+                LogoKind = Kind.CompanyMark,
+                SiteKey = site,
+                Label = label,
+                LogoUrl = null,
+                RootModifierClass = "bos-login--erp bos-login--client-erp bos-login--tenant-jewellery",
+            };
+        }
+
+        var tagline = industry switch
+        {
+            "auto_parts" or "autoparts" => "Automotive spare parts ERP",
+            "fit_out" or "fitout" or "fit-out" => "Fit-out ERP",
+            "real_estate" or "realestate" => "Real-estate ERP",
+            "tax_advisory" or "finance" => "Tax & advisory ERP",
+            _ => "Company ERP",
+        };
+
+        return new(
+            Kind.CompanyMark,
+            site,
+            label,
+            tagline,
+            null,
+            "#0d9488",
+            "rgba(13,148,136,.28)",
+            "teal-moon",
+            [
+                "rgba(45,212,191,.8)", "rgba(13,148,136,.55)", "rgba(56,189,248,.45)",
+                "rgba(255,255,255,.35)", "rgba(94,234,212,.4)"
+            ],
+            "bos-login--erp bos-login--client-erp");
+    }
+
+    public static string CompanyMarkIcon(string? industryCode) =>
+        (industryCode ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "jewellery" or "jewelry" => "fa-diamond",
+            "auto_parts" or "autoparts" => "fa-cogs",
+            "fit_out" or "fitout" or "fit-out" => "fa-building",
+            "real_estate" or "realestate" => "fa-home",
+            "tax_advisory" or "finance" => "fa-balance-scale",
+            _ => "fa-university",
         };
 
     public static Brand Resolve(string? host, string surface = "cp")

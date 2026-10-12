@@ -16,21 +16,20 @@
 @inject IHttpContextAccessor Http
 
 <PageTitle>@_pageTitle</PageTitle>
+@if (IsSuperHostNow())
+{
+    @* PHP: super-cp hosts render epc_super_cp_dashboard.php (BOC fleet console) —
+       NEVER tenant CP chrome. Tenant shop dashboards stay on tenant hosts. *@
+    <PhpSuperCpCommandCentre />
+}
+else
+{
 <PhpChromeStyles Surface="cp" />
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 @if (!_isAdmin)
 {
     <p class="alert alert-info" role="status">Guest preview — browse the Control Panel workspace; sign in to load tenant data.</p>
 }
-@if (_isSuperHost)
-{
-    @* PHP: super-cp hosts render epc_super_cp_dashboard.php (BOC fleet console) —
-       NEVER a tenant's shop dashboard. Tenant data stays on tenant hosts. *@
-    <PhpSuperCpCommandCentre />
-}
-else
-{
     @* PHP cp/content/control/epc_tenant_cp_dashboard.php — .cp-dash markup so command_dashboard.css applies *@
     <div class="col-lg-12 cp-dash" data-cp-dashboard="command">
         <div class="cp-dash-hero">
@@ -593,13 +592,13 @@ else
         window.addEventListener('load', boot);
     })();
     </script>
-}
     <PhpHybridModuleDirectory
         Title="Complete Control Panel feature directory"
         Subtitle="@($"{PhpModuleCatalog.CpBrochureFeatureCount} CP features")"
         Links="@PhpModuleCatalog.CpBrochureFeatures"
         PhpWorkspaceBase="/cp/app" />
 </PhpCpDesktopChrome>
+}
 
 @code {
     private int _ordersToday;
@@ -637,6 +636,10 @@ else
     private bool _isAdmin;
     private bool _isSuperHost;
     private string _pageTitle = "Control Command Centre";
+
+    // Host check is sync so the first SSR paint skips tenant chrome on Super CP.
+    private bool IsSuperHostNow()
+        => Services.PlatformHostPolicy.IsSuperCpHost(Http.HttpContext?.Request.Host.Host);
     private string _brandLabel = "Control Panel";
     private string _industryLabel = "Auto parts";
     private string _industryCode = "auto_parts";

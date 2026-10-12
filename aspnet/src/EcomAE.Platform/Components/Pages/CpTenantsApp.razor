@@ -24,11 +24,15 @@
                                Subtitle="All commerce, demo, and ERP-only tenants — operator credentials and immediate on/off. Internal Super CP only."
                                PhpTabHref="@_phpTab"
                                ExtraPanelClass="epc-scp-panel--tenants">
+            <a class="ghost" href="/cp/super-mail-app">Mailboxes</a>
+            <a class="ghost" href="/cp/deployment-models-app">Cloud / on-prem / hybrid</a>
+            <a class="ghost" href="/cp/client-erp">Client ERP</a>
             <a class="ghost" href="/erp/tenant-config-app">Tenant hub</a>
             <a class="ghost" href="/cp/demo-tenants-app">Demo tenants</a>
             <a class="ghost" href="/cp/tenant-features-app">Feature registry</a>
             <a class="ghost" href="/cp/industry-settings-app">ERP module packs</a>
             <a class="ghost" href="/bos/app">BOS fleet</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a>
         </PhpCpModulePageHeader>
 
         <div class="epc-scp-kpi" aria-label="Tenants KPIs">
@@ -50,7 +54,10 @@
             </div>
         </div>
 
-        <p class="help-block">ERP-only tenants: configure granular modules in <strong>Portal → Industry settings</strong> (presets: Full ERP, HR only, Customs + Logistics). Password reveal, reset and demo-access credential edits stay on the Classic twin — this page does not invent a send.</p>
+        <p class="help-block">
+            Operators create and delete ERP-only companies here — no storefront, no client domain, hostname stays <code>www.ecomae.com</code>.
+            Industry pack (Jewellery, Auto parts, …) is stored on the registry row. This page does not invent a send: copy any new password from the green banner.
+        </p>
 
         @if (!string.IsNullOrWhiteSpace(_flashOk))
         {
@@ -63,6 +70,116 @@
 
         @if (_isAdmin)
         {
+            <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1.1rem 1.15rem">
+                <h3 style="margin:0 0 .45rem;font-size:1.05rem">Onboard ERP-only company (no website)</h3>
+                <p class="help-block" style="margin:0 0 .75rem">
+                    Four-letter company key: <code>asap</code>, <code>indj</code>, <code>fito</code>, <code>real</code>.
+                    Primary admin login is <code>xxxx@@ecomae.com</code> from that key. After that you can add more emails and set your own password below.
+                    Staff open <code>/cp/client-erp/xxxx/</code> — no public storefront.
+                </p>
+                <form method="post" action="/cp/tenants/write" style="margin:0 0 1rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                    <input type="hidden" name="action" value="onboard_four_erp_only" />
+                    <button type="submit" class="btn btn-primary">Create ASAP / INDJ / FITO / REAL now</button>
+                </form>
+                <ul style="margin:0 0 1rem;padding-left:1.2rem">
+                    @foreach (var client in ErpOnlyLaunchClients.All)
+                    {
+                        var present = _tenants.Any(t => string.Equals(t.SiteKey, client.SiteKey, StringComparison.OrdinalIgnoreCase));
+                        <li>
+                            <strong>@client.TradeName</strong>
+                            (<code>@client.SiteKey</code> · <a href="mailto:@client.Email">@client.Email</a>)
+                            — @(present ? "in registry" : "not created yet")
+                            · <a href="@client.LoginPath">@client.LoginPath</a>
+                        </li>
+                    }
+                </ul>
+                <form method="post" action="/cp/tenants/write" id="epc-erp-only-onboard" style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:end">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                    <input type="hidden" name="action" value="onboard_erp_only" />
+                    <label>Site key
+                        <input type="text" name="site_key" id="epc-erp-only-key" required maxlength="32" placeholder="fito" autocomplete="off" />
+                    </label>
+                    <label>Company name
+                        <input type="text" name="trade_name" required maxlength="120" placeholder="FITO Fit-out" />
+                    </label>
+                    <label>Industry
+                        <select name="industry_code">
+                            <option value="auto_parts">Auto spare parts</option>
+                            <option value="jewellery">Jewellery &amp; luxury</option>
+                            <option value="fit_out">Interior fit-out</option>
+                            <option value="real_estate">Real estate (investment, construction, developer)</option>
+                            <option value="construction_contracting">Construction &amp; contracting</option>
+                            <option value="erp_standalone">ERP standalone</option>
+                            <option value="tax_advisory">Tax &amp; advisory</option>
+                        </select>
+                    </label>
+                    <label>Operator email
+                        <input type="email" name="admin_email" id="epc-erp-only-email" required placeholder="fito@@ecomae.com" />
+                    </label>
+                    <button type="submit" class="btn btn-primary">Create ERP-only tenant</button>
+                </form>
+                <script>
+                (function () {
+                    var key = document.getElementById('epc-erp-only-key');
+                    var email = document.getElementById('epc-erp-only-email');
+                    if (!key || !email) { return; }
+                    function sync() {
+                        var k = (key.value || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+                        if (k) { email.value = k + '@@ecomae.com'; }
+                    }
+                    key.addEventListener('input', sync);
+                    sync();
+                })();
+                </script>
+            </div>
+            <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1.1rem 1.15rem">
+                <h3 style="margin:0 0 .45rem;font-size:1.05rem">Passwords and extra logins</h3>
+                <ol class="help-block" style="margin:0 0 .85rem;padding-left:1.2rem">
+                    <li>Each company has one <strong>admin email</strong> (<code>indj@@ecomae.com</code>). That person signs in at <code>/cp/client-erp/indj/</code>.</li>
+                    <li><strong>Set your own password</strong> after create or reset — type the site key, the login email, and the password you want (twice, 8+ characters). This replaces the random reset password.</li>
+                    <li><strong>Add another login</strong> for the same company (accounts, warehouse, a second manager). Same ERP URL; each email has its own password.</li>
+                    <li><strong>Reset password</strong> in the table still mints a random admin password if you forgot yours — copy it from the green banner, then replace it here if you want your own.</li>
+                </ol>
+                <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:end;margin:0 0 1rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                    <input type="hidden" name="action" value="set_operator_password" />
+                    <label>Site key
+                        <input type="text" name="site_key" required maxlength="32" placeholder="indj" autocomplete="off" />
+                    </label>
+                    <label>Login email
+                        <input type="email" name="login_email" placeholder="indj@@ecomae.com" />
+                    </label>
+                    <label>New password
+                        <input type="password" name="password" required minlength="8" maxlength="72" autocomplete="new-password" />
+                    </label>
+                    <label>Confirm password
+                        <input type="password" name="confirm_password" required minlength="8" maxlength="72" autocomplete="new-password" />
+                    </label>
+                    <button type="submit" class="btn btn-primary">Set my password</button>
+                </form>
+                <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:end;margin:0">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                    <input type="hidden" name="action" value="add_operator_login" />
+                    <label>Site key
+                        <input type="text" name="site_key" required maxlength="32" placeholder="indj" autocomplete="off" />
+                    </label>
+                    <label>Extra login email
+                        <input type="email" name="login_email" required placeholder="indj.accounts@@ecomae.com" />
+                    </label>
+                    <label>Password
+                        <input type="password" name="password" required minlength="8" maxlength="72" autocomplete="new-password" />
+                    </label>
+                    <label>Confirm password
+                        <input type="password" name="confirm_password" required minlength="8" maxlength="72" autocomplete="new-password" />
+                    </label>
+                    <button type="submit" class="btn btn-default">Add extra login</button>
+                </form>
+            </div>
             <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1rem">
                 <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
                     <input type="hidden" name="confirmWrites" value="true" />
@@ -79,7 +196,6 @@
                     </label>
                     <button type="submit" class="btn btn-primary btn-sm">Set active</button>
                 </form>
-                <p class="help-block" style="margin:.75rem 0 0">Password reset and reveal stay Classic.</p>
             </div>
         }
 
@@ -98,12 +214,13 @@
                         <th>ERP login URL</th>
                         <th>Password</th>
                         <th>Links</th>
+                        <th>Delete</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (_tenants.Count == 0)
                     {
-                        <tr><td colspan="11">No records yet.</td></tr>
+                        <tr><td colspan="12">No records yet.</td></tr>
                     }
                     else
                     {
@@ -162,11 +279,15 @@
                                 <td>
                                     @if (!string.IsNullOrWhiteSpace(t.AdminEmail))
                                     {
-                                        <a href="@("mailto:" + t.AdminEmail)">@t.AdminEmail</a>
+                                        <div><a href="@("mailto:" + t.AdminEmail)">@t.AdminEmail</a> <span class="text-muted small">admin</span></div>
                                     }
                                     else
                                     {
                                         <span class="text-muted">—</span>
+                                    }
+                                    @foreach (var extra in t.ExtraLoginEmails)
+                                    {
+                                        <div class="small"><a href="@("mailto:" + extra)">@extra</a></div>
                                     }
                                 </td>
                                 <td>
@@ -180,14 +301,33 @@
                                     }
                                 </td>
                                 <td>
-                                    @if (t.HasStoredPassword)
+                                    @if (_isAdmin && !string.IsNullOrWhiteSpace(t.SiteKey))
+                                    {
+                                        <form method="post" action="/cp/tenants/write" style="display:inline">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                                            <input type="hidden" name="action" value="reset_operator_password" />
+                                            <input type="hidden" name="site_key" value="@t.SiteKey" />
+                                            <button type="submit" class="btn btn-xs btn-default">Reset password</button>
+                                        </form>
+                                        @if (t.TenantType == "erp_only")
+                                        {
+                                            <form method="post" action="/cp/tenants/write" style="display:inline;margin-left:.3rem">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                                                <input type="hidden" name="action" value="repair_erp_only_shop" />
+                                                <input type="hidden" name="site_key" value="@t.SiteKey" />
+                                                <button type="submit" class="btn btn-xs btn-warning">Repair shop login</button>
+                                            </form>
+                                        }
+                                    }
+                                    else if (t.HasStoredPassword)
                                     {
                                         <span class="epc-tcc-pwd-mask">••••••••</span>
-                                        <a class="small" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Reveal (Classic)</a>
                                     }
                                     else
                                     {
-                                        <a class="small" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Reset (Classic)</a>
+                                        <span class="text-muted">—</span>
                                     }
                                 </td>
                                 <td style="white-space:nowrap">
@@ -203,6 +343,24 @@
                                     {
                                         <a class="btn btn-xs btn-info" target="_blank" rel="noopener" href="@t.ErpLoginUrl">ERP</a>
                                     }
+                                    <a class="small" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a>
+                                </td>
+                                <td>
+                                    @if (_isAdmin && t.TenantType == "erp_only" && !t.IsDemo && !string.IsNullOrWhiteSpace(t.SiteKey))
+                                    {
+                                        <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.3rem;align-items:center" onsubmit="return window.confirm('Permanently delete this ERP-only tenant and its dedicated database?');">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                                            <input type="hidden" name="action" value="delete_standalone_erp" />
+                                            <input type="hidden" name="site_key" value="@t.SiteKey" />
+                                            <input type="text" name="confirm_site_key" required placeholder="@t.SiteKey" title="Type the site key to confirm" style="width:7.5rem" />
+                                            <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -211,7 +369,7 @@
             </table>
         </div>
 
-        <p class="help-block">Template tenants share the default commerce database until registered in Tenant Hub. Toggle and password reset require a registry row.</p>
+        <p class="help-block">Commerce tenants stay in this list for on/off only. Complete delete is limited to ERP-only rows (no storefront) after you type the site key. Protected commerce keys cannot be removed here.</p>
 
     </PhpCpDesktopChrome>
 }

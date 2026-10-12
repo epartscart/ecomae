@@ -10,7 +10,7 @@ namespace EcomAE.Platform.Erp;
 /// <c>epc_erp_gl_pl_report</c> contract (0.0 when unavailable), rounds to 2dp,
 /// builds the closing-entry payload (profit: Dr 3900 / Cr 3200; loss reversed),
 /// marks the year closed and closes its open <c>epc_fy_periods</c>.
-/// No GL journal is posted (PHP parity). Schema stays PHP-owned.
+/// No GL journal is posted (PHP parity).
 /// </summary>
 public interface IErpFyCloseWriteService
 {
@@ -57,6 +57,7 @@ public sealed class ErpFyCloseWriteService : IErpFyCloseWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsurePeriodCloseAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ErpFinAdvancedCompany.ColumnExistsAsync(connection, "epc_fy_years", "retained_pl", cancellationToken).ConfigureAwait(false)
             || !await ErpFinAdvancedCompany.ColumnExistsAsync(connection, "epc_fy_periods", "year_id", cancellationToken).ConfigureAwait(false))
         {

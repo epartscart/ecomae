@@ -1,7 +1,10 @@
 @namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpTenantControlCenterService ControlCenter
+@inject IHttpContextAccessor Http
 @*
   Super CP home — port of cp/content/control/epc_super_cp_dashboard.php:
   epc_boc_console_open (BOC chrome + red top mega-menu from the epc_boc_areas
@@ -19,16 +22,17 @@
 <style>
     /* Minimal fallbacks when epc_boc_console.css is unavailable (same class names). */
     .epc-boc__topnav { background:linear-gradient(135deg,#b91c1c,#7f1d1d); color:#fff; }
-    .epc-boc__topnav-inner { display:flex; align-items:center; gap:6px; padding:0 14px; flex-wrap:wrap; }
+    .epc-boc__topnav-inner { display:flex; align-items:center; gap:6px; padding:0 14px; flex-wrap:nowrap; }
     .epc-boc__topnav-brand { color:#fff; font-weight:900; display:inline-flex; gap:8px; align-items:center; padding:10px 12px; text-decoration:none; }
     .epc-boc__topnav-brand .epc-ecomae-logo__word { color:#fff; }
     .epc-boc__topnav-brand .epc-ecomae-logo__word em { color:#fecaca; }
-    .epc-boc__topnav-list { display:flex; list-style:none; margin:0; padding:0; flex-wrap:wrap; }
+    .epc-boc__topnav { position:sticky; top:0; z-index:80; }
+    .epc-boc__topnav-list { display:flex; list-style:none; margin:0; padding:0; flex-wrap:nowrap; overflow-x:auto; }
     .epc-boc__topnav-item { position:static; display:flex; align-items:stretch; }
     .epc-boc__topnav-btn { background:transparent; border:0; color:rgba(255,255,255,.92); font-weight:700; padding:12px 10px; cursor:pointer; }
     .epc-boc__topnav-item.is-active > .epc-boc__topnav-btn { color:#fff; box-shadow:inset 0 -3px 0 #fff; }
-    .epc-boc__topnav-panel { position:fixed; z-index:50; background:#fff; color:#111; border:1px solid #f3c1c1; border-radius:0 0 12px 12px; box-shadow:0 16px 40px rgba(198,40,40,.14); padding:12px 14px; min-width:320px; max-width:min(1100px,calc(100vw - 16px)); overflow:auto; }
-    .epc-boc__topnav-cols { display:flex; gap:18px; }
+    .epc-boc__topnav-panel { position:absolute; z-index:50; left:0; right:0; top:100%; width:100%; background:#fff; color:#111; border:1px solid #f3c1c1; border-radius:0 0 12px 12px; box-shadow:0 16px 40px rgba(198,40,40,.14); padding:12px 14px; min-width:0; max-width:none; overflow:auto; }
+    .epc-boc__topnav-cols { display:grid; grid-template-columns:repeat(auto-fill,minmax(13.5rem,1fr)); gap:8px 18px; }
     .epc-boc__topnav-links { list-style:none; margin:0; padding:0; min-width:210px; }
     .epc-boc__topnav-links a { display:block; padding:6px 4px; color:#1f2937; text-decoration:none; font-size:13px; font-weight:600; }
     .epc-boc__topnav-links a:hover { color:#b91c1c; }
@@ -86,12 +90,96 @@
     .epc-boc__fleet-links { display:flex; gap:10px; font-size:12px; }
     .epc-boc__fleet-links a { color:#b91c1c; font-weight:700; text-decoration:none; }
     .epc-boc__note { color:#475569; margin:0; }
+    .epc-boc__module { background:#fff; border:1px solid #f3c1c1; border-radius:12px; padding:16px 18px; min-height:12rem; }
 </style>
 <link rel="stylesheet" href="/content/general_pages/epc_boc_console_css.php?v=20260722tenant1" />
 </HeadContent>
+@* Live SSR drops late HeadContent on /cp/* — body emission is what actually paints. *@
+<style>
+    body:has(.epc-boc) #header,
+    body:has(.epc-boc) .epc-cp-topnav,
+    body:has(.epc-boc) .epc-cp-topnav-panel,
+    body:has(.epc-boc) .splash,
+    body:has(.epc-boc) .footer,
+    body:has(.epc-boc) .epc-module-visual-frame { display:none!important; visibility:hidden!important; }
+    .epc-boc__topnav { background:linear-gradient(135deg,#b91c1c,#7f1d1d); color:#fff; }
+    .epc-boc__topnav-inner { display:flex; align-items:center; gap:6px; padding:0 14px; flex-wrap:nowrap; }
+    .epc-boc__topnav-brand { color:#fff; font-weight:900; display:inline-flex; gap:8px; align-items:center; padding:10px 12px; text-decoration:none; }
+    .epc-boc__topnav-brand .epc-ecomae-logo__word { color:#fff; }
+    .epc-boc__topnav-brand .epc-ecomae-logo__word em { color:#fecaca; }
+    .epc-boc__topnav { position:sticky; top:0; z-index:80; }
+    .epc-boc__topnav-list { display:flex; list-style:none; margin:0; padding:0; flex-wrap:nowrap; overflow-x:auto; }
+    .epc-boc__topnav-item { position:static; display:flex; align-items:stretch; }
+    .epc-boc__topnav-btn { background:transparent; border:0; color:rgba(255,255,255,.92); font-weight:700; padding:12px 10px; cursor:pointer; }
+    .epc-boc__topnav-item.is-active > .epc-boc__topnav-btn { color:#fff; box-shadow:inset 0 -3px 0 #fff; }
+    .epc-boc__topnav-panel { position:absolute; z-index:50; left:0; right:0; top:100%; width:100%; background:#fff; color:#111; border:1px solid #f3c1c1; border-radius:0 0 12px 12px; box-shadow:0 16px 40px rgba(198,40,40,.14); padding:12px 14px; min-width:0; max-width:none; overflow:auto; }
+    .epc-boc__topnav-cols { display:grid; grid-template-columns:repeat(auto-fill,minmax(13.5rem,1fr)); gap:8px 18px; }
+    .epc-boc__topnav-links { list-style:none; margin:0; padding:0; min-width:210px; }
+    .epc-boc__topnav-links a { display:block; padding:6px 4px; color:#1f2937; text-decoration:none; font-size:13px; font-weight:600; }
+    .epc-boc__topnav-links a:hover { color:#b91c1c; }
+    .epc-boc__topnav-col-hd { color:#64748b; font-size:11px; font-weight:800; text-transform:uppercase; margin:6px 0; }
+    .epc-boc__topnav-panel-hd { display:flex; justify-content:space-between; gap:14px; border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:8px; font-weight:800; }
+    .epc-boc__topnav-actions { margin-left:auto; display:flex; align-items:center; gap:10px; font-size:12px; }
+    .epc-boc__topnav-brand-sub { font-size:10px; font-weight:700; opacity:.85; margin-left:2px; letter-spacing:.04em; text-transform:uppercase; }
+    .epc-boc__topnav-bos, .epc-boc__topnav-erp {
+        display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px;
+        color:#fff; text-decoration:none; font-weight:800; border:1px solid rgba(255,255,255,.28);
+        background:rgba(0,0,0,.22);
+    }
+    .epc-boc__topnav-bos:hover, .epc-boc__topnav-erp:hover { background:rgba(0,0,0,.38); color:#fff; text-decoration:none; }
+    .epc-boc__topnav-bos { border-color:rgba(14,165,233,.55); background:rgba(14,165,233,.22); }
+    .epc-boc__avatar { background:rgba(255,255,255,.2); border-radius:999px; padding:6px 9px; font-weight:800; }
+    .epc-boc__canvas { padding:16px 18px; }
+    .epc-boc__platform-banner { background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:12px 14px; margin:0 0 14px; }
+    .epc-boc__platform-banner-hint { color:#475569; font-size:12px; margin-top:4px; }
+    .epc-boc__hero { display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; background:linear-gradient(135deg,#0b1220,#1e293b); color:#fff; border-radius:14px; padding:20px 22px; margin:0 0 16px; }
+    .epc-boc__hero h2 { margin:.2em 0; color:#fff; }
+    .epc-boc__hero p { margin:0; color:rgba(255,255,255,.8); max-width:46rem; }
+    .epc-boc__hero-brand span { color:#f87171; font-weight:800; }
+    .epc-boc__hero-actions { display:flex; gap:8px; align-items:flex-start; flex-wrap:wrap; }
+    .epc-boc__btn { display:inline-flex; align-items:center; gap:6px; border-radius:10px; padding:9px 14px; font-weight:700; text-decoration:none; }
+    .epc-boc__btn--solid { background:#ef4444; color:#fff; }
+    .epc-boc__btn--ghost { background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.2); }
+    .epc-boc__tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin:0 0 16px; }
+    .epc-boc__tile { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; }
+    .epc-boc__tile-label { color:#64748b; font-size:12px; font-weight:700; text-transform:uppercase; }
+    .epc-boc__tile-val { font-size:26px; font-weight:900; color:#0f172a; }
+    .epc-boc__tile-hint { color:#94a3b8; font-size:11px; }
+    .epc-boc__tile-bar { height:4px; background:#e2e8f0; border-radius:2px; margin-top:8px; overflow:hidden; }
+    .epc-boc__tile-bar i { display:block; height:100%; width:var(--boc-bar,0%); background:#ef4444; }
+    .epc-boc__tile--green .epc-boc__tile-bar i { background:#22c55e; }
+    .epc-boc__tile--amber .epc-boc__tile-bar i { background:#f59e0b; }
+    .epc-boc__panel { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; margin:0 0 14px; }
+    .epc-boc__panel-h { font-weight:800; margin:0 0 10px; }
+    .epc-boc__grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:10px; }
+    .epc-boc__card { display:block; border:1px solid #e2e8f0; border-radius:10px; padding:12px; text-decoration:none; color:#0f172a; }
+    .epc-boc__card i { color:#ef4444; display:block; margin-bottom:6px; font-size:18px; }
+    .epc-boc__card span { display:block; color:#64748b; font-size:12px; }
+    .epc-boc__fleet-sec { margin:0 0 14px; }
+    .epc-boc__fleet-h { display:flex; justify-content:space-between; align-items:baseline; margin:0 0 8px; }
+    .epc-boc__fleet-h h3 { margin:0; font-size:15px; }
+    .epc-boc__fleet-h span { color:#64748b; font-size:12px; }
+    .epc-boc__fleet-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; }
+    .epc-boc__fleet-card { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #22c55e; border-radius:10px; padding:11px 13px; }
+    .epc-boc__fleet-card--amber { border-left-color:#f59e0b; }
+    .epc-boc__fleet-card--red { border-left-color:#ef4444; }
+    .epc-boc__fleet-name { display:flex; justify-content:space-between; gap:8px; align-items:center; font-size:14px; }
+    .epc-boc__chip { border-radius:999px; padding:1px 8px; font-size:10px; font-weight:800; background:#dcfce7; color:#14532d; }
+    .epc-boc__chip--amber { background:#fef3c7; color:#78350f; }
+    .epc-boc__chip--red { background:#fee2e2; color:#7f1d1d; }
+    .epc-boc__fleet-meta { color:#64748b; font-size:12px; margin:4px 0 8px; }
+    .epc-boc__fleet-links { display:flex; gap:10px; font-size:12px; }
+    .epc-boc__fleet-links a { color:#b91c1c; font-weight:700; text-decoration:none; }
+    .epc-boc__note { color:#475569; margin:0; }
+    .epc-boc__module { background:#fff; border:1px solid #f3c1c1; border-radius:12px; padding:16px 18px; min-height:12rem; }
+</style>
+<link rel="stylesheet" href="/platform-assets/eparts-animated-logo.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
-
-<div class="epc-boc epc-boc--topnav" style="display:flex!important;flex-direction:column!important;position:fixed!important;inset:0!important;z-index:4000!important;overflow:auto!important;width:100%!important;float:none!important;background:#fff7f7!important;isolation:isolate!important;">
+<style>
+    html:has(.epc-boc), body:has(.epc-boc) { overflow-x:hidden!important; overflow-y:auto!important; height:auto!important; max-height:none!important; }
+</style>
+<div class="epc-boc epc-boc--topnav" style="display:flex!important;flex-direction:column!important;position:relative!important;inset:auto!important;z-index:1!important;overflow:visible!important;width:100%!important;min-height:100vh!important;height:auto!important;float:none!important;background:#fff7f7!important;">
     <nav class="epc-boc__topnav" id="epc_boc_topnav" aria-label="Business Operation Control">
         <div class="epc-boc__topnav-inner">
             @* Brand short-name is "BOS" in PHP BOC, but the home stays Super CP (/cp) — not product Super BOS (/bos). *@
@@ -102,7 +190,7 @@
             <ul class="epc-boc__topnav-list" role="menubar">
                 @foreach (var (group, areas) in PhpSuperCpBocNav.Nav())
                 {
-                    var isActive = group.Key == "command";
+                    var isActive = GroupIsActive(group.Key, areas);
                     <li class="epc-boc__topnav-item @(isActive ? "is-active" : "")" data-boc-group="@group.Key" role="none">
                         <button type="button" class="epc-boc__topnav-btn" role="menuitem" aria-haspopup="true" aria-expanded="false" data-boc-topnav-toggle="@group.Key">
                             <i class="fa @group.Icon" aria-hidden="true"></i>
@@ -122,7 +210,7 @@
                                         <ul class="epc-boc__topnav-links">
                                             @foreach (var area in chunk)
                                             {
-                                                <li class="@(area.Key == "command_center" ? "is-active" : "")">
+                                                <li class="@(PathMatches(area.Href) ? "is-active" : "")">
                                                     <a href="@area.Href" title="@area.Hint"><i class="fa @area.Icon"></i> @area.Label</a>
                                                 </li>
                                             }
@@ -136,17 +224,30 @@
             </ul>
             <div class="epc-boc__topnav-actions">
                 <a class="epc-boc__topnav-bos" href="/bos" title="Open product Super BOS — Fleet Command (black shell)"><i class="fa fa-server"></i> Super BOS</a>
+                <a class="epc-boc__topnav-erp" href="/cp/tenants-app" title="Tenant control — create ASAP/INDJ/FITO/REAL"><i class="fa fa-users"></i> Tenants</a>
+                <a class="epc-boc__topnav-erp" href="/cp/deployment-models-app" title="Cloud, on-premises, and hybrid ERP"><i class="fa fa-server"></i> Deploy</a>
+                <a class="epc-boc__topnav-erp" href="/cp/super-mail-app" title="Platform mailboxes including yawer@ecomae.com"><i class="fa fa-inbox"></i> Mail</a>
+                <a class="epc-boc__topnav-erp" href="/cp/client-erp" title="Client ERP company picker"><i class="fa fa-university"></i> Client ERP</a>
                 <a class="epc-boc__topnav-erp" href="/erp" title="Company ERP workspace"><i class="fa fa-university"></i> ERP</a>
                 <a class="epc-boc__topnav-erp" href="/erp/fleet-app" title="Fleet ERP operator view"><i class="fa fa-sitemap"></i> Fleet ERP</a>
                 <span class="epc-boc__scope" title="Platform fleet vs active tenant CP"><i class="fa fa-globe"></i> All units · Fleet</span>
                 <span class="epc-boc__env"><i class="fa fa-circle" style="font-size:7px;vertical-align:middle;color:#16a34a"></i> Production</span>
                 <span class="epc-boc__avatar" title="Operator">OP</span>
+                <a class="epc-boc__topnav-erp" href="/cp/logout" title="Log out of Super CP"><i class="fa fa-sign-out"></i> Log out</a>
             </div>
         </div>
     </nav>
 
     <div class="epc-boc__main" style="display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-width:0!important;width:auto!important;float:none!important;">
         <div class="epc-boc__canvas">
+            @if (!ShowHome)
+            {
+                <div class="epc-boc__module" data-epc-super-cp-page="1">
+                    @ChildContent
+                </div>
+            }
+            else
+            {
             <div class="epc-boc__platform-banner" role="status">
                 <div><strong>Platform Super CP</strong> <span>· ecomae.com operator console (/cp)</span>
                     <div class="epc-boc__platform-banner-hint">
@@ -164,11 +265,55 @@
                     <p>Overall fleet control for all tenants. Select a tenant CP to operate epartscart, taxofinca, and others without mixing shop data into ecomae.</p>
                 </div>
                 <div class="epc-boc__hero-actions">
-                    <a class="epc-boc__btn epc-boc__btn--solid" href="/bos"><i class="fa fa-server"></i> Open Super BOS</a>
-                    <a class="epc-boc__btn epc-boc__btn--ghost" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/tenant_hub/tenant_hub?tab=onboard")"><i class="fa fa-rocket"></i> Onboard client</a>
-                    <a class="epc-boc__btn epc-boc__btn--ghost" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_platform_health_checkup")"><i class="fa fa-heartbeat"></i> Health checkup</a>
-                    <a class="epc-boc__btn epc-boc__btn--ghost" href="/brochure/cp" target="_blank" rel="noopener"><i class="fa fa-book"></i> CP brochure</a>
+                    <a class="epc-boc__btn epc-boc__btn--solid" href="/cp/tenants-app"><i class="fa fa-users"></i> Tenants + 4 ERP-only</a>
+                    <a class="epc-boc__btn epc-boc__btn--ghost" href="/cp/super-mail-app"><i class="fa fa-inbox"></i> Mailboxes</a>
+                    <a class="epc-boc__btn epc-boc__btn--ghost" href="/cp/client-erp"><i class="fa fa-university"></i> Client ERP</a>
+                    <a class="epc-boc__btn epc-boc__btn--ghost" href="/bos"><i class="fa fa-server"></i> Super BOS</a>
                 </div>
+            </div>
+
+            <div class="epc-boc__panel" style="border-color:#fecaca">
+                <div class="epc-boc__panel-h"><i class="fa fa-inbox"></i> Platform mail + four Client ERP companies</div>
+                <p class="epc-boc__note" style="margin:0 0 12px">
+                    Super mailbox <a href="mailto:@ErpOnlyLaunchClients.SuperMailbox">@ErpOnlyLaunchClients.SuperMailbox</a>
+                    · open the list at <a href="/cp/super-mail-app">/cp/super-mail-app</a>.
+                    Company ERP logins stay on <code>/cp/client-erp/{key}/</code> — Super <code>/cp</code> and <code>/erp</code> stay the platform.
+                </p>
+                <div class="epc-boc__fleet-grid">
+                    @foreach (var client in ErpOnlyLaunchClients.All)
+                    {
+                        var present = _launchKeys.Contains(client.SiteKey);
+                        <div class="epc-boc__fleet-card @(present ? "" : "epc-boc__fleet-card--amber")">
+                            <div class="epc-boc__fleet-name">
+                                <strong>@client.TradeName</strong>
+                                <span class="epc-boc__chip @(present ? "" : "epc-boc__chip--amber")">@(present ? "LIVE" : "CREATE")</span>
+                            </div>
+                            <div class="epc-boc__fleet-meta">
+                                <code>@client.SiteKey</code> · <a href="mailto:@client.Email">@client.Email</a>
+                            </div>
+                            <div class="epc-boc__fleet-links">
+                                <a href="@client.LoginPath"><i class="fa fa-university"></i> ERP login</a>
+                                <a href="/cp/tenants-app"><i class="fa fa-sliders"></i> Tenants</a>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <form method="post" action="/cp/tenants/write" style="margin-top:12px">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp" />
+                    <input type="hidden" name="action" value="onboard_four_erp_only" />
+                    <button type="submit" class="epc-boc__btn epc-boc__btn--solid" style="border:0;cursor:pointer">
+                        <i class="fa fa-rocket"></i> Create ASAP / INDJ / FITO / REAL now
+                    </button>
+                </form>
+                <form method="post" action="/cp/tenants/write" style="margin-top:8px">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp" />
+                    <input type="hidden" name="action" value="repair_four_erp_only" />
+                    <button type="submit" class="epc-boc__btn epc-boc__btn--ghost" style="border:1px solid #cbd5e1;cursor:pointer;color:#0f172a;background:#fff">
+                        <i class="fa fa-wrench"></i> Repair ASAP / INDJ / FITO / REAL shop login
+                    </button>
+                </form>
             </div>
 
             <div class="epc-boc__tiles">
@@ -241,6 +386,10 @@
             <div class="epc-boc__panel">
                 <div class="epc-boc__panel-h"><i class="fa fa-bolt"></i> Super CP quick actions</div>
                 <div class="epc-boc__grid">
+                    <a class="epc-boc__card" href="/cp/deployment-models-app"><i class="fa fa-server"></i><strong>Cloud / on-prem / hybrid</strong><span>How each company runs ERP</span></a>
+                    <a class="epc-boc__card" href="/cp/tenants-app"><i class="fa fa-sitemap"></i><strong>Tenant control</strong><span>Create ASAP / INDJ / FITO / REAL</span></a>
+                    <a class="epc-boc__card" href="/cp/super-mail-app"><i class="fa fa-inbox"></i><strong>Platform mailboxes</strong><span>yawer@ecomae.com + company boxes</span></a>
+                    <a class="epc-boc__card" href="/cp/client-erp"><i class="fa fa-university"></i><strong>Client ERP picker</strong><span>Company login URLs</span></a>
                     <a class="epc-boc__card" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/tenant_hub/tenant_hub")"><i class="fa fa-sitemap"></i><strong>Tenant hub</strong><span>Fleet directory &amp; onboarding</span></a>
                     <a class="epc-boc__card" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_platform_health_checkup")"><i class="fa fa-heartbeat"></i><strong>Health checkup</strong><span>SSL / DB / nginx probes</span></a>
                     <a class="epc-boc__card" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_boc_channel_control")"><i class="fa fa-exchange"></i><strong>Channels &amp; OMS</strong><span>Web / POS / API</span></a>
@@ -277,7 +426,12 @@
                                 </div>
                                 <div class="epc-boc__fleet-meta">@t.Hostname · @(string.IsNullOrWhiteSpace(t.IndustryCode) ? "—" : t.IndustryCode)</div>
                                 <div class="epc-boc__fleet-links">
-                                    @if (!string.IsNullOrWhiteSpace(t.Hostname))
+                                    @if (type == "erp_only")
+                                    {
+                                        <a href="/cp/client-erp/@t.SiteKey/"><i class="fa fa-university"></i> ERP login</a>
+                                        <a href="/cp/tenants-app"><i class="fa fa-sliders"></i> Tenants</a>
+                                    }
+                                    else if (!string.IsNullOrWhiteSpace(t.Hostname))
                                     {
                                         <a href="https://@(t.Hostname)/" target="_blank" rel="noopener"><i class="fa fa-globe"></i> Site</a>
                                         <a href="https://@(t.Hostname)/cp" target="_blank" rel="noopener"><i class="fa fa-cogs"></i> Tenant CP</a>
@@ -298,6 +452,7 @@
                     · Enter product Super BOS: <a href="/bos">/bos</a>.
                 </p>
             </div>
+            }
         </div>
     </div>
 </div>
@@ -306,11 +461,16 @@
 
 
 @code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool ShowHome { get; set; } = true;
+
     private BosFleetSummary _summary = new(0, 0, 0, 0, 0, 0, 0, 0, "loading", "Loading fleet…");
     private IReadOnlyList<PortalTenantDigest> _tenants = [];
+    private readonly HashSet<string> _launchKeys = new(StringComparer.OrdinalIgnoreCase);
     private int _healthy;
     private int _attention;
     private int _critical;
+    private string _currentPath = "/cp";
 
     private static readonly (string Type, string Icon, string Label)[] FleetTypes =
     [
@@ -321,9 +481,30 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _currentPath = Http.HttpContext?.Request.Path.Value ?? "/cp";
+        if (!ShowHome)
+        {
+            return;
+        }
+
         var health = await Dashboards.BuildBosFleetHealthAsync(60);
         _summary = health.Summary;
         _tenants = health.SampleTenants;
+        try
+        {
+            var view = await ControlCenter.LoadAsync();
+            foreach (var row in view.Tenants)
+            {
+                if (ErpOnlyLaunchClients.IsLaunchKey(row.SiteKey))
+                {
+                    _launchKeys.Add(row.SiteKey);
+                }
+            }
+        }
+        catch
+        {
+            // Home still paints the four cards; CREATE vs LIVE is best-effort.
+        }
         foreach (var t in _tenants)
         {
             switch (ClassifyHealth(t))
@@ -382,6 +563,45 @@
     {
         var total = Math.Max(1, Math.Max(_tenants.Count, 1));
         return (int)Math.Round(_healthy * 100.0 / Math.Max(1, _tenants.Count == 0 ? 1 : _tenants.Count));
+    }
+
+    private bool GroupIsActive(string groupKey, IReadOnlyList<PhpSuperCpBocNav.BocArea> areas)
+    {
+        if (IsCommandHome)
+        {
+            return string.Equals(groupKey, "command", StringComparison.OrdinalIgnoreCase);
+        }
+
+        return areas.Any(a => PathMatches(a.Href));
+    }
+
+    private bool IsCommandHome
+    {
+        get
+        {
+            var p = (_currentPath ?? "").Split('?', 2)[0].TrimEnd('/');
+            return p.Equals("/cp", StringComparison.OrdinalIgnoreCase)
+                   || p.Equals("/cp/app", StringComparison.OrdinalIgnoreCase)
+                   || p.Equals("/cp/control", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    private bool PathMatches(string? href)
+    {
+        if (string.IsNullOrWhiteSpace(href))
+        {
+            return false;
+        }
+
+        var mapped = href.Split('?', 2)[0].TrimEnd('/');
+        var current = (_currentPath ?? "").Split('?', 2)[0].TrimEnd('/');
+        if (string.IsNullOrWhiteSpace(mapped) || mapped == "/")
+        {
+            return false;
+        }
+
+        return current.Equals(mapped, StringComparison.OrdinalIgnoreCase)
+               || current.StartsWith(mapped + "/", StringComparison.OrdinalIgnoreCase);
     }
 
     private static IEnumerable<(IReadOnlyList<PhpSuperCpBocNav.BocArea> Chunk, int Index)> Chunk(IReadOnlyList<PhpSuperCpBocNav.BocArea> areas, int size)

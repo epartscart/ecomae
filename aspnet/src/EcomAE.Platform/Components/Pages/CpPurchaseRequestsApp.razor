@@ -63,6 +63,7 @@
         <form id="erp-module-new" method="post" action="/erp/procurement/requisitions/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_listHref" />
+            <ErpVoucherHeaderFields DateLabel="Request date" DateFieldName="voc_date" NumberLabel="Requisition no" NumberPreview="Auto" />
             <label>Requester <input type="text" name="requester" maxlength="160" required /></label>
             @if (_businessUnits.Count == 0)
             {

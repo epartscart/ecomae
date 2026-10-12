@@ -1,0 +1,113 @@
+@page "/cp/super-mail-app"
+@page "/bos/mail-app"
+@page "/erp/super-mail-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ICpTenantControlCenterService ControlCenter
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Platform mail · Super CP · ECOM AE</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+@if (_allowed)
+{
+    <PhpCpDesktopChrome IsAdmin="_isAdmin">
+        <PhpCpModulePageHeader Title="Platform mailboxes"
+                               Subtitle="Super operator plus ERP-only company boxes on ecomae.com. This page does not invent a send."
+                               PhpTabHref="@_phpTab">
+            <a class="ghost" href="/cp/tenants-app">Tenants</a>
+            <a class="ghost" href="/cp/tenant-email-app">Tenant SMTP</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a>
+        </PhpCpModulePageHeader>
+
+        <div class="epc-scp-table-card">
+            <table class="epc-scp-data-table table table-epc-pro">
+                <thead>
+                    <tr>
+                        <th>Mailbox</th>
+                        <th>Role</th>
+                        <th>Company</th>
+                        <th>Login</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><a href="mailto:@ErpOnlyLaunchClients.SuperMailbox">@ErpOnlyLaunchClients.SuperMailbox</a></td>
+                        <td>Super CP / Super ERP / BOS admin</td>
+                        <td>Platform</td>
+                        <td><a href="/cp">/cp</a></td>
+                    </tr>
+                    @foreach (var client in ErpOnlyLaunchClients.All)
+                    {
+                        var live = _boxes.FirstOrDefault(b => string.Equals(b.SiteKey, client.SiteKey, StringComparison.OrdinalIgnoreCase));
+                        <tr>
+                            <td><a href="@("mailto:" + client.Email)">@client.Email</a></td>
+                            <td>ERP-only operator</td>
+                            <td><code>@client.SiteKey</code> · @client.TradeName @(live is null ? "(create on Tenants)" : "")</td>
+                            <td><a href="@client.LoginPath">@client.LoginPath</a></td>
+                        </tr>
+                    }
+                    @foreach (var row in _boxes.Where(b => !ErpOnlyLaunchClients.IsLaunchKey(b.SiteKey)))
+                    {
+                        <tr>
+                            <td><a href="@("mailto:" + row.Email)">@row.Email</a></td>
+                            <td>ERP-only operator</td>
+                            <td><code>@row.SiteKey</code> · @row.TradeName</td>
+                            <td><a href="@row.Login">@row.Login</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="help-block">IMAP/SMTP send for these addresses is the Purelymail fleet. Super CP can reset ERP-only passwords on Tenants. PHP files stay on disk.</p>
+    </PhpCpDesktopChrome>
+}
+else
+{
+    <div style="padding:2rem;font-family:sans-serif;">
+        <h1>Not found</h1>
+        <p>Platform mailboxes are Super CP only.</p>
+        <p><a href="/cp">Open Control Panel</a></p>
+    </div>
+}
+
+@code {
+    private const string _phpTab = "/CP/control/portal/epc_tenant_email_settings";
+    private bool _allowed;
+    private bool _isAdmin;
+    private IReadOnlyList<MailRow> _boxes = [];
+
+    private sealed record MailRow(string SiteKey, string TradeName, string Email, string Login);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        _allowed = SuperCpHostGate.IsAllowed(ctx);
+        if (!_allowed || ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var view = await ControlCenter.LoadAsync(ctx.RequestAborted);
+        _boxes = view.Tenants
+            .Where(t => t.TenantType == "erp_only" && !string.IsNullOrWhiteSpace(t.AdminEmail))
+            .Select(t => new MailRow(
+                t.SiteKey,
+                string.IsNullOrWhiteSpace(t.TradeName) ? t.SiteKey : t.TradeName,
+                t.AdminEmail,
+                t.ErpLoginUrl))
+            .ToArray();
+    }
+}

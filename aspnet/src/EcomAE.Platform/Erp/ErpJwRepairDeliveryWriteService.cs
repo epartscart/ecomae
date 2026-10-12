@@ -78,17 +78,29 @@ public sealed class ErpJwRepairDeliveryWriteService : IErpJwRepairDeliveryWriteS
             paid = charge;
         }
 
+        var companyId = request.CompanyId < 0 ? 0 : request.CompanyId;
+        var branch = Clip(DefaultBranch(request.Branch), 10);
+        var vocNo = await ErpJwVocNumbering.NextNoAsync(
+            connection,
+            null,
+            "epc_jewel_repair_delivery",
+            companyId,
+            "RTD",
+            branch,
+            request.VocNo,
+            cancellationToken).ConfigureAwait(false);
+
         await ErpDb.ExecuteAsync(
             connection,
             null,
             ErpDb.Positional(
                 "INSERT INTO `epc_jewel_repair_delivery` (`company_id`,`branch`,`voc_type`,`voc_date`,`voc_no`,`customer_id`,`customer_name`,`mobile`,`delivery_remarks`,`repair_amount`,`sub_total`,`net_total`,`status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
             cancellationToken,
-            request.CompanyId < 0 ? 0 : request.CompanyId,
-            Clip(DefaultBranch(request.Branch), 10),
+            companyId,
+            branch,
             "RTD",
             NormalizeDate(FirstNonEmpty(request.DeliveryDate, request.VocDate)),
-            request.VocNo < 0 ? 0 : request.VocNo,
+            vocNo,
             customerId,
             Clip((request.CustomerName ?? string.Empty).Trim(), 120),
             Clip((request.Mobile ?? string.Empty).Trim(), 20),

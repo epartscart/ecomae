@@ -37,8 +37,11 @@ public sealed record CpTenantControlRow(
     bool DemoExpired,
     bool AccessBlocked,
     bool HasStoredPassword,
-    bool IsDemo)
+    bool IsDemo,
+    IReadOnlyList<string>? ExtraLogins = null)
 {
+    public IReadOnlyList<string> ExtraLoginEmails => ExtraLogins ?? [];
+
     /// <summary>PHP orders demo rows first, then ERP-only, then commerce, each by site key.</summary>
     public int TypeOrder => TenantType switch
     {
@@ -166,6 +169,70 @@ public sealed class CpTenantControlCenterService : ICpTenantControlCenterService
         return IsEmail(fromEmail) ? fromEmail!.Trim().ToLowerInvariant() : string.Empty;
     }
 
+    public static IReadOnlyList<string> ExtraLoginEmailsFromIntro(string? introJson)
+    {
+        if (string.IsNullOrWhiteSpace(introJson))
+        {
+            return [];
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(introJson);
+            if (document.RootElement.ValueKind != JsonValueKind.Object
+                || !document.RootElement.TryGetProperty("extra_login_emails", out var list)
+                || list.ValueKind != JsonValueKind.Array)
+            {
+                return [];
+            }
+
+            var emails = new List<string>();
+            foreach (var item in list.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String && IsEmail(item.GetString()))
+                {
+                    var email = item.GetString()!.Trim().ToLowerInvariant();
+                    if (!emails.Contains(email, StringComparer.OrdinalIgnoreCase))
+                    {
+                        emails.Add(email);
+                    }
+                }
+            }
+
+            return emails;
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    public static string MergeExtraLoginEmail(string? introJson, string email)
+    {
+        var extra = ExtraLoginEmailsFromIntro(introJson).ToList();
+        var next = email.Trim().ToLowerInvariant();
+        if (IsEmail(next) && !extra.Contains(next, StringComparer.OrdinalIgnoreCase))
+        {
+            extra.Add(next);
+        }
+
+        Dictionary<string, object?> root;
+        try
+        {
+            root = string.IsNullOrWhiteSpace(introJson)
+                ? new Dictionary<string, object?>(StringComparer.Ordinal)
+                : JsonSerializer.Deserialize<Dictionary<string, object?>>(introJson!)
+                  ?? new Dictionary<string, object?>(StringComparer.Ordinal);
+        }
+        catch (JsonException)
+        {
+            root = new Dictionary<string, object?>(StringComparer.Ordinal);
+        }
+
+        root["extra_login_emails"] = extra;
+        return JsonSerializer.Serialize(root);
+    }
+
     public static string NormalizeSiteKey(string? siteKey)
         => SiteKeySafe.Replace((siteKey ?? string.Empty).Trim().ToLowerInvariant(), string.Empty);
 
@@ -258,7 +325,8 @@ public sealed class CpTenantControlCenterService : ICpTenantControlCenterService
                 demoExpired,
                 !isActive || demoExpired,
                 Text(reader, "operator_temp_password").Trim().Length > 0,
-                isDemo));
+                isDemo,
+                ExtraLoginEmailsFromIntro(Text(reader, "intro_json"))));
         }
 
         return rows
@@ -283,9 +351,34 @@ public sealed class CpTenantControlCenterService : ICpTenantControlCenterService
     private static long Number(DbDataReader reader, string column)
         => long.TryParse(Text(reader, column), NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) ? value : 0;
 
+    /// <summary>
+    /// MariaDB TINYINT(1) often arrives as <c>bool</c>, not <c>"1"</c>. Treating it as text
+    /// marked every live ERP-only row as commerce / Off.
+    /// </summary>
+    public static bool CoerceFlag(object? value, bool whenNull)
+    {
+        if (value is null or DBNull)
+        {
+            return whenNull;
+        }
+
+        if (value is bool flag)
+        {
+            return flag;
+        }
+
+        if (value is byte or sbyte or short or ushort or int or uint or long or ulong)
+        {
+            return Convert.ToInt64(value, CultureInfo.InvariantCulture) != 0;
+        }
+
+        var text = Convert.ToString(value, CultureInfo.InvariantCulture)?.Trim();
+        return text is "1" or "true" or "True" or "yes" or "on";
+    }
+
     private static bool Flag(DbDataReader reader, string column, bool whenNull)
     {
         var ordinal = reader.GetOrdinal(column);
-        return reader.IsDBNull(ordinal) ? whenNull : Number(reader, column) != 0;
+        return reader.IsDBNull(ordinal) ? whenNull : CoerceFlag(reader.GetValue(ordinal), whenNull);
     }
 }

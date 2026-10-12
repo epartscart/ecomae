@@ -58,14 +58,8 @@ User-agent: Screaming Frog SEO Spider
 Disallow: /content/shop/docpart/
 Disallow: /shop/part_search
 
-# Industry hubs (energy.ecomae.com, …) serve hub + sub-industry URLs here —
-# Google must see this map (biomass-bioenergy, solar-energy, etc.).
 Sitemap: /sitemap.xml
-# ALL industries + sub-industries (submit on www / Domain property for ecomae.com).
-# Do NOT use energy.ecomae.com/sitemap.xml for this — that file is energy-only.
 Sitemap: /sitemap-industries.php
-# Aggregated index (www marketing + tenant pages/products, or industry self-map).
-# Warehouse stock: sitemap-index.php → sitemap-warehouse-0.xml … (/en/parts/{BRAND}/{ARTICLE}).
 Sitemap: /sitemap-index.php
 Sitemap: /sitemap-products.php
 Sitemap: /sitemap-wh-0.php

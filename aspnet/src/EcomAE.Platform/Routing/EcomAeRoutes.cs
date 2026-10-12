@@ -69,6 +69,26 @@ public static class EcomAeRoutes
     public const string ControlPanelTenants = "/cp/tenants";
     /// <summary>CP portal tenants Blazor list (JSON digest remains <see cref="ControlPanelTenants"/>).</summary>
     public const string ControlPanelTenantsApp = "/cp/tenants-app";
+    /// <summary>Super CP Cloud / on-premises / hybrid ERP deployment models.</summary>
+    public const string ControlPanelDeploymentModelsApp = "/cp/deployment-models-app";
+    /// <summary>Super-only JSON catalog of downloadable on-premises and hybrid setup files.</summary>
+    public const string ControlPanelDeploymentModelsSetupFiles = "/cp/deployment-models/setup-files";
+    /// <summary>Super-only allowlisted download of one setup-pack file.</summary>
+    public const string ControlPanelDeploymentModelsSetupFile = "/cp/deployment-models/setup-file";
+    /// <summary>Super-only zip of one setup pack (on-premises or hybrid).</summary>
+    public const string ControlPanelDeploymentModelsSetupPack = "/cp/deployment-models/setup-pack";
+    /// <summary>Super-only hybrid installation register (dry-run unless confirmWrites).</summary>
+    public const string CpHybridSyncRegister = "/cp/hybrid-sync/register";
+    /// <summary>Hybrid change-log ingest (Super or enrollment; dry-run unless confirmWrites).</summary>
+    public const string CpHybridSyncIngest = "/cp/hybrid-sync/ingest";
+    /// <summary>Hybrid master pull (Super or enrollment). Empty when nothing is queued — does not invent a send.</summary>
+    public const string CpHybridSyncPull = "/cp/hybrid-sync/pull";
+    /// <summary>Hybrid pull acknowledgement (marks delivered master envelopes applied).</summary>
+    public const string CpHybridSyncAck = "/cp/hybrid-sync/ack";
+    /// <summary>Super-only hybrid cursor / conflict status.</summary>
+    public const string CpHybridSyncStatus = "/cp/hybrid-sync/status";
+    /// <summary>PHP <c>/cp/client-erp</c> picker. Company login is <c>/cp/client-erp/{site_key}/</c>.</summary>
+    public const string ClientErp = "/cp/client-erp";
     /// <summary>Super-CP tenant_set_active. <c>confirmWrites=true</c> twins PHP ajax_portal.php. Password reset/reveal stay Classic.</summary>
     public const string CpTenantsWrite = "/cp/tenants/write";
     public const string ControlPanelUsers = "/cp/users";
@@ -1053,6 +1073,41 @@ public static class EcomAeRoutes
     public const string ErpProductInfoPimAction = "/erp/product-info/pim";
     /// <summary>Syncron inventory policy page: recommendations, policies, forecast and service levels.</summary>
     public const string ErpSyncronApp = "/erp/syncron-app";
+    /// <summary>
+    /// Hybrid UI dual-sample TARGETS still list /cp/*-app presentation shadows.
+    /// Canonical Blazor pages are the /erp/* twins; nginx keeps both exact routes.
+    /// </summary>
+    public const string HybridShadowCpAmlComplianceApp = "/cp/aml-compliance-app";
+    public const string HybridShadowCpAuditTrailApp = "/cp/audit-trail-app";
+    public const string HybridShadowCpBlockchainProofsApp = "/cp/blockchain-proofs-app";
+    public const string HybridShadowCpBudgetsApp = "/cp/budgets-app";
+    public const string HybridShadowCpConsolidationsApp = "/cp/consolidations-app";
+    public const string HybridShadowCpCostModelsApp = "/cp/cost-models-app";
+    public const string HybridShadowCpCrmOpportunitiesApp = "/cp/crm-opportunities-app";
+    public const string HybridShadowCpCrmTicketsApp = "/cp/crm-tickets-app";
+    public const string HybridShadowCpDataMigrationsApp = "/cp/data-migrations-app";
+    public const string HybridShadowCpDocExpiryApp = "/cp/doc-expiry-app";
+    public const string HybridShadowCpEinvoiceDocumentsApp = "/cp/einvoice-documents-app";
+    public const string HybridShadowCpElectronicReportingApp = "/cp/electronic-reporting-app";
+    public const string HybridShadowCpFinAdvancedApp = "/cp/fin-advanced-app";
+    public const string HybridShadowCpFinanceCloseApp = "/cp/finance-close-app";
+    public const string HybridShadowCpHrOverviewApp = "/cp/hr-overview-app";
+    public const string HybridShadowCpInsuranceComplianceApp = "/cp/insurance-compliance-app";
+    public const string HybridShadowCpJewelleryFixingApp = "/cp/jewellery-fixing-app";
+    public const string HybridShadowCpJewelleryMastersApp = "/cp/jewellery-masters-app";
+    public const string HybridShadowCpJewelleryRepairsApp = "/cp/jewellery-repairs-app";
+    public const string HybridShadowCpJewelleryRetailApp = "/cp/jewellery-retail-app";
+    public const string HybridShadowCpJewelleryStockVerificationApp = "/cp/jewellery-stock-verification-app";
+    public const string HybridShadowCpLandedCostApp = "/cp/landed-cost-app";
+    public const string HybridShadowCpPosOverviewApp = "/cp/pos-overview-app";
+    public const string HybridShadowCpProductionOverviewApp = "/cp/production-overview-app";
+    public const string HybridShadowCpProjectsOverviewApp = "/cp/projects-overview-app";
+    public const string HybridShadowCpPurchaseRequestsApp = "/cp/purchase-requests-app";
+    public const string HybridShadowCpTaxExternalReportingApp = "/cp/tax-external-reporting-app";
+    public const string HybridShadowCpTenantConfigApp = "/cp/tenant-config-app";
+    public const string HybridShadowCpUaeTaxComplianceApp = "/cp/uae-tax-compliance-app";
+    public const string HybridShadowCpWarehouseWmsApp = "/cp/warehouse-wms-app";
+    public const string HybridShadowCpWorkflowsApp = "/cp/workflows-app";
     /// <summary>Syncron form POST (<c>syncron_action</c> = policy_save, policy_deactivate, run_forecast, record_service_level). Needs <c>confirmWrites=true</c>.</summary>
     public const string ErpSyncronAction = "/erp/syncron/action";
     /// <summary>HTML form POST for PHP <c>jw_repair_create</c>. <c>confirmWrites=true</c> inserts <c>epc_erp_jw_repairs</c>.</summary>
@@ -3010,6 +3065,8 @@ public static class EcomAeRoutes
     public const string ErpFinPeriodsGenerate = "/erp/fin/periods/generate";
     /// <summary>HTML form POST for PHP bank_reconcile. confirmWrites=true writes via IErpBankReconcileWriteService.</summary>
     public const string ErpBankReconcile = "/erp/bank-reconciliation/match";
+    /// <summary>HTML form POST for PHP bank_import. confirmWrites=true writes via IErpBankImportWriteService.</summary>
+    public const string ErpBankImport = "/erp/bank-reconciliation/import";
     /// <summary>HTML form POST for PHP automation_deactivate. confirmWrites=true writes via IErpAutomationDeactivateWriteService.</summary>
     public const string ErpAutomationDeactivate = "/erp/automation/deactivate";
     /// <summary>HTML form POST for PHP bplan_advance. confirmWrites=true writes via IErpBplanAdvanceWriteService.</summary>

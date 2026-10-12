@@ -55,6 +55,14 @@ builder.Services.AddSingleton<ITenantRegistry>(sp =>
 
     return ActivatorUtilities.CreateInstance<DbBackedTenantRegistry>(sp);
 });
+builder.Services.AddSingleton<EcomAE.Platform.Cp.IErpOnlyShopBootstrap, EcomAE.Platform.Cp.ErpOnlyShopBootstrap>();
+builder.Services.AddSingleton<IClientErpTenantLookup>(sp =>
+{
+    var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();
+    return connections.IsConfigured
+        ? ActivatorUtilities.CreateInstance<DbClientErpTenantLookup>(sp)
+        : NullClientErpTenantLookup.Instance;
+});
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<ILegacySessionStore>(sp =>
 {
@@ -824,6 +832,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSuperCustomerBoardService, Ecom
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpIntegrationsHubService, EcomAE.Platform.Cp.CpIntegrationsHubService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantsWriteService, EcomAE.Platform.Cp.CpTenantsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantControlCenterService, EcomAE.Platform.Cp.CpTenantControlCenterService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.IHybridSyncService, EcomAE.Platform.Cp.HybridSyncService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSocialHubWriteService, EcomAE.Platform.Cp.CpSocialHubWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMarketingBroadcastService, EcomAE.Platform.Cp.CpMarketingBroadcastService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMarketingBroadcastWriteService, EcomAE.Platform.Cp.CpMarketingBroadcastWriteService>();
@@ -1326,7 +1335,12 @@ app.UseMiddleware<MarketingStubToPhpRedirectMiddleware>();
 app.UseMiddleware<EcomaeMarketingSnapshotMiddleware>();
 // Legacy stub→PHP /en redirect. Skipped when PreferAspNetStorefrontApps (product ASP.NET primary).
 app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
+// Super-host /erp chrome links after a client-erp login stay under /cp/client-erp/{key}.
+app.UseMiddleware<ClientErpCookieRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
+// /cp/client-erp/{key}/erp… → /erp… after the company DB is bound.
+app.UseMiddleware<ClientErpPathRewriteMiddleware>();
+app.UseMiddleware<ClientErpSuperSurfaceGateMiddleware>();
 app.UseMiddleware<EcomAE.Platform.Storefront.StorefrontCheckoutConfirmSessionlessMiddleware>();
 // Shared ERP remains available to every tenant; industry-specific workspaces are gated
 // by host/company industry before Blazor can render or accept their forms.
@@ -1753,9 +1767,10 @@ app.MapGet(EcomAeRoutes.LegacyAdminLogin, () => Results.Redirect(EcomAeRoutes.Co
 // PHP-compatible logout — clears admin/customer cookies (+ best-effort sessions row delete).
 async Task<IResult> PerformLegacyLogout(HttpContext context, LegacyLogoutService logout, string? surface, string? returnUrl)
 {
+    var dest = LegacyLogoutService.RedirectAfterLogout(context, surface, returnUrl);
     await logout.LogoutAsync(context, context.RequestAborted);
-    var dest = LegacyLogoutService.RedirectForSurface(surface, returnUrl);
     context.Response.Headers["X-EcomAE-Logout"] = "cleared";
+    context.Response.Headers["Cache-Control"] = "no-store, no-cache";
     return Results.Redirect(dest);
 }
 
@@ -1773,19 +1788,19 @@ app.MapMethods(EcomAeRoutes.LegacyLogout, ["GET", "POST"], async (HttpContext co
     }
 
     return await PerformLegacyLogout(context, logout, surface, returnUrl);
-});
+}).DisableAntiforgery();
 app.MapMethods(EcomAeRoutes.ControlPanelLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
-    => PerformLegacyLogout(context, logout, "cp", null));
+    => PerformLegacyLogout(context, logout, "cp", null)).DisableAntiforgery();
 app.MapMethods(EcomAeRoutes.ErpLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
-    => PerformLegacyLogout(context, logout, "erp", null));
+    => PerformLegacyLogout(context, logout, "erp", null)).DisableAntiforgery();
 app.MapMethods(EcomAeRoutes.BosLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
-    => PerformLegacyLogout(context, logout, "bos", null));
+    => PerformLegacyLogout(context, logout, "bos", null)).DisableAntiforgery();
 app.MapMethods(EcomAeRoutes.IpLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
-    => PerformLegacyLogout(context, logout, "ip", null));
+    => PerformLegacyLogout(context, logout, "ip", null)).DisableAntiforgery();
 app.MapMethods(EcomAeRoutes.LifeOsLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
-    => PerformLegacyLogout(context, logout, "lifeos", null));
+    => PerformLegacyLogout(context, logout, "lifeos", null)).DisableAntiforgery();
 app.MapMethods(EcomAeRoutes.StorefrontLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
-    => PerformLegacyLogout(context, logout, "storefront", null));
+    => PerformLegacyLogout(context, logout, "storefront", null)).DisableAntiforgery();
 
 // PHP-compatible admin/customer login bridge (exact-route). Sets cookies; does not cut over /CP/ /ERP/ /BOS/.
 // Accepts JSON or application/x-www-form-urlencoded (HTML login forms).

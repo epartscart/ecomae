@@ -24,14 +24,9 @@ public sealed class TopMenuIntegrityTests
         // Sign-in pages and the generic module host are not menu destinations.
         "CpLoginApp.razor", "ErpLoginApp.razor", "ErpModuleApp.razor",
         // Linked from other pages, not from the top menu.
-        "CpDashboardSummaryApp.razor", "ErpDashboardSummaryApp.razor", "ErpNavigationCoverageApp.razor",
+        "CpDashboardSummaryApp.razor", "ErpNavigationCoverageApp.razor",
         "CpPriceListsApp.razor", "CpPricesEditApp.razor", "CpPoApprovalsApp.razor", "CpCrmActivitiesApp.razor",
         "CpAdminSessionsApp.razor", "CpPrintDocsApp.razor", "CpBulkUploadApp.razor", "CpFinanceCloseApp.razor",
-        // No row in the production CP menu snapshots; open menu placement items in the tracker.
-        "CpIntegrationsGuideApp.razor", "CpLifeOsClientsApp.razor", "CpLifeOsGuideApp.razor", "CpOpsGuidesApp.razor",
-        "CpVinFieldsApp.razor", "CpWorkshopApp.razor", "ErpMultiEntityApp.razor", "ErpUserControlApp.razor",
-        // CP-finance ops pages (PHP account_operations / custom shipping reports) reached from the ERP module host, not a top-menu row.
-        "ErpAccountOperationsApp.razor", "ErpCustomShippingReportsApp.razor", "ErpOperationsEditorApp.razor", "ErpPaymentSystemsApp.razor",
     ];
 
     public static IEnumerable<object[]> Menus()
@@ -86,11 +81,71 @@ public sealed class TopMenuIntegrityTests
     }
 
     [Fact]
+    public void Mail_heading_is_on_super_cp_tenant_cp_and_super_erp()
+    {
+        var boc = PhpSuperCpBocNav.Nav().ToList();
+        var mail = boc.Single(n => n.Group.Key == "mail");
+        Assert.Equal("Mail", mail.Group.Label);
+        Assert.Contains(mail.Areas, a => a.Key == "platform_mail" && a.Href == "/cp/super-mail-app");
+        Assert.Contains(mail.Areas, a => a.Key == "tenant_email" && a.Href == "/cp/tenant-email-app");
+
+        var root = FindRepoRoot();
+        foreach (var file in Directory.GetFiles(Path.Combine(root, "content/files/epc_cache"), "epc_cp_menu_rows_v1_*.json"))
+        {
+            var rows = CpNavMenuService.ParseSnapshot(File.ReadAllText(file), Path.GetFileName(file));
+            Assert.NotNull(rows);
+            var super = TopMenuLinks.DedupeCp(CpNavTree.BuildChrome(rows.Groups, rows.Items, CpNavPolicy.SuperOperator(), static _ => null));
+            Assert.Equal("Mail", super[0].Short);
+            Assert.Contains(super[0].Items, i => CpNavTree.AspNetHref(i.Url) == "/cp/super-mail-app");
+
+            var tenant = TopMenuLinks.DedupeCp(CpNavTree.BuildChrome(rows.Groups, rows.Items, CpNavPolicy.Tenant(), static _ => null));
+            Assert.Contains(tenant, g => g.Short == "Mail");
+        }
+
+        var superErp = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience("current", "core", "AE", IsSuperErp: true));
+        Assert.Contains(superErp, g => g.Id == "mail" && g.ShortLabel == "Mail");
+        Assert.Contains(superErp.SelectMany(g => g.Links), t => t.Href == "/erp/super-mail-app");
+
+        var tenantErp = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience("current", "core", "AE", IsSuperErp: false));
+        Assert.DoesNotContain(tenantErp, g => g.Id == "mail");
+    }
+
+    [Fact]
     public void Proper_modules_for_previously_merged_entries()
     {
         Assert.Equal("/cp/price-management-app", CpNavTree.AspNetHref("/cp/shop/price-management"));
         Assert.Equal("/cp/guides-app?g=payments", CpNavTree.AspNetHref("/cp/shop/payments/payments/guide"));
         Assert.Equal("/erp/payroll-app", PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/finance/erp?epc_erp_shell=1&area=payroll"));
+    }
+
+    [Fact]
+    public void Finance_menu_keeps_each_statement_on_its_own_link()
+    {
+        var nav = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience("current", null, null, false));
+        var finance = nav
+            .SelectMany(g => g.Columns ?? [])
+            .SelectMany(c => c.Tabs)
+            .Where(t => t.Id.StartsWith("finance/", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        foreach (var key in new[] { "gl", "coa", "pl", "balance_sheet", "reports", "enterprise_reports", "aging", "opening_balances", "year_end" })
+        {
+            Assert.Contains(finance, t => t.Id.Equals("finance/" + key, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var dests = finance.Select(t => TopMenuLinks.DestinationKey(TopMenuLinks.ErpHref(t.Href))).ToList();
+        Assert.Equal(dests.Count, dests.Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal("/erp/report-center-app?tab=pl", TopMenuLinks.ErpHref(finance.Single(t => t.Id.EndsWith("/pl", StringComparison.OrdinalIgnoreCase)).Href));
+        Assert.Equal("/erp/report-center-app?tab=balance_sheet", TopMenuLinks.ErpHref(finance.Single(t => t.Id.EndsWith("/balance_sheet", StringComparison.OrdinalIgnoreCase)).Href));
+        Assert.Equal("/erp/report-center-app?tab=reports", TopMenuLinks.ErpHref(finance.Single(t => t.Id.EndsWith("/reports", StringComparison.OrdinalIgnoreCase)).Href));
+        Assert.Equal("/erp/coa-accounts-app", TopMenuLinks.ErpHref(finance.Single(t => t.Id.EndsWith("/coa", StringComparison.OrdinalIgnoreCase)).Href));
+        Assert.Equal("/erp/dashboard-summary-app", TopMenuLinks.ErpHref("/ERP/?epc_erp_shell=1&area=overview&tab=dashboard"));
+        Assert.Equal("/erp/multi-entity-app", TopMenuLinks.ErpHref("/ERP/?epc_erp_shell=1&area=consolidations&tab=multi_entity"));
     }
 
     private static List<(string Name, List<(string Label, string Href)> Links)> AllMenus()
@@ -102,7 +157,7 @@ public sealed class TopMenuIntegrityTests
             Assert.NotNull(rows);
             foreach (var (view, policy) in new[] { ("tenant", CpNavPolicy.Tenant()), ("super", CpNavPolicy.SuperOperator()) })
             {
-                var groups = TopMenuLinks.DedupeCp(CpNavTree.Build(rows.Groups, rows.Items, policy, static _ => null));
+                var groups = TopMenuLinks.DedupeCp(CpNavTree.BuildChrome(rows.Groups, rows.Items, policy, static _ => null));
                 Assert.All(groups, g => Assert.NotEmpty(g.Items));
                 menus.Add(($"CP {Path.GetFileNameWithoutExtension(file)} {view}",
                     groups.SelectMany(g => g.Items).Select(i => (i.Label, CpNavTree.AspNetHref(i.Url))).ToList()));

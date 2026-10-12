@@ -1,0 +1,16 @@
+[Unit]
+Description=ecomae hybrid outbound HTTPS sync agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/ecomae/hybrid
+EnvironmentFile=/opt/ecomae/hybrid/.env
+ExecStart=/usr/bin/python3 /opt/ecomae/hybrid/sync-agent/sync-agent.py cycle --loop
+Restart=always
+RestartSec=30
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

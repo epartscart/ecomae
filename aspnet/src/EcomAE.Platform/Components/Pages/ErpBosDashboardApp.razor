@@ -10,6 +10,7 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Security
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IErpBosIntelToggleWriteService BosIntel
@@ -25,6 +26,23 @@
         .ns-fitout-scope-note i { color:#166534; margin-right:.25rem; }
     </style>
 </HeadContent>
+<style data-epc-dash="color-tiles">
+    a.ns-tile, .ns-dash a.ns-tile { position:relative; display:flex !important; flex-direction:column; justify-content:flex-end; min-height:6.75rem; padding:1rem .95rem; border-radius:12px; text-decoration:none !important; color:#fff !important; background:linear-gradient(145deg,#1d4f91,#163a6b) !important; box-shadow:0 8px 20px rgba(15,23,42,.14); }
+    a.ns-tile .tl, a.ns-tile .ic, a.ns-tile small { color:#fff !important; }
+    a.ns-tile .ic { position:absolute; top:14px; right:14px; font-size:28px; opacity:.32; }
+    a.ns-tile.gold { background:linear-gradient(145deg,#1d4f91,#163a6b) !important; }
+    a.ns-tile.green { background:linear-gradient(145deg,#0f766e,#0b5c56) !important; }
+    a.ns-tile.rust { background:linear-gradient(145deg,#334155,#1e293b) !important; }
+    a.ns-tile.slate { background:linear-gradient(145deg,#b45309,#92400e) !important; }
+    a.ns-tile.blue { background:linear-gradient(145deg,#2563eb,#1d4ed8) !important; }
+    a.ns-tile.teal { background:linear-gradient(145deg,#0e7490,#155e75) !important; }
+    a.ns-tile.purple { background:linear-gradient(145deg,#5b21b6,#4c1d95) !important; }
+    a.ns-tile.orange { background:linear-gradient(145deg,#c2410c,#9a3412) !important; }
+    .epc-infographic__node { color:#0f172a !important; background:linear-gradient(145deg,#eef6ff,#fff) !important; border-left:4px solid #0078d4 !important; }
+    .epc-infographic__node-label { color:#0078d4 !important; }
+    .epc-infographic__node-value, .epc-infographic__node-note { color:#0f172a !important; }
+    .epc-infographic__node-note { color:#475569 !important; }
+</style>
 
 @*
   PHP product /ERP on ecomae.com is the company workspace (erp_main + erp_dashboard_netsuite),
@@ -33,6 +51,55 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
     <div class="ns-dash" data-dashboard-profile="@_profile.Key" data-epc-industry="@_industryCode"
          data-erp-directory-count="@PhpModuleCatalog.ErpCategories.Count">
+        @if (_isAdmin)
+        {
+            <div class="epc-dash-customize" role="navigation" aria-label="Customize dashboard">
+                <div class="epc-dash-customize__label"><i class="fa fa-sliders"></i> Customize view</div>
+                <div class="epc-dash-customize__roles">
+                    @foreach (var profile in ErpNetsuiteDashboardCatalog.Profiles.Values)
+                    {
+                        <a class="epc-dash-customize__role @(_profile.Key.Equals(profile.Key, StringComparison.OrdinalIgnoreCase) ? "is-active" : null)"
+                           href="@ProfileHref(profile.Key)" title="@profile.Subtitle">
+                            <i class="fa @profile.Icon"></i>
+                            <span>@profile.Label</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+        @if (_jewellery)
+        {
+            <div class="ns-port" data-epc-industry-first="jewellery">
+                <h4><i class="fa fa-diamond"></i> Jewellery modules</h4>
+                <div class="bd">
+                    <div class="ns-tiles" style="margin:0">
+                        <a class="ns-tile gold" href="@WithCompany("/erp/jewellery-retail-app")"><i class="fa fa-diamond ic"></i><span class="tl">Jewellery retail</span></a>
+                        <a class="ns-tile green" href="@WithCompany("/erp/jewellery-repairs-app")"><i class="fa fa-wrench ic"></i><span class="tl">Repair jobs</span></a>
+                        <a class="ns-tile slate" href="@WithCompany("/erp/jewellery-masters-app?tab=gold_rate")"><i class="fa fa-line-chart ic"></i><span class="tl">Gold rate board</span></a>
+                        <a class="ns-tile rust" href="@WithCompany("/erp/jewellery-masters-app?tab=jewellery_tag")"><i class="fa fa-tags ic"></i><span class="tl">Jewellery tags</span></a>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (_fitOut)
+        {
+            <div class="ns-port ns-fitout-pack" data-epc-industry-pack="fitout_contracting" data-epc-industry-first="fitout">
+                <h4><i class="fa fa-building"></i> Fit-out project modules</h4>
+                <div class="bd">
+                    <div class="ns-tiles ns-fitout-module-grid" style="margin:0">
+                        <a class="ns-tile green" href="@FitOutHref("/erp/project-accounting-app")"><i class="fa fa-sitemap ic"></i><span class="tl">Projects &amp; cost control</span></a>
+                        <a class="ns-tile blue" href="@FitOutHref("/erp/project-accounting-app")"><i class="fa fa-shopping-cart ic"></i><span class="tl">Project procurement</span></a>
+                        <a class="ns-tile teal" href="@FitOutHref("/erp/fitout/delivery-dashboard")"><i class="fa fa-truck ic"></i><span class="tl">Site delivery dashboard</span></a>
+                        <a class="ns-tile rust" href="@FitOutHref("/erp/fitout/executive-dashboard")"><i class="fa fa-line-chart ic"></i><span class="tl">Project P&amp;L &amp; forecast</span></a>
+                        <a class="ns-tile slate" href="@FitOutHref("/erp/fitout/operations-report")"><i class="fa fa-tasks ic"></i><span class="tl">Site operations report</span></a>
+                        <a class="ns-tile gold" href="@FitOutHref("/erp/fitout/finance-operations-report")"><i class="fa fa-calculator ic"></i><span class="tl">Finance operations</span></a>
+                        <a class="ns-tile purple" href="@FitOutHref("/erp/fitout/approval-queue")"><i class="fa fa-check-circle ic"></i><span class="tl">Approval queue</span></a>
+                        <a class="ns-tile orange" href="@FitOutHref("/erp/fitout/subcontract-reconciliation")"><i class="fa fa-handshake-o ic"></i><span class="tl">Subcontract reconciliation</span></a>
+                    </div>
+                    <p class="ns-fitout-scope-note"><i class="fa fa-lock"></i> Every fit-out entry keeps the selected legal-entity scope: <strong>@_companyLabel</strong>.</p>
+                </div>
+            </div>
+        }
         <div class="ns-hero">
             <div class="ns-hero-panel">
                 <div class="ns-hero-kicker"><i class="fa @_profile.Icon"></i> @_profile.Label</div>
@@ -47,16 +114,9 @@
                 <div class="ns-hero-meta">
                     <span class="ns-chip"><i class="fa fa-calendar"></i> @_periodFrom → @_periodTo</span>
                     <span class="ns-chip"><i class="fa fa-money"></i> @_currency</span>
-                    <span class="ns-chip"><i class="fa fa-user"></i> @_profile.Label</span>
-                    <span class="ns-chip"><i class="fa fa-building"></i> @_companyLabel</span>
-                    <span class="ns-chip"><i class="fa fa-filter"></i> Data scope: @_home.CompanyScope</span>
                     @if (!ErpNetsuiteDashboardCatalog.Can(_profile, "profit"))
                     {
                         <span class="ns-chip" title="Profit and margin are hidden for this profile"><i class="fa fa-lock"></i> Profit restricted</span>
-                    }
-                    @if (_fitOut)
-                    {
-                        <span class="ns-chip ns-chip--fitout"><i class="fa fa-building"></i> Fit-out company pack</span>
                     }
                 </div>
             </div>
@@ -73,7 +133,7 @@
             </div>
         </div>
 
-        <section class="epc-infographic" aria-label="ERP operating pulse">
+        <section class="epc-infographic epc-dash-repeat" aria-label="ERP operating pulse">
             <div class="epc-infographic__head">
                 <div>
                     <div class="epc-infographic__eyebrow">Executive operating map</div>
@@ -162,7 +222,7 @@
 
         @if (_workspaceGroups.Count > 0)
         {
-            <div class="ns-port">
+            <div class="ns-port epc-dash-repeat">
                 <div class="bd" style="padding-top:14px">
                     <h4 style="margin:0 0 12px;"><i class="fa fa-folder-open"></i> Area workspaces</h4>
                     <div class="ns-tiles">
@@ -179,7 +239,7 @@
             </div>
         }
 
-        <div class="ns-port">
+        <div class="ns-port epc-dash-repeat">
             <div class="bd" style="padding:12px">
                 <div class="epc-insights epc-insights--erp" id="epc-insights">
                     <div class="epc-insights__head">
@@ -251,40 +311,6 @@
                 </div>
             </div>
         </div>
-
-        @if (_jewellery)
-        {
-            <div class="ns-port">
-                <h4><i class="fa fa-diamond"></i> Jewellery modules</h4>
-                <div class="bd">
-                    <div class="ns-tiles" style="margin:0">
-                        <a class="ns-tile gold" href="@WithCompany("/erp/jewellery-retail-app")"><i class="fa fa-diamond ic"></i><span class="tl">Jewellery retail</span></a>
-                        <a class="ns-tile green" href="@WithCompany("/erp/jewellery-repairs-app")"><i class="fa fa-wrench ic"></i><span class="tl">Repair jobs</span></a>
-                        <a class="ns-tile slate" href="@WithCompany("/erp/jewellery-masters-app?tab=gold_rate")"><i class="fa fa-line-chart ic"></i><span class="tl">Gold rate board</span></a>
-                        <a class="ns-tile rust" href="@WithCompany("/erp/jewellery-masters-app?tab=jewellery_tag")"><i class="fa fa-tags ic"></i><span class="tl">Jewellery tags</span></a>
-                    </div>
-                </div>
-            </div>
-        }
-        @if (_fitOut)
-        {
-            <div class="ns-port ns-fitout-pack" data-epc-industry-pack="fitout_contracting">
-                <h4><i class="fa fa-building"></i> Fit-out project modules</h4>
-                <div class="bd">
-                    <div class="ns-tiles ns-fitout-module-grid" style="margin:0">
-                        <a class="ns-tile green" href="@FitOutHref("/erp/project-accounting-app")"><i class="fa fa-sitemap ic"></i><span class="tl">Projects &amp; cost control</span></a>
-                        <a class="ns-tile blue" href="@FitOutHref("/erp/project-accounting-app")"><i class="fa fa-shopping-cart ic"></i><span class="tl">Project procurement</span></a>
-                        <a class="ns-tile teal" href="@FitOutHref("/erp/fitout/delivery-dashboard")"><i class="fa fa-truck ic"></i><span class="tl">Site delivery dashboard</span></a>
-                        <a class="ns-tile rust" href="@FitOutHref("/erp/fitout/executive-dashboard")"><i class="fa fa-line-chart ic"></i><span class="tl">Project P&amp;L &amp; forecast</span></a>
-                        <a class="ns-tile slate" href="@FitOutHref("/erp/fitout/operations-report")"><i class="fa fa-tasks ic"></i><span class="tl">Site operations report</span></a>
-                        <a class="ns-tile gold" href="@FitOutHref("/erp/fitout/finance-operations-report")"><i class="fa fa-calculator ic"></i><span class="tl">Finance operations</span></a>
-                        <a class="ns-tile purple" href="@FitOutHref("/erp/fitout/approval-queue")"><i class="fa fa-check-circle ic"></i><span class="tl">Approval queue</span></a>
-                        <a class="ns-tile orange" href="@FitOutHref("/erp/fitout/subcontract-reconciliation")"><i class="fa fa-handshake-o ic"></i><span class="tl">Subcontract reconciliation</span></a>
-                    </div>
-                    <p class="ns-fitout-scope-note"><i class="fa fa-lock"></i> Every fit-out entry keeps the selected legal-entity scope: <strong>@_companyLabel</strong>.</p>
-                </div>
-            </div>
-        }
 
         @if (_opKpis.Count > 0)
         {
@@ -670,13 +696,15 @@
             </div>
         </div>
     }
+    <div class="epc-dash-repeat" data-epc-catalog-areas="1">
+        <PhpHybridModuleDirectory
+            Title="Workspaces"
+            Subtitle="@($"{PhpModuleCatalog.ErpAreaCount} ERP areas")"
+            Links="@PhpModuleCatalog.ErpAreas"
+            PhpWorkspaceBase="/erp/app" />
+    </div>
     <PhpHybridModuleDirectory
-        Title="Complete ERP area directory"
-        Subtitle="@($"{PhpModuleCatalog.ErpAreaCount} ERP areas")"
-        Links="@PhpModuleCatalog.ErpAreas"
-        PhpWorkspaceBase="/erp/app" />
-    <PhpHybridModuleDirectory
-        Title="Complete ERP module directory"
+        Title="All modules"
         Subtitle="@($"{_directoryTabs.Count} ERP modules")"
         Links="@_directoryTabs"
         PhpWorkspaceBase="/erp/app" />
@@ -869,6 +897,12 @@
         return href + sep + "company=" + _activeCompanyId;
     }
 
+    private string ProfileHref(string key)
+    {
+        var href = "/erp/app?dash_profile=" + Uri.EscapeDataString(key);
+        return WithCompany(href);
+    }
+
     private string FitOutHref(string href)
     {
         if (!_fitOut || _activeCompanyId <= 0)
@@ -891,7 +925,7 @@
     {
         var ctx = Http.HttpContext;
         _ctx = ErpHostContext.Resolve(ctx?.Request.Host.Host);
-        _isSuperHost = Services.PlatformHostPolicy.IsSuperCpHost(ctx?.Request.Host.Host);
+        _isSuperHost = Services.SuperCpHostGate.IsAllowed(ctx);
         _pageTitle = _ctx.WorkspaceTitle;
         _industryCode = _ctx.IndustryCode;
         _industryLabel = _ctx.IndustryLabel;
@@ -909,22 +943,22 @@
             if (active is not null)
             {
                 _activeCompanyId = active.Id;
-                _companyLabel = $"{active.Code} · {active.Name}";
-                _heroEntity = string.IsNullOrWhiteSpace(active.Name) ? "Operations" : active.Name;
+                _companyLabel = LegalOrganizationLabel.Display(active.Code, active.Name, null, _ctx.BrandLabel);
+                _heroEntity = _companyLabel;
                 if (!string.IsNullOrWhiteSpace(active.CurrencyCode))
                 {
                     _currency = active.CurrencyCode;
                 }
 
-                _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active);
-                _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, active);
+                _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+                _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
                 _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
                 _industryLabel = ErpIndustryNav.IndustryLabelForPack(active.IndustryPack, _jewellery);
             }
             else
             {
-                _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null);
-                _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, null);
+                _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
+                _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
                 _heroEntity = string.IsNullOrWhiteSpace(_ctx.BrandLabel) ? "Operations" : _ctx.BrandLabel;
             }
         }
@@ -980,9 +1014,17 @@
         string? requested,
         LegacySessionContext? session = null)
     {
-        _profile = session is null
-            ? ErpNetsuiteDashboardCatalog.Resolve(requested, fullAdmin)
-            : ErpNetsuiteDashboardCatalog.ResolveForSession(session, requested, fullAdmin);
+        if (!string.IsNullOrWhiteSpace(requested)
+            && ErpNetsuiteDashboardCatalog.Profiles.TryGetValue(requested.Trim(), out var picked))
+        {
+            _profile = picked;
+        }
+        else
+        {
+            _profile = session is null
+                ? ErpNetsuiteDashboardCatalog.Resolve(requested, fullAdmin)
+                : ErpNetsuiteDashboardCatalog.ResolveForSession(session, requested, fullAdmin);
+        }
         _showProfitTrend = ErpNetsuiteDashboardCatalog.Can(_profile, "profit");
         BindProfileViews();
     }

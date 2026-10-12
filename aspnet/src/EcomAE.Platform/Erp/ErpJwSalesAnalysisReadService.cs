@@ -65,7 +65,7 @@ public sealed class ErpJwSalesAnalysisReadService : IErpJwSalesAnalysisReadServi
                    SUM(vl.`mkg_amount`), SUM(vl.`total_amount`)
             FROM `epc_jewel_voucher` v
             JOIN `epc_jewel_voucher_lines` vl ON vl.`voucher_id`=v.`id`
-            WHERE v.`company_id`=? AND v.`voc_type` IN ('RIN','MSL','RSL')
+            WHERE v.`company_id`=? AND v.`voc_type` IN ('RIN','RSI','MSL','MSI','RSL')
               AND v.`voc_date` BETWEEN ? AND ?
             GROUP BY {grouping.Item2}
             ORDER BY {grouping.Item2}

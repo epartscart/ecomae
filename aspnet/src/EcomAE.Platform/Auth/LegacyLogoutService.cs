@@ -1,5 +1,6 @@
 using System.Data.Common;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Auth;
 
@@ -66,6 +67,21 @@ public sealed class LegacyLogoutService
             "storefront" or "shop" or "customer" => "/storefront/login",
             _ => "/cp/login",
         };
+    }
+
+    /// <summary>Capture the post-logout login URL before cookies are cleared.</summary>
+    public static string RedirectAfterLogout(HttpContext context, string? surface, string? returnUrl)
+    {
+        var key = ClientErpPath.BoundSiteKey(context) ?? ClientErpPath.CookieSiteKey(context.Request);
+        if (!string.IsNullOrWhiteSpace(key)
+            && (string.IsNullOrWhiteSpace(surface)
+                || surface.Equals("erp", StringComparison.OrdinalIgnoreCase)
+                || surface.Equals("cp", StringComparison.OrdinalIgnoreCase)))
+        {
+            return ClientErpPath.LoginUrl(key);
+        }
+
+        return RedirectForSurface(surface, returnUrl);
     }
 
     private static async Task DeleteSessionRowAsync(

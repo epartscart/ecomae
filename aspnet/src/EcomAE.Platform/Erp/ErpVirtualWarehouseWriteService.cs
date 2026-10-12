@@ -89,6 +89,7 @@ public sealed class ErpVirtualWarehouseWriteService : IErpVirtualWarehouseWriteS
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureVirtualWarehouseAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_warehouses", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_warehouses", "code", cancellationToken).ConfigureAwait(false))
         {
@@ -209,6 +210,7 @@ public sealed class ErpVirtualWarehouseWriteService : IErpVirtualWarehouseWriteS
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureVirtualWarehouseAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_warehouses", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_warehouses", "code", cancellationToken).ConfigureAwait(false)
             || !await TableExistsAsync(connection, "epc_warehouse_transfers", cancellationToken).ConfigureAwait(false)

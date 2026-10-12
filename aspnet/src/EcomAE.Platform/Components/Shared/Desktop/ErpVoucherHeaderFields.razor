@@ -1,0 +1,113 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Erp
+@inject IErpOrganizationMasterReadService OrganizationMasters
+@*
+  Common ERP document header: date (today), voucher/invoice number (Auto until post),
+  legal entity, business unit, and cost centre. Drop into any create form.
+*@
+
+<div class="epc-erp-doc-header" role="group" aria-label="Document identity">
+    <p class="epc-erp-doc-header__title">Document identity</p>
+<label>@DateLabel
+    <input class="form-control input-sm" name="@DateFieldName" type="@DateInputType" value="@DateDefault" required="@DateRequired" />
+</label>
+<label>@NumberLabel
+    <input class="form-control input-sm" name="voc_no_preview" value="@NumberPreview" readonly title="Allocated automatically when the voucher is posted" />
+</label>
+@if (ShowLegalEntity)
+{
+    <label>Legal entity
+        @if (_legalEntities.Count == 0)
+        {
+            <input class="form-control input-sm" type="number" name="legal_entity_id" min="0" value="0" title="No legal entity rows yet — open Organization to add one" />
+        }
+        else
+        {
+            <select class="form-control input-sm" name="legal_entity_id">
+                @foreach (var entity in _legalEntities)
+                {
+                    <option value="@entity.Id">@entity.Code · @entity.Name</option>
+                }
+            </select>
+        }
+        <a class="epc-erp-header-org-link" href="/erp/organization-app?tab=legal_entities">Manage</a>
+    </label>
+}
+@if (ShowBusinessUnit)
+{
+    <label>Business unit
+        @if (_businessUnits.Count == 0)
+        {
+            <input class="form-control input-sm" type="number" name="business_unit_id" min="0" value="0" title="No business unit rows yet — open Organization to add one" />
+        }
+        else
+        {
+            <select class="form-control input-sm" name="business_unit_id">
+                <option value="0">— none —</option>
+                @foreach (var unit in _businessUnits)
+                {
+                    <option value="@unit.Id">@unit.Code · @unit.Name</option>
+                }
+            </select>
+        }
+        <a class="epc-erp-header-org-link" href="/erp/organization-app?tab=business_units">Manage</a>
+    </label>
+}
+@if (ShowCostCentre)
+{
+    <label>Cost centre
+        @if (_costCentres.Count == 0)
+        {
+            <input class="form-control input-sm" name="cost_centre" maxlength="40" placeholder="Cost centre" />
+        }
+        else
+        {
+            <select class="form-control input-sm" name="cost_centre">
+                <option value="">— none —</option>
+                @foreach (var centre in _costCentres)
+                {
+                    <option value="@centre.Code">@centre.Code · @centre.Name</option>
+                }
+            </select>
+        }
+        <a class="epc-erp-header-org-link" href="/erp/organization-app?tab=cost_centres">Manage</a>
+    </label>
+}
+</div>
+
+@code {
+    [Parameter] public string DateLabel { get; set; } = "Voucher date";
+    [Parameter] public string DateFieldName { get; set; } = "voc_date";
+    [Parameter] public string DateInputType { get; set; } = "date";
+    [Parameter] public bool DateRequired { get; set; } = true;
+    [Parameter] public string? DateValue { get; set; }
+    [Parameter] public string NumberLabel { get; set; } = "Voucher no";
+    [Parameter] public string NumberPreview { get; set; } = ErpVoucherHeader.AutoNumber;
+    [Parameter] public bool ShowLegalEntity { get; set; } = true;
+    [Parameter] public bool ShowBusinessUnit { get; set; } = true;
+    [Parameter] public bool ShowCostCentre { get; set; } = true;
+
+    private string DateDefault => string.IsNullOrWhiteSpace(DateValue) ? ErpVoucherHeader.TodayDate() : DateValue;
+    private IReadOnlyList<ErpOrganizationMasterRow> _legalEntities = [];
+    private IReadOnlyList<ErpOrganizationMasterRow> _businessUnits = [];
+    private IReadOnlyList<ErpOrganizationMasterRow> _costCentres = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var snapshot = await OrganizationMasters.LoadAsync(200);
+        _legalEntities = snapshot.LegalEntities.Where(row => row.Active).Reverse().ToList();
+        _businessUnits = snapshot.BusinessUnits.Where(row => row.Active).Reverse().ToList();
+        _costCentres = snapshot.CostCentres.Where(row => row.Active).Reverse().ToList();
+        if (_costCentres.Count == 0)
+        {
+            var costDimIds = snapshot.Dimensions
+                .Where(d => d.Code.Equals("COSTCENTER", StringComparison.OrdinalIgnoreCase))
+                .Select(d => d.Id)
+                .ToHashSet();
+            _costCentres = snapshot.DimensionValues
+                .Where(row => row.Active && costDimIds.Contains(row.DimensionId))
+                .Reverse()
+                .ToList();
+        }
+    }
+}

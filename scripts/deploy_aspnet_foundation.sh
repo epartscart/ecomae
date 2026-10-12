@@ -282,6 +282,8 @@ if [[ ! -f "$SERVICE_ENV_DIR/platform.env" ]]; then
 fi
 
 if [[ "$RUN_SYSTEMD" == "1" ]]; then
+    # Release tree is not writable by www-data; KYC and other App_Data live here.
+    install -d -o www-data -g www-data /var/lib/ecomae-aspnet /var/lib/ecomae-aspnet/kyc
     install -d /etc/systemd/system "$SERVICE_ENV_DIR"
     install -m 0644 "$ROOT/deploy/aspnet/ecomae-platform.service" /etc/systemd/system/ecomae-platform.service
     install -m 0644 "$ROOT/deploy/aspnet/ecomae-workers.service" /etc/systemd/system/ecomae-workers.service

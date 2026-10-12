@@ -16,8 +16,9 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Documents" Subtitle="Open a row for the 280-character notes excerpt. File path omitted. Upload stays on the Classic twin." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Documents" Subtitle="Upload a document here. Open a row for the 280-character notes excerpt. File path omitted." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Documents KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_docs.Count</div></div>
@@ -43,7 +44,7 @@
                 <dt>Version</dt><dd>@(string.IsNullOrWhiteSpace(_opened.VersionNote) ? "—" : _opened.VersionNote)</dd>
                 <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">File path omitted. Upload stays on the Classic twin.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">File path omitted. Upload writes stay on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
@@ -87,6 +88,23 @@
                 <p class="text-muted">No same-category siblings yet.</p>
             }
         </div>
+    }
+
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="Upload document">
+            <form method="post" action="/erp/ajax/document-upload" enctype="multipart/form-data" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0;">
+                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>File <input class="form-control input-sm" type="file" name="document_file" required /></label>
+                <label>Entity <input class="form-control input-sm" name="entity_type" value="purchase" maxlength="48" style="width:9rem;" /></label>
+                <label>Entity id <input class="form-control input-sm" type="number" name="entity_id" min="0" value="0" style="width:7rem;" /></label>
+                <label>Category <input class="form-control input-sm" name="doc_category" value="general" maxlength="48" style="width:9rem;" /></label>
+                <label>Notes <input class="form-control input-sm" name="notes" maxlength="255" style="width:14rem;" /></label>
+                <label>Version note <input class="form-control input-sm" name="version_note" maxlength="120" style="width:12rem;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Upload</button>
+            </form>
+        </ErpPhpCreateWell>
     }
 
     <div class="epc-erp-table-wrap">
@@ -141,6 +159,8 @@
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
     private long _openedId;
     private ErpDocumentDetail? _opened;
     private IReadOnlyList<ErpDocumentDigest> _openedSiblings = [];
@@ -160,6 +180,8 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "document_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

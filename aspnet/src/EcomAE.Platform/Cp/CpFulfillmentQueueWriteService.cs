@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
@@ -88,6 +89,74 @@ public sealed class CpFulfillmentQueueWriteService : ICpFulfillmentQueueWriteSer
     public static IReadOnlyList<string> AllowedNextStatuses(string? current)
         => Transitions.TryGetValue(NormalizeStatus(current), out var next) ? next : [];
 
+    /// <summary>PHP <c>epc_fulfillment_ensure_schema</c>: queue + line tables on first use.</summary>
+    public static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        await ErpDb.TryExecuteAsync(
+            connection,
+            """
+            CREATE TABLE IF NOT EXISTS `epc_fulfillment_orders` (
+                `id`              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                `site_key`        VARCHAR(64)    NOT NULL,
+                `order_id`        INT UNSIGNED   NOT NULL,
+                `order_number`    VARCHAR(64)    NOT NULL DEFAULT '',
+                `customer_name`   VARCHAR(255)   NOT NULL DEFAULT '',
+                `status`          ENUM('queued','picking','picked','packing','packed','shipping','shipped','delivered','cancelled') NOT NULL DEFAULT 'queued',
+                `priority`        ENUM('low','normal','high','urgent') NOT NULL DEFAULT 'normal',
+                `warehouse`       VARCHAR(64)    NOT NULL DEFAULT 'main',
+                `assigned_to`     INT UNSIGNED   NOT NULL DEFAULT 0,
+                `assigned_name`   VARCHAR(128)   NOT NULL DEFAULT '',
+                `wave_id`         INT UNSIGNED   NOT NULL DEFAULT 0,
+                `pick_started_at` DATETIME       NULL,
+                `pick_completed_at` DATETIME     NULL,
+                `pack_completed_at` DATETIME     NULL,
+                `ship_date`       DATETIME       NULL,
+                `carrier`         VARCHAR(64)    NOT NULL DEFAULT '',
+                `tracking_number` VARCHAR(128)   NOT NULL DEFAULT '',
+                `shipping_method` VARCHAR(64)    NOT NULL DEFAULT 'standard',
+                `total_items`     INT UNSIGNED   NOT NULL DEFAULT 0,
+                `total_weight`    DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
+                `ship_address`    JSON           NULL,
+                `notes`           TEXT           NOT NULL,
+                `created_at`      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `updated_at`      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX `idx_site_status` (`site_key`, `status`),
+                INDEX `idx_order` (`order_id`),
+                INDEX `idx_assigned` (`assigned_to`),
+                INDEX `idx_wave` (`wave_id`),
+                INDEX `idx_priority` (`priority`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """,
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            """
+            CREATE TABLE IF NOT EXISTS `epc_fulfillment_items` (
+                `id`              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                `fulfillment_id`  BIGINT UNSIGNED NOT NULL,
+                `sku`             VARCHAR(64)    NOT NULL,
+                `product_name`    VARCHAR(255)   NOT NULL DEFAULT '',
+                `qty_ordered`     INT UNSIGNED   NOT NULL DEFAULT 0,
+                `qty_picked`      INT UNSIGNED   NOT NULL DEFAULT 0,
+                `qty_packed`      INT UNSIGNED   NOT NULL DEFAULT 0,
+                `bin_location`    VARCHAR(32)    NOT NULL DEFAULT '',
+                `weight`          DECIMAL(8,2)   NOT NULL DEFAULT 0.00,
+                `pick_status`     ENUM('pending','picked','short','substituted') NOT NULL DEFAULT 'pending',
+                `notes`           VARCHAR(255)   NOT NULL DEFAULT '',
+                INDEX `idx_fulfillment` (`fulfillment_id`),
+                INDEX `idx_sku` (`sku`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<DbConnection> OpenReadyAsync(CancellationToken cancellationToken)
+    {
+        var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        return connection;
+    }
+
     public async Task<ErpSimpleWriteResult> TransitionAsync(
         long fulfillmentId,
         string? newStatus,
@@ -113,7 +182,7 @@ public sealed class CpFulfillmentQueueWriteService : ICpFulfillmentQueueWriteSer
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
-        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var connection = await OpenReadyAsync(cancellationToken).ConfigureAwait(false);
         var current = NormalizeStatus(await ErpDb.StringAsync(
             connection,
             null,
@@ -203,7 +272,7 @@ public sealed class CpFulfillmentQueueWriteService : ICpFulfillmentQueueWriteSer
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
-        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var connection = await OpenReadyAsync(cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,
@@ -240,7 +309,7 @@ public sealed class CpFulfillmentQueueWriteService : ICpFulfillmentQueueWriteSer
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
-        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var connection = await OpenReadyAsync(cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,
@@ -270,7 +339,7 @@ public sealed class CpFulfillmentQueueWriteService : ICpFulfillmentQueueWriteSer
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
-        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var connection = await OpenReadyAsync(cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,
@@ -299,7 +368,7 @@ public sealed class CpFulfillmentQueueWriteService : ICpFulfillmentQueueWriteSer
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
-        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var connection = await OpenReadyAsync(cancellationToken).ConfigureAwait(false);
         var key = Clip(siteKey, 64);
         if (key.Length == 0)
         {
@@ -386,7 +455,7 @@ public sealed class CpFulfillmentQueueWriteService : ICpFulfillmentQueueWriteSer
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
-        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var connection = await OpenReadyAsync(cancellationToken).ConfigureAwait(false);
         await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,

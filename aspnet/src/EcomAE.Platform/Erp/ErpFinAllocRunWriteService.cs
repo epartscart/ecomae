@@ -39,6 +39,7 @@ public sealed class ErpFinAllocRunWriteService : IErpFinAllocRunWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureFinAdvancedAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ErpFinAdvancedCompany.ColumnExistsAsync(connection, "epc_fin_alloc_run", "lines_json", cancellationToken).ConfigureAwait(false)
             || !await ErpFinAdvancedCompany.ColumnExistsAsync(connection, "epc_fin_alloc_rule", "basis", cancellationToken).ConfigureAwait(false))
         {

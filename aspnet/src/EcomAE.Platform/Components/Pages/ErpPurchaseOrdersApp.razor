@@ -95,6 +95,7 @@
                 BalanceDue="@_openedDetail.TotalAmount"
                 Fields="@PurchaseOrderWorkspaceFields"
                 Lines="@PurchaseOrderWorkspaceLines"
+                RelatedDocuments="@PurchaseOrderRelatedDocuments"
                 HeaderActions="@PurchaseOrderHeaderActions" />
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">The workspace is backed by the persisted purchase-order read model. Barcode purchase schema-ensure remains Classic-owned; purchase-order lifecycle actions use the guarded ERP routes shown in the action pane and list.</p>
@@ -358,6 +359,33 @@
                 new("Financial dimensions", "Company / site / project", "Dimensions"),
                 new("Receipt status", _openedDetail.ReceivedAt > 0 ? "Received" : "Open", "Operational")
             ];
+    private IReadOnlyList<ErpRelatedDocumentNode> PurchaseOrderRelatedDocuments =>
+        _openedDetail is null
+            ? []
+            : ErpRelatedDocumentMapFactory.ForPurchase(
+                string.IsNullOrWhiteSpace(_openedDetail.PoNo) ? _openedDetail.Id.ToString(CultureInfo.InvariantCulture) : _openedDetail.PoNo,
+                FormatTime(_openedDetail.TimeCreated),
+                "AED " + _openedDetail.TotalAmount.ToString("N2", CultureInfo.InvariantCulture),
+                ErpRecordOpen.Href("/erp/purchase-orders-app", "po_id", _openedDetail.Id),
+                _openedDetail.ReceivedAt > 0
+                    ?
+                    [
+                        ErpRelatedDocumentMapFactory.Node(
+                            "goods_receipt",
+                            "Goods Receipt PO",
+                            "GR " + _openedDetail.Id.ToString(CultureInfo.InvariantCulture),
+                            FormatTime(_openedDetail.ReceivedAt),
+                            "AED " + _openedDetail.TotalAmount.ToString("N2", CultureInfo.InvariantCulture),
+                            ErpRecordOpen.Href("/erp/purchase-orders-app", "po_id", _openedDetail.Id),
+                            false,
+                            true)
+                    ]
+                    : null,
+                _openedDetail.PurchaseId > 0 ? _openedDetail.PurchaseId.ToString(CultureInfo.InvariantCulture) : "",
+                _openedDetail.PurchaseId > 0 ? FormatTime(_openedDetail.TimeUpdated) : "",
+                _openedDetail.PurchaseId > 0 ? "AED " + _openedDetail.TotalAmount.ToString("N2", CultureInfo.InvariantCulture) : "",
+                _openedDetail.PurchaseId > 0 ? ErpRecordOpen.Href("/erp/invoices-app", "inv_id", _openedDetail.PurchaseId) : "/erp/invoices-app");
+
     private IReadOnlyList<ErpDocumentWorkspaceLine> PurchaseOrderWorkspaceLines =>
         _orders.FirstOrDefault(item => item.Id == _openedDetail?.Id)?.Lines
             .Select(line => new ErpDocumentWorkspaceLine(

@@ -96,6 +96,7 @@ public sealed class ErpOplParamsSaveWriteService : IErpOplParamsSaveWriteService
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureOrderPlanningAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_planning_params", "lead_time_days", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Planning parameters table is not provisioned");

@@ -48,6 +48,7 @@ public static class LegacyChromeNavCatalog
         new("Pages list", "/cp/pages-app"),
         new("Menus list", "/cp/menus-app"),
         new("Tenants list", "/cp/tenants-app"),
+        new("Cloud / on-prem / hybrid", "/cp/deployment-models-app"),
         new("Currencies list", "/cp/currencies-app"),
         new("Storages list", "/cp/storages-app"),
         new("Admin sessions list", "/cp/admin-sessions-app"),

@@ -37,8 +37,40 @@ public static class LoginIndustryContent
             "stylenlook" => Fashion(brand, surfaceKey),
             "thejewellerytrend" => Jewellery(brand, surfaceKey),
             "taxofinca" => FinanceTax(brand, surfaceKey),
-            _ => TenantFallback(brand, surfaceKey),
+            _ => ForIndustryTheme(brand, surfaceKey),
         };
+    }
+
+    private static Content ForIndustryTheme(LoginHostBrand.Brand brand, string surface)
+    {
+        var theme = (brand.AtmosphereTheme ?? string.Empty).Trim().ToLowerInvariant();
+        var modifier = (brand.RootModifierClass ?? string.Empty).ToLowerInvariant();
+        if (theme == "sparkle" || modifier.Contains("jewellery", StringComparison.Ordinal))
+        {
+            return Jewellery(brand, surface);
+        }
+
+        if (theme == "autoparts" || modifier.Contains("epartscart", StringComparison.Ordinal))
+        {
+            return AutoParts(brand, surface);
+        }
+
+        if (theme == "circuit")
+        {
+            return Electronics(brand, surface);
+        }
+
+        if (theme == "fashion")
+        {
+            return Fashion(brand, surface);
+        }
+
+        if (theme == "advisory")
+        {
+            return FinanceTax(brand, surface);
+        }
+
+        return TenantFallback(brand, surface);
     }
 
     private static Content AutoParts(LoginHostBrand.Brand brand, string surface) => surface == "erp"

@@ -3,43 +3,58 @@
 @*
   Module directory for product shells.
   Primary click = ASP.NET browse route. PHP only via explicit /php-reference/* link.
+  Lower modules match Dynamics 365 F&O Workspaces: compact icon + label tiles.
 *@
 
 
 <HeadContent>
 <style>
-    .epc-moddir { margin-top:1.25rem; }
-    .epc-moddir-head h2 { margin:0 0 .35rem; font-size:1.1rem; }
-    .epc-moddir-head p { margin:0 0 .55rem; color:#64748b; font-size:.88rem; line-height:1.4; }
-    .epc-moddir-hint { color:#475569 !important; }
-    .epc-moddir-search { width:100%; max-width:28rem; padding:.55rem .7rem; border:1px solid #e2e8f0; border-radius:.4rem; margin-bottom:.85rem; font:inherit; }
-    .epc-moddir-group { margin:0 0 1rem; }
-    .epc-moddir-group h3 { margin:0 0 .45rem; font-size:.92rem; color:#334155; }
-    .epc-moddir-group h3 span { color:#94a3b8; font-weight:500; }
-    .epc-moddir-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:.4rem; }
-    .epc-moddir-item { display:flex; align-items:center; gap:.4rem; background:#fff; border:1px solid #e2e8f0; border-radius:.4rem; padding:.45rem .55rem; font-size:.8rem; }
-    .epc-moddir-item i { color:#64748b; width:1rem; text-align:center; }
-    .epc-moddir-link { flex:1; font-weight:600; color:#0f172a; text-decoration:none; }
-    .epc-moddir-link:hover { text-decoration:underline; color:#1d4ed8; }
+    .epc-moddir-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:10px 12px; }
+    a.epc-d365-ws { display:flex; align-items:center; gap:10px; min-height:52px; padding:8px 10px; background:#eef4ff; border:1px solid #c5d7ea; border-left:3px solid #2563eb; border-radius:4px; color:#323130; text-decoration:none; }
+    a.epc-d365-ws i { display:inline-block; width:28px; height:28px; line-height:28px; border-radius:6px; background:#2563eb; color:#fff; text-align:center; }
+    a.epc-d365-ws .epc-moddir-link { color:#323130 !important; font-weight:600; text-decoration:none; }
 </style>
 </HeadContent>
+<style data-epc-moddir="d365-workspaces">
+    .epc-moddir-head h2 { margin:0 0 .45rem; color:#605e5c; font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+    .epc-moddir-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:10px 12px; }
+    a.epc-moddir-item.epc-d365-ws { display:flex !important; flex-direction:row; align-items:center; gap:10px; min-height:52px; padding:8px 10px; background:#eef4ff !important; border:1px solid #c5d7ea; border-left:3px solid #2563eb; border-radius:4px; color:#323130 !important; text-decoration:none !important; box-shadow:0 1px 2px rgba(15,23,42,.05); }
+    a.epc-d365-ws i { flex:0 0 28px; width:28px; height:28px; line-height:28px; border-radius:6px; background:#2563eb !important; color:#fff !important; font-size:13px; text-align:center; }
+    a.epc-d365-ws .epc-moddir-link { color:#323130 !important; font-size:13px; font-weight:600; text-decoration:none !important; }
+    a.epc-d365-ws:nth-child(7n+1) { background:#eef4ff !important; border-left-color:#2563eb; }
+    a.epc-d365-ws:nth-child(7n+1) i { background:#2563eb !important; }
+    a.epc-d365-ws:nth-child(7n+2) { background:#ecfeff !important; border-left-color:#0e7490; }
+    a.epc-d365-ws:nth-child(7n+2) i { background:#0e7490 !important; }
+    a.epc-d365-ws:nth-child(7n+3) { background:#ecfdf5 !important; border-left-color:#0f766e; }
+    a.epc-d365-ws:nth-child(7n+3) i { background:#0f766e !important; }
+    a.epc-d365-ws:nth-child(7n+4) { background:#fff7ed !important; border-left-color:#b45309; }
+    a.epc-d365-ws:nth-child(7n+4) i { background:#b45309 !important; }
+    a.epc-d365-ws:nth-child(7n+5) { background:#f5f3ff !important; border-left-color:#5b21b6; }
+    a.epc-d365-ws:nth-child(7n+5) i { background:#5b21b6 !important; }
+    a.epc-d365-ws:nth-child(7n+6) { background:#eef6ff !important; border-left-color:#1d4f91; }
+    a.epc-d365-ws:nth-child(7n+6) i { background:#1d4f91 !important; }
+    a.epc-d365-ws:nth-child(7n) { background:#fff1f2 !important; border-left-color:#c2410c; }
+    a.epc-d365-ws:nth-child(7n) i { background:#c2410c !important; }
+    @@media (max-width:1100px) { .epc-moddir-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+    @@media (max-width:720px) { .epc-moddir-grid { grid-template-columns:1fr 1fr; } }
+</style>
 
 
 @* Primary module-directory marker: epc-moddir-aspnet. *@
-<div class="epc-moddir">
+<div class="epc-moddir" data-epc-moddir-style="d365-fno">
     <div class="epc-moddir-head">
         <h2>@Title</h2>
-        <p>@Subtitle — <strong>@_links.Count</strong> modules.</p>
-        <p class="epc-moddir-hint">Open a module below to continue.</p>
+        <p>@Subtitle — <strong>@_links.Count</strong> workspaces.</p>
+        <p class="epc-moddir-hint">Open a workspace below to continue.</p>
     </div>
 
     @if (!string.IsNullOrWhiteSpace(Search))
     {
-        <input class="epc-moddir-search" placeholder="Filter modules…" value="@Search" @oninput="OnSearch" />
+        <input class="epc-moddir-search" placeholder="Filter workspaces…" value="@Search" @oninput="OnSearch" />
     }
     else
     {
-        <input class="epc-moddir-search" placeholder="Filter modules…" @oninput="OnSearch" />
+        <input class="epc-moddir-search" placeholder="Filter workspaces…" @oninput="OnSearch" />
     }
 
     @foreach (var group in FilteredGroups)
@@ -49,13 +64,15 @@
             <div class="epc-moddir-grid">
                 @foreach (var item in group)
                 {
-                    <div class="epc-moddir-item">
+                    <a class="epc-moddir-item epc-d365-ws"
+                       href="@PhpSurfaceLinkMap.AspNetPrimaryHref(item.Href)"
+                       title="@(string.IsNullOrWhiteSpace(item.Description) ? item.Label : item.Description)">
                         @if (!string.IsNullOrWhiteSpace(item.Icon))
                         {
                             <i class="fa @item.Icon" aria-hidden="true"></i>
                         }
-                        <a class="epc-moddir-link" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(item.Href)" title="Open module">@item.Label</a>
-                    </div>
+                        <span class="epc-moddir-link">@item.Label</span>
+                    </a>
                 }
             </div>
         </section>
@@ -63,7 +80,7 @@
 </div>
 
 @code {
-    [Parameter] public string Title { get; set; } = "Module directory";
+    [Parameter] public string Title { get; set; } = "Workspaces";
     [Parameter] public string Subtitle { get; set; } = "All modules";
     [Parameter] public IReadOnlyList<PhpModuleCatalog.ModuleLink> Links { get; set; } = Array.Empty<PhpModuleCatalog.ModuleLink>();
     [Parameter] public string? PhpWorkspaceBase { get; set; }

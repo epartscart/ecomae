@@ -57,9 +57,19 @@ public sealed class ErpJwWorkshopReceiveWriteService : IErpJwWorkshopReceiveWrit
             return ErpSimpleWriteResult.Fail("invalid", "Jewellery workshop receive tables are not provisioned");
         }
 
+        var companyId = request.CompanyId < 0 ? 0 : request.CompanyId;
         var branch = Clip(DefaultBranch(request.Branch), 10);
         var workshop = Clip((request.FromWorkshop ?? string.Empty).Trim(), 120);
         var remarks = (request.Narration ?? string.Empty).Trim();
+        var vocNo = await ErpJwVocNumbering.NextNoAsync(
+            connection,
+            null,
+            "epc_jewel_repair_workshop_receive",
+            companyId,
+            "RRC",
+            branch,
+            request.VocNo,
+            cancellationToken).ConfigureAwait(false);
 
         await ErpDb.ExecuteAsync(
             connection,
@@ -67,11 +77,11 @@ public sealed class ErpJwWorkshopReceiveWriteService : IErpJwWorkshopReceiveWrit
             ErpDb.Positional(
                 "INSERT INTO `epc_jewel_repair_workshop_receive` (`company_id`,`branch`,`voc_type`,`voc_date`,`voc_no`,`salesman`,`party_code`,`party_name`,`supp_inv_no`,`receive_remarks`,`status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
             cancellationToken,
-            request.CompanyId < 0 ? 0 : request.CompanyId,
+            companyId,
             branch,
             "RRC",
             NormalizeDate(FirstNonEmpty(request.ReceiveDate, request.VocDate)),
-            request.VocNo < 0 ? 0 : request.VocNo,
+            vocNo,
             "",
             Clip(transferRef, 20),
             workshop,

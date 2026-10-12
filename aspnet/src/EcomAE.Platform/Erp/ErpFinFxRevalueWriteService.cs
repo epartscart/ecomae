@@ -60,6 +60,7 @@ public sealed class ErpFinFxRevalueWriteService : IErpFinFxRevalueWriteService
         var asOf = request.AsOf > 0 ? request.AsOf : now;
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureFinAdvancedAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_fin_fx_run", "lines_json", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "FX revaluation run table is not provisioned");

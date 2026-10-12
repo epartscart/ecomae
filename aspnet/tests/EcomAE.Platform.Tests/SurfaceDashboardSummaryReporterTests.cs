@@ -375,9 +375,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal(0, subscriptions.Count);
         Assert.Equal("payable_to_fta", vatReturn.Summary.NetStatus);
         Assert.Equal("migration", reportCenter.Source);
-        Assert.Equal(33, reportCenter.Summary.ReportCount);
+        Assert.Equal(35, reportCenter.Summary.ReportCount);
         Assert.Equal(19, reportCenter.Summary.AreaCount);
-        Assert.Equal(33, reportCenter.Reports.Count);
+        Assert.Equal(35, reportCenter.Reports.Count);
         Assert.Equal("migration", aging.Source);
         Assert.Equal("migration", receivables.Source);
         Assert.Equal(0, receivables.Count);
@@ -1737,7 +1737,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
     [Fact]
     public void ErpReportCenterTableEntriesHaveAllowlistedTables()
     {
-        Assert.Equal(33, ErpReportCenterRegistry.All.Count);
+        Assert.Equal(35, ErpReportCenterRegistry.All.Count);
+        Assert.Equal("gl_profit_loss", ErpReportCenterRegistry.KeyForNavTab("pl"));
+        Assert.Equal("gl_balance_sheet", ErpReportCenterRegistry.KeyForNavTab("balance_sheet"));
+        Assert.Equal("gl_trial_balance", ErpReportCenterRegistry.KeyForNavTab("enterprise_reports"));
         foreach (var entry in ErpReportCenterRegistry.All.Where(e => e.Kind == ErpReportCenterRegistry.SourceKind.Table))
         {
             Assert.False(string.IsNullOrWhiteSpace(entry.Table), entry.Key + " missing Table");
