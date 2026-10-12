@@ -133,6 +133,8 @@ public static class PhpSurfaceLinkMap
         ("epc_tenant_email_settings", "/cp/tenant-email-app"),
         ("epc_platform_mail", "/cp/super-mail-app"),
         ("control/portal/epc_platform_mail", "/cp/super-mail-app"),
+        ("epc_client_erp", "/cp/client-erp"),
+        ("control/portal/epc_client_erp", "/cp/client-erp"),
         ("users/customer_approvals", "/cp/users-app"),
         ("customer_approvals", "/cp/users-app"),
         ("users/polya-registracii", "/cp/users-app"),

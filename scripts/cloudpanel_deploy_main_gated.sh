@@ -129,4 +129,9 @@ printf '  erp_only_shell      https://www.ecomae.com/erp\n'
 printf '  finance_pl          https://www.ecomae.com/erp/report-center-app?tab=pl\n'
 printf '  finance_bs          https://www.ecomae.com/erp/report-center-app?tab=balance_sheet\n'
 printf '  finance_coa         https://www.ecomae.com/erp/coa-accounts-app\n'
+if [[ -f scripts/cloudpanel_onboard_four_erp_only.sh ]]; then
+  printf 'ONBOARD_FOUR_ERP_ONLY after publish (idempotent)...\n'
+  ECOMAE_CONFIRM_ONBOARD_ERP_ONLY=YES bash scripts/cloudpanel_onboard_four_erp_only.sh \
+    || printf 'WARN onboard_four_erp_only failed — create ASAP/INDJ/FITO/REAL from /cp after Super CP login\n'
+fi
 printf 'RESULT=PASS GATED_DEPLOY_MAIN SHA=%s\n' "$SHA"

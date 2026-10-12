@@ -24,6 +24,8 @@
                                Subtitle="All commerce, demo, and ERP-only tenants — operator credentials and immediate on/off. Internal Super CP only."
                                PhpTabHref="@_phpTab"
                                ExtraPanelClass="epc-scp-panel--tenants">
+            <a class="ghost" href="/cp/super-mail-app">Mailboxes</a>
+            <a class="ghost" href="/cp/client-erp">Client ERP</a>
             <a class="ghost" href="/erp/tenant-config-app">Tenant hub</a>
             <a class="ghost" href="/cp/demo-tenants-app">Demo tenants</a>
             <a class="ghost" href="/cp/tenant-features-app">Feature registry</a>
@@ -75,6 +77,24 @@
                     Operator login is always <code>xxxx@@ecomae.com</code> from that key. Super CP can reset the password on this page at any time.
                     Staff open <code>/cp/client-erp/xxxx/</code> — no public storefront.
                 </p>
+                <form method="post" action="/cp/tenants/write" style="margin:0 0 1rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                    <input type="hidden" name="action" value="onboard_four_erp_only" />
+                    <button type="submit" class="btn btn-primary">Create ASAP / INDJ / FITO / REAL now</button>
+                </form>
+                <ul style="margin:0 0 1rem;padding-left:1.2rem">
+                    @foreach (var client in ErpOnlyLaunchClients.All)
+                    {
+                        var present = _tenants.Any(t => string.Equals(t.SiteKey, client.SiteKey, StringComparison.OrdinalIgnoreCase));
+                        <li>
+                            <strong>@client.TradeName</strong>
+                            (<code>@client.SiteKey</code> · <a href="mailto:@client.Email">@client.Email</a>)
+                            — @(present ? "in registry" : "not created yet")
+                            · <a href="@client.LoginPath">@client.LoginPath</a>
+                        </li>
+                    }
+                </ul>
                 <form method="post" action="/cp/tenants/write" id="epc-erp-only-onboard" style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:end">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="/cp/tenants-app" />

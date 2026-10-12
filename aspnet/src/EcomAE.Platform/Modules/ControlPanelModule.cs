@@ -100,7 +100,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only portal tenant digest. tenant_set_active / onboard_erp_only / delete_standalone_erp / reset_operator_password POST /cp/tenants/write when confirmWrites=true. Does not invent a send."
+                note = "Read-only portal tenant digest. tenant_set_active / onboard_erp_only / onboard_four_erp_only / delete_standalone_erp / reset_operator_password POST /cp/tenants/write when confirmWrites=true. Does not invent a send."
             });
         });
 
@@ -157,12 +157,14 @@ public sealed class ControlPanelModule : ISurfaceModule
             }
 
             var known = key is "tenant_set_active" or "set_active"
-                or "onboard_erp_only" or "delete_standalone_erp" or "reset_operator_password";
+                or "onboard_erp_only" or "onboard_four_erp_only"
+                or "delete_standalone_erp" or "reset_operator_password";
 
             if (confirm && known)
             {
                 var written = key switch
                 {
+                    "onboard_four_erp_only" => await writes.OnboardFourLaunchClientsAsync(cancellationToken),
                     "onboard_erp_only" => await writes.OnboardErpOnlyAsync(
                         new CpTenantsOnboardErpOnlyRequest(siteKey, tradeName, industryCode, adminEmail),
                         cancellationToken),

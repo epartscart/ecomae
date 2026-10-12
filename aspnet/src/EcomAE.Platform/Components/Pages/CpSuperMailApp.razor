@@ -36,12 +36,22 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><a href="mailto:yawer@ecomae.com">yawer@ecomae.com</a></td>
+                        <td><a href="mailto:@ErpOnlyLaunchClients.SuperMailbox">@ErpOnlyLaunchClients.SuperMailbox</a></td>
                         <td>Super CP / Super ERP / BOS admin</td>
                         <td>Platform</td>
                         <td><a href="/cp">/cp</a></td>
                     </tr>
-                    @foreach (var row in _boxes)
+                    @foreach (var client in ErpOnlyLaunchClients.All)
+                    {
+                        var live = _boxes.FirstOrDefault(b => string.Equals(b.SiteKey, client.SiteKey, StringComparison.OrdinalIgnoreCase));
+                        <tr>
+                            <td><a href="@("mailto:" + client.Email)">@client.Email</a></td>
+                            <td>ERP-only operator</td>
+                            <td><code>@client.SiteKey</code> · @client.TradeName @(live is null ? "(create on Tenants)" : "")</td>
+                            <td><a href="@client.LoginPath">@client.LoginPath</a></td>
+                        </tr>
+                    }
+                    @foreach (var row in _boxes.Where(b => !ErpOnlyLaunchClients.IsLaunchKey(b.SiteKey)))
                     {
                         <tr>
                             <td><a href="@("mailto:" + row.Email)">@row.Email</a></td>
@@ -49,10 +59,6 @@
                             <td><code>@row.SiteKey</code> · @row.TradeName</td>
                             <td><a href="@row.Login">@row.Login</a></td>
                         </tr>
-                    }
-                    @if (_boxes.Count == 0)
-                    {
-                        <tr><td colspan="4">No ERP-only operator boxes in the registry yet. Create them on Tenants.</td></tr>
                     }
                 </tbody>
             </table>

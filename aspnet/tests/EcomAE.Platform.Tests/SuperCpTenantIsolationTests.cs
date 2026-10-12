@@ -254,6 +254,13 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Contains("PhpSuperCpBocNav.Nav()", text, StringComparison.Ordinal);
         Assert.Contains("Live SSR drops late HeadContent", text, StringComparison.Ordinal);
         Assert.Contains("/cp/logout", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/super-mail-app", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/tenants-app", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/client-erp", text, StringComparison.Ordinal);
+        Assert.Contains("yawer@ecomae.com", text, StringComparison.Ordinal);
+        Assert.Contains("onboard_four_erp_only", text, StringComparison.Ordinal);
+        Assert.Contains("Create ASAP / INDJ / FITO / REAL now", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOnlyLaunchClients.All", text, StringComparison.Ordinal);
         // Fleet console must not query tenant shop digests.
         Assert.DoesNotContain("ListCpOrdersAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpProductCatalogueDigestAsync", text, StringComparison.Ordinal);
@@ -268,7 +275,7 @@ public sealed class SuperCpTenantIsolationTests
         Assert.True(EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas.Count >= 100,
             $"expected ≥100 BOC areas, found {EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas.Count}");
 
-        foreach (var key in new[] { "command_center", "tenant_hub", "platform_health", "auto_price", "cp_orders", "erp_gl", "integrations", "operator_guide" })
+        foreach (var key in new[] { "command_center", "tenant_hub", "client_erp", "platform_mail", "platform_health", "auto_price", "cp_orders", "erp_gl", "integrations", "operator_guide" })
         {
             Assert.Contains(EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas, a => a.Key == key);
         }

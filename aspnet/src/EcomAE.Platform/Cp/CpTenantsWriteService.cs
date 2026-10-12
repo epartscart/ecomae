@@ -29,6 +29,8 @@ public interface ICpTenantsWriteService
     Task<ErpSimpleWriteResult> ResetOperatorPasswordAsync(
         string? siteKey,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> OnboardFourLaunchClientsAsync(CancellationToken cancellationToken = default);
 }
 
 public sealed record CpTenantsSetActiveRequest(string? SiteKey, bool Active);
@@ -281,6 +283,57 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
         {
             return ErpSimpleWriteResult.Fail("db", "Could not register the ERP-only tenant.");
         }
+    }
+
+    public async Task<ErpSimpleWriteResult> OnboardFourLaunchClientsAsync(CancellationToken cancellationToken = default)
+    {
+        var created = new List<string>();
+        var existed = new List<string>();
+        var failed = new List<string>();
+        foreach (var client in ErpOnlyLaunchClients.All)
+        {
+            var result = await OnboardErpOnlyAsync(
+                new CpTenantsOnboardErpOnlyRequest(client.SiteKey, client.TradeName, client.IndustryCode, client.Email),
+                cancellationToken).ConfigureAwait(false);
+            if (result.Succeeded)
+            {
+                created.Add(client.SiteKey + " · " + result.Message);
+            }
+            else if (string.Equals(result.Code, "exists", StringComparison.Ordinal))
+            {
+                existed.Add(client.SiteKey);
+            }
+            else
+            {
+                failed.Add(client.SiteKey + ":" + result.Code);
+            }
+        }
+
+        if (created.Count == 0 && existed.Count == 0)
+        {
+            return ErpSimpleWriteResult.Fail(
+                failed.Count == 0 ? "db" : failed[0].Split(':').Last(),
+                "Could not create ASAP/INDJ/FITO/REAL. " + string.Join("; ", failed));
+        }
+
+        var parts = new List<string>();
+        if (created.Count > 0)
+        {
+            parts.Add("Created " + created.Count + ": " + string.Join(" | ", created));
+        }
+
+        if (existed.Count > 0)
+        {
+            parts.Add("Already present: " + string.Join(", ", existed));
+        }
+
+        if (failed.Count > 0)
+        {
+            parts.Add("Failed: " + string.Join("; ", failed));
+        }
+
+        parts.Add("Copy passwords now — this page does not invent a send.");
+        return ErpSimpleWriteResult.Ok(string.Join(" ", parts), created.Count);
     }
 
     public async Task<ErpSimpleWriteResult> DeleteStandaloneErpAsync(

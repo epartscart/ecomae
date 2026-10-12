@@ -1,7 +1,9 @@
 @namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpTenantControlCenterService ControlCenter
 @*
   Super CP home — port of cp/content/control/epc_super_cp_dashboard.php:
   epc_boc_console_open (BOC chrome + red top mega-menu from the epc_boc_areas
@@ -214,6 +216,9 @@
             </ul>
             <div class="epc-boc__topnav-actions">
                 <a class="epc-boc__topnav-bos" href="/bos" title="Open product Super BOS — Fleet Command (black shell)"><i class="fa fa-server"></i> Super BOS</a>
+                <a class="epc-boc__topnav-erp" href="/cp/tenants-app" title="Tenant control — create ASAP/INDJ/FITO/REAL"><i class="fa fa-users"></i> Tenants</a>
+                <a class="epc-boc__topnav-erp" href="/cp/super-mail-app" title="Platform mailboxes including yawer@ecomae.com"><i class="fa fa-inbox"></i> Mail</a>
+                <a class="epc-boc__topnav-erp" href="/cp/client-erp" title="Client ERP company picker"><i class="fa fa-university"></i> Client ERP</a>
                 <a class="epc-boc__topnav-erp" href="/erp" title="Company ERP workspace"><i class="fa fa-university"></i> ERP</a>
                 <a class="epc-boc__topnav-erp" href="/erp/fleet-app" title="Fleet ERP operator view"><i class="fa fa-sitemap"></i> Fleet ERP</a>
                 <span class="epc-boc__scope" title="Platform fleet vs active tenant CP"><i class="fa fa-globe"></i> All units · Fleet</span>
@@ -243,11 +248,47 @@
                     <p>Overall fleet control for all tenants. Select a tenant CP to operate epartscart, taxofinca, and others without mixing shop data into ecomae.</p>
                 </div>
                 <div class="epc-boc__hero-actions">
-                    <a class="epc-boc__btn epc-boc__btn--solid" href="/bos"><i class="fa fa-server"></i> Open Super BOS</a>
-                    <a class="epc-boc__btn epc-boc__btn--ghost" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/tenant_hub/tenant_hub?tab=onboard")"><i class="fa fa-rocket"></i> Onboard client</a>
-                    <a class="epc-boc__btn epc-boc__btn--ghost" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_platform_health_checkup")"><i class="fa fa-heartbeat"></i> Health checkup</a>
-                    <a class="epc-boc__btn epc-boc__btn--ghost" href="/brochure/cp" target="_blank" rel="noopener"><i class="fa fa-book"></i> CP brochure</a>
+                    <a class="epc-boc__btn epc-boc__btn--solid" href="/cp/tenants-app"><i class="fa fa-users"></i> Tenants + 4 ERP-only</a>
+                    <a class="epc-boc__btn epc-boc__btn--ghost" href="/cp/super-mail-app"><i class="fa fa-inbox"></i> Mailboxes</a>
+                    <a class="epc-boc__btn epc-boc__btn--ghost" href="/cp/client-erp"><i class="fa fa-university"></i> Client ERP</a>
+                    <a class="epc-boc__btn epc-boc__btn--ghost" href="/bos"><i class="fa fa-server"></i> Super BOS</a>
                 </div>
+            </div>
+
+            <div class="epc-boc__panel" style="border-color:#fecaca">
+                <div class="epc-boc__panel-h"><i class="fa fa-inbox"></i> Platform mail + four Client ERP companies</div>
+                <p class="epc-boc__note" style="margin:0 0 12px">
+                    Super mailbox <a href="mailto:@ErpOnlyLaunchClients.SuperMailbox">@ErpOnlyLaunchClients.SuperMailbox</a>
+                    · open the list at <a href="/cp/super-mail-app">/cp/super-mail-app</a>.
+                    Company ERP logins stay on <code>/cp/client-erp/{key}/</code> — Super <code>/cp</code> and <code>/erp</code> stay the platform.
+                </p>
+                <div class="epc-boc__fleet-grid">
+                    @foreach (var client in ErpOnlyLaunchClients.All)
+                    {
+                        var present = _launchKeys.Contains(client.SiteKey);
+                        <div class="epc-boc__fleet-card @(present ? "" : "epc-boc__fleet-card--amber")">
+                            <div class="epc-boc__fleet-name">
+                                <strong>@client.TradeName</strong>
+                                <span class="epc-boc__chip @(present ? "" : "epc-boc__chip--amber")">@(present ? "LIVE" : "CREATE")</span>
+                            </div>
+                            <div class="epc-boc__fleet-meta">
+                                <code>@client.SiteKey</code> · <a href="mailto:@client.Email">@client.Email</a>
+                            </div>
+                            <div class="epc-boc__fleet-links">
+                                <a href="@client.LoginPath"><i class="fa fa-university"></i> ERP login</a>
+                                <a href="/cp/tenants-app"><i class="fa fa-sliders"></i> Tenants</a>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <form method="post" action="/cp/tenants/write" style="margin-top:12px">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp" />
+                    <input type="hidden" name="action" value="onboard_four_erp_only" />
+                    <button type="submit" class="epc-boc__btn epc-boc__btn--solid" style="border:0;cursor:pointer">
+                        <i class="fa fa-rocket"></i> Create ASAP / INDJ / FITO / REAL now
+                    </button>
+                </form>
             </div>
 
             <div class="epc-boc__tiles">
@@ -320,6 +361,9 @@
             <div class="epc-boc__panel">
                 <div class="epc-boc__panel-h"><i class="fa fa-bolt"></i> Super CP quick actions</div>
                 <div class="epc-boc__grid">
+                    <a class="epc-boc__card" href="/cp/tenants-app"><i class="fa fa-sitemap"></i><strong>Tenant control</strong><span>Create ASAP / INDJ / FITO / REAL</span></a>
+                    <a class="epc-boc__card" href="/cp/super-mail-app"><i class="fa fa-inbox"></i><strong>Platform mailboxes</strong><span>yawer@ecomae.com + company boxes</span></a>
+                    <a class="epc-boc__card" href="/cp/client-erp"><i class="fa fa-university"></i><strong>Client ERP picker</strong><span>Company login URLs</span></a>
                     <a class="epc-boc__card" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/tenant_hub/tenant_hub")"><i class="fa fa-sitemap"></i><strong>Tenant hub</strong><span>Fleet directory &amp; onboarding</span></a>
                     <a class="epc-boc__card" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_platform_health_checkup")"><i class="fa fa-heartbeat"></i><strong>Health checkup</strong><span>SSL / DB / nginx probes</span></a>
                     <a class="epc-boc__card" href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_boc_channel_control")"><i class="fa fa-exchange"></i><strong>Channels &amp; OMS</strong><span>Web / POS / API</span></a>
@@ -356,7 +400,12 @@
                                 </div>
                                 <div class="epc-boc__fleet-meta">@t.Hostname · @(string.IsNullOrWhiteSpace(t.IndustryCode) ? "—" : t.IndustryCode)</div>
                                 <div class="epc-boc__fleet-links">
-                                    @if (!string.IsNullOrWhiteSpace(t.Hostname))
+                                    @if (type == "erp_only")
+                                    {
+                                        <a href="/cp/client-erp/@t.SiteKey/"><i class="fa fa-university"></i> ERP login</a>
+                                        <a href="/cp/tenants-app"><i class="fa fa-sliders"></i> Tenants</a>
+                                    }
+                                    else if (!string.IsNullOrWhiteSpace(t.Hostname))
                                     {
                                         <a href="https://@(t.Hostname)/" target="_blank" rel="noopener"><i class="fa fa-globe"></i> Site</a>
                                         <a href="https://@(t.Hostname)/cp" target="_blank" rel="noopener"><i class="fa fa-cogs"></i> Tenant CP</a>
@@ -387,6 +436,7 @@
 @code {
     private BosFleetSummary _summary = new(0, 0, 0, 0, 0, 0, 0, 0, "loading", "Loading fleet…");
     private IReadOnlyList<PortalTenantDigest> _tenants = [];
+    private readonly HashSet<string> _launchKeys = new(StringComparer.OrdinalIgnoreCase);
     private int _healthy;
     private int _attention;
     private int _critical;
@@ -403,6 +453,21 @@
         var health = await Dashboards.BuildBosFleetHealthAsync(60);
         _summary = health.Summary;
         _tenants = health.SampleTenants;
+        try
+        {
+            var view = await ControlCenter.LoadAsync();
+            foreach (var row in view.Tenants)
+            {
+                if (ErpOnlyLaunchClients.IsLaunchKey(row.SiteKey))
+                {
+                    _launchKeys.Add(row.SiteKey);
+                }
+            }
+        }
+        catch
+        {
+            // Home still paints the four cards; CREATE vs LIVE is best-effort.
+        }
         foreach (var t in _tenants)
         {
             switch (ClassifyHealth(t))

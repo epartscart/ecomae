@@ -1707,7 +1707,12 @@ check 'production lock offline refuses rollback and php delete' production_lock_
 check 'onboard four ERP-only script exists' test -x "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh"
 check 'onboard four ERP-only requires confirm' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" 'ECOMAE_CONFIRM_ONBOARD_ERP_ONLY'
 check 'onboard four ERP-only creates asap indj fito real' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" '("asap", "ASAP Autoparts", "auto_parts")'
-check 'super mail app lists yawer mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'yawer@ecomae.com'
+check 'super mail app lists yawer mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'ErpOnlyLaunchClients.SuperMailbox'
+check 'launch clients catalog has asap' contains "$ROOT/aspnet/src/EcomAE.Platform/Cp/ErpOnlyLaunchClients.cs" '"asap"'
+check 'launch clients catalog has yawer mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Cp/ErpOnlyLaunchClients.cs" 'yawer@ecomae.com'
+check 'super CP home shows launch clients' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpCommandCentre.razor" 'onboard_four_erp_only'
+check 'super CP home links mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpCommandCentre.razor" '/cp/super-mail-app'
+check 'gated deploy onboards four ERP-only clients' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'cloudpanel_onboard_four_erp_only.sh'
 check 'super mail app uses PHP reference Open' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'PhpReferenceOnlyHref(_phpTab)'
 check 'client-erp login page is on ErpLoginApp' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" '@page "/cp/client-erp/{SiteKey}"'
 check 'client-erp login has no trailing-slash duplicate route' lacks "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" '@page "/cp/client-erp/{SiteKey}/"'

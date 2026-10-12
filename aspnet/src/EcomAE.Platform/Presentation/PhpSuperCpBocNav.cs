@@ -45,6 +45,7 @@ public static class PhpSuperCpBocNav
         // Tenants
         new("tenant_hub", "Tenant hub / onboard", "lifecycle", "fa-sitemap", "shop/tenant_hub/tenant_hub", "Provision tenants"),
         new("tenant_control", "Tenant control", "lifecycle", "fa-sliders", "control/portal/epc_tenant_control_center", "Credentials & on/off"),
+        new("client_erp", "Client ERP logins", "lifecycle", "fa-university", "control/portal/epc_client_erp", "ASAP / INDJ / FITO / REAL"),
         new("tenant_features", "Feature matrix", "lifecycle", "fa-th", "control/portal/epc_tenant_features", "Per-tenant flags"),
         new("demo_tenants", "Demo tenants", "lifecycle", "fa-flask", "control/portal/epc_demo_tenants_manage", "Sandbox lifecycle"),
         new("industry_settings", "Industry / ERP packs", "lifecycle", "fa-cubes", "control/portal/industry_settings", "Module presets"),

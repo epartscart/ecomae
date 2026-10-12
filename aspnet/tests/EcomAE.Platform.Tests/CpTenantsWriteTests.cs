@@ -32,6 +32,7 @@ public sealed class CpTenantsWriteTests
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"tenant_set_active\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"onboard_erp_only\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"onboard_four_erp_only\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"delete_standalone_erp\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"reset_operator_password\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"site_key\"", razor, StringComparison.Ordinal);
@@ -55,6 +56,7 @@ public sealed class CpTenantsWriteTests
             item.AspNetRouteOrCapability == "/cp/tenants/write");
         Assert.Equal("write-live-gated", write.Status);
         Assert.Contains("onboard_erp_only", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("onboard_four_erp_only", write.Notes, StringComparison.Ordinal);
         Assert.Contains("delete_standalone_erp", write.Notes, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", write.Notes, StringComparison.Ordinal);
     }
@@ -75,6 +77,12 @@ public sealed class CpTenantsWriteTests
         Assert.Equal("jewellery", CpTenantsWriteService.NormalizeIndustry("jewellery"));
         Assert.Equal("fito@ecomae.com", CpTenantsWriteService.OperatorEmailFor("FITO"));
         Assert.Equal("real@ecomae.com", CpTenantsWriteService.OperatorEmailFor("real"));
+        Assert.Equal(4, ErpOnlyLaunchClients.All.Count);
+        Assert.Equal("yawer@ecomae.com", ErpOnlyLaunchClients.SuperMailbox);
+        Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "asap" && c.Email == "asap@ecomae.com");
+        Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "indj");
+        Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "fito");
+        Assert.Contains(ErpOnlyLaunchClients.All, c => c.SiteKey == "real");
         Assert.False(CpTenantsWriteService.IsDroppableDatabase("ecomae"));
         Assert.True(CpTenantsWriteService.IsDroppableDatabase("asap"));
     }
