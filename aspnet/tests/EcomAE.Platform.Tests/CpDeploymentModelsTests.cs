@@ -1,7 +1,10 @@
+using System.Data.Common;
 using EcomAE.Platform.Cp;
+using EcomAE.Platform.Erp;
 using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Routing;
 using EcomAE.Platform.Services;
+using MySqlConnector;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -136,6 +139,103 @@ public sealed class CpDeploymentModelsTests
         Assert.Contains("does not invent a send", empty.Detail, StringComparison.OrdinalIgnoreCase);
         Assert.True(HybridSyncControlPlane.IsEnrollmentRequestId(HybridSyncControlPlane.NewEnrollmentRequestId()));
         Assert.DoesNotContain("password", HybridSyncControlPlane.SanitizePayloadJson("""{"name":"Acme","password":"secret"}"""), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Hybrid_sync_persists_cursor_and_queues_conflicts()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_hyb_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var cs = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await ExecAsync(admin, "CREATE DATABASE `" + database + "` DEFAULT CHARACTER SET utf8mb4");
+        try
+        {
+            var sync = new HybridSyncService(new Connections(cs));
+            var registered = await sync.RegisterAsync("acme", "inst_test", "enr_testdryrun01", "https://www.ecomae.com", "hybrid", confirmWrites: false);
+            Assert.True(registered.DryRun);
+            Assert.Equal(0, registered.Writes);
+
+            registered = await sync.RegisterAsync("acme", "inst_test", "enr_testdryrun01", "https://www.ecomae.com", "hybrid", confirmWrites: true);
+            Assert.True(registered.Ok);
+            Assert.True(registered.Writes > 0);
+            Assert.True(await sync.EnrollmentMatchesAsync("acme", "inst_test", "enr_testdryrun01"));
+
+            var payload = """{"doc":"SO-1"}""";
+            var envelope = new TenantSyncEnvelope(
+                "env_so1",
+                "acme",
+                "inst_test",
+                "sales_order",
+                "so1",
+                1,
+                "hybrid-to-cloud",
+                TenantInstallationControlPlane.Sha256Hex(payload),
+                DateTimeOffset.UtcNow);
+            var dry = await sync.IngestAsync(envelope, payload, confirmWrites: false);
+            Assert.True(dry.DryRun);
+            Assert.Equal(0, dry.Writes);
+
+            var live = await sync.IngestAsync(envelope, payload, confirmWrites: true);
+            Assert.True(live.Ok);
+            Assert.Equal("accepted", live.Code);
+
+            var replay = await sync.IngestAsync(envelope, payload, confirmWrites: true);
+            Assert.Equal("replay", replay.Code);
+            Assert.Equal(0, replay.Writes);
+
+            var masterClash = new TenantSyncEnvelope(
+                "env_cust",
+                "acme",
+                "inst_test",
+                "customer",
+                "c1",
+                1,
+                "hybrid-to-cloud",
+                TenantInstallationControlPlane.Sha256Hex("{}"),
+                DateTimeOffset.UtcNow);
+            var conflict = await sync.IngestAsync(masterClash, "{}", confirmWrites: true);
+            Assert.Equal("ownership-conflict", conflict.Code);
+
+            var empty = await sync.PullAsync("acme", "inst_test", confirmWrites: false);
+            Assert.Equal("empty", empty.Code);
+            Assert.Contains("does not invent a send", empty.Message, StringComparison.OrdinalIgnoreCase);
+
+            var status = await sync.StatusAsync("acme");
+            Assert.Contains(status.Installations, i => i.SiteKey == "acme");
+            Assert.Contains(status.Cursors, c => c.Direction == "hybrid-to-cloud");
+            Assert.Contains(status.Conflicts, c => c.Reason == "ownership-conflict");
+        }
+        finally
+        {
+            await ExecAsync(admin, "DROP DATABASE IF EXISTS `" + database + "`");
+        }
+    }
+
+    private sealed class Connections(string cs) : IErpWriteConnectionFactory
+    {
+        public bool IsConfigured => true;
+
+        public async Task<DbConnection> OpenAsync(CancellationToken cancellationToken = default)
+        {
+            var connection = new MySqlConnection(cs);
+            await connection.OpenAsync(cancellationToken);
+            return connection;
+        }
+    }
+
+    private static async Task ExecAsync(string cs, string sql)
+    {
+        await using var connection = new MySqlConnection(cs);
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        await command.ExecuteNonQueryAsync();
     }
 
     private static string FindRepoRoot()
