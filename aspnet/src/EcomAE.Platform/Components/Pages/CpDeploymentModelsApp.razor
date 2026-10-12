@@ -30,8 +30,8 @@
         </PhpCpModulePageHeader>
 
         <p class="help-block">
-            New on-premises installs are ASP.NET Core only: download the ASP.NET pack and double-click <code>setup.cmd</code> on Windows or run <code>install.sh</code> on Linux.
-            PHP is not installed and is not for future development. Cloud PHP stays on disk as fallback until <code>ReadyToRemovePhp</code>.
+            New on-premises installs use the platform pack only: download it and double-click <code>setup.cmd</code> on Windows or run <code>install.sh</code> on Linux.
+            The leftover installer is not for new work. Cloud leftover files stay on disk as fallback until <code>ReadyToRemovePhp</code>.
             Hybrid sync is outbound HTTPS: masters from the cloud, transactions from the site, conflicts queued — never silently overwritten.
             This page does not invent a send.
         </p>
@@ -93,9 +93,9 @@
                     var files = CpDeploymentSetupPackCatalog.ForKind(kind);
                     var title = kind switch
                     {
-                        "on-premises-aspnet" => "On premises (ASP.NET Core — use this)",
-                        "hybrid" => "Hybrid (ASP.NET ERP + sync agent)",
-                        _ => "On premises leftover (PHP — do not use for new installs)",
+                        "on-premises-aspnet" => "On premises (platform pack — use this)",
+                        "hybrid" => "Hybrid (platform ERP + sync agent)",
+                        _ => "On premises leftover (do not use for new installs)",
                     };
                     <div>
                         <p style="margin:0 0 .45rem">
@@ -117,12 +117,12 @@
                 }
             </div>
             <p class="help-block" style="margin:.85rem 0 0">
-                ASP.NET on premises (Windows): unzip and double-click <code>setup.cmd</code>.
+                On premises (Windows): unzip and double-click <code>setup.cmd</code>.
                 Linux: <code>sudo ./install.sh --host erp.company.com --db-password PASS</code>.
                 Hybrid: register the site with <code>POST /cp/hybrid-sync/register</code> then
                 <code>sudo ./install.sh --site-key KEY --cloud-url https://www.ecomae.com --enrollment enr_… --installation inst_…</code>.
                 Pass <code>--dsn</code> / a password only when the operator already has one — the installer will not invent one.
-                Do not add PHP files to new packs.
+                Do not add leftover runtime files to new packs.
             </p>
         </div>
 

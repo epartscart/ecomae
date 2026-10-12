@@ -39,7 +39,8 @@ public sealed class CpDeploymentModelsTests
         Assert.Contains("on-premises-aspnet", razor, StringComparison.Ordinal);
         Assert.Contains("setup.cmd", razor, StringComparison.Ordinal);
         Assert.Contains("install.sh", razor, StringComparison.Ordinal);
-        Assert.Contains("Do not add PHP files", razor, StringComparison.Ordinal);
+        Assert.Contains("Do not add leftover runtime files", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET Core", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
 
