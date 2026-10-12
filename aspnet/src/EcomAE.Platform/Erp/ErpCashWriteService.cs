@@ -838,6 +838,7 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         if (input.PostGl)
         {
             await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            await _vouchers.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         }
 
@@ -929,8 +930,8 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         int adminId,
         CancellationToken cancellationToken)
     {
-        var payable = await CoaIdAsync(connection, "2000", cancellationToken).ConfigureAwait(false);
-        var expense = await CoaIdAsync(connection, "6100", cancellationToken).ConfigureAwait(false);
+        var payable = await CoaIdAsync(connection, transaction, "2000", cancellationToken).ConfigureAwait(false);
+        var expense = await CoaIdAsync(connection, transaction, "6100", cancellationToken).ConfigureAwait(false);
         if (payable <= 0 || expense <= 0)
         {
             throw new ErpWriteException("COA account 2000/6100 is missing; cannot post the AP settlement journal.");
@@ -1165,6 +1166,7 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         if (transaction is null && postGl)
         {
             await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            await _vouchers.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         }
 
@@ -1232,8 +1234,8 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         int adminId,
         CancellationToken cancellationToken)
     {
-        var receivable = await CoaIdAsync(connection, "1100", cancellationToken).ConfigureAwait(false);
-        var expense = await CoaIdAsync(connection, "6100", cancellationToken).ConfigureAwait(false);
+        var receivable = await CoaIdAsync(connection, transaction, "1100", cancellationToken).ConfigureAwait(false);
+        var expense = await CoaIdAsync(connection, transaction, "6100", cancellationToken).ConfigureAwait(false);
         if (receivable <= 0 || expense <= 0)
         {
             throw new ErpWriteException("COA account 1100/6100 is missing; cannot post the AR settlement journal.");
@@ -1368,13 +1370,16 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         }
     }
 
-    private static async Task<long> CoaIdAsync(DbConnection connection, string code, CancellationToken cancellationToken)
+    private static Task<long> CoaIdAsync(DbConnection connection, string code, CancellationToken cancellationToken)
+        => CoaIdAsync(connection, null, code, cancellationToken);
+
+    private static async Task<long> CoaIdAsync(DbConnection connection, DbTransaction? transaction, string code, CancellationToken cancellationToken)
     {
         try
         {
             return await ErpDb.LongAsync(
                 connection,
-                null,
+                transaction,
                 ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? AND `active` = 1 LIMIT 1"),
                 cancellationToken,
                 code).ConfigureAwait(false);
