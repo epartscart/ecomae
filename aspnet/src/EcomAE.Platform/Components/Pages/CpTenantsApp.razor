@@ -29,6 +29,7 @@
             <a class="ghost" href="/cp/tenant-features-app">Feature registry</a>
             <a class="ghost" href="/cp/industry-settings-app">ERP module packs</a>
             <a class="ghost" href="/bos/app">BOS fleet</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a>
         </PhpCpModulePageHeader>
 
         <div class="epc-scp-kpi" aria-label="Tenants KPIs">
@@ -53,6 +54,7 @@
         <p class="help-block">
             Operators create and delete ERP-only companies here — no storefront, no client domain, hostname stays <code>www.ecomae.com</code>.
             Industry pack (Jewellery, Auto parts, …) is stored on the registry row. This page does not invent a send: copy the temporary password from the green banner.
+            Password reveal and the original portal editor stay on the Classic twin — keep that Open link until PHP removal is approved.
         </p>
 
         @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -262,6 +264,7 @@
                                     {
                                         <a class="btn btn-xs btn-info" target="_blank" rel="noopener" href="@t.ErpLoginUrl">ERP</a>
                                     }
+                                    <a class="small" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a>
                                 </td>
                                 <td>
                                     @if (_isAdmin && t.TenantType == "erp_only" && !t.IsDemo && !string.IsNullOrWhiteSpace(t.SiteKey))
