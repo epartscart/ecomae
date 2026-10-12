@@ -37,6 +37,20 @@ public interface ICpTenantsWriteService
         CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> RepairFourLaunchClientsAsync(CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SetOperatorPasswordAsync(
+        string? siteKey,
+        string? email,
+        string? password,
+        string? confirmPassword,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> AddOperatorLoginAsync(
+        string? siteKey,
+        string? email,
+        string? password,
+        string? confirmPassword,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record CpTenantsSetActiveRequest(string? SiteKey, bool Active);
@@ -129,6 +143,15 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
     {
         var key = NormalizeSiteKey(siteKey);
         return key.Length == 0 ? string.Empty : key + "@ecomae.com";
+    }
+
+    public static bool IsUsableLoginEmail(string? email)
+        => EmailSafe.IsMatch((email ?? string.Empty).Trim().ToLowerInvariant());
+
+    public static bool IsUsableOperatorPassword(string? password)
+    {
+        var value = password ?? string.Empty;
+        return value.Length is >= 8 and <= 72;
     }
 
     public async Task<ErpSimpleWriteResult> SetActiveAsync(
@@ -445,6 +468,72 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
         return ErpSimpleWriteResult.Ok(string.Join(" ", parts), ok.Count);
     }
 
+    public async Task<ErpSimpleWriteResult> SetOperatorPasswordAsync(
+        string? siteKey,
+        string? email,
+        string? password,
+        string? confirmPassword,
+        CancellationToken cancellationToken = default)
+    {
+        var check = ValidateLoginWrite(siteKey, email, password, confirmPassword, emailRequired: false);
+        if (check.Fail is not null)
+        {
+            return check.Fail;
+        }
+
+        var shop = await EnsureOperatorLoginAsync(
+            check.SiteKey, check.Email, check.Password, cancellationToken).ConfigureAwait(false);
+        if (!shop.Ok)
+        {
+            return ErpSimpleWriteResult.Fail("shop", shop.Message);
+        }
+
+        if (IsPrimaryOperatorEmail(check.Email, check.SiteKey, check.PrimaryEmail))
+        {
+            await StoreTempPasswordAsync(check.SiteKey, check.Password, cancellationToken).ConfigureAwait(false);
+        }
+
+        return ErpSimpleWriteResult.Ok(
+            "Password set for " + check.Email + " on " + check.SiteKey
+            + ". Sign in at /cp/client-erp/" + check.SiteKey
+            + "/ — this page does not invent a send.",
+            1);
+    }
+
+    public async Task<ErpSimpleWriteResult> AddOperatorLoginAsync(
+        string? siteKey,
+        string? email,
+        string? password,
+        string? confirmPassword,
+        CancellationToken cancellationToken = default)
+    {
+        var check = ValidateLoginWrite(siteKey, email, password, confirmPassword, emailRequired: true);
+        if (check.Fail is not null)
+        {
+            return check.Fail;
+        }
+
+        if (IsPrimaryOperatorEmail(check.Email, check.SiteKey, check.PrimaryEmail))
+        {
+            return await SetOperatorPasswordAsync(
+                check.SiteKey, check.Email, check.Password, check.Password, cancellationToken).ConfigureAwait(false);
+        }
+
+        var shop = await EnsureOperatorLoginAsync(
+            check.SiteKey, check.Email, check.Password, cancellationToken).ConfigureAwait(false);
+        if (!shop.Ok)
+        {
+            return ErpSimpleWriteResult.Fail("shop", shop.Message);
+        }
+
+        await AppendExtraLoginAsync(check.SiteKey, check.Email, cancellationToken).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok(
+            "Extra login " + check.Email + " added for " + check.SiteKey
+            + ". Same company URL /cp/client-erp/" + check.SiteKey
+            + "/ — copy the password now; this page does not invent a send.",
+            1);
+    }
+
     public async Task<ErpSimpleWriteResult> DeleteStandaloneErpAsync(
         CpTenantsDeleteStandaloneRequest request,
         CancellationToken cancellationToken = default)
@@ -667,6 +756,140 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
         }
 
         return await _shopBootstrap.EnsureForSiteKeyAsync(siteKey, password, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<ErpOnlyShopEnsureResult> EnsureOperatorLoginAsync(
+        string siteKey,
+        string email,
+        string password,
+        CancellationToken cancellationToken)
+    {
+        if (_shopBootstrap is null)
+        {
+            return new ErpOnlyShopEnsureResult(false, false, false, false, "shop bootstrap not registered");
+        }
+
+        return await _shopBootstrap
+            .EnsureOperatorLoginAsync(siteKey, email, password, replacePassword: true, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private sealed record LoginWriteCheck(
+        ErpSimpleWriteResult? Fail,
+        string SiteKey,
+        string Email,
+        string Password,
+        string PrimaryEmail);
+
+    private LoginWriteCheck ValidateLoginWrite(
+        string? siteKey,
+        string? email,
+        string? password,
+        string? confirmPassword,
+        bool emailRequired)
+    {
+        var key = NormalizeSiteKey(siteKey);
+        if (key.Length == 0)
+        {
+            return new LoginWriteCheck(ErpSimpleWriteResult.Fail("invalid", "Invalid site key"), "", "", "", "");
+        }
+
+        if (IsProtectedSiteKey(key))
+        {
+            return new LoginWriteCheck(
+                ErpSimpleWriteResult.Fail("protected", "Commerce and platform tenants are not edited here."),
+                key, "", "", "");
+        }
+
+        if (!IsUsableOperatorPassword(password))
+        {
+            return new LoginWriteCheck(
+                ErpSimpleWriteResult.Fail("password", "Password must be 8–72 characters."),
+                key, "", "", "");
+        }
+
+        if (!string.Equals(password, confirmPassword ?? string.Empty, StringComparison.Ordinal))
+        {
+            return new LoginWriteCheck(
+                ErpSimpleWriteResult.Fail("confirm", "Password and confirmation do not match."),
+                key, "", "", "");
+        }
+
+        var primary = OperatorEmailFor(key);
+        var contact = (email ?? string.Empty).Trim().ToLowerInvariant();
+        if (contact.Length == 0)
+        {
+            if (emailRequired)
+            {
+                return new LoginWriteCheck(
+                    ErpSimpleWriteResult.Fail("email", "Enter the extra login email."),
+                    key, "", "", primary);
+            }
+
+            contact = primary;
+        }
+
+        if (!IsUsableLoginEmail(contact))
+        {
+            return new LoginWriteCheck(
+                ErpSimpleWriteResult.Fail("email", "Enter a valid login email."),
+                key, "", "", primary);
+        }
+
+        return new LoginWriteCheck(null, key, contact, password!, primary);
+    }
+
+    private static bool IsPrimaryOperatorEmail(string email, string siteKey, string primaryEmail)
+        => string.Equals(email, primaryEmail, StringComparison.OrdinalIgnoreCase)
+           || string.Equals(email, OperatorEmailFor(siteKey), StringComparison.OrdinalIgnoreCase);
+
+    private async Task StoreTempPasswordAsync(string siteKey, string password, CancellationToken cancellationToken)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional("UPDATE `epc_portal_tenants` SET `operator_temp_password`=?, `updated_at`=? WHERE `site_key`=?"),
+                cancellationToken, password, now, siteKey).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+        }
+    }
+
+    private async Task AppendExtraLoginAsync(string siteKey, string email, CancellationToken cancellationToken)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            var raw = await ErpDb.StringAsync(
+                connection, null,
+                ErpDb.Positional("SELECT `intro_json` FROM `epc_portal_tenants` WHERE `site_key`=? LIMIT 1"),
+                cancellationToken, siteKey).ConfigureAwait(false);
+            var next = CpTenantControlCenterService.MergeExtraLoginEmail(raw, email);
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional("UPDATE `epc_portal_tenants` SET `intro_json`=?, `updated_at`=? WHERE `site_key`=?"),
+                cancellationToken, next, now, siteKey).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+        }
     }
 
     private static string NewTempPassword()

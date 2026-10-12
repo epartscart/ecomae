@@ -36,6 +36,12 @@ public sealed class CpTenantsWriteTests
         Assert.Contains("value=\"delete_standalone_erp\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"reset_operator_password\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"repair_erp_only_shop\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"set_operator_password\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"add_operator_login\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"login_email\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirm_password\"", razor, StringComparison.Ordinal);
+        Assert.Contains("Set my password", razor, StringComparison.Ordinal);
+        Assert.Contains("Add extra login", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"site_key\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"confirm_site_key\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"industry_code\"", razor, StringComparison.Ordinal);
@@ -62,6 +68,8 @@ public sealed class CpTenantsWriteTests
         Assert.Contains("does not invent a send", write.Notes, StringComparison.Ordinal);
         Assert.Contains("repair_erp_only_shop", write.Notes, StringComparison.Ordinal);
         Assert.Contains("repair_four_erp_only", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("set_operator_password", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("add_operator_login", write.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -110,6 +118,14 @@ public sealed class CpTenantsWriteTests
         Assert.Contains("delete_standalone_erp", module, StringComparison.Ordinal);
         Assert.Contains("repair_erp_only_shop", module, StringComparison.Ordinal);
         Assert.Contains("repair_four_erp_only", module, StringComparison.Ordinal);
+        Assert.Contains("set_operator_password", module, StringComparison.Ordinal);
+        Assert.Contains("add_operator_login", module, StringComparison.Ordinal);
+        Assert.Contains("SetOperatorPasswordAsync", service, StringComparison.Ordinal);
+        Assert.Contains("AddOperatorLoginAsync", service, StringComparison.Ordinal);
+        Assert.True(CpTenantsWriteService.IsUsableLoginEmail("indj.accounts@ecomae.com"));
+        Assert.False(CpTenantsWriteService.IsUsableLoginEmail("not-an-email"));
+        Assert.True(CpTenantsWriteService.IsUsableOperatorPassword("Abcdefg1"));
+        Assert.False(CpTenantsWriteService.IsUsableOperatorPassword("short"));
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.Contains("EnsureShopAsync", service, StringComparison.Ordinal);
         var bootstrap = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/ErpOnlyShopBootstrap.cs"));

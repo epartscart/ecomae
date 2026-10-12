@@ -100,7 +100,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only portal tenant digest. tenant_set_active / onboard_erp_only / onboard_four_erp_only / delete_standalone_erp / reset_operator_password POST /cp/tenants/write when confirmWrites=true. Does not invent a send."
+                note = "Read-only portal tenant digest. tenant_set_active / onboard_erp_only / onboard_four_erp_only / delete_standalone_erp / reset_operator_password / set_operator_password / add_operator_login POST /cp/tenants/write when confirmWrites=true. Does not invent a send."
             });
         });
 
@@ -137,6 +137,9 @@ public sealed class ControlPanelModule : ISurfaceModule
             var industryCode = body.IndustryCode;
             var adminEmail = body.AdminEmail;
             var confirmSiteKey = body.ConfirmSiteKey;
+            var loginEmail = body.LoginEmail;
+            var operatorPassword = body.Password;
+            var confirmPassword = body.ConfirmPassword;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -148,6 +151,9 @@ public sealed class ControlPanelModule : ISurfaceModule
                 industryCode = LiveWriteFormBinder.Text(form, "industry_code", "industryCode");
                 adminEmail = LiveWriteFormBinder.Text(form, "admin_email", "adminEmail");
                 confirmSiteKey = LiveWriteFormBinder.Text(form, "confirm_site_key", "confirmSiteKey");
+                loginEmail = LiveWriteFormBinder.Text(form, "login_email", "loginEmail");
+                operatorPassword = LiveWriteFormBinder.Text(form, "password");
+                confirmPassword = LiveWriteFormBinder.Text(form, "confirm_password", "confirmPassword");
             }
 
             var key = (action ?? string.Empty).Trim();
@@ -159,7 +165,8 @@ public sealed class ControlPanelModule : ISurfaceModule
             var known = key is "tenant_set_active" or "set_active"
                 or "onboard_erp_only" or "onboard_four_erp_only"
                 or "delete_standalone_erp" or "reset_operator_password"
-                or "repair_erp_only_shop" or "repair_four_erp_only";
+                or "repair_erp_only_shop" or "repair_four_erp_only"
+                or "set_operator_password" or "add_operator_login";
 
             if (confirm && known)
             {
@@ -175,6 +182,10 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "reset_operator_password" => await writes.ResetOperatorPasswordAsync(siteKey, cancellationToken),
                     "repair_erp_only_shop" => await writes.RepairErpOnlyShopAsync(siteKey, cancellationToken),
                     "repair_four_erp_only" => await writes.RepairFourLaunchClientsAsync(cancellationToken),
+                    "set_operator_password" => await writes.SetOperatorPasswordAsync(
+                        siteKey, loginEmail, operatorPassword, confirmPassword, cancellationToken),
+                    "add_operator_login" => await writes.AddOperatorLoginAsync(
+                        siteKey, loginEmail, operatorPassword, confirmPassword, cancellationToken),
                     _ => await writes.SetActiveAsync(new CpTenantsSetActiveRequest(siteKey, active), cancellationToken),
                 };
                 return LiveWriteFormBinder.Complete(
@@ -195,7 +206,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
                     ? "Unknown tenant write action."
-                    : "Dry-run. Set confirmWrites=true to create, delete, reset, or set tenant active.",
+                    : "Dry-run. Set confirmWrites=true to create, delete, reset, set a chosen password, add a login, or set tenant active.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });
@@ -17430,7 +17441,10 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? TradeName = null,
         string? IndustryCode = null,
         string? AdminEmail = null,
-        string? ConfirmSiteKey = null);
+        string? ConfirmSiteKey = null,
+        string? LoginEmail = null,
+        string? Password = null,
+        string? ConfirmPassword = null);
     private sealed record CpTenantFeaturesWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

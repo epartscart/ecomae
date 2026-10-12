@@ -17,6 +17,13 @@ public interface IErpOnlyShopBootstrap
         string siteKey,
         string? passwordOverride = null,
         CancellationToken cancellationToken = default);
+
+    Task<ErpOnlyShopEnsureResult> EnsureOperatorLoginAsync(
+        string siteKey,
+        string email,
+        string password,
+        bool replacePassword,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpOnlyShopEnsureResult(
@@ -149,11 +156,13 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
             await using (shop)
             {
                 await EnsureSchemaAsync(shop, cancellationToken).ConfigureAwait(false);
-                var password = string.IsNullOrWhiteSpace(passwordOverride) ? storedPassword : passwordOverride;
+                var replace = !string.IsNullOrWhiteSpace(passwordOverride);
+                var password = replace ? passwordOverride! : storedPassword;
                 var operatorReady = false;
-                if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password))
+                if (!string.IsNullOrWhiteSpace(email))
                 {
-                    operatorReady = await EnsureOperatorAsync(shop, email, password, cancellationToken).ConfigureAwait(false);
+                    operatorReady = await EnsureOperatorAsync(
+                        shop, email, password, cancellationToken, replacePassword: replace).ConfigureAwait(false);
                 }
 
                 return new ErpOnlyShopEnsureResult(
@@ -192,19 +201,67 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
         await LegacyLoginSecurity.EnsureTableAsync(connection, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<ErpOnlyShopEnsureResult> EnsureOperatorLoginAsync(
+        string siteKey,
+        string email,
+        string password,
+        bool replacePassword,
+        CancellationToken cancellationToken = default)
+    {
+        var prepared = await EnsureForSiteKeyAsync(siteKey, passwordOverride: null, cancellationToken).ConfigureAwait(false);
+        if (!prepared.DatabaseReady || !prepared.SchemaReady)
+        {
+            return prepared;
+        }
+
+        var key = CpTenantsWriteService.NormalizeSiteKey(siteKey);
+        string dbName;
+        await using (var registry = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var row = await LoadRegistryAsync(registry, key, cancellationToken).ConfigureAwait(false);
+            if (row is null)
+            {
+                return new ErpOnlyShopEnsureResult(false, false, false, false, "Tenant not in registry");
+            }
+
+            dbName = row.Value.DbName;
+        }
+
+        try
+        {
+            await using var shop = await _connections
+                .OpenAsync(dbName, userName: null, password: null, cancellationToken)
+                .ConfigureAwait(false);
+            var ready = await EnsureOperatorAsync(shop, email, password, cancellationToken, replacePassword)
+                .ConfigureAwait(false);
+            return new ErpOnlyShopEnsureResult(
+                ready,
+                true,
+                true,
+                ready,
+                ready
+                    ? "Login ready for " + email.Trim().ToLowerInvariant() + " on `" + dbName + "`."
+                    : "Could not write the shop login for " + email + ".");
+        }
+        catch (DbException)
+        {
+            return new ErpOnlyShopEnsureResult(false, true, true, false, "Could not open the company shop database.");
+        }
+    }
+
     public static async Task<bool> EnsureOperatorAsync(
         DbConnection connection,
         string email,
         string password,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool replacePassword = true)
     {
         var contact = email.Trim().ToLowerInvariant();
-        if (contact.Length == 0 || password.Length == 0)
+        if (contact.Length == 0)
         {
             return false;
         }
 
-        var hash = LegacyLoginSecurity.HashPassword(password);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var existing = await ErpDb.LongAsync(
             connection,
@@ -212,8 +269,22 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
             ErpDb.Positional("SELECT `user_id` FROM `users` WHERE LOWER(`email`) = LOWER(?) LIMIT 1"),
             cancellationToken,
             contact).ConfigureAwait(false);
-        if (existing > 0)
+        if (existing > 0 && !replacePassword)
         {
+            await ErpDb.TryExecuteAsync(
+                connection,
+                "UPDATE `users` SET `email_confirmed`=1, `unlocked`=1 WHERE `user_id`="
+                + existing.ToString(CultureInfo.InvariantCulture),
+                cancellationToken).ConfigureAwait(false);
+        }
+        else if (existing > 0)
+        {
+            if (password.Length == 0)
+            {
+                return false;
+            }
+
+            var hash = LegacyLoginSecurity.HashPassword(password);
             await ErpDb.ExecuteAsync(
                 connection,
                 null,
@@ -225,6 +296,12 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
         }
         else
         {
+            if (password.Length == 0)
+            {
+                return false;
+            }
+
+            var hash = LegacyLoginSecurity.HashPassword(password);
             await ErpDb.ExecuteAsync(
                 connection,
                 null,

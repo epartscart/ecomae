@@ -20,6 +20,8 @@ public sealed class ErpOnlyShopBootstrapTests
         Assert.Contains("OpenAsync(dbName, userName: null, password: null", bootstrap, StringComparison.Ordinal);
         Assert.Contains("do not remap TenantRegistry to PHP", bootstrap, StringComparison.Ordinal);
         Assert.Contains("LegacyLoginSecurity.HashPassword", bootstrap, StringComparison.Ordinal);
+        Assert.Contains("replacePassword", bootstrap, StringComparison.Ordinal);
+        Assert.Contains("EnsureOperatorLoginAsync", bootstrap, StringComparison.Ordinal);
         Assert.Contains("for_backend", bootstrap, StringComparison.Ordinal);
 
         var factory = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Data/MySqlTenantDbConnectionFactory.cs"));
@@ -55,6 +57,8 @@ public sealed class ErpOnlyShopBootstrapTests
             await ErpOnlyShopBootstrap.EnsureSchemaAsync(connection, CancellationToken.None);
             Assert.True(await ErpOnlyShopBootstrap.EnsureOperatorAsync(
                 connection, "indj@ecomae.com", "TempShopPass9", CancellationToken.None));
+            Assert.True(await ErpOnlyShopBootstrap.EnsureOperatorAsync(
+                connection, "indj@ecomae.com", "ShouldNotOverwrite", CancellationToken.None, replacePassword: false));
 
             await using var command = connection.CreateCommand();
             command.CommandText = "SELECT `password`, `email_confirmed`, `unlocked` FROM `users` WHERE `email`='indj@ecomae.com'";
@@ -63,6 +67,7 @@ public sealed class ErpOnlyShopBootstrapTests
                 Assert.True(await reader.ReadAsync());
                 var hash = reader.GetString(0);
                 Assert.True(LegacyPasswordVerifier.Verify("TempShopPass9", hash, secretSuccession: "unused"));
+                Assert.False(LegacyPasswordVerifier.Verify("ShouldNotOverwrite", hash, secretSuccession: "unused"));
                 Assert.Equal(1, reader.GetInt32(1));
                 Assert.Equal(1, reader.GetInt32(2));
             }

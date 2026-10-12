@@ -184,6 +184,14 @@ public sealed class LegacyAdminLoginServiceTests
             SiteKey = siteKey;
             return Task.FromResult(new ErpOnlyShopEnsureResult(true, true, true, true, "captured"));
         }
+
+        public Task<ErpOnlyShopEnsureResult> EnsureOperatorLoginAsync(
+            string siteKey,
+            string email,
+            string password,
+            bool replacePassword,
+            CancellationToken cancellationToken = default)
+            => EnsureForSiteKeyAsync(siteKey, password, cancellationToken);
     }
 
     private sealed class NoopSessionStore : ILegacySessionStore

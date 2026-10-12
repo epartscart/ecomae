@@ -55,8 +55,7 @@
 
         <p class="help-block">
             Operators create and delete ERP-only companies here — no storefront, no client domain, hostname stays <code>www.ecomae.com</code>.
-            Industry pack (Jewellery, Auto parts, …) is stored on the registry row. This page does not invent a send: copy the temporary password from the green banner.
-            Password reveal and the original portal editor stay on the Classic twin — keep that Open link until PHP removal is approved.
+            Industry pack (Jewellery, Auto parts, …) is stored on the registry row. This page does not invent a send: copy any new password from the green banner.
         </p>
 
         @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -74,7 +73,7 @@
                 <h3 style="margin:0 0 .45rem;font-size:1.05rem">Onboard ERP-only company (no website)</h3>
                 <p class="help-block" style="margin:0 0 .75rem">
                     Four-letter company key: <code>asap</code>, <code>indj</code>, <code>fito</code>, <code>real</code>.
-                    Operator login is always <code>xxxx@@ecomae.com</code> from that key. Super CP can reset the password on this page at any time.
+                    Primary admin login is <code>xxxx@@ecomae.com</code> from that key. After that you can add more emails and set your own password below.
                     Staff open <code>/cp/client-erp/xxxx/</code> — no public storefront.
                 </p>
                 <form method="post" action="/cp/tenants/write" style="margin:0 0 1rem">
@@ -134,6 +133,51 @@
                     sync();
                 })();
                 </script>
+            </div>
+            <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1.1rem 1.15rem">
+                <h3 style="margin:0 0 .45rem;font-size:1.05rem">Passwords and extra logins</h3>
+                <ol class="help-block" style="margin:0 0 .85rem;padding-left:1.2rem">
+                    <li>Each company has one <strong>admin email</strong> (<code>indj@@ecomae.com</code>). That person signs in at <code>/cp/client-erp/indj/</code>.</li>
+                    <li><strong>Set your own password</strong> after create or reset — type the site key, the login email, and the password you want (twice, 8+ characters). This replaces the random reset password.</li>
+                    <li><strong>Add another login</strong> for the same company (accounts, warehouse, a second manager). Same ERP URL; each email has its own password.</li>
+                    <li><strong>Reset password</strong> in the table still mints a random admin password if you forgot yours — copy it from the green banner, then replace it here if you want your own.</li>
+                </ol>
+                <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:end;margin:0 0 1rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                    <input type="hidden" name="action" value="set_operator_password" />
+                    <label>Site key
+                        <input type="text" name="site_key" required maxlength="32" placeholder="indj" autocomplete="off" />
+                    </label>
+                    <label>Login email
+                        <input type="email" name="login_email" placeholder="indj@@ecomae.com" />
+                    </label>
+                    <label>New password
+                        <input type="password" name="password" required minlength="8" maxlength="72" autocomplete="new-password" />
+                    </label>
+                    <label>Confirm password
+                        <input type="password" name="confirm_password" required minlength="8" maxlength="72" autocomplete="new-password" />
+                    </label>
+                    <button type="submit" class="btn btn-primary">Set my password</button>
+                </form>
+                <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:end;margin:0">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                    <input type="hidden" name="action" value="add_operator_login" />
+                    <label>Site key
+                        <input type="text" name="site_key" required maxlength="32" placeholder="indj" autocomplete="off" />
+                    </label>
+                    <label>Extra login email
+                        <input type="email" name="login_email" required placeholder="indj.accounts@@ecomae.com" />
+                    </label>
+                    <label>Password
+                        <input type="password" name="password" required minlength="8" maxlength="72" autocomplete="new-password" />
+                    </label>
+                    <label>Confirm password
+                        <input type="password" name="confirm_password" required minlength="8" maxlength="72" autocomplete="new-password" />
+                    </label>
+                    <button type="submit" class="btn btn-default">Add extra login</button>
+                </form>
             </div>
             <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1rem">
                 <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
@@ -234,11 +278,15 @@
                                 <td>
                                     @if (!string.IsNullOrWhiteSpace(t.AdminEmail))
                                     {
-                                        <a href="@("mailto:" + t.AdminEmail)">@t.AdminEmail</a>
+                                        <div><a href="@("mailto:" + t.AdminEmail)">@t.AdminEmail</a> <span class="text-muted small">admin</span></div>
                                     }
                                     else
                                     {
                                         <span class="text-muted">—</span>
+                                    }
+                                    @foreach (var extra in t.ExtraLoginEmails)
+                                    {
+                                        <div class="small"><a href="@("mailto:" + extra)">@extra</a></div>
                                     }
                                 </td>
                                 <td>
