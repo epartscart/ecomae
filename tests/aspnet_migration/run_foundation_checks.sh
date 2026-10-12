@@ -1699,6 +1699,11 @@ check 'gated CloudPanel deploy checks production lock' contains "$ROOT/scripts/c
 check 'gated CloudPanel deploy blocks php-primary' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'GATE_PHP_PRIMARY=BLOCKED'
 check 'find-and-redeploy honors production lock' contains "$ROOT/scripts/cloudpanel_find_and_redeploy.sh" 'PRODUCTION_LOCK present'
 check 'production lock offline refuses rollback and php delete' production_lock_offline_ok
+check 'onboard four ERP-only script exists' test -x "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh"
+check 'onboard four ERP-only requires confirm' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" 'ECOMAE_CONFIRM_ONBOARD_ERP_ONLY'
+check 'onboard four ERP-only creates asap indj fito real' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" '("asap", "ASAP Autoparts", "auto_parts")'
+check 'super mail app lists yawer mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'yawer@ecomae.com'
+check 'super mail app uses PHP reference Open' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'PhpReferenceOnlyHref(_phpTab)'
 check 'CloudPanel quick start warns against var www ecomae' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Do not use `/var/www/ecomae`'
 check 'CloudPanel continue-after-env script exists' test -x "$ROOT/scripts/cloudpanel_continue_after_env.sh"
 check 'CloudPanel quick start explains nano save/exit' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Ctrl+O'

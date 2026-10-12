@@ -153,6 +153,7 @@ public static class PhpSuperCpBocNav
         new("modern_auth", "Modern auth", "identity", "fa-sign-in", "control/portal/epc_cp_auth_settings", "OAuth / OTP / MFA"),
         new("communication", "Communication", "identity", "fa-comments", "control/portal/epc_super_cp_communication", "Email policy"),
         new("tenant_email", "Tenant email / SMTP", "identity", "fa-envelope", "control/portal/epc_tenant_email_settings", "Per-tenant SMTP"),
+        new("platform_mail", "Platform mailboxes", "identity", "fa-inbox", "control/portal/epc_platform_mail", "yawer@ecomae.com + ERP-only boxes"),
         new("mfa_management", "MFA / 2FA", "identity", "fa-lock", "control/portal/epc_mfa_management", "2FA admin"),
         new("sso_saml", "SSO / SAML", "identity", "fa-key", "control/portal/epc_sso_saml", "Enterprise SSO"),
         new("event_bus", "Event bus", "identity", "fa-bolt", "control/portal/epc_event_bus", "Events"),
