@@ -1707,6 +1707,8 @@ check 'production lock offline refuses rollback and php delete' production_lock_
 check 'onboard four ERP-only script exists' test -x "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh"
 check 'onboard four ERP-only requires confirm' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" 'ECOMAE_CONFIRM_ONBOARD_ERP_ONLY'
 check 'onboard four ERP-only creates asap indj fito real' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" '("asap", "ASAP Autoparts", "auto_parts")'
+check 'onboard four ERP-only uses MYSQL_PWD not -p' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" 'MYSQL_PWD'
+check 'onboard four ERP-only falls back to clpctl master' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" 'clpctl'
 check 'super mail app lists yawer mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'ErpOnlyLaunchClients.SuperMailbox'
 check 'launch clients catalog has asap' contains "$ROOT/aspnet/src/EcomAE.Platform/Cp/ErpOnlyLaunchClients.cs" '"asap"'
 check 'launch clients catalog has yawer mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Cp/ErpOnlyLaunchClients.cs" 'yawer@ecomae.com'
