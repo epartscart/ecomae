@@ -119,6 +119,12 @@ public static class IndustrySpecificRoutePolicy
             return "fitout";
         }
 
+        if (path.Equals("/erp/real-estate-app", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/erp/real-estate/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "real_estate";
+        }
+
         return null;
     }
 
@@ -157,6 +163,12 @@ public static class IndustrySpecificRoutePolicy
             return ErpIndustryNav.IsFitOutCompany(company);
         }
 
+        if (requiredIndustry.Equals("real_estate", StringComparison.OrdinalIgnoreCase)
+            || requiredIndustry.Equals("realestate", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpIndustryNav.IsRealEstateCompany(company);
+        }
+
         return false;
     }
 
@@ -182,6 +194,14 @@ public static class IndustrySpecificRoutePolicy
                 || value.Contains("fitout", StringComparison.Ordinal)
                 || value.Contains("fit-out", StringComparison.Ordinal)
                 || value.Contains("construction", StringComparison.Ordinal);
+        }
+
+        if (required is "real_estate" or "realestate")
+        {
+            return value is "real_estate" or "realestate" or "real-estate"
+                || value.Contains("real_estate", StringComparison.Ordinal)
+                || value.Contains("real-estate", StringComparison.Ordinal)
+                || value.Contains("realestate", StringComparison.Ordinal);
         }
 
         return value.Equals(required, StringComparison.Ordinal)

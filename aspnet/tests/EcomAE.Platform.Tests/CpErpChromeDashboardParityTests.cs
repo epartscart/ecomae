@@ -193,6 +193,10 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("data-epc-industry-pack=\"fitout_contracting\"", src);
         Assert.Contains("data-epc-industry-first=\"jewellery\"", src);
         Assert.Contains("data-epc-industry-first=\"fitout\"", src);
+        Assert.Contains("data-epc-industry-first=\"real_estate\"", src);
+        Assert.Contains("Real estate investment, development and construction", src);
+        Assert.Contains("RealEstateHref(\"/erp/real-estate-app\")", src);
+        Assert.Contains("ShowRealEstateModules", src, StringComparison.Ordinal);
         Assert.True(
             src.IndexOf("data-epc-industry-first=\"jewellery\"", StringComparison.Ordinal)
             < src.IndexOf("<div class=\"ns-hero\">", StringComparison.Ordinal));

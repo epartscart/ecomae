@@ -124,7 +124,7 @@
                 </span>
                 <span>@_ctx.BrandLabel ERP</span>
             </a>
-            <ErpGlobalSearch Jewellery="_jewellery" FitOut="_fitOut" CompanyId="_activeCompanyId" />
+            <ErpGlobalSearch Jewellery="_jewellery" FitOut="_fitOut" RealEstate="_realEstate" CompanyId="_activeCompanyId" />
             <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact" aria-label="ERP topbar">
                 <a href="@ErpHomeHref">Dashboard</a>
                 <a href="/attention">Attention</a>
@@ -506,6 +506,7 @@
     private bool _signedIn;
     private bool _jewellery;
     private bool _fitOut;
+    private bool _realEstate;
     private long _activeCompanyId;
     private string _userLabel = "Admin session";
     private string _companyLabel = "MAIN";
@@ -624,13 +625,18 @@
             _companyLabel = LegalOrganizationLabel.Display(active.Code, active.Name, null, _ctx.BrandLabel);
             _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
             _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
-            _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
-            _industryLabel = ErpIndustryNav.IndustryLabelForPack(active.IndustryPack, _jewellery);
+            _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+            _industryCode = _jewellery ? "jewellery"
+                : _realEstate ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "real_estate" : active.IndustryPack)
+                : _fitOut ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "fit_out" : active.IndustryPack)
+                : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
+            _industryLabel = ErpIndustryNav.IndustryLabelForPack(_industryCode, _jewellery);
         }
         else
         {
             _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
             _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
+            _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
         }
 
         _nav = ErpIndustryNav.FilterTopnav(

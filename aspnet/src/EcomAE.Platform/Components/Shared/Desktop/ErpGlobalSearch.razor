@@ -20,6 +20,7 @@
 @code {
     [Parameter] public bool Jewellery { get; set; }
     [Parameter] public bool FitOut { get; set; }
+    [Parameter] public bool RealEstate { get; set; }
     [Parameter] public long CompanyId { get; set; }
 
     private readonly string _inputId = "epc-erp-global-search-" + Guid.NewGuid().ToString("N")[..8];
@@ -28,7 +29,7 @@
     protected override void OnParametersSet()
     {
         var key = ClientErpPath.BoundSiteKey(Http.HttpContext);
-        var entries = ErpGlobalSearchCatalog.Build(Jewellery, FitOut)
+        var entries = ErpGlobalSearchCatalog.Build(Jewellery, FitOut, RealEstate)
             .Select(e => new
             {
                 label = e.Label,

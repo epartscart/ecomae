@@ -5,7 +5,7 @@ public static class ErpGlobalSearchCatalog
 {
     public sealed record Entry(string Label, string Href, string Group, string Icon);
 
-    public static IReadOnlyList<Entry> Build(bool jewellery, bool fitOut)
+    public static IReadOnlyList<Entry> Build(bool jewellery, bool fitOut, bool realEstate = false)
     {
         var rows = new List<Entry>(180);
         foreach (var tab in PhpModuleCatalog.ErpTabs.Concat(PhpModuleCatalog.AspNetErpTabs))
@@ -42,6 +42,19 @@ public static class ErpGlobalSearchCatalog
                 new("Site delivery dashboard", "/erp/fitout/delivery-dashboard", "industry", "fa-truck"),
                 new("Project P&L & forecast", "/erp/fitout/executive-dashboard", "industry", "fa-line-chart"),
                 new("Approval queue", "/erp/fitout/approval-queue", "industry", "fa-check-circle"),
+            ]);
+        }
+
+        if (realEstate)
+        {
+            rows.InsertRange(0,
+            [
+                new("Real estate workspace", "/erp/real-estate-app", "industry", "fa-building"),
+                new("Investment opportunities", "/erp/real-estate-app?tab=opportunities", "industry", "fa-lightbulb-o"),
+                new("Property register", "/erp/real-estate-app?tab=properties", "industry", "fa-home"),
+                new("Leases and collections", "/erp/real-estate-app?tab=leases", "industry", "fa-key"),
+                new("Development projects", "/erp/real-estate-app?tab=projects", "industry", "fa-sitemap"),
+                new("Contractor certificates", "/erp/real-estate-app?tab=construction", "industry", "fa-hard-hat"),
             ]);
         }
 

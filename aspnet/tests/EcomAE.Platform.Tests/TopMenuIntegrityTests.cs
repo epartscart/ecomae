@@ -164,7 +164,7 @@ public sealed class TopMenuIntegrityTests
             }
         }
 
-        foreach (var industry in new string?[] { null, "auto_parts", "jewellery", "fit_out" })
+        foreach (var industry in new string?[] { null, "auto_parts", "jewellery", "fit_out", "real_estate" })
         {
             foreach (var super in new[] { false, true })
             {

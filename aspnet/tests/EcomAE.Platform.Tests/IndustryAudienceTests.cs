@@ -55,6 +55,9 @@ public sealed class IndustryAudienceTests
         Assert.False(IndustrySpecificRoutePolicy.Allows("fitout", "auto_parts", null, "jewellery"));
         Assert.True(IndustrySpecificRoutePolicy.Matches("auto_parts", "auto_parts"));
         Assert.True(IndustrySpecificRoutePolicy.Matches("real_estate", "real_estate"));
+        Assert.True(IndustrySpecificRoutePolicy.Matches("real_estate", "real-estate-development"));
+        Assert.True(IndustrySpecificRoutePolicy.Allows("real_estate", "auto_parts", null, "real_estate"));
+        Assert.False(IndustrySpecificRoutePolicy.Allows("real_estate", "auto_parts", null, "jewellery"));
         Assert.False(IndustrySpecificRoutePolicy.Matches("real_estate", "jewellery"));
     }
 
@@ -66,8 +69,10 @@ public sealed class IndustryAudienceTests
 
         Assert.True(ErpIndustryNav.ShowJewelleryModules(super, main, "jewellery"));
         Assert.True(ErpIndustryNav.ShowFitOutModules(super, main, "fit_out"));
+        Assert.True(ErpIndustryNav.ShowRealEstateModules(super, main, "real_estate"));
         Assert.False(ErpIndustryNav.ShowJewelleryModules(super, main, "auto_parts"));
         Assert.False(ErpIndustryNav.ShowFitOutModules(super, main, "jewellery"));
+        Assert.False(ErpIndustryNav.ShowRealEstateModules(super, main, "jewellery"));
     }
 
     [Theory]

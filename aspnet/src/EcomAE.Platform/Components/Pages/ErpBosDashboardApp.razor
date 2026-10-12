@@ -100,6 +100,25 @@
                 </div>
             </div>
         }
+        @if (_realEstate)
+        {
+            <div class="ns-port ns-realestate-pack" data-epc-industry-pack="real-estate-development" data-epc-industry-first="real_estate">
+                <h4><i class="fa fa-home"></i> Real estate investment, development and construction</h4>
+                <div class="bd">
+                    <div class="ns-tiles ns-fitout-module-grid" style="margin:0">
+                        <a class="ns-tile teal" href="@RealEstateHref("/erp/real-estate-app")"><i class="fa fa-dashboard ic"></i><span class="tl">Portfolio dashboard</span></a>
+                        <a class="ns-tile gold" href="@RealEstateHref("/erp/real-estate-app?tab=opportunities")"><i class="fa fa-lightbulb-o ic"></i><span class="tl">Investment opportunities</span></a>
+                        <a class="ns-tile green" href="@RealEstateHref("/erp/real-estate-app?tab=properties")"><i class="fa fa-building ic"></i><span class="tl">Property &amp; unit register</span></a>
+                        <a class="ns-tile blue" href="@RealEstateHref("/erp/real-estate-app?tab=leases")"><i class="fa fa-key ic"></i><span class="tl">Tenants &amp; leases</span></a>
+                        <a class="ns-tile rust" href="@RealEstateHref("/erp/real-estate-app?tab=collections")"><i class="fa fa-money ic"></i><span class="tl">Rent &amp; cheques</span></a>
+                        <a class="ns-tile purple" href="@RealEstateHref("/erp/real-estate-app?tab=projects")"><i class="fa fa-sitemap ic"></i><span class="tl">Development projects</span></a>
+                        <a class="ns-tile orange" href="@RealEstateHref("/erp/real-estate-app?tab=construction")"><i class="fa fa-hard-hat ic"></i><span class="tl">Contracts &amp; certificates</span></a>
+                        <a class="ns-tile slate" href="@RealEstateHref("/erp/real-estate-app?tab=reports")"><i class="fa fa-bar-chart ic"></i><span class="tl">ROI &amp; reports</span></a>
+                    </div>
+                    <p class="ns-fitout-scope-note"><i class="fa fa-lock"></i> Opportunities stay off the balance sheet until purchase. Cheques are not cash until clearance. Finance stays on GL, invoices, VAT and ageing.</p>
+                </div>
+            </div>
+        }
         <div class="ns-hero">
             <div class="ns-hero-panel">
                 <div class="ns-hero-kicker"><i class="fa @_profile.Icon"></i> @_profile.Label</div>
@@ -845,6 +864,7 @@
     private bool _jewellery;
     private IReadOnlyList<PhpModuleCatalog.ModuleLink> _directoryTabs = PhpModuleCatalog.ErpTabs;
     private bool _fitOut;
+    private bool _realEstate;
     private long _activeCompanyId;
     private string _companyLabel = "MAIN";
     private string _heroEntity = "Operations";
@@ -921,6 +941,8 @@
         return WithCompany(pathAndQuery) + fragment;
     }
 
+    private string RealEstateHref(string href) => _realEstate ? WithCompany(href) : href;
+
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
@@ -952,13 +974,18 @@
 
                 _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
                 _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
-                _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
-                _industryLabel = ErpIndustryNav.IndustryLabelForPack(active.IndustryPack, _jewellery);
+                _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+                _industryCode = _jewellery ? "jewellery"
+                    : _realEstate ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "real_estate" : active.IndustryPack)
+                    : _fitOut ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "fit_out" : active.IndustryPack)
+                    : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
+                _industryLabel = ErpIndustryNav.IndustryLabelForPack(_industryCode, _jewellery);
             }
             else
             {
                 _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
                 _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
+                _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
                 _heroEntity = string.IsNullOrWhiteSpace(_ctx.BrandLabel) ? "Operations" : _ctx.BrandLabel;
             }
         }
@@ -1040,7 +1067,7 @@
         _fin = ErpNetsuiteDashboardCatalog.ResolveFinancials(_profile, _cur, _currency);
         var days = ErpNetsuiteDashboardCatalog.PeriodDaysInclusive(_periodFrom, _periodTo);
         _opKpis = ErpNetsuiteDashboardCatalog.OperationalKpis(_profile, _cur, days);
-        _directoryTabs = ErpIndustryNav.DirectoryTabs(_jewellery, _fitOut);
+        _directoryTabs = ErpIndustryNav.DirectoryTabs(_jewellery, _fitOut, _realEstate);
         _controls = ErpNetsuiteDashboardCatalog.IndustryControls(_industryCode, _jewellery);
         _controlDone = _controls.Count(c => _controlState.TryGetValue(c.Code, out var flag) && flag != 0);
         _workspaceGroups = ErpCapabilityCatalog.Groups.Where(WorkspaceVisible).ToArray();
@@ -1057,6 +1084,7 @@
         {
             "jewellery" => _jewellery,
             "projects" => _fitOut,
+            "real_estate" => _realEstate,
             _ => _hasFullErpAccess || WorkspaceRoleVisible(group),
         };
 

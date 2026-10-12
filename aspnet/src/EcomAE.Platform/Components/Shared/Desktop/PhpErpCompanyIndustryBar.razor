@@ -93,6 +93,10 @@
             {
                 <em class="epc-erp-jw-badge">Jewellery modules</em>
             }
+            else if (_realEstate)
+            {
+                <em class="epc-erp-realestate-badge">Real-estate modules</em>
+            }
             else if (_fitOut)
             {
                 <em class="epc-erp-fitout-badge">Fit-out modules</em>
@@ -125,7 +129,7 @@
                             <strong>@LegalOrganizationLabel.Display(company.Code, company.Name)</strong>
                             <span class="text-muted epc-erp-company-meta">
                                 @(string.IsNullOrWhiteSpace(company.CurrencyCode) ? "AED" : company.CurrencyCode)
-                                · @(jw ? "jewellery modules" : ErpIndustryNav.IsFitOutCompany(company) ? "fit-out modules" : "core modules")
+                                · @(jw ? "jewellery modules" : ErpIndustryNav.IsRealEstateCompany(company) ? "real-estate modules" : ErpIndustryNav.IsFitOutCompany(company) ? "fit-out modules" : "core modules")
                                 @if (!string.IsNullOrWhiteSpace(company.IndustryPack))
                                 {
                                     <text> · @company.IndustryPack</text>
@@ -201,6 +205,7 @@
     private string _industryLabel = "Core / multi-industry";
     private bool _jewellery;
     private bool _fitOut;
+    private bool _realEstate;
     private bool _showFleet;
     private string _message = "";
 
@@ -219,6 +224,7 @@
             _industryCode = _ctx.IndustryCode;
             _industryLabel = _ctx.IndustryLabel;
             _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(Http.HttpContext));
+            _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(Http.HttpContext));
             return;
         }
 
@@ -229,7 +235,11 @@
         _activeLabel = LegalOrganizationLabel.Display(current.Code, current.Name, null, _ctx.BrandLabel);
         _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, current, TenantContext.IndustryFrom(Http.HttpContext));
         _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, current, TenantContext.IndustryFrom(Http.HttpContext));
-        _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(current.IndustryPack) ? "core" : current.IndustryPack);
-        _industryLabel = ErpIndustryNav.IndustryLabelForPack(current.IndustryPack, _jewellery);
+        _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, current, TenantContext.IndustryFrom(Http.HttpContext));
+        _industryCode = _jewellery ? "jewellery"
+            : _realEstate ? (string.IsNullOrWhiteSpace(current.IndustryPack) ? "real_estate" : current.IndustryPack)
+            : _fitOut ? (string.IsNullOrWhiteSpace(current.IndustryPack) ? "fit_out" : current.IndustryPack)
+            : (string.IsNullOrWhiteSpace(current.IndustryPack) ? "core" : current.IndustryPack);
+        _industryLabel = ErpIndustryNav.IndustryLabelForPack(_industryCode, _jewellery);
     }
 }

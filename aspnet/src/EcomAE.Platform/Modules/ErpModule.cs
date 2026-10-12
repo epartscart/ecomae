@@ -421,6 +421,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationRegen, HandleUaeTaxLegislationRegenAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationChecklistSet, HandleUaeTaxLegislationChecklistSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPmSave, HandlePmSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpRealEstateSave, HandleRealEstateSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpIndustryApply, HandleIndustryApplyAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpIndustryCurrent, HandleIndustryCurrentAsync);
         endpoints.MapPost(EcomAeRoutes.ErpPmBudgetSave, HandlePmBudgetSaveAsync).DisableAntiforgery();
@@ -23526,6 +23527,83 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/organization-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleRealEstateSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpRealEstateWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/real-estate-app", "Admin ERP capability required for real-estate save.");
+        }
+
+        var form = context.Request.HasFormContentType
+            ? await context.Request.ReadFormAsync(cancellationToken)
+            : null;
+        var confirm = form is not null && LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        var request = new ErpRealEstateWriteRequest(
+            Action: form is null ? "" : LiveWriteFormBinder.Text(form, "action"),
+            Id: form is null ? 0 : LiveWriteFormBinder.Long(form, "id"),
+            RelatedId: form is null ? 0 : LiveWriteFormBinder.Long(form, "relatedId", "related_id"),
+            LegalEntityId: form is null ? 0 : LiveWriteFormBinder.Long(form, "legalEntityId", "legal_entity_id"),
+            PropertyId: form is null ? 0 : LiveWriteFormBinder.Long(form, "propertyId", "property_id"),
+            UnitId: form is null ? 0 : LiveWriteFormBinder.Long(form, "unitId", "unit_id"),
+            TenantId: form is null ? 0 : LiveWriteFormBinder.Long(form, "tenantId", "tenant_id"),
+            LeaseId: form is null ? 0 : LiveWriteFormBinder.Long(form, "leaseId", "lease_id"),
+            ProjectId: form is null ? 0 : LiveWriteFormBinder.Long(form, "projectId", "project_id"),
+            ContractId: form is null ? 0 : LiveWriteFormBinder.Long(form, "contractId", "contract_id"),
+            OpportunityId: form is null ? 0 : LiveWriteFormBinder.Long(form, "opportunityId", "opportunity_id"),
+            Code: form is null ? null : LiveWriteFormBinder.Text(form, "code"),
+            Name: form is null ? null : LiveWriteFormBinder.Text(form, "name"),
+            Status: form is null ? null : LiveWriteFormBinder.Text(form, "status"),
+            Category: form is null ? null : LiveWriteFormBinder.Text(form, "category"),
+            Emirate: form is null ? null : LiveWriteFormBinder.Text(form, "emirate"),
+            City: form is null ? null : LiveWriteFormBinder.Text(form, "city"),
+            Address: form is null ? null : LiveWriteFormBinder.Text(form, "address"),
+            TitleDeed: form is null ? null : LiveWriteFormBinder.Text(form, "titleDeed", "title_deed"),
+            Tenure: form is null ? null : LiveWriteFormBinder.Text(form, "tenure"),
+            Note: form is null ? null : LiveWriteFormBinder.Text(form, "note"),
+            Counterparty: form is null ? null : LiveWriteFormBinder.Text(form, "counterparty"),
+            Frequency: form is null ? null : LiveWriteFormBinder.Text(form, "frequency"),
+            ChequeNo: form is null ? null : LiveWriteFormBinder.Text(form, "chequeNo", "cheque_no"),
+            BankName: form is null ? null : LiveWriteFormBinder.Text(form, "bankName", "bank_name"),
+            VatCode: form is null ? null : LiveWriteFormBinder.Text(form, "vatCode", "vat_code"),
+            Amount: form is null ? 0 : LiveWriteFormBinder.Dec(form, "amount"),
+            Amount2: form is null ? 0 : LiveWriteFormBinder.Dec(form, "amount2"),
+            Amount3: form is null ? 0 : LiveWriteFormBinder.Dec(form, "amount3"),
+            Percent: form is null ? 0 : LiveWriteFormBinder.Dec(form, "percent"),
+            Area: form is null ? 0 : LiveWriteFormBinder.Dec(form, "area"),
+            Count: form is null ? 0 : (int)LiveWriteFormBinder.Long(form, "count"),
+            ActorId: (int)session.UserId,
+            Date1: form is null ? null : LiveWriteFormBinder.Text(form, "date1"),
+            Date2: form is null ? null : LiveWriteFormBinder.Text(form, "date2"),
+            ConfirmWrites: confirm);
+        if (!confirm)
+        {
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                writesBlocked = true,
+                phpAuthoritative = false,
+                validation_code = "dry_run",
+                message = "Dry run — real-estate write blocked without confirmWrites=true",
+                action = request.Action,
+                session = SessionPayload(session),
+            });
+        }
+
+        var written = await writes.SaveAsync(request, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/real-estate-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });

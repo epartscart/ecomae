@@ -72,6 +72,7 @@ public sealed class ErpPhpTabRouteMapTests
     [InlineData("product_info", "/erp/product-info-app")]
     [InlineData("report_scheduler", "/erp/report-scheduler-app")]
     [InlineData("project_accounting", "/erp/project-accounting-app")]
+    [InlineData("real_estate", "/erp/real-estate-app")]
     [InlineData("doc_attachment", "/erp/doc-attachments-app")]
     [InlineData("inventory_report", "/erp/inventory-report-app")]
     [InlineData("dashboard", "/erp/dashboard-summary-app")]

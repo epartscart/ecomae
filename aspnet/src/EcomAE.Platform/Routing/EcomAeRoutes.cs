@@ -3015,6 +3015,8 @@ public static class EcomAeRoutes
     public const string ErpUaeTaxLegislationChecklistSet = "/erp/uae-tax/legislation/checklist/set";
     /// <summary>HTML form POST for PHP pm_save. confirmWrites=true writes via IErpPmSaveWriteService.</summary>
     public const string ErpPmSave = "/erp/pm/save";
+    public const string ErpRealEstateApp = "/erp/real-estate-app";
+    public const string ErpRealEstateSave = "/erp/real-estate/save";
 
     /// <summary>PHP epc-erp-advanced-setup.php?industry=… → epc_erp_industry_apply(). confirmWrites=true applies the blueprint to the tenant DB.</summary>
     public const string ErpIndustryApply = "/erp/industry/apply";

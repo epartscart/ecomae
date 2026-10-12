@@ -1170,6 +1170,8 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutOperationsReportReadSer
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutEstimateRevisionReadService, EcomAE.Platform.Erp.ErpFitOutEstimateRevisionReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutBoqReadService, EcomAE.Platform.Erp.ErpFitOutBoqReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutFinanceOperationsReportReadService, EcomAE.Platform.Erp.ErpFitOutFinanceOperationsReportReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRealEstateWriteService, EcomAE.Platform.Erp.ErpRealEstateWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRealEstateReadService, EcomAE.Platform.Erp.ErpRealEstateReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsDocDeleteWriteService, EcomAE.Platform.Erp.ErpInsDocDeleteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFyWriteService, EcomAE.Platform.Erp.ErpFyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFixedAssetWriteService, EcomAE.Platform.Erp.ErpFixedAssetWriteService>();

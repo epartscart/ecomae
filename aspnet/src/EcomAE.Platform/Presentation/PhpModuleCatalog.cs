@@ -58,6 +58,12 @@ public static partial class PhpModuleCatalog
             "Declaration registry, duty and re-export reports", false, false, "Inquiries and reports"),
         new("setup/user_control", "ERP user control", "/ERP/?epc_erp_shell=1&area=setup&tab=user_control", "fa-lock", "setup",
             "Role, capability and module access review", false, false, "Security"),
+        new("projects/real_estate", "Real estate investment", "/erp/real-estate-app", "fa-building", "projects",
+            "Property register, pipeline, leases, development and construction", false, false, "Common"),
+        new("projects/real_estate_leases", "Leases and collections", "/erp/real-estate-app?tab=leases", "fa-key", "projects",
+            "Tenants, rent schedules, cheques and security deposits", false, false, "Common"),
+        new("projects/real_estate_projects", "Development and construction", "/erp/real-estate-app?tab=projects", "fa-hard-hat", "projects",
+            "Development projects, unit sales and contractor certificates", false, false, "Periodic"),
     ];
 
     public static int TotalTrackedCount =>

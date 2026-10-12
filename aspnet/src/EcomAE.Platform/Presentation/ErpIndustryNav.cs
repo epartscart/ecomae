@@ -91,6 +91,44 @@ public static class ErpIndustryNav
             || name.Contains("construction", StringComparison.Ordinal);
     }
 
+    public static bool IsRealEstateIndustry(string? industryCode)
+    {
+        var code = (industryCode ?? string.Empty).Trim().ToLowerInvariant();
+        return code.Contains("real_estate", StringComparison.Ordinal)
+            || code.Contains("real-estate", StringComparison.Ordinal)
+            || code.Contains("realestate", StringComparison.Ordinal);
+    }
+
+    public static bool ShowRealEstateModules(string? hostIndustryCode, ErpCompanyDigest? company, string? tenantIndustry = null)
+        => IsRealEstateIndustry(hostIndustryCode) || IsRealEstateIndustry(tenantIndustry) || IsRealEstateCompany(company);
+
+    public static bool IsRealEstateTab(PhpModuleCatalog.ModuleLink tab)
+    {
+        var key = TabKey(tab);
+        var href = tab.Href ?? string.Empty;
+        return key.StartsWith("real_estate", StringComparison.OrdinalIgnoreCase)
+            || href.Contains("/erp/real-estate-app", StringComparison.OrdinalIgnoreCase)
+            || href.Contains("tab=real_estate", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool IsRealEstateCompany(ErpCompanyDigest? company)
+    {
+        if (company is null)
+        {
+            return false;
+        }
+
+        var pack = (company.IndustryPack ?? string.Empty).Trim().ToLowerInvariant();
+        var code = (company.Code ?? string.Empty).Trim().ToLowerInvariant();
+        var name = (company.Name ?? string.Empty).Trim().ToLowerInvariant();
+        return pack.Contains("real_estate", StringComparison.Ordinal)
+            || pack.Contains("real-estate", StringComparison.Ordinal)
+            || pack.Contains("realestate", StringComparison.Ordinal)
+            || code is "real" or "re"
+            || name.Contains("real estate", StringComparison.Ordinal)
+            || name.Contains("real-estate", StringComparison.Ordinal);
+    }
+
     public static bool IsJewelleryFromHostOrPack(string? industryCode, string? industryPack, ErpCompanyDigest? company)
     {
         if (IsJewelleryCompany(company))
@@ -156,11 +194,16 @@ public static class ErpIndustryNav
     /// tabs are omitted unless the tenant/company is jewellery.
     /// </summary>
     public static IReadOnlyList<PhpModuleCatalog.ModuleLink> DirectoryTabs(bool jewelleryCompany)
-        => DirectoryTabs(jewelleryCompany, fitOutCompany: true);
+        => DirectoryTabs(jewelleryCompany, fitOutCompany: true, realEstateCompany: true);
 
     public static IReadOnlyList<PhpModuleCatalog.ModuleLink> DirectoryTabs(bool jewelleryCompany, bool fitOutCompany)
+        => DirectoryTabs(jewelleryCompany, fitOutCompany, realEstateCompany: true);
+
+    public static IReadOnlyList<PhpModuleCatalog.ModuleLink> DirectoryTabs(bool jewelleryCompany, bool fitOutCompany, bool realEstateCompany)
         => PhpModuleCatalog.ErpTabs
-            .Where(t => (jewelleryCompany || !IsJewelleryTab(t)) && (fitOutCompany || !IsFitOutTab(t)))
+            .Where(t => (jewelleryCompany || !IsJewelleryTab(t))
+                && (fitOutCompany || !IsFitOutTab(t))
+                && (realEstateCompany || !IsRealEstateTab(t)))
             .ToList();
 
     /// <summary>
@@ -311,6 +354,11 @@ public static class ErpIndustryNav
             return new(false, "industry", "Project accounting requires the fit-out / construction industry pack.");
         }
 
+        if (IsRealEstateTab(tab) && !ShowRealEstateModules(audience.IndustryCode, audience.Company))
+        {
+            return new(false, "industry", "Real estate requires the real-estate investment industry pack.");
+        }
+
         if (audience.DisabledTabIds is { Count: > 0 }
             && (audience.DisabledTabIds.Contains(tab.Id)
                 || audience.DisabledTabIds.Contains(TabKey(tab))))
@@ -371,6 +419,7 @@ public static class ErpIndustryNav
             new ErpCompanyDigest(1, "MAIN", mainName, "AED", "AE", "", true),
             new ErpCompanyDigest(2, "JW", "Jewellery Division", "AED", "AE", "jewellery_diamond", true),
             new ErpCompanyDigest(3, "FITOUT", "Fit-out Company", "AED", "AE", "fitout_contracting", true),
+            new ErpCompanyDigest(4, "REAL", "Real Estate Company", "AED", "AE", "real-estate-development", true),
         ];
     }
 
@@ -418,6 +467,11 @@ public static class ErpIndustryNav
         if (jewellery)
         {
             return string.IsNullOrWhiteSpace(pack) ? "Jewellery & luxury" : pack.Replace('_', ' ');
+        }
+
+        if (IsRealEstateIndustry(pack))
+        {
+            return string.IsNullOrWhiteSpace(pack) ? "Real estate" : pack.Replace('_', ' ').Replace('-', ' ');
         }
 
         return string.IsNullOrWhiteSpace(pack) ? "Core / multi-industry" : pack.Replace('_', ' ');

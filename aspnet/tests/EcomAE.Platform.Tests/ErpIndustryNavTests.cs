@@ -40,8 +40,9 @@ public sealed class ErpIndustryNavTests
         Assert.Contains(merged, c => c.Id == 2 && c.Code == "JW");
 
         var empty = ErpIndustryNav.EnsureSwitchableCompanies([], isSuperCpHost: true, "ECOM AE");
-        Assert.Equal(3, empty.Count);
+        Assert.Equal(4, empty.Count);
         Assert.Contains(empty, c => c.Id == 3 && c.Code == "FITOUT" && c.IndustryPack == "fitout_contracting");
+        Assert.Contains(empty, c => c.Id == 4 && c.Code == "REAL" && c.IndustryPack == "real-estate-development");
 
         var emptyTenant = ErpIndustryNav.EnsureSwitchableCompanies([], isSuperCpHost: false, "eParts");
         Assert.Contains(emptyTenant, c => c.Id == 2 && c.Code == "JW");
@@ -77,7 +78,9 @@ public sealed class ErpIndustryNavTests
             new ErpCompanyDigest(2, "JW", "Jewellery Division", "AED", "AE", "jewellery_diamond", true)));
         Assert.True(ErpIndustryNav.ShowJewelleryModules(super.IndustryCode, main, "jewellery"));
         Assert.True(ErpIndustryNav.ShowFitOutModules(super.IndustryCode, main, "fit_out"));
+        Assert.True(ErpIndustryNav.ShowRealEstateModules(super.IndustryCode, main, "real_estate"));
         Assert.False(ErpIndustryNav.ShowJewelleryModules(super.IndustryCode, main, "auto_parts"));
+        Assert.False(ErpIndustryNav.ShowRealEstateModules(super.IndustryCode, main, "auto_parts"));
     }
 
     [Fact]
@@ -92,6 +95,7 @@ public sealed class ErpIndustryNavTests
         {
             var text = File.ReadAllText(FindRepoFile(relative));
             Assert.Contains("ShowJewelleryModules", text, StringComparison.Ordinal);
+            Assert.Contains("ShowRealEstateModules", text, StringComparison.Ordinal);
             Assert.Contains("TenantContext.IndustryFrom", text, StringComparison.Ordinal);
             Assert.DoesNotContain("_jewellery = ErpIndustryNav.IsJewelleryCompany(", text, StringComparison.Ordinal);
         }
