@@ -233,6 +233,29 @@ public sealed class ClientErpPathTests
     }
 
     [Fact]
+    public void ForErpOnly_RealEstate_UsesSkylineNotFleet()
+    {
+        var brand = LoginHostBrand.ForErpOnly("real", "REAL Real Estate", "real_estate");
+        Assert.Equal(LoginHostBrand.Kind.CompanyMark, brand.LogoKind);
+        Assert.Equal("real", brand.SiteKey);
+        Assert.Equal("REAL Real Estate", brand.Label);
+        Assert.Equal("skyline", brand.AtmosphereTheme);
+        Assert.Equal("#0f766e", brand.AccentHex);
+        Assert.Contains("bos-login--tenant-realestate", brand.RootModifierClass, StringComparison.Ordinal);
+        Assert.DoesNotContain("bos-login--tenant-jewellery", brand.RootModifierClass, StringComparison.Ordinal);
+        Assert.True(string.IsNullOrWhiteSpace(brand.LogoUrl));
+        Assert.Equal("fa-home", LoginHostBrand.CompanyMarkIcon("real_estate"));
+
+        var content = LoginIndustryContent.For(brand, "erp");
+        Assert.Equal("real_estate", content.IndustryCode);
+        Assert.Contains("Real Estate ERP", content.FormTitle, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(content.Capabilities, c => c.Title.Contains("Property", StringComparison.OrdinalIgnoreCase)
+            || c.Title.Contains("Leasing", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(content.Stats, s => s.Label.Equals("Tenants", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(content.Capabilities, c => c.Title.Contains("Gold", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void ReadRow_SurvivesMissingDedicatedColumns()
     {
         var table = new DataTable();

@@ -48,6 +48,28 @@ public sealed class LoginIndustryContentTests
     }
 
     [Fact]
+    public void ErpOnlyRealEstate_UsesPropertyNotFleetCopy()
+    {
+        var brand = LoginHostBrand.ForErpOnly("real", "REAL Real Estate", "real_estate");
+        var content = LoginIndustryContent.For(brand, "erp");
+
+        Assert.Equal("real_estate", content.IndustryCode);
+        Assert.Equal("REAL Real Estate", content.HeroTitle);
+        Assert.Equal("skyline", brand.AtmosphereTheme);
+        Assert.Contains("bos-login--tenant-realestate", brand.RootModifierClass, StringComparison.Ordinal);
+        Assert.Contains("Real Estate", content.FormTitle, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(content.Capabilities, c => c.Title.Contains("Property", StringComparison.OrdinalIgnoreCase)
+            || c.Title.Contains("Leasing", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(content.PanelFeatures, f => f.Contains("cheques", StringComparison.OrdinalIgnoreCase)
+            || f.Contains("certificates", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(content.Stats, s => s.Label.Equals("Tenants", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(content.Stats, s => s.Label.Equals("Industries", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(content.Capabilities, c => c.Title.Contains("Gold", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(content.Capabilities, c => c.Title.Contains("Parts", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(content.PanelFeatures, f => f.Contains("Workforce Management", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void SuperErp_KeepsFleetStats()
     {
         var brand = LoginHostBrand.Resolve("www.ecomae.com", "erp");

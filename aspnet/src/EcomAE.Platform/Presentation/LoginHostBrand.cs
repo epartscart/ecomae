@@ -129,11 +129,28 @@ public static class LoginHostBrand
             };
         }
 
+        if (industry is "real_estate" or "realestate" or "real-estate")
+        {
+            return new(
+                Kind.CompanyMark,
+                site,
+                label,
+                "Investment, development and construction",
+                null,
+                "#0f766e",
+                "rgba(15,118,110,.32)",
+                "skyline",
+                [
+                    "rgba(45,212,191,.9)", "rgba(15,118,110,.7)", "rgba(251,191,36,.5)",
+                    "rgba(255,255,255,.5)", "rgba(20,184,166,.55)", "rgba(180,83,9,.4)"
+                ],
+                "bos-login--erp bos-login--client-erp bos-login--tenant-realestate");
+        }
+
         var tagline = industry switch
         {
             "auto_parts" or "autoparts" => "Automotive spare parts ERP",
             "fit_out" or "fitout" or "fit-out" => "Fit-out ERP",
-            "real_estate" or "realestate" => "Real-estate ERP",
             "tax_advisory" or "finance" => "Tax & advisory ERP",
             _ => "Company ERP",
         };
