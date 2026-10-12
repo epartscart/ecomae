@@ -9811,6 +9811,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
 
             var tenantProfile = await ReadTenantIndustryProfileAsync(connection, cancellationToken).ConfigureAwait(false);
+            var legalName = await ReadTenantLegalNameAsync(connection, cancellationToken).ConfigureAwait(false);
             var rows = new List<ErpCompanyDigest>();
             await using (var list = connection.CreateCommand())
             {
@@ -9826,10 +9827,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         industryPack = tenantProfile;
                     }
 
+                    var rawName = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
                     rows.Add(new ErpCompanyDigest(
                         id,
                         Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        LegalOrganizationLabel.Resolve(rawName, legalName),
                         Convert.ToString(reader["currency_code"] is DBNull ? string.Empty : reader["currency_code"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["country_code"] is DBNull ? string.Empty : reader["country_code"], CultureInfo.InvariantCulture) ?? string.Empty,
                         industryPack ?? string.Empty,
@@ -9859,6 +9861,24 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var cmd = connection.CreateCommand();
             ErpFirstPaint.ApplyIfErp(cmd);
             cmd.CommandText = "SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key` = 'erp_industry_profile' LIMIT 1";
+            var value = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return value is null or DBNull ? string.Empty : (Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty).Trim();
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    private static async Task<string> ReadTenantLegalNameAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            ErpFirstPaint.ApplyIfErp(cmd);
+            cmd.CommandText =
+                "SELECT COALESCE(NULLIF(TRIM(`legal_name`),''), NULLIF(TRIM(`trade_name`),''), '')" +
+                " FROM `epc_co_profile` WHERE `id` = 1 LIMIT 1";
             var value = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
             return value is null or DBNull ? string.Empty : (Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty).Trim();
         }
@@ -9901,23 +9921,39 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 industryPack = await ReadTenantIndustryProfileAsync(connection, cancellationToken).ConfigureAwait(false);
             }
 
-            await using var command = connection.CreateCommand();
-            command.CommandText = LegacySurfaceDashboardSql.SelectErpCompanyById;
-            AddParameter(command, "@id", companyId);
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            long id;
+            string code;
+            string rawName;
+            string currency;
+            string country;
+            bool active;
+            await using (var command = connection.CreateCommand())
             {
-                return null;
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpCompanyById;
+                AddParameter(command, "@id", companyId);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return null;
+                }
+
+                id = Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture);
+                code = Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty;
+                rawName = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                currency = Convert.ToString(reader["currency_code"] is DBNull ? string.Empty : reader["currency_code"], CultureInfo.InvariantCulture) ?? string.Empty;
+                country = Convert.ToString(reader["country_code"] is DBNull ? string.Empty : reader["country_code"], CultureInfo.InvariantCulture) ?? string.Empty;
+                active = Convert.ToInt32(reader["active"] is DBNull ? 1 : reader["active"], CultureInfo.InvariantCulture) != 0;
             }
 
+            var legalName = await ReadTenantLegalNameAsync(connection, cancellationToken).ConfigureAwait(false);
             return new ErpCompanyDigest(
-                Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
-                Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
-                Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
-                Convert.ToString(reader["currency_code"] is DBNull ? string.Empty : reader["currency_code"], CultureInfo.InvariantCulture) ?? string.Empty,
-                Convert.ToString(reader["country_code"] is DBNull ? string.Empty : reader["country_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                id,
+                code,
+                LegalOrganizationLabel.Resolve(rawName, legalName),
+                currency,
+                country,
                 industryPack,
-                Convert.ToInt32(reader["active"] is DBNull ? 1 : reader["active"], CultureInfo.InvariantCulture) != 0);
+                active);
         }
         catch
         {

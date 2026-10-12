@@ -74,6 +74,13 @@
     .epc-erp-host-sub { margin:0 0 .85rem; color:var(--muted); font-size:13px; font-weight:600; }
     .epc-erp-content-body { min-width:0; max-width:100%; overflow-x:auto; box-sizing:border-box; font-size:14px; }
     .epc-erp-foot { padding:.85rem 1rem; border-top:1px solid var(--line); background:#fff; color:var(--muted); font-size:13px; }
+    .epc-erp-global-search { position:relative; flex:1 1 16rem; max-width:28rem; min-width:12rem; }
+    .epc-erp-global-search__label { position:absolute; left:.7rem; top:50%; transform:translateY(-50%); color:#64748b; pointer-events:none; }
+    .epc-erp-global-search__input { width:100%; height:2.15rem; padding:.35rem .7rem .35rem 2rem; border:1px solid #cbd5e1; border-radius:.4rem; background:#fff; font:inherit; }
+    .epc-erp-global-search__results { position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:5000; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 12px 28px rgba(15,23,42,.14); max-height:22rem; overflow:auto; }
+    .epc-erp-global-search__hit { display:flex; gap:.55rem; align-items:center; padding:.55rem .7rem; color:#0f172a; text-decoration:none; }
+    .epc-erp-global-search__hit:hover, .epc-erp-global-search__hit.is-active { background:#eff6ff; }
+    .epc-erp-global-search__hit small { color:#64748b; margin-left:auto; }
 </style>
 
 <div class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern epc-php-font-root"
@@ -89,6 +96,7 @@
                 </span>
                 <span>@_ctx.BrandLabel ERP</span>
             </a>
+            <ErpGlobalSearch Jewellery="_jewellery" FitOut="_fitOut" CompanyId="_activeCompanyId" />
             <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact" aria-label="ERP topbar">
                 <a href="@ErpHomeHref">Dashboard</a>
                 <a href="/attention">Attention</a>
@@ -384,6 +392,60 @@
     }
 })();
 </script>
+<script>
+(function () {
+  if (window.__epcErpGlobalSearchBound) return;
+  window.__epcErpGlobalSearchBound = true;
+  function catalog(root) {
+    var tag = root.querySelector('[data-epc-global-search-catalog]');
+    if (!tag) return [];
+    try { return JSON.parse(tag.textContent || '[]'); } catch (e) { return []; }
+  }
+  function render(root, q) {
+    var box = root.querySelector('[data-epc-global-search-results]');
+    if (!box) return;
+    var rows = catalog(root);
+    var needle = (q || '').trim().toLowerCase();
+    var hits = rows.filter(function (r) {
+      if (!needle) return true;
+      return String(r.label || '').toLowerCase().indexOf(needle) >= 0
+        || String(r.group || '').toLowerCase().indexOf(needle) >= 0;
+    }).slice(0, 12);
+    if (!hits.length) {
+      box.hidden = needle.length === 0;
+      box.innerHTML = needle ? '<div class="epc-erp-global-search__hit">No matching pages</div>' : '';
+      return;
+    }
+    box.hidden = false;
+    box.innerHTML = hits.map(function (r) {
+      return '<a class="epc-erp-global-search__hit" href="' + String(r.href || '#').replace(/"/g, '') + '">'
+        + '<i class="fa ' + String(r.icon || 'fa-th-large').replace(/"/g, '') + '"></i>'
+        + '<span>' + String(r.label || '').replace(/</g, '&lt;') + '</span>'
+        + '<small>' + String(r.group || '').replace(/</g, '&lt;') + '</small></a>';
+    }).join('');
+  }
+  document.addEventListener('input', function (e) {
+    var input = e.target && e.target.closest ? e.target.closest('[data-epc-global-search-input]') : null;
+    if (!input) return;
+    var root = input.closest('[data-epc-global-search]');
+    if (root) render(root, input.value);
+  });
+  document.addEventListener('focusin', function (e) {
+    var input = e.target && e.target.closest ? e.target.closest('[data-epc-global-search-input]') : null;
+    if (!input) return;
+    var root = input.closest('[data-epc-global-search]');
+    if (root) render(root, input.value);
+  });
+  document.addEventListener('click', function (e) {
+    document.querySelectorAll('[data-epc-global-search]').forEach(function (root) {
+      if (!root.contains(e.target)) {
+        var box = root.querySelector('[data-epc-global-search-results]');
+        if (box) box.hidden = true;
+      }
+    });
+  });
+})();
+</script>
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -397,6 +459,7 @@
     private bool _showControlPanel = true;
     private bool _signedIn;
     private bool _jewellery;
+    private bool _fitOut;
     private long _activeCompanyId;
     private string _userLabel = "Admin session";
     private string _companyLabel = "MAIN";
@@ -512,14 +575,16 @@
         if (active is not null)
         {
             _activeCompanyId = active.Id;
-            _companyLabel = $"{active.Code} · {active.Name}";
+            _companyLabel = LegalOrganizationLabel.Display(active.Code, active.Name, null, _ctx.BrandLabel);
             _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+            _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
             _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
             _industryLabel = ErpIndustryNav.IndustryLabelForPack(active.IndustryPack, _jewellery);
         }
         else
         {
             _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
+            _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
         }
 
         _nav = ErpIndustryNav.FilterTopnav(

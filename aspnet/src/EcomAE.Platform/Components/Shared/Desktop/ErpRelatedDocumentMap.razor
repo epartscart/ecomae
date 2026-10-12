@@ -1,0 +1,26 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+
+<section class="epc-sap-relmap" data-epc-related-map="1" aria-label="Related documents">
+    <div class="epc-sap-relmap__head">
+        <strong>Related documents</strong>
+        <span>SAP-style document flow for this transaction</span>
+    </div>
+    <div class="epc-sap-relmap__rail">
+        @foreach (var node in Nodes)
+        {
+            <a class="epc-sap-relmap__node @(node.IsCurrent ? "is-current" : null) @(node.HasDocument ? "is-linked" : "is-empty")"
+               href="@node.Href"
+               title="@node.Title">
+                <div class="epc-sap-relmap__title">@node.Title</div>
+                <div class="epc-sap-relmap__number">@(node.HasDocument ? node.Number : "—")</div>
+                <div class="epc-sap-relmap__date">@(string.IsNullOrWhiteSpace(node.DateLabel) ? "—" : node.DateLabel)</div>
+                <div class="epc-sap-relmap__amt">@(string.IsNullOrWhiteSpace(node.AmountLabel) ? "—" : node.AmountLabel)</div>
+            </a>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter] public IReadOnlyList<ErpRelatedDocumentNode> Nodes { get; set; } = [];
+}

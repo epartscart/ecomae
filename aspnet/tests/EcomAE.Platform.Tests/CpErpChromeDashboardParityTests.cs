@@ -151,6 +151,8 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("epc-moddir-aspnet", directory, StringComparison.Ordinal);
         Assert.Contains("background:#eef4ff !important", directory, StringComparison.Ordinal);
         Assert.Contains("data-epc-dash=\"color-tiles\"", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("ErpGlobalSearch", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor")), StringComparison.Ordinal);
+        Assert.Contains("Search pages and workspaces", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/ErpGlobalSearch.razor")), StringComparison.Ordinal);
         Assert.Contains("v=20261012wscolor", assets, StringComparison.Ordinal);
         Assert.DoesNotContain("v=20261012d365", assets, StringComparison.Ordinal);
     }
@@ -161,6 +163,11 @@ public sealed class CpErpChromeDashboardParityTests
         var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
         var projectAccounting = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpProjectAccountingApp.razor"));
         Assert.Contains("data-epc-industry-pack=\"fitout_contracting\"", src);
+        Assert.Contains("data-epc-industry-first=\"jewellery\"", src);
+        Assert.Contains("data-epc-industry-first=\"fitout\"", src);
+        Assert.True(
+            src.IndexOf("data-epc-industry-first=\"jewellery\"", StringComparison.Ordinal)
+            < src.IndexOf("<div class=\"ns-hero\">", StringComparison.Ordinal));
         Assert.Contains("Fit-out project modules", src);
         Assert.Contains("FitOutHref(\"/erp/fitout/delivery-dashboard\")", src);
         Assert.Contains("FitOutHref(\"/erp/fitout/finance-operations-report\")", src);
@@ -182,6 +189,8 @@ public sealed class CpErpChromeDashboardParityTests
         var invoices = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpInvoicesApp.razor"));
 
         Assert.Contains("epc-document-workspace__summary", workspace);
+        Assert.Contains("ErpRelatedDocumentMap", workspace);
+        Assert.Contains("RelatedDocuments", workspace);
         Assert.Contains("epc-document-workspace__actions", workspace);
         Assert.Contains("HeaderActions", workspace);
         Assert.Contains("CompanyContext", workspace);

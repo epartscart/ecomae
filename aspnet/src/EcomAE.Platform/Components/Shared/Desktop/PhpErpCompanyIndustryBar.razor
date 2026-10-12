@@ -122,7 +122,7 @@
                     <li class="@(selected ? "active" : null)" role="none">
                         <a role="menuitem" href="@ErpHostContext.SwitchCompanyHref(_request, (int)company.Id)">
                             <i class="fa @(selected ? "fa-check" : "fa-building-o")" aria-hidden="true"></i>
-                            <strong>@company.Code</strong> · @company.Name
+                            <strong>@LegalOrganizationLabel.Display(company.Code, company.Name)</strong>
                             <span class="text-muted epc-erp-company-meta">
                                 @(string.IsNullOrWhiteSpace(company.CurrencyCode) ? "AED" : company.CurrencyCode)
                                 · @(jw ? "jewellery modules" : ErpIndustryNav.IsFitOutCompany(company) ? "fit-out modules" : "core modules")
@@ -226,7 +226,7 @@
             ? active.Value
             : _companies[0].Id;
         var current = _companies.FirstOrDefault(c => c.Id == _activeCompanyId) ?? _companies[0];
-        _activeLabel = $"{current.Code} · {current.Name}";
+        _activeLabel = LegalOrganizationLabel.Display(current.Code, current.Name, null, _ctx.BrandLabel);
         _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, current, TenantContext.IndustryFrom(Http.HttpContext));
         _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, current, TenantContext.IndustryFrom(Http.HttpContext));
         _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(current.IndustryPack) ? "core" : current.IndustryPack);

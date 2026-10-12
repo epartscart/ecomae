@@ -102,7 +102,7 @@ public static class LegacyPresentationAssets
         "/platform-assets/epc_erp_aspnet_module_parity.css?v=20260909clip",
         "/content/shop/finance/epc_erp_aspnet_module_parity_css.php",
         "/platform-assets/css/epc-enterprise-design-system.css?v=20261012wscolor",
-        "/platform-assets/css/erp-document-workspace.css?v=20260929workspace",
+        "/platform-assets/css/erp-document-workspace.css?v=20261012relmap",
         "/platform-assets/css/erp-finance-voucher-workspace.css?v=20260929finance"
     ];
 

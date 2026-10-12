@@ -1,0 +1,55 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Text.Json
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
+
+<div class="epc-erp-global-search" data-epc-global-search="1">
+    <label class="epc-erp-global-search__label" for="@_inputId"><i class="fa fa-search" aria-hidden="true"></i></label>
+    <input id="@_inputId"
+           class="epc-erp-global-search__input"
+           type="search"
+           placeholder="Search pages and workspaces"
+           autocomplete="off"
+           aria-label="Search pages and workspaces"
+           data-epc-global-search-input="1" />
+    <div class="epc-erp-global-search__results" hidden data-epc-global-search-results="1"></div>
+    <script type="application/json" data-epc-global-search-catalog="1">@((MarkupString)_catalogJson)</script>
+</div>
+
+@code {
+    [Parameter] public bool Jewellery { get; set; }
+    [Parameter] public bool FitOut { get; set; }
+    [Parameter] public long CompanyId { get; set; }
+
+    private readonly string _inputId = "epc-erp-global-search-" + Guid.NewGuid().ToString("N")[..8];
+    private string _catalogJson = "[]";
+
+    protected override void OnParametersSet()
+    {
+        var key = ClientErpPath.BoundSiteKey(Http.HttpContext);
+        var entries = ErpGlobalSearchCatalog.Build(Jewellery, FitOut)
+            .Select(e => new
+            {
+                label = e.Label,
+                href = WithCompany(Prefix(key, e.Href)),
+                group = e.Group,
+                icon = e.Icon,
+            });
+        _catalogJson = JsonSerializer.Serialize(entries);
+    }
+
+    private string Prefix(string? key, string href)
+        => string.IsNullOrWhiteSpace(key) ? href : ClientErpPath.PrefixErpPath(key, href);
+
+    private string WithCompany(string href)
+    {
+        if (CompanyId <= 0 || href.Contains("company=", StringComparison.OrdinalIgnoreCase))
+        {
+            return href;
+        }
+
+        var sep = href.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return href + sep + "company=" + CompanyId;
+    }
+}

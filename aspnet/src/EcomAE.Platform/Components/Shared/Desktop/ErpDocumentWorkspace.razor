@@ -14,6 +14,8 @@
         </div>
     </div>
 
+    <ErpRelatedDocumentMap Nodes="@ResolvedRelated" />
+
     <div class="epc-document-workspace__summary" aria-label="Document summary">
         <div><span>Company</span><strong>@CompanyContext</strong></div>
         <div><span>Status</span><strong>@Status</strong></div>
@@ -159,6 +161,10 @@
     [Parameter] public IReadOnlyList<ErpDocumentWorkspaceLine> Lines { get; set; } = [];
     [Parameter] public IReadOnlyList<string> Tabs { get; set; } = ["General", "Address", "Delivery", "Lines", "Financial"];
     [Parameter] public RenderFragment? HeaderActions { get; set; }
+    [Parameter] public IReadOnlyList<ErpRelatedDocumentNode> RelatedDocuments { get; set; } = [];
+
+    private IReadOnlyList<ErpRelatedDocumentNode> ResolvedRelated
+        => RelatedDocuments.Count > 0 ? RelatedDocuments : ErpRelatedDocumentMapFactory.Template(DocumentKind);
 
     private static readonly string[] BuiltInGroups = ["General", "Operational", "Address", "Delivery", "Financial", "Dimensions"];
 

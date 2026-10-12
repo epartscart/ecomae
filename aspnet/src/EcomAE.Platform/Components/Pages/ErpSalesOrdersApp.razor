@@ -254,6 +254,7 @@
                 BalanceDue="@_openedDetail.TotalAmount"
                 Fields="@SalesOrderWorkspaceFields"
                 Lines="@SalesOrderWorkspaceLines"
+                RelatedDocuments="@SalesOrderRelatedDocuments"
                 HeaderActions="@SalesOrderHeaderActions" />
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">Settlement, confirmation, invoicing, deletion, and edit-lock actions are guarded by the ERP write endpoints; PHP remains the behavioral reference.</p>
@@ -578,6 +579,19 @@
                 new("Financial dimensions", "Company / site / department", "Dimensions"),
                 new("Notes", _openedDetail.NotesLen.ToString(CultureInfo.InvariantCulture) + " chars", "General")
             ];
+    private IReadOnlyList<ErpRelatedDocumentNode> SalesOrderRelatedDocuments =>
+        _openedDetail is null
+            ? []
+            : ErpRelatedDocumentMapFactory.ForSales(
+                string.IsNullOrWhiteSpace(_openedDetail.SoNo) ? _openedDetail.Id.ToString(CultureInfo.InvariantCulture) : _openedDetail.SoNo,
+                FormatTime(_openedDetail.TimeCreated),
+                "AED " + _openedDetail.TotalAmount.ToString("N2", CultureInfo.InvariantCulture),
+                ErpRecordOpen.Href("/erp/sales-orders-app", "so_id", _openedDetail.Id),
+                null,
+                _openedDetail.SalesInvoiceId > 0 ? _openedDetail.SalesInvoiceId.ToString(CultureInfo.InvariantCulture) : "",
+                _openedDetail.SalesInvoiceId > 0 ? FormatTime(_openedDetail.TimeUpdated) : "",
+                _openedDetail.SalesInvoiceId > 0 ? "AED " + _openedDetail.TotalAmount.ToString("N2", CultureInfo.InvariantCulture) : "",
+                _openedDetail.SalesInvoiceId > 0 ? ErpRecordOpen.Href("/erp/invoices-app", "inv_id", _openedDetail.SalesInvoiceId) : "/erp/invoices-app");
     private IReadOnlyList<ErpDocumentWorkspaceLine> SalesOrderWorkspaceLines =>
         _orders.FirstOrDefault(item => item.Id == _openedDetail?.Id)?.Lines
             .Select(line => new ErpDocumentWorkspaceLine(

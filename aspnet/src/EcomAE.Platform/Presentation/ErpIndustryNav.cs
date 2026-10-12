@@ -365,7 +365,7 @@ public static class ErpIndustryNav
     /// </summary>
     public static IReadOnlyList<ErpCompanyDigest> FallbackCompanies(string brandLabel)
     {
-        var mainName = string.IsNullOrWhiteSpace(brandLabel) ? "Main Company" : brandLabel + " — Main";
+        var mainName = LegalOrganizationLabel.Resolve("Main Company", null, brandLabel);
         return
         [
             new ErpCompanyDigest(1, "MAIN", mainName, "AED", "AE", "", true),

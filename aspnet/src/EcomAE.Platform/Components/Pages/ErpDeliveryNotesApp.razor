@@ -50,6 +50,7 @@
                 Currency="—"
                 Fields="@DeliveryWorkspaceFields"
                 Tabs="@DeliveryWorkspaceTabs"
+                RelatedDocuments="@DeliveryRelatedDocuments"
                 HeaderActions="@DeliveryHeaderActions" />
             <p class="text-muted" style="margin:.85rem 0 0">This delivery-note read model exposes shipment header and tracking data; no line body is invented. The guarded document route remains available when a PDF has been generated.</p>
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
@@ -190,6 +191,28 @@
             new("Delivered", FormatTime(_opened.DeliveredAt), "Delivery"),
             new("Document", string.IsNullOrWhiteSpace(_opened.PdfPath) ? "Not generated" : "Available", "Financial")
         ];
+
+    private IReadOnlyList<ErpRelatedDocumentNode> DeliveryRelatedDocuments =>
+        _opened is null
+            ? []
+            : ErpRelatedDocumentMapFactory.ForSales(
+                FormatId(_opened.OrderId),
+                FormatTime(_opened.ShippedAt),
+                "",
+                _opened.OrderId > 0 ? ErpRecordOpen.Href("/erp/sales-orders-app", "so_id", _opened.OrderId) : "/erp/sales-orders-app",
+                [
+                    ErpRelatedDocumentMapFactory.Node(
+                        "delivery_note",
+                        "Delivery",
+                        string.IsNullOrWhiteSpace(_opened.NoteNo) ? _opened.Id.ToString(CultureInfo.InvariantCulture) : _opened.NoteNo,
+                        FormatTime(_opened.ShippedAt),
+                        string.IsNullOrWhiteSpace(_opened.TrackingNo) ? "" : _opened.TrackingNo,
+                        ErpRecordOpen.Href("/erp/delivery-notes-app", "delivery_note_id", _opened.Id),
+                        true,
+                        true)
+                ],
+                currentIsSalesOrder: false,
+                currentIsDelivery: true);
 
     private RenderFragment? DeliveryHeaderActions => _isAdmin
         ? @<div>
