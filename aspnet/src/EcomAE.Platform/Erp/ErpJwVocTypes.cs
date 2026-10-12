@@ -17,6 +17,16 @@ public static class ErpJwVocTypes
     public const string RepairSale = "RSL";
     public const string Manufacture = "MFG";
     public const string BranchTransfer = "BTR";
+    public const string SalesFixing = "SFX";
+    public const string PurchaseFixing = "PFX";
+    public const string PurchaseWindow = "PWN";
+    public const string RepairReceipt = "REP";
+    public const string RepairTransfer = "RET";
+    public const string RepairToWorkshop = "RTC";
+    public const string WorkshopReceive = "RRC";
+    public const string RepairDelivery = "RTD";
+    public const string StockVerification = "MSV";
+    public const string TouristVatRefund = "VRV";
 
     public static readonly IReadOnlyList<string> MetalPurchaseAliases = ["RMP", "MMP", "MLP"];
     public static readonly IReadOnlyList<string> DiamondPurchaseAliases = ["RDP", "DMP", "DLP"];
@@ -53,6 +63,16 @@ public static class ErpJwVocTypes
         "RSL" => RepairSale,
         "MFG" => Manufacture,
         "BTR" => BranchTransfer,
+        "SFX" => SalesFixing,
+        "PFX" => PurchaseFixing,
+        "PWN" => PurchaseWindow,
+        "REP" => RepairReceipt,
+        "RET" => RepairTransfer,
+        "RTC" => RepairToWorkshop,
+        "RRC" => WorkshopReceive,
+        "RTD" => RepairDelivery,
+        "MSV" => StockVerification,
+        "VRV" => TouristVatRefund,
         _ => raw
     };
 
@@ -68,6 +88,15 @@ public static class ErpJwVocTypes
         "jw_repair_sale_save" or "jw_repair_sale" => RepairSale,
         "jw_manufacture_save" or "jw_manufacture" => Manufacture,
         "jw_branch_transfer_save" or "jw_branch_transfer" => BranchTransfer,
+        "jw_sales_fixing_save" or "jw_sales_fixing" => SalesFixing,
+        "jw_purchase_fixing_save" or "jw_purchase_fixing" => PurchaseFixing,
+        "jw_purchase_window_save" or "jw_purchase_window" => PurchaseWindow,
+        "jw_repair_receipt_save" or "jw_repair_receipt" or "jw_repairs" => RepairReceipt,
+        "jw_repair_transfer_save" or "jw_repair_transfer" => RepairTransfer,
+        "jw_workshop_receive_save" or "jw_workshop_receive" => WorkshopReceive,
+        "jw_repair_delivery_save" or "jw_repair_delivery" => RepairDelivery,
+        "jw_stock_verification_save" or "jw_stock_verification" => StockVerification,
+        "jw_tourist_vat_save" or "jw_tourist_vat" => TouristVatRefund,
         _ => string.Empty
     };
 

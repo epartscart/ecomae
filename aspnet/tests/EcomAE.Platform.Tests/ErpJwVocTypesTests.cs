@@ -16,6 +16,28 @@ public sealed class ErpJwVocTypesTests
         Assert.Equal("JVL", ErpJwVocTypes.Canonical("JVG", null));
         Assert.Equal("MFG", ErpJwVocTypes.Canonical(null, "jw_manufacture_save"));
         Assert.Equal("BTR", ErpJwVocTypes.Canonical(null, "jw_branch_transfer_save"));
+        Assert.Equal("SFX", ErpJwVocTypes.Canonical(null, "jw_sales_fixing_save"));
+        Assert.Equal("PFX", ErpJwVocTypes.Canonical(null, "jw_purchase_fixing_save"));
+        Assert.Equal("MSV", ErpJwVocTypes.Canonical(null, "jw_stock_verification_save"));
+        Assert.Equal("VRV", ErpJwVocTypes.Canonical(null, "jw_tourist_vat_save"));
+        Assert.Equal("REP", ErpJwVocTypes.Canonical(null, "jw_repair_receipt_save"));
+    }
+
+    [Fact]
+    public async Task NextVoucherNumberKeepsExplicitValueWithoutOpeningDb()
+    {
+        var next = await ErpJwVocNumbering.NextNoAsync(
+            null!,
+            null,
+            "epc_jewel_voucher",
+            2,
+            "RMP",
+            "HO",
+            17);
+        Assert.Equal(17, next);
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            ErpJwVocNumbering.NextNoAsync(null!, null, "not_a_jewel_table", 2, "RMP", "HO", 0));
     }
 
     [Fact]

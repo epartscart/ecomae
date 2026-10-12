@@ -74,17 +74,28 @@ public sealed class ErpJwRepairTransferWriteService : IErpJwRepairTransferWriteS
             remarks = remarks.Length == 0 ? "expected_return=" + expected : remarks + " | expected_return=" + expected;
         }
 
+        var companyId = request.CompanyId < 0 ? 0 : request.CompanyId;
+        var vocNo = await ErpJwVocNumbering.NextNoAsync(
+            connection,
+            null,
+            "epc_jewel_repair_transfer",
+            companyId,
+            "RET",
+            from,
+            request.VocNo,
+            cancellationToken).ConfigureAwait(false);
+
         await ErpDb.ExecuteAsync(
             connection,
             null,
             ErpDb.Positional(
                 "INSERT INTO `epc_jewel_repair_transfer` (`company_id`,`branch`,`voc_type`,`voc_date`,`voc_no`,`salesman`,`branch_to`,`party_code`,`party_name`,`division`,`transfer_remarks`,`status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
             cancellationToken,
-            request.CompanyId < 0 ? 0 : request.CompanyId,
+            companyId,
             from,
             "RET",
             NormalizeDate(FirstNonEmpty(request.TransferDate, request.VocDate)),
-            request.VocNo < 0 ? 0 : request.VocNo,
+            vocNo,
             Clip((request.WorkshopContact ?? string.Empty).Trim(), 20),
             to,
             Clip(repairNo, 20),

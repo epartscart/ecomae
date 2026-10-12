@@ -47,7 +47,7 @@ public sealed class ErpJwCompanyTwoWriteTests
                         MetalRate: 250m)
                 ]));
             Assert.True(metal.Succeeded, metal.Message);
-            Assert.Contains("RMP", metal.Message, StringComparison.Ordinal);
+            Assert.Contains("RMP voucher 1 saved", metal.Message, StringComparison.Ordinal);
 
             var diamond = await writes.SaveAsync(new ErpJwVoucherSaveRequest(
                 CompanyId: 2,
@@ -89,19 +89,29 @@ public sealed class ErpJwCompanyTwoWriteTests
             Assert.True(transfer.Succeeded, transfer.Message);
 
             var metalHistory = await purchases.ReadAsync(2, "METAL");
-            Assert.Contains(metalHistory.Rows, row => row.VoucherType == "RMP" && row.PartyName == "Company 2 gold supplier");
+            Assert.Contains(metalHistory.Rows, row => row.VoucherType == "RMP" && row.VoucherNumber == 1 && row.PartyName == "Company 2 gold supplier");
 
             var diamondHistory = await purchases.ReadAsync(2, "DIAMOND");
-            Assert.Contains(diamondHistory.Rows, row => row.VoucherType == "RDP");
+            Assert.Contains(diamondHistory.Rows, row => row.VoucherType == "RDP" && row.VoucherNumber == 1);
 
             var manufactureHistory = await purchases.ReadAsync(2, "MANUFACTURE");
-            Assert.Contains(manufactureHistory.Rows, row => row.VoucherType == "MFG");
+            Assert.Contains(manufactureHistory.Rows, row => row.VoucherType == "MFG" && row.VoucherNumber == 1);
 
             var transferHistory = await purchases.ReadAsync(2, "TRANSFER");
-            Assert.Contains(transferHistory.Rows, row => row.VoucherType == "BTR" && row.PartyCode == "BR2");
+            Assert.Contains(transferHistory.Rows, row => row.VoucherType == "BTR" && row.VoucherNumber == 1 && row.PartyCode == "BR2");
 
             var saleHistory = await sales.ReadAsync(2, "RETAIL");
-            Assert.Contains(saleHistory.Rows, row => row.VoucherType == "RIN");
+            Assert.Contains(saleHistory.Rows, row => row.VoucherType == "RIN" && row.VoucherNumber == 1);
+
+            var metalAgain = await writes.SaveAsync(new ErpJwVoucherSaveRequest(
+                CompanyId: 2,
+                Action: "jw_metal_purchase_save",
+                PartyName: "Company 2 gold supplier 2",
+                Lines: [new ErpJwVoucherLineSaveRequest(StockCode: "22K-CO2B", Description: "22K bar 2", Division: "G", Pcs: 1)]));
+            Assert.True(metalAgain.Succeeded, metalAgain.Message);
+            Assert.Contains("RMP voucher 2 saved", metalAgain.Message, StringComparison.Ordinal);
+            metalHistory = await purchases.ReadAsync(2, "METAL");
+            Assert.Contains(metalHistory.Rows, row => row.VoucherType == "RMP" && row.VoucherNumber == 2 && row.PartyName == "Company 2 gold supplier 2");
 
             await using var db = new MySqlConnection(cs);
             await db.OpenAsync();
@@ -115,7 +125,7 @@ public sealed class ErpJwCompanyTwoWriteTests
                 types[reader.GetString(0)] = reader.GetInt64(1);
             }
 
-            Assert.Equal(1, types["RMP"]);
+            Assert.Equal(2, types["RMP"]);
             Assert.Equal(1, types["RDP"]);
             Assert.Equal(1, types["RIN"]);
             Assert.Equal(1, types["MFG"]);

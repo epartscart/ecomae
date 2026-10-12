@@ -192,6 +192,16 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
 
         try
         {
+            vocNo = await ErpJwVocNumbering.NextNoAsync(
+                connection,
+                transaction,
+                "epc_jewel_voucher",
+                companyId,
+                vocType,
+                branch,
+                vocNo,
+                cancellationToken).ConfigureAwait(false);
+
             await ErpDb.ExecuteAsync(
                 connection,
                 transaction,
@@ -431,13 +441,14 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                     ["voucher_type"] = vocType,
                     ["line_count"] = lines.Count.ToString(CultureInfo.InvariantCulture),
                     ["receipt_count"] = receipts.Count.ToString(CultureInfo.InvariantCulture),
+                    ["voc_no"] = vocNo.ToString(CultureInfo.InvariantCulture),
                     ["net_amount"] = net.ToString(CultureInfo.InvariantCulture),
                     ["total_with_vat"] = totalWithVat.ToString(CultureInfo.InvariantCulture)
                 },
                 cancellationToken).ConfigureAwait(false);
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return ErpSimpleWriteResult.Ok(vocType + " voucher saved", id);
+            return ErpSimpleWriteResult.Ok(vocType + " voucher " + vocNo.ToString(CultureInfo.InvariantCulture) + " saved", id);
         }
         catch
         {
