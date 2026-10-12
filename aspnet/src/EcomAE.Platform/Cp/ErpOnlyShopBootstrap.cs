@@ -3,6 +3,8 @@ using System.Globalization;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Middleware;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Cp;
 
@@ -67,6 +69,15 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """;
 
+    public const string CreateCompanySettingsSql = """
+        CREATE TABLE IF NOT EXISTS `epc_org_company_settings` (
+          `company_id` int(11) NOT NULL,
+          `setting_key` varchar(64) NOT NULL,
+          `setting_value` text,
+          PRIMARY KEY (`company_id`,`setting_key`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Per-company ERP settings'
+        """;
+
     public const string CreateGroupsSql = """
         CREATE TABLE IF NOT EXISTS `groups` (
           `id` INT UNSIGNED NOT NULL PRIMARY KEY,
@@ -117,6 +128,7 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
             string dbName;
             string email;
             string storedPassword;
+            string industryCode;
             await using (var registry = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false))
             {
                 var row = await LoadRegistryAsync(registry, key, cancellationToken).ConfigureAwait(false);
@@ -128,6 +140,7 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
                 dbName = row.Value.DbName;
                 email = row.Value.Email;
                 storedPassword = row.Value.TempPassword;
+                industryCode = row.Value.IndustryCode;
                 if (!CpTenantsWriteService.IsDroppableDatabase(dbName))
                 {
                     return new ErpOnlyShopEnsureResult(false, false, false, false, "Database name is reserved.");
@@ -156,6 +169,10 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
             await using (shop)
             {
                 await EnsureSchemaAsync(shop, cancellationToken).ConfigureAwait(false);
+                await EnsureIndustryProfileAsync(
+                    shop,
+                    RouteTenantResolver.ResolveIndustryCode(key, industryCode, host: null),
+                    cancellationToken).ConfigureAwait(false);
                 var replace = !string.IsNullOrWhiteSpace(passwordOverride);
                 var password = replace ? passwordOverride! : storedPassword;
                 var operatorReady = false;
@@ -199,6 +216,126 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
             + ",'Admins',1,1)",
             cancellationToken).ConfigureAwait(false);
         await LegacyLoginSecurity.EnsureTableAsync(connection, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// PHP <c>epc_erp_company_industry_pack_set</c> + <c>erp_industry_profile</c> for
+    /// ERP-only shops. Jewellery / fit-out / auto-parts / real-estate packs follow the
+    /// bound tenant so industry updates apply even when the Super host is not jewellery.
+    /// Existing operator-chosen values are left in place (INSERT IGNORE).
+    /// </summary>
+    public static async Task EnsureIndustryProfileAsync(
+        DbConnection connection,
+        string? industryCode,
+        CancellationToken cancellationToken)
+    {
+        var industry = (industryCode ?? string.Empty).Trim();
+        if (industry.Length == 0)
+        {
+            return;
+        }
+
+        var pack = PackForIndustry(industry);
+        var profile = ProfileForIndustry(industry);
+        if (pack.Length == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await ErpIndustryApplyWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            await ErpDb.TryExecuteAsync(connection, CreateCompanySettingsSql, cancellationToken).ConfigureAwait(false);
+            await ErpLazySchema.EnsureCompanyContextAsync(connection, cancellationToken).ConfigureAwait(false);
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "INSERT IGNORE INTO `epc_price_settings` (`setting_key`,`setting_value`) VALUES (?,?)"),
+                cancellationToken,
+                "erp_industry_profile",
+                profile).ConfigureAwait(false);
+
+            var companyId = await ErpDb.LongAsync(
+                connection,
+                null,
+                "SELECT MIN(`id`) FROM `epc_erp_pm_legal_entities` WHERE `active`=1",
+                cancellationToken).ConfigureAwait(false);
+            if (companyId > 0)
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional(
+                        "INSERT IGNORE INTO `epc_org_company_settings` (`company_id`,`setting_key`,`setting_value`) VALUES (?,?,?)"),
+                    cancellationToken,
+                    companyId,
+                    "industry_pack",
+                    pack).ConfigureAwait(false);
+            }
+
+            if (IndustrySpecificRoutePolicy.Matches("jewellery", industry))
+            {
+                await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (DbException)
+        {
+            // Best-effort: shop login must still succeed when a lean tenant cannot store the pack.
+        }
+    }
+
+    public static string PackForIndustry(string? industryCode)
+    {
+        var code = (industryCode ?? string.Empty).Trim().ToLowerInvariant();
+        if (code.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        if (IndustrySpecificRoutePolicy.Matches("jewellery", code))
+        {
+            return "jewellery_diamond";
+        }
+
+        if (IndustrySpecificRoutePolicy.Matches("fitout", code))
+        {
+            return "fitout_contracting";
+        }
+
+        if (code is "auto_parts" or "automotive")
+        {
+            return "auto_parts";
+        }
+
+        return code;
+    }
+
+    public static string ProfileForIndustry(string? industryCode)
+    {
+        var code = (industryCode ?? string.Empty).Trim().ToLowerInvariant();
+        if (code.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        if (IndustrySpecificRoutePolicy.Matches("jewellery", code))
+        {
+            return "jewellery";
+        }
+
+        if (IndustrySpecificRoutePolicy.Matches("fitout", code))
+        {
+            return "building_construction";
+        }
+
+        if (code is "auto_parts" or "automotive")
+        {
+            return "auto_parts";
+        }
+
+        return code;
     }
 
     public async Task<ErpOnlyShopEnsureResult> EnsureOperatorLoginAsync(
@@ -334,20 +471,27 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
         return true;
     }
 
-    private static async Task<(string DbName, string Email, string TempPassword)?> LoadRegistryAsync(
+    private static async Task<(string DbName, string Email, string TempPassword, string IndustryCode)?> LoadRegistryAsync(
         DbConnection connection,
         string siteKey,
         CancellationToken cancellationToken)
     {
         var full =
             "SELECT IFNULL(`db_name`,'') AS db_name, IFNULL(`from_email`,'') AS from_email, "
-            + "IFNULL(`operator_temp_password`,'') AS operator_temp_password "
+            + "IFNULL(`operator_temp_password`,'') AS operator_temp_password, "
+            + "IFNULL(`industry_code`,'') AS industry_code "
+            + "FROM `epc_portal_tenants` WHERE `site_key`=@p0 LIMIT 1";
+        var noIndustry =
+            "SELECT IFNULL(`db_name`,'') AS db_name, IFNULL(`from_email`,'') AS from_email, "
+            + "IFNULL(`operator_temp_password`,'') AS operator_temp_password, "
+            + "'' AS industry_code "
             + "FROM `epc_portal_tenants` WHERE `site_key`=@p0 LIMIT 1";
         var minimal =
             "SELECT IFNULL(`db_name`,'') AS db_name, IFNULL(`from_email`,'') AS from_email, "
-            + "'' AS operator_temp_password "
+            + "'' AS operator_temp_password, '' AS industry_code "
             + "FROM `epc_portal_tenants` WHERE `site_key`=@p0 LIMIT 1";
         var row = await ReadRegistryRowAsync(connection, full, siteKey, cancellationToken).ConfigureAwait(false)
+            ?? await ReadRegistryRowAsync(connection, noIndustry, siteKey, cancellationToken).ConfigureAwait(false)
             ?? await ReadRegistryRowAsync(connection, minimal, siteKey, cancellationToken).ConfigureAwait(false);
         if (row is null)
         {
@@ -358,10 +502,10 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
         var email = string.IsNullOrWhiteSpace(row.Value.Email)
             ? CpTenantsWriteService.OperatorEmailFor(siteKey)
             : row.Value.Email;
-        return (dbName, email, row.Value.TempPassword);
+        return (dbName, email, row.Value.TempPassword, row.Value.IndustryCode);
     }
 
-    private static async Task<(string DbName, string Email, string TempPassword)?> ReadRegistryRowAsync(
+    private static async Task<(string DbName, string Email, string TempPassword, string IndustryCode)?> ReadRegistryRowAsync(
         DbConnection connection,
         string sql,
         string siteKey,
@@ -381,7 +525,8 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
             return (
                 reader["db_name"]?.ToString()?.Trim() ?? string.Empty,
                 reader["from_email"]?.ToString()?.Trim().ToLowerInvariant() ?? string.Empty,
-                reader["operator_temp_password"]?.ToString() ?? string.Empty);
+                reader["operator_temp_password"]?.ToString() ?? string.Empty,
+                reader["industry_code"]?.ToString()?.Trim() ?? string.Empty);
         }
         catch (DbException)
         {

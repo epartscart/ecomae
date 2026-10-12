@@ -361,6 +361,9 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.True(ErpIndustryNav.ShowJewelleryModules("auto_parts", jw));
         Assert.True(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", jw));
         Assert.False(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", main));
+        Assert.True(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", main, "jewellery"));
+        Assert.True(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", null, "jewellery"));
+        Assert.False(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", main, "auto_parts"));
         var fallback = ErpIndustryNav.EnsureSwitchableCompanies([], true, "ECOM AE");
         Assert.Contains(fallback, c => c.Id == 2 && ErpIndustryNav.IsJewelleryCompany(c));
     }

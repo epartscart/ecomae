@@ -212,7 +212,7 @@
         {
             _industryCode = _ctx.IndustryCode;
             _industryLabel = _ctx.IndustryLabel;
-            _jewellery = ErpIndustryNav.IsJewelleryFromHostOrPack(_ctx.IndustryCode, null, null);
+            _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(Http.HttpContext));
             return;
         }
 
@@ -221,8 +221,8 @@
             : _companies[0].Id;
         var current = _companies.FirstOrDefault(c => c.Id == _activeCompanyId) ?? _companies[0];
         _activeLabel = $"{current.Code} · {current.Name}";
-        _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, current);
-        _fitOut = ErpIndustryNav.IsFitOutCompany(current);
+        _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, current, TenantContext.IndustryFrom(Http.HttpContext));
+        _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, current, TenantContext.IndustryFrom(Http.HttpContext));
         _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(current.IndustryPack) ? "core" : current.IndustryPack);
         _industryLabel = ErpIndustryNav.IndustryLabelForPack(current.IndustryPack, _jewellery);
     }

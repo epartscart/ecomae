@@ -75,6 +75,9 @@ public sealed class ErpIndustryNavTests
         Assert.False(ErpIndustryNav.ShowJewelleryModules(super.IndustryCode, main));
         Assert.True(ErpIndustryNav.ShowJewelleryModules(super.IndustryCode,
             new ErpCompanyDigest(2, "JW", "Jewellery Division", "AED", "AE", "jewellery_diamond", true)));
+        Assert.True(ErpIndustryNav.ShowJewelleryModules(super.IndustryCode, main, "jewellery"));
+        Assert.True(ErpIndustryNav.ShowFitOutModules(super.IndustryCode, main, "fit_out"));
+        Assert.False(ErpIndustryNav.ShowJewelleryModules(super.IndustryCode, main, "auto_parts"));
     }
 
     [Fact]
@@ -89,6 +92,7 @@ public sealed class ErpIndustryNavTests
         {
             var text = File.ReadAllText(FindRepoFile(relative));
             Assert.Contains("ShowJewelleryModules", text, StringComparison.Ordinal);
+            Assert.Contains("TenantContext.IndustryFrom", text, StringComparison.Ordinal);
             Assert.DoesNotContain("_jewellery = ErpIndustryNav.IsJewelleryCompany(", text, StringComparison.Ordinal);
         }
     }

@@ -111,6 +111,7 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Equal("asap_user", tenant.DbUser);
         Assert.Equal(TenantSurface.Erp, tenant.Surface);
         Assert.True(tenant.HasUsableDedicatedCredentials);
+        Assert.Equal("auto_parts", tenant.IndustryCode);
     }
 
     [Fact]
@@ -133,6 +134,7 @@ public sealed class SuperCpTenantIsolationTests
         Assert.False(TenantContext.UsableDedicatedCredentials("indj", ""));
         Assert.False(TenantContext.UsableDedicatedCredentials("indj", null));
         Assert.False(TenantContext.UsableDedicatedCredentials("", "secret"));
+        Assert.Equal("jewellery", tenant.IndustryCode);
     }
 
     private sealed class EmptyPasswordClientErpLookup : IClientErpTenantLookup

@@ -66,8 +66,8 @@ public static class ErpIndustryNav
     }
 
     /// <summary>Fit-out modules are allowed by the host industry or by the active company (pack, code or name), like the route gate.</summary>
-    public static bool ShowFitOutModules(string? hostIndustryCode, ErpCompanyDigest? company)
-        => IsFitOutIndustry(hostIndustryCode) || IsFitOutCompany(company);
+    public static bool ShowFitOutModules(string? hostIndustryCode, ErpCompanyDigest? company, string? tenantIndustry = null)
+        => IsFitOutIndustry(hostIndustryCode) || IsFitOutIndustry(tenantIndustry) || IsFitOutCompany(company);
 
     public static bool IsFitOutTab(PhpModuleCatalog.ModuleLink tab)
         => string.Equals(TabKey(tab), "project_accounting", StringComparison.OrdinalIgnoreCase);
@@ -113,8 +113,9 @@ public static class ErpIndustryNav
     /// modules — even when legal entity 1 is coded MAIN with an empty pack.
     /// Super CP / auto-parts hosts still require a jewellery company or pack.
     /// </summary>
-    public static bool ShowJewelleryModules(string? hostIndustryCode, ErpCompanyDigest? company)
-        => IsJewelleryFromHostOrPack(hostIndustryCode, company?.IndustryPack, company);
+    public static bool ShowJewelleryModules(string? hostIndustryCode, ErpCompanyDigest? company, string? tenantIndustry = null)
+        => IsJewelleryFromHostOrPack(hostIndustryCode, tenantIndustry, company)
+           || IsJewelleryFromHostOrPack(tenantIndustry, tenantIndustry, company);
 
     public static bool IsJewelleryTab(PhpModuleCatalog.ModuleLink tab)
     {

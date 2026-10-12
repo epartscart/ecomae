@@ -25,8 +25,9 @@ public sealed class IndustrySpecificRouteGateMiddleware(
         }
 
         var hostIndustry = ErpHostContext.Resolve(context.Request.Host.Host).IndustryCode;
+        var tenantIndustry = TenantContext.IndustryFrom(context);
         var company = await ResolveActiveCompanyAsync(context);
-        var allowed = IndustrySpecificRoutePolicy.Allows(requiredIndustry, hostIndustry, company);
+        var allowed = IndustrySpecificRoutePolicy.Allows(requiredIndustry, hostIndustry, company, tenantIndustry);
         if (allowed)
         {
             await _next(context);
@@ -128,22 +129,63 @@ public static class IndustrySpecificRoutePolicy
         string requiredIndustry,
         string? hostIndustry,
         ErpCompanyDigest? company)
+        => Allows(requiredIndustry, hostIndustry, company, tenantIndustry: null);
+
+    /// <summary>
+    /// Industry modules follow the bound tenant (hybrid host, ERP-only site key,
+    /// or company pack). A jewellery update therefore reaches thejewellerytrend,
+    /// jewellery.ecomae.com, Super CP company 2, and INDJ ERP-only.
+    /// </summary>
+    public static bool Allows(
+        string requiredIndustry,
+        string? hostIndustry,
+        ErpCompanyDigest? company,
+        string? tenantIndustry)
     {
+        if (Matches(requiredIndustry, hostIndustry) || Matches(requiredIndustry, tenantIndustry))
+        {
+            return true;
+        }
+
         if (requiredIndustry.Equals("jewellery", StringComparison.OrdinalIgnoreCase))
         {
-            return hostIndustry is "jewellery" or "jewelry"
-                || ErpIndustryNav.IsJewelleryCompany(company);
+            return ErpIndustryNav.IsJewelleryCompany(company);
         }
 
         if (requiredIndustry.Equals("fitout", StringComparison.OrdinalIgnoreCase))
         {
-            return hostIndustry is "fitout"
-                or "fit_out"
-                or "construction"
-                or "construction_contracting"
-                || ErpIndustryNav.IsFitOutCompany(company);
+            return ErpIndustryNav.IsFitOutCompany(company);
         }
 
         return false;
+    }
+
+    public static bool Matches(string requiredIndustry, string? actual)
+    {
+        var required = (requiredIndustry ?? string.Empty).Trim().ToLowerInvariant();
+        var value = (actual ?? string.Empty).Trim().ToLowerInvariant();
+        if (required.Length == 0 || value.Length == 0)
+        {
+            return false;
+        }
+
+        if (required is "jewellery" or "jewelry")
+        {
+            return value is "jewellery" or "jewelry"
+                || value.StartsWith("jewellery", StringComparison.Ordinal)
+                || value.Contains("jewel", StringComparison.Ordinal);
+        }
+
+        if (required is "fitout" or "fit_out")
+        {
+            return value is "fitout" or "fit_out" or "construction" or "construction_contracting"
+                || value.Contains("fitout", StringComparison.Ordinal)
+                || value.Contains("fit-out", StringComparison.Ordinal)
+                || value.Contains("construction", StringComparison.Ordinal);
+        }
+
+        return value.Equals(required, StringComparison.Ordinal)
+            || value.StartsWith(required + "_", StringComparison.Ordinal)
+            || value.StartsWith(required + "-", StringComparison.Ordinal);
     }
 }

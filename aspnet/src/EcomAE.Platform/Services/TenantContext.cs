@@ -35,7 +35,8 @@ public sealed record TenantContext(
     string? DatabaseName = null,
     string? DbUser = null,
     string? DbPassword = null,
-    bool DedicatedDb = false)
+    bool DedicatedDb = false,
+    string? IndustryCode = null)
 {
     public static TenantContext ForKnownTenant(
         string siteKey,
@@ -46,7 +47,8 @@ public sealed record TenantContext(
         string? databaseName = null,
         string? dbUser = null,
         string? dbPassword = null,
-        bool dedicatedDb = false)
+        bool dedicatedDb = false,
+        string? industryCode = null)
     {
         return new TenantContext(
             Host: host,
@@ -57,7 +59,8 @@ public sealed record TenantContext(
             DatabaseName: databaseName,
             DbUser: dbUser,
             DbPassword: dbPassword,
-            DedicatedDb: dedicatedDb);
+            DedicatedDb: dedicatedDb,
+            IndustryCode: industryCode);
     }
 
     public bool IsPlatform => Mode == TenantMode.Platform;
@@ -88,7 +91,14 @@ public sealed record TenantContext(
         SiteKey,
         HasTenantDatabase,
         DedicatedDb,
-        HasDbCredentials: !string.IsNullOrWhiteSpace(DbUser) || !string.IsNullOrWhiteSpace(DbPassword));
+        HasDbCredentials: !string.IsNullOrWhiteSpace(DbUser) || !string.IsNullOrWhiteSpace(DbPassword),
+        IndustryCode);
+
+    public static string? IndustryFrom(HttpContext? context)
+        => context?.Items[EcomAE.Platform.Middleware.TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant
+            && !string.IsNullOrWhiteSpace(tenant.IndustryCode)
+            ? tenant.IndustryCode.Trim()
+            : null;
 }
 
 /// <summary>Safe tenant identity for HTTP digests — credentials never serialized.</summary>
@@ -100,4 +110,5 @@ public sealed record TenantContextPublicDto(
     string? SiteKey,
     bool HasTenantDatabase,
     bool DedicatedDb,
-    bool HasDbCredentials);
+    bool HasDbCredentials,
+    string? IndustryCode = null);

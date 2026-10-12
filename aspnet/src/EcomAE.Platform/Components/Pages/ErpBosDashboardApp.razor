@@ -10,6 +10,7 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Security
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IErpBosIntelToggleWriteService BosIntel
@@ -916,15 +917,15 @@
                     _currency = active.CurrencyCode;
                 }
 
-                _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active);
-                _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, active);
+                _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+                _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
                 _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
                 _industryLabel = ErpIndustryNav.IndustryLabelForPack(active.IndustryPack, _jewellery);
             }
             else
             {
-                _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null);
-                _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, null);
+                _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
+                _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
                 _heroEntity = string.IsNullOrWhiteSpace(_ctx.BrandLabel) ? "Operations" : _ctx.BrandLabel;
             }
         }

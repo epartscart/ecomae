@@ -23,6 +23,10 @@ public sealed class ErpOnlyShopBootstrapTests
         Assert.Contains("replacePassword", bootstrap, StringComparison.Ordinal);
         Assert.Contains("EnsureOperatorLoginAsync", bootstrap, StringComparison.Ordinal);
         Assert.Contains("for_backend", bootstrap, StringComparison.Ordinal);
+        Assert.Contains("EnsureIndustryProfileAsync", bootstrap, StringComparison.Ordinal);
+        Assert.Contains("erp_industry_profile", bootstrap, StringComparison.Ordinal);
+        Assert.Contains("industry_pack", bootstrap, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelSchema.EnsureAsync", bootstrap, StringComparison.Ordinal);
 
         var factory = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Data/MySqlTenantDbConnectionFactory.cs"));
         Assert.Contains("HasUsableDedicatedCredentials", factory, StringComparison.Ordinal);
@@ -77,6 +81,18 @@ public sealed class ErpOnlyShopBootstrapTests
 
             command.CommandText = "SHOW COLUMNS FROM `sessions` LIKE 'type'";
             Assert.NotNull(await command.ExecuteScalarAsync());
+
+            await ErpOnlyShopBootstrap.EnsureIndustryProfileAsync(connection, "jewellery", CancellationToken.None);
+            command.CommandText = "SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key`='erp_industry_profile'";
+            Assert.Equal("jewellery", Convert.ToString(await command.ExecuteScalarAsync()));
+            command.CommandText = "SELECT `setting_value` FROM `epc_org_company_settings` WHERE `setting_key`='industry_pack' LIMIT 1";
+            Assert.Equal("jewellery_diamond", Convert.ToString(await command.ExecuteScalarAsync()));
+            command.CommandText = "SHOW TABLES LIKE 'epc_jewel_karat_master'";
+            Assert.NotNull(await command.ExecuteScalarAsync());
+
+            await ErpOnlyShopBootstrap.EnsureIndustryProfileAsync(connection, "auto_parts", CancellationToken.None);
+            command.CommandText = "SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key`='erp_industry_profile'";
+            Assert.Equal("jewellery", Convert.ToString(await command.ExecuteScalarAsync()));
         }
         finally
         {

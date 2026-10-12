@@ -1,4 +1,5 @@
 using EcomAE.Platform.Configuration;
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Presentation;
 using Microsoft.Extensions.Options;
 
@@ -86,7 +87,8 @@ public sealed class RouteTenantResolver : ITenantResolver
                         erpOnly.DatabaseName,
                         dedicatedUser,
                         dedicatedPassword,
-                        erpOnly.DedicatedDb);
+                        erpOnly.DedicatedDb,
+                        ResolveIndustryCode(erpOnly.SiteKey, erpOnly.IndustryCode, host));
                 }
 
                 // Unknown / unusable key: stay on the platform DB so Super CP isolation
@@ -120,7 +122,8 @@ public sealed class RouteTenantResolver : ITenantResolver
                 platformRecord?.DatabaseName ?? PlatformSeedDatabase(),
                 platformRecord?.DbUser,
                 platformRecord?.DbPassword,
-                DedicatedDb: false);
+                DedicatedDb: false,
+                IndustryCode: industrySlug);
         }
 
         var mode = registryRecord?.Mode
@@ -181,7 +184,31 @@ public sealed class RouteTenantResolver : ITenantResolver
             databaseName,
             dbUser,
             dbPassword,
-            dedicated);
+            dedicated,
+            ResolveIndustryCode(siteKey, null, host));
+    }
+
+    /// <summary>
+    /// Bound-tenant industry wins, then the ERP-only launch catalog, then the host.
+    /// Hybrid jewellery hosts and ERP-only INDJ therefore share the same jewellery pack.
+    /// </summary>
+    public static string ResolveIndustryCode(string? siteKey, string? portalIndustry, string? host)
+    {
+        var portal = (portalIndustry ?? string.Empty).Trim();
+        if (portal.Length > 0)
+        {
+            return portal;
+        }
+
+        var key = ClientErpPath.NormalizeSiteKey(siteKey);
+        var launch = ErpOnlyLaunchClients.All.FirstOrDefault(c =>
+            string.Equals(c.SiteKey, key, StringComparison.OrdinalIgnoreCase));
+        if (launch is not null && !string.IsNullOrWhiteSpace(launch.IndustryCode))
+        {
+            return launch.IndustryCode;
+        }
+
+        return ErpHostContext.Resolve(host).IndustryCode;
     }
 
     /// <summary>True for epartscart.com / www.epartscart.com or site_key epartscart.</summary>
