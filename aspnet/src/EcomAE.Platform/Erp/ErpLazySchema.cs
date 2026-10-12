@@ -1279,6 +1279,63 @@ internal static class ErpLazySchema
         }
     }
 
+    /// <summary>PHP <c>epc_fin_adv_ensure_schema</c> (content/shop/finance/epc_erp_fin_advanced.php).</summary>
+    public static async Task EnsureFinAdvancedAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_fin_periods` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `fy` int(11) NOT NULL DEFAULT 0, `period_no` int(11) NOT NULL DEFAULT 0, `start_date` int(11) NOT NULL DEFAULT 0, `end_date` int(11) NOT NULL DEFAULT 0, `status` varchar(12) NOT NULL DEFAULT 'open', `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`), UNIQUE KEY `x_period` (`company_id`,`fy`,`period_no`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Fiscal period calendar + status'",
+            "CREATE TABLE IF NOT EXISTS `epc_fin_alloc_rule` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `code` varchar(40) NOT NULL DEFAULT '', `name` varchar(160) NOT NULL DEFAULT '', `source_account` varchar(40) NOT NULL DEFAULT '', `basis` text, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Ledger allocation rules'",
+            "CREATE TABLE IF NOT EXISTS `epc_fin_alloc_run` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `rule_id` int(11) NOT NULL DEFAULT 0, `amount` decimal(18,2) NOT NULL DEFAULT 0.00, `run_date` int(11) NOT NULL DEFAULT 0, `lines_json` text, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Allocation run results'",
+            "CREATE TABLE IF NOT EXISTS `epc_fin_accrual` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `code` varchar(40) NOT NULL DEFAULT '', `description` varchar(200) NOT NULL DEFAULT '', `total_amount` decimal(18,2) NOT NULL DEFAULT 0.00, `periods` int(11) NOT NULL DEFAULT 1, `start_fy` int(11) NOT NULL DEFAULT 0, `start_period` int(11) NOT NULL DEFAULT 1, `status` varchar(12) NOT NULL DEFAULT 'open', `schedule_json` text, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Accrual schemes'",
+            "CREATE TABLE IF NOT EXISTS `epc_fin_fx_run` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `as_of` int(11) NOT NULL DEFAULT 0, `total_delta` decimal(18,2) NOT NULL DEFAULT 0.00, `lines_json` text, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='FX revaluation runs'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP <c>epc_erp_dim_ensure_schema</c> (content/shop/finance/epc_erp_dimensions.php).</summary>
+    public static async Task EnsureDimLinksAsync(DbConnection c, CancellationToken ct)
+    {
+        await EnsurePmMastersAsync(c, ct).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_dim_links` (`id` int(11) NOT NULL AUTO_INCREMENT, `entity_type` varchar(40) NOT NULL DEFAULT '', `entity_id` int(11) NOT NULL DEFAULT 0, `dim_key` varchar(40) NOT NULL DEFAULT '', `ref_id` int(11) NOT NULL DEFAULT 0, `value_code` varchar(60) NOT NULL DEFAULT '', `value_label` varchar(190) NOT NULL DEFAULT '', `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `ent` (`entity_type`,`entity_id`), KEY `dimkey` (`entity_type`,`dim_key`,`ref_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ERP financial dimension assignments (polymorphic)'",
+            ct).ConfigureAwait(false);
+    }
+
+    /// <summary>PHP <c>epc_vwh_ensure_schema</c> (content/shop/finance/epc_erp_virtual_warehouse.php).</summary>
+    public static async Task EnsureVirtualWarehouseAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_warehouses` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `code` varchar(20) NOT NULL DEFAULT '', `name` varchar(200) NOT NULL DEFAULT '', `type` enum('physical','virtual','exhibition','consignment','transit') NOT NULL DEFAULT 'physical', `address` varchar(500) NOT NULL DEFAULT '', `manager_id` int(11) NOT NULL DEFAULT 0, `manager_name` varchar(120) NOT NULL DEFAULT '', `is_active` tinyint(1) NOT NULL DEFAULT 1, `is_sellable` tinyint(1) NOT NULL DEFAULT 1, `event_name` varchar(200) NOT NULL DEFAULT '', `event_start` date DEFAULT NULL, `event_end` date DEFAULT NULL, `return_warehouse_id` int(11) NOT NULL DEFAULT 0, `notes` text, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`), KEY `x_type` (`type`), KEY `x_code` (`code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Warehouse / location master'",
+            "CREATE TABLE IF NOT EXISTS `epc_warehouse_stock` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `warehouse_id` int(11) NOT NULL DEFAULT 0, `product_id` int(11) NOT NULL DEFAULT 0, `sku` varchar(100) NOT NULL DEFAULT '', `barcode` varchar(100) NOT NULL DEFAULT '', `qty_on_hand` decimal(14,3) NOT NULL DEFAULT 0.000, `qty_reserved` decimal(14,3) NOT NULL DEFAULT 0.000, `qty_available` decimal(14,3) NOT NULL DEFAULT 0.000, `avg_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `last_count_date` date DEFAULT NULL, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `ux_wh_prod` (`warehouse_id`, `product_id`), KEY `x_company` (`company_id`), KEY `x_sku` (`sku`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Stock per warehouse'",
+            "CREATE TABLE IF NOT EXISTS `epc_warehouse_transfers` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `transfer_no` varchar(32) NOT NULL DEFAULT '', `from_warehouse_id` int(11) NOT NULL DEFAULT 0, `to_warehouse_id` int(11) NOT NULL DEFAULT 0, `reason` varchar(200) NOT NULL DEFAULT '', `status` enum('draft','in_transit','received','cancelled') NOT NULL DEFAULT 'draft', `total_items` int(11) NOT NULL DEFAULT 0, `total_qty` decimal(14,3) NOT NULL DEFAULT 0.000, `shipped_at` datetime DEFAULT NULL, `received_at` datetime DEFAULT NULL, `created_by` int(11) NOT NULL DEFAULT 0, `received_by` int(11) NOT NULL DEFAULT 0, `notes` text, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`), KEY `x_from` (`from_warehouse_id`), KEY `x_to` (`to_warehouse_id`), KEY `x_status` (`status`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Inter-warehouse transfers'",
+            "CREATE TABLE IF NOT EXISTS `epc_warehouse_transfer_lines` (`id` int(11) NOT NULL AUTO_INCREMENT, `transfer_id` int(11) NOT NULL DEFAULT 0, `product_id` int(11) NOT NULL DEFAULT 0, `sku` varchar(100) NOT NULL DEFAULT '', `barcode` varchar(100) NOT NULL DEFAULT '', `qty` decimal(14,3) NOT NULL DEFAULT 0.000, `received_qty` decimal(14,3) NOT NULL DEFAULT 0.000, `notes` varchar(300) NOT NULL DEFAULT '', PRIMARY KEY (`id`), KEY `x_transfer` (`transfer_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Transfer line items'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP <c>epc_opl_ensure_schema</c> (content/shop/finance/epc_erp_order_planning.php).</summary>
+    public static async Task EnsureOrderPlanningAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_erp_planning_params` (`item_id` int(11) NOT NULL, `warehouse_id` int(11) NOT NULL, `lead_time_days` int(11) NOT NULL DEFAULT 30, `target_service_level` decimal(5,2) NOT NULL DEFAULT 90.00, `review_period_days` int(11) NOT NULL DEFAULT 30, `min_order_qty` decimal(14,3) NOT NULL DEFAULT 0.000, `order_multiple` decimal(14,3) NOT NULL DEFAULT 0.000, `manual_buffer` decimal(14,3) NOT NULL DEFAULT 0.000, `supplier` varchar(160) NOT NULL DEFAULT '', `stocked` tinyint(1) NOT NULL DEFAULT 1, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`item_id`,`warehouse_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Per item/warehouse planning parameters'",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_order_recommendations` (`id` int(11) NOT NULL AUTO_INCREMENT, `item_id` int(11) NOT NULL, `warehouse_id` int(11) NOT NULL, `roq` decimal(14,3) NOT NULL DEFAULT 0.000, `order_value` decimal(16,2) NOT NULL DEFAULT 0.00, `status` varchar(12) NOT NULL DEFAULT 'pending', `supplier` varchar(160) NOT NULL DEFAULT '', `time_updated` int(11) NOT NULL DEFAULT 0, `ordered_po_id` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `x_item_wh` (`item_id`,`warehouse_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Replenishment recommendation status'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
     /// <summary>PHP <c>epc_entity_ensure_schema</c> (content/shop/finance/epc_multi_entity.php).</summary>
     public static async Task EnsureMultiEntityAsync(DbConnection c, CancellationToken ct)
     {

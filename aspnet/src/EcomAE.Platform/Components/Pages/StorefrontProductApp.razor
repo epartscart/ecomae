@@ -16,7 +16,7 @@
 @inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
 @inject Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.PhpReferenceOptions> PhpReference
 
-<PageTitle>@(_product?.Caption ?? "Product") · eParts Cart</PageTitle>
+<PageTitle>@(_product?.Caption ?? "Product") · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
@@ -261,6 +261,7 @@
         StringComparison.Ordinal);
     private string _offersHtml = "";
     private string _pageHtml = "";
+    private string _brand = "Storefront";
 
     [SupplyParameterFromQuery(Name = "id")]
     public int? ProductId { get; set; }
@@ -317,6 +318,11 @@
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
+        if (ctx is not null)
+        {
+            _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        }
+
         _flashOk = ctx?.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx?.Request.Query["err"].ToString() ?? "";
         if (ctx is not null && ProductId is > 0)

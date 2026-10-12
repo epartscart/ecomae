@@ -48,6 +48,27 @@ public sealed class LegacyLogoutServiceTests
     }
 
     [Fact]
+    public void LogoutRoutesDisableAntiforgerySoPostDoesNot400()
+    {
+        var program = Read("aspnet/src/EcomAE.Platform/Program.cs");
+        foreach (var route in new[]
+                 {
+                     "EcomAeRoutes.LegacyLogout",
+                     "EcomAeRoutes.ControlPanelLogout",
+                     "EcomAeRoutes.ErpLogout",
+                     "EcomAeRoutes.BosLogout",
+                     "EcomAeRoutes.StorefrontLogout",
+                 })
+        {
+            Assert.Contains(route, program, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("=> PerformLegacyLogout(context, logout, \"erp\", null)).DisableAntiforgery();", program, StringComparison.Ordinal);
+        Assert.Contains("=> PerformLegacyLogout(context, logout, \"cp\", null)).DisableAntiforgery();", program, StringComparison.Ordinal);
+        Assert.Contains("}).DisableAntiforgery();", program, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DeploymentTemplatesOwnErpLogoutBeforePhpFallback()
     {
         foreach (var relative in new[]

@@ -44,6 +44,7 @@ public sealed class ErpFinPeriodsGenerateWriteService : IErpFinPeriodsGenerateWr
         var periods = PeriodDates(request.Fy, request.StartMonth);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureFinAdvancedAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_fin_periods", "start_date", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Finance periods table is not provisioned");

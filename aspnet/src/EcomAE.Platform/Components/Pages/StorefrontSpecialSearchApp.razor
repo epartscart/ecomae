@@ -3,7 +3,7 @@
 @using EcomAE.Platform.Presentation
 @inject IHttpContextAccessor Http
 
-<PageTitle>@(_search?.Title ?? "Special search") · eParts Cart</PageTitle>
+<PageTitle>@(_search?.Title ?? "Special search") · @_brand</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" IncludePublicSeo="true" />
 <PhpChromeBodyClass Surface="storefront" />
 
@@ -48,6 +48,7 @@
 @code {
     private PhpSpecialSearches.Search? _search;
     private bool _autoParts;
+    private string _brand = "Storefront";
 
     [SupplyParameterFromQuery(Name = "alias")]
     public string? Alias { get; set; }
@@ -55,6 +56,7 @@
     protected override void OnInitialized()
     {
         var host = Http.HttpContext?.Request.Host.Host;
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(host);
         var industry = StorefrontIndustryHostResolver.ResolveIndustryCode(host);
         _autoParts = industry is "auto_parts";
         if (!_autoParts)

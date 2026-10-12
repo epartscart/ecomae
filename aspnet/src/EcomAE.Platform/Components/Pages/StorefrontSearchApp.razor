@@ -1555,6 +1555,7 @@
     private IReadOnlyList<StorefrontWarehouseAttrDigest> _attrRows = [];
     private bool _attrSearchLoaded;
     private string _attrSearchMessage = "";
+    private string _storeBrand = "Storefront";
     private string _brandInput = "";
     private string _mode = "";
     private string _heroTitle = "Part search";
@@ -1625,23 +1626,23 @@
             if (_mode is "name")
             {
                 return string.IsNullOrWhiteSpace(_nameQuery)
-                    ? "Search by name · eParts Cart"
-                    : $"Search {_nameQuery} · eParts Cart";
+                    ? "Search by name · " + _storeBrand
+                    : $"Search {_nameQuery} · {_storeBrand}";
             }
 
             if (_mode is "attr")
             {
                 return string.IsNullOrWhiteSpace(_attrQuery)
-                    ? "Warehouse / more info · eParts Cart"
-                    : $"Warehouse search {_attrQuery} · eParts Cart";
+                    ? "Warehouse / more info · " + _storeBrand
+                    : $"Warehouse search {_attrQuery} · {_storeBrand}";
             }
 
             if (!string.IsNullOrWhiteSpace(_normalized))
             {
-                return $"Part search {_normalized} · eParts Cart";
+                return $"Part search {_normalized} · {_storeBrand}";
             }
 
-            return "Part search · eParts Cart";
+            return "Part search · " + _storeBrand;
         }
     }
 
@@ -1693,6 +1694,7 @@
     {
         if (Http.HttpContext is not null)
         {
+            _storeBrand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext.Request.Host.Host);
             var access = await PriceAccess.ResolveAsync(Http.HttpContext);
             _pricesVisible = access.PricesVisible;
         _showPurchaseCost = access.ShowPurchaseCost;

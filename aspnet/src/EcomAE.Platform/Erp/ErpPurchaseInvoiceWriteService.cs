@@ -49,7 +49,7 @@ public sealed record ErpPoToPurchaseResult(
 /// <summary>
 /// Live ASP.NET port of PHP <c>epc_erp_create_purchase</c> (<c>epc_erp_helpers.php</c>) and
 /// <c>epc_erp_po_convert_to_purchase</c> (<c>epc_erp_vouchers.php</c>): purchase-side tax resolution,
-/// PI numbering, supplier AP ledger row and best-effort GL posting, then the PO link/status flip.
+/// PI numbering, supplier AP ledger row and GL posting in one document transaction, then the PO link/status flip.
 /// The VAT-treatment legislation reference follows the tenant's registered country, so non-AE tenants
 /// are not stamped with the UAE decree.
 /// </summary>
@@ -121,7 +121,6 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
             throw new ErpWriteException("Approve the PO before converting to purchase invoice");
         }
 
-        var piNo = await _vouchers.NextAsync(connection, null, "PI", cancellationToken).ConfigureAwait(false);
         var note = "From PO " + po.PoNo + (po.Notes.Length > 0 ? " — " + po.Notes : string.Empty);
         var purchase = await CreateOnConnectionAsync(
             connection,
@@ -131,7 +130,7 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
                 OrderId = po.OrderId,
                 AllowOpenOrder = po.OrderId > 0,
                 PurchaseOrderId = purchaseOrderId,
-                InvoiceNumber = piNo,
+                InvoiceNumber = string.Empty,
                 AmountExVat = po.AmountExVat,
                 Note = note,
                 Status = "confirmed",
@@ -196,20 +195,25 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
         var tax = await _tax.CalcPurchaseAsync(connection, null, amountEx, input.SupplierId, input.Import, cancellationToken).ConfigureAwait(false);
         var total = tax.ImportDuty > 0m ? tax.TotalWithDuty : tax.TotalAmount;
         var invoiceNumber = input.InvoiceNumber.Trim();
-        if (invoiceNumber.Length == 0)
-        {
-            invoiceNumber = await _vouchers.NextAsync(connection, null, "PI", cancellationToken).ConfigureAwait(false);
-        }
-
         var purchaseDate = input.PurchaseDate > 0 ? input.PurchaseDate : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var status = input.Status.Trim().Length > 0 ? input.Status.Trim() : "confirmed";
         var legislationRef = LegislationRefFor(tax.CountryCode);
         var treatment = tax.VatApplicable ? "standard" : "out_of_scope";
 
+        await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await _vouchers.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+
         long purchaseId;
+        long journalId;
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            if (invoiceNumber.Length == 0)
+            {
+                invoiceNumber = await _vouchers.NextAsync(connection, transaction, "PI", cancellationToken).ConfigureAwait(false);
+            }
+
             await ErpDb.ExecuteAsync(
                 connection,
                 transaction,
@@ -263,6 +267,19 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
                 input.OrderId,
                 invoiceNumber,
                 adminId).ConfigureAwait(false);
+            var ledgerId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+
+            journalId = await _gl.PostPurchaseAsync(connection, transaction, purchaseId, adminId, cancellationToken).ConfigureAwait(false);
+            if (journalId > 0 && ledgerId > 0)
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("UPDATE `epc_erp_supplier_accounting` SET `gl_journal_id` = ? WHERE `id` = ?"),
+                    cancellationToken,
+                    journalId,
+                    ledgerId).ConfigureAwait(false);
+            }
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -272,7 +289,6 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
             throw;
         }
 
-        var journalId = await TryPostGlAsync(connection, purchaseId, adminId, cancellationToken).ConfigureAwait(false);
         await _audit.LogAsync(
             connection,
             null,
@@ -299,22 +315,6 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
         => (countryCode ?? string.Empty).Trim().ToUpperInvariant() is "AE" or "ARE"
             ? "vat-decree-8-2017"
             : string.Empty;
-
-    private async Task<long> TryPostGlAsync(DbConnection connection, long purchaseId, int adminId, CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await _gl.PostPurchaseAsync(connection, purchaseId, adminId, cancellationToken).ConfigureAwait(false);
-        }
-        catch (ErpWriteException)
-        {
-            return 0L;
-        }
-        catch (DbException)
-        {
-            return 0L;
-        }
-    }
 
     private void EnsureConfigured()
     {

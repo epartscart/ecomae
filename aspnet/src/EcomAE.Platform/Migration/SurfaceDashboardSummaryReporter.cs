@@ -14625,6 +14625,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpLazySchema.EnsureFinAdvancedAsync(connection, cancellationToken).ConfigureAwait(false);
             var periods = 0; var openPeriods = 0; var rules = 0; var accruals = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -15688,6 +15689,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpAmlShared.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             var kyc = 0; var pending = 0; var flagged = 0; var rules = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -15748,6 +15750,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpAmlShared.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             CpAmlComplianceKycDetail? header = null;
             await using (var cmd = connection.CreateCommand())
             {

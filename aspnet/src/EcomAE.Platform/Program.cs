@@ -1773,19 +1773,19 @@ app.MapMethods(EcomAeRoutes.LegacyLogout, ["GET", "POST"], async (HttpContext co
     }
 
     return await PerformLegacyLogout(context, logout, surface, returnUrl);
-});
+}).DisableAntiforgery();
 app.MapMethods(EcomAeRoutes.ControlPanelLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
-    => PerformLegacyLogout(context, logout, "cp", null));
+    => PerformLegacyLogout(context, logout, "cp", null)).DisableAntiforgery();
 app.MapMethods(EcomAeRoutes.ErpLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
-    => PerformLegacyLogout(context, logout, "erp", null));
+    => PerformLegacyLogout(context, logout, "erp", null)).DisableAntiforgery();
 app.MapMethods(EcomAeRoutes.BosLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
-    => PerformLegacyLogout(context, logout, "bos", null));
+    => PerformLegacyLogout(context, logout, "bos", null)).DisableAntiforgery();
 app.MapMethods(EcomAeRoutes.IpLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
-    => PerformLegacyLogout(context, logout, "ip", null));
+    => PerformLegacyLogout(context, logout, "ip", null)).DisableAntiforgery();
 app.MapMethods(EcomAeRoutes.LifeOsLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
-    => PerformLegacyLogout(context, logout, "lifeos", null));
+    => PerformLegacyLogout(context, logout, "lifeos", null)).DisableAntiforgery();
 app.MapMethods(EcomAeRoutes.StorefrontLogout, ["GET", "POST"], (HttpContext context, LegacyLogoutService logout)
-    => PerformLegacyLogout(context, logout, "storefront", null));
+    => PerformLegacyLogout(context, logout, "storefront", null)).DisableAntiforgery();
 
 // PHP-compatible admin/customer login bridge (exact-route). Sets cookies; does not cut over /CP/ /ERP/ /BOS/.
 // Accepts JSON or application/x-www-form-urlencoded (HTML login forms).
