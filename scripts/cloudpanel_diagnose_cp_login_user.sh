@@ -28,6 +28,11 @@ printf 'HOST=%s EMAIL=%s\n' "$HOST" "$EMAIL"
 printf 'secret_succession_configured=%s\n' "$has_secret"
 systemctl is-active ecomae-platform.service 2>/dev/null || true
 
+SUPER_HOST=0
+case "${HOST,,}" in
+  www.ecomae.com|ecomae.com|cp.ecomae.com) SUPER_HOST=1 ;;
+esac
+
 CS="$(grep -E '^ConnectionStrings__TenantRegistry=' "$ENV_FILE" | head -n1 | cut -d= -f2- || true)"
 [[ -n "$CS" ]] || { printf 'ERROR: ConnectionStrings__TenantRegistry missing\n' >&2; exit 1; }
 
@@ -80,6 +85,10 @@ ORDER BY CASE WHEN IFNULL(TRIM(db_name),'')<>'' THEN 0 ELSE 1 END,
 LIMIT 5;
 " || true
 
+if [[ "$SUPER_HOST" == "1" ]]; then
+  printf '\nSUPER host — Super admin lives in platform registry %s.users (not a shop db_name).\n' "$REG_DB"
+  SHOP_DB="$REG_DB"
+else
 SHOP_DB="$(mysql -h "$DB_HOST" -u "$DB_USER" "$REG_DB" -N -e "
 SELECT db_name FROM epc_portal_tenants
 WHERE hostname IN ('${HOST}', REPLACE('${HOST}', 'www.', ''), CONCAT('www.', REPLACE('${HOST}', 'www.', '')))
@@ -89,15 +98,25 @@ WHERE hostname IN ('${HOST}', REPLACE('${HOST}', 'www.', ''), CONCAT('www.', REP
 ORDER BY CASE WHEN hostname='${HOST}' THEN 0 ELSE 1 END, IFNULL(erp_only_shared,0) ASC
 LIMIT 1;
 " 2>/dev/null || true)"
+fi
 
 if [[ -z "$SHOP_DB" ]]; then
   printf 'RESULT=FAIL tenant_db_unbound host=%s — rows may lack db_name OR status not in (dns_pending,live). Run cloudpanel_fix_epartscart_portal_tenant_db.sh\n' "$HOST"
   unset MYSQL_PWD
   exit 1
 fi
-printf 'resolved_shop_db=%s\n' "$SHOP_DB"
+if [[ "$SUPER_HOST" == "1" ]]; then
+  printf 'resolved_registry_db=%s\n' "$SHOP_DB"
+else
+  printf 'resolved_shop_db=%s\n' "$SHOP_DB"
+fi
 
-printf '\n-- users row in shop DB (no full hash) --\n'
+printf '\n-- users row in %s (no full hash) --\n' "$([[ "$SUPER_HOST" == "1" ]] && echo registry || echo shop)"
+SAFE_EMAIL="${EMAIL//\'/\\\'}"
+EMAIL_IN="LOWER('${SAFE_EMAIL}')"
+if [[ "$SUPER_HOST" == "1" ]]; then
+  EMAIL_IN="${EMAIL_IN}, LOWER('yawer@ecomae.com'), LOWER('ecomaedxb@gmail.com')"
+fi
 mysql -h "$DB_HOST" -u "$DB_USER" "$SHOP_DB" -N -e "
 SELECT CONCAT(
   'user_id=', IFNULL(user_id,0),
@@ -112,12 +131,12 @@ SELECT CONCAT(
     END
 )
 FROM users
-WHERE LOWER(email)=LOWER('${EMAIL//\'/\\\'}')
-LIMIT 3;
+WHERE LOWER(email) IN (${EMAIL_IN})
+LIMIT 5;
 " || true
 
 FOUND="$(mysql -h "$DB_HOST" -u "$DB_USER" "$SHOP_DB" -N -e "
-SELECT COUNT(*) FROM users WHERE LOWER(email)=LOWER('${EMAIL//\'/\\\'}');
+SELECT COUNT(*) FROM users WHERE LOWER(email) IN (${EMAIL_IN});
 " 2>/dev/null || echo 0)"
 
 # Cross-check taxofinca / other common tenants if email suggests them
@@ -149,7 +168,7 @@ if [[ "${FOUND:-0}" != "0" ]]; then
 SELECT CONCAT('group_id=', g.group_id, ' groups=', COUNT(*))
 FROM users u
 JOIN users_groups_bind g ON g.user_id=u.user_id
-WHERE LOWER(u.email)=LOWER('${EMAIL//\'/\\\'}')
+WHERE LOWER(u.email) IN (${EMAIL_IN})
 GROUP BY g.group_id;
 " || true
 fi
@@ -167,12 +186,20 @@ curl -sS -o /dev/null -w 'POST /cp/login code=%{http_code} redirect=%{redirect_u
   --data-urlencode 'password=__diagnose_wrong__' || true
 
 if [[ "${FOUND:-0}" == "0" ]]; then
-  printf 'RESULT=FAIL user_not_in_shop_db=%s host=%s — account may belong to another tenant host\n' "$SHOP_DB" "$HOST"
+  if [[ "$SUPER_HOST" == "1" ]]; then
+    printf 'RESULT=FAIL super_operator_missing_in_registry=%s — run cloudpanel_enable_super_operator_yawer.sh\n' "$REG_DB"
+  else
+    printf 'RESULT=FAIL user_not_in_shop_db=%s host=%s — account may belong to another tenant host\n' "$SHOP_DB" "$HOST"
+  fi
   exit 1
 fi
 if [[ "$has_secret" != "1" ]]; then
   printf 'RESULT=FAIL secret_succession_missing — run cloudpanel_sync_secret_succession_from_php.sh\n'
   exit 1
 fi
-printf 'RESULT=OK user_present_in_%s — if login still fails: wrong password, no backend group, or SecretSuccession mismatch (md5)\n' "$SHOP_DB"
+if [[ "$SUPER_HOST" == "1" ]]; then
+  printf 'RESULT=OK super_operator_in_registry=%s — login at https://www.ecomae.com/erp/login as yawer@ecomae.com with the previous Gmail-operator password\n' "$REG_DB"
+else
+  printf 'RESULT=OK user_present_in_%s — if login still fails: wrong password, no backend group, or SecretSuccession mismatch (md5)\n' "$SHOP_DB"
+fi
 exit 0

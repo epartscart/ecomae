@@ -4,6 +4,37 @@ The command `bash scripts/preflight_aspnet_production.sh` must be run from the r
 
 **Do not use `/var/www/ecomae`.** That path is usually missing. Source checkouts live under `/root/ecomae` or `/opt/ecomae-aspnet-source`. Published releases live under `/var/www/ecomae-aspnet`.
 
+## Super admin `yawer@ecomae.com` cannot log in?
+
+Production still has `ecomaedxb@gmail.com` in the **platform registry** `users` table (not a shop `db_name`). Password hash stays the same. One paste as root on CloudPanel remaps the email, syncs SecretSuccession from PHP, and restarts ASP.NET:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/erp-logout-everywhere-5dbd/scripts/cloudpanel_enable_super_operator_yawer.sh)"
+```
+
+Then sign in on `https://www.ecomae.com/erp/login` as `yawer@ecomae.com` with the previous Gmail-operator password. Do not use a tenant host.
+
+Diagnose only (no write):
+
+```bash
+ECOMAE_DIAG_EMAIL='yawer@ecomae.com' ECOMAE_DIAG_HOST='www.ecomae.com' \
+  bash /opt/ecomae-aspnet-source/scripts/cloudpanel_diagnose_cp_login_user.sh
+```
+
+## Logout still signed in after refresh?
+
+Production is still on the old ASP.NET binary until you deploy `cursor/erp-logout-everywhere-5dbd`. Diagnose first (no restart), then deploy:
+
+```bash
+# See current Set-Cookie / X-EcomAE-Logout (no git change):
+ECOMAE_LOGOUT_DEPLOY=0 bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/erp-logout-everywhere-5dbd/scripts/cloudpanel_deploy_logout_everywhere.sh)"
+
+# Deploy the logout branch, restart ASP.NET, probe again:
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/erp-logout-everywhere-5dbd/scripts/cloudpanel_deploy_logout_everywhere.sh)"
+```
+
+The script never prints cookie values. After deploy, `/erp/logout` must send `X-EcomAE-Logout: cleared` and expire `admin_session` with `Secure`. Then refresh `/erp` — you should stay on `/erp/login`.
+
 PR #603 (ensure→issue smoke unlock) is on **main**. Preferred paste-safe redeploy + capture:
 
 ```bash
