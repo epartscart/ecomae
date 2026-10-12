@@ -1053,6 +1053,41 @@ public static class EcomAeRoutes
     public const string ErpProductInfoPimAction = "/erp/product-info/pim";
     /// <summary>Syncron inventory policy page: recommendations, policies, forecast and service levels.</summary>
     public const string ErpSyncronApp = "/erp/syncron-app";
+    /// <summary>
+    /// Hybrid UI dual-sample TARGETS still list /cp/*-app presentation shadows.
+    /// Canonical Blazor pages are the /erp/* twins; nginx keeps both exact routes.
+    /// </summary>
+    public const string HybridShadowCpAmlComplianceApp = "/cp/aml-compliance-app";
+    public const string HybridShadowCpAuditTrailApp = "/cp/audit-trail-app";
+    public const string HybridShadowCpBlockchainProofsApp = "/cp/blockchain-proofs-app";
+    public const string HybridShadowCpBudgetsApp = "/cp/budgets-app";
+    public const string HybridShadowCpConsolidationsApp = "/cp/consolidations-app";
+    public const string HybridShadowCpCostModelsApp = "/cp/cost-models-app";
+    public const string HybridShadowCpCrmOpportunitiesApp = "/cp/crm-opportunities-app";
+    public const string HybridShadowCpCrmTicketsApp = "/cp/crm-tickets-app";
+    public const string HybridShadowCpDataMigrationsApp = "/cp/data-migrations-app";
+    public const string HybridShadowCpDocExpiryApp = "/cp/doc-expiry-app";
+    public const string HybridShadowCpEinvoiceDocumentsApp = "/cp/einvoice-documents-app";
+    public const string HybridShadowCpElectronicReportingApp = "/cp/electronic-reporting-app";
+    public const string HybridShadowCpFinAdvancedApp = "/cp/fin-advanced-app";
+    public const string HybridShadowCpFinanceCloseApp = "/cp/finance-close-app";
+    public const string HybridShadowCpHrOverviewApp = "/cp/hr-overview-app";
+    public const string HybridShadowCpInsuranceComplianceApp = "/cp/insurance-compliance-app";
+    public const string HybridShadowCpJewelleryFixingApp = "/cp/jewellery-fixing-app";
+    public const string HybridShadowCpJewelleryMastersApp = "/cp/jewellery-masters-app";
+    public const string HybridShadowCpJewelleryRepairsApp = "/cp/jewellery-repairs-app";
+    public const string HybridShadowCpJewelleryRetailApp = "/cp/jewellery-retail-app";
+    public const string HybridShadowCpJewelleryStockVerificationApp = "/cp/jewellery-stock-verification-app";
+    public const string HybridShadowCpLandedCostApp = "/cp/landed-cost-app";
+    public const string HybridShadowCpPosOverviewApp = "/cp/pos-overview-app";
+    public const string HybridShadowCpProductionOverviewApp = "/cp/production-overview-app";
+    public const string HybridShadowCpProjectsOverviewApp = "/cp/projects-overview-app";
+    public const string HybridShadowCpPurchaseRequestsApp = "/cp/purchase-requests-app";
+    public const string HybridShadowCpTaxExternalReportingApp = "/cp/tax-external-reporting-app";
+    public const string HybridShadowCpTenantConfigApp = "/cp/tenant-config-app";
+    public const string HybridShadowCpUaeTaxComplianceApp = "/cp/uae-tax-compliance-app";
+    public const string HybridShadowCpWarehouseWmsApp = "/cp/warehouse-wms-app";
+    public const string HybridShadowCpWorkflowsApp = "/cp/workflows-app";
     /// <summary>Syncron form POST (<c>syncron_action</c> = policy_save, policy_deactivate, run_forecast, record_service_level). Needs <c>confirmWrites=true</c>.</summary>
     public const string ErpSyncronAction = "/erp/syncron/action";
     /// <summary>HTML form POST for PHP <c>jw_repair_create</c>. <c>confirmWrites=true</c> inserts <c>epc_erp_jw_repairs</c>.</summary>
