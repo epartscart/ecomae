@@ -1224,16 +1224,14 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
 
         if (!ErpPostedTransactionPolicy.CanVoid(kind, current))
         {
-            return ErpPostedTransactionPolicy.IsDraft(kind, current)
-                ? ErpSimpleWriteResult.Fail("draft", "Drafts are deleted, not voided.")
-                : ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.IsVoided(current) ? ErpPostedTransactionPolicy.AlreadyClosed : ErpPostedTransactionPolicy.RefuseVoid);
+            return ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.AlreadyClosed);
         }
 
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "UPDATE `" + map.Value.Table + "` SET `status`='voided' WHERE `id`=?"),
             ct, r.Id).ConfigureAwait(false);
         await UnwindAsync(c, tx, kind, r.Id, ct).ConfigureAwait(false);
-        return ErpSimpleWriteResult.Ok("Posted " + kind + " voided. The original row stays on file.", r.Id);
+        return ErpSimpleWriteResult.Ok(kind + " voided. The original row stays on file.", r.Id);
     }
 
     private static async Task<ErpSimpleWriteResult> ReverseDocumentAsync(
@@ -1270,7 +1268,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         var kind = ErpPostedTransactionPolicy.NormalizeKind(r.Category ?? r.Status);
         if (r.Id <= 0 || kind.Length == 0)
         {
-            return ErpSimpleWriteResult.Fail("invalid", "Document kind and id are required to delete a draft.");
+            return ErpSimpleWriteResult.Fail("invalid", "Document kind and id are required to delete.");
         }
 
         var map = TableFor(kind);
@@ -1287,13 +1285,14 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
 
         if (!ErpPostedTransactionPolicy.CanDelete(kind, current))
         {
-            return ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.RefuseDelete);
+            return ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.AlreadyClosed);
         }
 
+        await UnwindAsync(c, tx, kind, r.Id, ct).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
-            "DELETE FROM `" + map.Value.Table + "` WHERE `id`=? AND `status` IN ('draft','open','screening','offer','due_diligence','received','held','due_for_deposit','planned')"),
+            "DELETE FROM `" + map.Value.Table + "` WHERE `id`=?"),
             ct, r.Id).ConfigureAwait(false);
-        return ErpSimpleWriteResult.Ok("Draft " + kind + " deleted.", r.Id);
+        return ErpSimpleWriteResult.Ok(kind + " deleted.", r.Id);
     }
 
     private static async Task UnwindAsync(DbConnection c, DbTransaction tx, string kind, long id, CancellationToken ct)

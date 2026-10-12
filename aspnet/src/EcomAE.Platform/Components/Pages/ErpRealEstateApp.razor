@@ -17,7 +17,7 @@
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/real-estate-app" IsAdmin="_isAdmin" />
     <PhpErpModulePageHeader
         Title="Investment, development and construction"
-        Subtitle="Property master, pipeline, leases, cheques, projects and contractor certificates — linked to legal entities, GL, VAT and existing finance. Posted transactions cannot be edited or deleted; void or reverse them. Opportunities are not owned assets. Fair-value moves stay off the ledger until policy posting."
+        Subtitle="Property master, pipeline, leases, cheques, projects and contractor certificates — linked to legal entities, GL, VAT and existing finance. Posted rows cannot be edited; void (keep on file) or delete them. Reverse remains available. Opportunities are not owned assets. Fair-value moves stay off the ledger until policy posting."
         PhpTabHref="/erp/real-estate-app" />
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
@@ -39,7 +39,7 @@
         <div class="kpi"><div class="lbl">Cost to complete</div><div class="val">@_snap.Kpis.CostToComplete.ToString("N0", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <p class="text-muted">Finance links: legal entity, invoices, cash/bank, ageing, GL and VAT stay on the existing ERP modules. Cheques are not cash until bank clearance. Residential/commercial VAT is taken from the configured tax engine, not hardcoded by property type. Once a document is posted it stays on file — void or reverse; delete is only for drafts.</p>
+    <p class="text-muted">Finance links: legal entity, invoices, cash/bank, ageing, GL and VAT stay on the existing ERP modules. Cheques are not cash until bank clearance. Residential/commercial VAT is taken from the configured tax engine, not hardcoded by property type. Posted documents cannot be edited. Use Void to keep the original row, or Delete to remove it. Reverse is also available on posted rows.</p>
 
     @if (!string.IsNullOrWhiteSpace(_snap.Message))
     {
@@ -464,10 +464,10 @@
                                             <input type="hidden" name="action" value="delete" />
                                             <input type="hidden" name="category" value="@row.Kind" />
                                             <input type="hidden" name="id" value="@row.Id" />
-                                            <button type="submit" class="btn btn-default btn-xs">Delete draft</button>
+                                            <button type="submit" class="btn btn-default btn-xs">Delete</button>
                                         </form>
                                     }
-                                    else if (ErpPostedTransactionPolicy.CanVoid(row.Kind, row.Status))
+                                    @if (ErpPostedTransactionPolicy.CanVoid(row.Kind, row.Status))
                                     {
                                         <form method="post" action="@SaveAction" style="display:inline">
                                             <input type="hidden" name="confirmWrites" value="true" />
@@ -477,6 +477,9 @@
                                             <input type="hidden" name="id" value="@row.Id" />
                                             <button type="submit" class="btn btn-warning btn-xs">Void</button>
                                         </form>
+                                    }
+                                    @if (ErpPostedTransactionPolicy.CanReverse(row.Kind, row.Status))
+                                    {
                                         <form method="post" action="@SaveAction" style="display:inline">
                                             <input type="hidden" name="confirmWrites" value="true" />
                                             <input type="hidden" name="returnUrl" value="@OrgHref(_tab)" />
