@@ -40,6 +40,7 @@ public sealed class ErpBankImportWriteService : IErpBankImportWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureBankReconAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_erp_bank_statement_lines", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Bank statement table is not provisioned");

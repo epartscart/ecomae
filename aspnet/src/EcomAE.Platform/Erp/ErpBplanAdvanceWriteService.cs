@@ -7,7 +7,7 @@ namespace EcomAE.Platform.Erp;
 /// <summary>
 /// Live PHP <c>epc_bplan_advance_stage</c> / ajax <c>bplan_advance</c> twin.
 /// draft→review→approved is a stage UPDATE. approved→published freezes
-/// <c>SUM(line.amount) + SUM(headcount*annual_cost)</c>. Schema ensure stays PHP.
+/// <c>SUM(line.amount) + SUM(headcount*annual_cost)</c>.
 /// Does not CREATE tables.
 /// </summary>
 public interface IErpBplanAdvanceWriteService
@@ -50,6 +50,7 @@ public sealed class ErpBplanAdvanceWriteService : IErpBplanAdvanceWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureBudgetPlanningAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_bplan_plan", "stage", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_bplan_line", "amount", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_bplan_position", "annual_cost", cancellationToken).ConfigureAwait(false))

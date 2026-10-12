@@ -37,6 +37,38 @@ public sealed class ErpJourneyLazySchemaTests
     }
 
     [Fact]
+    public void BankOpeningPayrollPrintFyAndBplanWritersCallPhpTwinnedEnsure()
+    {
+        Assert.Contains("EnsureBankReconAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpBankReconcileWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsureBankReconAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpBankImportWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsureOpeningAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpOpeningCreateBatchWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsureOpeningAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpOpeningAddCoaLineWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsureOpeningAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpOpeningAddInvLineWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsureOpeningAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpOpeningPostBatchWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsurePayrollAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpPayrollGenerateWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsurePayrollAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpPayrollPayWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsurePayrollAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpPayrollUpdateDaysWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsurePayrollAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpPayrollWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsurePrintDesignerAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpPrintDesignerSaveWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsurePeriodCloseAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpFyCloseWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsureBudgetPlanningAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpBplanSaveWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsureBudgetPlanningAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpBplanLineAddWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsureBudgetPlanningAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpBplanPositionAddWriteService.cs"), StringComparison.Ordinal);
+        Assert.Contains("EnsureBudgetPlanningAsync", Read("aspnet/src/EcomAE.Platform/Erp/ErpBplanAdvanceWriteService.cs"), StringComparison.Ordinal);
+        var lazy = Read("aspnet/src/EcomAE.Platform/Erp/ErpLazySchema.cs");
+        Assert.Contains("epc_erp_phase8_ensure_schema", lazy, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_opening_ensure_schema", lazy, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_payroll_ensure_schema", lazy, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_print_designer_ensure_schema", lazy, StringComparison.Ordinal);
+        Assert.Contains("epc_bplan_ensure_schema", lazy, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_bank_statement_lines", lazy, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_opening_batches", lazy, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_payroll_runs", lazy, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_print_templates", lazy, StringComparison.Ordinal);
+        Assert.Contains("epc_bplan_plan", lazy, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void StorefrontCatalogueSearchAndProductTitlesUseHostBrand()
     {
         Assert.Contains("ResolveBrandLabel", Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"), StringComparison.Ordinal);

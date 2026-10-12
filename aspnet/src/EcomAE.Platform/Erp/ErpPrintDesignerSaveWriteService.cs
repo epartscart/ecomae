@@ -10,7 +10,7 @@ namespace EcomAE.Platform.Erp;
 /// <summary>
 /// Live PHP <c>epc_erp_print_template_save</c> / ajax <c>print_designer_save</c> twin.
 /// UPDATE/INSERT <c>epc_erp_print_templates</c> for present fields only.
-/// Render and schema ensure stay PHP. Does not CREATE tables.
+/// Render stays PHP. Does not CREATE tables.
 /// </summary>
 public interface IErpPrintDesignerSaveWriteService
 {
@@ -57,6 +57,7 @@ public sealed class ErpPrintDesignerSaveWriteService : IErpPrintDesignerSaveWrit
 
         var fields = CollectAllowed(request.Fields);
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsurePrintDesignerAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_print_templates", "doc_type", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Print template table is not provisioned");

@@ -6,7 +6,7 @@ namespace EcomAE.Platform.Erp;
 /// <summary>
 /// Live PHP <c>epc_bplan_position_add</c> / ajax <c>bplan_position_add</c> twin.
 /// INSERT <c>epc_bplan_position</c> when the plan is draft or review.
-/// Plan save, worksheet lines, publish, and schema ensure stay PHP.
+/// Plan save, worksheet lines, and publish stay on their dedicated writers.
 /// Does not CREATE tables.
 /// </summary>
 public interface IErpBplanPositionAddWriteService
@@ -64,6 +64,7 @@ public sealed class ErpBplanPositionAddWriteService : IErpBplanPositionAddWriteS
         var headcount = Math.Max(1, request.Headcount);
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureBudgetPlanningAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_bplan_plan", "stage", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_bplan_position", "title", cancellationToken).ConfigureAwait(false))
         {

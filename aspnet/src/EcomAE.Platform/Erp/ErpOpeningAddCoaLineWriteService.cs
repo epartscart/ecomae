@@ -6,8 +6,8 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_erp_opening_add_line</c> / ajax <c>opening_add_coa_line</c> twin.
-/// INSERT a COA line on <c>epc_erp_opening_lines</c>. Batch create, inventory line, post, and schema stay PHP.
-/// Does not CREATE tables. PHP does not require a positive batch id.
+/// INSERT a COA line on <c>epc_erp_opening_lines</c>. Batch create, inventory line, and post stay
+/// on their dedicated writers. Does not CREATE tables. PHP does not require a positive batch id.
 /// </summary>
 public interface IErpOpeningAddCoaLineWriteService
 {
@@ -42,6 +42,7 @@ public sealed class ErpOpeningAddCoaLineWriteService : IErpOpeningAddCoaLineWrit
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureOpeningAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_opening_lines", "debit", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Opening lines table is not provisioned");

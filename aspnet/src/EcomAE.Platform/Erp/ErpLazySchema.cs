@@ -1336,6 +1336,84 @@ internal static class ErpLazySchema
         }
     }
 
+    /// <summary>PHP <c>epc_erp_phase8_ensure_schema</c> bank-recon subset (content/shop/finance/epc_erp_phase8.php).</summary>
+    public static async Task EnsureBankReconAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpCashWriteService.EnsureSchemaAsync(c, ct).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_bank_statement_lines` (`id` int(11) NOT NULL AUTO_INCREMENT, `account_id` int(11) NOT NULL, `line_date` int(11) NOT NULL, `description` varchar(255) DEFAULT NULL, `reference` varchar(128) DEFAULT NULL, `amount` decimal(14,2) NOT NULL DEFAULT 0.00, `direction` tinyint(1) NOT NULL, `matched_entry_id` int(11) NOT NULL DEFAULT 0, `import_batch` varchar(64) DEFAULT NULL, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_account` (`account_id`,`matched_entry_id`), KEY `x_date` (`line_date`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Bank statement lines for reconciliation'",
+            ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_cash_bank_entries", "reconciled", "tinyint(1) NOT NULL DEFAULT 0", ct).ConfigureAwait(false);
+    }
+
+    /// <summary>PHP <c>epc_erp_opening_ensure_schema</c> (content/shop/finance/epc_erp_opening.php).</summary>
+    public static async Task EnsureOpeningAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_erp_opening_batches` (`id` int(11) NOT NULL AUTO_INCREMENT, `module` enum('coa','cash_bank','inventory','fixed_assets','combined') NOT NULL DEFAULT 'combined', `as_of_date` date NOT NULL, `reference` varchar(128) DEFAULT NULL, `status` enum('draft','posted','void') NOT NULL DEFAULT 'draft', `note` text, `admin_id` int(11) NOT NULL DEFAULT 0, `time_created` int(11) NOT NULL DEFAULT 0, `time_posted` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_date` (`as_of_date`,`module`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_opening_lines` (`id` int(11) NOT NULL AUTO_INCREMENT, `batch_id` int(11) NOT NULL, `line_type` varchar(32) NOT NULL, `entity_id` int(11) NOT NULL DEFAULT 0, `entity_ref` varchar(64) DEFAULT NULL, `debit` decimal(14,2) NOT NULL DEFAULT 0.00, `credit` decimal(14,2) NOT NULL DEFAULT 0.00, `qty` decimal(14,3) NOT NULL DEFAULT 0.000, `unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `meta_json` text, PRIMARY KEY (`id`), KEY `x_batch` (`batch_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP <c>epc_erp_payroll_ensure_schema</c> + <c>epc_erp_staff_ensure_schema</c>.</summary>
+    public static async Task EnsurePayrollAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_erp_departments` (`code` varchar(32) NOT NULL, `name` varchar(128) NOT NULL, `group_value` varchar(64) NOT NULL, `tabs_json` text, `workflows_json` text, `sort_order` int(11) NOT NULL DEFAULT 0, `active` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`code`), UNIQUE KEY `group_value` (`group_value`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_staff_profiles` (`id` int(11) NOT NULL AUTO_INCREMENT, `user_id` int(11) NOT NULL, `department_code` varchar(32) NOT NULL, `display_name` varchar(128) NOT NULL, `job_title` varchar(128) DEFAULT NULL, `email` varchar(128) DEFAULT NULL, `phone` varchar(64) DEFAULT NULL, `active` tinyint(1) NOT NULL DEFAULT 1, `time_created` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), UNIQUE KEY `user_id` (`user_id`), KEY `department_code` (`department_code`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_hr_records` (`id` int(11) NOT NULL AUTO_INCREMENT, `staff_profile_id` int(11) NOT NULL, `hire_date` int(11) NOT NULL DEFAULT 0, `leave_balance_days` decimal(5,1) NOT NULL DEFAULT 0.0, `manager_user_id` int(11) NOT NULL DEFAULT 0, `notes` text, `time_updated` int(11) NOT NULL DEFAULT 0, `basic_salary` decimal(14,2) NOT NULL DEFAULT 0.00, `allowances` decimal(14,2) NOT NULL DEFAULT 0.00, `bank_account` varchar(64) DEFAULT NULL, `bank_name` varchar(128) DEFAULT NULL, `days_worked` decimal(5,1) NOT NULL DEFAULT 30.0, PRIMARY KEY (`id`), UNIQUE KEY `staff_profile_id` (`staff_profile_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_payroll_runs` (`id` int(11) NOT NULL AUTO_INCREMENT, `period_label` varchar(32) NOT NULL, `period_start` int(11) NOT NULL DEFAULT 0, `period_end` int(11) NOT NULL DEFAULT 0, `status` enum('draft','approved','paid') NOT NULL DEFAULT 'draft', `total_gross` decimal(14,2) NOT NULL DEFAULT 0.00, `total_deductions` decimal(14,2) NOT NULL DEFAULT 0.00, `total_net` decimal(14,2) NOT NULL DEFAULT 0.00, `cash_account_id` int(11) NOT NULL DEFAULT 0, `cash_entry_id` int(11) NOT NULL DEFAULT 0, `paid_at` int(11) NOT NULL DEFAULT 0, `note` text, `created_by` int(11) NOT NULL DEFAULT 0, `time_created` int(11) NOT NULL DEFAULT 0, `standard_days` int(11) NOT NULL DEFAULT 30, PRIMARY KEY (`id`), UNIQUE KEY `period_label` (`period_label`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            "CREATE TABLE IF NOT EXISTS `epc_erp_payroll_lines` (`id` int(11) NOT NULL AUTO_INCREMENT, `run_id` int(11) NOT NULL, `staff_profile_id` int(11) NOT NULL, `user_id` int(11) NOT NULL DEFAULT 0, `department_code` varchar(32) NOT NULL DEFAULT '', `display_name` varchar(128) NOT NULL DEFAULT '', `job_title` varchar(128) DEFAULT NULL, `basic_salary` decimal(14,2) NOT NULL DEFAULT 0.00, `allowances` decimal(14,2) NOT NULL DEFAULT 0.00, `deductions` decimal(14,2) NOT NULL DEFAULT 0.00, `net_pay` decimal(14,2) NOT NULL DEFAULT 0.00, `bank_account` varchar(64) DEFAULT NULL, `bank_name` varchar(128) DEFAULT NULL, `status` enum('draft','paid') NOT NULL DEFAULT 'draft', `paid_at` int(11) NOT NULL DEFAULT 0, `time_created` int(11) NOT NULL DEFAULT 0, `monthly_basic` decimal(14,2) NOT NULL DEFAULT 0.00, `monthly_allowances` decimal(14,2) NOT NULL DEFAULT 0.00, `standard_days` int(11) NOT NULL DEFAULT 30, `days_worked` decimal(5,1) NOT NULL DEFAULT 30.0, `extra_days` decimal(5,1) NOT NULL DEFAULT 0.0, `daily_rate` decimal(14,4) NOT NULL DEFAULT 0.0000, `gross_pay` decimal(14,2) NOT NULL DEFAULT 0.00, PRIMARY KEY (`id`), KEY `run_id` (`run_id`), KEY `staff_profile_id` (`staff_profile_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+
+        await AddColumnIfMissingAsync(c, "epc_erp_hr_records", "basic_salary", "decimal(14,2) NOT NULL DEFAULT 0.00", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_hr_records", "allowances", "decimal(14,2) NOT NULL DEFAULT 0.00", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_hr_records", "bank_account", "varchar(64) DEFAULT NULL", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_hr_records", "bank_name", "varchar(128) DEFAULT NULL", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_hr_records", "days_worked", "decimal(5,1) NOT NULL DEFAULT 30.0", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_runs", "standard_days", "int(11) NOT NULL DEFAULT 30", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "monthly_basic", "decimal(14,2) NOT NULL DEFAULT 0.00", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "monthly_allowances", "decimal(14,2) NOT NULL DEFAULT 0.00", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "standard_days", "int(11) NOT NULL DEFAULT 30", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "days_worked", "decimal(5,1) NOT NULL DEFAULT 30.0", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "extra_days", "decimal(5,1) NOT NULL DEFAULT 0.0", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "daily_rate", "decimal(14,4) NOT NULL DEFAULT 0.0000", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_payroll_lines", "gross_pay", "decimal(14,2) NOT NULL DEFAULT 0.00", ct).ConfigureAwait(false);
+    }
+
+    /// <summary>PHP <c>epc_erp_print_designer_ensure_schema</c> (content/shop/finance/epc_erp_print_designer.php).</summary>
+    public static async Task EnsurePrintDesignerAsync(DbConnection c, CancellationToken ct)
+        => await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_print_templates` (`id` int(11) NOT NULL AUTO_INCREMENT, `doc_type` varchar(40) NOT NULL, `name` varchar(120) NOT NULL DEFAULT 'Default', `is_default` tinyint(1) NOT NULL DEFAULT 0, `page_size` varchar(10) NOT NULL DEFAULT 'A4', `orientation` enum('portrait','landscape') NOT NULL DEFAULT 'portrait', `margin_top` int(11) NOT NULL DEFAULT 15, `margin_bottom` int(11) NOT NULL DEFAULT 15, `margin_left` int(11) NOT NULL DEFAULT 10, `margin_right` int(11) NOT NULL DEFAULT 10, `font_family` varchar(60) NOT NULL DEFAULT 'Arial, sans-serif', `font_size` int(11) NOT NULL DEFAULT 11, `primary_color` varchar(10) NOT NULL DEFAULT '#1565c0', `secondary_color` varchar(10) NOT NULL DEFAULT '#4a6a7a', `logo_position` enum('left','center','right','none') NOT NULL DEFAULT 'left', `logo_max_height` int(11) NOT NULL DEFAULT 60, `header_html` text, `footer_html` text, `body_columns` text, `show_terms` tinyint(1) NOT NULL DEFAULT 1, `terms_html` text, `show_bank_details` tinyint(1) NOT NULL DEFAULT 1, `bank_details_html` text, `show_signature_line` tinyint(1) NOT NULL DEFAULT 1, `signature_labels` varchar(255) NOT NULL DEFAULT 'Prepared by,Approved by,Received by', `show_qr_code` tinyint(1) NOT NULL DEFAULT 0, `show_barcode` tinyint(1) NOT NULL DEFAULT 0, `custom_css` text, `active` tinyint(1) NOT NULL DEFAULT 1, `admin_id` int(11) NOT NULL DEFAULT 0, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_doctype` (`doc_type`,`is_default`), KEY `x_active` (`active`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Tenant-configurable document print templates'",
+            ct).ConfigureAwait(false);
+
+    /// <summary>PHP <c>epc_bplan_ensure_schema</c> (content/shop/finance/epc_erp_budget_planning.php).</summary>
+    public static async Task EnsureBudgetPlanningAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_bplan_plan` (`id` int(11) NOT NULL AUTO_INCREMENT, `company_id` int(11) NOT NULL DEFAULT 0, `name` varchar(160) NOT NULL DEFAULT '', `fiscal_year` varchar(16) NOT NULL DEFAULT '', `stage` varchar(20) NOT NULL DEFAULT 'draft', `owner` varchar(160) NOT NULL DEFAULT '', `notes` text, `published_total` decimal(18,2) NOT NULL DEFAULT 0.00, `time_created` int(11) NOT NULL DEFAULT 0, `time_updated` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_company` (`company_id`), KEY `x_stage` (`stage`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Budget plans'",
+            "CREATE TABLE IF NOT EXISTS `epc_bplan_line` (`id` int(11) NOT NULL AUTO_INCREMENT, `plan_id` int(11) NOT NULL DEFAULT 0, `account` varchar(60) NOT NULL DEFAULT '', `dimension` varchar(120) NOT NULL DEFAULT '', `scenario` varchar(40) NOT NULL DEFAULT 'base', `period` varchar(20) NOT NULL DEFAULT '', `amount` decimal(18,2) NOT NULL DEFAULT 0.00, PRIMARY KEY (`id`), KEY `x_plan` (`plan_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Budget plan worksheet lines'",
+            "CREATE TABLE IF NOT EXISTS `epc_bplan_position` (`id` int(11) NOT NULL AUTO_INCREMENT, `plan_id` int(11) NOT NULL DEFAULT 0, `company_id` int(11) NOT NULL DEFAULT 0, `title` varchar(160) NOT NULL DEFAULT '', `department` varchar(120) NOT NULL DEFAULT '', `headcount` int(11) NOT NULL DEFAULT 1, `annual_cost` decimal(18,2) NOT NULL DEFAULT 0.00, `start_period` varchar(20) NOT NULL DEFAULT '', PRIMARY KEY (`id`), KEY `x_plan` (`plan_id`), KEY `x_company` (`company_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Budget forecast positions'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
     /// <summary>PHP <c>epc_entity_ensure_schema</c> (content/shop/finance/epc_multi_entity.php).</summary>
     public static async Task EnsureMultiEntityAsync(DbConnection c, CancellationToken ct)
     {
