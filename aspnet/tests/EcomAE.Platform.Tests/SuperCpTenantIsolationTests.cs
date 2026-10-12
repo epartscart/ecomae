@@ -300,6 +300,9 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Contains("epc-boc__hero", text, StringComparison.Ordinal);
         // Full BOC console chrome (top mega-menu + fleet + platform banner).
         Assert.Contains("epc-boc__topnav", text, StringComparison.Ordinal);
+        Assert.Contains("overflow:visible!important", text, StringComparison.Ordinal);
+        Assert.Contains("position:absolute", text, StringComparison.Ordinal);
+        Assert.Contains("overflow-y:auto!important", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__platform-banner", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__fleet-grid", text, StringComparison.Ordinal);
         Assert.Contains("PhpSuperCpBocNav.Nav()", text, StringComparison.Ordinal);

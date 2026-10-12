@@ -153,8 +153,8 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("data-epc-dash=\"color-tiles\"", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ErpGlobalSearch", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor")), StringComparison.Ordinal);
         Assert.Contains("Search pages and workspaces", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/ErpGlobalSearch.razor")), StringComparison.Ordinal);
-        Assert.Contains("v=20261012wscolor", assets, StringComparison.Ordinal);
-        Assert.DoesNotContain("v=20261012d365", assets, StringComparison.Ordinal);
+        Assert.Contains("v=20261012prja", assets, StringComparison.Ordinal);
+        Assert.DoesNotContain("v=20261012wscolor", assets, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -177,6 +177,10 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("FITOUT · Fit-out Company · Company 3", projectAccounting);
         Assert.Contains("action=\"@FitOutHref(\"/erp/fitout/project-pnl\")\"", projectAccounting);
         Assert.Contains("Report links retain the selected legal entity", projectAccounting);
+        Assert.Contains("data-epc-prja=\"workspace\"", projectAccounting);
+        Assert.Contains("WorkHref(\"commercial\")", projectAccounting);
+        Assert.Contains("epc-prja-reports", projectAccounting);
+        Assert.Contains("<optgroup label=\"Site / QA\">", projectAccounting);
     }
 
     [Fact]
