@@ -82,6 +82,10 @@ public static class LoginIndustryContent
         return TenantFallback(brand, surface);
     }
 
+    /// <summary>Replace hero counters with tenant-scoped figures (real-estate login only).</summary>
+    public static Content WithStats(Content content, IReadOnlyList<Stat> stats)
+        => content with { Stats = stats };
+
     private static Content AutoParts(LoginHostBrand.Brand brand, string surface) => surface == "erp"
         ? new(
             "auto_parts",
@@ -378,10 +382,10 @@ public static class LoginIndustryContent
                 new("fa-hard-hat", "Construction", "Contracts, variations and certificates"),
             ],
             [
-                new(1, "Portfolio"),
-                new(12, "Lease terms"),
-                new(8, "Projects"),
-                new(20, "Workspaces"),
+                new(1, "Properties"),
+                new(1, "Active leases"),
+                new(1, "Projects"),
+                new(1, "Opportunities"),
             ],
             [
                 "Owned property register linked to the legal entity",

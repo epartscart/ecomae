@@ -67,6 +67,19 @@ public sealed class LoginIndustryContentTests
         Assert.DoesNotContain(content.Capabilities, c => c.Title.Contains("Gold", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(content.Capabilities, c => c.Title.Contains("Parts", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(content.PanelFeatures, f => f.Contains("Workforce Management", StringComparison.OrdinalIgnoreCase));
+
+        var live = LoginIndustryContent.WithStats(
+            content,
+            [
+                new LoginIndustryContent.Stat(4, "Properties"),
+                new LoginIndustryContent.Stat(2, "Active leases"),
+                new LoginIndustryContent.Stat(1, "Projects"),
+                new LoginIndustryContent.Stat(3, "Opportunities"),
+            ]);
+        Assert.Equal("real_estate", live.IndustryCode);
+        Assert.Contains(live.Stats, s => s.Label == "Properties" && s.Value == 4);
+        Assert.DoesNotContain(live.Stats, s => s.Label.Equals("Workspaces", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(live.Stats, s => s.Label.Equals("Tenants", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -100,6 +113,9 @@ public sealed class LoginIndustryContentTests
         Assert.Contains("LoginIndustryContent.For", text, StringComparison.Ordinal);
         Assert.Contains("data-login-industry", text, StringComparison.Ordinal);
         Assert.Contains("_content.Capabilities", text, StringComparison.Ordinal);
+        Assert.Contains("OverlayRealEstateStatsAsync", text, StringComparison.Ordinal);
+        Assert.Contains("IErpRealEstateReadService", text, StringComparison.Ordinal);
+        Assert.Contains("OwnedProperties", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Worldwide Compliance", text, StringComparison.Ordinal);
         Assert.DoesNotContain("225", text, StringComparison.Ordinal);
     }

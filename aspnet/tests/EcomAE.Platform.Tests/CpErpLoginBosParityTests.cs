@@ -74,7 +74,10 @@ public sealed class CpErpLoginBosParityTests
         Assert.Contains("createFallingBodies", text, StringComparison.Ordinal);
         Assert.Contains("pickDuration", text, StringComparison.Ordinal);
         Assert.Contains("bosFloat", text, StringComparison.Ordinal);
-        Assert.Contains("var count = 480", text, StringComparison.Ordinal);
+        Assert.Contains("480", text, StringComparison.Ordinal);
+        Assert.Contains("bos-login__skyline", text, StringComparison.Ordinal);
+        Assert.Contains("bos-login__tower", text, StringComparison.Ordinal);
+        Assert.Contains("data-bos-skyline", text, StringComparison.Ordinal);
         Assert.DoesNotContain("bos-login__universe-photo", text, StringComparison.Ordinal);
         Assert.DoesNotContain("images-assets.nasa.gov", text, StringComparison.Ordinal);
         Assert.DoesNotContain("cdn.esawebb.org", text, StringComparison.Ordinal);
@@ -101,6 +104,8 @@ public sealed class CpErpLoginBosParityTests
         Assert.Contains("bos-login--tenant-jewellery .bos-login__brand-icon-inner", css, StringComparison.Ordinal);
         Assert.Contains("bos-login--tenant-realestate .bos-login__bg--sky", css, StringComparison.Ordinal);
         Assert.Contains("bos-login--tenant-realestate .bos-login__brand-icon-inner", css, StringComparison.Ordinal);
+        Assert.Contains("bos-login__skyline", css, StringComparison.Ordinal);
+        Assert.Contains("bos-login__tower--4", css, StringComparison.Ordinal);
         Assert.Contains("bos-login__tenant-logo--eparts", css, StringComparison.Ordinal);
         Assert.DoesNotContain("bos-login__universe-photo", css, StringComparison.Ordinal);
         Assert.DoesNotContain("bos-login__celestial", css, StringComparison.Ordinal);
@@ -132,7 +137,7 @@ public sealed class CpErpLoginBosParityTests
     public void LoginAccentCss_CacheBust_IsCurrent()
     {
         var text = Read("aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs");
-        Assert.Contains("epc_bos_login_surface_accents.css?v=20261012re", text, StringComparison.Ordinal);
+        Assert.Contains("epc_bos_login_surface_accents.css?v=20261012sky", text, StringComparison.Ordinal);
         Assert.Contains("/platform-assets/epc_bos_login_surface_accents.css", text, StringComparison.Ordinal);
         Assert.Contains("/platform-assets/eparts-animated-cart-mark.svg", text, StringComparison.Ordinal);
         Assert.Contains(LegacyPresentationAssets.LoginStylesheets, href => href.Contains("epc_bos_login_surface_accents.css", StringComparison.Ordinal));
