@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Api.Catalog;
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Middleware;
@@ -22370,6 +22371,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await CpFulfillmentQueueWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             var queued = 0; var picking = 0; var shipping = 0; var delivered = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -22521,6 +22523,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await CpFulfillmentQueueWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var headerCmd = connection.CreateCommand();
             headerCmd.CommandText = LegacySurfaceDashboardSql.SelectCpFulfillmentOrderById;
             AddParameter(headerCmd, "@fulfillmentId", fulfillmentId);
