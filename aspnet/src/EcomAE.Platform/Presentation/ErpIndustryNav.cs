@@ -222,8 +222,37 @@ public static class ErpIndustryNav
             });
         }
 
+        if (audience.IsSuperErp)
+        {
+            var mailTabs = SuperErpMailTabs()
+                .Where(t => seenDestinations.Add(TopMenuLinks.DestinationKey(TopMenuLinks.ErpHref(t.Href))))
+                .ToList();
+            if (mailTabs.Count > 0)
+            {
+                var at = Math.Min(1, filtered.Count);
+                filtered.Insert(at, new LegacyDesktopChromeCatalog.MegaGroup(
+                    "mail",
+                    "Mail",
+                    mailTabs,
+                    "fa-inbox",
+                    "Mail",
+                    mailTabs[0].Href,
+                    [new LegacyDesktopChromeCatalog.MegaAreaColumn("mail", "Mailbox & SMTP", "fa-inbox", mailTabs)],
+                    "Platform mailboxes, SMTP and alerts"));
+            }
+        }
+
         return filtered;
     }
+
+    public static IReadOnlyList<PhpModuleCatalog.ModuleLink> SuperErpMailTabs() =>
+    [
+        new("mail/platform_mail", "Platform mailboxes", "/erp/super-mail-app", "fa-inbox", "mail"),
+        new("mail/tenant_email", "Tenant email / SMTP", "/erp/tenant-email-app", "fa-envelope", "mail"),
+        new("mail/communication", "Communication", "/erp/platform-communication-app", "fa-comments", "mail"),
+        new("mail/notifications", "Notifications", "/erp/notifications-app", "fa-bell", "mail"),
+        new("mail/sms", "SMS & WhatsApp", "/erp/sms-whatsapp-app", "fa-mobile", "mail"),
+    ];
 
     public static IReadOnlyList<string> DuplicateTabIds(
         IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> groups)

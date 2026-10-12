@@ -108,8 +108,9 @@
                 {
                     <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/")" target="_blank" rel="noopener">Classic CP</a>
                 }
-                @if (_showBos)
+                @if (_showBos && !_clientErp)
                 {
+                    <a href="/erp/super-mail-app">Mail</a>
                     <a href="/erp/fleet-app">Fleet ERP</a>
                     <a href="/bos">BOS</a>
                 }
@@ -392,6 +393,7 @@
     [Parameter] public string BreadcrumbTab { get; set; } = "Dashboard";
 
     private bool _showBos;
+    private bool _clientErp;
     private bool _showControlPanel = true;
     private bool _signedIn;
     private bool _jewellery;
@@ -450,6 +452,8 @@
         var host = Http.HttpContext?.Request.Host.Host;
         _currentPath = Http.HttpContext?.Request.Path.Value ?? "/erp";
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
+        _clientErp = ClientErpPath.IsClientErpPath(_currentPath)
+            || ClientErpPath.CookieSiteKey(Http.HttpContext?.Request) is not null;
         _ctx = ErpHostContext.Resolve(host);
         _industryCode = _ctx.IndustryCode;
         _industryLabel = _ctx.IndustryLabel;
@@ -465,7 +469,7 @@
                     "current",
                     _ctx.IndustryCode,
                     null,
-                    _showBos));
+                    _showBos && !_clientErp));
             return;
         }
 
@@ -514,7 +518,7 @@
                 "current",
                 _industryCode,
                 countryCode,
-                _showBos,
+                _showBos && !_clientErp,
                 DisabledTabIds: tenantRules.DisabledTabIds,
                 EnabledModuleIds: tenantRules.EnabledModuleIds,
                 Company: active));

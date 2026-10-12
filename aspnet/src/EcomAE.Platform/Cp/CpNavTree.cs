@@ -81,9 +81,11 @@ public sealed record CpNavGroup(
 public static class CpNavTree
 {
     public const string BackendDir = "cp";
+    public const string MailGroupKey = "epc_cp_group_mail";
 
     public static readonly IReadOnlyList<string> PrimaryGroupKeys =
     [
+        MailGroupKey,
         "744",
         "epc_cp_group_customers",
         "epc_cp_group_documents",
@@ -107,6 +109,7 @@ public static class CpNavTree
     public static readonly IReadOnlyDictionary<string, string> GroupIcons = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["744"] = "fa-shopping-cart",
+        [MailGroupKey] = "fa-inbox",
         ["741"] = "fa-users",
         ["epc_cp_group_customers"] = "fa-users",
         ["epc_cp_group_documents"] = "fa-file-text-o",
@@ -126,6 +129,7 @@ public static class CpNavTree
     public static readonly IReadOnlyDictionary<string, string> GroupShortLabels = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["744"] = "Commerce",
+        [MailGroupKey] = "Mail",
         ["741"] = "Users",
         ["epc_cp_group_customers"] = "Customers",
         ["epc_cp_group_documents"] = "Documents",
@@ -145,6 +149,7 @@ public static class CpNavTree
     public static readonly IReadOnlyDictionary<string, string> GroupSubtitles = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["744"] = "Orders, catalogue & prices",
+        [MailGroupKey] = "Mailboxes, SMTP & alerts",
         ["epc_cp_group_customers"] = "Clients, user accounts & CRM",
         ["epc_cp_group_documents"] = "Invoices & PDFs",
         ["epc_cp_group_erp"] = "Finance, VAT & reports",
@@ -388,11 +393,6 @@ public static class CpNavTree
         }
 
         if (!policy.IsSuperHost && url.Contains("epc_tenant_features", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        if (policy.IsSuperHost && url.Contains("epc_tenant_email_settings", StringComparison.Ordinal))
         {
             return false;
         }
@@ -665,7 +665,185 @@ public static class CpNavTree
             Push(tab, "advanced");
         }
 
-        return ordered;
+        return PromoteMailHeading(ordered);
+    }
+
+    /// <summary>Snapshot Build plus Super/tenant extras for live chrome and integrity menus.</summary>
+    public static IReadOnlyList<CpNavGroup> BuildChrome(
+        IReadOnlyList<CpNavRawGroup> groups,
+        IReadOnlyList<CpNavRawItem> items,
+        CpNavPolicy policy,
+        Func<string, string?> translate)
+        => AttachMissingTopLinks(Build(groups, items, policy, translate), policy);
+
+    private static readonly string[] MailUrlNeedles =
+    [
+        "epc_tenant_email",
+        "epc_platform_mail",
+        "epc_super_cp_communication",
+        "epc_notifications",
+        "sms_turning",
+        "sms-operatory",
+        "/communications",
+    ];
+
+    private sealed record ExtraTopLink(string Label, string Url, string Icon, string GroupKey, bool SuperOnly);
+
+    private static readonly ExtraTopLink[] ExtraTopLinks =
+    [
+        new("Platform mailboxes", "/<backend>/control/portal/epc_platform_mail", "fa-inbox", MailGroupKey, true),
+        new("Tenant email / SMTP", "/<backend>/control/portal/epc_tenant_email_settings", "fa-envelope", MailGroupKey, false),
+        new("Client ERP logins", "/<backend>/control/portal/epc_client_erp", "fa-university", "epc_cp_group_tenant_hub", true),
+        new("Integrations guide", "/<backend>/control/portal/epc_integrations_guide", "fa-book", "epc_cp_group_integrations", false),
+        new("Workshop", "/<backend>/shop/workshop", "fa-wrench", "744", false),
+        new("VIN fields", "/<backend>/shop/vin_fields", "fa-barcode", "744", false),
+        new("LifeOS guide", "/<backend>/control/portal/epc_lifeos_guide", "fa-heartbeat", "epc_cp_group_portal", false),
+        new("LifeOS clients", "/<backend>/control/portal/epc_lifeos_clients", "fa-users", "epc_cp_group_customers", false),
+        new("Ops guides", "/<backend>/control/portal/epc_ops_guides", "fa-list-alt", "epc_cp_group_portal", false),
+    ];
+
+    public static bool IsMailMenuUrl(string? url)
+    {
+        var value = (url ?? string.Empty).ToLowerInvariant();
+        return MailUrlNeedles.Any(n => value.Contains(n, StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Lift mailbox / SMTP / SMS / notification links into a visible Mail heading so they
+    /// are not buried under Integrations or hidden on Super host.
+    /// </summary>
+    public static IReadOnlyList<CpNavGroup> PromoteMailHeading(IReadOnlyList<CpNavGroup> groups)
+    {
+        var mailItems = new List<CpNavItem>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var rest = new List<CpNavGroup>(groups.Count);
+        foreach (var group in groups)
+        {
+            if (group.CaptionKey == MailGroupKey)
+            {
+                foreach (var item in group.Items)
+                {
+                    if (seen.Add(DestinationOrPath(item.Url)))
+                    {
+                        mailItems.Add(item);
+                    }
+                }
+
+                continue;
+            }
+
+            var keep = new List<CpNavItem>(group.Items.Count);
+            foreach (var item in group.Items)
+            {
+                if (IsMailMenuUrl(item.Url) && seen.Add(DestinationOrPath(item.Url)))
+                {
+                    mailItems.Add(item);
+                    continue;
+                }
+
+                keep.Add(item);
+            }
+
+            if (keep.Count > 0)
+            {
+                rest.Add(keep.Count == group.Items.Count ? group : group with { Items = keep });
+            }
+        }
+
+        if (mailItems.Count == 0)
+        {
+            return groups;
+        }
+
+        var mail = new CpNavGroup(
+            "mail",
+            MailGroupKey,
+            "Mail",
+            "Mail",
+            GroupSubtitles[MailGroupKey],
+            GroupIcons[MailGroupKey],
+            "primary",
+            mailItems);
+        return new[] { mail }.Concat(rest).ToList();
+    }
+
+    /// <summary>
+    /// Snapshot menus omit Super mailbox and a few later ASP.NET pages. Attach those
+    /// destinations under the matching heading so every operator page has a top-menu link.
+    /// Tiny synthetic trees (unit tests) are left unchanged.
+    /// </summary>
+    public static IReadOnlyList<CpNavGroup> AttachMissingTopLinks(IReadOnlyList<CpNavGroup> groups, CpNavPolicy policy)
+    {
+        if (groups.Count < 8)
+        {
+            return groups;
+        }
+
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var item in groups.SelectMany(g => g.Items))
+        {
+            seen.Add(DestinationOrPath(item.Url));
+        }
+
+        var extras = ExtraTopLinks
+            .Where(e => policy.IsSuperHost || !e.SuperOnly)
+            .Select(e => (Extra: e, Url: ResolveUrl(e.Url)))
+            .Where(e => seen.Add(DestinationOrPath(e.Url)))
+            .ToList();
+        if (extras.Count == 0)
+        {
+            return groups;
+        }
+
+        var result = groups.ToList();
+        var nextId = -2000;
+        foreach (var batch in extras.GroupBy(e => e.Extra.GroupKey, StringComparer.Ordinal))
+        {
+            var items = batch.Select(e => new CpNavItem(
+                nextId--,
+                e.Extra.Label,
+                e.Extra.Label,
+                e.Url,
+                e.Extra.Icon,
+                true)).ToList();
+            var index = result.FindIndex(g => g.CaptionKey == batch.Key);
+            if (index >= 0)
+            {
+                result[index] = result[index] with { Items = result[index].Items.Concat(items).ToList() };
+                continue;
+            }
+
+            if (batch.Key != MailGroupKey)
+            {
+                var fallback = result.FindIndex(g => g.CaptionKey == MailGroupKey);
+                if (fallback < 0)
+                {
+                    continue;
+                }
+
+                result[fallback] = result[fallback] with { Items = result[fallback].Items.Concat(items).ToList() };
+                continue;
+            }
+
+            result.Insert(0, new CpNavGroup(
+                "mail",
+                MailGroupKey,
+                "Mail",
+                "Mail",
+                GroupSubtitles[MailGroupKey],
+                GroupIcons[MailGroupKey],
+                "primary",
+                items));
+        }
+
+        return result;
+    }
+
+    private static string DestinationOrPath(string url)
+    {
+        var href = AspNetHref(url);
+        var key = EcomAE.Platform.Presentation.TopMenuLinks.DestinationKey(href);
+        return key.Length > 0 ? key : DedupeKey(url);
     }
 
     /// <summary>PHP top-nav chunking: columns of eight links.</summary>

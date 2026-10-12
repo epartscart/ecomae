@@ -23,14 +23,10 @@ public sealed class TopMenuIntegrityTests
     [
         // Sign-in pages and the generic module host are not menu destinations.
         "CpLoginApp.razor", "ErpLoginApp.razor", "ErpModuleApp.razor",
-        "CpClientErpPickerApp.razor",
         // Linked from other pages, not from the top menu.
         "CpDashboardSummaryApp.razor", "ErpNavigationCoverageApp.razor",
         "CpPriceListsApp.razor", "CpPricesEditApp.razor", "CpPoApprovalsApp.razor", "CpCrmActivitiesApp.razor",
         "CpAdminSessionsApp.razor", "CpPrintDocsApp.razor", "CpBulkUploadApp.razor", "CpFinanceCloseApp.razor",
-        // No row in the production CP menu snapshots; open menu placement items in the tracker.
-        "CpIntegrationsGuideApp.razor", "CpLifeOsClientsApp.razor", "CpLifeOsGuideApp.razor", "CpOpsGuidesApp.razor",
-        "CpVinFieldsApp.razor", "CpWorkshopApp.razor",
     ];
 
     public static IEnumerable<object[]> Menus()
@@ -85,6 +81,40 @@ public sealed class TopMenuIntegrityTests
     }
 
     [Fact]
+    public void Mail_heading_is_on_super_cp_tenant_cp_and_super_erp()
+    {
+        var boc = PhpSuperCpBocNav.Nav().ToList();
+        var mail = boc.Single(n => n.Group.Key == "mail");
+        Assert.Equal("Mail", mail.Group.Label);
+        Assert.Contains(mail.Areas, a => a.Key == "platform_mail" && a.Href == "/cp/super-mail-app");
+        Assert.Contains(mail.Areas, a => a.Key == "tenant_email" && a.Href == "/cp/tenant-email-app");
+
+        var root = FindRepoRoot();
+        foreach (var file in Directory.GetFiles(Path.Combine(root, "content/files/epc_cache"), "epc_cp_menu_rows_v1_*.json"))
+        {
+            var rows = CpNavMenuService.ParseSnapshot(File.ReadAllText(file), Path.GetFileName(file));
+            Assert.NotNull(rows);
+            var super = TopMenuLinks.DedupeCp(CpNavTree.BuildChrome(rows.Groups, rows.Items, CpNavPolicy.SuperOperator(), static _ => null));
+            Assert.Equal("Mail", super[0].Short);
+            Assert.Contains(super[0].Items, i => CpNavTree.AspNetHref(i.Url) == "/cp/super-mail-app");
+
+            var tenant = TopMenuLinks.DedupeCp(CpNavTree.BuildChrome(rows.Groups, rows.Items, CpNavPolicy.Tenant(), static _ => null));
+            Assert.Contains(tenant, g => g.Short == "Mail");
+        }
+
+        var superErp = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience("current", "core", "AE", IsSuperErp: true));
+        Assert.Contains(superErp, g => g.Id == "mail" && g.ShortLabel == "Mail");
+        Assert.Contains(superErp.SelectMany(g => g.Links), t => t.Href == "/erp/super-mail-app");
+
+        var tenantErp = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience("current", "core", "AE", IsSuperErp: false));
+        Assert.DoesNotContain(tenantErp, g => g.Id == "mail");
+    }
+
+    [Fact]
     public void Proper_modules_for_previously_merged_entries()
     {
         Assert.Equal("/cp/price-management-app", CpNavTree.AspNetHref("/cp/shop/price-management"));
@@ -127,7 +157,7 @@ public sealed class TopMenuIntegrityTests
             Assert.NotNull(rows);
             foreach (var (view, policy) in new[] { ("tenant", CpNavPolicy.Tenant()), ("super", CpNavPolicy.SuperOperator()) })
             {
-                var groups = TopMenuLinks.DedupeCp(CpNavTree.Build(rows.Groups, rows.Items, policy, static _ => null));
+                var groups = TopMenuLinks.DedupeCp(CpNavTree.BuildChrome(rows.Groups, rows.Items, policy, static _ => null));
                 Assert.All(groups, g => Assert.NotEmpty(g.Items));
                 menus.Add(($"CP {Path.GetFileNameWithoutExtension(file)} {view}",
                     groups.SelectMany(g => g.Items).Select(i => (i.Label, CpNavTree.AspNetHref(i.Url))).ToList()));

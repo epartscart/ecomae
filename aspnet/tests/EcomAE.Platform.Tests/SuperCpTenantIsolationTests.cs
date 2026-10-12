@@ -270,8 +270,8 @@ public sealed class SuperCpTenantIsolationTests
     [Fact]
     public void BocNavMirrorsPhpAreaRegistry()
     {
-        // PHP epc_boc_groups(): 15 domains; epc_boc_areas(): ~110 areas.
-        Assert.Equal(15, EcomAE.Platform.Presentation.PhpSuperCpBocNav.Groups.Count);
+        // PHP epc_boc_groups() plus the Mail heading: 16 domains; epc_boc_areas(): ~110 areas.
+        Assert.Equal(16, EcomAE.Platform.Presentation.PhpSuperCpBocNav.Groups.Count);
         Assert.True(EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas.Count >= 100,
             $"expected ≥100 BOC areas, found {EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas.Count}");
 
@@ -290,7 +290,9 @@ public sealed class SuperCpTenantIsolationTests
 
         // Every group renders (no empty groups in the mega menu).
         var nav = EcomAE.Platform.Presentation.PhpSuperCpBocNav.Nav().ToList();
-        Assert.Equal(15, nav.Count);
+        Assert.Equal(16, nav.Count);
+        Assert.Equal("mail", nav[2].Group.Key);
+        Assert.Contains(nav[2].Areas, a => a.Key == "platform_mail");
     }
 
     [Fact]

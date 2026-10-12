@@ -19,6 +19,7 @@ public static class PhpSuperCpBocNav
     [
         new("command", "Command", "fa-tachometer", "Fleet health & KPIs"),
         new("lifecycle", "Tenants", "fa-rocket", "Onboard, control, demos"),
+        new("mail", "Mail", "fa-inbox", "Mailboxes, SMTP, SMS & alerts"),
         new("reliability", "Ops", "fa-heartbeat", "Health, governance, incidents"),
         new("supply", "Supply", "fa-cubes", "Vendors, warehouses, channels"),
         new("commerce", "Pricing", "fa-tags", "Pricing AI, API, POS"),
@@ -29,7 +30,7 @@ public static class PhpSuperCpBocNav
         new("growth", "Growth", "fa-bullhorn", "Marketing, CMS, mobile"),
         new("professional", "Pro", "fa-briefcase", "CRM, documents, parts agent"),
         new("finance", "Compliance", "fa-balance-scale", "Tax & compliance kits"),
-        new("identity", "Integrations", "fa-plug", "Auth, email, connectors"),
+        new("identity", "Integrations", "fa-plug", "Auth, connectors & APIs"),
         new("platform", "Platform", "fa-cog", "BI, AI, workflows, security"),
         new("knowledge", "Guides", "fa-book", "Operator & product docs"),
     ];
@@ -48,6 +49,7 @@ public static class PhpSuperCpBocNav
         new("client_erp", "Client ERP logins", "lifecycle", "fa-university", "control/portal/epc_client_erp", "ASAP / INDJ / FITO / REAL"),
         new("tenant_features", "Feature matrix", "lifecycle", "fa-th", "control/portal/epc_tenant_features", "Per-tenant flags"),
         new("demo_tenants", "Demo tenants", "lifecycle", "fa-flask", "control/portal/epc_demo_tenants_manage", "Sandbox lifecycle"),
+        new("lifeos_clients", "LifeOS clients", "lifecycle", "fa-users", "control/portal/epc_lifeos_clients", "LifeOS client board"),
         new("industry_settings", "Industry / ERP packs", "lifecycle", "fa-cubes", "control/portal/industry_settings", "Module presets"),
         new("industry_consol", "Industry consolidation", "lifecycle", "fa-sitemap", "control/portal/industry_consolidation", "Industry roll-up"),
         new("license_trends", "License trends", "lifecycle", "fa-line-chart", "control/portal/epc_industry_license_trends", "License usage trends"),
@@ -56,6 +58,13 @@ public static class PhpSuperCpBocNav
         new("tenant_config", "Tenant config", "lifecycle", "fa-cog", "control/portal/epc_tenant_config", "Tenant configuration"),
         new("design_tokens", "Design tokens", "lifecycle", "fa-paint-brush", "control/portal/epc_design_tokens", "Brand tokens"),
 
+        // Mail — top-level heading so mailbox / SMTP / SMS are not buried under Integrations
+        new("platform_mail", "Platform mailboxes", "mail", "fa-inbox", "control/portal/epc_platform_mail", "yawer@ecomae.com + ERP-only boxes"),
+        new("tenant_email", "Tenant email / SMTP", "mail", "fa-envelope", "control/portal/epc_tenant_email_settings", "Per-tenant SMTP"),
+        new("communication", "Communication", "mail", "fa-comments", "control/portal/epc_super_cp_communication", "Email policy"),
+        new("notifications", "Notifications", "mail", "fa-bell", "control/portal/epc_notifications", "Platform alerts"),
+        new("sms_turning", "SMS settings", "mail", "fa-mobile", "control/sms_turning", "SMS gateway"),
+
         // Ops / reliability
         new("platform_health", "Platform health", "reliability", "fa-heartbeat", "control/portal/epc_platform_health_checkup", "SSL/DB/nginx probes"),
         new("governance", "Governance", "reliability", "fa-gavel", "control/portal/epc_platform_governance", "Policies & rules"),
@@ -63,7 +72,6 @@ public static class PhpSuperCpBocNav
         new("failover", "Failover runbook", "reliability", "fa-life-ring", "control/portal/epc_platform_failover_guide", "Incident steps"),
         new("isolation_audit", "Isolation audit", "reliability", "fa-shield", "control/portal/epc_commerce_isolation_audit", "Data isolation"),
         new("readiness_score", "Readiness score", "reliability", "fa-trophy", "control/portal/epc_readiness_score", "Go-live readiness"),
-        new("notifications", "Notifications", "reliability", "fa-bell", "control/portal/epc_notifications", "Platform alerts"),
         new("db_migrations", "DB migrations", "reliability", "fa-database", "control/portal/epc_db_migrations", "Schema migrations"),
         new("soc2_compliance", "SOC 2", "reliability", "fa-certificate", "control/portal/epc_soc2_compliance", "Compliance checklist"),
 
@@ -104,6 +112,8 @@ public static class PhpSuperCpBocNav
         new("cp_crosses", "Crosses", "catalogue", "fa-exchange", "shop/crosses", "OEM crosses"),
         new("cp_synonyms", "Brand synonyms", "catalogue", "fa-random", "shop/manufacturers_synonyms", "Brand synonyms"),
         new("cp_accessories", "Accessories", "catalogue", "fa-puzzle-piece", "shop/accessories", "Accessory links"),
+        new("vin_fields", "VIN fields", "catalogue", "fa-barcode", "shop/vin_fields", "VIN decode fields"),
+        new("cp_workshop", "Workshop", "catalogue", "fa-wrench", "shop/workshop", "Workshop jobs"),
 
         // Logistics
         new("cp_logistics", "Delivery & shipping", "logistics", "fa-truck", "shop/logistics/logistics", "Logistics hub"),
@@ -151,10 +161,8 @@ public static class PhpSuperCpBocNav
 
         // Identity / integrations
         new("integrations", "Integrations hub", "identity", "fa-plug", "control/portal/epc_integrations_hub", "Connectors"),
+        new("integrations_guide", "Integrations guide", "identity", "fa-book", "control/portal/epc_integrations_guide", "Connector guide"),
         new("modern_auth", "Modern auth", "identity", "fa-sign-in", "control/portal/epc_cp_auth_settings", "OAuth / OTP / MFA"),
-        new("communication", "Communication", "identity", "fa-comments", "control/portal/epc_super_cp_communication", "Email policy"),
-        new("tenant_email", "Tenant email / SMTP", "identity", "fa-envelope", "control/portal/epc_tenant_email_settings", "Per-tenant SMTP"),
-        new("platform_mail", "Platform mailboxes", "identity", "fa-inbox", "control/portal/epc_platform_mail", "yawer@ecomae.com + ERP-only boxes"),
         new("mfa_management", "MFA / 2FA", "identity", "fa-lock", "control/portal/epc_mfa_management", "2FA admin"),
         new("sso_saml", "SSO / SAML", "identity", "fa-key", "control/portal/epc_sso_saml", "Enterprise SSO"),
         new("event_bus", "Event bus", "identity", "fa-bolt", "control/portal/epc_event_bus", "Events"),
@@ -177,7 +185,6 @@ public static class PhpSuperCpBocNav
         new("portal_settings", "Portal settings", "platform", "fa-cog", "control/portal/portal", "Portal config"),
         new("data_policy", "Data policy", "platform", "fa-lock", "control/portal/epc_tenant_data_policy", "Data policy"),
         new("config_edit", "Site config", "platform", "fa-wrench", "control/config_edit", "DP config editor"),
-        new("sms_turning", "SMS settings", "platform", "fa-mobile", "control/sms_turning", "SMS gateway"),
 
         // Knowledge
         new("operator_guide", "Operator guide", "knowledge", "fa-book", "control/portal/epc_super_cp_operator_guide", "Who uses what"),
@@ -188,6 +195,8 @@ public static class PhpSuperCpBocNav
         new("auto_price_guide", "Auto Price guide", "knowledge", "fa-book", "control/portal/epc_auto_price_guide", "Pricing AI guide"),
         new("custom_ship_guide", "Custom & shipping guide", "knowledge", "fa-ship", "control/portal/epc_custom_shipping_guide", "Customs guide"),
         new("workshop_guide", "Autoworkshop guide", "knowledge", "fa-wrench", "control/portal/epc_autoworkshop_guide", "Workshop vertical"),
+        new("lifeos_guide", "LifeOS guide", "knowledge", "fa-heartbeat", "control/portal/epc_lifeos_guide", "LifeOS operator guide"),
+        new("ops_guides", "Ops guides", "knowledge", "fa-list-alt", "control/portal/epc_ops_guides", "Operator ops guides"),
     ];
 
     public static IEnumerable<(BocGroup Group, IReadOnlyList<BocArea> Areas)> Nav() =>
