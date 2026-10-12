@@ -1652,6 +1652,10 @@ check 'catalog brand-parts nginx shadow example exists' test -f "$ROOT/deploy/as
 check 'catalog brand-parts evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-brand-parts/README.md"
 check 'CloudPanel find-and-redeploy script exists' test -x "$ROOT/scripts/cloudpanel_find_and_redeploy.sh"
 check 'CloudPanel find-and-redeploy rejects var www ecomae assumption' contains "$ROOT/scripts/cloudpanel_find_and_redeploy.sh" '/var/www/ecomae is NOT a required path'
+check 'gated CloudPanel deploy script exists' test -x "$ROOT/scripts/cloudpanel_deploy_main_gated.sh"
+check 'gated CloudPanel deploy refuses emergency publish' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'refused_emergency_publish'
+check 'gated CloudPanel deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'PHP remains fallback'
+check 'gated CloudPanel deploy refuses isolation branch' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'refused_isolation_branch'
 check 'CloudPanel quick start warns against var www ecomae' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Do not use `/var/www/ecomae`'
 check 'CloudPanel continue-after-env script exists' test -x "$ROOT/scripts/cloudpanel_continue_after_env.sh"
 check 'CloudPanel quick start explains nano save/exit' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Ctrl+O'
