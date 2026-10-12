@@ -64,6 +64,21 @@ public sealed class CpTenantControlCenterParityTests
     }
 
     [Fact]
+    public void Extra_login_emails_round_trip_intro_json()
+    {
+        Assert.Empty(CpTenantControlCenterService.ExtraLoginEmailsFromIntro(null));
+        Assert.Empty(CpTenantControlCenterService.ExtraLoginEmailsFromIntro("""{"admin_cp_email":"indj@ecomae.com"}"""));
+        var merged = CpTenantControlCenterService.MergeExtraLoginEmail(
+            """{"admin_cp_email":"indj@ecomae.com"}""",
+            "INDJ.accounts@ecomae.com");
+        Assert.Contains("indj.accounts@ecomae.com", CpTenantControlCenterService.ExtraLoginEmailsFromIntro(merged));
+        var again = CpTenantControlCenterService.MergeExtraLoginEmail(merged, "indj.accounts@ecomae.com");
+        Assert.Single(CpTenantControlCenterService.ExtraLoginEmailsFromIntro(again));
+        var two = CpTenantControlCenterService.MergeExtraLoginEmail(again, "warehouse@ecomae.com");
+        Assert.Equal(2, CpTenantControlCenterService.ExtraLoginEmailsFromIntro(two).Count);
+    }
+
+    [Fact]
     public void Urls_follow_php_erp_only_router_and_commerce_host()
     {
         var erp = CpTenantControlCenterService.Urls("erp_only", "indus", "indus.example");
@@ -114,6 +129,21 @@ public sealed class CpTenantControlCenterParityTests
         Assert.Contains("HasStoredPassword", service, StringComparison.Ordinal);
         Assert.DoesNotContain("string StoredPassword", service, StringComparison.Ordinal);
         Assert.DoesNotContain("db_password", service, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    [InlineData((byte)1, true)]
+    [InlineData((byte)0, false)]
+    [InlineData(1, true)]
+    [InlineData(0, false)]
+    [InlineData("1", true)]
+    [InlineData("True", true)]
+    [InlineData("0", false)]
+    public void Tinyint_flags_are_not_lost_as_text(object value, bool expected)
+    {
+        Assert.Equal(expected, CpTenantControlCenterService.CoerceFlag(value, false));
     }
 
     [Fact]

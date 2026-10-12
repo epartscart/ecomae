@@ -5,7 +5,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_erp_payroll_update_line_days</c> twin. Recalc one payroll
-/// line and roll totals. Schema ensure stays PHP.
+/// line and roll totals.
 /// </summary>
 public interface IErpPayrollUpdateDaysWriteService
 {
@@ -40,6 +40,7 @@ public sealed class ErpPayrollUpdateDaysWriteService : IErpPayrollUpdateDaysWrit
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsurePayrollAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_payroll_lines", "monthly_basic", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_erp_payroll_lines", "days_worked", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_erp_payroll_runs", "standard_days", cancellationToken).ConfigureAwait(false)

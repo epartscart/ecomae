@@ -20,7 +20,7 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/erp/fin-advanced-app")</p>
-                <p>Open a period for company allocation rules, cost-centre allocations, FY accruals, and FX runs. Accrual save and FX revalue stay on the Classic twin.</p>
+                <p>Open a period for company allocation rules, cost-centre allocations, FY accruals, and FX runs. Accrual save and FX revalue stay on this page.</p>
             </div>
         </div>
     </div>
@@ -92,6 +92,21 @@
                 <button type="submit" class="btn btn-primary btn-sm">Post allocation</button>
             </form>
             <small class="text-muted">One line per cost-centre id and driver weight. Rounding residuals go to the largest weight so the run reconciles exactly.</small>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Post FX revaluation">
+            <form method="post" action="/erp/ajax/fx-post-revaluation" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="@_listHref" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>As of <input class="form-control input-sm" type="date" name="as_of" /></label>
+                <label>Auto-reverse
+                    <select class="form-control input-sm" name="auto_reverse">
+                        <option value="1" selected>Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm">Post revaluation</button>
+            </form>
+            <p class="text-muted" style="margin:0">Posts the IAS-21 open-AR revaluation through the shared GL. Leave as-of blank to use today.</p>
         </ErpPhpCreateWell>
     }
 

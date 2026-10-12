@@ -40,7 +40,7 @@ public static class LegacyPresentationAssets
         // (Super CP + Tenant CP). /platform-assets survives PHP pause.
         "/platform-assets/epc_cp_aspnet_module_parity.css?v=20260811scp",
         "/content/general_pages/epc_cp_aspnet_module_parity_css.php",
-        "/platform-assets/css/epc-enterprise-design-system.css?v=20260930visual"
+        "/platform-assets/css/epc-enterprise-design-system.css?v=20261012dash2"
     ];
 
     /// <summary>
@@ -60,7 +60,7 @@ public static class LegacyPresentationAssets
     public static readonly IReadOnlyList<string> LoginStylesheets =
     [
         "/epc-static.php?f=bos/epc_bos_shell.css",
-        "/platform-assets/epc_bos_login_surface_accents.css?v=20260807a",
+        "/platform-assets/epc_bos_login_surface_accents.css?v=20261012re",
         // Tenant animated cart + catalog brand logos on /cp/login & /erp/login
         "/platform-assets/eparts-animated-logo.css",
         "/platform-assets/epc_portal_tenant_brand.css",
@@ -71,7 +71,7 @@ public static class LegacyPresentationAssets
     public static readonly IReadOnlyList<string> ErpLoginStylesheets =
     [
         "/epc-static.php?f=bos/epc_bos_shell.css",
-        "/platform-assets/epc_bos_login_surface_accents.css?v=20260807a",
+        "/platform-assets/epc_bos_login_surface_accents.css?v=20261012re",
         "/platform-assets/eparts-animated-logo.css",
         "/platform-assets/epc_portal_tenant_brand.css",
         "/content/shop/finance/epc_erp_portal_inline_css_serve.php"
@@ -101,8 +101,8 @@ public static class LegacyPresentationAssets
         // /platform-assets survives PHP pause on Super / Tenant / ERP-only hosts.
         "/platform-assets/epc_erp_aspnet_module_parity.css?v=20260909clip",
         "/content/shop/finance/epc_erp_aspnet_module_parity_css.php",
-        "/platform-assets/css/epc-enterprise-design-system.css?v=20260930visual",
-        "/platform-assets/css/erp-document-workspace.css?v=20260929workspace",
+        "/platform-assets/css/epc-enterprise-design-system.css?v=20261012dash2",
+        "/platform-assets/css/erp-document-workspace.css?v=20261012relmap",
         "/platform-assets/css/erp-finance-voucher-workspace.css?v=20260929finance"
     ];
 

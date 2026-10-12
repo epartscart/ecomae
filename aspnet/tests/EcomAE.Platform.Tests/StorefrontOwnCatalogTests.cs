@@ -100,6 +100,9 @@ public sealed class StorefrontOwnCatalogTests
         Assert.Contains("@page \"/storefront/own-catalog-app\"", app, StringComparison.Ordinal);
         Assert.Contains("id=\"epc-own-catalog\"", app, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontCatalogueTreeAsync", app, StringComparison.Ordinal);
+        Assert.Contains("ResolveBrandLabel", app, StringComparison.Ordinal);
+        Assert.Contains("Own catalog · @_brand", app, StringComparison.Ordinal);
+        Assert.DoesNotContain("Own catalog · eParts Cart", app, StringComparison.Ordinal);
 
         Assert.Contains(
             "SelectStorefrontCatalogueCategories",

@@ -16,8 +16,14 @@
 
 
     
-    <PhpErpModulePageHeader Title="AR / AP / Inventory aging" Subtitle="AR, AP, and inventory aging buckets." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@_pageTitle" Subtitle="AR, AP, and inventory aging buckets." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <p style="margin:0 0 .75rem;display:flex;flex-wrap:wrap;gap:.4rem">
+        <a class="btn btn-xs @(_view is "all" ? "btn-primary" : "btn-default")" href="/erp/aging-app">All</a>
+        <a class="btn btn-xs @(_view is "ar" ? "btn-primary" : "btn-default")" href="/erp/aging-app?tab=ar">Receivables</a>
+        <a class="btn btn-xs @(_view is "ap" ? "btn-primary" : "btn-default")" href="/erp/aging-app?tab=ap">Payables</a>
+        <a class="btn btn-xs @(_view is "inv" ? "btn-primary" : "btn-default")" href="/erp/aging-app?tab=inv">Inventory</a>
+    </p>
 
 
     <div class="epc-erp-kpi epc-erp-stat-row">
@@ -26,9 +32,18 @@
         <div class="kpi"><div class="lbl">Inventory aged value</div><div class="val">@_summary.InventoryGrand.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    @AgingTable("Receivables", _arLabels, _arRows)
-    @AgingTable("Payables", _apLabels, _apRows)
-    @AgingTable("Inventory", _invLabels, _invRows)
+    @if (_view is "all" or "ar")
+    {
+        @AgingTable("Receivables", _arLabels, _arRows)
+    }
+    @if (_view is "all" or "ap")
+    {
+        @AgingTable("Payables", _apLabels, _apRows)
+    }
+    @if (_view is "all" or "inv")
+    {
+        @AgingTable("Inventory", _invLabels, _invRows)
+    }
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">Source: @_summary.Source. Boundaries @_summary.Boundary1 / @_summary.Boundary2 / @_summary.Boundary3 days.</div>
 </PhpErpDesktopChrome>
@@ -42,7 +57,9 @@
     private IReadOnlyList<ErpAgingPartyDigest> _arRows = [];
     private IReadOnlyList<ErpAgingPartyDigest> _apRows = [];
     private IReadOnlyList<ErpAgingPartyDigest> _invRows = [];
-    private readonly string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=aging";
+    private string _view = "all";
+    private string _pageTitle = "AR / AP / Inventory aging";
+    private string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=aging";
 
     private RenderFragment AgingTable(string title, IReadOnlyList<string> labels, IReadOnlyList<ErpAgingPartyDigest> rows) => __builder =>
     {
@@ -96,6 +113,15 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        var tab = (ctx.Request.Query["tab"].ToString() ?? string.Empty).Trim().ToLowerInvariant();
+        _view = tab is "ar" or "ap" or "inv" ? tab : "all";
+        _pageTitle = _view switch
+        {
+            "ar" => "Receivables aging",
+            "ap" => "Payables aging",
+            "inv" => "Inventory aging",
+            _ => "AR / AP / Inventory aging",
+        };
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)

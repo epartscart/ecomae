@@ -190,6 +190,8 @@ public sealed class ErpNavMatrixTests
     [InlineData("/erp/jewellery/stock-availability", "jewellery")]
     [InlineData("/erp/jewellery-masters-app", "jewellery")]
     [InlineData("/erp/project-accounting-app", "fitout")]
+    [InlineData("/erp/real-estate-app", "real_estate")]
+    [InlineData("/erp/real-estate/save", "real_estate")]
     [InlineData("/erp/contracts-app", null)]
     [InlineData("/erp/retail-commerce-app", null)]
     [InlineData("/erp/fitout/project-pnl", "fitout")]
@@ -290,6 +292,7 @@ public sealed class ErpNavMatrixTests
 
         Assert.False(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", company));
         Assert.False(IndustrySpecificRoutePolicy.Allows("fitout", "auto_parts", company));
+        Assert.False(IndustrySpecificRoutePolicy.Allows("real_estate", "auto_parts", company));
     }
 
     [Fact]

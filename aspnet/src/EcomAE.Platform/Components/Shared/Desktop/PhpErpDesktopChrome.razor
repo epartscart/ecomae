@@ -48,6 +48,21 @@
     .epc-erp-host-sub { margin:0 0 .85rem; color:var(--muted); font-size:13px; font-weight:600; }
     .epc-erp-content-body { min-width:0; max-width:100%; overflow-x:auto; box-sizing:border-box; font-size:14px; }
     .epc-erp-foot { padding:.85rem 1rem; border-top:1px solid var(--line); background:#fff; color:var(--muted); font-size:13px; }
+    .epc-erp-global-search__label { color:#64748b !important; }
+    .epc-erp-global-search__input { background:#fff !important; color:#0f172a !important; caret-color:#0f172a; -webkit-text-fill-color:#0f172a; }
+    .epc-erp-global-search__input::placeholder { color:#64748b !important; opacity:1; -webkit-text-fill-color:#64748b; }
+    a.epc-erp-global-search__hit, a.epc-erp-global-search__hit span, a.epc-erp-global-search__hit i { color:#0f172a !important; }
+    .epc-erp-global-search__hit small { color:#64748b !important; }
+    .epc-erp-cp-shell:has(.ns-dash) .epc-module-visual-frame,
+    .epc-erp-cp-shell:has(.ns-dash) .epc-op-context,
+    .epc-erp-cp-shell:has(.ns-dash) .epc-dash-repeat,
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-module-visual-frame,
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-op-context,
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-company-scope--panel { display:none !important; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-toolbar { margin-bottom:.15rem; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-host-sub { margin:0; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-title { margin-bottom:.2rem; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-body { padding-top:.15rem; }
 </style>
 </HeadContent>
 <style>
@@ -74,13 +89,33 @@
     .epc-erp-host-sub { margin:0 0 .85rem; color:var(--muted); font-size:13px; font-weight:600; }
     .epc-erp-content-body { min-width:0; max-width:100%; overflow-x:auto; box-sizing:border-box; font-size:14px; }
     .epc-erp-foot { padding:.85rem 1rem; border-top:1px solid var(--line); background:#fff; color:var(--muted); font-size:13px; }
+    .epc-erp-global-search { position:relative; flex:1 1 16rem; max-width:28rem; min-width:12rem; }
+    .epc-erp-global-search__label { position:absolute; left:.7rem; top:50%; transform:translateY(-50%); color:#64748b !important; pointer-events:none; }
+    .epc-erp-global-search__input { width:100%; height:2.15rem; padding:.35rem .7rem .35rem 2rem; border:1px solid #cbd5e1; border-radius:.4rem; background:#fff !important; color:#0f172a !important; caret-color:#0f172a; font:inherit; -webkit-text-fill-color:#0f172a; }
+    .epc-erp-global-search__input::placeholder { color:#64748b !important; opacity:1; -webkit-text-fill-color:#64748b; }
+    .epc-erp-cp-shell:has(.ns-dash) .epc-module-visual-frame,
+    .epc-erp-cp-shell:has(.ns-dash) .epc-op-context,
+    .epc-erp-cp-shell:has(.ns-dash) .epc-dash-repeat,
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-module-visual-frame,
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-op-context,
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-company-scope--panel { display:none !important; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-toolbar { margin-bottom:.15rem; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-host-sub { margin:0; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-title { margin-bottom:.2rem; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-body { padding-top:.15rem; }
+    .epc-erp-global-search__results { position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:5000; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 12px 28px rgba(15,23,42,.14); max-height:22rem; overflow:auto; color:#0f172a; }
+    .epc-erp-global-search__hit { display:flex; gap:.55rem; align-items:center; padding:.55rem .7rem; color:#0f172a !important; text-decoration:none; }
+    a.epc-erp-global-search__hit, a.epc-erp-global-search__hit span, a.epc-erp-global-search__hit i { color:#0f172a !important; }
+    .epc-erp-global-search__hit:hover, .epc-erp-global-search__hit.is-active { background:#eff6ff; }
+    .epc-erp-global-search__hit small { color:#64748b !important; margin-left:auto; }
 </style>
 
 <div class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern epc-php-font-root"
      data-epc-industry="@_industryCode"
      data-epc-erp-tenant="@_ctx.BrandLabel"
      data-epc-erp-company="@_activeCompanyId"
-     data-epc-erp-jewellery="@(_jewellery ? "1" : "0")">
+     data-epc-erp-jewellery="@(_jewellery ? "1" : "0")"
+     data-epc-dash-home="@(IsDashboardHome ? "1" : "0")">
     <header class="epc-erp-topbar epc-erp-topbar--cp">
         <div class="epc-erp-topbar__inner">
             <a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="@ErpHomeHref">
@@ -89,6 +124,7 @@
                 </span>
                 <span>@_ctx.BrandLabel ERP</span>
             </a>
+            <ErpGlobalSearch Jewellery="_jewellery" FitOut="_fitOut" RealEstate="_realEstate" CompanyId="_activeCompanyId" />
             <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact" aria-label="ERP topbar">
                 <a href="@ErpHomeHref">Dashboard</a>
                 <a href="/attention">Attention</a>
@@ -108,8 +144,9 @@
                 {
                     <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/")" target="_blank" rel="noopener">Classic CP</a>
                 }
-                @if (_showBos)
+                @if (_showBos && !_clientErp)
                 {
+                    <a href="/erp/super-mail-app">Mail</a>
                     <a href="/erp/fleet-app">Fleet ERP</a>
                     <a href="/bos">BOS</a>
                 }
@@ -123,7 +160,7 @@
                 else
                 {
                     <span title="@_userLabel">@_userLabel</span>
-                    <a class="btn btn-default btn-xs" href="/erp/logout" title="Log out"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>
+                    <a class="btn btn-default btn-xs" href="@LogoutHref" title="Log out" data-enhance-nav="false" rel="nofollow"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>
                 }
                 <a href="/erp">ERP workspace</a>
             </div>
@@ -216,7 +253,7 @@
                                     <span class="epc-erp-breadcrumb-current">@BreadcrumbTab</span>
                                 </nav>
                                 <h1 class="epc-erp-content-title">@Title</h1>
-                                <p class="epc-erp-host-sub">@_companyLabel · @_industryLabel@(_jewellery ? " · jewellery modules on" : " · core modules")</p>
+                                <p class="epc-erp-host-sub">@(IsDashboardHome ? _companyLabel : $"{_companyLabel} · {_industryLabel}{(_jewellery ? " · jewellery modules on" : " · core modules")}")</p>
                             </div>
                         </div>
                         @* PHP erp_main.php epc-erp-content-actions — company picker top-right *@
@@ -224,7 +261,10 @@
                             <PhpErpCompanyIndustryBar Variant="Toolbar" />
                         </div>
                     </div>
-                    <PhpErpCompanyIndustryBar Variant="Panel" />
+                    @if (!IsDashboardHome)
+                    {
+                        <PhpErpCompanyIndustryBar Variant="Panel" />
+                    }
                     @if (!_signedIn)
                     {
                         <div class="epc-erp-guest-banner alert alert-warning" role="status" style="margin:0 0 12px;padding:8px 10px;">
@@ -238,6 +278,8 @@
                             Session lacks <code>erp</code> capability for live digests. Interactive writes remain on the Classic module.
                         </div>
                     }
+                    @if (!IsDashboardHome)
+                    {
                     <div class="epc-module-visual-frame" aria-label="ERP module presentation">
                         <span class="epc-module-visual-frame__icon" aria-hidden="true"><i class="fa fa-cubes"></i></span>
                         <div>
@@ -252,6 +294,7 @@
                         <div class="epc-module-visual-frame__scope">@_companyLabel · @_industryLabel</div>
                     </div>
                     <OperatingNavigationContextBar Surface="erp" />
+                    }
                     <div class="epc-erp-content-body">
                         <!--epc-cp-main-begin-->
                         @ChildContent
@@ -383,6 +426,60 @@
     }
 })();
 </script>
+<script>
+(function () {
+  if (window.__epcErpGlobalSearchBound) return;
+  window.__epcErpGlobalSearchBound = true;
+  function catalog(root) {
+    var tag = root.querySelector('[data-epc-global-search-catalog]');
+    if (!tag) return [];
+    try { return JSON.parse(tag.textContent || '[]'); } catch (e) { return []; }
+  }
+  function render(root, q) {
+    var box = root.querySelector('[data-epc-global-search-results]');
+    if (!box) return;
+    var rows = catalog(root);
+    var needle = (q || '').trim().toLowerCase();
+    var hits = rows.filter(function (r) {
+      if (!needle) return true;
+      return String(r.label || '').toLowerCase().indexOf(needle) >= 0
+        || String(r.group || '').toLowerCase().indexOf(needle) >= 0;
+    }).slice(0, 12);
+    if (!hits.length) {
+      box.hidden = needle.length === 0;
+      box.innerHTML = needle ? '<div class="epc-erp-global-search__hit">No matching pages</div>' : '';
+      return;
+    }
+    box.hidden = false;
+    box.innerHTML = hits.map(function (r) {
+      return '<a class="epc-erp-global-search__hit" href="' + String(r.href || '#').replace(/"/g, '') + '">'
+        + '<i class="fa ' + String(r.icon || 'fa-th-large').replace(/"/g, '') + '"></i>'
+        + '<span>' + String(r.label || '').replace(/</g, '&lt;') + '</span>'
+        + '<small>' + String(r.group || '').replace(/</g, '&lt;') + '</small></a>';
+    }).join('');
+  }
+  document.addEventListener('input', function (e) {
+    var input = e.target && e.target.closest ? e.target.closest('[data-epc-global-search-input]') : null;
+    if (!input) return;
+    var root = input.closest('[data-epc-global-search]');
+    if (root) render(root, input.value);
+  });
+  document.addEventListener('focusin', function (e) {
+    var input = e.target && e.target.closest ? e.target.closest('[data-epc-global-search-input]') : null;
+    if (!input) return;
+    var root = input.closest('[data-epc-global-search]');
+    if (root) render(root, input.value);
+  });
+  document.addEventListener('click', function (e) {
+    document.querySelectorAll('[data-epc-global-search]').forEach(function (root) {
+      if (!root.contains(e.target)) {
+        var box = root.querySelector('[data-epc-global-search-results]');
+        if (box) box.hidden = true;
+      }
+    });
+  });
+})();
+</script>
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -391,10 +488,25 @@
     [Parameter] public string BreadcrumbArea { get; set; } = "Home";
     [Parameter] public string BreadcrumbTab { get; set; } = "Dashboard";
 
+    private bool IsDashboardHome =>
+        string.Equals(Title, "Dashboard", StringComparison.OrdinalIgnoreCase)
+        && IsErpHomePath(_currentPath);
+
+    private static bool IsErpHomePath(string path)
+    {
+        var p = (path ?? "").Split('?', 2)[0].TrimEnd('/');
+        return p.Equals("/erp", StringComparison.OrdinalIgnoreCase)
+               || p.Equals("/erp/app", StringComparison.OrdinalIgnoreCase)
+               || p.EndsWith("/erp/app", StringComparison.OrdinalIgnoreCase);
+    }
+
     private bool _showBos;
+    private bool _clientErp;
     private bool _showControlPanel = true;
     private bool _signedIn;
     private bool _jewellery;
+    private bool _fitOut;
+    private bool _realEstate;
     private long _activeCompanyId;
     private string _userLabel = "Admin session";
     private string _companyLabel = "MAIN";
@@ -405,6 +517,17 @@
     private IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> _nav = LegacyDesktopChromeCatalog.ErpTopnav();
 
     private string ErpHomeHref => _activeCompanyId > 0 ? $"/erp?company={_activeCompanyId}" : "/erp";
+
+    private string LogoutHref
+    {
+        get
+        {
+            var key = ClientErpPath.BoundSiteKey(Http.HttpContext);
+            return string.IsNullOrWhiteSpace(key)
+                ? "/erp/logout"
+                : ClientErpPath.PrefixErpPath(key, "/erp/logout");
+        }
+    }
 
     private string ModuleHref(string? href)
     {
@@ -449,7 +572,8 @@
     {
         var host = Http.HttpContext?.Request.Host.Host;
         _currentPath = Http.HttpContext?.Request.Path.Value ?? "/erp";
-        _showBos = PlatformHostPolicy.IsSuperCpHost(host);
+        _showBos = SuperCpHostGate.IsAllowed(Http.HttpContext);
+        _clientErp = ClientErpPath.IsBound(Http.HttpContext);
         _ctx = ErpHostContext.Resolve(host);
         _industryCode = _ctx.IndustryCode;
         _industryLabel = _ctx.IndustryLabel;
@@ -465,7 +589,7 @@
                     "current",
                     _ctx.IndustryCode,
                     null,
-                    _showBos));
+                    _showBos && !_clientErp));
             return;
         }
 
@@ -498,14 +622,21 @@
         if (active is not null)
         {
             _activeCompanyId = active.Id;
-            _companyLabel = $"{active.Code} · {active.Name}";
-            _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active);
-            _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
-            _industryLabel = ErpIndustryNav.IndustryLabelForPack(active.IndustryPack, _jewellery);
+            _companyLabel = LegalOrganizationLabel.Display(active.Code, active.Name, null, _ctx.BrandLabel);
+            _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+            _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+            _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, active, TenantContext.IndustryFrom(ctx));
+            _industryCode = _jewellery ? "jewellery"
+                : _realEstate ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "real_estate" : active.IndustryPack)
+                : _fitOut ? (string.IsNullOrWhiteSpace(active.IndustryPack) ? "fit_out" : active.IndustryPack)
+                : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
+            _industryLabel = ErpIndustryNav.IndustryLabelForPack(_industryCode, _jewellery);
         }
         else
         {
-            _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null);
+            _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
+            _fitOut = ErpIndustryNav.ShowFitOutModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
+            _realEstate = ErpIndustryNav.ShowRealEstateModules(_ctx.IndustryCode, null, TenantContext.IndustryFrom(ctx));
         }
 
         _nav = ErpIndustryNav.FilterTopnav(
@@ -514,7 +645,7 @@
                 "current",
                 _industryCode,
                 countryCode,
-                _showBos,
+                _showBos && !_clientErp,
                 DisabledTabIds: tenantRules.DisabledTabIds,
                 EnabledModuleIds: tenantRules.EnabledModuleIds,
                 Company: active));

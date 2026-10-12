@@ -14,6 +14,9 @@ public sealed class CpErpChromeDashboardParityTests
     {
         var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpDesktopChrome.razor"));
         Assert.Contains("<span>Control</span>", src);
+        Assert.Contains("_useSuperBocChrome", src);
+        Assert.Contains("PhpSuperCpCommandCentre ShowHome=\"false\"", src);
+        Assert.Contains("SuperCpHostGate.IsAllowed(Http.HttpContext)", src);
         Assert.Contains("fa-th-large", src);
         Assert.Contains("data-topnav-toggle=", src);
         Assert.Contains("hidden data-topnav-panel=", src);
@@ -125,7 +128,61 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("No supplier spend recorded yet.", src);
         Assert.Contains("No tasks tracked yet.", src);
         Assert.Contains("PhpHybridModuleDirectory", src);
+        Assert.Contains("epc-dash-customize", src);
+        Assert.Contains("dash_profile=", src);
         Assert.DoesNotContain("epc-erp-banner", src);
+    }
+
+    [Fact]
+    public void ErpDashboardKeepsColorfulTilesAndD365WorkspaceModules()
+    {
+        var css = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/wwwroot/css/epc-enterprise-design-system.css"));
+        var directory = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/PhpHybridModuleDirectory.razor"));
+        var assets = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs"));
+
+        Assert.Contains("a.ns-tile.gold { background: linear-gradient(145deg, #1d4f91, #163a6b) !important; }", css, StringComparison.Ordinal);
+        Assert.Contains("a.ns-tile.green { background: linear-gradient(145deg, #0f766e, #0b5c56) !important; }", css, StringComparison.Ordinal);
+        Assert.Contains("a.ns-tile.rust { background: linear-gradient(145deg, #334155, #1e293b) !important; }", css, StringComparison.Ordinal);
+        Assert.Contains("a.ns-tile.slate { background: linear-gradient(145deg, #b45309, #92400e) !important; }", css, StringComparison.Ordinal);
+        Assert.Contains("grid-template-columns: repeat(7, minmax(0, 1fr))", css, StringComparison.Ordinal);
+        Assert.Contains("a.epc-d365-ws:nth-child(7n+1) { background: #eef4ff !important; border-left-color: #2563eb; }", css, StringComparison.Ordinal);
+        Assert.DoesNotContain(".ns-tile,\n.epc-erp-content-body .ns-port", css.Replace("\r\n", "\n"), StringComparison.Ordinal);
+        Assert.DoesNotContain("a.epc-d365-ws { display:flex; align-items:center; gap:10px; min-height:52px; padding:8px 12px; background:#fff;", directory.Replace("\r\n", "\n"), StringComparison.Ordinal);
+
+        Assert.Contains("epc-d365-ws", directory, StringComparison.Ordinal);
+        Assert.Contains("data-epc-moddir-style=\"d365-fno\"", directory, StringComparison.Ordinal);
+        Assert.Contains("epc-moddir-aspnet", directory, StringComparison.Ordinal);
+        Assert.Contains("background:#eef4ff !important", directory, StringComparison.Ordinal);
+        Assert.Contains("data-epc-dash=\"color-tiles\"", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("ErpGlobalSearch", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor")), StringComparison.Ordinal);
+        Assert.Contains("Search pages and workspaces", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/ErpGlobalSearch.razor")), StringComparison.Ordinal);
+        Assert.Contains("v=20261012dash2", assets, StringComparison.Ordinal);
+        Assert.DoesNotContain("v=20261012dash1", assets, StringComparison.Ordinal);
+        Assert.DoesNotContain("v=20261012search", assets, StringComparison.Ordinal);
+        Assert.DoesNotContain("v=20261012home", assets, StringComparison.Ordinal);
+        Assert.DoesNotContain("v=20261012prja", assets, StringComparison.Ordinal);
+        Assert.DoesNotContain("v=20261012wscolor", assets, StringComparison.Ordinal);
+
+        var chrome = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor"));
+        Assert.Contains("color:#0f172a !important", chrome, StringComparison.Ordinal);
+        Assert.Contains("a.epc-erp-global-search__hit span", chrome, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-global-search__input::placeholder", chrome, StringComparison.Ordinal);
+        Assert.Contains(".ns-dash) .epc-module-visual-frame", chrome, StringComparison.Ordinal);
+        Assert.Contains("data-epc-dash-home", chrome, StringComparison.Ordinal);
+        Assert.Contains("IsDashboardHome", chrome, StringComparison.Ordinal);
+        Assert.Contains("IsErpHomePath", chrome, StringComparison.Ordinal);
+        Assert.Contains("@if (!IsDashboardHome)", chrome, StringComparison.Ordinal);
+        Assert.Contains("IsDashboardHome ? _companyLabel", chrome, StringComparison.Ordinal);
+
+        var dash = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
+        Assert.Contains("epc-dash-repeat", dash, StringComparison.Ordinal);
+        Assert.Contains("data-epc-catalog-areas", dash, StringComparison.Ordinal);
+        Assert.Contains("PhpModuleCatalog.ErpAreas", dash, StringComparison.Ordinal);
+        Assert.Contains("Title=\"All modules\"", dash, StringComparison.Ordinal);
+        Assert.DoesNotContain("Data scope:", dash, StringComparison.Ordinal);
+
+        Assert.Contains("color: #0f172a !important", css, StringComparison.Ordinal);
+        Assert.Contains(".ns-dash .epc-dash-repeat", css, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -134,6 +191,15 @@ public sealed class CpErpChromeDashboardParityTests
         var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
         var projectAccounting = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpProjectAccountingApp.razor"));
         Assert.Contains("data-epc-industry-pack=\"fitout_contracting\"", src);
+        Assert.Contains("data-epc-industry-first=\"jewellery\"", src);
+        Assert.Contains("data-epc-industry-first=\"fitout\"", src);
+        Assert.Contains("data-epc-industry-first=\"real_estate\"", src);
+        Assert.Contains("Real estate investment, development and construction", src);
+        Assert.Contains("RealEstateHref(\"/erp/real-estate-app\")", src);
+        Assert.Contains("ShowRealEstateModules", src, StringComparison.Ordinal);
+        Assert.True(
+            src.IndexOf("data-epc-industry-first=\"jewellery\"", StringComparison.Ordinal)
+            < src.IndexOf("<div class=\"ns-hero\">", StringComparison.Ordinal));
         Assert.Contains("Fit-out project modules", src);
         Assert.Contains("FitOutHref(\"/erp/fitout/delivery-dashboard\")", src);
         Assert.Contains("FitOutHref(\"/erp/fitout/finance-operations-report\")", src);
@@ -143,6 +209,10 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("FITOUT · Fit-out Company · Company 3", projectAccounting);
         Assert.Contains("action=\"@FitOutHref(\"/erp/fitout/project-pnl\")\"", projectAccounting);
         Assert.Contains("Report links retain the selected legal entity", projectAccounting);
+        Assert.Contains("data-epc-prja=\"workspace\"", projectAccounting);
+        Assert.Contains("WorkHref(\"commercial\")", projectAccounting);
+        Assert.Contains("epc-prja-reports", projectAccounting);
+        Assert.Contains("<optgroup label=\"Site / QA\">", projectAccounting);
     }
 
     [Fact]
@@ -155,6 +225,8 @@ public sealed class CpErpChromeDashboardParityTests
         var invoices = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpInvoicesApp.razor"));
 
         Assert.Contains("epc-document-workspace__summary", workspace);
+        Assert.Contains("ErpRelatedDocumentMap", workspace);
+        Assert.Contains("RelatedDocuments", workspace);
         Assert.Contains("epc-document-workspace__actions", workspace);
         Assert.Contains("HeaderActions", workspace);
         Assert.Contains("CompanyContext", workspace);

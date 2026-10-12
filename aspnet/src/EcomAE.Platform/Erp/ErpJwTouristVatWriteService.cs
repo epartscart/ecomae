@@ -87,6 +87,15 @@ public sealed class ErpJwTouristVatWriteService : IErpJwTouristVatWriteService
         var vat = request.TotalVat != 0 ? request.TotalVat : request.VatAmount;
         var refund = request.TotalRefund != 0 ? request.TotalRefund : request.RefundAmount;
         var remarks = BuildRemarks(request.Narration, request.Nationality, request.FlightNo, vat, refund);
+        var vocNo = await ErpJwVocNumbering.NextNoAsync(
+            connection,
+            null,
+            "epc_jewel_tourist_vat_refund",
+            companyId,
+            "VRV",
+            branch,
+            0,
+            cancellationToken).ConfigureAwait(false);
 
         await ErpDb.ExecuteAsync(
             connection,
@@ -98,7 +107,7 @@ public sealed class ErpJwTouristVatWriteService : IErpJwTouristVatWriteService
             branch,
             "VRV",
             vocDate,
-            0,
+            vocNo,
             passport,
             Clip(tourist, 120),
             phone,

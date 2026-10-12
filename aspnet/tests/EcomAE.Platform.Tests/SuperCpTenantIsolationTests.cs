@@ -14,6 +14,32 @@ namespace EcomAE.Platform.Tests;
 /// </summary>
 public sealed class SuperCpTenantIsolationTests
 {
+    private sealed class FakeClientErpLookup : IClientErpTenantLookup
+    {
+        public ValueTask<ClientErpTenantRecord?> FindActiveErpOnlyAsync(string siteKey, CancellationToken cancellationToken = default)
+        {
+            var key = ClientErpPath.NormalizeSiteKey(siteKey);
+            if (key != "asap")
+            {
+                return ValueTask.FromResult<ClientErpTenantRecord?>(null);
+            }
+
+            return ValueTask.FromResult<ClientErpTenantRecord?>(new ClientErpTenantRecord(
+                "asap",
+                "ASAP Autoparts",
+                "auto_parts",
+                "ecomae_asap",
+                "asap_user",
+                "secret",
+                DedicatedDb: true,
+                IsActive: true,
+                IsDemo: false));
+        }
+
+        public ValueTask<IReadOnlyList<ClientErpTenantRecord>> ListActiveErpOnlyAsync(CancellationToken cancellationToken = default)
+            => ValueTask.FromResult<IReadOnlyList<ClientErpTenantRecord>>([]);
+    }
+
     private sealed class HijackingRegistry : ITenantRegistry
     {
         // Simulates the live epc_portal_tenants lookup that returns an erp_only
@@ -34,7 +60,7 @@ public sealed class SuperCpTenantIsolationTests
                 DedicatedDb: true));
     }
 
-    private static RouteTenantResolver ResolverWith(ITenantRegistry registry) =>
+    private static RouteTenantResolver ResolverWith(ITenantRegistry registry, IClientErpTenantLookup? clientErp = null) =>
         new(Options.Create(new EcomAeOptions
         {
             PlatformHost = "www.ecomae.com",
@@ -42,7 +68,7 @@ public sealed class SuperCpTenantIsolationTests
             [
                 new TenantSeedOptions { Host = "www.ecomae.com", SiteKey = "platform", DatabaseName = "ecomae", Mode = TenantMode.Platform, BosEnabled = true },
             ]
-        }), registry);
+        }), registry, clientErp);
 
     [Theory]
     [InlineData("www.ecomae.com", "/cp")]
@@ -63,6 +89,148 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Equal("ecomae", tenant.DatabaseName);
         Assert.Null(tenant.DbUser);
         Assert.Null(tenant.DbPassword);
+    }
+
+    [Theory]
+    [InlineData("www.ecomae.com", "/cp/client-erp/asap")]
+    [InlineData("www.ecomae.com", "/cp/client-erp/asap/")]
+    [InlineData("www.ecomae.com", "/cp/client-erp/asap/erp")]
+    [InlineData("cp.ecomae.com", "/cp/client-erp/asap/erp/app")]
+    public async Task SuperHostClientErpPathBindsCompanyDatabase(string host, string path)
+    {
+        var resolver = ResolverWith(new HijackingRegistry(), new FakeClientErpLookup());
+        var context = new DefaultHttpContext();
+        context.Request.Host = new HostString(host);
+        context.Request.Path = path;
+
+        var tenant = await resolver.ResolveAsync(context);
+
+        Assert.Equal(TenantMode.ErpOnlyTenant, tenant.Mode);
+        Assert.Equal("asap", tenant.SiteKey);
+        Assert.Equal("ecomae_asap", tenant.DatabaseName);
+        Assert.Equal("asap_user", tenant.DbUser);
+        Assert.Equal(TenantSurface.Erp, tenant.Surface);
+        Assert.True(tenant.HasUsableDedicatedCredentials);
+        Assert.Equal("auto_parts", tenant.IndustryCode);
+    }
+
+    [Fact]
+    public async Task SuperHostClientErpEmptyPasswordUsesRegistryCsNotInventedUser()
+    {
+        var resolver = ResolverWith(new HijackingRegistry(), new EmptyPasswordClientErpLookup());
+        var context = new DefaultHttpContext();
+        context.Request.Host = new HostString("www.ecomae.com");
+        context.Request.Path = "/cp/client-erp/indj/";
+
+        var tenant = await resolver.ResolveAsync(context);
+
+        Assert.Equal(TenantMode.ErpOnlyTenant, tenant.Mode);
+        Assert.Equal("indj", tenant.SiteKey);
+        Assert.Equal("indj", tenant.DatabaseName);
+        Assert.Null(tenant.DbUser);
+        Assert.Null(tenant.DbPassword);
+        Assert.False(tenant.HasUsableDedicatedCredentials);
+        Assert.True(TenantContext.UsableDedicatedCredentials("asap_user", "secret"));
+        Assert.False(TenantContext.UsableDedicatedCredentials("indj", ""));
+        Assert.False(TenantContext.UsableDedicatedCredentials("indj", null));
+        Assert.False(TenantContext.UsableDedicatedCredentials("", "secret"));
+        Assert.Equal("jewellery", tenant.IndustryCode);
+    }
+
+    private sealed class EmptyPasswordClientErpLookup : IClientErpTenantLookup
+    {
+        public ValueTask<ClientErpTenantRecord?> FindActiveErpOnlyAsync(string siteKey, CancellationToken cancellationToken = default)
+        {
+            var key = ClientErpPath.NormalizeSiteKey(siteKey);
+            if (key != "indj")
+            {
+                return ValueTask.FromResult<ClientErpTenantRecord?>(null);
+            }
+
+            return ValueTask.FromResult<ClientErpTenantRecord?>(new ClientErpTenantRecord(
+                "indj",
+                "INDJ Jewellery",
+                "jewellery",
+                "indj",
+                "indj",
+                "",
+                DedicatedDb: true,
+                IsActive: true,
+                IsDemo: false));
+        }
+
+        public ValueTask<IReadOnlyList<ClientErpTenantRecord>> ListActiveErpOnlyAsync(CancellationToken cancellationToken = default)
+            => ValueTask.FromResult<IReadOnlyList<ClientErpTenantRecord>>([]);
+    }
+
+    [Fact]
+    public async Task SuperHostClientErpUnknownKeyDoesNotBindHijackedRegistry()
+    {
+        var resolver = ResolverWith(new HijackingRegistry(), new FakeClientErpLookup());
+        var context = new DefaultHttpContext();
+        context.Request.Host = new HostString("www.ecomae.com");
+        context.Request.Path = "/cp/client-erp/missing/";
+
+        var tenant = await resolver.ResolveAsync(context);
+
+        Assert.Equal(TenantMode.Platform, tenant.Mode);
+        Assert.Equal("ecomae", tenant.DatabaseName);
+        Assert.NotEqual("docpart", tenant.DatabaseName);
+    }
+
+    [Fact]
+    public async Task SuperHostClientErpLookupThrowStaysPlatform()
+    {
+        var resolver = ResolverWith(new HijackingRegistry(), new ThrowingClientErpLookup());
+        var context = new DefaultHttpContext();
+        context.Request.Host = new HostString("www.ecomae.com");
+        context.Request.Path = "/cp/client-erp/asap/";
+
+        var tenant = await resolver.ResolveAsync(context);
+
+        Assert.Equal(TenantMode.Platform, tenant.Mode);
+        Assert.Equal("ecomae", tenant.DatabaseName);
+        Assert.NotEqual("docpart", tenant.DatabaseName);
+    }
+
+    private sealed class ThrowingClientErpLookup : IClientErpTenantLookup
+    {
+        public ValueTask<ClientErpTenantRecord?> FindActiveErpOnlyAsync(string siteKey, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("lookup-boom");
+
+        public ValueTask<IReadOnlyList<ClientErpTenantRecord>> ListActiveErpOnlyAsync(CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("lookup-boom");
+    }
+
+    [Fact]
+    public async Task SuperHostBareCpAndErpStayPlatformWhenClientErpLookupExists()
+    {
+        var resolver = ResolverWith(new HijackingRegistry(), new FakeClientErpLookup());
+        foreach (var path in new[] { "/cp", "/erp", "/cp/login", "/erp/login" })
+        {
+            var context = new DefaultHttpContext();
+            context.Request.Host = new HostString("www.ecomae.com");
+            context.Request.Path = path;
+            var tenant = await resolver.ResolveAsync(context);
+            Assert.Equal(TenantMode.Platform, tenant.Mode);
+            Assert.Equal("ecomae", tenant.DatabaseName);
+        }
+    }
+
+    [Fact]
+    public void ClientErpPagesExistAndStayOffSuperCpCopy()
+    {
+        var login = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor"));
+        Assert.Contains("@page \"/cp/client-erp/{SiteKey}\"", login, StringComparison.Ordinal);
+        Assert.DoesNotContain("@page \"/cp/client-erp/{SiteKey}/\"", login, StringComparison.Ordinal);
+        Assert.Contains("LoginHostBrand.ForErpOnly", login, StringComparison.Ordinal);
+        Assert.Contains("Client ERP not found", login, StringComparison.Ordinal);
+        Assert.DoesNotContain("Operator Access", login, StringComparison.Ordinal);
+
+        var picker = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpClientErpPickerApp.razor"));
+        Assert.Contains("@page \"/cp/client-erp\"", picker, StringComparison.Ordinal);
+        Assert.DoesNotContain("@page \"/cp/client-erp/\"", picker, StringComparison.Ordinal);
+        Assert.Contains("Choose company", picker, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -111,6 +279,13 @@ public sealed class SuperCpTenantIsolationTests
         var text = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor"));
         Assert.Contains("PlatformHostPolicy.IsSuperCpHost", text, StringComparison.Ordinal);
         Assert.Contains("<PhpSuperCpCommandCentre", text, StringComparison.Ordinal);
+        Assert.Contains("IsSuperHostNow()", text, StringComparison.Ordinal);
+        Assert.Contains("NEVER tenant CP chrome", text, StringComparison.Ordinal);
+        // Super CP home must not sit inside tenant CP chrome (black bar + left pills).
+        var superIdx = text.IndexOf("<PhpSuperCpCommandCentre", StringComparison.Ordinal);
+        var chromeIdx = text.IndexOf("<PhpCpDesktopChrome", StringComparison.Ordinal);
+        Assert.True(superIdx >= 0 && chromeIdx > superIdx,
+            "Super CP command centre must render outside PhpCpDesktopChrome");
         // Tenant branding must be host-aware — never hardcoded eParts Cart heading.
         Assert.DoesNotContain("<h2 class=\"cp-dash-title\">eParts Cart</h2>", text, StringComparison.Ordinal);
         Assert.Contains("ErpHostContext.Resolve", text, StringComparison.Ordinal);
@@ -125,9 +300,27 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Contains("epc-boc__hero", text, StringComparison.Ordinal);
         // Full BOC console chrome (top mega-menu + fleet + platform banner).
         Assert.Contains("epc-boc__topnav", text, StringComparison.Ordinal);
+        Assert.Contains("overflow:visible!important", text, StringComparison.Ordinal);
+        Assert.Contains("position:absolute", text, StringComparison.Ordinal);
+        Assert.Contains("overflow-y:auto!important", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__platform-banner", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__fleet-grid", text, StringComparison.Ordinal);
         Assert.Contains("PhpSuperCpBocNav.Nav()", text, StringComparison.Ordinal);
+        Assert.Contains("ShowHome", text, StringComparison.Ordinal);
+        Assert.Contains("ChildContent", text, StringComparison.Ordinal);
+        Assert.Contains("data-epc-super-cp-page", text, StringComparison.Ordinal);
+        Assert.Contains("GroupIsActive", text, StringComparison.Ordinal);
+        Assert.Contains("Live SSR drops late HeadContent", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/logout", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/super-mail-app", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/tenants-app", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/client-erp", text, StringComparison.Ordinal);
+        Assert.Contains("yawer@ecomae.com", text, StringComparison.Ordinal);
+        Assert.Contains("onboard_four_erp_only", text, StringComparison.Ordinal);
+        Assert.Contains("Create ASAP / INDJ / FITO / REAL now", text, StringComparison.Ordinal);
+        Assert.Contains("repair_four_erp_only", text, StringComparison.Ordinal);
+        Assert.Contains("Repair ASAP / INDJ / FITO / REAL shop login", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOnlyLaunchClients.All", text, StringComparison.Ordinal);
         // Fleet console must not query tenant shop digests.
         Assert.DoesNotContain("ListCpOrdersAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpProductCatalogueDigestAsync", text, StringComparison.Ordinal);
@@ -137,12 +330,12 @@ public sealed class SuperCpTenantIsolationTests
     [Fact]
     public void BocNavMirrorsPhpAreaRegistry()
     {
-        // PHP epc_boc_groups(): 15 domains; epc_boc_areas(): ~110 areas.
-        Assert.Equal(15, EcomAE.Platform.Presentation.PhpSuperCpBocNav.Groups.Count);
+        // PHP epc_boc_groups() plus the Mail heading: 16 domains; epc_boc_areas(): ~110 areas.
+        Assert.Equal(16, EcomAE.Platform.Presentation.PhpSuperCpBocNav.Groups.Count);
         Assert.True(EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas.Count >= 100,
             $"expected ≥100 BOC areas, found {EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas.Count}");
 
-        foreach (var key in new[] { "command_center", "tenant_hub", "platform_health", "auto_price", "cp_orders", "erp_gl", "integrations", "operator_guide" })
+        foreach (var key in new[] { "command_center", "tenant_hub", "client_erp", "deployment_models", "platform_mail", "platform_health", "auto_price", "cp_orders", "erp_gl", "integrations", "operator_guide" })
         {
             Assert.Contains(EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas, a => a.Key == key);
         }
@@ -157,7 +350,9 @@ public sealed class SuperCpTenantIsolationTests
 
         // Every group renders (no empty groups in the mega menu).
         var nav = EcomAE.Platform.Presentation.PhpSuperCpBocNav.Nav().ToList();
-        Assert.Equal(15, nav.Count);
+        Assert.Equal(16, nav.Count);
+        Assert.Equal("mail", nav[2].Group.Key);
+        Assert.Contains(nav[2].Areas, a => a.Key == "platform_mail");
     }
 
     [Fact]
@@ -169,11 +364,29 @@ public sealed class SuperCpTenantIsolationTests
         var app = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
         Assert.Contains("ns-dash", app, StringComparison.Ordinal);
         Assert.Contains("ErpIndustryNav", app, StringComparison.Ordinal);
+        Assert.Contains("epc-dash-customize", app, StringComparison.Ordinal);
+        Assert.Contains("dash_profile=", app, StringComparison.Ordinal);
         Assert.DoesNotContain("<PhpSuperErpFleetDashboard", app, StringComparison.Ordinal);
 
         var fleetApp = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpFleetApp.razor"));
         Assert.Contains("@page \"/erp/fleet-app\"", fleetApp, StringComparison.Ordinal);
         Assert.Contains("<PhpSuperErpFleetDashboard", fleetApp, StringComparison.Ordinal);
+        Assert.Contains("SuperCpHostGate.IsAllowed(Http.HttpContext)", fleetApp, StringComparison.Ordinal);
+        Assert.DoesNotContain("PlatformHostPolicy.IsSuperCpHost(Http.HttpContext?.Request.Host.Host)", fleetApp, StringComparison.Ordinal);
+
+        var chrome = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor"));
+        Assert.Contains("SuperCpHostGate.IsAllowed(Http.HttpContext)", chrome, StringComparison.Ordinal);
+        Assert.Contains("ClientErpPath.IsBound(Http.HttpContext)", chrome, StringComparison.Ordinal);
+
+        var program = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Program.cs"));
+        Assert.Contains("UseMiddleware<ClientErpSuperSurfaceGateMiddleware>", program, StringComparison.Ordinal);
+        var cookie = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Middleware/ClientErpCookieRedirectMiddleware.cs"));
+        Assert.Contains("IsSuperOnlyErpPath", cookie, StringComparison.Ordinal);
+        Assert.Contains("ErpHomeUrl", cookie, StringComparison.Ordinal);
+
+        var bar = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpCompanyIndustryBar.razor"));
+        Assert.Contains("SuperCpHostGate.IsAllowed(Http.HttpContext)", bar, StringComparison.Ordinal);
+        Assert.Contains("_showFleet", bar, StringComparison.Ordinal);
 
         var fleet = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperErpFleetDashboard.razor"));
         Assert.Contains("Super ERP — Fleet Command Center", fleet, StringComparison.Ordinal);

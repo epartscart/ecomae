@@ -2,6 +2,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
@@ -191,10 +192,91 @@
         </div>
     }
 
-    @if (_isAdmin && (_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce" || _tab == "jw_metal_sales" || _tab == "jw_sales_return"))
+    @if (_isAdmin && _tab == "jw_pos_advance")
+    {
+        <ErpPhpCreateWell Title="New POS advance">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                <input type="hidden" name="action" value="jw_pos_advance_save" />
+                <input type="hidden" name="voc_type" value="ADV" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <ErpVoucherHeaderFields NumberPreview="Auto" />
+                <label>Customer <input class="form-control input-sm" name="customer_name" required /></label>
+                <label>Customer code <input class="form-control input-sm" name="party_code" /></label>
+                <label>Amount <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save POS advance</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_petty_cash")
+    {
+        <ErpPhpCreateWell Title="New petty cash">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryPettyCashSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <ErpVoucherHeaderFields DateFieldName="voc_date" NumberPreview="Auto" />
+                <label>Paid to <input class="form-control input-sm" name="paid_to" required maxlength="120" /></label>
+                <label>Account <input class="form-control input-sm" name="account_code" maxlength="20" placeholder="PETTY-CASH" /></label>
+                <label>Amount <input class="form-control input-sm" name="total" type="number" step="0.01" value="0" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save petty cash</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_journal_voucher")
+    {
+        <ErpPhpCreateWell Title="New journal voucher">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                <input type="hidden" name="action" value="jw_journal_voucher_save" />
+                <input type="hidden" name="voc_type" value="JVL" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <ErpVoucherHeaderFields NumberPreview="Auto" />
+                <label>Description <input class="form-control input-sm" name="party_name" required /></label>
+                <label>Amount <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save journal voucher</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_tourist_vat")
+    {
+        <ErpPhpCreateWell Title="New tourist VAT refund">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryTouristVatSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <ErpVoucherHeaderFields DateFieldName="voc_date" DateLabel="Refund date" NumberLabel="Refund no" NumberPreview="Auto" />
+                <label>Tourist name <input class="form-control input-sm" name="tourist_name" required maxlength="120" /></label>
+                <label>Passport <input class="form-control input-sm" name="passport_no" maxlength="20" /></label>
+                <label>Nationality <input class="form-control input-sm" name="nationality" maxlength="50" /></label>
+                <label>Invoice no <input class="form-control input-sm" name="invoice_no" maxlength="30" /></label>
+                <label>VAT <input class="form-control input-sm" name="total_vat" type="number" step="0.01" value="0" /></label>
+                <label>Refund <input class="form-control input-sm" name="refund_amount" type="number" step="0.01" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save tourist VAT</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && (_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce" || _tab == "jw_metal_sales" || _tab == "jw_sales_return"))
     {
         <ErpPhpCreateWell Title="@(_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce" ? "New Invoice" : "New " + _spec.Label)">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="action" value="@RetailVoucherAction(_tab)" />
@@ -204,7 +286,7 @@
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
                 <label>Branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
-                <label>Voucher date <input class="form-control input-sm" name="voc_date" type="date" /></label>
+                <ErpVoucherHeaderFields DateLabel="Invoice date" NumberLabel="Invoice no" NumberPreview="Auto" />
                 <label>Customer <input class="form-control input-sm" name="customer_name" required /></label>
                 <label>Customer code <input class="form-control input-sm" name="party_code" /></label>
                 @if (_tab == "jw_sales_return")
@@ -279,7 +361,7 @@
     else if (_isAdmin && _tab == "retail_barcode")
     {
         <ErpPhpCreateWell Title="Generate barcode">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryBarcodeGenerateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryBarcodeGenerateForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
@@ -488,6 +570,8 @@
             ? ("Voc " + _opened.VocNo.ToString(CultureInfo.InvariantCulture))
             : (_openedId > 0 ? ("Voucher #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
 
+    private string WriteAction(string path) => ErpJewelleryModuleChrome.AppHref(path, _company);
+
     private string ReturnHref =>
         _openedId > 0
             ? _listHref + "?voc_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
@@ -495,9 +579,11 @@
 
     private static string RetailVocType(string tab) => tab switch
     {
-        "jw_metal_sales" => "MSI",
-        "jw_sales_return" => "SRN",
-        _ => "RSI"
+        "jw_metal_sales" => "MSL",
+        "jw_sales_return" => "SRT",
+        "jw_pos_advance" => "ADV",
+        "jw_journal_voucher" => "JVL",
+        _ => "RIN"
     };
 
     private static string RetailVoucherAction(string tab) => tab switch
@@ -551,9 +637,12 @@
             }
         }
         _analysis = _tab == "jw_sales_analysis" ? result.SalesAnalysis : [];
-        _showVouchers = _tab is "jw_retail_sales" or "jewellery" or "retail_commerce" or "jw_metal_sales" or "jw_sales_return";
+        var wantedTypes = ErpJwVocTypes.AliasesForTab(_tab);
+        _showVouchers = wantedTypes.Count > 0;
         _display = _showVouchers
-            ? result.Vouchers.Select((v, i) => new SaleRow(
+            ? result.Vouchers
+                .Where(v => ErpJwVocTypes.Matches(v.VocType, wantedTypes))
+                .Select((v, i) => new SaleRow(
             v.Id,
             (i + 1).ToString(CultureInfo.InvariantCulture),
             v.VocNo.ToString(CultureInfo.InvariantCulture),

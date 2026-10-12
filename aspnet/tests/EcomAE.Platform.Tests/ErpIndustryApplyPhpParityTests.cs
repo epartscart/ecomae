@@ -11,7 +11,7 @@ public sealed class ErpIndustryApplyPhpParityTests
         var keys = ErpIndustryApplyWriteService.Catalog.Select(b => b.Key).ToArray();
         Assert.Equal(
             ["general", "auto_parts", "electronics", "fashion", "jewellery", "food_perishable", "pharma", "cosmetics_beauty",
-             "furniture_home", "building_construction", "industrial_manufacturing", "agriculture", "books_media", "hospitality_fnb", "services_professional"],
+             "furniture_home", "building_construction", "industrial_manufacturing", "agriculture", "books_media", "hospitality_fnb", "services_professional", "real_estate"],
             keys);
         Assert.All(ErpIndustryApplyWriteService.Catalog, b =>
         {

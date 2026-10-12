@@ -57,7 +57,7 @@ public sealed class CpNavMenuService : ICpNavMenuService
             }
 
             var offlinePolicy = isSuperHost && isAdmin ? CpNavPolicy.SuperOperator() : CpNavPolicy.Tenant();
-            return CpNavTree.Build(snapshot.Groups, snapshot.Items, offlinePolicy, static _ => null);
+            return CpNavTree.BuildChrome(snapshot.Groups, snapshot.Items, offlinePolicy, static _ => null);
         }
 
         try
@@ -91,7 +91,7 @@ public sealed class CpNavMenuService : ICpNavMenuService
                 AclAllows: acl);
 
             var translate = await BuildTranslatorAsync(connection, rows, cancellationToken).ConfigureAwait(false);
-            return CpNavTree.Build(rows.Groups, rows.Items, policy, translate);
+            return CpNavTree.BuildChrome(rows.Groups, rows.Items, policy, translate);
         }
         catch (DbException)
         {
@@ -102,7 +102,7 @@ public sealed class CpNavMenuService : ICpNavMenuService
             }
 
             var policy = isSuperHost && isAdmin ? CpNavPolicy.SuperOperator() : CpNavPolicy.Tenant();
-            return CpNavTree.Build(snapshot.Groups, snapshot.Items, policy, static _ => null);
+            return CpNavTree.BuildChrome(snapshot.Groups, snapshot.Items, policy, static _ => null);
         }
     }
 

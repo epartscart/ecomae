@@ -35,6 +35,7 @@ public sealed class ErpOpeningPostBatchWriteService : IErpOpeningPostBatchWriteS
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureOpeningAsync(connection, cancellationToken).ConfigureAwait(false);
         var batch = await ReadBatchAsync(connection, request.BatchId, cancellationToken).ConfigureAwait(false);
         if (batch is null)
         {

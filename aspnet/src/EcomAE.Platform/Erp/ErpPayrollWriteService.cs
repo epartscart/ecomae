@@ -31,6 +31,7 @@ public sealed class ErpPayrollWriteService : IErpPayrollWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsurePayrollAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var select = connection.CreateCommand();
         select.CommandText = "SELECT IFNULL(`status`,'') AS status FROM `epc_erp_payroll_runs` WHERE `id` = @id LIMIT 1";
         Add(select, "@id", runId);

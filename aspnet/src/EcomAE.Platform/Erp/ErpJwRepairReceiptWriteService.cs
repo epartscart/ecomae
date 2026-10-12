@@ -66,7 +66,15 @@ public sealed class ErpJwRepairReceiptWriteService : IErpJwRepairReceiptWriteSer
         var companyId = request.CompanyId < 0 ? 0 : request.CompanyId;
         var branch = Clip(DefaultBranch(request.Branch), 10);
         var vocDate = NormalizeDate(FirstNonEmpty(request.ReceiptDate, request.VocDate));
-        var vocNo = request.VocNo < 0 ? 0 : request.VocNo;
+        var vocNo = await ErpJwVocNumbering.NextNoAsync(
+            connection,
+            null,
+            "epc_jewel_repair",
+            companyId,
+            "REP",
+            branch,
+            request.VocNo,
+            cancellationToken).ConfigureAwait(false);
         var customerId = 0;
         if (int.TryParse((request.CustomerCode ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedId) && parsedId > 0)
         {

@@ -26,25 +26,28 @@ public sealed class ErpJwPurchaseHistoryReadService : IErpJwPurchaseHistoryReadS
     {
         if (companyId <= 0) return Empty("Company is required.", "invalid");
         if (!_connections.IsConfigured) return Empty("TenantRegistry DB is not configured.", "migration");
-        var codes = (type ?? string.Empty).Trim().ToUpperInvariant() switch
+        var codes = ErpJwVocTypes.Aliases(type);
+        if (codes.Count == 0)
         {
-            "DIAMOND" => ("DMP", "DLP"),
-            _ => ("MMP", "MLP")
-        };
+            codes = ErpJwVocTypes.MetalPurchaseAliases;
+        }
         var boundedLimit = Math.Clamp(limit, 1, 200);
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
+        var placeholders = string.Join(",", codes.Select(_ => "?"));
         command.CommandText = ErpDb.Positional($"""
             SELECT `id`,`branch`,`voc_type`,`voc_date`,`voc_no`,`party_code`,
                    `party_name`,`customer_name`,`mobile`,`salesman`,`net_amount`,
                    `vat_amount`,`total_with_vat`,`status`,`authorized`
             FROM `epc_jewel_voucher`
-            WHERE `company_id`=? AND `voc_type` IN (?,?)
+            WHERE `company_id`=? AND `voc_type` IN ({placeholders})
             ORDER BY `voc_date` DESC
             LIMIT {boundedLimit}
             """);
-        ErpDb.AddParameters(command, companyId, codes.Item1, codes.Item2);
+        var args = new List<object> { companyId };
+        args.AddRange(codes.Cast<object>());
+        ErpDb.AddParameters(command, args.ToArray());
         var rows = new List<ErpJwPurchaseHistoryRow>();
         try
         {

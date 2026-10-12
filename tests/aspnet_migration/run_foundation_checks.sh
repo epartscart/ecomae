@@ -19,6 +19,45 @@ contains() {
   local needle="$2"
   grep -Fq -- "$needle" "$file"
 }
+lacks() {
+  local file="$1"
+  local needle="$2"
+  ! grep -Fq -- "$needle" "$file"
+}
+
+production_lock_offline_ok() {
+  local tmp repo lock sha1 sha2
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  lock="$tmp/production.lock.json"
+  mkdir -p "$repo"
+  git -C "$repo" init -q
+  git -C "$repo" config user.email "lock-test@ecomae.local"
+  git -C "$repo" config user.name "lock-test"
+  printf 'one\n' > "$repo/f"
+  git -C "$repo" add f
+  git -C "$repo" commit -qm one
+  sha1="$(git -C "$repo" rev-parse HEAD)"
+  printf 'two\n' > "$repo/f"
+  git -C "$repo" commit -qam two
+  sha2="$(git -C "$repo" rev-parse HEAD)"
+  ECOMAE_PRODUCTION_LOCK_FILE="$lock" bash "$ROOT/scripts/cloudpanel_production_lock.sh" write "$sha2" lock-test >/dev/null
+  grep -Fq '"readyForPhpRemoval": false' "$lock" || return 1
+  grep -Fq '"phpPrimaryBlocked": true' "$lock" || return 1
+  grep -Fq '"phpSourceDeletionBlocked": true' "$lock" || return 1
+  ECOMAE_PRODUCTION_LOCK_FILE="$lock" bash "$ROOT/scripts/cloudpanel_production_lock.sh" check "$sha2" "$repo" >/dev/null || return 1
+  if ECOMAE_PRODUCTION_LOCK_FILE="$lock" bash "$ROOT/scripts/cloudpanel_production_lock.sh" check "$sha1" "$repo" >/dev/null 2>&1; then
+    return 1
+  fi
+  if bash "$ROOT/scripts/cloudpanel_production_lock.sh" refuse-php-primary >/dev/null 2>&1; then
+    return 1
+  fi
+  if bash "$ROOT/scripts/cloudpanel_production_lock.sh" refuse-php-delete >/dev/null 2>&1; then
+    return 1
+  fi
+  rm -rf "$tmp"
+  return 0
+}
 
 echo "== ASP.NET Core migration foundation =="
 check 'solution file exists' test -f "$ROOT/aspnet/EcomAE.AspNetCore.sln"
@@ -424,7 +463,7 @@ check 'catalog allowlist sync mirrors live surface probe' contains "$ROOT/script
 check 'catalog allowlist sync mirrors decommission area tests' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'run_php_decommission_area_tests.sh'
 check 'catalog allowlist sync mirrors pre-php-removal parity' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'verify_pre_php_removal_parity.sh'
 check 'presentation exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json"
-check 'presentation exact-route inventory routeCount is 411' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 411'
+check 'presentation exact-route inventory routeCount is 418' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 418'
 check 'presentation exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"cutoverAllowed": false'
 check 'presentation allowlist sync mirrors inventory' contains "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py" 'presentation-exact-routes.json'
 check 'live surface probe references presentation inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'presentation/presentation-exact-routes.json'
@@ -601,7 +640,7 @@ check 'surface-field board blocks PHP removal' contains "$ROOT/docs/migration/ev
 check 'platform.env.example documents dual-sample operator helper' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_hybrid_ui_dual_sample_operator.sh'
 check 'platform.env.example documents offline migration gate' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_offline_migration_gate.sh'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
-check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 411'
+check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 418'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"
 check 'YARP exact-routes design example exists' test -f "$ROOT/deploy/aspnet/yarp-exact-routes-example.json"
 check 'YARP design example blocks cutover' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"cutoverAllowed": false'
@@ -1120,7 +1159,7 @@ check 'storefront digest smoke covers checkout' contains "$ROOT/tests/live_smoke
 check 'digest compare locks storefront-checkout php_steps' contains "$ROOT/scripts/compare_digest_dual_samples.py" '"storefront-checkout":'
 check 'digest live-sample gap reporter exists' test -f "$ROOT/scripts/report_digest_live_sample_gaps.py"
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
-check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+sf+bos fleet family routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 411'
+check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+sf+bos fleet family routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 418'
 check 'tenant chrome probe rejects erp cash-entries-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'ErpCashEntriesApp'
 check 'presentation nginx includes /erp/cash-entries-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /erp/cash-entries-app'
 check 'erp cash-entries-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpCashEntriesApp'
@@ -1652,6 +1691,40 @@ check 'catalog brand-parts nginx shadow example exists' test -f "$ROOT/deploy/as
 check 'catalog brand-parts evidence exists' test -f "$ROOT/docs/migration/evidence/catalog-brand-parts/README.md"
 check 'CloudPanel find-and-redeploy script exists' test -x "$ROOT/scripts/cloudpanel_find_and_redeploy.sh"
 check 'CloudPanel find-and-redeploy rejects var www ecomae assumption' contains "$ROOT/scripts/cloudpanel_find_and_redeploy.sh" '/var/www/ecomae is NOT a required path'
+check 'gated CloudPanel deploy script exists' test -x "$ROOT/scripts/cloudpanel_deploy_main_gated.sh"
+check 'gated CloudPanel deploy refuses emergency publish' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'refused_emergency_publish'
+check 'gated CloudPanel deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'PHP remains fallback'
+check 'gated CloudPanel deploy refuses isolation branch' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'refused_isolation_branch'
+check 'production lock helper exists' test -x "$ROOT/scripts/cloudpanel_production_lock.sh"
+check 'production lock helper refuses php-primary' contains "$ROOT/scripts/cloudpanel_production_lock.sh" 'refuse-php-primary'
+check 'production lock helper refuses php-delete' contains "$ROOT/scripts/cloudpanel_production_lock.sh" 'refuse-php-delete'
+check 'production lock helper keeps removal false' contains "$ROOT/scripts/cloudpanel_production_lock.sh" '"readyForPhpRemoval": False'
+check 'gated CloudPanel deploy writes production lock' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'cloudpanel_production_lock.sh write'
+check 'gated CloudPanel deploy checks production lock' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'cloudpanel_production_lock.sh check'
+check 'gated CloudPanel deploy blocks php-primary' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'GATE_PHP_PRIMARY=BLOCKED'
+check 'find-and-redeploy honors production lock' contains "$ROOT/scripts/cloudpanel_find_and_redeploy.sh" 'PRODUCTION_LOCK present'
+check 'production lock offline refuses rollback and php delete' production_lock_offline_ok
+check 'onboard four ERP-only script exists' test -x "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh"
+check 'onboard four ERP-only requires confirm' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" 'ECOMAE_CONFIRM_ONBOARD_ERP_ONLY'
+check 'onboard four ERP-only creates asap indj fito real' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" '("asap", "ASAP Autoparts", "auto_parts")'
+check 'onboard four ERP-only uses MYSQL_PWD not -p' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" 'MYSQL_PWD'
+check 'onboard four ERP-only falls back to clpctl master' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" 'clpctl'
+check 'super mail app lists yawer mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'ErpOnlyLaunchClients.SuperMailbox'
+check 'launch clients catalog has asap' contains "$ROOT/aspnet/src/EcomAE.Platform/Cp/ErpOnlyLaunchClients.cs" '"asap"'
+check 'launch clients catalog has yawer mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Cp/ErpOnlyLaunchClients.cs" 'yawer@ecomae.com'
+check 'super CP home shows launch clients' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpCommandCentre.razor" 'onboard_four_erp_only'
+check 'super CP home links mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpCommandCentre.razor" '/cp/super-mail-app'
+check 'gated deploy onboards four ERP-only clients' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'cloudpanel_onboard_four_erp_only.sh'
+check 'super mail app uses PHP reference Open' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'PhpReferenceOnlyHref(_phpTab)'
+check 'client-erp login page is on ErpLoginApp' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" '@page "/cp/client-erp/{SiteKey}"'
+check 'client-erp login has no trailing-slash duplicate route' lacks "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" '@page "/cp/client-erp/{SiteKey}/"'
+check 'client-erp login uses company brand' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" 'LoginHostBrand.ForErpOnly'
+check 'client-erp picker page exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpClientErpPickerApp.razor" '@page "/cp/client-erp"'
+check 'client-erp picker has no trailing-slash duplicate route' lacks "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpClientErpPickerApp.razor" '@page "/cp/client-erp/"'
+check 'client-erp lookup uses core columns only' lacks "$ROOT/aspnet/src/EcomAE.Platform/Services/IClientErpTenantLookup.cs" '`dedicated_db`'
+check 'client-erp lookup never 500s on registry errors' contains "$ROOT/aspnet/src/EcomAE.Platform/Services/IClientErpTenantLookup.cs" 'ex is not OperationCanceledException'
+check 'resolver binds client-erp path on Super host' contains "$ROOT/aspnet/src/EcomAE.Platform/Services/RouteTenantResolver.cs" '/cp/client-erp/{site_key}'
+check 'auth gate allowlists client-erp login' contains "$ROOT/aspnet/src/EcomAE.Platform/Middleware/AdminSurfaceAuthGateMiddleware.cs" 'IsClientErpLoginPath'
 check 'CloudPanel quick start warns against var www ecomae' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Do not use `/var/www/ecomae`'
 check 'CloudPanel continue-after-env script exists' test -x "$ROOT/scripts/cloudpanel_continue_after_env.sh"
 check 'CloudPanel quick start explains nano save/exit' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Ctrl+O'

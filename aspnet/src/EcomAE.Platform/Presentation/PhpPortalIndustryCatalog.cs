@@ -53,6 +53,8 @@ public static class PhpPortalIndustryCatalog
         new("security_services", "Security & safety services", "business_services", "fa-shield", "#1e293b", "#0f172a", "#38bdf8"),
         new("printing_signage", "Printing & signage", "business_services", "fa-print", "#ea580c", "#c2410c", "#fdba74"),
         new("construction_contracting", "Construction & contracting", "business_services", "fa-building", "#b45309", "#92400e", "#fbbf24"),
+        new("fit_out", "Interior fit-out", "business_services", "fa-wrench", "#b45309", "#92400e", "#f59e0b"),
+        new("real_estate", "Real estate — investment, construction & development", "business_services", "fa-building", "#0f766e", "#115e59", "#34d399"),
         new("logistics_freight", "Logistics & freight", "business_services", "fa-ship", "#0369a1", "#075985", "#38bdf8"),
         new("financial_services", "Financial services", "business_services", "fa-line-chart", "#047857", "#065f46", "#34d399"),
         new("erp_standalone", "ERP standalone (no storefront)", "business_services", "fa-university", "#0369a1", "#075985", "#0ea5e9"),

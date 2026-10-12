@@ -1,7 +1,18 @@
+using EcomAE.Platform.Services;
+
 namespace EcomAE.Platform.Presentation;
 
 public static class LoginErrorHelper
 {
+    public const string ClientErpShopBackendHint =
+        "Client ERP shop database is empty or unreachable. Super CP: Reset password or Repair shop login for this company. Do not remap TenantRegistry to PHP — Super /cp and /erp stay on the platform DB.";
+
+    public const string SuperHostBackendHint =
+        "Login DB access denied on the platform database. Super /cp and /erp stay on the platform TenantRegistry — do not remap it to PHP DP_Config.";
+
+    public const string TenantHostBackendHint =
+        "Login DB access denied. On server run: ECOMAE_CONFIRM_USE_PHP_DP_CONFIG_AS_TENANT_REGISTRY=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES bash scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh";
+
     public static string? FromUri(string uri)
     {
         if (!Uri.TryCreate(uri, UriKind.Absolute, out var parsed))
@@ -18,7 +29,8 @@ public static class LoginErrorHelper
         return code.ToString() switch
         {
             "bridge_not_configured" => "ASP.NET login bridge is not configured. On the server run: ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES bash scripts/cloudpanel_sync_secret_succession_from_php.sh — then use the same PHP admin email/password.",
-            "login_backend_error" => "Login DB access denied. On server run: ECOMAE_CONFIRM_USE_PHP_DP_CONFIG_AS_TENANT_REGISTRY=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES bash scripts/cloudpanel_use_php_dp_config_as_tenant_registry.sh",
+            "login_backend_error" => BackendMessage(parsed),
+            "client_erp_not_found" => "No Client ERP company is registered for this URL. Super CP must onboard the ERP-only tenant first.",
             "tenant_db_unbound" => "Shop database is not bound for this host — CP cannot verify accounts. Operator: ECOMAE_CONFIRM_FIX_EPARTSCART_PORTAL_TENANT_DB=YES bash scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh then LIVE_PUBLISH_NOW / restart ecomae-platform.",
             "email_unconfirmed" => "Email/phone is not confirmed on this account.",
             "account_locked" => "This account is locked.",
@@ -29,5 +41,17 @@ public static class LoginErrorHelper
                 + " minutes before trying again.",
             _ => "Incorrect login or password. Use the tenant host where the account was registered (e.g. taxofinca.com vs epartscart.com). If PHP login works on this same host, operator must sync SecretSuccession + shop db_name."
         };
+    }
+
+    public static string BackendMessage(Uri parsed)
+    {
+        if (ClientErpPath.IsClientErpPath(parsed.AbsolutePath))
+        {
+            return ClientErpShopBackendHint;
+        }
+
+        return PlatformHostPolicy.IsSuperCpHost(parsed.Host)
+            ? SuperHostBackendHint
+            : TenantHostBackendHint;
     }
 }

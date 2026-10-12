@@ -37,8 +37,49 @@ public static class LoginIndustryContent
             "stylenlook" => Fashion(brand, surfaceKey),
             "thejewellerytrend" => Jewellery(brand, surfaceKey),
             "taxofinca" => FinanceTax(brand, surfaceKey),
-            _ => TenantFallback(brand, surfaceKey),
+            "real" => RealEstate(brand, surfaceKey),
+            _ => ForIndustryTheme(brand, surfaceKey),
         };
+    }
+
+    private static Content ForIndustryTheme(LoginHostBrand.Brand brand, string surface)
+    {
+        var theme = (brand.AtmosphereTheme ?? string.Empty).Trim().ToLowerInvariant();
+        var modifier = (brand.RootModifierClass ?? string.Empty).ToLowerInvariant();
+        if (theme == "sparkle" || modifier.Contains("jewellery", StringComparison.Ordinal))
+        {
+            return Jewellery(brand, surface);
+        }
+
+        if (theme == "autoparts" || modifier.Contains("epartscart", StringComparison.Ordinal))
+        {
+            return AutoParts(brand, surface);
+        }
+
+        if (theme == "circuit")
+        {
+            return Electronics(brand, surface);
+        }
+
+        if (theme == "fashion")
+        {
+            return Fashion(brand, surface);
+        }
+
+        if (theme == "advisory")
+        {
+            return FinanceTax(brand, surface);
+        }
+
+        if (theme == "skyline"
+            || modifier.Contains("realestate", StringComparison.Ordinal)
+            || modifier.Contains("real-estate", StringComparison.Ordinal)
+            || modifier.Contains("real_estate", StringComparison.Ordinal))
+        {
+            return RealEstate(brand, surface);
+        }
+
+        return TenantFallback(brand, surface);
     }
 
     private static Content AutoParts(LoginHostBrand.Brand brand, string surface) => surface == "erp"
@@ -319,6 +360,62 @@ public static class LoginIndustryContent
                 "Filing calendars",
                 "Task & SLA automation",
                 "Team roles & access",
+            ]);
+
+    private static Content RealEstate(LoginHostBrand.Brand brand, string surface) => surface == "erp"
+        ? new(
+            "real_estate",
+            brand.Label,
+            "Investment, development and construction",
+            "Sign in to Real Estate ERP",
+            "Property, leasing, development and contractor finance for your UAE portfolio",
+            "Enter Real Estate ERP",
+            "Tenant-isolated · AED · Opportunities stay off the balance sheet",
+            [
+                new("fa-building", "Property & assets", "Register, ownership and valuations"),
+                new("fa-key", "Leasing & collections", "Rent schedules, cheques and deposits"),
+                new("fa-sitemap", "Development", "Land, budgets, units and off-plan sales"),
+                new("fa-hard-hat", "Construction", "Contracts, variations and certificates"),
+            ],
+            [
+                new(1, "Portfolio"),
+                new(12, "Lease terms"),
+                new(8, "Projects"),
+                new(20, "Workspaces"),
+            ],
+            [
+                "Owned property register linked to the legal entity",
+                "Rent invoices, cheques and security deposits",
+                "Development budgets and unit inventory",
+                "Contractor certificates, retention and advances",
+                "ROI, yield and GL / VAT / ageing links",
+            ])
+        : new(
+            "real_estate",
+            brand.Label,
+            "Control panel · real estate company",
+            "Sign in to Control Panel",
+            "Company settings for your real-estate workspace",
+            "Enter Control Panel",
+            "Tenant-isolated · Real-estate workspace",
+            [
+                new("fa-home", "Company workspace", "Real-estate ERP only"),
+                new("fa-users", "Users & roles", "Property, lease and certificate rights"),
+                new("fa-file-text", "Documents", "Title deeds, contracts and valuations"),
+                new("fa-cogs", "Settings", "Approvals, tax and notifications"),
+            ],
+            [
+                new(1, "Company"),
+                new(4, "Roles"),
+                new(6, "Registers"),
+                new(3, "Approvals"),
+            ],
+            [
+                "Real-estate workspace only",
+                "Document and approval settings",
+                "Users and permissions",
+                "Tax and currency setup",
+                "No fleet or other-industry modules",
             ]);
 
     private static Content TenantFallback(LoginHostBrand.Brand brand, string surface) => surface == "erp"

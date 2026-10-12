@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Api.Catalog;
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Middleware;
@@ -9810,6 +9811,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
 
             var tenantProfile = await ReadTenantIndustryProfileAsync(connection, cancellationToken).ConfigureAwait(false);
+            var legalName = await ReadTenantLegalNameAsync(connection, cancellationToken).ConfigureAwait(false);
             var rows = new List<ErpCompanyDigest>();
             await using (var list = connection.CreateCommand())
             {
@@ -9825,10 +9827,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         industryPack = tenantProfile;
                     }
 
+                    var rawName = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
                     rows.Add(new ErpCompanyDigest(
                         id,
                         Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        LegalOrganizationLabel.Resolve(rawName, legalName),
                         Convert.ToString(reader["currency_code"] is DBNull ? string.Empty : reader["currency_code"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["country_code"] is DBNull ? string.Empty : reader["country_code"], CultureInfo.InvariantCulture) ?? string.Empty,
                         industryPack ?? string.Empty,
@@ -9858,6 +9861,49 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var cmd = connection.CreateCommand();
             ErpFirstPaint.ApplyIfErp(cmd);
             cmd.CommandText = "SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key` = 'erp_industry_profile' LIMIT 1";
+            var value = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return value is null or DBNull ? string.Empty : (Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty).Trim();
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    private async Task<string> ReadTenantLegalNameAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            ErpFirstPaint.ApplyIfErp(cmd);
+            cmd.CommandText =
+                "SELECT COALESCE(NULLIF(TRIM(`legal_name`),''), NULLIF(TRIM(`trade_name`),''), '')" +
+                " FROM `epc_co_profile` WHERE `id` = 1 LIMIT 1";
+            var value = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            var fromProfile = value is null or DBNull ? string.Empty : (Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty).Trim();
+            if (!LegalOrganizationLabel.IsGeneric(fromProfile))
+            {
+                return fromProfile;
+            }
+        }
+        catch
+        {
+            // Shop profile may be absent on lean tenants.
+        }
+
+        var http = _httpContextAccessor?.HttpContext;
+        var siteKey = ClientErpPath.BoundSiteKey(http) ?? ClientErpPath.CookieSiteKey(http?.Request);
+        if (string.IsNullOrWhiteSpace(siteKey))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            await using var registry = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
+            await using var cmd = registry.CreateCommand();
+            cmd.CommandText = "SELECT IFNULL(`trade_name`,'') FROM `epc_portal_tenants` WHERE `site_key` = @siteKey LIMIT 1";
+            AddParameter(cmd, "@siteKey", siteKey);
             var value = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
             return value is null or DBNull ? string.Empty : (Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty).Trim();
         }
@@ -9900,23 +9946,39 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 industryPack = await ReadTenantIndustryProfileAsync(connection, cancellationToken).ConfigureAwait(false);
             }
 
-            await using var command = connection.CreateCommand();
-            command.CommandText = LegacySurfaceDashboardSql.SelectErpCompanyById;
-            AddParameter(command, "@id", companyId);
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            long id;
+            string code;
+            string rawName;
+            string currency;
+            string country;
+            bool active;
+            await using (var command = connection.CreateCommand())
             {
-                return null;
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpCompanyById;
+                AddParameter(command, "@id", companyId);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return null;
+                }
+
+                id = Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture);
+                code = Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty;
+                rawName = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                currency = Convert.ToString(reader["currency_code"] is DBNull ? string.Empty : reader["currency_code"], CultureInfo.InvariantCulture) ?? string.Empty;
+                country = Convert.ToString(reader["country_code"] is DBNull ? string.Empty : reader["country_code"], CultureInfo.InvariantCulture) ?? string.Empty;
+                active = Convert.ToInt32(reader["active"] is DBNull ? 1 : reader["active"], CultureInfo.InvariantCulture) != 0;
             }
 
+            var legalName = await ReadTenantLegalNameAsync(connection, cancellationToken).ConfigureAwait(false);
             return new ErpCompanyDigest(
-                Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
-                Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
-                Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
-                Convert.ToString(reader["currency_code"] is DBNull ? string.Empty : reader["currency_code"], CultureInfo.InvariantCulture) ?? string.Empty,
-                Convert.ToString(reader["country_code"] is DBNull ? string.Empty : reader["country_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                id,
+                code,
+                LegalOrganizationLabel.Resolve(rawName, legalName),
+                currency,
+                country,
                 industryPack,
-                Convert.ToInt32(reader["active"] is DBNull ? 1 : reader["active"], CultureInfo.InvariantCulture) != 0);
+                active);
         }
         catch
         {
@@ -12491,41 +12553,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 return await ReadDictionaryRowsAsync(command, cancellationToken).ConfigureAwait(false);
             }
             case "gl_trial_balance":
-            {
-                await using var command = connection.CreateCommand();
-                command.CommandText = LegacySurfaceDashboardSql.SelectErpTrialBalanceRows;
-                AddParameter(command, "@limit", safeLimit);
-                var (columns, all) = await ReadDictionaryRowsAsync(command, cancellationToken).ConfigureAwait(false);
-                var filtered = all
-                    .Where(r => Math.Abs(ParseDecimal(r.GetValueOrDefault("balance"))) >= 0.005m)
-                    .Select(r =>
-                    {
-                        var bal = ParseDecimal(r.GetValueOrDefault("balance"));
-                        var side = r.GetValueOrDefault("normal_side") ?? "debit";
-                        var debit = 0m;
-                        var credit = 0m;
-                        if (side == "debit")
-                        {
-                            if (bal >= 0) debit = bal; else credit = Math.Abs(bal);
-                        }
-                        else
-                        {
-                            if (bal >= 0) credit = bal; else debit = Math.Abs(bal);
-                        }
-
-                        return (IReadOnlyDictionary<string, string>)new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                        {
-                            ["code"] = r.GetValueOrDefault("code") ?? string.Empty,
-                            ["name"] = r.GetValueOrDefault("name") ?? string.Empty,
-                            ["account_type"] = r.GetValueOrDefault("account_type") ?? string.Empty,
-                            ["balance"] = bal.ToString(CultureInfo.InvariantCulture),
-                            ["debit"] = debit.ToString(CultureInfo.InvariantCulture),
-                            ["credit"] = credit.ToString(CultureInfo.InvariantCulture),
-                        };
-                    })
-                    .ToList();
-                return (["code", "name", "account_type", "balance", "debit", "credit"], filtered);
-            }
+                return await LoadTrialBalanceStatementAsync(connection, safeLimit, "tb", cancellationToken).ConfigureAwait(false);
+            case "gl_profit_loss":
+                return await LoadTrialBalanceStatementAsync(connection, safeLimit, "pl", cancellationToken).ConfigureAwait(false);
+            case "gl_balance_sheet":
+                return await LoadTrialBalanceStatementAsync(connection, safeLimit, "bs", cancellationToken).ConfigureAwait(false);
             case "exec_working_capital":
             {
                 await using var command = connection.CreateCommand();
@@ -12626,6 +12658,103 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             default:
                 return ([], []);
         }
+    }
+
+    private async Task<(IReadOnlyList<string> Columns, IReadOnlyList<IReadOnlyDictionary<string, string>> Rows)> LoadTrialBalanceStatementAsync(
+        DbConnection connection,
+        int safeLimit,
+        string statement,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = LegacySurfaceDashboardSql.SelectErpTrialBalanceRows;
+        AddParameter(command, "@limit", safeLimit);
+        var (_, all) = await ReadDictionaryRowsAsync(command, cancellationToken).ConfigureAwait(false);
+        var rows = new List<IReadOnlyDictionary<string, string>>();
+        var income = 0m;
+        var expense = 0m;
+        var assets = 0m;
+        var liabilities = 0m;
+        var equity = 0m;
+        foreach (var r in all)
+        {
+            var bal = ParseDecimal(r.GetValueOrDefault("balance"));
+            if (Math.Abs(bal) < 0.005m)
+            {
+                continue;
+            }
+
+            var type = (r.GetValueOrDefault("account_type") ?? string.Empty).Trim().ToLowerInvariant();
+            var keep = statement switch
+            {
+                "pl" => type is "revenue" or "income" or "expense",
+                "bs" => type is "asset" or "liability" or "equity",
+                _ => true,
+            };
+            if (!keep)
+            {
+                continue;
+            }
+
+            var side = r.GetValueOrDefault("normal_side") ?? "debit";
+            var debit = 0m;
+            var credit = 0m;
+            if (side == "debit")
+            {
+                if (bal >= 0) debit = bal; else credit = Math.Abs(bal);
+            }
+            else if (bal >= 0)
+            {
+                credit = bal;
+            }
+            else
+            {
+                debit = Math.Abs(bal);
+            }
+
+            if (type is "revenue" or "income") income += bal;
+            else if (type == "expense") expense += bal;
+            else if (type == "asset") assets += bal;
+            else if (type == "liability") liabilities += bal;
+            else if (type == "equity") equity += bal;
+
+            rows.Add(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["code"] = r.GetValueOrDefault("code") ?? string.Empty,
+                ["name"] = r.GetValueOrDefault("name") ?? string.Empty,
+                ["account_type"] = r.GetValueOrDefault("account_type") ?? string.Empty,
+                ["balance"] = bal.ToString(CultureInfo.InvariantCulture),
+                ["debit"] = debit.ToString(CultureInfo.InvariantCulture),
+                ["credit"] = credit.ToString(CultureInfo.InvariantCulture),
+            });
+        }
+
+        if (statement == "pl")
+        {
+            rows.Add(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["code"] = "",
+                ["name"] = "Net profit / (loss)",
+                ["account_type"] = "total",
+                ["balance"] = (income - expense).ToString(CultureInfo.InvariantCulture),
+                ["debit"] = expense.ToString(CultureInfo.InvariantCulture),
+                ["credit"] = income.ToString(CultureInfo.InvariantCulture),
+            });
+        }
+        else if (statement == "bs")
+        {
+            rows.Add(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["code"] = "",
+                ["name"] = "Assets − liabilities − equity",
+                ["account_type"] = "total",
+                ["balance"] = (assets - liabilities - equity).ToString(CultureInfo.InvariantCulture),
+                ["debit"] = assets.ToString(CultureInfo.InvariantCulture),
+                ["credit"] = (liabilities + equity).ToString(CultureInfo.InvariantCulture),
+            });
+        }
+
+        return (["code", "name", "account_type", "balance", "debit", "credit"], rows);
     }
 
     private static async Task<(IReadOnlyList<string> Columns, IReadOnlyList<IReadOnlyDictionary<string, string>> Rows)> ReadDictionaryRowsAsync(
@@ -14624,6 +14753,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpLazySchema.EnsureFinAdvancedAsync(connection, cancellationToken).ConfigureAwait(false);
             var periods = 0; var openPeriods = 0; var rules = 0; var accruals = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -15687,6 +15817,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpAmlShared.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             var kyc = 0; var pending = 0; var flagged = 0; var rules = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -15747,6 +15878,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await ErpAmlShared.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             CpAmlComplianceKycDetail? header = null;
             await using (var cmd = connection.CreateCommand())
             {
@@ -22370,6 +22502,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await CpFulfillmentQueueWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             var queued = 0; var picking = 0; var shipping = 0; var delivered = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -22521,6 +22654,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await CpFulfillmentQueueWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var headerCmd = connection.CreateCommand();
             headerCmd.CommandText = LegacySurfaceDashboardSql.SelectCpFulfillmentOrderById;
             AddParameter(headerCmd, "@fulfillmentId", fulfillmentId);

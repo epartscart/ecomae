@@ -10,5 +10,13 @@ public static class SuperCpHostGate
     public static bool IsAllowed(string? host) => PlatformHostPolicy.AllowSuperOnlyApp(host);
 
     public static bool IsAllowed(HttpContext? httpContext)
-        => IsAllowed(httpContext?.Request.Host.Host);
+    {
+        if (!IsAllowed(httpContext?.Request.Host.Host) || ClientErpPath.IsBound(httpContext))
+        {
+            return false;
+        }
+
+        return httpContext?.Items["EcomAE.Tenant"] is not TenantContext tenant
+            || !tenant.IsTenant;
+    }
 }

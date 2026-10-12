@@ -2,10 +2,12 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IErpJwPurchaseHistoryReadService Vouchers
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -134,7 +136,7 @@
     @if (_isAdmin && _tab == "jw_stock_verification")
     {
         <ErpPhpCreateWell Title="New Count">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryStockVerifySaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryStockVerifySaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <label>Branch <input class="form-control input-sm" name="branch" value="HO" /></label>
@@ -144,10 +146,73 @@
             </form>
         </ErpPhpCreateWell>
     }
+    else if (_isAdmin && _tab == "jw_manufacture")
+    {
+        <ErpPhpCreateWell Title="New manufacture">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                <input type="hidden" name="action" value="jw_manufacture_save" />
+                <input type="hidden" name="voc_type" value="MFG" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
+                <label>Item code <input class="form-control input-sm" name="line_stock_code" required maxlength="20" /></label>
+                <label>Description <input class="form-control input-sm" name="line_description" required maxlength="120" /></label>
+                <label>Design / party <input class="form-control input-sm" name="party_name" /></label>
+                <label>Cost centre <input class="form-control input-sm" name="party_code" maxlength="20" /></label>
+                <label>Division
+                    <select class="form-control input-sm" name="line_division">
+                        <option value="G">Gold</option>
+                        <option value="D">Diamond</option>
+                        <option value="S">Silver</option>
+                        <option value="P">Pearl</option>
+                    </select>
+                </label>
+                <label>Pcs <input class="form-control input-sm" name="line_pcs" type="number" min="0" value="1" /></label>
+                <label>Gross wt <input class="form-control input-sm" name="line_gr_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Purity <input class="form-control input-sm" name="line_purity" type="number" step="0.000001" value="0.917" /></label>
+                <label>Pure wt <input class="form-control input-sm" name="line_pure_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Wastage % <input class="form-control input-sm" name="line_wastage_pct" type="number" step="0.0001" value="0" /></label>
+                <label>Metal rate <input class="form-control input-sm" name="line_metal_rate" type="number" step="0.00001" value="0" /></label>
+                <label>Making rate <input class="form-control input-sm" name="line_mkg_rate" type="number" step="0.0001" value="0" /></label>
+                <label>Stone amount <input class="form-control input-sm" name="line_stone_amount" type="number" step="0.01" value="0" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save manufacture</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_branch_transfer")
+    {
+        <ErpPhpCreateWell Title="New branch transfer">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                <input type="hidden" name="action" value="jw_branch_transfer_save" />
+                <input type="hidden" name="voc_type" value="BTR" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>From branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
+                <label>To branch <input class="form-control input-sm" name="party_code" required maxlength="20" placeholder="BR2" /></label>
+                <label>Stock code <input class="form-control input-sm" name="line_stock_code" required maxlength="20" /></label>
+                <label>Description <input class="form-control input-sm" name="line_description" required maxlength="120" /></label>
+                <label>Pcs <input class="form-control input-sm" name="line_pcs" type="number" min="0" value="1" /></label>
+                <label>Gross wt <input class="form-control input-sm" name="line_gr_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Purity <input class="form-control input-sm" name="line_purity" type="number" step="0.000001" value="0.917" /></label>
+                <label>Pure wt <input class="form-control input-sm" name="line_pure_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save branch transfer</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
     else if (_isAdmin && _tab == "jw_metal_stock")
     {
         <ErpPhpCreateWell Title="Add / Edit Metal stock">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryMetalStockSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryMetalStockSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
@@ -207,7 +272,22 @@
                 </tr>
             </thead>
             <tbody>
-                @if (_tab == "jw_stock_verification" && _display.Count > 0)
+                @if (_voucherRows.Count > 0)
+                {
+                    @foreach (var row in _voucherRows)
+                    {
+                        <tr>
+                            <td>@row.VoucherType</td>
+                            <td><strong>@row.VoucherNumber.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.VoucherDate) ? "—" : row.VoucherDate)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.PartyName) ? (string.IsNullOrWhiteSpace(row.PartyCode) ? "—" : row.PartyCode) : row.PartyName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Branch) ? "—" : row.Branch)</td>
+                            <td class="text-right">@row.NetAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Status) ? "—" : row.Status)</td>
+                        </tr>
+                    }
+                }
+                else if (_tab == "jw_stock_verification" && _display.Count > 0)
                 {
                     @foreach (var row in _display)
                     {
@@ -250,6 +330,7 @@
     private CpJewelleryStockVerificationSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private CpJewelleryStockBalanceDigestResult _balance = new([], 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<StockRow> _display = [];
+    private IReadOnlyList<ErpJwPurchaseHistoryRow> _voucherRows = [];
     private string _source = "n/a";
     private string _message = "";
     private string _ok = "";
@@ -265,6 +346,8 @@
         _opened is not null && _opened.VocNo > 0
             ? ("Voc " + _opened.VocNo.ToString(CultureInfo.InvariantCulture))
             : (_openedId > 0 ? ("Verification #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
+
+    private string WriteAction(string path) => ErpJewelleryModuleChrome.AppHref(path, _company);
 
     private string ReturnHref =>
         _openedId > 0
@@ -304,6 +387,19 @@
         if (_tab == "jw_stock_balance")
         {
             _balance = await Dashboards.BuildCpJewelleryStockBalanceDigestAsync(200, _company, ctx.RequestAborted);
+        }
+        if (_tab is "jw_manufacture" or "jw_branch_transfer" && _company > 0)
+        {
+            var history = await Vouchers.ReadAsync(
+                _company,
+                _tab == "jw_manufacture" ? "MANUFACTURE" : "TRANSFER",
+                100,
+                ctx.RequestAborted);
+            _voucherRows = history.Rows;
+            if (!string.IsNullOrWhiteSpace(history.Message))
+            {
+                _message = history.Message;
+            }
         }
         _display = result.Verifications.Select(r => new StockRow(
             r.Id,

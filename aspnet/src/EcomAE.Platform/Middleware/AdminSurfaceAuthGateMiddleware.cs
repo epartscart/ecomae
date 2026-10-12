@@ -83,8 +83,8 @@ public sealed class AdminSurfaceAuthGateMiddleware
         context.Response.Headers["Cache-Control"] = "no-store";
         context.Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
 
-        var login = LoginPathFor(path);
-        var returnUrl = path + (context.Request.QueryString.HasValue ? context.Request.QueryString.Value : string.Empty);
+        var login = LoginPathFor(path, context);
+        var returnUrl = OriginalReturnUrl(context, path);
         var target = login + "?returnUrl=" + Uri.EscapeDataString(returnUrl);
 
         if (WantsJson(context))
@@ -246,11 +246,34 @@ public sealed class AdminSurfaceAuthGateMiddleware
             || bare.Equals("/ip/login", StringComparison.OrdinalIgnoreCase)
             || bare.Equals("/ip/logout", StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LegacyAdminLogin, StringComparison.OrdinalIgnoreCase)
-            || bare.Equals("/auth/logout", StringComparison.OrdinalIgnoreCase);
+            || bare.Equals("/auth/logout", StringComparison.OrdinalIgnoreCase)
+            || IsClientErpLoginPath(bare);
     }
 
-    private static string LoginPathFor(string path)
+    /// <summary>PHP <c>/cp/client-erp</c> picker and <c>/cp/client-erp/{site_key}/</c> company login are public.</summary>
+    public static bool IsClientErpLoginPath(string path)
     {
+        if (!ClientErpPath.TryParse(path, out var parsed))
+        {
+            return false;
+        }
+
+        return parsed.IsBare || parsed.IsLoginRoot;
+    }
+
+    internal static string LoginPathFor(string path, HttpContext? context = null)
+    {
+        if (context?.Items[ClientErpPath.HttpContextItemKey] is string bound
+            && !string.IsNullOrWhiteSpace(bound))
+        {
+            return ClientErpPath.LoginUrl(bound);
+        }
+
+        if (ClientErpPath.TryParseSiteKey(path, out var fromPath))
+        {
+            return ClientErpPath.LoginUrl(fromPath);
+        }
+
         if (path.StartsWith("/erp", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/ERP", StringComparison.Ordinal)
             || path.Equals("/attention", StringComparison.OrdinalIgnoreCase)
@@ -272,6 +295,14 @@ public sealed class AdminSurfaceAuthGateMiddleware
         }
 
         return EcomAeRoutes.ControlPanelLogin;
+    }
+
+    private static string OriginalReturnUrl(HttpContext context, string path)
+    {
+        var original = context.Items[ClientErpPathRewriteMiddleware.OriginalPathItem] as string
+            ?? context.Request.Path.Value
+            ?? path;
+        return original + (context.Request.QueryString.HasValue ? context.Request.QueryString.Value : string.Empty);
     }
 
     private static bool WantsJson(HttpContext context)

@@ -1,4 +1,5 @@
 using EcomAE.Platform.Configuration;
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Presentation;
 using Microsoft.Extensions.Options;
 
@@ -8,11 +9,16 @@ public sealed class RouteTenantResolver : ITenantResolver
 {
     private readonly EcomAeOptions _options;
     private readonly ITenantRegistry _tenantRegistry;
+    private readonly IClientErpTenantLookup _clientErpTenants;
 
-    public RouteTenantResolver(IOptions<EcomAeOptions> options, ITenantRegistry tenantRegistry)
+    public RouteTenantResolver(
+        IOptions<EcomAeOptions> options,
+        ITenantRegistry tenantRegistry,
+        IClientErpTenantLookup? clientErpTenants = null)
     {
         _options = options.Value;
         _tenantRegistry = tenantRegistry;
+        _clientErpTenants = clientErpTenants ?? NullClientErpTenantLookup.Instance;
     }
 
     public async ValueTask<TenantContext> ResolveAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
@@ -44,8 +50,51 @@ public sealed class RouteTenantResolver : ITenantResolver
         // shared tenants under the www hostname in epc_portal_tenants — a live registry
         // row must never bind the super host's CP/ERP to a TENANT database
         // (that leaked epartscart data onto ecomae.com/cp and /erp).
+        // Exception: /cp/client-erp/{site_key} is the PHP-parity company ERP URL on the
+        // Super host. Bind THAT dedicated DB only for this path; /cp and /erp stay platform.
         if (PlatformHostPolicy.IsSuperCpHost(host))
         {
+            if (ClientErpPath.TryParse(path, out var clientErp) && clientErp.SiteKey.Length > 0)
+            {
+                ClientErpTenantRecord? erpOnly = null;
+                try
+                {
+                    erpOnly = await _clientErpTenants
+                        .FindActiveErpOnlyAsync(clientErp.SiteKey, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch
+                {
+                    erpOnly = null;
+                }
+
+                if (erpOnly is not null && erpOnly.IsActive && !string.IsNullOrWhiteSpace(erpOnly.DatabaseName))
+                {
+                    var dedicatedUser = erpOnly.DbUser;
+                    var dedicatedPassword = erpOnly.DbPassword;
+                    if (!TenantContext.UsableDedicatedCredentials(dedicatedUser, dedicatedPassword))
+                    {
+                        dedicatedUser = null;
+                        dedicatedPassword = null;
+                    }
+
+                    return new TenantContext(
+                        host,
+                        path,
+                        TenantSurface.Erp,
+                        TenantMode.ErpOnlyTenant,
+                        erpOnly.SiteKey,
+                        erpOnly.DatabaseName,
+                        dedicatedUser,
+                        dedicatedPassword,
+                        erpOnly.DedicatedDb,
+                        ResolveIndustryCode(erpOnly.SiteKey, erpOnly.IndustryCode, host));
+                }
+
+                // Unknown / unusable key: stay on the platform DB so Super CP isolation
+                // holds and the login page can render "not found" without a tenant-DB open.
+            }
+
             var platformRecord = registryRecord?.Mode == TenantMode.Platform ? registryRecord : null;
             return new TenantContext(
                 host,
@@ -73,7 +122,8 @@ public sealed class RouteTenantResolver : ITenantResolver
                 platformRecord?.DatabaseName ?? PlatformSeedDatabase(),
                 platformRecord?.DbUser,
                 platformRecord?.DbPassword,
-                DedicatedDb: false);
+                DedicatedDb: false,
+                IndustryCode: industrySlug);
         }
 
         var mode = registryRecord?.Mode
@@ -134,7 +184,31 @@ public sealed class RouteTenantResolver : ITenantResolver
             databaseName,
             dbUser,
             dbPassword,
-            dedicated);
+            dedicated,
+            ResolveIndustryCode(siteKey, null, host));
+    }
+
+    /// <summary>
+    /// Bound-tenant industry wins, then the ERP-only launch catalog, then the host.
+    /// Hybrid jewellery hosts and ERP-only INDJ therefore share the same jewellery pack.
+    /// </summary>
+    public static string ResolveIndustryCode(string? siteKey, string? portalIndustry, string? host)
+    {
+        var portal = (portalIndustry ?? string.Empty).Trim();
+        if (portal.Length > 0)
+        {
+            return portal;
+        }
+
+        var key = ClientErpPath.NormalizeSiteKey(siteKey);
+        var launch = ErpOnlyLaunchClients.All.FirstOrDefault(c =>
+            string.Equals(c.SiteKey, key, StringComparison.OrdinalIgnoreCase));
+        if (launch is not null && !string.IsNullOrWhiteSpace(launch.IndustryCode))
+        {
+            return launch.IndustryCode;
+        }
+
+        return ErpHostContext.Resolve(host).IndustryCode;
     }
 
     /// <summary>True for epartscart.com / www.epartscart.com or site_key epartscart.</summary>

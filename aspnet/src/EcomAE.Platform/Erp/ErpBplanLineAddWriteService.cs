@@ -6,7 +6,7 @@ namespace EcomAE.Platform.Erp;
 /// <summary>
 /// Live PHP <c>epc_bplan_line_add</c> / ajax <c>bplan_line_add</c> twin.
 /// INSERT <c>epc_bplan_line</c> when the plan is draft or review.
-/// Plan save, forecast positions, publish, and schema ensure stay PHP.
+/// Plan save, forecast positions, and publish stay on their dedicated writers.
 /// Does not CREATE tables.
 /// </summary>
 public interface IErpBplanLineAddWriteService
@@ -59,6 +59,7 @@ public sealed class ErpBplanLineAddWriteService : IErpBplanLineAddWriteService
         var period = request.Period ?? string.Empty;
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureBudgetPlanningAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_bplan_plan", "stage", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_bplan_line", "account", cancellationToken).ConfigureAwait(false))
         {

@@ -49,6 +49,7 @@ public sealed class ErpFinAccrualSaveWriteService : IErpFinAccrualSaveWriteServi
         var schedJson = EncodeSchedule(BuildRows(request.TotalAmount, periods, startFy, startPeriod));
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureFinAdvancedAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ErpFinAdvancedCompany.ColumnExistsAsync(connection, "epc_fin_accrual", "schedule_json", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Accrual table is not provisioned");

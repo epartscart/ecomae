@@ -359,6 +359,9 @@
   background: linear-gradient(135deg, #d97706, #b45309);
   box-shadow: 0 10px 28px rgba(217, 119, 6, .38);
 }
+.bos-login--tenant-jewellery .bos-login__brand-icon-inner {
+  background: linear-gradient(145deg, #fbbf24, #d97706);
+}
 
 /* ── Tenant: taxofinca (green advisory) ── */
 .bos-login--tenant-taxofinca .bos-login__grid-lines {
@@ -371,4 +374,43 @@
 .bos-login--tenant-taxofinca .bos-login__btn {
   background: linear-gradient(135deg, #227a40, #166534);
   box-shadow: 0 10px 28px rgba(34, 122, 64, .35);
+}
+
+.bos-login--tenant-realestate .bos-login__cap-icon--tone-1 {
+  background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%) !important;
+  box-shadow: 0 4px 18px rgba(20, 184, 166, .45), inset 0 1px 0 rgba(255, 255, 255, .15) !important;
+}
+.bos-login--tenant-realestate .bos-login__cap-icon--tone-2 {
+  background: linear-gradient(135deg, #0d9488 0%, #115e59 100%) !important;
+  box-shadow: 0 4px 18px rgba(13, 148, 136, .4), inset 0 1px 0 rgba(255, 255, 255, .15) !important;
+}
+.bos-login--tenant-realestate .bos-login__cap-icon--tone-3 {
+  background: linear-gradient(135deg, #fbbf24 0%, #b45309 100%) !important;
+  box-shadow: 0 4px 18px rgba(251, 191, 36, .35), inset 0 1px 0 rgba(255, 255, 255, .15) !important;
+}
+.bos-login--tenant-realestate .bos-login__cap-icon--tone-4 {
+  background: linear-gradient(135deg, #38bdf8 0%, #0369a1 100%) !important;
+  box-shadow: 0 4px 18px rgba(56, 189, 248, .4), inset 0 1px 0 rgba(255, 255, 255, .15) !important;
+}
+
+/* ── Tenant: real estate (skyline / teal + sand) ── */
+.bos-login--tenant-realestate .bos-login__bg--sky {
+  background:
+    radial-gradient(ellipse at 16% 10%, rgba(20, 184, 166, .18), transparent 42%),
+    radial-gradient(ellipse at 84% 82%, rgba(180, 83, 9, .14), transparent 48%),
+    linear-gradient(165deg, #042f2e 0%, #0f172a 40%, #022c22 100%);
+}
+.bos-login--tenant-realestate .bos-login__grid-lines {
+  background-image:
+    linear-gradient(rgba(15, 118, 110, .16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251, 191, 36, .1) 1px, transparent 1px);
+}
+.bos-login--tenant-realestate .bos-login__glow--1 { background: radial-gradient(circle, rgba(15, 118, 110, .46), transparent 70%); }
+.bos-login--tenant-realestate .bos-login__glow--2 { background: radial-gradient(circle, rgba(251, 191, 36, .26), transparent 70%); }
+.bos-login--tenant-realestate .bos-login__btn {
+  background: linear-gradient(135deg, #0f766e, #115e59);
+  box-shadow: 0 10px 28px rgba(15, 118, 110, .38);
+}
+.bos-login--tenant-realestate .bos-login__brand-icon-inner {
+  background: linear-gradient(145deg, #2dd4bf, #0f766e);
 }

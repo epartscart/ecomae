@@ -1,0 +1,24 @@
+{
+  "masters_owned_by": "cloud",
+  "transactions_owned_by": "site",
+  "masters": [
+    "customer",
+    "supplier",
+    "item",
+    "chart_of_accounts",
+    "tax_code",
+    "staff_user",
+    "price_list"
+  ],
+  "transactions": [
+    "sales_order",
+    "sales_invoice",
+    "purchase_order",
+    "purchase_invoice",
+    "payment",
+    "stock_movement",
+    "journal"
+  ],
+  "conflict_policy": "queue_never_overwrite",
+  "transport": "outbound_https_only"
+}

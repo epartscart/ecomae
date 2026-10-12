@@ -48,6 +48,22 @@ public static partial class PhpModuleCatalog
             "Storefront orders posted into ERP documents", false, false, "Common"),
         new("inventory_mgmt/inventory_forecast", "Inventory forecast", "/erp/inventory-forecast-app", "fa-line-chart", "inventory_mgmt",
             "Demand forecast and reorder suggestions", false, false, "Periodic"),
+        new("finance/account_operations", "Account operations", "/ERP/?epc_erp_shell=1&area=finance&tab=account_operations", "fa-list", "finance",
+            "Shop user balance ledger and account operations", false, false, "Common"),
+        new("finance/operations_editor", "Operations editor", "/ERP/?epc_erp_shell=1&area=finance&tab=operations_editor", "fa-pencil", "finance",
+            "Income and expense operation codes", false, false, "Setup"),
+        new("banking/payment_systems", "Payment systems", "/ERP/?epc_erp_shell=1&area=banking&tab=payment_systems", "fa-credit-card", "banking",
+            "Shop and wholesaler payment systems", false, false, "Setup"),
+        new("logistics/custom_shipping_reports", "Custom & shipping reports", "/ERP/?epc_erp_shell=1&area=logistics&tab=custom_shipping_reports", "fa-file-text-o", "logistics",
+            "Declaration registry, duty and re-export reports", false, false, "Inquiries and reports"),
+        new("setup/user_control", "ERP user control", "/ERP/?epc_erp_shell=1&area=setup&tab=user_control", "fa-lock", "setup",
+            "Role, capability and module access review", false, false, "Security"),
+        new("projects/real_estate", "Real estate investment", "/erp/real-estate-app", "fa-building", "projects",
+            "Property register, pipeline, leases, development and construction", false, false, "Common"),
+        new("projects/real_estate_leases", "Leases and collections", "/erp/real-estate-app?tab=leases", "fa-key", "projects",
+            "Tenants, rent schedules, cheques and security deposits", false, false, "Common"),
+        new("projects/real_estate_projects", "Development and construction", "/erp/real-estate-app?tab=projects", "fa-hard-hat", "projects",
+            "Development projects, unit sales and contractor certificates", false, false, "Periodic"),
     ];
 
     public static int TotalTrackedCount =>

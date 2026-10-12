@@ -1,0 +1,317 @@
+@page "/erp/organization-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpOrganizationMasterReadService OrganizationMasters
+
+<PageTitle>Organization · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Organization" BreadcrumbArea="Enterprise" BreadcrumbTab="@_tabLabel">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/organization-app" IsAdmin="_isAdmin" />
+    <PhpErpModulePageHeader
+        Title="Legal entity, business unit, cost centre, and financial dimensions"
+        Subtitle="Every tenant shop stores its own organizational backbone. These records scope vouchers, invoices, and postings."
+        PhpTabHref="/erp/organization-app" />
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+
+    <nav class="epc-org-tabs" aria-label="Organization masters">
+        <a class="@TabClass("legal_entities")" href="@OrgHref("legal_entities")"><i class="fa fa-bank"></i> Legal entities</a>
+        <a class="@TabClass("business_units")" href="@OrgHref("business_units")"><i class="fa fa-sitemap"></i> Business units</a>
+        <a class="@TabClass("class_units")" href="@OrgHref("class_units")"><i class="fa fa-object-group"></i> Class units</a>
+        <a class="@TabClass("dimensions")" href="@OrgHref("dimensions")"><i class="fa fa-tags"></i> Financial dimensions</a>
+        <a class="@TabClass("cost_centres")" href="@OrgHref("cost_centres")"><i class="fa fa-building"></i> Cost centres</a>
+    </nav>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Organization KPIs">
+        <div class="kpi"><div class="lbl">Legal entities</div><div class="val">@_snapshot.LegalEntities.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Business units</div><div class="val">@_snapshot.BusinessUnits.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Class units</div><div class="val">@_snapshot.ClassUnits.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Dimensions</div><div class="val">@_snapshot.Dimensions.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Cost centres</div><div class="val">@_snapshot.CostCentres.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_snapshot.Message))
+    {
+        <p class="text-muted">@_snapshot.Message</p>
+    }
+
+    @if (_isAdmin)
+    {
+        @if (_tab == "legal_entities")
+        {
+            <ErpPhpCreateWell Title="New legal entity">
+                <form method="post" action="@PmSaveAction">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("legal_entities")" />
+                    <input type="hidden" name="pm_table" value="epc_erp_pm_legal_entities" />
+                    <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="LE-AE" /></label>
+                    <label>Legal name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
+                    <label>Country <input class="form-control input-sm" name="country_code" maxlength="4" placeholder="AE" /></label>
+                    <label>Currency <input class="form-control input-sm" name="currency_code" maxlength="8" placeholder="AED" /></label>
+                    <label>TRN / Tax ID <input class="form-control input-sm" name="trn" maxlength="40" /></label>
+                    <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                    <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save legal entity</button></div>
+                </form>
+            </ErpPhpCreateWell>
+        }
+        else if (_tab == "business_units")
+        {
+            <ErpPhpCreateWell Title="New business unit">
+                <form method="post" action="@PmSaveAction">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("business_units")" />
+                    <input type="hidden" name="pm_table" value="epc_erp_pm_business_units" />
+                    <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="BU-RETAIL" /></label>
+                    <label>Name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
+                    <label>Legal entity
+                        <select class="form-control input-sm" name="legal_entity_id">
+                            <option value="0">— none —</option>
+                            @foreach (var entity in _snapshot.LegalEntities.Where(r => r.Active))
+                            {
+                                <option value="@entity.Id">@entity.Code · @entity.Name</option>
+                            }
+                        </select>
+                    </label>
+                    <label>Manager <input class="form-control input-sm" name="manager" maxlength="120" /></label>
+                    <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                    <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save business unit</button></div>
+                </form>
+            </ErpPhpCreateWell>
+        }
+        else if (_tab == "class_units")
+        {
+            <ErpPhpCreateWell Title="New class unit">
+                <form method="post" action="@PmSaveAction">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("class_units")" />
+                    <input type="hidden" name="pm_table" value="epc_erp_pm_class_units" />
+                    <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="DIV-A" /></label>
+                    <label>Name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
+                    <label>Class type
+                        <select class="form-control input-sm" name="class_type">
+                            <option value="division">Division</option>
+                            <option value="segment">Segment</option>
+                            <option value="region">Region</option>
+                            <option value="channel">Channel</option>
+                        </select>
+                    </label>
+                    <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                    <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save class unit</button></div>
+                </form>
+            </ErpPhpCreateWell>
+        }
+        else if (_tab == "dimensions")
+        {
+            <ErpPhpCreateWell Title="New financial dimension">
+                <form method="post" action="@PmSaveAction">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("dimensions")" />
+                    <input type="hidden" name="pm_table" value="epc_erp_pm_dimensions" />
+                    <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="DEPT" /></label>
+                    <label>Name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
+                    <label>Type
+                        <select class="form-control input-sm" name="dim_type">
+                            <option value="department">Department</option>
+                            <option value="project">Project</option>
+                            <option value="cost_center">Cost centre</option>
+                            <option value="region">Region</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </label>
+                    <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                    <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save dimension</button></div>
+                </form>
+            </ErpPhpCreateWell>
+            <ErpPhpCreateWell Title="New dimension value">
+                <form method="post" action="@PmSaveAction">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("dimensions")" />
+                    <input type="hidden" name="pm_table" value="epc_erp_pm_dimension_values" />
+                    <label>Dimension
+                        <select class="form-control input-sm" name="dimension_id" required>
+                            <option value="">Select dimension</option>
+                            @foreach (var dim in _snapshot.Dimensions.Where(r => r.Active))
+                            {
+                                <option value="@dim.Id">@dim.Code · @dim.Name</option>
+                            }
+                        </select>
+                    </label>
+                    <label>Value code <input class="form-control input-sm" name="code" required maxlength="40" /></label>
+                    <label>Value name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
+                    <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                    <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save value</button></div>
+                </form>
+            </ErpPhpCreateWell>
+        }
+        else
+        {
+            <ErpPhpCreateWell Title="New cost centre">
+                <form method="post" action="@CostCentreAction">
+                    <input type="hidden" name="action" value="save_center" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("cost_centres")" />
+                    <label>Code <input class="form-control input-sm" name="code" required maxlength="30" placeholder="CC-ADMIN" /></label>
+                    <label>Name <input class="form-control input-sm" name="name" maxlength="160" /></label>
+                    <label>Branch id <input class="form-control input-sm" type="number" name="branch_id" min="0" value="0" /></label>
+                    <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save cost centre</button></div>
+                </form>
+            </ErpPhpCreateWell>
+        }
+    }
+
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    @if (_tab == "business_units")
+                    {
+                        <th>Legal entity</th>
+                    }
+                    @if (_tab == "dimensions")
+                    {
+                        <th>Type / parent</th>
+                    }
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_rows.Count == 0)
+                {
+                    <tr><td colspan="4" class="text-muted">@(_isAdmin ? "No records yet — create the first one above." : "Sign in with ERP capability to manage organization masters.")</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _rows)
+                    {
+                        <tr>
+                            <td><strong>@(string.IsNullOrWhiteSpace(row.Code) ? "—" : row.Code)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
+                            @if (_tab == "business_units")
+                            {
+                                <td>@LegalEntityLabel(row.LegalEntityId)</td>
+                            }
+                            @if (_tab == "dimensions")
+                            {
+                                <td>@(row.DimensionId > 0 ? DimensionLabel(row.DimensionId) : "dimension")</td>
+                            }
+                            <td>@(row.Active ? "Active" : "Inactive")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_tab == "dimensions" && _snapshot.DimensionValues.Count > 0)
+    {
+        <h4 style="margin:1.2rem 0 .4rem;">Dimension values</h4>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Dimension</th><th>Code</th><th>Name</th><th>Status</th></tr></thead>
+                <tbody>
+                    @foreach (var value in _snapshot.DimensionValues)
+                    {
+                        <tr>
+                            <td>@DimensionLabel(value.DimensionId)</td>
+                            <td>@(string.IsNullOrWhiteSpace(value.Code) ? "—" : value.Code)</td>
+                            <td>@(string.IsNullOrWhiteSpace(value.Name) ? "—" : value.Name)</td>
+                            <td>@(value.Active ? "Active" : "Inactive")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private string _tab = "legal_entities";
+    private string _tabLabel = "Legal entities";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private ErpOrganizationMasterSnapshot _snapshot = new([], [], [], [], [], [], "migration", "");
+    private IReadOnlyList<ErpOrganizationMasterRow> _rows = [];
+
+    private string PmSaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/pm/save");
+    private string CostCentreAction => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/fin/cost-centers/write");
+
+    private string OrgHref(string tab)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/organization-app?tab=" + tab);
+
+    private string TabClass(string tab)
+        => string.Equals(_tab, tab, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+
+    private string LegalEntityLabel(long id)
+    {
+        var entity = _snapshot.LegalEntities.FirstOrDefault(r => r.Id == id);
+        return entity is null ? (id > 0 ? id.ToString(CultureInfo.InvariantCulture) : "—") : entity.Code + " · " + entity.Name;
+    }
+
+    private string DimensionLabel(long id)
+    {
+        var dim = _snapshot.Dimensions.FirstOrDefault(r => r.Id == id);
+        return dim is null ? (id > 0 ? id.ToString(CultureInfo.InvariantCulture) : "—") : dim.Code + " · " + dim.Name;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _tab = NormalizeTab(ctx.Request.Query["tab"].ToString());
+        _tabLabel = _tab switch
+        {
+            "business_units" => "Business units",
+            "class_units" => "Class units",
+            "dimensions" => "Financial dimensions",
+            "cost_centres" => "Cost centres",
+            _ => "Legal entities",
+        };
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _snapshot = await OrganizationMasters.LoadAsync(200, ctx.RequestAborted);
+        _rows = _tab switch
+        {
+            "business_units" => _snapshot.BusinessUnits,
+            "class_units" => _snapshot.ClassUnits,
+            "dimensions" => _snapshot.Dimensions,
+            "cost_centres" => _snapshot.CostCentres,
+            _ => _snapshot.LegalEntities,
+        };
+    }
+
+    private static string NormalizeTab(string? raw)
+    {
+        var tab = (raw ?? string.Empty).Trim().ToLowerInvariant();
+        return tab switch
+        {
+            "business_units" or "business-units" => "business_units",
+            "class_units" or "class-units" => "class_units",
+            "dimensions" or "financial_dimensions" => "dimensions",
+            "cost_centres" or "cost_centers" or "cost-centres" => "cost_centres",
+            "legal_entities" or "org_admin" or "legal-entities" => "legal_entities",
+            _ => "legal_entities",
+        };
+    }
+}

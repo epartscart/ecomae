@@ -18,7 +18,7 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Multi-currency GL" Subtitle="Open an FX rate for created time. Open a currency journal for the note and site. Set FX rate writes here. Revaluation stays Classic." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Multi-currency GL" Subtitle="Open an FX rate for created time. Open a currency journal for the note and site. Set FX rate and post IAS-21 revaluation here." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flash))
@@ -76,6 +76,18 @@
             <label style="margin-right:8px">As of <input type="date" name="as_of" /></label>
             <button type="submit" class="btn btn-sm btn-default">Save dated rate</button>
         </form>
+        <form method="post" action="/erp/ajax/fx-post-revaluation" class="form-inline" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/multi-currency-gl-app" />
+            <label style="margin-right:8px">As of <input type="date" name="as_of" value="@_today" /></label>
+            <label style="margin-right:8px">Auto-reverse
+                <select name="auto_reverse">
+                    <option value="1" selected>Yes</option>
+                    <option value="0">No</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-sm btn-primary">Post FX revaluation</button>
+        </form>
     }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Multi-currency GL KPIs">
@@ -102,7 +114,7 @@
                 <dt>Effective</dt><dd>@(string.IsNullOrWhiteSpace(_openedRate.EffectiveDate) ? "—" : _openedRate.EffectiveDate)</dd>
                 <dt>Created</dt><dd>@(string.IsNullOrWhiteSpace(_openedRate.CreatedAt) ? "—" : _openedRate.CreatedAt)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Set FX rate writes here. Revaluation stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Set FX rate and post IAS-21 revaluation here.</p>
             @if (_openedRateSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-pair siblings</p>
@@ -148,7 +160,7 @@
                 <dt>Revalued</dt><dd>@(_openedEntry.Revalued ? "yes" : "no")</dd>
                 <dt>Reval P/L</dt><dd>@_openedEntry.RevalGainLoss.ToString("N2", CultureInfo.InvariantCulture)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Set FX rate writes here. Revaluation stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Set FX rate and post IAS-21 revaluation here.</p>
             @if (!string.IsNullOrWhiteSpace(_openedEntry.DescriptionExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">note excerpt</p>
@@ -265,7 +277,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Distinct from shop currency rates on <a href="/cp/currencies-app">currencies</a>. Digest: <code>/erp/multi-currency-gl</code>. Revaluation stays Classic.
+        Source: @_source. Distinct from shop currency rates on <a href="/cp/currencies-app">currencies</a>. Digest: <code>/erp/multi-currency-gl</code>. FX revaluation posts here.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

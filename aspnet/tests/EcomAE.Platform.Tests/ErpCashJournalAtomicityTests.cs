@@ -85,6 +85,82 @@ public sealed class ErpCashJournalAtomicityTests
     }
 
     [Fact]
+    public async Task FailedApSettlementGlRollsBackTheLedgerRow()
+    {
+        var (admin, cs) = NewDatabase();
+        if (admin is null) return;
+        await ExecuteAsync(admin, "CREATE DATABASE `" + DbName(cs) + "`");
+        try
+        {
+            await SeedAsync(cs);
+            await ExecuteAsync(
+                cs,
+                "CREATE TABLE `epc_erp_suppliers` (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL,"
+                + " `active` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`id`))");
+            await ExecuteAsync(cs, "INSERT INTO `epc_erp_suppliers` (`id`, `name`, `active`) VALUES (7, 'Acme', 1)");
+            await ExecuteAsync(cs, "DELETE FROM `epc_erp_coa_accounts` WHERE `code` IN ('2000','6100')");
+            var service = NewService(cs);
+
+            var ex = await Assert.ThrowsAsync<ErpWriteException>(() => service.SupplierSettlementAsync(
+                new ErpSupplierSettlementInput
+                {
+                    SupplierId = 7,
+                    Amount = 40m,
+                    Direction = "decrease",
+                    PostGl = true,
+                    Reference = "AP-TEST",
+                },
+                adminId: 1));
+            Assert.Contains("2000/6100", ex.Message, StringComparison.Ordinal);
+
+            Assert.Equal(0L, await ScalarAsync(cs, "SELECT COUNT(*) FROM `epc_erp_supplier_accounting`"));
+            Assert.Equal(0L, await ScalarAsync(cs, "SELECT COUNT(*) FROM `epc_erp_gl_journals`"));
+        }
+        finally
+        {
+            await ExecuteAsync(admin, "DROP DATABASE IF EXISTS `" + DbName(cs) + "`");
+        }
+    }
+
+    [Fact]
+    public async Task ApSettlementWithGlPostsJournalAndStoresTheId()
+    {
+        var (admin, cs) = NewDatabase();
+        if (admin is null) return;
+        await ExecuteAsync(admin, "CREATE DATABASE `" + DbName(cs) + "`");
+        try
+        {
+            await SeedAsync(cs);
+            await ExecuteAsync(
+                cs,
+                "CREATE TABLE `epc_erp_suppliers` (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL,"
+                + " `active` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`id`))");
+            await ExecuteAsync(cs, "INSERT INTO `epc_erp_suppliers` (`id`, `name`, `active`) VALUES (7, 'Acme', 1)");
+            var service = NewService(cs);
+
+            var result = await service.SupplierSettlementAsync(
+                new ErpSupplierSettlementInput
+                {
+                    SupplierId = 7,
+                    Amount = 25m,
+                    Direction = "decrease",
+                    PostGl = true,
+                    Reference = "AP-OK",
+                },
+                adminId: 1);
+
+            Assert.True(result.LedgerId > 0);
+            Assert.True(result.GlJournalId > 0);
+            Assert.Equal(1L, await ScalarAsync(cs, "SELECT COUNT(*) FROM `epc_erp_supplier_accounting` WHERE `gl_journal_id` = " + result.GlJournalId));
+            Assert.Equal(1L, await ScalarAsync(cs, "SELECT COUNT(*) FROM `epc_erp_gl_journals` WHERE `id` = " + result.GlJournalId));
+        }
+        finally
+        {
+            await ExecuteAsync(admin, "DROP DATABASE IF EXISTS `" + DbName(cs) + "`");
+        }
+    }
+
+    [Fact]
     public async Task AccountingScanFlagsOrphanEntriesAndUnbalancedJournals()
     {
         var (admin, cs) = NewDatabase();

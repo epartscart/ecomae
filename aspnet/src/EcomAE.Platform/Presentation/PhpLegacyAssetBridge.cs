@@ -101,12 +101,28 @@ public static class PhpLegacyAssetBridge
             }
 
             var path = Path.GetFullPath(Path.Combine(filesRoot, rel.Replace('/', Path.DirectorySeparatorChar)));
-            if (!path.StartsWith(filesRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal) || !File.Exists(path))
+            if (path.StartsWith(filesRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal) && File.Exists(path))
             {
-                return Results.NotFound();
+                return Results.File(path, ContentTypeFor(path));
             }
 
-            return Results.File(path, ContentTypeFor(path));
+            if (rel.StartsWith("kyc/", StringComparison.Ordinal))
+            {
+                var slash = rel.IndexOf('/', 4);
+                if (slash > 4 && slash < rel.Length - 1)
+                {
+                    var fallback = Storefront.EpcRegistrationEnhanced.ResolveKycFile(
+                        repoRoot,
+                        rel[4..slash],
+                        rel[(slash + 1)..]);
+                    if (fallback is not null)
+                    {
+                        return Results.File(fallback, ContentTypeFor(fallback));
+                    }
+                }
+            }
+
+            return Results.NotFound();
         });
 
         // BOC top mega-menu behaviour (Super CP console).

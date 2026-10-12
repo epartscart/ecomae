@@ -9,8 +9,9 @@
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject NavigationManager Nav
+@inject IHttpContextAccessor Http
 
-<PageTitle>Own catalog · eParts Cart</PageTitle>
+<PageTitle>Own catalog · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
     <link rel="stylesheet" href="/platform-assets/epc_own_catalog.css?v=20260808own" />
@@ -22,7 +23,7 @@
     <section class="epc-own-cat" id="epc-own-catalog" data-base="/storefront/own-catalog-app">
         <div class="epc-own-cat__hero">
             <div class="container">
-                <div class="epc-own-cat__brand">eParts<span>Cart</span></div>
+                <div class="epc-own-cat__brand">@_brand</div>
                 <h1>Own catalog</h1>
                 <p>Browse your warehouse catalogue by category — the same Catalog of products tree as the live storefront.</p>
                 <form class="epc-own-cat__search" method="get" action="/storefront/own-catalog-app" role="search">
@@ -124,9 +125,16 @@
     private string _productsMessage = "";
     private int _categoryId;
     private bool _loadedProducts;
+    private string _brand = "Storefront";
 
     protected override async Task OnInitializedAsync()
     {
+        var ctx = Http.HttpContext;
+        if (ctx is not null)
+        {
+            _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        }
+
         var uri = Nav.ToAbsoluteUri(Nav.Uri);
         var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
         if (query.TryGetValue("search_string", out var ss) || query.TryGetValue("q", out ss))

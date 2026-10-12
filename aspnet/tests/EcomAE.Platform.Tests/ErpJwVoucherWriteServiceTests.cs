@@ -27,14 +27,17 @@ public sealed class ErpJwVoucherWriteServiceTests
     [Fact]
     public void NormalizeVocType_InfersPurchaseAndSaleAliases()
     {
-        Assert.Equal("MMP", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_metal_purchase_save"));
-        Assert.Equal("DMP", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_diamond_purchase_save"));
-        Assert.Equal("RSI", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_retail_sale_save"));
-        Assert.Equal("MSI", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_metal_sale_save"));
-        Assert.Equal("SRN", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_sales_return_save"));
-        Assert.Equal("PAD", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_pos_advance_save"));
-        Assert.Equal("JVG", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_journal_voucher_save"));
-        Assert.Equal("RSI", ErpJwVoucherWriteService.NormalizeVocType("RSI", "jw_metal_purchase_save"));
+        Assert.Equal("RMP", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_metal_purchase_save"));
+        Assert.Equal("RDP", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_diamond_purchase_save"));
+        Assert.Equal("RIN", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_retail_sale_save"));
+        Assert.Equal("MSL", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_metal_sale_save"));
+        Assert.Equal("SRT", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_sales_return_save"));
+        Assert.Equal("ADV", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_pos_advance_save"));
+        Assert.Equal("JVL", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_journal_voucher_save"));
+        Assert.Equal("MFG", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_manufacture_save"));
+        Assert.Equal("BTR", ErpJwVoucherWriteService.NormalizeVocType(null, "jw_branch_transfer_save"));
+        Assert.Equal("RIN", ErpJwVoucherWriteService.NormalizeVocType("RSI", "jw_metal_purchase_save"));
+        Assert.Equal("RMP", ErpJwVoucherWriteService.NormalizeVocType("MMP", null));
     }
 
     [Fact]
