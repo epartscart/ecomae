@@ -111,6 +111,13 @@ public sealed class SuperCpTenantIsolationTests
         var text = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor"));
         Assert.Contains("PlatformHostPolicy.IsSuperCpHost", text, StringComparison.Ordinal);
         Assert.Contains("<PhpSuperCpCommandCentre", text, StringComparison.Ordinal);
+        Assert.Contains("IsSuperHostNow()", text, StringComparison.Ordinal);
+        Assert.Contains("NEVER tenant CP chrome", text, StringComparison.Ordinal);
+        // Super CP home must not sit inside tenant CP chrome (black bar + left pills).
+        var superIdx = text.IndexOf("<PhpSuperCpCommandCentre", StringComparison.Ordinal);
+        var chromeIdx = text.IndexOf("<PhpCpDesktopChrome", StringComparison.Ordinal);
+        Assert.True(superIdx >= 0 && chromeIdx > superIdx,
+            "Super CP command centre must render outside PhpCpDesktopChrome");
         // Tenant branding must be host-aware — never hardcoded eParts Cart heading.
         Assert.DoesNotContain("<h2 class=\"cp-dash-title\">eParts Cart</h2>", text, StringComparison.Ordinal);
         Assert.Contains("ErpHostContext.Resolve", text, StringComparison.Ordinal);
@@ -128,6 +135,8 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Contains("epc-boc__platform-banner", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__fleet-grid", text, StringComparison.Ordinal);
         Assert.Contains("PhpSuperCpBocNav.Nav()", text, StringComparison.Ordinal);
+        Assert.Contains("Live SSR drops late HeadContent", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/logout", text, StringComparison.Ordinal);
         // Fleet console must not query tenant shop digests.
         Assert.DoesNotContain("ListCpOrdersAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpProductCatalogueDigestAsync", text, StringComparison.Ordinal);
