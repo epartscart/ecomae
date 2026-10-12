@@ -37,6 +37,7 @@ public sealed class NullClientErpTenantLookup : IClientErpTenantLookup
 /// <summary>
 /// Registry lookup by <c>site_key</c> for Super-host <c>/cp/client-erp/{key}</c>.
 /// Reads <c>epc_portal_tenants</c> on the platform connection — never the request tenant DB.
+/// Core columns only: older registries may lack <c>dedicated_db</c>/<c>scale_policy</c>.
 /// </summary>
 public sealed class DbClientErpTenantLookup : IClientErpTenantLookup
 {
@@ -49,12 +50,26 @@ public sealed class DbClientErpTenantLookup : IClientErpTenantLookup
             IFNULL(`db_name`, '') AS db_name,
             IFNULL(`db_user`, '') AS db_user,
             IFNULL(`db_password`, '') AS db_password,
-            `status`,
             `is_demo`,
             `erp_only_shared`,
-            `is_active`,
-            `dedicated_db`,
-            IFNULL(`scale_policy`, '') AS scale_policy
+            `is_active`
+        FROM `epc_portal_tenants`
+        WHERE `site_key` = @siteKey
+        LIMIT 1
+        """;
+
+    private const string SelectBySiteKeyMinimal = """
+        SELECT
+            `site_key`,
+            IFNULL(`trade_name`, '') AS trade_name,
+            IFNULL(`industry_code`, '') AS industry_code,
+            '' AS hosted_on,
+            IFNULL(`db_name`, '') AS db_name,
+            IFNULL(`db_user`, '') AS db_user,
+            IFNULL(`db_password`, '') AS db_password,
+            `is_demo`,
+            `erp_only_shared`,
+            `is_active`
         FROM `epc_portal_tenants`
         WHERE `site_key` = @siteKey
         LIMIT 1
@@ -69,12 +84,26 @@ public sealed class DbClientErpTenantLookup : IClientErpTenantLookup
             IFNULL(`db_name`, '') AS db_name,
             IFNULL(`db_user`, '') AS db_user,
             IFNULL(`db_password`, '') AS db_password,
-            `status`,
             `is_demo`,
             `erp_only_shared`,
-            `is_active`,
-            `dedicated_db`,
-            IFNULL(`scale_policy`, '') AS scale_policy
+            `is_active`
+        FROM `epc_portal_tenants`
+        WHERE `site_key` <> ''
+        ORDER BY `site_key` ASC
+        """;
+
+    private const string SelectActiveListMinimal = """
+        SELECT
+            `site_key`,
+            IFNULL(`trade_name`, '') AS trade_name,
+            IFNULL(`industry_code`, '') AS industry_code,
+            '' AS hosted_on,
+            IFNULL(`db_name`, '') AS db_name,
+            IFNULL(`db_user`, '') AS db_user,
+            IFNULL(`db_password`, '') AS db_password,
+            `is_demo`,
+            `erp_only_shared`,
+            `is_active`
         FROM `epc_portal_tenants`
         WHERE `site_key` <> ''
         ORDER BY `site_key` ASC
@@ -98,22 +127,11 @@ public sealed class DbClientErpTenantLookup : IClientErpTenantLookup
         try
         {
             await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
-            await using var command = connection.CreateCommand();
-            command.CommandText = SelectBySiteKey;
-            var parameter = command.CreateParameter();
-            parameter.ParameterName = "@siteKey";
-            parameter.Value = key;
-            command.Parameters.Add(parameter);
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-            {
-                return null;
-            }
-
-            var row = ReadRow(reader);
-            return IsUsableErpOnly(row) ? row : null;
+            var row = await ReadOneAsync(connection, SelectBySiteKey, key, cancellationToken).ConfigureAwait(false)
+                ?? await ReadOneAsync(connection, SelectBySiteKeyMinimal, key, cancellationToken).ConfigureAwait(false);
+            return row is not null && IsUsableErpOnly(row) ? row : null;
         }
-        catch (DbException)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             return null;
         }
@@ -129,36 +147,29 @@ public sealed class DbClientErpTenantLookup : IClientErpTenantLookup
         try
         {
             await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
-            await using var command = connection.CreateCommand();
-            command.CommandText = SelectActiveList;
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            var rows = new List<ClientErpTenantRecord>();
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            var rows = await ReadListAsync(connection, SelectActiveList, cancellationToken).ConfigureAwait(false);
+            if (rows.Count == 0)
             {
-                var row = ReadRow(reader);
-                if (IsUsableErpOnly(row))
-                {
-                    rows.Add(row);
-                }
+                rows = await ReadListAsync(connection, SelectActiveListMinimal, cancellationToken).ConfigureAwait(false);
             }
 
             return rows;
         }
-        catch (DbException)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             return [];
         }
     }
 
-    internal static bool IsUsableErpOnly(ClientErpTenantRecord row)
+    public static bool IsUsableErpOnly(ClientErpTenantRecord row)
         => row.IsActive
             && !row.IsDemo
             && !string.IsNullOrWhiteSpace(row.DatabaseName);
 
-    internal static bool IsErpOnlyType(bool erpOnlyShared, string industryCode, string hostedOn)
+    public static bool IsErpOnlyType(bool erpOnlyShared, string industryCode, string hostedOn)
         => CpTenantControlCenterService.TenantType(false, erpOnlyShared, industryCode, hostedOn) == "erp_only";
 
-    private static ClientErpTenantRecord ReadRow(DbDataReader reader)
+    public static ClientErpTenantRecord ReadRow(DbDataReader reader)
     {
         var siteKey = ClientErpPath.NormalizeSiteKey(Text(reader, "site_key"));
         var erpOnlyShared = CpTenantControlCenterService.CoerceFlag(Value(reader, "erp_only_shared"), false);
@@ -181,10 +192,73 @@ public sealed class DbClientErpTenantLookup : IClientErpTenantLookup
             isDemo);
     }
 
+    private static async Task<ClientErpTenantRecord?> ReadOneAsync(
+        DbConnection connection,
+        string sql,
+        string siteKey,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@siteKey";
+            parameter.Value = siteKey;
+            command.Parameters.Add(parameter);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            return ReadRow(reader);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return null;
+        }
+    }
+
+    private static async Task<IReadOnlyList<ClientErpTenantRecord>> ReadListAsync(
+        DbConnection connection,
+        string sql,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<ClientErpTenantRecord>();
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var row = ReadRow(reader);
+                if (IsUsableErpOnly(row))
+                {
+                    rows.Add(row);
+                }
+            }
+
+            return rows;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return [];
+        }
+    }
+
     private static object? Value(DbDataReader reader, string column)
     {
-        var ordinal = reader.GetOrdinal(column);
-        return reader.IsDBNull(ordinal) ? null : reader.GetValue(ordinal);
+        try
+        {
+            var ordinal = reader.GetOrdinal(column);
+            return reader.IsDBNull(ordinal) ? null : reader.GetValue(ordinal);
+        }
+        catch (Exception ex) when (ex is IndexOutOfRangeException or ArgumentException or InvalidOperationException)
+        {
+            return null;
+        }
     }
 
     private static string Text(DbDataReader reader, string column)

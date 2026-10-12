@@ -122,10 +122,33 @@ public sealed class SuperCpTenantIsolationTests
 
         var tenant = await resolver.ResolveAsync(context);
 
-        Assert.Equal(TenantMode.ErpOnlyTenant, tenant.Mode);
-        Assert.Equal("missing", tenant.SiteKey);
-        Assert.False(tenant.HasTenantDatabase);
+        Assert.Equal(TenantMode.Platform, tenant.Mode);
+        Assert.Equal("ecomae", tenant.DatabaseName);
         Assert.NotEqual("docpart", tenant.DatabaseName);
+    }
+
+    [Fact]
+    public async Task SuperHostClientErpLookupThrowStaysPlatform()
+    {
+        var resolver = ResolverWith(new HijackingRegistry(), new ThrowingClientErpLookup());
+        var context = new DefaultHttpContext();
+        context.Request.Host = new HostString("www.ecomae.com");
+        context.Request.Path = "/cp/client-erp/asap/";
+
+        var tenant = await resolver.ResolveAsync(context);
+
+        Assert.Equal(TenantMode.Platform, tenant.Mode);
+        Assert.Equal("ecomae", tenant.DatabaseName);
+        Assert.NotEqual("docpart", tenant.DatabaseName);
+    }
+
+    private sealed class ThrowingClientErpLookup : IClientErpTenantLookup
+    {
+        public ValueTask<ClientErpTenantRecord?> FindActiveErpOnlyAsync(string siteKey, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("lookup-boom");
+
+        public ValueTask<IReadOnlyList<ClientErpTenantRecord>> ListActiveErpOnlyAsync(CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("lookup-boom");
     }
 
     [Fact]
@@ -148,12 +171,14 @@ public sealed class SuperCpTenantIsolationTests
     {
         var login = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor"));
         Assert.Contains("@page \"/cp/client-erp/{SiteKey}\"", login, StringComparison.Ordinal);
+        Assert.DoesNotContain("@page \"/cp/client-erp/{SiteKey}/\"", login, StringComparison.Ordinal);
         Assert.Contains("LoginHostBrand.ForErpOnly", login, StringComparison.Ordinal);
         Assert.Contains("Client ERP not found", login, StringComparison.Ordinal);
         Assert.DoesNotContain("Operator Access", login, StringComparison.Ordinal);
 
         var picker = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpClientErpPickerApp.razor"));
         Assert.Contains("@page \"/cp/client-erp\"", picker, StringComparison.Ordinal);
+        Assert.DoesNotContain("@page \"/cp/client-erp/\"", picker, StringComparison.Ordinal);
         Assert.Contains("Choose company", picker, StringComparison.Ordinal);
     }
 

@@ -19,6 +19,11 @@ contains() {
   local needle="$2"
   grep -Fq -- "$needle" "$file"
 }
+lacks() {
+  local file="$1"
+  local needle="$2"
+  ! grep -Fq -- "$needle" "$file"
+}
 
 production_lock_offline_ok() {
   local tmp repo lock sha1 sha2
@@ -1705,8 +1710,12 @@ check 'onboard four ERP-only creates asap indj fito real' contains "$ROOT/script
 check 'super mail app lists yawer mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'yawer@ecomae.com'
 check 'super mail app uses PHP reference Open' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'PhpReferenceOnlyHref(_phpTab)'
 check 'client-erp login page is on ErpLoginApp' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" '@page "/cp/client-erp/{SiteKey}"'
+check 'client-erp login has no trailing-slash duplicate route' lacks "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" '@page "/cp/client-erp/{SiteKey}/"'
 check 'client-erp login uses company brand' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" 'LoginHostBrand.ForErpOnly'
 check 'client-erp picker page exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpClientErpPickerApp.razor" '@page "/cp/client-erp"'
+check 'client-erp picker has no trailing-slash duplicate route' lacks "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpClientErpPickerApp.razor" '@page "/cp/client-erp/"'
+check 'client-erp lookup uses core columns only' lacks "$ROOT/aspnet/src/EcomAE.Platform/Services/IClientErpTenantLookup.cs" '`dedicated_db`'
+check 'client-erp lookup never 500s on registry errors' contains "$ROOT/aspnet/src/EcomAE.Platform/Services/IClientErpTenantLookup.cs" 'ex is not OperationCanceledException'
 check 'resolver binds client-erp path on Super host' contains "$ROOT/aspnet/src/EcomAE.Platform/Services/RouteTenantResolver.cs" '/cp/client-erp/{site_key}'
 check 'auth gate allowlists client-erp login' contains "$ROOT/aspnet/src/EcomAE.Platform/Middleware/AdminSurfaceAuthGateMiddleware.cs" 'IsClientErpLoginPath'
 check 'CloudPanel quick start warns against var www ecomae' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Do not use `/var/www/ecomae`'

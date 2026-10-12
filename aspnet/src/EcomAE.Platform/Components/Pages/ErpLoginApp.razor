@@ -1,6 +1,5 @@
 @page "/erp/login"
 @page "/cp/client-erp/{SiteKey}"
-@page "/cp/client-erp/{SiteKey}/"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Middleware
@@ -300,16 +299,24 @@ else
             _clientErpKey = key;
             _loginAction = ClientErpPath.LoginUrl(key);
             _redirect = ClientErpPath.ErpHomeUrl(key);
-            var row = await ClientErpTenants.FindActiveErpOnlyAsync(key, Http.HttpContext?.RequestAborted ?? CancellationToken.None);
-            if (row is null || !row.IsActive || string.IsNullOrWhiteSpace(row.DatabaseName))
+            try
+            {
+                var row = await ClientErpTenants.FindActiveErpOnlyAsync(key, Http.HttpContext?.RequestAborted ?? CancellationToken.None);
+                if (row is null || !row.IsActive || string.IsNullOrWhiteSpace(row.DatabaseName))
+                {
+                    _missing = true;
+                    return;
+                }
+
+                _brand = LoginHostBrand.ForErpOnly(row.SiteKey, row.TradeName, row.IndustryCode);
+                _content = LoginIndustryContent.For(_brand, "erp");
+                return;
+            }
+            catch
             {
                 _missing = true;
                 return;
             }
-
-            _brand = LoginHostBrand.ForErpOnly(row.SiteKey, row.TradeName, row.IndustryCode);
-            _content = LoginIndustryContent.For(_brand, "erp");
-            return;
         }
 
         _brand = LoginHostBrand.Resolve(host, "erp");

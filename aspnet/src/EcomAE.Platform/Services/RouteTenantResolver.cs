@@ -55,9 +55,18 @@ public sealed class RouteTenantResolver : ITenantResolver
         {
             if (ClientErpPath.TryParse(path, out var clientErp) && clientErp.SiteKey.Length > 0)
             {
-                var erpOnly = await _clientErpTenants
-                    .FindActiveErpOnlyAsync(clientErp.SiteKey, cancellationToken)
-                    .ConfigureAwait(false);
+                ClientErpTenantRecord? erpOnly = null;
+                try
+                {
+                    erpOnly = await _clientErpTenants
+                        .FindActiveErpOnlyAsync(clientErp.SiteKey, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch
+                {
+                    erpOnly = null;
+                }
+
                 if (erpOnly is not null && erpOnly.IsActive && !string.IsNullOrWhiteSpace(erpOnly.DatabaseName))
                 {
                     return new TenantContext(
@@ -72,16 +81,8 @@ public sealed class RouteTenantResolver : ITenantResolver
                         erpOnly.DedicatedDb);
                 }
 
-                return new TenantContext(
-                    host,
-                    path,
-                    TenantSurface.Erp,
-                    TenantMode.ErpOnlyTenant,
-                    clientErp.SiteKey,
-                    DatabaseName: null,
-                    DbUser: null,
-                    DbPassword: null,
-                    DedicatedDb: false);
+                // Unknown / unusable key: stay on the platform DB so Super CP isolation
+                // holds and the login page can render "not found" without a tenant-DB open.
             }
 
             var platformRecord = registryRecord?.Mode == TenantMode.Platform ? registryRecord : null;

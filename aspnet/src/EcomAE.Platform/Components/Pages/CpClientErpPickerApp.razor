@@ -1,10 +1,8 @@
 @page "/cp/client-erp"
-@page "/cp/client-erp/"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @inject IClientErpTenantLookup ClientErpTenants
-@inject NavigationManager Nav
 
 <PageTitle>Client ERP — Choose company</PageTitle>
 <PhpSurfaceHead Surface="erp" IncludeLoginCss="true" />
@@ -49,13 +47,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var listed = await ClientErpTenants.ListActiveErpOnlyAsync();
-        if (listed.Count == 1)
+        try
         {
-            Nav.NavigateTo(ClientErpPath.LoginUrl(listed[0].SiteKey), replace: true);
-            return;
+            _tenants = await ClientErpTenants.ListActiveErpOnlyAsync();
         }
-
-        _tenants = listed;
+        catch
+        {
+            _tenants = [];
+        }
     }
 }
