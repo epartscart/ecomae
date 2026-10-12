@@ -10,5 +10,5 @@ public static class SuperCpHostGate
     public static bool IsAllowed(string? host) => PlatformHostPolicy.AllowSuperOnlyApp(host);
 
     public static bool IsAllowed(HttpContext? httpContext)
-        => IsAllowed(httpContext?.Request.Host.Host);
+        => IsAllowed(httpContext?.Request.Host.Host) && !ClientErpPath.IsBound(httpContext);
 }

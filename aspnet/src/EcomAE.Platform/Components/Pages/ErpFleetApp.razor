@@ -37,6 +37,6 @@ else
 
     protected override void OnInitialized()
     {
-        _allowed = PlatformHostPolicy.IsSuperCpHost(Http.HttpContext?.Request.Host.Host);
+        _allowed = SuperCpHostGate.IsAllowed(Http.HttpContext);
     }
 }

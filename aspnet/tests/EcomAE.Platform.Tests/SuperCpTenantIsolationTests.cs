@@ -362,6 +362,16 @@ public sealed class SuperCpTenantIsolationTests
         var fleetApp = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpFleetApp.razor"));
         Assert.Contains("@page \"/erp/fleet-app\"", fleetApp, StringComparison.Ordinal);
         Assert.Contains("<PhpSuperErpFleetDashboard", fleetApp, StringComparison.Ordinal);
+        Assert.Contains("SuperCpHostGate.IsAllowed(Http.HttpContext)", fleetApp, StringComparison.Ordinal);
+        Assert.DoesNotContain("PlatformHostPolicy.IsSuperCpHost(Http.HttpContext?.Request.Host.Host)", fleetApp, StringComparison.Ordinal);
+
+        var chrome = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor"));
+        Assert.Contains("SuperCpHostGate.IsAllowed(Http.HttpContext)", chrome, StringComparison.Ordinal);
+        Assert.Contains("ClientErpPath.IsBound(Http.HttpContext)", chrome, StringComparison.Ordinal);
+
+        var bar = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpCompanyIndustryBar.razor"));
+        Assert.Contains("SuperCpHostGate.IsAllowed(Http.HttpContext)", bar, StringComparison.Ordinal);
+        Assert.Contains("_showFleet", bar, StringComparison.Ordinal);
 
         var fleet = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperErpFleetDashboard.razor"));
         Assert.Contains("Super ERP — Fleet Command Center", fleet, StringComparison.Ordinal);

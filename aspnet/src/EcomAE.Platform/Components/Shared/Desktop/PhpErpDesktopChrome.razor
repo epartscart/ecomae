@@ -451,9 +451,8 @@
     {
         var host = Http.HttpContext?.Request.Host.Host;
         _currentPath = Http.HttpContext?.Request.Path.Value ?? "/erp";
-        _showBos = PlatformHostPolicy.IsSuperCpHost(host);
-        _clientErp = ClientErpPath.IsClientErpPath(_currentPath)
-            || ClientErpPath.CookieSiteKey(Http.HttpContext?.Request) is not null;
+        _showBos = SuperCpHostGate.IsAllowed(Http.HttpContext);
+        _clientErp = ClientErpPath.IsBound(Http.HttpContext);
         _ctx = ErpHostContext.Resolve(host);
         _industryCode = _ctx.IndustryCode;
         _industryLabel = _ctx.IndustryLabel;

@@ -22035,9 +22035,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var host = context.Request.Host.Host;
-        var isSuper = PlatformHostPolicy.IsSuperCpHost(host)
-            && !ClientErpPath.IsClientErpPath(context.Request.Path.Value)
-            && ClientErpPath.CookieSiteKey(context.Request) is null;
+        var isSuper = SuperCpHostGate.IsAllowed(context);
         var hostCtx = ErpHostContext.Resolve(host);
         var companies = ErpIndustryNav.EnsureSwitchableCompanies(
             (await dashboards.BuildErpCompaniesDigestAsync(50, cancellationToken)).Companies,

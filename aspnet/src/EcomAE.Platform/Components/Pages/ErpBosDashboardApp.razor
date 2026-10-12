@@ -892,7 +892,7 @@
     {
         var ctx = Http.HttpContext;
         _ctx = ErpHostContext.Resolve(ctx?.Request.Host.Host);
-        _isSuperHost = Services.PlatformHostPolicy.IsSuperCpHost(ctx?.Request.Host.Host);
+        _isSuperHost = Services.SuperCpHostGate.IsAllowed(ctx);
         _pageTitle = _ctx.WorkspaceTitle;
         _industryCode = _ctx.IndustryCode;
         _industryLabel = _ctx.IndustryLabel;

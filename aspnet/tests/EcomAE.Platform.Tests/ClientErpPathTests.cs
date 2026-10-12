@@ -58,6 +58,31 @@ public sealed class ClientErpPathTests
     }
 
     [Fact]
+    public void BoundSiteKey_ReadsRewriteItemAfterPathRewrite()
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("www.ecomae.com");
+        ctx.Request.Path = "/erp/fleet-app";
+        ctx.Items[ClientErpPath.HttpContextItemKey] = "indj";
+
+        Assert.True(ClientErpPath.IsBound(ctx));
+        Assert.Equal("indj", ClientErpPath.BoundSiteKey(ctx));
+        Assert.False(SuperCpHostGate.IsAllowed(ctx));
+        Assert.True(SuperCpHostGate.IsAllowed("www.ecomae.com"));
+    }
+
+    [Fact]
+    public void SuperHostWithoutClientErpBind_StillAllowsFleet()
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("www.ecomae.com");
+        ctx.Request.Path = "/erp/fleet-app";
+
+        Assert.False(ClientErpPath.IsBound(ctx));
+        Assert.True(SuperCpHostGate.IsAllowed(ctx));
+    }
+
+    [Fact]
     public void ForErpOnly_IsCompanyMark_NotSuperCp()
     {
         var brand = LoginHostBrand.ForErpOnly("asap", "ASAP Autoparts", "auto_parts");

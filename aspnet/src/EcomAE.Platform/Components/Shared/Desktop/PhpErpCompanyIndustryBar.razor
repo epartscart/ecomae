@@ -146,7 +146,7 @@
         <i class="fa fa-sitemap" aria-hidden="true"></i> Organization
     </a>
 
-    @if (Variant.Equals("Panel", StringComparison.OrdinalIgnoreCase) && PlatformHostPolicy.IsSuperCpHost(_ctx.Host))
+    @if (Variant.Equals("Panel", StringComparison.OrdinalIgnoreCase) && _showFleet)
     {
         <a class="epc-erp-shell-link" href="/erp/fleet-app" title="Operator fleet ERP view">
             <i class="fa fa-sitemap" aria-hidden="true"></i> Fleet ERP
@@ -201,6 +201,7 @@
     private string _industryLabel = "Core / multi-industry";
     private bool _jewellery;
     private bool _fitOut;
+    private bool _showFleet;
     private string _message = "";
 
     protected override async Task OnInitializedAsync()
@@ -209,7 +210,8 @@
         _ctx = ErpHostContext.Resolve(_request?.Host.Host);
         var active = ErpHostContext.ActiveCompanyIdFromQuery(_request);
         var digest = await Dashboards.BuildErpCompaniesDigestAsync(50, Http.HttpContext?.RequestAborted ?? default);
-        var isSuper = PlatformHostPolicy.IsSuperCpHost(_ctx.Host);
+        var isSuper = SuperCpHostGate.IsAllowed(Http.HttpContext);
+        _showFleet = isSuper;
         _companies = ErpIndustryNav.EnsureSwitchableCompanies(digest.Companies, isSuper, _ctx.BrandLabel);
         _message = digest.Message;
         if (_companies.Count == 0)

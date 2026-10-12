@@ -101,6 +101,44 @@ public static class ClientErpPath
         return key.Length == 0 ? null : key;
     }
 
+    /// <summary>
+    /// True when this request is a company ERP session on the Super host
+    /// (<c>/cp/client-erp/{key}</c>, rewrite item, or isolation cookie).
+    /// Super fleet / tenant lists must stay hidden from that company.
+    /// </summary>
+    public static bool IsBound(HttpContext? context) => BoundSiteKey(context) is not null;
+
+    public static string? BoundSiteKey(HttpContext? context)
+    {
+        if (context is null)
+        {
+            return null;
+        }
+
+        if (context.Items.TryGetValue(HttpContextItemKey, out var raw) && raw is string item)
+        {
+            var fromItem = NormalizeSiteKey(item);
+            if (fromItem.Length > 0)
+            {
+                return fromItem;
+            }
+        }
+
+        if (TryParseSiteKey(context.Request.Path.Value, out var fromPath))
+        {
+            return fromPath;
+        }
+
+        if (context.Items.TryGetValue("EcomAE.ClientErpOriginalPath", out var original)
+            && original is string originalPath
+            && TryParseSiteKey(originalPath, out var fromOriginal))
+        {
+            return fromOriginal;
+        }
+
+        return CookieSiteKey(context.Request);
+    }
+
     public static void SetCookie(HttpResponse response, string siteKey)
     {
         var key = NormalizeSiteKey(siteKey);
