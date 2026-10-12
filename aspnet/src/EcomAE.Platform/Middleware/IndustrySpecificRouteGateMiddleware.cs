@@ -39,7 +39,7 @@ public sealed class IndustrySpecificRouteGateMiddleware(
 
     private async Task<ErpCompanyDigest?> ResolveActiveCompanyAsync(HttpContext context)
     {
-        var requested = ErpHostContext.ActiveCompanyIdFromQuery(context.Request);
+        var requested = await ResolveRequestedCompanyIdAsync(context);
         try
         {
             var session = await _validator.ValidateAsync(context, context.RequestAborted);
@@ -66,6 +66,38 @@ public sealed class IndustrySpecificRouteGateMiddleware(
         {
             return null;
         }
+    }
+
+    private static async Task<int?> ResolveRequestedCompanyIdAsync(HttpContext context)
+    {
+        var fromQuery = ErpHostContext.ActiveCompanyIdFromQuery(context.Request);
+        if (fromQuery is > 0)
+        {
+            return fromQuery;
+        }
+
+        if (!context.Request.HasFormContentType)
+        {
+            return null;
+        }
+
+        context.Request.EnableBuffering();
+        var form = await context.Request.ReadFormAsync(context.RequestAborted);
+        if (context.Request.Body.CanSeek)
+        {
+            context.Request.Body.Position = 0;
+        }
+
+        foreach (var key in new[] { "company", "companyId", "company_id" })
+        {
+            if (int.TryParse(form[key].ToString(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var id)
+                && id > 0)
+            {
+                return id;
+            }
+        }
+
+        return null;
     }
 }
 

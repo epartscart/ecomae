@@ -257,6 +257,7 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("line_pure_wt", fixing, StringComparison.Ordinal);
         Assert.Contains("line_wastage_pct", fixing, StringComparison.Ordinal);
         Assert.Contains("IErpJwPurchaseHistoryReadService", fixing, StringComparison.Ordinal);
+        Assert.Contains("WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)", fixing, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryFixUnfixCreateForm", fixing, StringComparison.Ordinal);
         Assert.Contains("Create fix / unfix", fixing, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryFixUnfixSettleForm", fixing, StringComparison.Ordinal);

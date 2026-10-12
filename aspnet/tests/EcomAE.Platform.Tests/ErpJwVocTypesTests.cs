@@ -35,5 +35,8 @@ public sealed class ErpJwVocTypesTests
         Assert.Equal(
             "/erp/jewellery-fixing-app?company=2&tab=jw_metal_purchase",
             ErpJewelleryModuleChrome.AppHref("/erp/jewellery-fixing-app", 2, ("tab", "jw_metal_purchase")));
+        Assert.Equal(
+            "/erp/jewellery/voucher-save?company=2",
+            ErpJewelleryModuleChrome.AppHref("/erp/jewellery/voucher-save", 2));
     }
 }

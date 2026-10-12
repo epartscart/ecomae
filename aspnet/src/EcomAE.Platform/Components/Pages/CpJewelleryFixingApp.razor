@@ -100,7 +100,7 @@
     @if (_isAdmin && (_tab == "jw_metal_purchase" || _tab == "jw_diamond_purchase"))
     {
         <ErpPhpCreateWell Title="@("New " + _spec.Label)">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="action" value="@(_tab == "jw_diamond_purchase" ? "jw_diamond_purchase_save" : "jw_metal_purchase_save")" />
@@ -148,7 +148,7 @@
     else if (_isAdmin && _tab == "fix_unfix")
     {
         <ErpPhpCreateWell Title="Create fix / unfix">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryFixUnfixCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryFixUnfixCreateForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
@@ -172,7 +172,7 @@
             </form>
         </ErpPhpCreateWell>
         <ErpPhpCreateWell Title="Settle unfix">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryFixUnfixSettleForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryFixUnfixSettleForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
@@ -188,7 +188,7 @@
     else if (_isAdmin)
     {
         <ErpPhpCreateWell Title="New Fixing">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryFixingSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryFixingSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="fix_type" value="@(_tab == "jw_sales_fixing" ? "SF" : "PF")" />
@@ -303,6 +303,8 @@
         _opened is null
             ? ""
             : ("Fixing #" + _opened.FixNo.ToString(CultureInfo.InvariantCulture));
+
+    private string WriteAction(string path) => ErpJewelleryModuleChrome.AppHref(path, _company);
 
     private string ReturnHref =>
         _openedId > 0

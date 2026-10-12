@@ -195,7 +195,7 @@
     @if (_isAdmin && _tab == "jw_pos_advance")
     {
         <ErpPhpCreateWell Title="New POS advance">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="action" value="jw_pos_advance_save" />
@@ -215,7 +215,7 @@
     else if (_isAdmin && _tab == "jw_petty_cash")
     {
         <ErpPhpCreateWell Title="New petty cash">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryPettyCashSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryPettyCashSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
@@ -233,7 +233,7 @@
     else if (_isAdmin && _tab == "jw_journal_voucher")
     {
         <ErpPhpCreateWell Title="New journal voucher">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="action" value="jw_journal_voucher_save" />
@@ -252,7 +252,7 @@
     else if (_isAdmin && _tab == "jw_tourist_vat")
     {
         <ErpPhpCreateWell Title="New tourist VAT refund">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryTouristVatSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryTouristVatSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
@@ -272,7 +272,7 @@
     else if (_isAdmin && (_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce" || _tab == "jw_metal_sales" || _tab == "jw_sales_return"))
     {
         <ErpPhpCreateWell Title="@(_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce" ? "New Invoice" : "New " + _spec.Label)">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="action" value="@RetailVoucherAction(_tab)" />
@@ -357,7 +357,7 @@
     else if (_isAdmin && _tab == "retail_barcode")
     {
         <ErpPhpCreateWell Title="Generate barcode">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryBarcodeGenerateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryBarcodeGenerateForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
@@ -565,6 +565,8 @@
         _opened is not null && _opened.VocNo > 0
             ? ("Voc " + _opened.VocNo.ToString(CultureInfo.InvariantCulture))
             : (_openedId > 0 ? ("Voucher #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
+
+    private string WriteAction(string path) => ErpJewelleryModuleChrome.AppHref(path, _company);
 
     private string ReturnHref =>
         _openedId > 0
