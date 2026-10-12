@@ -18,8 +18,9 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Expense Reports" Subtitle="Open a row for period dates and the 280-character notes excerpt. Save stays on the Classic twin." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Expense Reports" Subtitle="Submit a report here. Open a row for period dates and the 280-character notes excerpt." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Expense Reports KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_reports.Count</div></div>
@@ -47,7 +48,7 @@
                 <dt>Updated</dt><dd>@FormatTime(_opened.TimeUpdated)</dd>
             </dl>
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
-            <p class="text-muted" style="margin:.85rem 0 0">Save stays on the Classic twin.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Save writes stay on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
@@ -91,6 +92,23 @@
                 <p class="text-muted">No same-status siblings yet.</p>
             }
         </div>
+    }
+
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="Submit expense report">
+            <form method="post" action="/erp/ajax/expense-report-save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0;">
+                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Title <input class="form-control input-sm" name="title" required maxlength="255" style="width:16rem;" /></label>
+                <label>Staff id <input class="form-control input-sm" type="number" name="staff_user_id" min="0" value="0" style="width:7rem;" /></label>
+                <label>Amount <input class="form-control input-sm" type="number" name="total_amount" min="0.01" step="0.01" required style="width:8rem;" /></label>
+                <label>Period from <input class="form-control input-sm" type="date" name="period_from" /></label>
+                <label>Period to <input class="form-control input-sm" type="date" name="period_to" /></label>
+                <label>Notes <input class="form-control input-sm" name="notes" maxlength="500" style="width:16rem;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Submit report</button>
+            </form>
+        </ErpPhpCreateWell>
     }
 
     <div class="epc-erp-table-wrap">
@@ -151,6 +169,8 @@
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
     private long _openedId;
     private ErpExpenseReportDetail? _opened;
     private IReadOnlyList<ErpExpenseReportDigest> _openedSiblings = [];
@@ -173,6 +193,8 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "expense_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

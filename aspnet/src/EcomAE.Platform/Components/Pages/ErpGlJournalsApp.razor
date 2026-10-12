@@ -119,7 +119,7 @@
             {
                 <p class="text-muted" style="margin:.85rem 0 0">No note excerpt yet.</p>
             }
-            <p class="text-muted">Reverse stays Classic-compatible until the journal parity gate is closed.</p>
+            <p class="text-muted">Posted journals reverse here with a reason and reversal date.</p>
             @if (_openedSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-source siblings</p>
@@ -281,6 +281,7 @@
             @if (_openedDetail.Status.Equals("posted", StringComparison.OrdinalIgnoreCase))
             {
                 <form method="post" action="@EcomAeRoutes.ErpGlJournalsReverse" class="erp-journal-date-form">
+                    <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="journalId" value="@_openedDetail.Id" />
                     <input type="hidden" name="reverseDate" value="@JournalDate" data-unix-date />

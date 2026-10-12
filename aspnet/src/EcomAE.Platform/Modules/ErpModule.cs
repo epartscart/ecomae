@@ -1051,7 +1051,6 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSyncEinvoiceSeller, HandleSyncEinvoiceSellerAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxExpenseReportSave, async (
             HttpContext context,
-            ErpExpenseReportSaveBody? body,
             ILegacySessionValidator validator,
             IErpExpenseReportSaveDryRun dryRun,
             EcomAE.Platform.Erp.IErpExpenseReportWriteService writes,
@@ -1059,35 +1058,60 @@ public sealed class ErpModule : ISurfaceModule
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-                return Unauthorized("Admin ERP capability required.");
-
-            body ??= new();
-            if (!body.ConfirmWrites)
-                return Results.Ok(dryRun.Evaluate(new ErpExpenseReportSaveRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
-
-            var written = await writes.SaveAsync(
-                new EcomAE.Platform.Erp.ErpExpenseReportWriteRequest(
-                    body.StaffUserId,
-                    body.Title ?? body.Code,
-                    body.TotalAmount,
-                    body.PeriodFrom,
-                    body.PeriodTo,
-                    body.Notes,
-                    session.UserId),
-                cancellationToken);
-            return Results.Ok(new
             {
-                ok = written.Succeeded,
-                status = written.Code,
-                writes = written.Writes,
-                writesBlocked = false,
-                cutoverAllowed = false,
-                phpAuthoritative = false,
-                id = written.Id,
-                message = written.Message,
-                session = SessionPayload(session)
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/expense-reports-app", "Admin ERP capability required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpExpenseReportSaveBody>(context, cancellationToken) ?? new();
+            var confirm = body.ConfirmWrites;
+            var staffUserId = body.StaffUserId;
+            var title = body.Title ?? body.Code;
+            var totalAmount = body.TotalAmount;
+            var periodFrom = body.PeriodFrom;
+            var periodTo = body.PeriodTo;
+            var notes = body.Notes;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                staffUserId = LiveWriteFormBinder.Long(form, "staff_user_id");
+                title = LiveWriteFormBinder.Text(form, "title", "code");
+                totalAmount = LiveWriteFormBinder.Dec(form, "total_amount");
+                periodFrom = LiveWriteFormBinder.Text(form, "period_from");
+                periodTo = LiveWriteFormBinder.Text(form, "period_to");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+            }
+
+            if (!confirm)
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/expense-reports-app",
+                    true,
+                    "Expense report save validated; writes=0.",
+                    dryRun.Evaluate(new ErpExpenseReportSaveRequest(body.Id, title, false)).ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(context, session, "/erp/expense-reports-app", async () =>
+            {
+                var written = await writes.SaveAsync(
+                    new EcomAE.Platform.Erp.ErpExpenseReportWriteRequest(
+                        staffUserId,
+                        title,
+                        totalAmount,
+                        periodFrom,
+                        periodTo,
+                        notes,
+                        session.UserId),
+                    cancellationToken);
+                if (!written.Succeeded)
+                {
+                    throw new ErpWriteException(written.Message);
+                }
+
+                return (written.Message, (object)new { id = written.Id });
             });
-        });
+        }).DisableAntiforgery();
         // Live write (PHP po_save parity) when confirmWrites=true; otherwise the Wave B dry-run gate.
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPoSave, async (HttpContext context, ErpPoSaveBody? body, ILegacySessionValidator validator, IErpPoSaveDryRun dryRun, IErpPurchaseOrderWriteService writes, CancellationToken cancellationToken) =>
         {
@@ -11198,7 +11222,6 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpGlJournalsReverse, async (
             HttpContext context,
-            ErpGlReverseJournalBody? body,
             ILegacySessionValidator validator,
             IErpGlReverseJournalDryRun dryRun,
             IErpGlLedgerWriteService writes,
@@ -11207,24 +11230,43 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return Unauthorized("Admin ERP capability required for GL reverse journal dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/gl-journals-app", "Admin ERP capability required for GL reverse journal.");
             }
 
-            body ??= new ErpGlReverseJournalBody(0, null, false);
-            if (!body.ConfirmWrites)
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpGlReverseJournalBody>(context, cancellationToken)
+                ?? new ErpGlReverseJournalBody(0, null, false);
+            var confirm = body.ConfirmWrites;
+            var journalId = body.JournalId;
+            var note = body.Note;
+            var reverseDate = body.ReverseDate;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                journalId = LiveWriteFormBinder.Long(form, "journalId", "journal_id");
+                note = LiveWriteFormBinder.Text(form, "note");
+                reverseDate = LiveWriteFormBinder.Long(form, "reverseDate", "reverse_date");
+            }
+
+            if (!confirm)
             {
                 var result = await dryRun.EvaluateAsync(
-                    new ErpGlReverseJournalRequest(body.JournalId, body.Note, false),
+                    new ErpGlReverseJournalRequest(journalId, note, false),
                     cancellationToken);
-                return Results.Ok(result.ToPayload(SessionPayload(session)));
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/gl-journals-app",
+                    true,
+                    "Journal reverse validated; writes=0.",
+                    result.ToPayload(SessionPayload(session)));
             }
 
-            return await ExecuteErpWriteAsync(session, async () =>
+            return await ExecuteErpWriteAsync(context, session, "/erp/gl-journals-app", async () =>
             {
                 var reversal = await writes.ReverseJournalAsync(
-                    body.JournalId,
-                    body.ReverseDate,
-                    body.Note ?? string.Empty,
+                    journalId,
+                    reverseDate,
+                    note ?? string.Empty,
                     session.UserId,
                     cancellationToken);
                 return (
@@ -11237,7 +11279,7 @@ public sealed class ErpModule : ISurfaceModule
                         source_journal_no = reversal.SourceJournalNo,
                     });
             });
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpPurchasesVoid, async (
             HttpContext context,
@@ -22402,7 +22444,12 @@ public sealed class ErpModule : ISurfaceModule
         var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
         if (!confirm)
         {
-            return Results.Ok(dryRun.Evaluate(new EcomAE.Platform.Migration.ErpDocumentUploadRequest(0, null, false)).ToPayload(SessionPayload(session)));
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/documents-app",
+                true,
+                "Document upload validated; writes=0.",
+                dryRun.Evaluate(new EcomAE.Platform.Migration.ErpDocumentUploadRequest(0, null, false)).ToPayload(SessionPayload(session)));
         }
 
         // PHP: $_FILES['document_file'] ?? $_FILES['file']
@@ -22410,7 +22457,12 @@ public sealed class ErpModule : ISurfaceModule
             ?? await ReadUploadAsync(context.Request, "file", cancellationToken);
         if (file is null)
         {
-            return Results.Ok(new { ok = false, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = "invalid", message = "No file uploaded", session = SessionPayload(session) });
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/documents-app",
+                false,
+                "No file uploaded",
+                new { ok = false, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = "invalid", message = "No file uploaded", session = SessionPayload(session) });
         }
 
         await using var _ = file.Content;
@@ -22424,7 +22476,12 @@ public sealed class ErpModule : ISurfaceModule
                 session.UserId,
                 file),
             cancellationToken);
-        return Results.Ok(new { ok = written.Succeeded, surface = "erp", writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/documents-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, surface = "erp", writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleDocumentDeleteAsync(

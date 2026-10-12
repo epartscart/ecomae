@@ -586,7 +586,9 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("GeneralJournalLines", razor, StringComparison.Ordinal);
         Assert.Contains("GeneralJournalHeaderActions", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("<dl", razor, StringComparison.Ordinal);
-        Assert.Contains("Reverse stays Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("Posted journals reverse here", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpGlJournalsReverse", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"returnUrl\"", razor, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryVoucherSaveForm", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
@@ -2609,7 +2611,9 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("TrackingId", razor, StringComparison.Ordinal);
         Assert.Contains("SerialNo", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Depreciation run stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/fa-create-asset", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/fa-run-depreciation", razor, StringComparison.Ordinal);
+        Assert.Contains("Register and depreciation writes stay on this page", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
@@ -2900,7 +2904,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("PeriodFrom", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Save stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/expense-report-save", razor, StringComparison.Ordinal);
+        Assert.Contains("Save writes stay on this page", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
@@ -2970,7 +2975,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("same-category siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("File path omitted", razor, StringComparison.Ordinal);
-        Assert.Contains("Upload stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/document-upload", razor, StringComparison.Ordinal);
+        Assert.Contains("Upload writes stay on this page", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
@@ -3720,7 +3726,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"prja_rec_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("DetailExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("same-project siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Recognition stays Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("Recognition runs write here when confirmed", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/prja-recognize", razor, StringComparison.Ordinal);
         Assert.Contains("/erp/project-accounting/budgets/save", razor, StringComparison.Ordinal);
         Assert.Contains("/erp/project-accounting/txns/add", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
@@ -4118,7 +4125,9 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("TimeCreated", razor, StringComparison.Ordinal);
         Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Storage location omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/document-upload", razor, StringComparison.Ordinal);
         Assert.Contains("document_upload", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
