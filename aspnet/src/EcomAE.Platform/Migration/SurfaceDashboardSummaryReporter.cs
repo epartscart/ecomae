@@ -12492,41 +12492,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 return await ReadDictionaryRowsAsync(command, cancellationToken).ConfigureAwait(false);
             }
             case "gl_trial_balance":
-            {
-                await using var command = connection.CreateCommand();
-                command.CommandText = LegacySurfaceDashboardSql.SelectErpTrialBalanceRows;
-                AddParameter(command, "@limit", safeLimit);
-                var (columns, all) = await ReadDictionaryRowsAsync(command, cancellationToken).ConfigureAwait(false);
-                var filtered = all
-                    .Where(r => Math.Abs(ParseDecimal(r.GetValueOrDefault("balance"))) >= 0.005m)
-                    .Select(r =>
-                    {
-                        var bal = ParseDecimal(r.GetValueOrDefault("balance"));
-                        var side = r.GetValueOrDefault("normal_side") ?? "debit";
-                        var debit = 0m;
-                        var credit = 0m;
-                        if (side == "debit")
-                        {
-                            if (bal >= 0) debit = bal; else credit = Math.Abs(bal);
-                        }
-                        else
-                        {
-                            if (bal >= 0) credit = bal; else debit = Math.Abs(bal);
-                        }
-
-                        return (IReadOnlyDictionary<string, string>)new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                        {
-                            ["code"] = r.GetValueOrDefault("code") ?? string.Empty,
-                            ["name"] = r.GetValueOrDefault("name") ?? string.Empty,
-                            ["account_type"] = r.GetValueOrDefault("account_type") ?? string.Empty,
-                            ["balance"] = bal.ToString(CultureInfo.InvariantCulture),
-                            ["debit"] = debit.ToString(CultureInfo.InvariantCulture),
-                            ["credit"] = credit.ToString(CultureInfo.InvariantCulture),
-                        };
-                    })
-                    .ToList();
-                return (["code", "name", "account_type", "balance", "debit", "credit"], filtered);
-            }
+                return await LoadTrialBalanceStatementAsync(connection, safeLimit, "tb", cancellationToken).ConfigureAwait(false);
+            case "gl_profit_loss":
+                return await LoadTrialBalanceStatementAsync(connection, safeLimit, "pl", cancellationToken).ConfigureAwait(false);
+            case "gl_balance_sheet":
+                return await LoadTrialBalanceStatementAsync(connection, safeLimit, "bs", cancellationToken).ConfigureAwait(false);
             case "exec_working_capital":
             {
                 await using var command = connection.CreateCommand();
@@ -12627,6 +12597,103 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             default:
                 return ([], []);
         }
+    }
+
+    private async Task<(IReadOnlyList<string> Columns, IReadOnlyList<IReadOnlyDictionary<string, string>> Rows)> LoadTrialBalanceStatementAsync(
+        DbConnection connection,
+        int safeLimit,
+        string statement,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = LegacySurfaceDashboardSql.SelectErpTrialBalanceRows;
+        AddParameter(command, "@limit", safeLimit);
+        var (_, all) = await ReadDictionaryRowsAsync(command, cancellationToken).ConfigureAwait(false);
+        var rows = new List<IReadOnlyDictionary<string, string>>();
+        var income = 0m;
+        var expense = 0m;
+        var assets = 0m;
+        var liabilities = 0m;
+        var equity = 0m;
+        foreach (var r in all)
+        {
+            var bal = ParseDecimal(r.GetValueOrDefault("balance"));
+            if (Math.Abs(bal) < 0.005m)
+            {
+                continue;
+            }
+
+            var type = (r.GetValueOrDefault("account_type") ?? string.Empty).Trim().ToLowerInvariant();
+            var keep = statement switch
+            {
+                "pl" => type is "revenue" or "income" or "expense",
+                "bs" => type is "asset" or "liability" or "equity",
+                _ => true,
+            };
+            if (!keep)
+            {
+                continue;
+            }
+
+            var side = r.GetValueOrDefault("normal_side") ?? "debit";
+            var debit = 0m;
+            var credit = 0m;
+            if (side == "debit")
+            {
+                if (bal >= 0) debit = bal; else credit = Math.Abs(bal);
+            }
+            else if (bal >= 0)
+            {
+                credit = bal;
+            }
+            else
+            {
+                debit = Math.Abs(bal);
+            }
+
+            if (type is "revenue" or "income") income += bal;
+            else if (type == "expense") expense += bal;
+            else if (type == "asset") assets += bal;
+            else if (type == "liability") liabilities += bal;
+            else if (type == "equity") equity += bal;
+
+            rows.Add(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["code"] = r.GetValueOrDefault("code") ?? string.Empty,
+                ["name"] = r.GetValueOrDefault("name") ?? string.Empty,
+                ["account_type"] = r.GetValueOrDefault("account_type") ?? string.Empty,
+                ["balance"] = bal.ToString(CultureInfo.InvariantCulture),
+                ["debit"] = debit.ToString(CultureInfo.InvariantCulture),
+                ["credit"] = credit.ToString(CultureInfo.InvariantCulture),
+            });
+        }
+
+        if (statement == "pl")
+        {
+            rows.Add(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["code"] = "",
+                ["name"] = "Net profit / (loss)",
+                ["account_type"] = "total",
+                ["balance"] = (income - expense).ToString(CultureInfo.InvariantCulture),
+                ["debit"] = expense.ToString(CultureInfo.InvariantCulture),
+                ["credit"] = income.ToString(CultureInfo.InvariantCulture),
+            });
+        }
+        else if (statement == "bs")
+        {
+            rows.Add(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["code"] = "",
+                ["name"] = "Assets − liabilities − equity",
+                ["account_type"] = "total",
+                ["balance"] = (assets - liabilities - equity).ToString(CultureInfo.InvariantCulture),
+                ["debit"] = assets.ToString(CultureInfo.InvariantCulture),
+                ["credit"] = (liabilities + equity).ToString(CultureInfo.InvariantCulture),
+            });
+        }
+
+        return (["code", "name", "account_type", "balance", "debit", "credit"], rows);
     }
 
     private static async Task<(IReadOnlyList<string> Columns, IReadOnlyList<IReadOnlyDictionary<string, string>> Rows)> ReadDictionaryRowsAsync(

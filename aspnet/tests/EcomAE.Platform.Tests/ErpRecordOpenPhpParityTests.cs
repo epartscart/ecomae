@@ -3216,7 +3216,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("SystemFlag", razor, StringComparison.Ordinal);
         Assert.Contains("TimeCreated", razor, StringComparison.Ordinal);
         Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Writes stay on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("Create account", razor, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.ErpCoaAccountsCreate", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);

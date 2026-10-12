@@ -33,6 +33,7 @@
             </div>
             <form method="post" action="@EcomAeRoutes.ErpGlJournalsManual" class="erp-journal-date-form" style="display:grid;gap:.65rem">
                 <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/gl-journals-app" />
                 <input type="hidden" name="journalDate" value="@JournalDate" data-unix-date />
                 <div style="display:flex;flex-wrap:wrap;gap:.65rem;align-items:end">
                     <label>Journal date <input type="datetime-local" value="@JournalDateInput" data-date-input required /></label>

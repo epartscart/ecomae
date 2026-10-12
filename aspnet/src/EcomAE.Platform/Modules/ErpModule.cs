@@ -11128,7 +11128,6 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpCoaAccountsCreate, async (
             HttpContext context,
-            ErpCoaCreateBody? body,
             ILegacySessionValidator validator,
             IErpCoaCreateDryRun dryRun,
             IErpGlLedgerWriteService writes,
@@ -11137,9 +11136,25 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return Unauthorized("Admin ERP capability required for COA create dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/coa-accounts-app", "Admin ERP capability required for COA create.");
             }
-            body ??= new ErpCoaCreateBody(null, null, "expense", false);
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCoaCreateBody>(context, cancellationToken)
+                ?? new ErpCoaCreateBody(null, null, "expense", false);
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                body = new ErpCoaCreateBody(
+                    LiveWriteFormBinder.Text(form, "code"),
+                    LiveWriteFormBinder.Text(form, "name"),
+                    LiveWriteFormBinder.Text(form, "accountType", "account_type") is { Length: > 0 } formType ? formType : "expense",
+                    LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"),
+                    LiveWriteFormBinder.Text(form, "normalSide", "normal_side"),
+                    LiveWriteFormBinder.Long(form, "parentId", "parent_id"),
+                    LiveWriteFormBinder.Dec(form, "openingBalance", "opening_balance"),
+                    LiveWriteFormBinder.Text(form, "description"));
+            }
+
             if (!body.ConfirmWrites)
             {
                 return Results.Ok(dryRun
@@ -11147,24 +11162,28 @@ public sealed class ErpModule : ISurfaceModule
                     .ToPayload(SessionPayload(session)));
             }
 
-            return await ExecuteErpWriteAsync(session, async () =>
-            {
-                var accountId = await writes.CreateCoaAccountAsync(
-                    new ErpCoaAccountInput
-                    {
-                        Code = body.Code ?? string.Empty,
-                        Name = body.Name ?? string.Empty,
-                        AccountType = body.AccountType ?? "expense",
-                        NormalSide = body.NormalSide ?? string.Empty,
-                        ParentId = body.ParentId,
-                        OpeningBalance = body.OpeningBalance,
-                        Description = body.Description ?? string.Empty,
-                    },
-                    session.UserId,
-                    cancellationToken);
-                return ("COA account created", (object)new { id = accountId });
-            });
-        });
+            return await ExecuteErpWriteAsync(
+                context,
+                session,
+                "/erp/coa-accounts-app",
+                async () =>
+                {
+                    var accountId = await writes.CreateCoaAccountAsync(
+                        new ErpCoaAccountInput
+                        {
+                            Code = body.Code ?? string.Empty,
+                            Name = body.Name ?? string.Empty,
+                            AccountType = body.AccountType ?? "expense",
+                            NormalSide = body.NormalSide ?? string.Empty,
+                            ParentId = body.ParentId,
+                            OpeningBalance = body.OpeningBalance,
+                            Description = body.Description ?? string.Empty,
+                        },
+                        session.UserId,
+                        cancellationToken);
+                    return ("COA account created", (object)new { id = accountId });
+                });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpGlJournalsManual, async (
             HttpContext context,
@@ -11198,7 +11217,7 @@ public sealed class ErpModule : ISurfaceModule
             return await ExecuteErpWriteAsync(
                 context,
                 session,
-                "/erp/gl-journals-app?tab=jw_journal_voucher",
+                "/erp/gl-journals-app",
                 async () =>
             {
                 var posted = await writes.ManualJournalAsync(

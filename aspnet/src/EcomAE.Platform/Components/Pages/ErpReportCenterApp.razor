@@ -9,14 +9,14 @@
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
-<PageTitle>Report center · ERP · eParts Cart</PageTitle>
+<PageTitle>@_pageTitle · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Report center" BreadcrumbArea="Overview" BreadcrumbTab="Reports">
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_pageTitle" BreadcrumbArea="Record to Report" BreadcrumbTab="@_pageTitle">
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/report-center-app" IsAdmin="_isAdmin" />
 
 
     
-    <PhpErpModulePageHeader Title="Report center" Subtitle="Run financial and operational reports." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@_pageTitle" Subtitle="@_pageSubtitle" PhpTabHref="@_phpTab" />
 
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Report center stats">
@@ -113,7 +113,10 @@
     private IReadOnlyList<ErpReportCenterReportDigest> _reports = [];
     private IReadOnlyList<string> _columns = [];
     private IReadOnlyList<IReadOnlyDictionary<string, string>> _rows = [];
-    private readonly string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=rc_finance";
+    private string _navTab = "reports";
+    private string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=rc_finance";
+    private string _pageTitle = "Report center";
+    private string _pageSubtitle = "Run financial and operational reports.";
 
     protected override async Task OnInitializedAsync()
     {
@@ -122,6 +125,20 @@
         {
             return;
         }
+
+        if (ctx.Request.Query.TryGetValue("tab", out var tabVals) && !string.IsNullOrWhiteSpace(tabVals))
+        {
+            _navTab = tabVals.ToString().Trim();
+        }
+
+        (_pageTitle, _pageSubtitle) = _navTab.ToLowerInvariant() switch
+        {
+            "pl" => ("Profit & loss", "Income and expense from posted ledger balances."),
+            "balance_sheet" => ("Balance sheet", "Assets, liabilities and equity from posted ledger balances."),
+            "enterprise_reports" or "jw_trial_balance" => ("Trial balance", "Account balances as of today."),
+            _ => ("Report center", "Run financial and operational reports."),
+        };
+        _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=" + Uri.EscapeDataString(_navTab);
 
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -135,6 +152,8 @@
         {
             key = keyVals.ToString();
         }
+
+        key ??= ErpReportCenterRegistry.KeyForNavTab(_navTab);
 
         int? companyId = null;
         if (ctx.Request.Query.TryGetValue("companyId", out var coVals)
@@ -152,10 +171,21 @@
         _message = result.Message;
     }
 
-    private static string AppHref(string? key)
-        => string.IsNullOrWhiteSpace(key)
-            ? "/erp/report-center-app"
-            : "/erp/report-center-app?key=" + Uri.EscapeDataString(key);
+    private string AppHref(string? key)
+    {
+        var qs = new List<string>();
+        if (!string.IsNullOrWhiteSpace(_navTab))
+        {
+            qs.Add("tab=" + Uri.EscapeDataString(_navTab));
+        }
+
+        if (!string.IsNullOrWhiteSpace(key))
+        {
+            qs.Add("key=" + Uri.EscapeDataString(key));
+        }
+
+        return qs.Count == 0 ? "/erp/report-center-app" : "/erp/report-center-app?" + string.Join("&", qs);
+    }
 
     private static string DigestHref(string? key)
         => string.IsNullOrWhiteSpace(key)

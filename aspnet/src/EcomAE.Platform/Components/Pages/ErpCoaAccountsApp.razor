@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -18,8 +19,30 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Chart of Accounts" Subtitle="Open a row for the 280-character description excerpt, system flag, and created time. Writes stay on the Classic twin." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Chart of Accounts" Subtitle="Create an account here. Open a row for the 280-character description excerpt, system flag, and created time." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+    @if (_isAdmin)
+    {
+        <form method="post" action="@EcomAeRoutes.ErpCoaAccountsCreate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/coa-accounts-app" />
+            <label>Code <input type="text" name="code" required maxlength="32" style="width:8rem" /></label>
+            <label>Name <input type="text" name="name" required maxlength="128" style="min-width:12rem" /></label>
+            <label>Type
+                <select name="accountType">
+                    <option value="asset">Asset</option>
+                    <option value="liability">Liability</option>
+                    <option value="equity">Equity</option>
+                    <option value="revenue">Revenue</option>
+                    <option value="expense" selected>Expense</option>
+                </select>
+            </label>
+            <label>Opening <input type="text" name="openingBalance" value="0" style="width:6rem" /></label>
+            <label>Description <input type="text" name="description" maxlength="255" /></label>
+            <button type="submit" class="btn btn-primary">Create account</button>
+        </form>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="COA KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_accounts.Count</div></div>
@@ -47,7 +70,7 @@
                 <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
             </dl>
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
-            <p class="text-muted" style="margin:.85rem 0 0">Writes stay on the Classic twin.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Create a new account on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">description excerpt</p>
@@ -153,6 +176,8 @@
     private int _limit = 200;
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
     private long _openedId;
     private ErpCoaAccountDetail? _opened;
     private IReadOnlyList<ErpCoaAccountDigest> _openedSiblings = [];
@@ -175,6 +200,8 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "account_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

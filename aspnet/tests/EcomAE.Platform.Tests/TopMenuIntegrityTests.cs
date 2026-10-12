@@ -24,14 +24,12 @@ public sealed class TopMenuIntegrityTests
         // Sign-in pages and the generic module host are not menu destinations.
         "CpLoginApp.razor", "ErpLoginApp.razor", "ErpModuleApp.razor",
         // Linked from other pages, not from the top menu.
-        "CpDashboardSummaryApp.razor", "ErpDashboardSummaryApp.razor", "ErpNavigationCoverageApp.razor",
+        "CpDashboardSummaryApp.razor", "ErpNavigationCoverageApp.razor",
         "CpPriceListsApp.razor", "CpPricesEditApp.razor", "CpPoApprovalsApp.razor", "CpCrmActivitiesApp.razor",
         "CpAdminSessionsApp.razor", "CpPrintDocsApp.razor", "CpBulkUploadApp.razor", "CpFinanceCloseApp.razor",
         // No row in the production CP menu snapshots; open menu placement items in the tracker.
         "CpIntegrationsGuideApp.razor", "CpLifeOsClientsApp.razor", "CpLifeOsGuideApp.razor", "CpOpsGuidesApp.razor",
-        "CpVinFieldsApp.razor", "CpWorkshopApp.razor", "ErpMultiEntityApp.razor", "ErpUserControlApp.razor",
-        // CP-finance ops pages (PHP account_operations / custom shipping reports) reached from the ERP module host, not a top-menu row.
-        "ErpAccountOperationsApp.razor", "ErpCustomShippingReportsApp.razor", "ErpOperationsEditorApp.razor", "ErpPaymentSystemsApp.razor",
+        "CpVinFieldsApp.razor", "CpWorkshopApp.razor",
     ];
 
     public static IEnumerable<object[]> Menus()
@@ -91,6 +89,32 @@ public sealed class TopMenuIntegrityTests
         Assert.Equal("/cp/price-management-app", CpNavTree.AspNetHref("/cp/shop/price-management"));
         Assert.Equal("/cp/guides-app?g=payments", CpNavTree.AspNetHref("/cp/shop/payments/payments/guide"));
         Assert.Equal("/erp/payroll-app", PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/finance/erp?epc_erp_shell=1&area=payroll"));
+    }
+
+    [Fact]
+    public void Finance_menu_keeps_each_statement_on_its_own_link()
+    {
+        var nav = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience("current", null, null, false));
+        var finance = nav
+            .SelectMany(g => g.Columns ?? [])
+            .SelectMany(c => c.Tabs)
+            .Where(t => t.Id.StartsWith("finance/", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        foreach (var key in new[] { "gl", "coa", "pl", "balance_sheet", "reports", "enterprise_reports", "aging", "opening_balances", "year_end" })
+        {
+            Assert.Contains(finance, t => t.Id.Equals("finance/" + key, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var dests = finance.Select(t => TopMenuLinks.DestinationKey(TopMenuLinks.ErpHref(t.Href))).ToList();
+        Assert.Equal(dests.Count, dests.Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal("/erp/report-center-app?tab=pl", TopMenuLinks.ErpHref(finance.Single(t => t.Id.EndsWith("/pl", StringComparison.OrdinalIgnoreCase)).Href));
+        Assert.Equal("/erp/report-center-app?tab=balance_sheet", TopMenuLinks.ErpHref(finance.Single(t => t.Id.EndsWith("/balance_sheet", StringComparison.OrdinalIgnoreCase)).Href));
+        Assert.Equal("/erp/report-center-app?tab=reports", TopMenuLinks.ErpHref(finance.Single(t => t.Id.EndsWith("/reports", StringComparison.OrdinalIgnoreCase)).Href));
+        Assert.Equal("/erp/coa-accounts-app", TopMenuLinks.ErpHref(finance.Single(t => t.Id.EndsWith("/coa", StringComparison.OrdinalIgnoreCase)).Href));
+        Assert.Equal("/erp/dashboard-summary-app", TopMenuLinks.ErpHref("/ERP/?epc_erp_shell=1&area=overview&tab=dashboard"));
+        Assert.Equal("/erp/multi-entity-app", TopMenuLinks.ErpHref("/ERP/?epc_erp_shell=1&area=consolidations&tab=multi_entity"));
     }
 
     private static List<(string Name, List<(string Label, string Href)> Links)> AllMenus()
