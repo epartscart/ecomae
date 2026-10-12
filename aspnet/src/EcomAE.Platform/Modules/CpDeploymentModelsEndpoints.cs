@@ -83,7 +83,7 @@ internal static class CpDeploymentModelsEndpoints
             var kind = CpDeploymentSetupPackCatalog.NormalizeKind(context.Request.Query["kind"].ToString());
             if (!CpDeploymentSetupPackCatalog.IsKind(kind))
             {
-                return Results.BadRequest(new { ok = false, validation_code = "unknown-kind", message = "kind must be on-premises or hybrid." });
+                return Results.BadRequest(new { ok = false, validation_code = "unknown-kind", message = "kind must be on-premises, on-premises-aspnet, or hybrid." });
             }
 
             try

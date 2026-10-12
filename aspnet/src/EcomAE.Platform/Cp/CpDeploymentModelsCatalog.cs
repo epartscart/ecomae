@@ -44,18 +44,18 @@ public static class CpDeploymentModelsCatalog
             "on-premises",
             TenantDeploymentKind.OnPremises,
             "On premises",
-            "PHP pack live · downloadable here",
-            "label-warning",
-            "Customer runs ERP on their own server. Super CP issues a license and the setup pack on this page. The PHP installer remains authoritative.",
-            "/cp/deployment-models/setup-pack?kind=on-premises",
+            "ASP.NET setup pack live · PHP leftover",
+            "label-success",
+            "Customer runs ASP.NET Core on their own PC or server. Download the ASP.NET pack and double-click setup.cmd (Windows) or run install.sh (Linux). PHP is not installed.",
+            "/cp/deployment-models/setup-pack?kind=on-premises-aspnet",
             [
-                "Downloadable install.sh, Docker, setup-wizard, backup, health-check",
-                "Signed license activate + /erp/on-premises-app digest",
-                "TenantInstallationControlPlane manifest (no DB password in the package)",
+                "Downloadable ASP.NET setup.cmd / setup.exe source / install.sh / Docker",
+                "No PHP files in the ASP.NET pack. Operator supplies the DB password — nothing is invented",
+                "Signed license digest + TenantInstallationControlPlane manifest",
             ],
             [
-                "ASP.NET installer pack is scaffold only (deploy/on-premises-aspnet)",
                 "Per-tenant ERP version pinning (roadmap 6.1)",
+                "Cloud PHP tree stays on disk until ReadyToRemovePhp",
             ]),
         new(
             "hybrid",
@@ -81,15 +81,21 @@ public static class CpDeploymentModelsCatalog
         new("Who hosts the database", "Platform", "Customer", "Both (split ownership)"),
         new("Staff login URL", "/cp/client-erp/{key}/ or tenant host", "Customer hostname + license", "Customer hostname + Super CP link"),
         new("Super CP fleet control", "Yes", "License / health only", "Yes + sync status"),
-        new("Installer package", "Not used", "Required", "Required"),
+        new("Installer package", "Not used", "ASP.NET setup pack", "Required"),
+        new("Runtime", "ASP.NET on platform", "ASP.NET Core only", "ASP.NET + sync agent"),
         new("Storefront", "Optional (ERP-only has none)", "Optional", "Optional"),
         new("Sync / conflicts", "n/a", "Heartbeat only", "Changelog + queued conflicts"),
-        new("Product status", "Live", "PHP pack", "Sync agent live"),
+        new("Product status", "Live", "ASP.NET pack", "Sync agent live"),
     ];
 
     public static string Classify(string? tenantType, string? hostedOn, string? storedKind)
     {
         var stored = NormalizeKind(storedKind);
+        if (stored == "on-premises-aspnet")
+        {
+            return "on-premises";
+        }
+
         if (stored.Length > 0)
         {
             return stored;
@@ -116,6 +122,7 @@ public static class CpDeploymentModelsCatalog
         {
             "cloud" or "saas" or "on-cloud" => "cloud",
             "on-premises" or "onpremises" or "on-prem" => "on-premises",
+            "on-premises-aspnet" or "aspnet" or "aspnet-only" => "on-premises-aspnet",
             "hybrid" => "hybrid",
             _ => string.Empty,
         };
@@ -123,7 +130,7 @@ public static class CpDeploymentModelsCatalog
 
     public static TenantDeploymentKind ParseKind(string? value) => NormalizeKind(value) switch
     {
-        "on-premises" => TenantDeploymentKind.OnPremises,
+        "on-premises" or "on-premises-aspnet" => TenantDeploymentKind.OnPremises,
         "hybrid" => TenantDeploymentKind.Hybrid,
         _ => TenantDeploymentKind.Cloud,
     };

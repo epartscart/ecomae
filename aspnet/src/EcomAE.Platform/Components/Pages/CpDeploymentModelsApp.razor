@@ -30,7 +30,8 @@
         </PhpCpModulePageHeader>
 
         <p class="help-block">
-            Download the on-premises and hybrid setup packs here and run them on the customer server.
+            New on-premises installs are ASP.NET Core only: download the ASP.NET pack and double-click <code>setup.cmd</code> on Windows or run <code>install.sh</code> on Linux.
+            PHP is not installed and is not for future development. Cloud PHP stays on disk as fallback until <code>ReadyToRemovePhp</code>.
             Hybrid sync is outbound HTTPS: masters from the cloud, transactions from the site, conflicts queued — never silently overwritten.
             This page does not invent a send.
         </p>
@@ -85,14 +86,20 @@
         </div>
 
         <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1.1rem 1.15rem">
-            <h3 style="margin:0 0 .7rem;font-size:1.05rem">Setup packs — install on the customer server</h3>
+            <h3 style="margin:0 0 .7rem;font-size:1.05rem">Setup packs — run setup on the customer PC</h3>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:1.1rem">
-                @foreach (var kind in new[] { "on-premises", "hybrid" })
+                @foreach (var kind in new[] { "on-premises-aspnet", "hybrid", "on-premises" })
                 {
                     var files = CpDeploymentSetupPackCatalog.ForKind(kind);
+                    var title = kind switch
+                    {
+                        "on-premises-aspnet" => "On premises (ASP.NET Core — use this)",
+                        "hybrid" => "Hybrid (ASP.NET ERP + sync agent)",
+                        _ => "On premises leftover (PHP — do not use for new installs)",
+                    };
                     <div>
                         <p style="margin:0 0 .45rem">
-                            <strong>@(kind == "hybrid" ? "Hybrid (ERP + sync agent)" : "On premises (ERP)")</strong>
+                            <strong>@title</strong>
                         </p>
                         <p style="margin:0 0 .55rem">
                             <a class="ghost" href="/cp/deployment-models/setup-pack?kind=@kind">Download @kind zip</a>
@@ -110,10 +117,12 @@
                 }
             </div>
             <p class="help-block" style="margin:.85rem 0 0">
-                On premises: <code>sudo ./install.sh --license KEY --domain erp.company.com</code>.
+                ASP.NET on premises (Windows): unzip and double-click <code>setup.cmd</code>.
+                Linux: <code>sudo ./install.sh --host erp.company.com --db-password PASS</code>.
                 Hybrid: register the site with <code>POST /cp/hybrid-sync/register</code> then
                 <code>sudo ./install.sh --site-key KEY --cloud-url https://www.ecomae.com --enrollment enr_… --installation inst_…</code>.
-                Pass <code>--dsn</code> only when the operator already has a database password — the installer will not invent one.
+                Pass <code>--dsn</code> / a password only when the operator already has one — the installer will not invent one.
+                Do not add PHP files to new packs.
             </p>
         </div>
 

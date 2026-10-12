@@ -949,7 +949,10 @@ check 'Wave B write dry-run probe covers ajax registry' contains "$ROOT/scripts/
 check 'Wave B write dry-run probe covers on-premises setup-wizard' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/on-premises/setup-wizard-dry-run'
 check 'Wave B write dry-run probe covers on-premises backup' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/on-premises/backup-dry-run'
 check 'on-premises ASP.NET installer scaffold README exists' test -f "$ROOT/deploy/on-premises-aspnet/README.md"
-check 'on-premises ASP.NET scaffold keeps PHP authoritative' contains "$ROOT/deploy/on-premises-aspnet/README.md" 'PHP'
+check 'on-premises ASP.NET pack mentions leftover PHP fallback' contains "$ROOT/deploy/on-premises-aspnet/README.md" 'PHP'
+check 'on-premises ASP.NET pack has Windows setup.cmd' test -f "$ROOT/deploy/on-premises-aspnet/setup.cmd"
+check 'on-premises ASP.NET pack has Linux install.sh' test -f "$ROOT/deploy/on-premises-aspnet/install.sh"
+check 'on-premises ASP.NET pack ships no PHP files' sh -c '! find "$ROOT/deploy/on-premises-aspnet" -name "*.php" | grep -q .'
 check 'ERP ajax write catalog covers ajax_erp' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/ErpAjaxWriteCatalog.cs" 'ajax_erp.php'
 check 'ERP ajax write catalog fully dedicated floor' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/ErpAjaxWriteCatalog.cs" 'DedicatedDryRuns'
 check 'Wave B write dry-run probe covers edit_lock_acquire' contains "$ROOT/scripts/cloudpanel_probe_write_dryruns.sh" '/erp/ajax/edit-lock-acquire'

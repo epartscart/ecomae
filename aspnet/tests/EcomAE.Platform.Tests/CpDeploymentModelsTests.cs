@@ -20,7 +20,7 @@ public sealed class CpDeploymentModelsTests
         Assert.Equal("on-premises", CpDeploymentModelsCatalog.Classify("commerce", "client", "on_premises"));
         Assert.Equal("hybrid", CpDeploymentModelsCatalog.Classify("erp_only", "platform", "hybrid"));
         Assert.Contains(CpDeploymentModelsCatalog.Models, m => m.Key == "hybrid" && m.Status.Contains("sync agent live", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(CpDeploymentModelsCatalog.Models, m => m.Key == "on-premises" && m.Status.Contains("downloadable", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(CpDeploymentModelsCatalog.Models, m => m.Key == "on-premises" && m.Status.Contains("ASP.NET", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(CpDeploymentModelsCatalog.Matrix, r => r.Capability.Contains("Who hosts", StringComparison.Ordinal));
         Assert.Contains(CpDeploymentModelsCatalog.Matrix, r => r.Hybrid.Contains("Sync agent live", StringComparison.Ordinal));
     }
@@ -36,7 +36,10 @@ public sealed class CpDeploymentModelsTests
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("CpDeploymentModelsCatalog", razor, StringComparison.Ordinal);
         Assert.Contains("/cp/deployment-models/setup-pack?kind=", razor, StringComparison.Ordinal);
+        Assert.Contains("on-premises-aspnet", razor, StringComparison.Ordinal);
+        Assert.Contains("setup.cmd", razor, StringComparison.Ordinal);
         Assert.Contains("install.sh", razor, StringComparison.Ordinal);
+        Assert.Contains("Do not add PHP files", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
 
@@ -49,14 +52,25 @@ public sealed class CpDeploymentModelsTests
     {
         var root = FindRepoRoot();
         Assert.Contains(CpDeploymentSetupPackCatalog.Files, f => f.Kind == "on-premises" && f.RelativePath == "install.sh");
+        Assert.Contains(CpDeploymentSetupPackCatalog.Files, f => f.Kind == "on-premises-aspnet" && f.RelativePath == "setup.cmd");
         Assert.Contains(CpDeploymentSetupPackCatalog.Files, f => f.Kind == "hybrid" && f.RelativePath == "sync-agent/sync-agent.py");
         Assert.NotNull(CpDeploymentSetupPackCatalog.ResolveFile("on-premises", "install.sh", root));
+        Assert.NotNull(CpDeploymentSetupPackCatalog.ResolveFile("on-premises-aspnet", "install.sh", root));
+        Assert.NotNull(CpDeploymentSetupPackCatalog.ResolveFile("on-premises-aspnet", "setup.cmd", root));
         Assert.NotNull(CpDeploymentSetupPackCatalog.ResolveFile("hybrid", "install.sh", root));
         Assert.Null(CpDeploymentSetupPackCatalog.Find("hybrid", "../on-premises/install.sh"));
         Assert.Null(CpDeploymentSetupPackCatalog.ResolveFile("hybrid", "../secret", root));
         var zip = CpDeploymentSetupPackCatalog.ZipKind("hybrid", root);
         Assert.True(zip.Length > 100);
+        var aspnetZip = CpDeploymentSetupPackCatalog.ZipKind("on-premises-aspnet", root);
+        Assert.True(aspnetZip.Length > 100);
+        Assert.DoesNotContain(CpDeploymentSetupPackCatalog.ForKind("on-premises-aspnet"), f => f.RelativePath.EndsWith(".php", StringComparison.OrdinalIgnoreCase));
         Assert.Equal("ecomae-on-premises-setup.zip", CpDeploymentSetupPackCatalog.ZipFileName("on-premises"));
+        Assert.Equal("ecomae-on-premises-aspnet-setup.zip", CpDeploymentSetupPackCatalog.ZipFileName("on-premises-aspnet"));
+        var install = File.ReadAllText(CpDeploymentSetupPackCatalog.ResolveFile("on-premises-aspnet", "install.sh", root)!);
+        Assert.Contains("will not invent", install, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("php-fpm", install, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("setup-wizard.php", install, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -1,0 +1,41 @@
+# ASP.NET Core on-premises stack. No PHP, no PHP-FPM.
+services:
+  mariadb:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-ecomae}
+      MARIADB_USER: ${DB_USER:-ecomae}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - ecomae-mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  platform:
+    build:
+      context: ./src
+      dockerfile: ../Dockerfile
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "${HTTP_PORT:-5100}:5100"
+    environment:
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS:-http://0.0.0.0:5100}
+      ConnectionStrings__TenantRegistry: "Server=mariadb;Port=3306;Database=${DB_NAME:-ecomae};Uid=${DB_USER:-ecomae};Pwd=${DB_PASSWORD};AllowUserVariables=true;"
+      EcomAE__PublicHost: ${PUBLIC_HOST:-erp.company.local}
+      ECOMAE_ONPREM: "1"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:5100/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  ecomae-mariadb:

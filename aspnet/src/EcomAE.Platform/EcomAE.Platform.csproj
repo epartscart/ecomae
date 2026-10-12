@@ -18,6 +18,7 @@
   <ItemGroup>
     <Content Update="Migration/Data/erp-guide-modules.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\..\deploy\on-premises\**\*" Link="setup-packs\on-premises\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\..\deploy\on-premises-aspnet\**\*" Link="setup-packs\on-premises-aspnet\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\..\deploy\hybrid\**\*" Link="setup-packs\hybrid\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
