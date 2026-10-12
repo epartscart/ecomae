@@ -23,7 +23,7 @@ CS="$(grep -E '^ConnectionStrings__TenantRegistry=' "$ENV_FILE" | head -1 | cut 
 [[ -n "$CS" ]] || { echo 'RESULT=FAIL TenantRegistry connection string missing' >&2; exit 1; }
 
 python3 - "$CS" <<'PY'
-import json, os, random, subprocess, sys, time
+import json, os, random, re, subprocess, sys, time
 
 cs = sys.argv[1]
 parts = {}
@@ -31,27 +31,95 @@ for chunk in cs.split(";"):
     if "=" not in chunk:
         continue
     k, v = chunk.split("=", 1)
-    parts[k.strip().lower()] = v.strip()
+    parts[k.strip().lower()] = v.strip().strip('"').strip("'")
 
-host = parts.get("server") or parts.get("host") or "127.0.0.1"
+host = parts.get("server") or parts.get("host") or parts.get("data source") or "127.0.0.1"
 port = parts.get("port") or "3306"
 user = parts.get("uid") or parts.get("user") or parts.get("user id") or ""
 password = parts.get("pwd") or parts.get("password") or ""
-database = parts.get("database") or "ecomae"
+database = parts.get("database") or parts.get("initial catalog") or "ecomae"
 if "<db_" in user or "<db_" in password or not user:
     print("RESULT=FAIL platform.env still has placeholders")
     raise SystemExit(1)
 
-def mysql(sql, db=database):
-    cmd = ["mysql", "-h", host, "-P", str(port), "-u", user, "--batch", "--raw", "-N"]
-    if password:
-        cmd.append(f"-p{password}")
-    cmd += [db, "-e", sql]
+# CloudPanel: ecomae@127.0.0.1 (TCP) often works while ecomae@localhost (socket) is 1045.
+if host.strip().lower() in ("localhost", "localhost.localdomain", "::1"):
+    host = "127.0.0.1"
+
+def parse_clpctl_master(text):
+    host_v, user_v, password_v, port_v = "127.0.0.1", "root", "", "3306"
+
+    def grab(label):
+        m = re.search(rf"(?im)^\s*\|?\s*{re.escape(label)}\s*\|?\s*[|:]\s*\|?\s*([^\s|]+)", text)
+        if m:
+            return m.group(1).strip()
+        m = re.search(rf"(?i){re.escape(label)}\s*[:=]\s*(\S+)", text)
+        return m.group(1).strip() if m else ""
+
+    h = grab("Host")
+    u = grab("User Name") or grab("Username") or grab("User")
+    p = grab("Password")
+    po = grab("Port")
+    if h:
+        host_v = h
+    if u:
+        user_v = u
+    if p:
+        password_v = p
+    if po and po.isdigit():
+        port_v = po
+    m5 = re.search(r"-p'([^']+)'", text) or re.search(r'-p"([^"]+)"', text)
+    m3 = re.search(r"-h['\"]?([^'\"\s]+)", text)
+    m4 = re.search(r"-u['\"]?([^'\"\s]+)", text)
+    if m3:
+        host_v = m3.group(1)
+    if m4:
+        user_v = m4.group(1)
+    if m5:
+        password_v = m5.group(1)
+    if host_v.strip().lower() in ("localhost", "localhost.localdomain", "::1"):
+        host_v = "127.0.0.1"
+    return host_v, user_v, port_v, password_v
+
+def run_mysql(sql, db, h, u, p, po):
+    cmd = ["mysql", "-h", h, "-P", str(po), "-u", u, "--protocol=TCP", "--batch", "--raw", "-N", db, "-e", sql]
     env = os.environ.copy()
+    if p:
+        env["MYSQL_PWD"] = p
+    else:
+        env.pop("MYSQL_PWD", None)
     proc = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    err = (proc.stderr or "").strip()
     if proc.returncode != 0:
-        raise RuntimeError((proc.stderr or proc.stdout or "mysql failed").strip())
+        raise RuntimeError(err or (proc.stdout or "mysql failed").strip())
     return proc.stdout
+
+active = (host, user, password, port)
+try:
+    run_mysql("SELECT 1", database, *active)
+except RuntimeError as first:
+    clp = subprocess.run(["clpctl", "db:show:master-credentials"], capture_output=True, text=True)
+    if clp.returncode != 0 or not (clp.stdout or "").strip():
+        print("RESULT=FAIL registry user 1045 and clpctl master unavailable")
+        print(str(first))
+        raise SystemExit(1)
+    h, u, po, p = parse_clpctl_master(clp.stdout)
+    if not p:
+        print("RESULT=FAIL could not parse clpctl db:show:master-credentials")
+        raise SystemExit(1)
+    try:
+        run_mysql("SELECT 1", database, h, u, p, po)
+    except RuntimeError as second:
+        print("RESULT=FAIL clpctl master could not open TenantRegistry")
+        print(str(second))
+        raise SystemExit(1)
+    active = (h, u, p, po)
+    print("AUTH=clpctl-master")
+else:
+    print("AUTH=tenant-registry")
+
+def mysql(sql, db=database):
+    return run_mysql(sql, db, *active)
 
 alters = [
     "ALTER TABLE `epc_portal_tenants` ADD COLUMN `hosted_on` VARCHAR(16) NOT NULL DEFAULT 'client'",
