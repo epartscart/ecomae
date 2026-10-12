@@ -20,6 +20,13 @@
         @ChildContent
     </PhpErpDesktopChrome>
 }
+else if (_useSuperBocChrome)
+{
+    @* Super /cp menu pages keep the same red BOC header as /cp home. *@
+    <PhpSuperCpCommandCentre ShowHome="false">
+        @ChildContent
+    </PhpSuperCpCommandCentre>
+}
 else
 {
 @*
@@ -453,6 +460,7 @@ else
     [Parameter] public bool IsAdmin { get; set; }
 
     private bool _useErpChrome;
+    private bool _useSuperBocChrome;
     private string _erpTitle = "Module";
     private string _erpArea = "Modules";
     private bool _showBos;
@@ -501,6 +509,7 @@ else
         var host = Http.HttpContext?.Request.Host.Host;
         _brand = LoginHostBrand.Resolve(host, "cp");
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
+        _useSuperBocChrome = SuperCpHostGate.IsAllowed(Http.HttpContext) && !_useErpChrome;
         // Tenant industry (epartscart → auto_parts) drives jewellery menu filtering.
         if (!_showBos && !string.IsNullOrWhiteSpace(host))
         {

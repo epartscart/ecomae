@@ -306,6 +306,10 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Contains("epc-boc__platform-banner", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc__fleet-grid", text, StringComparison.Ordinal);
         Assert.Contains("PhpSuperCpBocNav.Nav()", text, StringComparison.Ordinal);
+        Assert.Contains("ShowHome", text, StringComparison.Ordinal);
+        Assert.Contains("ChildContent", text, StringComparison.Ordinal);
+        Assert.Contains("data-epc-super-cp-page", text, StringComparison.Ordinal);
+        Assert.Contains("GroupIsActive", text, StringComparison.Ordinal);
         Assert.Contains("Live SSR drops late HeadContent", text, StringComparison.Ordinal);
         Assert.Contains("/cp/logout", text, StringComparison.Ordinal);
         Assert.Contains("/cp/super-mail-app", text, StringComparison.Ordinal);

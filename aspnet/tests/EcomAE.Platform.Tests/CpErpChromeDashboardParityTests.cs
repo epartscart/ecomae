@@ -14,6 +14,9 @@ public sealed class CpErpChromeDashboardParityTests
     {
         var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpDesktopChrome.razor"));
         Assert.Contains("<span>Control</span>", src);
+        Assert.Contains("_useSuperBocChrome", src);
+        Assert.Contains("PhpSuperCpCommandCentre ShowHome=\"false\"", src);
+        Assert.Contains("SuperCpHostGate.IsAllowed(Http.HttpContext)", src);
         Assert.Contains("fa-th-large", src);
         Assert.Contains("data-topnav-toggle=", src);
         Assert.Contains("hidden data-topnav-panel=", src);

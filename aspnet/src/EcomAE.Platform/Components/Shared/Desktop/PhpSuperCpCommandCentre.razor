@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ICpTenantControlCenterService ControlCenter
+@inject IHttpContextAccessor Http
 @*
   Super CP home — port of cp/content/control/epc_super_cp_dashboard.php:
   epc_boc_console_open (BOC chrome + red top mega-menu from the epc_boc_areas
@@ -89,6 +90,7 @@
     .epc-boc__fleet-links { display:flex; gap:10px; font-size:12px; }
     .epc-boc__fleet-links a { color:#b91c1c; font-weight:700; text-decoration:none; }
     .epc-boc__note { color:#475569; margin:0; }
+    .epc-boc__module { background:#fff; border:1px solid #f3c1c1; border-radius:12px; padding:16px 18px; min-height:12rem; }
 </style>
 <link rel="stylesheet" href="/content/general_pages/epc_boc_console_css.php?v=20260722tenant1" />
 </HeadContent>
@@ -169,6 +171,7 @@
     .epc-boc__fleet-links { display:flex; gap:10px; font-size:12px; }
     .epc-boc__fleet-links a { color:#b91c1c; font-weight:700; text-decoration:none; }
     .epc-boc__note { color:#475569; margin:0; }
+    .epc-boc__module { background:#fff; border:1px solid #f3c1c1; border-radius:12px; padding:16px 18px; min-height:12rem; }
 </style>
 <link rel="stylesheet" href="/platform-assets/eparts-animated-logo.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
@@ -187,7 +190,7 @@
             <ul class="epc-boc__topnav-list" role="menubar">
                 @foreach (var (group, areas) in PhpSuperCpBocNav.Nav())
                 {
-                    var isActive = group.Key == "command";
+                    var isActive = GroupIsActive(group.Key, areas);
                     <li class="epc-boc__topnav-item @(isActive ? "is-active" : "")" data-boc-group="@group.Key" role="none">
                         <button type="button" class="epc-boc__topnav-btn" role="menuitem" aria-haspopup="true" aria-expanded="false" data-boc-topnav-toggle="@group.Key">
                             <i class="fa @group.Icon" aria-hidden="true"></i>
@@ -207,7 +210,7 @@
                                         <ul class="epc-boc__topnav-links">
                                             @foreach (var area in chunk)
                                             {
-                                                <li class="@(area.Key == "command_center" ? "is-active" : "")">
+                                                <li class="@(PathMatches(area.Href) ? "is-active" : "")">
                                                     <a href="@area.Href" title="@area.Hint"><i class="fa @area.Icon"></i> @area.Label</a>
                                                 </li>
                                             }
@@ -237,6 +240,14 @@
 
     <div class="epc-boc__main" style="display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-width:0!important;width:auto!important;float:none!important;">
         <div class="epc-boc__canvas">
+            @if (!ShowHome)
+            {
+                <div class="epc-boc__module" data-epc-super-cp-page="1">
+                    @ChildContent
+                </div>
+            }
+            else
+            {
             <div class="epc-boc__platform-banner" role="status">
                 <div><strong>Platform Super CP</strong> <span>· ecomae.com operator console (/cp)</span>
                     <div class="epc-boc__platform-banner-hint">
@@ -441,6 +452,7 @@
                     · Enter product Super BOS: <a href="/bos">/bos</a>.
                 </p>
             </div>
+            }
         </div>
     </div>
 </div>
@@ -449,12 +461,16 @@
 
 
 @code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool ShowHome { get; set; } = true;
+
     private BosFleetSummary _summary = new(0, 0, 0, 0, 0, 0, 0, 0, "loading", "Loading fleet…");
     private IReadOnlyList<PortalTenantDigest> _tenants = [];
     private readonly HashSet<string> _launchKeys = new(StringComparer.OrdinalIgnoreCase);
     private int _healthy;
     private int _attention;
     private int _critical;
+    private string _currentPath = "/cp";
 
     private static readonly (string Type, string Icon, string Label)[] FleetTypes =
     [
@@ -465,6 +481,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _currentPath = Http.HttpContext?.Request.Path.Value ?? "/cp";
+        if (!ShowHome)
+        {
+            return;
+        }
+
         var health = await Dashboards.BuildBosFleetHealthAsync(60);
         _summary = health.Summary;
         _tenants = health.SampleTenants;
@@ -541,6 +563,45 @@
     {
         var total = Math.Max(1, Math.Max(_tenants.Count, 1));
         return (int)Math.Round(_healthy * 100.0 / Math.Max(1, _tenants.Count == 0 ? 1 : _tenants.Count));
+    }
+
+    private bool GroupIsActive(string groupKey, IReadOnlyList<PhpSuperCpBocNav.BocArea> areas)
+    {
+        if (IsCommandHome)
+        {
+            return string.Equals(groupKey, "command", StringComparison.OrdinalIgnoreCase);
+        }
+
+        return areas.Any(a => PathMatches(a.Href));
+    }
+
+    private bool IsCommandHome
+    {
+        get
+        {
+            var p = (_currentPath ?? "").Split('?', 2)[0].TrimEnd('/');
+            return p.Equals("/cp", StringComparison.OrdinalIgnoreCase)
+                   || p.Equals("/cp/app", StringComparison.OrdinalIgnoreCase)
+                   || p.Equals("/cp/control", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    private bool PathMatches(string? href)
+    {
+        if (string.IsNullOrWhiteSpace(href))
+        {
+            return false;
+        }
+
+        var mapped = href.Split('?', 2)[0].TrimEnd('/');
+        var current = (_currentPath ?? "").Split('?', 2)[0].TrimEnd('/');
+        if (string.IsNullOrWhiteSpace(mapped) || mapped == "/")
+        {
+            return false;
+        }
+
+        return current.Equals(mapped, StringComparison.OrdinalIgnoreCase)
+               || current.StartsWith(mapped + "/", StringComparison.OrdinalIgnoreCase);
     }
 
     private static IEnumerable<(IReadOnlyList<PhpSuperCpBocNav.BocArea> Chunk, int Index)> Chunk(IReadOnlyList<PhpSuperCpBocNav.BocArea> areas, int size)
