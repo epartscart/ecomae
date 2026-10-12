@@ -69,6 +69,28 @@ public sealed class ClientErpPathTests
     }
 
     [Fact]
+    public void ForErpOnly_Jewellery_MatchesJewelleryTrendLook()
+    {
+        var brand = LoginHostBrand.ForErpOnly("indj", "INDJ Jewellery", "jewellery");
+        Assert.Equal(LoginHostBrand.Kind.CompanyMark, brand.LogoKind);
+        Assert.Equal("indj", brand.SiteKey);
+        Assert.Equal("INDJ Jewellery", brand.Label);
+        Assert.Equal("sparkle", brand.AtmosphereTheme);
+        Assert.Equal("#d97706", brand.AccentHex);
+        Assert.Contains("bos-login--tenant-jewellery", brand.RootModifierClass, StringComparison.Ordinal);
+        Assert.DoesNotContain("thejewellerytrend", brand.SiteKey, StringComparison.Ordinal);
+        Assert.True(string.IsNullOrWhiteSpace(brand.LogoUrl));
+        Assert.Equal("fa-diamond", LoginHostBrand.CompanyMarkIcon("jewellery"));
+
+        var content = LoginIndustryContent.For(brand, "erp");
+        Assert.Equal("jewellery", content.IndustryCode);
+        Assert.Contains("Jewellery ERP", content.FormTitle, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(content.Capabilities, c => c.Title.Contains("Gold", StringComparison.OrdinalIgnoreCase)
+            || c.Title.Contains("tags", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(content.Stats, s => s.Label.Equals("Tenants", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void ReadRow_SurvivesMissingDedicatedColumns()
     {
         var table = new DataTable();

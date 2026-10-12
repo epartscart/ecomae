@@ -114,18 +114,33 @@ public static class LoginHostBrand
         }
 
         var label = string.IsNullOrWhiteSpace(tradeName) ? (key.Length == 0 ? "Client ERP" : key.ToUpperInvariant()) : tradeName.Trim();
-        var tagline = (industryCode ?? string.Empty).Trim().ToLowerInvariant() switch
+        var site = key.Length == 0 ? "client_erp" : key;
+        var industry = (industryCode ?? string.Empty).Trim().ToLowerInvariant();
+        if (industry is "jewellery" or "jewelry")
+        {
+            var jewel = TenantCatalog["thejewellerytrend"];
+            return jewel with
+            {
+                LogoKind = Kind.CompanyMark,
+                SiteKey = site,
+                Label = label,
+                LogoUrl = null,
+                RootModifierClass = "bos-login--erp bos-login--client-erp bos-login--tenant-jewellery",
+            };
+        }
+
+        var tagline = industry switch
         {
             "auto_parts" or "autoparts" => "Automotive spare parts ERP",
-            "jewellery" or "jewelry" => "Jewellery ERP",
             "fit_out" or "fitout" or "fit-out" => "Fit-out ERP",
             "real_estate" or "realestate" => "Real-estate ERP",
+            "tax_advisory" or "finance" => "Tax & advisory ERP",
             _ => "Company ERP",
         };
 
         return new(
             Kind.CompanyMark,
-            key.Length == 0 ? "client_erp" : key,
+            site,
             label,
             tagline,
             null,
@@ -138,6 +153,17 @@ public static class LoginHostBrand
             ],
             "bos-login--erp bos-login--client-erp");
     }
+
+    public static string CompanyMarkIcon(string? industryCode) =>
+        (industryCode ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "jewellery" or "jewelry" => "fa-diamond",
+            "auto_parts" or "autoparts" => "fa-cogs",
+            "fit_out" or "fitout" or "fit-out" => "fa-building",
+            "real_estate" or "realestate" => "fa-home",
+            "tax_advisory" or "finance" => "fa-balance-scale",
+            _ => "fa-university",
+        };
 
     public static Brand Resolve(string? host, string surface = "cp")
     {

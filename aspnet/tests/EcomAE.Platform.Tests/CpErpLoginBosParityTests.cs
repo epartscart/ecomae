@@ -98,6 +98,7 @@ public sealed class CpErpLoginBosParityTests
         Assert.Contains("bos-login__cap-icon--tone-1", css, StringComparison.Ordinal);
         Assert.Contains("bos-login--tenant-epartscart", css, StringComparison.Ordinal);
         Assert.Contains("bos-login--tenant-jewellery .bos-login__cap-icon--tone-1", css, StringComparison.Ordinal);
+        Assert.Contains("bos-login--tenant-jewellery .bos-login__brand-icon-inner", css, StringComparison.Ordinal);
         Assert.Contains("bos-login__tenant-logo--eparts", css, StringComparison.Ordinal);
         Assert.DoesNotContain("bos-login__universe-photo", css, StringComparison.Ordinal);
         Assert.DoesNotContain("bos-login__celestial", css, StringComparison.Ordinal);

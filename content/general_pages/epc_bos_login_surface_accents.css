@@ -359,6 +359,9 @@
   background: linear-gradient(135deg, #d97706, #b45309);
   box-shadow: 0 10px 28px rgba(217, 119, 6, .38);
 }
+.bos-login--tenant-jewellery .bos-login__brand-icon-inner {
+  background: linear-gradient(145deg, #fbbf24, #d97706);
+}
 
 /* ── Tenant: taxofinca (green advisory) ── */
 .bos-login--tenant-taxofinca .bos-login__grid-lines {
