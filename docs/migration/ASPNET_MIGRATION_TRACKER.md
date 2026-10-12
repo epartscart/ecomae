@@ -322,6 +322,19 @@ Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
 
+### Checkpoint 2026-10-09 — catalogue product count (`ajax_get_products_count.php`) like PHP
+
+Not complete. This is the first data-plane slice of `printProducts.php` and `printProducts_2.php`. Neither list shell is ported by it.
+
+- The ratchet stays at 749 and the weighted headline stays about 20.4%. The count endpoint already had a port. This checkpoint proves it against PHP and fixes the differences.
+- Before the fixes, 39 of 182 PHP golden cases differed. All now match. The price filter used the raw storage price instead of PHP's `customer_price` (storage currency rate plus the office, storage and user-group markup band). The filter and range checks now follow PHP 8 loose comparison and `floatval`. `products_ids_str` was ignored and is now supported. Search now includes the apostrophe in `htmlspecialchars`, the article-property lookup and the imported discovery queue. List properties keep the previous OR/AND joiner like PHP.
+- The count, list and page endpoints now read the session user (no guest session is created) so the markup group matches PHP.
+- Evidence: PHP 8.3.6 ran the real `ajax_get_products_count.php` and `query_products_all.php` for 183 cases (176 integer outputs, 7 recorded PHP errors) on isolated databases, twice with identical output. The full suite passed 5,918 of 5,918 with 0 warnings and 0 errors. Post-test invariants: `ecomae_cpw_%` = 0, `docpart.users` = 2, `ecomae.users` = 2, `docpart.sessions` = 73.
+- Intentional deviations, pinned by tests: PHP interpolates `category_id` and `products_ids_str` raw, ASP.NET accepts integers only. Where PHP throws (no offices, malformed list options, a search of one-letter tokens, string `properties_list`), ASP.NET returns an unfiltered count, ignores the filter, or rejects the request.
+- Not golden-covered: the `epc_electronicae_storefront_active` category subtree, NULL currency rates, duplicate property rows, and the real `DP_User` session validity (covered by an ASP.NET HTTP test instead).
+- Also fixed: the reduced `shop_orders_items_statuses_ref` fixture in `StorefrontPhpShopTests` lacked the `order` column that PHP's `ORDER BY `order`` needs (the column exists in the real table), so the order-payment test failed on `main` after the previous checkpoint.
+- Next: `query_products_show.php` (sort, pagination, `generate_products_objects_by_sql.php`), then `ajax_get_products_page.php` and `printProductBlock()`.
+
 ### Checkpoint 2026-10-09 — storefront order background references (`orders_background.php`) like PHP
 
 Not complete.

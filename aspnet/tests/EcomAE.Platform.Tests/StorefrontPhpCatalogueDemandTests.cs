@@ -506,6 +506,13 @@ public sealed class StorefrontPhpCatalogueDemandTests
             await ExecuteAsync(connectionString, "INSERT INTO shop_storages (id, interface_type) VALUES (8, 1), (9, 2)");
             await ExecuteAsync(connectionString, "CREATE TABLE shop_offices_storages_map (office_id INT NOT NULL, storage_id INT NOT NULL)");
             await ExecuteAsync(connectionString, "INSERT INTO shop_offices_storages_map (office_id, storage_id) VALUES (4, 8), (4, 9)");
+            // query_products_all.php also prices through shop_currencies and the group markup columns of shop_offices_storages_map.
+            Assert.Equal(StorefrontPhpAjax.CataloguePropertyFiltersMissing, (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, priceFilter))), string.Empty)).Body);
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_currencies (id INT NOT NULL PRIMARY KEY, iso_code INT NOT NULL, rate DECIMAL(15,6) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_currencies (id, iso_code, rate) VALUES (1, 784, 1)");
+            await ExecuteAsync(connectionString, "ALTER TABLE shop_storages ADD COLUMN currency INT NOT NULL DEFAULT 784");
+            Assert.Equal(StorefrontPhpAjax.CataloguePropertyFiltersMissing, (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, priceFilter))), string.Empty)).Body);
+            await ExecuteAsync(connectionString, "ALTER TABLE shop_offices_storages_map ADD COLUMN group_id INT NOT NULL DEFAULT 0, ADD COLUMN min_point DECIMAL(15,2) NOT NULL DEFAULT 0, ADD COLUMN max_point DECIMAL(15,2) NOT NULL DEFAULT 999999999, ADD COLUMN markup DECIMAL(10,2) NOT NULL DEFAULT 0");
             Assert.Equal("1", (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, priceFilter))), string.Empty)).Body);
             var pricePage = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CataloguePagePath, Form(("propucts_request", RequestWith(3, 1, priceFilter))), string.Empty);
             Assert.Contains("Pad A", pricePage.Body, StringComparison.Ordinal);
@@ -936,6 +943,51 @@ public sealed class StorefrontPhpCatalogueDemandTests
             await using var drop = adminConnection.CreateCommand();
             drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
             await drop.ExecuteNonQueryAsync();
+        }
+
+        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '" + database + "'"));
+    }
+
+    [Fact]
+    public async Task CatalogueCountEndpoint_PricesWithTheSessionUsersGroupAndCityCookie_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var fixtures = Path.Combine(AppContext.BaseDirectory, "Fixtures", "CatalogueCount");
+        var spec = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(fixtures, "cases.json"))).RootElement;
+        var golden = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(fixtures, "golden.json"))).RootElement.GetProperty("results").EnumerateArray()
+            .Where(r => r.TryGetProperty("output", out _))
+            .ToDictionary(r => r.GetProperty("name").GetString()!, r => r.GetProperty("output").GetString()!);
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await ExecuteAsync(admin, "CREATE DATABASE `" + database + "`");
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        try
+        {
+            foreach (var sql in spec.GetProperty("schema").EnumerateArray().Concat(spec.GetProperty("base").EnumerateArray()))
+            {
+                await ExecuteAsync(connectionString, sql.GetString()!);
+            }
+
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL DEFAULT 0, type INT NOT NULL DEFAULT 0)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (session, user_id) VALUES ('registered-token', 6), ('bound-token', 5), ('guest-token', 0)");
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var request = "{\"category_id\":10,\"product_block_type\":1,\"properties_list\":[{\"property_id\":\"price\",\"property_type_id\":0,\"min_value\":0,\"max_value\":3000,\"min_need\":100,\"max_need\":200}]}";
+            Assert.Equal(golden["price_two_offices_union_dedup_guest"], (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", request)), "my_city=1")).Body);
+            Assert.Equal(golden["price_two_offices_union_dedup_guest"], (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", request)), "my_city=1; session=guest-token")).Body);
+            Assert.Equal(golden["price_registered_group_markup"], (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", request)), "my_city=1; session=registered-token")).Body);
+            Assert.Equal(golden["price_group_without_markup_rows_uses_raw_price"], (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", request)), "my_city=1; session=bound-token")).Body);
+            Assert.NotEqual(golden["price_two_offices_union_dedup_guest"], golden["price_registered_group_markup"]);
+        }
+        finally
+        {
+            await ExecuteAsync(admin, "DROP DATABASE IF EXISTS `" + database + "`");
         }
 
         Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '" + database + "'"));

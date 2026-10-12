@@ -1108,7 +1108,8 @@ public static class StorefrontPhpAjaxEndpoints
                 connection,
                 await FieldAsync(context, "propucts_request", ct).ConfigureAwait(false),
                 ct,
-                context.Request.Cookies[StorefrontCustomerOffices.CityCookie]).ConfigureAwait(false),
+                context.Request.Cookies[StorefrontCustomerOffices.CityCookie],
+                await CatalogueUserIdAsync(context, connection, ct).ConfigureAwait(false)).ConfigureAwait(false),
             StorefrontPhpAjax.NoDbConnect);
 
     private static Task<IResult> CatalogueListAsync(
@@ -1123,7 +1124,8 @@ public static class StorefrontPhpAjaxEndpoints
                 connection,
                 await FieldAsync(context, "propucts_request", ct).ConfigureAwait(false),
                 ct,
-                context.Request.Cookies[StorefrontCustomerOffices.CityCookie]).ConfigureAwait(false),
+                context.Request.Cookies[StorefrontCustomerOffices.CityCookie],
+                await CatalogueUserIdAsync(context, connection, ct).ConfigureAwait(false)).ConfigureAwait(false),
             StorefrontPhpAjax.NoDbConnect);
 
     private static Task<IResult> CataloguePageAsync(
@@ -1143,9 +1145,19 @@ public static class StorefrontPhpAjaxEndpoints
                     await FieldAsync(context, "propucts_request", ct).ConfigureAwait(false),
                     access.PricesVisible,
                     ct,
-                    context.Request.Cookies[StorefrontCustomerOffices.CityCookie]).ConfigureAwait(false);
+                    context.Request.Cookies[StorefrontCustomerOffices.CityCookie],
+                    await CatalogueUserIdAsync(context, connection, ct).ConfigureAwait(false)).ConfigureAwait(false);
             },
             StorefrontPhpAjax.NoDbConnect);
+
+    private static async Task<long> CatalogueUserIdAsync(
+        HttpContext context,
+        System.Data.Common.DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var session = await StorefrontPhpAjax.ReadSessionAsync(connection, context.Request.Cookies["session"], cancellationToken).ConfigureAwait(false);
+        return session.UserId;
+    }
 
     private static Task<IResult> PickupTimingAsync(
         HttpContext context,
