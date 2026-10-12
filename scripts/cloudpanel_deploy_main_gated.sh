@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # GATED_DEPLOY_MAIN — CloudPanel publish with the health gate ON.
 # PHP stays fallback. No nginx cutover. No PHP removal. No isolation emergency publish.
+# After PASS, writes /etc/ecomae-aspnet/production.lock.json so later publishes
+# cannot roll back to an older SHA or switch CP/ERP/BOS back to PHP-primary.
 #
 # Paste as root:
 #   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/reg-kyc-erp-cover-5dbd/scripts/cloudpanel_deploy_main_gated.sh'
@@ -9,6 +11,7 @@
 #   test -s "$TMP" || { echo RESULT=FAIL empty_download; exit 1; }
 #   grep -q GATED_DEPLOY_MAIN "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
 #   grep -q refused_emergency_publish "$TMP" || { echo RESULT=FAIL stale_download; exit 1; }
+#   grep -q production.lock.json "$TMP" || { echo RESULT=FAIL stale_lock_helper; exit 1; }
 #   export ECOMAE_BRANCH=cursor/reg-kyc-erp-cover-5dbd ECOMAE_EMERGENCY_PUBLISH=0
 #   bash "$TMP" 2>&1 | tee /root/ecomae-gated-deploy.log
 #   grep -E 'RESULT=|SHA=|GATE_|HEALTH_|ERROR|FAIL|HOST=' /root/ecomae-gated-deploy.log | tail -80
@@ -66,11 +69,17 @@ cd "$REPO"
 printf 'REPO=%s\n' "$REPO"
 git remote set-url origin "$ECOMAE_GIT_URL" || true
 git fetch origin "$ECOMAE_BRANCH" || die "git fetch origin $ECOMAE_BRANCH failed"
+INCOMING="$(git rev-parse "origin/$ECOMAE_BRANCH")"
+if [[ -f scripts/cloudpanel_production_lock.sh ]]; then
+  bash scripts/cloudpanel_production_lock.sh check "$INCOMING" "$REPO" \
+    || die "production_lock — incoming SHA is older than the locked production SHA"
+fi
 git checkout -f "$ECOMAE_BRANCH" || die "git checkout failed"
 git reset --hard "origin/$ECOMAE_BRANCH" || die "git reset failed"
 SHA="$(git rev-parse --short HEAD)"
 FULL="$(git rev-parse HEAD)"
 printf 'SHA=%s FULL=%s\n' "$SHA" "$FULL"
+[[ -f scripts/cloudpanel_production_lock.sh ]] || die "production lock helper missing after checkout"
 
 [[ -f scripts/cloudpanel_production_deploy_foundation.sh ]] || die "production deploy script missing after checkout"
 [[ -f "${ECOMAE_ASPNET_ENV_DIR}/platform.env" ]] || die "missing ${ECOMAE_ASPNET_ENV_DIR}/platform.env"
@@ -78,7 +87,7 @@ if grep -Eq 'User=<db_user>|Password=<db_password>|<db_user>|<db_password>' "${E
   die "platform.env still has placeholders"
 fi
 
-printf 'GATE_HEALTH=ON GATE_CUTOVER=OFF GATE_PHP_REMOVAL=OFF GATE_ISOLATION=OFF\n'
+printf 'GATE_HEALTH=ON GATE_CUTOVER=OFF GATE_PHP_REMOVAL=OFF GATE_ISOLATION=OFF GATE_PRODUCTION_LOCK=ON GATE_PHP_PRIMARY=BLOCKED\n'
 sudo ECOMAE_BRANCH="$ECOMAE_BRANCH" \
   ECOMAE_RUN_SYSTEMD="$ECOMAE_RUN_SYSTEMD" \
   ECOMAE_EMERGENCY_PUBLISH=0 \
@@ -102,7 +111,11 @@ RELEASE_CODE="$(curl -sS -m 8 -o /tmp/ecomae-gated-release.json -w '%{http_code}
 printf 'HEALTH_LOOPBACK=%s READY_LOOPBACK=%s RELEASE_LOOPBACK=%s\n' "$HEALTH_CODE" "$READY_CODE" "$RELEASE_CODE"
 [[ "$HEALTH_CODE" == "200" && "$READY_CODE" == "200" && "$RELEASE_CODE" == "200" ]] || die "loopback_not_200"
 
+bash scripts/cloudpanel_production_lock.sh write "$FULL" "$ECOMAE_BRANCH" \
+  || die "production_lock_write_failed"
 printf 'PHP remains fallback. Do not enable broad nginx cutover. Do not remove PHP.\n'
+printf 'PRODUCTION_LOCK written. Later publishes cannot roll back to an older SHA.\n'
+printf 'PHP-primary restore is blocked. PHP file delete stays REFUSE until ReadyToRemovePhp=true.\n'
 printf 'TEST_MATRIX=\n'
 printf '  platform_erp        https://www.ecomae.com/erp\n'
 printf '  hybrid_cp           https://www.epartscart.com/cp\n'

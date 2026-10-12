@@ -57,6 +57,9 @@ if step == "delete-php-source":
     print("REFUSE: PHP source deletion is not automated here.")
     print("Even after runtime decommission, source removal requires a separate human-owned PR")
     print("after ReadyToRemovePhp=true AND approval — never invent that gate.")
+    lock = Path("/etc/ecomae-aspnet/production.lock.json")
+    if lock.is_file():
+        print("production.lock.json present — phpSourceDeletionBlocked stays true.")
     sys.exit(6)
 
 print(f"Unknown step: {step}", file=sys.stderr)

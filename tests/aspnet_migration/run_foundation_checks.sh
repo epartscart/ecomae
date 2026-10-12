@@ -20,6 +20,40 @@ contains() {
   grep -Fq -- "$needle" "$file"
 }
 
+production_lock_offline_ok() {
+  local tmp repo lock sha1 sha2
+  tmp="$(mktemp -d)"
+  repo="$tmp/repo"
+  lock="$tmp/production.lock.json"
+  mkdir -p "$repo"
+  git -C "$repo" init -q
+  git -C "$repo" config user.email "lock-test@ecomae.local"
+  git -C "$repo" config user.name "lock-test"
+  printf 'one\n' > "$repo/f"
+  git -C "$repo" add f
+  git -C "$repo" commit -qm one
+  sha1="$(git -C "$repo" rev-parse HEAD)"
+  printf 'two\n' > "$repo/f"
+  git -C "$repo" commit -qam two
+  sha2="$(git -C "$repo" rev-parse HEAD)"
+  ECOMAE_PRODUCTION_LOCK_FILE="$lock" bash "$ROOT/scripts/cloudpanel_production_lock.sh" write "$sha2" lock-test >/dev/null
+  grep -Fq '"readyForPhpRemoval": false' "$lock" || return 1
+  grep -Fq '"phpPrimaryBlocked": true' "$lock" || return 1
+  grep -Fq '"phpSourceDeletionBlocked": true' "$lock" || return 1
+  ECOMAE_PRODUCTION_LOCK_FILE="$lock" bash "$ROOT/scripts/cloudpanel_production_lock.sh" check "$sha2" "$repo" >/dev/null || return 1
+  if ECOMAE_PRODUCTION_LOCK_FILE="$lock" bash "$ROOT/scripts/cloudpanel_production_lock.sh" check "$sha1" "$repo" >/dev/null 2>&1; then
+    return 1
+  fi
+  if bash "$ROOT/scripts/cloudpanel_production_lock.sh" refuse-php-primary >/dev/null 2>&1; then
+    return 1
+  fi
+  if bash "$ROOT/scripts/cloudpanel_production_lock.sh" refuse-php-delete >/dev/null 2>&1; then
+    return 1
+  fi
+  rm -rf "$tmp"
+  return 0
+}
+
 echo "== ASP.NET Core migration foundation =="
 check 'solution file exists' test -f "$ROOT/aspnet/EcomAE.AspNetCore.sln"
 check 'platform project targets net10.0' contains "$ROOT/aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj" '<TargetFramework>net10.0</TargetFramework>'
@@ -1656,6 +1690,15 @@ check 'gated CloudPanel deploy script exists' test -x "$ROOT/scripts/cloudpanel_
 check 'gated CloudPanel deploy refuses emergency publish' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'refused_emergency_publish'
 check 'gated CloudPanel deploy keeps PHP fallback' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'PHP remains fallback'
 check 'gated CloudPanel deploy refuses isolation branch' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'refused_isolation_branch'
+check 'production lock helper exists' test -x "$ROOT/scripts/cloudpanel_production_lock.sh"
+check 'production lock helper refuses php-primary' contains "$ROOT/scripts/cloudpanel_production_lock.sh" 'refuse-php-primary'
+check 'production lock helper refuses php-delete' contains "$ROOT/scripts/cloudpanel_production_lock.sh" 'refuse-php-delete'
+check 'production lock helper keeps removal false' contains "$ROOT/scripts/cloudpanel_production_lock.sh" '"readyForPhpRemoval": False'
+check 'gated CloudPanel deploy writes production lock' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'cloudpanel_production_lock.sh write'
+check 'gated CloudPanel deploy checks production lock' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'cloudpanel_production_lock.sh check'
+check 'gated CloudPanel deploy blocks php-primary' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'GATE_PHP_PRIMARY=BLOCKED'
+check 'find-and-redeploy honors production lock' contains "$ROOT/scripts/cloudpanel_find_and_redeploy.sh" 'PRODUCTION_LOCK present'
+check 'production lock offline refuses rollback and php delete' production_lock_offline_ok
 check 'CloudPanel quick start warns against var www ecomae' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Do not use `/var/www/ecomae`'
 check 'CloudPanel continue-after-env script exists' test -x "$ROOT/scripts/cloudpanel_continue_after_env.sh"
 check 'CloudPanel quick start explains nano save/exit' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Ctrl+O'
