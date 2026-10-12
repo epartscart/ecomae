@@ -393,17 +393,26 @@
   box-shadow: 0 4px 18px rgba(56, 189, 248, .4), inset 0 1px 0 rgba(255, 255, 255, .15) !important;
 }
 
-/* ── Tenant: real estate (skyline / teal + sand) ── */
-.bos-login--tenant-realestate .bos-login__bg--sky {
+/* ── Tenant: real estate (dusk skyline / teal + sand) ── */
+html:has(.bos-login--tenant-realestate),
+body:has(.bos-login--tenant-realestate),
+body.bos-body--login:has(.bos-login--tenant-realestate) {
+  background: linear-gradient(180deg, #0b1d2a 0%, #134e4a 55%, #042f2e 100%) !important;
+}
+.bos-login--tenant-realestate .bos-login__bg--sky,
+.bos-login--tenant-realestate .bos-login__bg--skyline {
   background:
-    radial-gradient(ellipse at 16% 10%, rgba(20, 184, 166, .18), transparent 42%),
-    radial-gradient(ellipse at 84% 82%, rgba(180, 83, 9, .14), transparent 48%),
-    linear-gradient(165deg, #042f2e 0%, #0f172a 40%, #022c22 100%);
+    radial-gradient(ellipse at 78% 12%, rgba(251, 191, 36, .42), transparent 22%),
+    radial-gradient(ellipse at 18% 8%, rgba(45, 212, 191, .2), transparent 36%),
+    linear-gradient(180deg, #0b1d2a 0%, #115e59 48%, #0f766e 72%, #042f2e 100%);
+}
+.bos-login--tenant-realestate .bos-login__sky-veil {
+  background:
+    linear-gradient(180deg, rgba(11, 29, 42, .08) 0%, rgba(4, 47, 46, .55) 100%);
 }
 .bos-login--tenant-realestate .bos-login__grid-lines {
-  background-image:
-    linear-gradient(rgba(15, 118, 110, .16) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(251, 191, 36, .1) 1px, transparent 1px);
+  background-image: none;
+  opacity: 0;
 }
 .bos-login--tenant-realestate .bos-login__glow--1 { background: radial-gradient(circle, rgba(15, 118, 110, .46), transparent 70%); }
 .bos-login--tenant-realestate .bos-login__glow--2 { background: radial-gradient(circle, rgba(251, 191, 36, .26), transparent 70%); }
@@ -413,4 +422,61 @@
 }
 .bos-login--tenant-realestate .bos-login__brand-icon-inner {
   background: linear-gradient(145deg, #2dd4bf, #0f766e);
+}
+
+/* Building silhouettes — CSS boxes only, no photos or glyphs */
+.bos-login__skyline {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  z-index: 3;
+  pointer-events: none;
+  align-items: flex-end;
+  gap: 3px;
+  padding: 0 2% 0;
+}
+.bos-login--tenant-realestate .bos-login__skyline,
+.bos-login__bg--skyline .bos-login__skyline {
+  display: flex;
+}
+.bos-login__tower {
+  flex: 1 1 auto;
+  background:
+    linear-gradient(180deg, #0f172a 0%, #115e59 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(45, 212, 191, .08),
+    0 0 18px rgba(15, 118, 110, .18);
+  position: relative;
+  min-width: 4.5%;
+  max-width: 12%;
+  border-radius: 2px 2px 0 0;
+}
+.bos-login__tower::after {
+  content: "";
+  position: absolute;
+  inset: 10% 18% 8%;
+  background-image:
+    linear-gradient(rgba(251, 191, 36, .55) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45, 212, 191, .35) 1px, transparent 1px);
+  background-size: 7px 9px;
+  opacity: .55;
+}
+.bos-login__tower--1 { height: 58%; }
+.bos-login__tower--2 { height: 86%; }
+.bos-login__tower--3 { height: 44%; }
+.bos-login__tower--4 { height: 96%; }
+.bos-login__tower--5 { height: 62%; }
+.bos-login__tower--6 { height: 78%; }
+.bos-login__tower--7 { height: 50%; }
+.bos-login__tower--8 { height: 88%; }
+.bos-login__tower--9 { height: 40%; }
+.bos-login__tower--10 { height: 70%; }
+.bos-login__tower--11 { height: 54%; }
+.bos-login__tower--12 { height: 82%; }
+.bos-login--tenant-realestate .bos-login__body--moon,
+.bos-login--tenant-realestate .bos-login__body--planet {
+  display: none;
 }

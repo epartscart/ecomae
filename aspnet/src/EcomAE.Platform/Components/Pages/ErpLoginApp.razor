@@ -2,6 +2,7 @@
 @page "/cp/client-erp/{SiteKey}"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Middleware
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
@@ -9,6 +10,7 @@
 @inject NavigationManager Nav
 @inject IHttpContextAccessor Http
 @inject IClientErpTenantLookup ClientErpTenants
+@inject IErpRealEstateReadService RealEstate
 
 <PageTitle>@_content.HeroTitle — ERP</PageTitle>
 @* Tenant hosts: industry ERP copy only. Super host: platform Super ERP messaging. *@
@@ -41,6 +43,11 @@
         align-items: center;
         gap: .4rem;
     }
+    html:has(.bos-login--tenant-realestate),
+    body:has(.bos-login--tenant-realestate),
+    body.bos-body--login:has(.bos-login--tenant-realestate) {
+        background: linear-gradient(180deg, #0b1d2a 0%, #134e4a 55%, #042f2e 100%) !important;
+    }
 </style>
 </HeadContent>
 <style>
@@ -64,6 +71,11 @@
         display: flex;
         align-items: center;
         gap: .4rem;
+    }
+    html:has(.bos-login--tenant-realestate),
+    body:has(.bos-login--tenant-realestate),
+    body.bos-body--login:has(.bos-login--tenant-realestate) {
+        background: linear-gradient(180deg, #0b1d2a 0%, #134e4a 55%, #042f2e 100%) !important;
     }
 </style>
 
@@ -310,6 +322,7 @@ else
 
                 _brand = LoginHostBrand.ForErpOnly(row.SiteKey, row.TradeName, row.IndustryCode);
                 _content = LoginIndustryContent.For(_brand, "erp");
+                await OverlayRealEstateStatsAsync();
                 return;
             }
             catch
@@ -321,5 +334,31 @@ else
 
         _brand = LoginHostBrand.Resolve(host, "erp");
         _content = LoginIndustryContent.For(_brand, "erp");
+        await OverlayRealEstateStatsAsync();
+    }
+
+    private async Task OverlayRealEstateStatsAsync()
+    {
+        if (!string.Equals(_content.IndustryCode, "real_estate", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        try
+        {
+            var snap = await RealEstate.LoadAsync(Http.HttpContext?.RequestAborted ?? CancellationToken.None);
+            _content = LoginIndustryContent.WithStats(
+                _content,
+                [
+                    new LoginIndustryContent.Stat(snap.Kpis.OwnedProperties, "Properties"),
+                    new LoginIndustryContent.Stat(snap.Kpis.ActiveLeases, "Active leases"),
+                    new LoginIndustryContent.Stat(snap.Kpis.Projects, "Projects"),
+                    new LoginIndustryContent.Stat(snap.Kpis.Opportunities, "Opportunities"),
+                ]);
+        }
+        catch
+        {
+            // Keep the industry-only placeholder counters when the tenant register is empty.
+        }
     }
 }
