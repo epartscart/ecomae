@@ -67,6 +67,31 @@ public static class ClientErpPath
     public static string ErpHomeUrl(string siteKey)
         => LoginUrl(siteKey) + "erp";
 
+    /// <summary>
+    /// Keep a company ERP form/action/redirect under <c>/cp/client-erp/{key}</c> when
+    /// the request is bound. Unbound Super <c>/erp</c> stays unchanged.
+    /// </summary>
+    public static string PrefixIfBound(HttpContext? context, string? href)
+    {
+        var raw = string.IsNullOrWhiteSpace(href) ? "/" : href.Trim();
+        var key = BoundSiteKey(context);
+        if (key is null)
+        {
+            return raw;
+        }
+
+        var cut = raw.IndexOf('?', StringComparison.Ordinal);
+        var path = cut < 0 ? raw : raw[..cut];
+        var query = cut < 0 ? string.Empty : raw[cut..];
+        if (!path.StartsWith("/erp", StringComparison.OrdinalIgnoreCase)
+            && !path.Equals("/erp", StringComparison.OrdinalIgnoreCase))
+        {
+            return raw;
+        }
+
+        return PrefixErpPath(key, path) + query;
+    }
+
     /// <summary>Map a Super-host <c>/erp…</c> path onto the client-erp prefix so chrome links stay isolated.</summary>
     public static string PrefixErpPath(string siteKey, string? erpPath)
     {

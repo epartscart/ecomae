@@ -50,10 +50,19 @@ public sealed class ClientErpCookieRedirectMiddleware
             dest += context.Request.QueryString.Value;
         }
 
-        context.Response.StatusCode = StatusCodes.Status302Found;
+        // GET can 302. POST/PUT/PATCH/DELETE must 307 or the browser drops the body
+        // and company Save buttons (pm/save, vouchers, …) appear to do nothing.
+        var method = context.Request.Method;
+        var preserve = HttpMethods.IsPost(method)
+            || HttpMethods.IsPut(method)
+            || HttpMethods.IsPatch(method)
+            || HttpMethods.IsDelete(method);
+        context.Response.StatusCode = preserve
+            ? StatusCodes.Status307TemporaryRedirect
+            : StatusCodes.Status302Found;
         context.Response.Headers.Location = dest;
         context.Response.Headers["Cache-Control"] = "no-store";
-        context.Response.Headers["X-EcomAE-Client-Erp"] = "cookie-redirect";
+        context.Response.Headers["X-EcomAE-Client-Erp"] = preserve ? "cookie-redirect-write" : "cookie-redirect";
         return Task.CompletedTask;
     }
 }

@@ -55,6 +55,49 @@ public sealed class ClientErpPathTests
         Assert.Equal("/cp/client-erp/asap/", ClientErpPath.PrefixErpPath("asap", "/erp/login"));
         Assert.Equal("/cp/client-erp/asap/erp", ClientErpPath.PrefixErpPath("asap", "/erp"));
         Assert.Equal("/cp/client-erp/asap/erp/app", ClientErpPath.PrefixErpPath("asap", "/erp/app"));
+        Assert.Equal("/cp/client-erp/asap/erp/pm/save", ClientErpPath.PrefixErpPath("asap", "/erp/pm/save"));
+    }
+
+    [Fact]
+    public void PrefixIfBound_KeepsCompanyWritesOnTheBoundPrefix()
+    {
+        var bound = new DefaultHttpContext();
+        bound.Request.Host = new HostString("www.ecomae.com");
+        bound.Items[ClientErpPath.HttpContextItemKey] = "asap";
+        Assert.Equal(
+            "/cp/client-erp/asap/erp/pm/save",
+            ClientErpPath.PrefixIfBound(bound, "/erp/pm/save"));
+        Assert.Equal(
+            "/cp/client-erp/asap/erp/organization-app?tab=business_units",
+            ClientErpPath.PrefixIfBound(bound, "/erp/organization-app?tab=business_units"));
+
+        var unbound = new DefaultHttpContext();
+        unbound.Request.Host = new HostString("www.ecomae.com");
+        unbound.Request.Path = "/erp/organization-app";
+        Assert.Equal("/erp/pm/save", ClientErpPath.PrefixIfBound(unbound, "/erp/pm/save"));
+    }
+
+    [Fact]
+    public async Task CookieRedirect_PreservesPostBodyForCompanySaves()
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("www.ecomae.com");
+        ctx.Request.Method = HttpMethods.Post;
+        ctx.Request.Path = "/erp/pm/save";
+        ctx.Request.Headers.Cookie = ClientErpPath.CookieName + "=asap";
+        var ranNext = false;
+        var mw = new ClientErpCookieRedirectMiddleware(_ =>
+        {
+            ranNext = true;
+            return Task.CompletedTask;
+        });
+
+        await mw.InvokeAsync(ctx);
+
+        Assert.False(ranNext);
+        Assert.Equal(StatusCodes.Status307TemporaryRedirect, ctx.Response.StatusCode);
+        Assert.Equal("/cp/client-erp/asap/erp/pm/save", ctx.Response.Headers.Location.ToString());
+        Assert.Equal("cookie-redirect-write", ctx.Response.Headers["X-EcomAE-Client-Erp"].ToString());
     }
 
     [Fact]

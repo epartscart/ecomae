@@ -83,17 +83,20 @@ public sealed class ErpVoucherHeaderAndOrganizationTests
             "aspnet/src/EcomAE.Platform/Components/Pages/ErpOrganizationApp.razor"));
 
         Assert.Contains("@page \"/erp/organization-app\"", text, StringComparison.Ordinal);
-        Assert.Contains("tab=legal_entities", text, StringComparison.Ordinal);
-        Assert.Contains("tab=business_units", text, StringComparison.Ordinal);
-        Assert.Contains("tab=class_units", text, StringComparison.Ordinal);
-        Assert.Contains("tab=dimensions", text, StringComparison.Ordinal);
-        Assert.Contains("tab=cost_centres", text, StringComparison.Ordinal);
+        Assert.Contains("OrgHref(\"legal_entities\")", text, StringComparison.Ordinal);
+        Assert.Contains("OrgHref(\"business_units\")", text, StringComparison.Ordinal);
+        Assert.Contains("OrgHref(\"class_units\")", text, StringComparison.Ordinal);
+        Assert.Contains("OrgHref(\"dimensions\")", text, StringComparison.Ordinal);
+        Assert.Contains("OrgHref(\"cost_centres\")", text, StringComparison.Ordinal);
         Assert.Contains("epc_erp_pm_legal_entities", text, StringComparison.Ordinal);
         Assert.Contains("epc_erp_pm_business_units", text, StringComparison.Ordinal);
         Assert.Contains("epc_erp_pm_class_units", text, StringComparison.Ordinal);
         Assert.Contains("epc_erp_pm_dimensions", text, StringComparison.Ordinal);
         Assert.Contains("/erp/fin/cost-centers/write", text, StringComparison.Ordinal);
         Assert.Contains("OrganizationMasters.LoadAsync", text, StringComparison.Ordinal);
+        Assert.Contains("ClientErpPath.PrefixIfBound", text, StringComparison.Ordinal);
+        Assert.Contains("PmSaveAction", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/pm/save", text, StringComparison.Ordinal);
     }
 
     [Fact]

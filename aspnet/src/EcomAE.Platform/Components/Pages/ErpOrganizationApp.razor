@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject IErpOrganizationMasterReadService OrganizationMasters
@@ -21,11 +22,11 @@
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
     <nav class="epc-org-tabs" aria-label="Organization masters">
-        <a class="@TabClass("legal_entities")" href="/erp/organization-app?tab=legal_entities"><i class="fa fa-bank"></i> Legal entities</a>
-        <a class="@TabClass("business_units")" href="/erp/organization-app?tab=business_units"><i class="fa fa-sitemap"></i> Business units</a>
-        <a class="@TabClass("class_units")" href="/erp/organization-app?tab=class_units"><i class="fa fa-object-group"></i> Class units</a>
-        <a class="@TabClass("dimensions")" href="/erp/organization-app?tab=dimensions"><i class="fa fa-tags"></i> Financial dimensions</a>
-        <a class="@TabClass("cost_centres")" href="/erp/organization-app?tab=cost_centres"><i class="fa fa-building"></i> Cost centres</a>
+        <a class="@TabClass("legal_entities")" href="@OrgHref("legal_entities")"><i class="fa fa-bank"></i> Legal entities</a>
+        <a class="@TabClass("business_units")" href="@OrgHref("business_units")"><i class="fa fa-sitemap"></i> Business units</a>
+        <a class="@TabClass("class_units")" href="@OrgHref("class_units")"><i class="fa fa-object-group"></i> Class units</a>
+        <a class="@TabClass("dimensions")" href="@OrgHref("dimensions")"><i class="fa fa-tags"></i> Financial dimensions</a>
+        <a class="@TabClass("cost_centres")" href="@OrgHref("cost_centres")"><i class="fa fa-building"></i> Cost centres</a>
     </nav>
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Organization KPIs">
@@ -46,9 +47,9 @@
         @if (_tab == "legal_entities")
         {
             <ErpPhpCreateWell Title="New legal entity">
-                <form method="post" action="/erp/pm/save">
+                <form method="post" action="@PmSaveAction">
                     <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/organization-app?tab=legal_entities" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("legal_entities")" />
                     <input type="hidden" name="pm_table" value="epc_erp_pm_legal_entities" />
                     <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="LE-AE" /></label>
                     <label>Legal name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
@@ -63,9 +64,9 @@
         else if (_tab == "business_units")
         {
             <ErpPhpCreateWell Title="New business unit">
-                <form method="post" action="/erp/pm/save">
+                <form method="post" action="@PmSaveAction">
                     <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/organization-app?tab=business_units" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("business_units")" />
                     <input type="hidden" name="pm_table" value="epc_erp_pm_business_units" />
                     <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="BU-RETAIL" /></label>
                     <label>Name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
@@ -87,9 +88,9 @@
         else if (_tab == "class_units")
         {
             <ErpPhpCreateWell Title="New class unit">
-                <form method="post" action="/erp/pm/save">
+                <form method="post" action="@PmSaveAction">
                     <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/organization-app?tab=class_units" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("class_units")" />
                     <input type="hidden" name="pm_table" value="epc_erp_pm_class_units" />
                     <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="DIV-A" /></label>
                     <label>Name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
@@ -109,9 +110,9 @@
         else if (_tab == "dimensions")
         {
             <ErpPhpCreateWell Title="New financial dimension">
-                <form method="post" action="/erp/pm/save">
+                <form method="post" action="@PmSaveAction">
                     <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/organization-app?tab=dimensions" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("dimensions")" />
                     <input type="hidden" name="pm_table" value="epc_erp_pm_dimensions" />
                     <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="DEPT" /></label>
                     <label>Name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
@@ -129,9 +130,9 @@
                 </form>
             </ErpPhpCreateWell>
             <ErpPhpCreateWell Title="New dimension value">
-                <form method="post" action="/erp/pm/save">
+                <form method="post" action="@PmSaveAction">
                     <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/organization-app?tab=dimensions" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("dimensions")" />
                     <input type="hidden" name="pm_table" value="epc_erp_pm_dimension_values" />
                     <label>Dimension
                         <select class="form-control input-sm" name="dimension_id" required>
@@ -152,10 +153,10 @@
         else
         {
             <ErpPhpCreateWell Title="New cost centre">
-                <form method="post" action="/erp/fin/cost-centers/write">
+                <form method="post" action="@CostCentreAction">
                     <input type="hidden" name="action" value="save_center" />
                     <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/organization-app?tab=cost_centres" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("cost_centres")" />
                     <label>Code <input class="form-control input-sm" name="code" required maxlength="30" placeholder="CC-ADMIN" /></label>
                     <label>Name <input class="form-control input-sm" name="name" maxlength="160" /></label>
                     <label>Branch id <input class="form-control input-sm" type="number" name="branch_id" min="0" value="0" /></label>
@@ -240,6 +241,12 @@
     private string _flashErr = "";
     private ErpOrganizationMasterSnapshot _snapshot = new([], [], [], [], [], [], "migration", "");
     private IReadOnlyList<ErpOrganizationMasterRow> _rows = [];
+
+    private string PmSaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/pm/save");
+    private string CostCentreAction => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/fin/cost-centers/write");
+
+    private string OrgHref(string tab)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/organization-app?tab=" + tab);
 
     private string TabClass(string tab)
         => string.Equals(_tab, tab, StringComparison.OrdinalIgnoreCase) ? "active" : "";

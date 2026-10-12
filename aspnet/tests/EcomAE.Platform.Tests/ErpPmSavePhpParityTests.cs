@@ -112,6 +112,7 @@ public sealed class ErpPmSavePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
         Assert.Contains("EcomAeRoutes.ErpPmSave", text, StringComparison.Ordinal);
         Assert.Contains("HandlePmSaveAsync", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/organization-app", text, StringComparison.Ordinal);
         var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpPmSaveWriteService.cs"));
         Assert.Contains("Saved", service, StringComparison.Ordinal);
         Assert.Contains("Unknown master table", service, StringComparison.Ordinal);

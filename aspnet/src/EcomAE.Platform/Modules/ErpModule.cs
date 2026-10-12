@@ -23482,7 +23482,7 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/budgets-app", "Admin ERP capability required for platform master save.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/organization-app", "Admin ERP capability required for platform master save.");
         }
 
         var id = 0L;
@@ -23525,7 +23525,7 @@ public sealed class ErpModule : ISurfaceModule
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
-            "/erp/budgets-app",
+            "/erp/organization-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
