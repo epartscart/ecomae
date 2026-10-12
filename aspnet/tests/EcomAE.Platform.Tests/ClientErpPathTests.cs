@@ -83,6 +83,59 @@ public sealed class ClientErpPathTests
     }
 
     [Fact]
+    public void SuperOnlyErpPath_IsFleetAndSuperMail()
+    {
+        Assert.True(ClientErpPath.IsSuperOnlyErpPath("/erp/fleet-app"));
+        Assert.True(ClientErpPath.IsSuperOnlyErpPath("/erp/super-mail-app"));
+        Assert.False(ClientErpPath.IsSuperOnlyErpPath("/erp/app"));
+        Assert.False(ClientErpPath.IsSuperOnlyErpPath("/erp/cash-entries-app"));
+    }
+
+    [Fact]
+    public async Task SuperSurfaceGate_RedirectsBoundFleetToCompanyHome()
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("www.ecomae.com");
+        ctx.Request.Path = "/erp/fleet-app";
+        ctx.Items[ClientErpPath.HttpContextItemKey] = "indj";
+        var ranNext = false;
+        var mw = new ClientErpSuperSurfaceGateMiddleware(_ =>
+        {
+            ranNext = true;
+            return Task.CompletedTask;
+        });
+
+        await mw.InvokeAsync(ctx);
+
+        Assert.False(ranNext);
+        Assert.Equal(302, ctx.Response.StatusCode);
+        Assert.Equal("/cp/client-erp/indj/erp", ctx.Response.Headers.Location.ToString());
+        Assert.Equal("super-surface-blocked", ctx.Response.Headers["X-EcomAE-Client-Erp"].ToString());
+    }
+
+    [Fact]
+    public async Task CookieRedirect_SendsFleetToCompanyHomeNotPrefixedFleet()
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("www.ecomae.com");
+        ctx.Request.Path = "/erp/fleet-app";
+        ctx.Request.Headers.Cookie = ClientErpPath.CookieName + "=indj";
+        var ranNext = false;
+        var mw = new ClientErpCookieRedirectMiddleware(_ =>
+        {
+            ranNext = true;
+            return Task.CompletedTask;
+        });
+
+        await mw.InvokeAsync(ctx);
+
+        Assert.False(ranNext);
+        Assert.Equal(302, ctx.Response.StatusCode);
+        Assert.Equal("/cp/client-erp/indj/erp", ctx.Response.Headers.Location.ToString());
+        Assert.DoesNotContain("fleet-app", ctx.Response.Headers.Location.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ForErpOnly_IsCompanyMark_NotSuperCp()
     {
         var brand = LoginHostBrand.ForErpOnly("asap", "ASAP Autoparts", "auto_parts");

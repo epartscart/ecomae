@@ -1339,6 +1339,7 @@ app.UseMiddleware<ClientErpCookieRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
 // /cp/client-erp/{key}/erp… → /erp… after the company DB is bound.
 app.UseMiddleware<ClientErpPathRewriteMiddleware>();
+app.UseMiddleware<ClientErpSuperSurfaceGateMiddleware>();
 app.UseMiddleware<EcomAE.Platform.Storefront.StorefrontCheckoutConfirmSessionlessMiddleware>();
 // Shared ERP remains available to every tenant; industry-specific workspaces are gated
 // by host/company industry before Blazor can render or accept their forms.

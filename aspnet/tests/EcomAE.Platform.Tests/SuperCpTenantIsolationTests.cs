@@ -371,6 +371,12 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Contains("SuperCpHostGate.IsAllowed(Http.HttpContext)", chrome, StringComparison.Ordinal);
         Assert.Contains("ClientErpPath.IsBound(Http.HttpContext)", chrome, StringComparison.Ordinal);
 
+        var program = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Program.cs"));
+        Assert.Contains("UseMiddleware<ClientErpSuperSurfaceGateMiddleware>", program, StringComparison.Ordinal);
+        var cookie = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Middleware/ClientErpCookieRedirectMiddleware.cs"));
+        Assert.Contains("IsSuperOnlyErpPath", cookie, StringComparison.Ordinal);
+        Assert.Contains("ErpHomeUrl", cookie, StringComparison.Ordinal);
+
         var bar = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpCompanyIndustryBar.razor"));
         Assert.Contains("SuperCpHostGate.IsAllowed(Http.HttpContext)", bar, StringComparison.Ordinal);
         Assert.Contains("_showFleet", bar, StringComparison.Ordinal);

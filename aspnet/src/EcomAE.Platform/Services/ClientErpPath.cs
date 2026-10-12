@@ -108,6 +108,17 @@ public static class ClientErpPath
     /// </summary>
     public static bool IsBound(HttpContext? context) => BoundSiteKey(context) is not null;
 
+    /// <summary>
+    /// Super-operator ERP surfaces that list other companies. A bound company
+    /// session must never render these — send the user to their own ERP home.
+    /// </summary>
+    public static bool IsSuperOnlyErpPath(string? path)
+    {
+        var bare = NormalizeRequestPath(path);
+        return bare.Equals("/erp/fleet-app", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/erp/super-mail-app", StringComparison.OrdinalIgnoreCase);
+    }
+
     public static string? BoundSiteKey(HttpContext? context)
     {
         if (context is null)

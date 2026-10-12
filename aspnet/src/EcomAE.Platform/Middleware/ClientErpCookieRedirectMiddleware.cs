@@ -41,8 +41,11 @@ public sealed class ClientErpCookieRedirectMiddleware
             return _next(context);
         }
 
-        var dest = ClientErpPath.PrefixErpPath(key, path);
-        if (context.Request.QueryString.HasValue)
+        // Fleet / Super-mail list every tenant. Never prefix those onto a company URL.
+        var dest = ClientErpPath.IsSuperOnlyErpPath(path)
+            ? ClientErpPath.ErpHomeUrl(key)
+            : ClientErpPath.PrefixErpPath(key, path);
+        if (!ClientErpPath.IsSuperOnlyErpPath(path) && context.Request.QueryString.HasValue)
         {
             dest += context.Request.QueryString.Value;
         }
