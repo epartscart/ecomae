@@ -186,8 +186,55 @@ public static class EpcRegistrationEnhanced
     }
 
     /// <summary>
+    /// Writable data root for uploads the release tree cannot hold. <c>ECOMAE_APP_DATA</c>
+    /// wins; otherwise <c>/var/lib/ecomae-aspnet</c> (the systemd unit creates it as www-data).
+    /// </summary>
+    public static string KycDataRoot()
+    {
+        var env = Environment.GetEnvironmentVariable("ECOMAE_APP_DATA");
+        return string.IsNullOrWhiteSpace(env) ? "/var/lib/ecomae-aspnet" : env.Trim();
+    }
+
+    /// <summary>PHP web-root path first, then the writable App_Data fallback.</summary>
+    public static IReadOnlyList<string> KycDirectoryCandidates(string webRoot, string user)
+    {
+        var list = new List<string>(2);
+        if (!string.IsNullOrWhiteSpace(webRoot))
+        {
+            list.Add(Path.Combine(webRoot, "content", "files", "kyc", user));
+        }
+
+        list.Add(Path.Combine(KycDataRoot(), "kyc", user));
+        return list;
+    }
+
+    /// <summary>Finds a stored KYC file under the web root or the App_Data fallback. Null when missing or unsafe.</summary>
+    public static string? ResolveKycFile(string webRoot, string user, string fileName)
+    {
+        if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(fileName)
+            || fileName.Contains('/', StringComparison.Ordinal) || fileName.Contains('\\', StringComparison.Ordinal)
+            || fileName.Contains("..", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        foreach (var dir in KycDirectoryCandidates(webRoot, user))
+        {
+            var root = Path.GetFullPath(dir);
+            var path = Path.GetFullPath(Path.Combine(dir, fileName));
+            if (path.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal) && File.Exists(path))
+            {
+                return path;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// PHP <c>epc_reg_store_kyc_upload()</c>: the document is written to <c>content/files/kyc/{user}/</c> under the web root
-    /// and its public path returned (8 MB at most; PDF, JPG, JPEG, PNG or WEBP).
+    /// when that tree is writable, otherwise to <c>{ECOMAE_APP_DATA}/kyc/{user}/</c>. The public path stays
+    /// <c>/content/files/kyc/{user}/{file}</c> (8 MB at most; PDF, JPG, JPEG, PNG or WEBP).
     /// </summary>
     public static async Task<string> StoreKycUploadAsync(string webRoot, long userId, string fieldKey, EpcRegistrationUpload? file, CancellationToken cancellationToken)
     {
@@ -210,16 +257,24 @@ public static class EpcRegistrationEnhanced
         }
 
         var user = userId.ToString(CultureInfo.InvariantCulture);
-        var dir = Path.Combine(webRoot, "content", "files", "kyc", user);
-        try
+        string? dir = null;
+        foreach (var candidate in KycDirectoryCandidates(webRoot, user))
         {
-            Directory.CreateDirectory(dir);
+            try
+            {
+                Directory.CreateDirectory(candidate);
+                dir = candidate;
+                break;
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
         }
-        catch (IOException)
-        {
-            throw new EpcRegistrationException("Could not create KYC upload folder.");
-        }
-        catch (UnauthorizedAccessException)
+
+        if (dir is null)
         {
             throw new EpcRegistrationException("Could not create KYC upload folder.");
         }
@@ -230,6 +285,10 @@ public static class EpcRegistrationEnhanced
             await File.WriteAllBytesAsync(Path.Combine(dir, safe), file.Content.ToArray(), cancellationToken).ConfigureAwait(false);
         }
         catch (IOException)
+        {
+            throw new EpcRegistrationException("Document upload failed: " + fieldKey);
+        }
+        catch (UnauthorizedAccessException)
         {
             throw new EpcRegistrationException("Document upload failed: " + fieldKey);
         }

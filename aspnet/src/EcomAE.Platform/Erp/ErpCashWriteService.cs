@@ -835,53 +835,65 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         }
 
         var time = input.Time > 0 ? input.Time : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional(
-                "INSERT INTO `epc_erp_supplier_accounting` (`supplier_id`, `time`, `is_credit`, `amount`, `purchase_id`,"
-                + " `order_id`, `reference`, `note`, `admin_id`, `entry_kind`) VALUES (?,?,?,?,?,?,?,?,?,?)"),
-            cancellationToken,
-            input.SupplierId,
-            time,
-            isCredit ? 1 : 0,
-            amount,
-            input.PurchaseId,
-            input.OrderId,
-            reference,
-            note,
-            adminId,
-            entryKind).ConfigureAwait(false);
-        var ledgerId = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
-
-        var journalId = 0L;
         if (input.PostGl)
         {
-            journalId = await TryPostApSettlementAsync(
+            await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
+
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        long ledgerId;
+        var journalId = 0L;
+        try
+        {
+            await ErpDb.ExecuteAsync(
                 connection,
-                ledgerId,
+                transaction,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_erp_supplier_accounting` (`supplier_id`, `time`, `is_credit`, `amount`, `purchase_id`,"
+                    + " `order_id`, `reference`, `note`, `admin_id`, `entry_kind`) VALUES (?,?,?,?,?,?,?,?,?,?)"),
+                cancellationToken,
+                input.SupplierId,
+                time,
+                isCredit ? 1 : 0,
                 amount,
-                isCredit,
-                entryKind,
+                input.PurchaseId,
+                input.OrderId,
                 reference,
                 note,
-                time,
                 adminId,
-                cancellationToken).ConfigureAwait(false);
-            if (journalId > 0)
+                entryKind).ConfigureAwait(false);
+            ledgerId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+
+            if (input.PostGl)
             {
-                await ErpDb.TryExecuteAsync(
+                journalId = await PostApSettlementAsync(
                     connection,
-                    "ALTER TABLE `epc_erp_supplier_accounting` ADD COLUMN `gl_journal_id` int(11) NOT NULL DEFAULT 0",
+                    transaction,
+                    ledgerId,
+                    amount,
+                    isCredit,
+                    entryKind,
+                    reference,
+                    note,
+                    time,
+                    adminId,
                     cancellationToken).ConfigureAwait(false);
                 await ErpDb.ExecuteAsync(
                     connection,
-                    null,
+                    transaction,
                     ErpDb.Positional("UPDATE `epc_erp_supplier_accounting` SET `gl_journal_id` = ? WHERE `id` = ?"),
                     cancellationToken,
                     journalId,
                     ledgerId).ConfigureAwait(false);
             }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
         }
 
         await LogAsync(connection, adminId, "supplier_settlement", ledgerId, note, reference, amount, cancellationToken).ConfigureAwait(false);
@@ -903,9 +915,10 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         _ => "Adjustment / correction",
     };
 
-    /// <summary>AP side of PHP <c>epc_erp_gl_post_ap_settlement</c>: 2000 payable vs 6100 expense.</summary>
-    private async Task<long> TryPostApSettlementAsync(
+    /// <summary>AP side of PHP <c>epc_erp_gl_post_ap_settlement</c>: 2000 payable vs 6100 expense. Failure refuses the write.</summary>
+    private async Task<long> PostApSettlementAsync(
         DbConnection connection,
+        DbTransaction transaction,
         long ledgerId,
         decimal amount,
         bool isCredit,
@@ -920,7 +933,7 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         var expense = await CoaIdAsync(connection, "6100", cancellationToken).ConfigureAwait(false);
         if (payable <= 0 || expense <= 0)
         {
-            return 0L;
+            throw new ErpWriteException("COA account 2000/6100 is missing; cannot post the AP settlement journal.");
         }
 
         var lines = isCredit
@@ -935,31 +948,20 @@ public sealed class ErpCashWriteService : IErpCashWriteService
                 new(expense, 0m, amount, "Supplier credit — " + entryKind),
             };
 
-        try
-        {
-            return await _gl.PostJournalAsync(
-                connection,
-                new ErpGlJournalHeader
-                {
-                    JournalDate = time,
-                    Reference = reference,
-                    Description = note.Length > 0 ? note : "Supplier AP settlement",
-                    SourceType = "adjustment",
-                    SourceId = ledgerId,
-                },
-                lines,
-                adminId,
-                cancellationToken).ConfigureAwait(false);
-        }
-        catch (ErpWriteException)
-        {
-            // PHP swallows settlement GL failures — the ledger row still stands.
-            return 0L;
-        }
-        catch (DbException)
-        {
-            return 0L;
-        }
+        return await _gl.PostJournalAsync(
+            connection,
+            transaction,
+            new ErpGlJournalHeader
+            {
+                JournalDate = time,
+                Reference = reference,
+                Description = note.Length > 0 ? note : "Supplier AP settlement",
+                SourceType = "adjustment",
+                SourceId = ledgerId,
+            },
+            lines,
+            adminId,
+            cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>PHP <c>epc_erp_cash_entry</c> entry-type resolution (direction decides unless overridden).</summary>
@@ -1160,29 +1162,81 @@ public sealed class ErpCashWriteService : IErpCashWriteService
             values.Add(detail);
         }
 
-        await ErpDb.ExecuteAsync(
-            connection,
-            transaction,
-            ErpDb.Positional(
-                "INSERT INTO `shop_users_accounting` (`" + string.Join("`,`", columns) + "`) VALUES ("
-                + string.Join(',', Enumerable.Repeat("?", columns.Count)) + ")"),
-            cancellationToken,
-            [.. values]).ConfigureAwait(false);
-
-        var ledgerId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
-
-        if (!postGl || transaction is not null)
+        if (transaction is null && postGl)
         {
-            // Under an ambient transaction the caller owns GL posting (SO→invoice posts sales recognition itself).
-            return ledgerId;
+            await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         }
 
-        await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+        var ownTxn = transaction is null;
+        await using var created = ownTxn ? await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false) : null;
+        var txn = transaction ?? created;
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                txn,
+                ErpDb.Positional(
+                    "INSERT INTO `shop_users_accounting` (`" + string.Join("`,`", columns) + "`) VALUES ("
+                    + string.Join(',', Enumerable.Repeat("?", columns.Count)) + ")"),
+                cancellationToken,
+                [.. values]).ConfigureAwait(false);
+
+            var ledgerId = await ErpDb.LastInsertIdAsync(connection, txn, cancellationToken).ConfigureAwait(false);
+
+            if (postGl && ownTxn)
+            {
+                await PostArSettlementAsync(
+                    connection,
+                    txn!,
+                    ledgerId,
+                    amount,
+                    income,
+                    entryKind,
+                    reference,
+                    note,
+                    time,
+                    adminId,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            if (ownTxn)
+            {
+                await created!.CommitAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return ledgerId;
+        }
+        catch
+        {
+            if (ownTxn)
+            {
+                await created!.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            throw;
+        }
+    }
+
+    /// <summary>AR side of a standalone customer settlement: 1100 receivable vs 6100. Failure refuses the write.</summary>
+    private async Task PostArSettlementAsync(
+        DbConnection connection,
+        DbTransaction transaction,
+        long ledgerId,
+        decimal amount,
+        bool income,
+        string entryKind,
+        string reference,
+        string note,
+        long time,
+        int adminId,
+        CancellationToken cancellationToken)
+    {
         var receivable = await CoaIdAsync(connection, "1100", cancellationToken).ConfigureAwait(false);
         var expense = await CoaIdAsync(connection, "6100", cancellationToken).ConfigureAwait(false);
         if (receivable <= 0 || expense <= 0)
         {
-            return ledgerId;
+            throw new ErpWriteException("COA account 1100/6100 is missing; cannot post the AR settlement journal.");
         }
 
         var lines = income
@@ -1197,31 +1251,20 @@ public sealed class ErpCashWriteService : IErpCashWriteService
                 new(expense, 0m, amount, "Customer debit — " + entryKind),
             };
 
-        try
-        {
-            await _gl.PostJournalAsync(
-                connection,
-                new ErpGlJournalHeader
-                {
-                    JournalDate = time,
-                    Reference = reference,
-                    Description = note.Length > 0 ? note : "Customer AR settlement",
-                    SourceType = "adjustment",
-                    SourceId = ledgerId,
-                },
-                lines,
-                adminId,
-                cancellationToken).ConfigureAwait(false);
-        }
-        catch (ErpWriteException)
-        {
-            // PHP swallows settlement GL failures — the ledger row still stands.
-        }
-        catch (DbException)
-        {
-        }
-
-        return ledgerId;
+        await _gl.PostJournalAsync(
+            connection,
+            transaction,
+            new ErpGlJournalHeader
+            {
+                JournalDate = time,
+                Reference = reference,
+                Description = note.Length > 0 ? note : "Customer AR settlement",
+                SourceType = "adjustment",
+                SourceId = ledgerId,
+            },
+            lines,
+            adminId,
+            cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>PHP wraps the advance journals in try/catch as well — the cash entry stands either way.</summary>
@@ -1447,6 +1490,10 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         await ErpDb.TryExecuteAsync(
             connection,
             "ALTER TABLE `epc_erp_supplier_accounting` ADD `entry_kind` varchar(32) NOT NULL DEFAULT 'invoice'",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_supplier_accounting` ADD `gl_journal_id` int(11) NOT NULL DEFAULT 0",
             cancellationToken).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(
             connection,

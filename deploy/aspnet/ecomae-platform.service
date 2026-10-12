@@ -10,6 +10,7 @@ ExecStart=/usr/bin/dotnet /var/www/ecomae-aspnet/current/platform/EcomAE.Platfor
 Restart=always
 RestartSec=5
 EnvironmentFile=/etc/ecomae-aspnet/platform.env
+Environment=ECOMAE_APP_DATA=/var/lib/ecomae-aspnet
 SyslogIdentifier=ecomae-platform
 User=www-data
 Group=www-data
