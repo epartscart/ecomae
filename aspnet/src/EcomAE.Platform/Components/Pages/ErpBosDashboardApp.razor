@@ -34,6 +34,22 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
     <div class="ns-dash" data-dashboard-profile="@_profile.Key" data-epc-industry="@_industryCode"
          data-erp-directory-count="@PhpModuleCatalog.ErpCategories.Count">
+        @if (_isAdmin)
+        {
+            <div class="epc-dash-customize" role="navigation" aria-label="Customize dashboard">
+                <div class="epc-dash-customize__label"><i class="fa fa-sliders"></i> Customize view</div>
+                <div class="epc-dash-customize__roles">
+                    @foreach (var profile in ErpNetsuiteDashboardCatalog.Profiles.Values)
+                    {
+                        <a class="epc-dash-customize__role @(_profile.Key.Equals(profile.Key, StringComparison.OrdinalIgnoreCase) ? "is-active" : null)"
+                           href="@ProfileHref(profile.Key)" title="@profile.Subtitle">
+                            <i class="fa @profile.Icon"></i>
+                            <span>@profile.Label</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
         <div class="ns-hero">
             <div class="ns-hero-panel">
                 <div class="ns-hero-kicker"><i class="fa @_profile.Icon"></i> @_profile.Label</div>
@@ -870,6 +886,12 @@
         return href + sep + "company=" + _activeCompanyId;
     }
 
+    private string ProfileHref(string key)
+    {
+        var href = "/erp/app?dash_profile=" + Uri.EscapeDataString(key);
+        return WithCompany(href);
+    }
+
     private string FitOutHref(string href)
     {
         if (!_fitOut || _activeCompanyId <= 0)
@@ -981,9 +1003,17 @@
         string? requested,
         LegacySessionContext? session = null)
     {
-        _profile = session is null
-            ? ErpNetsuiteDashboardCatalog.Resolve(requested, fullAdmin)
-            : ErpNetsuiteDashboardCatalog.ResolveForSession(session, requested, fullAdmin);
+        if (!string.IsNullOrWhiteSpace(requested)
+            && ErpNetsuiteDashboardCatalog.Profiles.TryGetValue(requested.Trim(), out var picked))
+        {
+            _profile = picked;
+        }
+        else
+        {
+            _profile = session is null
+                ? ErpNetsuiteDashboardCatalog.Resolve(requested, fullAdmin)
+                : ErpNetsuiteDashboardCatalog.ResolveForSession(session, requested, fullAdmin);
+        }
         _showProfitTrend = ErpNetsuiteDashboardCatalog.Can(_profile, "profit");
         BindProfileViews();
     }

@@ -357,6 +357,8 @@ public sealed class SuperCpTenantIsolationTests
         var app = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
         Assert.Contains("ns-dash", app, StringComparison.Ordinal);
         Assert.Contains("ErpIndustryNav", app, StringComparison.Ordinal);
+        Assert.Contains("epc-dash-customize", app, StringComparison.Ordinal);
+        Assert.Contains("dash_profile=", app, StringComparison.Ordinal);
         Assert.DoesNotContain("<PhpSuperErpFleetDashboard", app, StringComparison.Ordinal);
 
         var fleetApp = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpFleetApp.razor"));

@@ -821,11 +821,110 @@
     font-weight: 750 !important;
 }
 
+.epc-dash-customize {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .55rem .75rem;
+    margin: 0 0 1rem;
+    padding: .7rem .85rem;
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .05);
+}
+
+.epc-dash-customize__label {
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.epc-dash-customize__roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+}
+
+.epc-dash-customize__role {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    min-height: 2rem;
+    padding: .3rem .65rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #1e293b;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.epc-dash-customize__role:hover,
+.epc-dash-customize__role.is-active {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff;
+}
+
+.epc-erp-content-body .ns-dash {
+    max-width: 100%;
+}
+
+.epc-erp-content-body .ns-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: stretch;
+    margin: 0 0 1rem;
+}
+
+.epc-erp-content-body .ns-hero-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .65rem;
+}
+
+.epc-erp-content-body .ns-metric3d,
+.epc-erp-content-body .ns-tile,
+.epc-erp-content-body .ns-port,
+.epc-erp-content-body .epc-infographic {
+    border: 1px solid var(--epc-ui-line);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 35, 60, .05);
+}
+
+.epc-erp-content-body .ns-tiles,
+.epc-erp-content-body .ns-qa-grid,
+.epc-erp-content-body .ns-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+    gap: .65rem;
+}
+
+.epc-erp-content-body .ns-tile,
+.epc-erp-content-body .ns-qa {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .4rem;
+    min-height: 5.5rem;
+    padding: .85rem .9rem;
+    text-decoration: none;
+}
+
 @media (max-width: 720px) {
     .epc-erp-content-body form:not([data-epc-inline="1"]),
     .epc-cp-content-inner form:not([data-epc-inline="1"]),
     .epc-erp-doc-header,
-    .epc-erp-content-body .epc-fno-form {
+    .epc-erp-content-body .epc-fno-form,
+    .epc-erp-content-body .ns-hero,
+    .epc-erp-content-body .ns-hero-metrics {
         grid-template-columns: 1fr !important;
     }
 }
