@@ -134,4 +134,9 @@ if [[ -f scripts/cloudpanel_onboard_four_erp_only.sh ]]; then
   ECOMAE_CONFIRM_ONBOARD_ERP_ONLY=YES bash scripts/cloudpanel_onboard_four_erp_only.sh \
     || printf 'WARN onboard_four_erp_only failed — create ASAP/INDJ/FITO/REAL from /cp after Super CP login\n'
 fi
+if [[ -f scripts/cloudpanel_prune_aspnet_releases.sh ]]; then
+  printf 'PRUNE_ASPNET_RELEASES keep=3 (never current, never PHP)...\n'
+  bash scripts/cloudpanel_prune_aspnet_releases.sh \
+    || printf 'WARN prune_aspnet_releases failed — disk cleanup skipped\n'
+fi
 printf 'RESULT=PASS GATED_DEPLOY_MAIN SHA=%s\n' "$SHA"
