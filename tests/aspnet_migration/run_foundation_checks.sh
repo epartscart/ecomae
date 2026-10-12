@@ -463,7 +463,7 @@ check 'catalog allowlist sync mirrors live surface probe' contains "$ROOT/script
 check 'catalog allowlist sync mirrors decommission area tests' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'run_php_decommission_area_tests.sh'
 check 'catalog allowlist sync mirrors pre-php-removal parity' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'verify_pre_php_removal_parity.sh'
 check 'presentation exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json"
-check 'presentation exact-route inventory routeCount is 417' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 417'
+check 'presentation exact-route inventory routeCount is 418' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 418'
 check 'presentation exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"cutoverAllowed": false'
 check 'presentation allowlist sync mirrors inventory' contains "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py" 'presentation-exact-routes.json'
 check 'live surface probe references presentation inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'presentation/presentation-exact-routes.json'
@@ -640,7 +640,7 @@ check 'surface-field board blocks PHP removal' contains "$ROOT/docs/migration/ev
 check 'platform.env.example documents dual-sample operator helper' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_hybrid_ui_dual_sample_operator.sh'
 check 'platform.env.example documents offline migration gate' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_offline_migration_gate.sh'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
-check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 417'
+check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 418'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"
 check 'YARP exact-routes design example exists' test -f "$ROOT/deploy/aspnet/yarp-exact-routes-example.json"
 check 'YARP design example blocks cutover' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"cutoverAllowed": false'
@@ -1159,7 +1159,7 @@ check 'storefront digest smoke covers checkout' contains "$ROOT/tests/live_smoke
 check 'digest compare locks storefront-checkout php_steps' contains "$ROOT/scripts/compare_digest_dual_samples.py" '"storefront-checkout":'
 check 'digest live-sample gap reporter exists' test -f "$ROOT/scripts/report_digest_live_sample_gaps.py"
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
-check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+sf+bos fleet family routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 417'
+check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+sf+bos fleet family routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 418'
 check 'tenant chrome probe rejects erp cash-entries-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'ErpCashEntriesApp'
 check 'presentation nginx includes /erp/cash-entries-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /erp/cash-entries-app'
 check 'erp cash-entries-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpCashEntriesApp'
