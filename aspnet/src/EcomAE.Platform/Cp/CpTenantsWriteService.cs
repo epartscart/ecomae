@@ -112,6 +112,13 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
         return IsAllowedIndustry(code) ? code : "auto_parts";
     }
 
+    /// <summary>ERP-only operator login is always the four-letter company key at ecomae.com.</summary>
+    public static string OperatorEmailFor(string? siteKey)
+    {
+        var key = NormalizeSiteKey(siteKey);
+        return key.Length == 0 ? string.Empty : key + "@ecomae.com";
+    }
+
     public async Task<ErpSimpleWriteResult> SetActiveAsync(
         CpTenantsSetActiveRequest request,
         CancellationToken cancellationToken = default)
@@ -177,10 +184,11 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
         }
 
         var industry = NormalizeIndustry(request.IndustryCode);
-        var email = (request.AdminEmail ?? string.Empty).Trim().ToLowerInvariant();
-        if (!EmailSafe.IsMatch(email))
+        var email = OperatorEmailFor(siteKey);
+        var supplied = (request.AdminEmail ?? string.Empty).Trim().ToLowerInvariant();
+        if (EmailSafe.IsMatch(supplied) && supplied.EndsWith("@ecomae.com", StringComparison.Ordinal))
         {
-            return ErpSimpleWriteResult.Fail("invalid", "A valid operator login email is required.");
+            email = supplied;
         }
 
         if (!_connections.IsConfigured)

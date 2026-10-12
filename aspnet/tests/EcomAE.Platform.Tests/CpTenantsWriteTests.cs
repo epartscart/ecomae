@@ -37,6 +37,9 @@ public sealed class CpTenantsWriteTests
         Assert.Contains("name=\"site_key\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"confirm_site_key\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"industry_code\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"fit_out\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"real_estate\"", razor, StringComparison.Ordinal);
+        Assert.Contains("@ecomae.com", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
@@ -66,8 +69,12 @@ public sealed class CpTenantsWriteTests
         Assert.False(CpTenantsWriteService.IsProtectedSiteKey("asapcustom"));
         Assert.True(CpTenantsWriteService.IsAllowedIndustry("jewellery"));
         Assert.True(CpTenantsWriteService.IsAllowedIndustry("auto_parts"));
+        Assert.True(CpTenantsWriteService.IsAllowedIndustry("fit_out"));
+        Assert.True(CpTenantsWriteService.IsAllowedIndustry("real_estate"));
         Assert.False(CpTenantsWriteService.IsAllowedIndustry("platform_host"));
         Assert.Equal("jewellery", CpTenantsWriteService.NormalizeIndustry("jewellery"));
+        Assert.Equal("fito@ecomae.com", CpTenantsWriteService.OperatorEmailFor("FITO"));
+        Assert.Equal("real@ecomae.com", CpTenantsWriteService.OperatorEmailFor("real"));
         Assert.False(CpTenantsWriteService.IsDroppableDatabase("ecomae"));
         Assert.True(CpTenantsWriteService.IsDroppableDatabase("asap"));
     }

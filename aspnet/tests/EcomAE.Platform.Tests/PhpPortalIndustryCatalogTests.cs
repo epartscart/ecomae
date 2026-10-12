@@ -14,6 +14,8 @@ public sealed class PhpPortalIndustryCatalogTests
     [InlineData("fashion", "Fashion & apparel", "fa-shopping-bag")]
     [InlineData("jewellery", "Jewellery & luxury goods", "fa-diamond")]
     [InlineData("construction_contracting", "Construction & contracting", "fa-building")]
+    [InlineData("fit_out", "Interior fit-out", "fa-wrench")]
+    [InlineData("real_estate", "Real estate — investment, construction & development", "fa-building")]
     public void Php_rows_keep_their_name_and_icon(string code, string name, string icon)
     {
         Assert.Equal(name, PhpPortalIndustryCatalog.LabelFor(code));

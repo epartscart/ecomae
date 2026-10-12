@@ -69,33 +69,49 @@
             <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1.1rem 1.15rem">
                 <h3 style="margin:0 0 .45rem;font-size:1.05rem">Onboard ERP-only company (no website)</h3>
                 <p class="help-block" style="margin:0 0 .75rem">
-                    Use a short site key such as <code>asap</code> (auto parts) or <code>indj</code> (jewellery).
-                    Staff open <code>/cp/client-erp/{site_key}/</code> — there is no public storefront.
+                    Four-letter company key: <code>asap</code>, <code>indj</code>, <code>fito</code>, <code>real</code>.
+                    Operator login is always <code>xxxx@@ecomae.com</code> from that key. Super CP can reset the password on this page at any time.
+                    Staff open <code>/cp/client-erp/xxxx/</code> — no public storefront.
                 </p>
-                <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:end">
+                <form method="post" action="/cp/tenants/write" id="epc-erp-only-onboard" style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:end">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
                     <input type="hidden" name="action" value="onboard_erp_only" />
                     <label>Site key
-                        <input type="text" name="site_key" required maxlength="32" placeholder="asap" autocomplete="off" />
+                        <input type="text" name="site_key" id="epc-erp-only-key" required maxlength="32" placeholder="fito" autocomplete="off" />
                     </label>
                     <label>Company name
-                        <input type="text" name="trade_name" required maxlength="120" placeholder="ASAP Autoparts" />
+                        <input type="text" name="trade_name" required maxlength="120" placeholder="FITO Fit-out" />
                     </label>
                     <label>Industry
                         <select name="industry_code">
                             <option value="auto_parts">Auto spare parts</option>
                             <option value="jewellery">Jewellery &amp; luxury</option>
+                            <option value="fit_out">Interior fit-out</option>
+                            <option value="real_estate">Real estate (investment, construction, developer)</option>
+                            <option value="construction_contracting">Construction &amp; contracting</option>
                             <option value="erp_standalone">ERP standalone</option>
                             <option value="tax_advisory">Tax &amp; advisory</option>
-                            <option value="construction_contracting">Construction</option>
                         </select>
                     </label>
                     <label>Operator email
-                        <input type="email" name="admin_email" required placeholder="accounts@client.example" />
+                        <input type="email" name="admin_email" id="epc-erp-only-email" required placeholder="fito@@ecomae.com" />
                     </label>
                     <button type="submit" class="btn btn-primary">Create ERP-only tenant</button>
                 </form>
+                <script>
+                (function () {
+                    var key = document.getElementById('epc-erp-only-key');
+                    var email = document.getElementById('epc-erp-only-email');
+                    if (!key || !email) { return; }
+                    function sync() {
+                        var k = (key.value || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+                        if (k) { email.value = k + '@@ecomae.com'; }
+                    }
+                    key.addEventListener('input', sync);
+                    sync();
+                })();
+                </script>
             </div>
             <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1rem">
                 <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
