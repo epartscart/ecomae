@@ -197,3 +197,9 @@ print(f"RESULT=PASS ONBOARD_FOUR_ERP_ONLY created={created} existed={existed}")
 print("Copy temp_password now. This script does not invent a send.")
 print("Open https://www.ecomae.com/cp/tenants-app — Super CP can reset any password.")
 PY
+
+if [[ -f scripts/cloudpanel_grant_erp_only_shop_dbs.sh ]]; then
+  printf 'GRANT_ERP_ONLY_SHOP_DBS after onboard (CREATE + registry GRANT)...\n'
+  ECOMAE_CONFIRM_GRANT_ERP_ONLY=YES bash scripts/cloudpanel_grant_erp_only_shop_dbs.sh \
+    || printf 'WARN grant_erp_only_shop_dbs failed — Super CP password reset needs CloudPanel CREATE/GRANT on asap/indj/fito/real\n'
+fi

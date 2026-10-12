@@ -128,6 +128,12 @@ public sealed class CpTenantsWriteTests
         Assert.False(CpTenantsWriteService.IsUsableOperatorPassword("short"));
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.Contains("EnsureShopAsync", service, StringComparison.Ordinal);
+        var grant = File.ReadAllText(Path.Combine(FindRepoRoot(), "scripts/cloudpanel_grant_erp_only_shop_dbs.sh"));
+        Assert.Contains("GRANT_ERP_ONLY_SHOP_DBS", grant, StringComparison.Ordinal);
+        Assert.Contains("Does not remap TenantRegistry to PHP", grant, StringComparison.Ordinal);
+        Assert.Contains("indj", grant, StringComparison.Ordinal);
+        var onboard = File.ReadAllText(Path.Combine(FindRepoRoot(), "scripts/cloudpanel_onboard_four_erp_only.sh"));
+        Assert.Contains("cloudpanel_grant_erp_only_shop_dbs.sh", onboard, StringComparison.Ordinal);
         var bootstrap = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/ErpOnlyShopBootstrap.cs"));
         Assert.Contains("CREATE TABLE IF NOT EXISTS `users`", bootstrap, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `sessions`", bootstrap, StringComparison.Ordinal);
