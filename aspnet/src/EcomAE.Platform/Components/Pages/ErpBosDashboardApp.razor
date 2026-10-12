@@ -697,6 +697,13 @@
             </div>
         </div>
     }
+    <div class="epc-dash-repeat" data-epc-catalog-areas="1">
+        <PhpHybridModuleDirectory
+            Title="Workspaces"
+            Subtitle="@($"{PhpModuleCatalog.ErpAreaCount} ERP areas")"
+            Links="@PhpModuleCatalog.ErpAreas"
+            PhpWorkspaceBase="/erp/app" />
+    </div>
     <PhpHybridModuleDirectory
         Title="All modules"
         Subtitle="@($"{_directoryTabs.Count} ERP modules")"

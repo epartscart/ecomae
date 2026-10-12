@@ -164,8 +164,9 @@ public sealed class CpErpChromeDashboardParityTests
 
         var dash = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
         Assert.Contains("epc-dash-repeat", dash, StringComparison.Ordinal);
+        Assert.Contains("data-epc-catalog-areas", dash, StringComparison.Ordinal);
+        Assert.Contains("PhpModuleCatalog.ErpAreas", dash, StringComparison.Ordinal);
         Assert.Contains("Title=\"All modules\"", dash, StringComparison.Ordinal);
-        Assert.DoesNotContain("Title=\"Workspaces\"", dash, StringComparison.Ordinal);
         Assert.DoesNotContain("Data scope:", dash, StringComparison.Ordinal);
 
         Assert.Contains("color: #0f172a !important", css, StringComparison.Ordinal);
