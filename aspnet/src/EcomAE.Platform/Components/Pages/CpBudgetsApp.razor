@@ -523,8 +523,10 @@
         _dimensions = masters.Dimensions.Where(row => row.Active).ToList();
         _organizationRows = masters.LegalEntities.Select(r => ("Legal entity", r))
             .Concat(masters.BusinessUnits.Select(r => ("Business unit", r)))
+            .Concat(masters.ClassUnits.Select(r => ("Class unit", r)))
             .Concat(masters.Dimensions.Select(r => ("Dimension", r)))
             .Concat(masters.DimensionValues.Select(r => ("Dimension value", r)))
+            .Concat(masters.CostCentres.Select(r => ("Cost centre", r)))
             .ToList();
 
         if (_openedId > 0)

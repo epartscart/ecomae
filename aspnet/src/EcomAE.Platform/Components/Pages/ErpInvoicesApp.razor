@@ -7,6 +7,7 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Erp
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -29,6 +30,18 @@
         · <a href="/erp/receivables-app">Receivables</a>
         · <a href="/erp/delivery-notes-app">Delivery notes</a>
     </p>
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="New invoice from sales order">
+            <form method="post" action="@EcomAeRoutes.ErpAjaxSoToInvoice" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/invoices-app" />
+                <ErpVoucherHeaderFields DateLabel="Invoice date" DateFieldName="invoice_date" NumberLabel="Invoice no" NumberPreview="Auto" />
+                <label>Sales order id <input class="form-control input-sm" type="number" name="id" min="1" required /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Validate &amp; post invoice</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
     <form method="get" action="/erp/invoices-app" class="form-inline" style="margin-bottom:10px;">
         <label>Show</label>
         <select name="f_status" class="form-control input-sm" onchange="this.form.submit()">

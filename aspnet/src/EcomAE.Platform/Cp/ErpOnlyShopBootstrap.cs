@@ -247,6 +247,7 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
             await ErpIndustryApplyWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await ErpDb.TryExecuteAsync(connection, CreateCompanySettingsSql, cancellationToken).ConfigureAwait(false);
             await ErpLazySchema.EnsureCompanyContextAsync(connection, cancellationToken).ConfigureAwait(false);
+            await ErpLazySchema.EnsureTenantOrganizationAsync(connection, cancellationToken).ConfigureAwait(false);
 
             await ErpDb.ExecuteAsync(
                 connection,

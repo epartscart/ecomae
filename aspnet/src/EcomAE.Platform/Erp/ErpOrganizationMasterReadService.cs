@@ -17,6 +17,8 @@ public sealed record ErpOrganizationMasterSnapshot(
     IReadOnlyList<ErpOrganizationMasterRow> BusinessUnits,
     IReadOnlyList<ErpOrganizationMasterRow> Dimensions,
     IReadOnlyList<ErpOrganizationMasterRow> DimensionValues,
+    IReadOnlyList<ErpOrganizationMasterRow> ClassUnits,
+    IReadOnlyList<ErpOrganizationMasterRow> CostCentres,
     string Source,
     string Message);
 
@@ -46,15 +48,18 @@ public sealed class ErpOrganizationMasterReadService : IErpOrganizationMasterRea
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureTenantOrganizationAsync(connection, cancellationToken).ConfigureAwait(false);
         var entities = await ReadAsync(connection, "epc_erp_pm_legal_entities", "0", "0", cancellationToken, limit).ConfigureAwait(false);
         var units = await ReadAsync(connection, "epc_erp_pm_business_units", "legal_entity_id", "parent_id", cancellationToken, limit).ConfigureAwait(false);
         var dimensions = await ReadAsync(connection, "epc_erp_pm_dimensions", "0", "0", cancellationToken, limit).ConfigureAwait(false);
         var values = await ReadAsync(connection, "epc_erp_pm_dimension_values", "dimension_id", "0", cancellationToken, limit).ConfigureAwait(false);
-        return new(entities, units, dimensions, values, "database", string.Empty);
+        var classes = await ReadAsync(connection, "epc_erp_pm_class_units", "0", "0", cancellationToken, limit).ConfigureAwait(false);
+        var centres = await ReadAsync(connection, "epc_cc_centers", "0", "0", cancellationToken, limit).ConfigureAwait(false);
+        return new(entities, units, dimensions, values, classes, centres, "database", string.Empty);
     }
 
     private static ErpOrganizationMasterSnapshot Empty(string message)
-        => new([], [], [], [], "migration", message);
+        => new([], [], [], [], [], [], "migration", message);
 
     private static async Task<IReadOnlyList<ErpOrganizationMasterRow>> ReadAsync(
         DbConnection connection,

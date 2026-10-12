@@ -72,6 +72,9 @@
                 <p class="text-muted" style="font-size:12px;margin:0 0 .8rem;">Customer receipt, advance receipt, or invoice settlement. Posted vouchers receive an RV sequence and remain auditable.</p>
                 <form method="post" action="@EcomAeRoutes.ErpCashEntriesReceiptVoucher" class="epc-fno-form">
                     <input type="hidden" name="confirmWrites" value="true" />
+                    <div class="field wide" style="display:flex;flex-wrap:wrap;gap:.65rem;align-items:end">
+                        <ErpVoucherHeaderFields DateLabel="Receipt date" NumberLabel="Receipt no" NumberPreview="Auto" />
+                    </div>
                     <div class="field"><label for="rv_user_id">Customer user id *</label><input id="rv_user_id" type="number" name="user_id" min="1" required /></div>
                     <div class="field"><label for="rv_account_id">Receipt bank/cash account *</label><input id="rv_account_id" type="number" name="account_id" min="1" required /></div>
                     <div class="field"><label for="rv_amount">Amount *</label><input id="rv_amount" type="number" name="amount" min="0.01" step="0.01" required /></div>
@@ -98,6 +101,9 @@
                 <p class="text-muted" style="font-size:12px;margin:0 0 .8rem;">Supplier payment, advance payment, or bill settlement. Posted vouchers receive a PV sequence and remain auditable.</p>
                 <form method="post" action="@EcomAeRoutes.ErpCashEntriesPaymentVoucher" class="epc-fno-form">
                     <input type="hidden" name="confirmWrites" value="true" />
+                    <div class="field wide" style="display:flex;flex-wrap:wrap;gap:.65rem;align-items:end">
+                        <ErpVoucherHeaderFields DateLabel="Payment date" NumberLabel="Payment no" NumberPreview="Auto" />
+                    </div>
                     <div class="field"><label for="pv_supplier_id">Supplier id *</label><input id="pv_supplier_id" type="number" name="supplier_id" min="1" required /></div>
                     <div class="field"><label for="pv_account_id">Payment bank/cash account *</label><input id="pv_account_id" type="number" name="account_id" min="1" required /></div>
                     <div class="field"><label for="pv_amount">Amount *</label><input id="pv_amount" type="number" name="amount" min="0.01" step="0.01" required /></div>
@@ -122,6 +128,9 @@
                 <h4 style="margin:0 0 .25rem;color:#1d2740;"><i class="fa fa-pencil"></i> Generic cash entry</h4>
                 <form method="post" action="@EcomAeRoutes.ErpCashEntriesCreate" class="epc-fno-form">
                     <input type="hidden" name="confirmWrites" value="true" />
+                    <div class="field wide" style="display:flex;flex-wrap:wrap;gap:.65rem;align-items:end">
+                        <ErpVoucherHeaderFields DateLabel="Entry date" NumberLabel="Voucher no" NumberPreview="Auto" />
+                    </div>
                     <div class="field"><label for="ce_account_id">Account *</label><input id="ce_account_id" type="number" name="account_id" min="1" required /></div>
                     <div class="field"><label for="ce_amount">Amount *</label><input id="ce_amount" type="number" name="amount" min="0.01" step="0.01" required /></div>
                     <div class="field"><label for="ce_direction">Direction</label><select id="ce_direction" name="direction"><option value="in">Receipt / in</option><option value="out">Payment / out</option></select></div>

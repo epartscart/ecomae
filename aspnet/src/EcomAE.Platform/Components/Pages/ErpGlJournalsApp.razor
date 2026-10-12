@@ -37,6 +37,7 @@
                 <input type="hidden" name="journalDate" value="@JournalDate" data-unix-date />
                 <div style="display:flex;flex-wrap:wrap;gap:.65rem;align-items:end">
                     <label>Journal date <input type="datetime-local" value="@JournalDateInput" data-date-input required /></label>
+                    <ErpVoucherHeaderFields DateFieldName="voc_date" DateRequired="false" NumberLabel="Journal no" NumberPreview="Auto" />
                     <label>Reference <input type="text" name="reference" required maxlength="80" /></label>
                     <label>Description <input type="text" name="description" required maxlength="255" /></label>
                 </div>
@@ -67,6 +68,7 @@
             <input type="hidden" name="returnUrl" value="/erp/gl-journals-app?tab=jw_journal_voucher" />
             <input type="hidden" name="action" value="jw_journal_voucher_save" />
             <input type="hidden" name="voc_type" value="JVL" />
+            <ErpVoucherHeaderFields NumberPreview="Auto" />
             <label>Description <input type="text" name="party_name" required /></label>
             <label>Amount <input type="text" name="net_amount" value="0" style="width:6rem" /></label>
             <button type="submit" class="btn btn-xs btn-primary">Save journal voucher</button>

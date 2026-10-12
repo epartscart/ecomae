@@ -791,6 +791,8 @@ internal static class ErpLazySchema
     /// </summary>
     public static async Task EnsureCompanyContextAsync(DbConnection c, CancellationToken ct)
     {
+        try
+        {
         await ErpDb.TryExecuteAsync(c,
             "CREATE TABLE IF NOT EXISTS `epc_erp_pm_legal_entities` (" +
             "`id` int(11) NOT NULL AUTO_INCREMENT," +
@@ -941,6 +943,59 @@ internal static class ErpLazySchema
                 await ErpDb.TryExecuteAsync(c, "SELECT RELEASE_LOCK('epc_erp_pm_legal_entities_main')", ct).ConfigureAwait(false);
             }
         }
+        }
+        finally
+        {
+            await EnsureTenantOrganizationAsync(c, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// PHP-parity org backbone for every tenant shop: legal entity (MAIN), HQ business unit,
+    /// class unit, financial dimensions, and cost centres. Idempotent — empty tables only.
+    /// </summary>
+    public static async Task EnsureTenantOrganizationAsync(DbConnection c, CancellationToken ct)
+    {
+        await EnsurePmMastersAsync(c, ct).ConfigureAwait(false);
+        await EnsureCostCentersAsync(c, ct).ConfigureAwait(false);
+        await SeedDefaultHqOrganizationAsync(c, ct).ConfigureAwait(false);
+    }
+
+    private static async Task SeedDefaultHqOrganizationAsync(DbConnection c, CancellationToken ct)
+    {
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        long legalEntityId = 0;
+        try
+        {
+            legalEntityId = await ErpDb.LongAsync(
+                c,
+                null,
+                "SELECT MIN(`id`) FROM `epc_erp_pm_legal_entities` WHERE `active`=1",
+                ct).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            legalEntityId = 0;
+        }
+
+        if (legalEntityId > 0)
+        {
+            await SeedIfEmptyAsync(c, ct, "epc_erp_pm_business_units",
+                "(`code`,`name`,`legal_entity_id`,`parent_id`,`manager`,`note`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,0,'','Default HQ',1,@p3,@p3)",
+                new object?[][]
+                {
+                    new object?[] { "HQ", "Head office", legalEntityId, now },
+                }).ConfigureAwait(false);
+        }
+
+        await SeedIfEmptyAsync(c, ct, "epc_cc_centers",
+            "(`code`,`name`,`branch_id`,`active`,`time_created`) VALUES (@p0,@p1,0,1,@p2)",
+            new object?[][]
+            {
+                new object?[] { "CC-ADMIN", "Administration", now },
+                new object?[] { "CC-SALES", "Sales & marketing", now },
+                new object?[] { "CC-OPS", "Operations", now },
+            }).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -1103,6 +1158,12 @@ internal static class ErpLazySchema
                 new object?[] { "RETAIL", "Retail customers", 0, now },
                 new object?[] { "WHOLESALE", "Wholesale / B2B", 0, now },
                 new object?[] { "VIP", "Key accounts", 0, now },
+            }).ConfigureAwait(false);
+        await SeedIfEmptyAsync(c, ct, "epc_erp_pm_class_units",
+            "(`code`,`name`,`class_type`,`note`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,'',1,@p3,@p3)",
+            new object?[][]
+            {
+                new object?[] { "DIV-MAIN", "Main division", "division", now },
             }).ConfigureAwait(false);
         await SeedIfEmptyAsync(c, ct, "epc_erp_pm_dimensions",
             "(`code`,`name`,`dim_type`,`note`,`active`,`time_created`,`time_updated`) VALUES (@p0,@p1,@p2,'',1,@p3,@p3)",

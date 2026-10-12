@@ -142,6 +142,10 @@
         <span class="epc-erp-company-fallback" title="@_message">No companies loaded</span>
     }
 
+    <a class="epc-erp-shell-link" href="/erp/organization-app" title="Legal entity, business unit, cost centre, financial dimensions">
+        <i class="fa fa-sitemap" aria-hidden="true"></i> Organization
+    </a>
+
     @if (Variant.Equals("Panel", StringComparison.OrdinalIgnoreCase) && PlatformHostPolicy.IsSuperCpHost(_ctx.Host))
     {
         <a class="epc-erp-shell-link" href="/erp/fleet-app" title="Operator fleet ERP view">

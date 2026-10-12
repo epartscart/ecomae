@@ -1295,11 +1295,19 @@ public sealed class ErpModule : ISurfaceModule
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required.");
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                body = new ErpSoToInvoiceBody(
+                    LiveWriteFormBinder.Long(form, "id", "sales_order_id", "salesOrderId"),
+                    LiveWriteFormBinder.Text(form, "code"),
+                    LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"));
+            }
             body ??= new(0,null,false);
             if (!body.ConfirmWrites)
                 return Results.Ok(dryRun.Evaluate(new ErpSoToInvoiceRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
 
-            return await ExecuteErpWriteAsync(session, async () =>
+            return await ExecuteErpWriteAsync(context, session, "/erp/invoices-app", async () =>
             {
                 var invoice = await writes.ConvertSalesOrderAsync(body.Id, session.UserId, cancellationToken);
                 return ("Sales order converted to tax invoice", new
@@ -2245,7 +2253,8 @@ public sealed class ErpModule : ISurfaceModule
                     LiveWriteFormBinder.Long(form, "order_id", "orderId"),
                     LiveWriteFormBinder.Flag(form, "auto_allocate", "autoAllocate"),
                     LiveWriteFormBinder.ParallelLongs(form, "alloc_invoice_id[]", "alloc_invoice_id", "allocInvoiceId"),
-                    LiveWriteFormBinder.ParallelDecimals(form, "alloc_amount[]", "alloc_amount", "allocAmount"));
+                    LiveWriteFormBinder.ParallelDecimals(form, "alloc_amount[]", "alloc_amount", "allocAmount"),
+                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"));
             }
             else
             {
@@ -2322,7 +2331,8 @@ public sealed class ErpModule : ISurfaceModule
                     form.ContainsKey("is_advance") && LiveWriteFormBinder.Flag(form, "is_advance", "isAdvance"),
                     LiveWriteFormBinder.Flag(form, "auto_allocate", "autoAllocate"),
                     LiveWriteFormBinder.ParallelLongs(form, "alloc_invoice_id[]", "alloc_invoice_id", "allocInvoiceId"),
-                    LiveWriteFormBinder.ParallelDecimals(form, "alloc_amount[]", "alloc_amount", "allocAmount"));
+                    LiveWriteFormBinder.ParallelDecimals(form, "alloc_amount[]", "alloc_amount", "allocAmount"),
+                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"));
             }
             else
             {

@@ -362,6 +362,9 @@
         <div class="panel panel-default" id="erp-module-new">
             <div class="panel-heading"><strong>New sales order</strong> <span class="text-muted">SO number, VAT and totals follow the tenant jurisdiction kit.</span></div>
             <div class="panel-body">
+                <div class="row" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:.65rem;align-items:end;padding:0 15px;">
+                    <ErpVoucherHeaderFields DateLabel="Order date" DateFieldName="order_date" NumberLabel="Sales order no" NumberPreview="Auto" />
+                </div>
                 <div class="row">
                     <div class="col-sm-2"><label for="so-customer">Customer user id</label><input id="so-customer" class="form-control" type="number" min="1" step="1" /></div>
                     <div class="col-sm-4"><label for="so-title">Title</label><input id="so-title" class="form-control" type="text" maxlength="255" /></div>

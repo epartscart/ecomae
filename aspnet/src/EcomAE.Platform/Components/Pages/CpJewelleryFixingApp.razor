@@ -110,7 +110,7 @@
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
                 <label>Branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
-                <label>Voucher date <input class="form-control input-sm" name="voc_date" type="date" /></label>
+                <ErpVoucherHeaderFields NumberPreview="Auto" />
                 <label>Party Code <input class="form-control input-sm" name="party_code" /></label>
                 <label>Party Name <input class="form-control input-sm" name="party_name" required /></label>
                 <label>Currency <input class="form-control input-sm" name="currency" value="AED" maxlength="5" /></label>
@@ -155,6 +155,7 @@
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
+                <ErpVoucherHeaderFields DateFieldName="voc_date" NumberPreview="Auto" />
                 <label>Supplier <input class="form-control input-sm" name="supplier_name" required placeholder="Al Fahim" /></label>
                 <label>Structure
                     <select class="form-control input-sm" name="structure_type">
