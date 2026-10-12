@@ -3900,9 +3900,10 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("DescriptionExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("same-pair siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Revaluation stays Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("Set FX rate and post IAS-21 revaluation here", razor, StringComparison.Ordinal);
         Assert.Contains("/erp/multi-currency-gl/set-rate", razor, StringComparison.Ordinal);
         Assert.Contains("/erp/currency/set-rate", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/fx-post-revaluation", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);

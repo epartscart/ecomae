@@ -3010,6 +3010,8 @@ public static class EcomAeRoutes
     public const string ErpFinPeriodsGenerate = "/erp/fin/periods/generate";
     /// <summary>HTML form POST for PHP bank_reconcile. confirmWrites=true writes via IErpBankReconcileWriteService.</summary>
     public const string ErpBankReconcile = "/erp/bank-reconciliation/match";
+    /// <summary>HTML form POST for PHP bank_import. confirmWrites=true writes via IErpBankImportWriteService.</summary>
+    public const string ErpBankImport = "/erp/bank-reconciliation/import";
     /// <summary>HTML form POST for PHP automation_deactivate. confirmWrites=true writes via IErpAutomationDeactivateWriteService.</summary>
     public const string ErpAutomationDeactivate = "/erp/automation/deactivate";
     /// <summary>HTML form POST for PHP bplan_advance. confirmWrites=true writes via IErpBplanAdvanceWriteService.</summary>

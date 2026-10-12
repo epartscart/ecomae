@@ -11,10 +11,13 @@ public sealed class ErpBankReconcilePhpParityTests
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBankReconciliationApp.razor"));
         Assert.Contains("/erp/bank-reconciliation/match", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/bank-reconciliation/import", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"line_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"entry_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"csv_text\"", text, StringComparison.Ordinal);
         Assert.Contains("Match statement line", text, StringComparison.Ordinal);
+        Assert.Contains("Import statement CSV", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
     }
@@ -36,6 +39,8 @@ public sealed class ErpBankReconcilePhpParityTests
         Assert.DoesNotContain("PHP remains authoritative", row.Notes, StringComparison.Ordinal);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(item =>
             item.AspNetRouteOrCapability == "/erp/ajax/bank-reconcile").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(item =>
+            item.AspNetRouteOrCapability == "/erp/bank-reconciliation/import").Status);
     }
 
     [Fact]
@@ -55,7 +60,9 @@ public sealed class ErpBankReconcilePhpParityTests
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
         Assert.Contains("EcomAeRoutes.ErpBankReconcile", text, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.ErpBankImport", text, StringComparison.Ordinal);
         Assert.Contains("HandleBankReconcileAsync", text, StringComparison.Ordinal);
+        Assert.Contains("HandleBankImportAsync", text, StringComparison.Ordinal);
         var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpBankReconcileWriteService.cs"));
         Assert.Contains("Bank line matched to cash entry", service, StringComparison.Ordinal);
         Assert.Contains("Invalid match", service, StringComparison.Ordinal);

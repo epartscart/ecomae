@@ -445,6 +445,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpRecruitmentApplicantStage, HandleHrtApplicantStageAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFinPeriodsGenerate, HandleFinPeriodsGenerateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpBankReconcile, HandleBankReconcileAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpBankImport, HandleBankImportAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAutomationDeactivate, HandleAutomationDeactivateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpBplanAdvance, HandleBplanAdvanceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpEditLockRelease, HandleEditLockReleaseAsync).DisableAntiforgery();
@@ -5148,56 +5149,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAmlKycSave, HandleAmlKycSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAmlAlertStatus, HandleAmlAlertStatusAjaxAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAmlSettingsSave, HandleAmlSettingsSaveAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxBankImport, async (
-            HttpContext context,
-            ILegacySessionValidator validator,
-            IErpBankImportDryRun dryRun,
-            IErpBankImportWriteService writes,
-            CancellationToken cancellationToken) =>
-        {
-            var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-            {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login", "Admin ERP capability required.");
-            }
-
-            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBankImportBody>(context, cancellationToken) ?? new();
-            var accountId = body.AccountId;
-            var csvText = body.CsvText;
-            var confirm = body.ConfirmWrites;
-            if (context.Request.HasFormContentType)
-            {
-                var form = await context.Request.ReadFormAsync(cancellationToken);
-                accountId = LiveWriteFormBinder.Long(form, "accountId", "account_id");
-                csvText = LiveWriteFormBinder.Text(form, "csvText", "csv_text");
-                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
-            }
-
-            if (!confirm)
-            {
-                return Results.Ok(dryRun.Evaluate(new ErpBankImportRequest(accountId, csvText, false)).ToPayload(SessionPayload(session)));
-            }
-
-            var written = await writes.ImportAsync(
-                new ErpBankImportWriteRequest(accountId, csvText, session.UserId),
-                cancellationToken);
-            return LiveWriteFormBinder.Complete(
-                context,
-                "/erp/bank-reconciliation",
-                written.Succeeded,
-                written.Message,
-                new
-                {
-                    ok = written.Succeeded,
-                    writes = written.Writes,
-                    phpAuthoritative = true,
-                    validation_code = written.Code,
-                    message = written.Message,
-                    imported = written.Writes,
-                    first_line_id = written.Id,
-                    session = SessionPayload(session)
-                });
-        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxBankImport, HandleBankImportAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBankReconcile, HandleBankReconcileAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFxPostRevaluation, async (HttpContext context, ILegacySessionValidator validator, IErpFxPostRevaluationDryRun dryRun, IErpFxRevaluationWriteService writes, CancellationToken cancellationToken) =>
         {
@@ -24926,6 +24878,57 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleBankImportAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpBankImportDryRun dryRun,
+        IErpBankImportWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/bank-reconciliation-app", "Admin ERP capability required for bank statement import.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBankImportBody>(context, cancellationToken) ?? new();
+        var accountId = body.AccountId;
+        var csvText = body.CsvText;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            accountId = LiveWriteFormBinder.Long(form, "accountId", "account_id");
+            csvText = LiveWriteFormBinder.Text(form, "csvText", "csv_text");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpBankImportRequest(accountId, csvText, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.ImportAsync(
+            new ErpBankImportWriteRequest(accountId, csvText, session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/bank-reconciliation-app",
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                imported = written.Writes,
+                first_line_id = written.Id,
+                session = SessionPayload(session)
+            });
     }
 
     private static async Task<IResult> HandleBankReconcileAsync(
