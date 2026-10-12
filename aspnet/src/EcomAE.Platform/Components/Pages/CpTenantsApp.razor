@@ -50,7 +50,10 @@
             </div>
         </div>
 
-        <p class="help-block">ERP-only tenants: configure granular modules in <strong>Portal → Industry settings</strong> (presets: Full ERP, HR only, Customs + Logistics). Password reveal, reset and demo-access credential edits stay on the Classic twin — this page does not invent a send.</p>
+        <p class="help-block">
+            Operators create and delete ERP-only companies here — no storefront, no client domain, hostname stays <code>www.ecomae.com</code>.
+            Industry pack (Jewellery, Auto parts, …) is stored on the registry row. This page does not invent a send: copy the temporary password from the green banner.
+        </p>
 
         @if (!string.IsNullOrWhiteSpace(_flashOk))
         {
@@ -63,6 +66,37 @@
 
         @if (_isAdmin)
         {
+            <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1.1rem 1.15rem">
+                <h3 style="margin:0 0 .45rem;font-size:1.05rem">Onboard ERP-only company (no website)</h3>
+                <p class="help-block" style="margin:0 0 .75rem">
+                    Use a short site key such as <code>asap</code> (auto parts) or <code>indj</code> (jewellery).
+                    Staff open <code>/cp/client-erp/{site_key}/</code> — there is no public storefront.
+                </p>
+                <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:end">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                    <input type="hidden" name="action" value="onboard_erp_only" />
+                    <label>Site key
+                        <input type="text" name="site_key" required maxlength="32" placeholder="asap" autocomplete="off" />
+                    </label>
+                    <label>Company name
+                        <input type="text" name="trade_name" required maxlength="120" placeholder="ASAP Autoparts" />
+                    </label>
+                    <label>Industry
+                        <select name="industry_code">
+                            <option value="auto_parts">Auto spare parts</option>
+                            <option value="jewellery">Jewellery &amp; luxury</option>
+                            <option value="erp_standalone">ERP standalone</option>
+                            <option value="tax_advisory">Tax &amp; advisory</option>
+                            <option value="construction_contracting">Construction</option>
+                        </select>
+                    </label>
+                    <label>Operator email
+                        <input type="email" name="admin_email" required placeholder="accounts@client.example" />
+                    </label>
+                    <button type="submit" class="btn btn-primary">Create ERP-only tenant</button>
+                </form>
+            </div>
             <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1rem">
                 <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
                     <input type="hidden" name="confirmWrites" value="true" />
@@ -79,7 +113,6 @@
                     </label>
                     <button type="submit" class="btn btn-primary btn-sm">Set active</button>
                 </form>
-                <p class="help-block" style="margin:.75rem 0 0">Password reset and reveal stay Classic.</p>
             </div>
         }
 
@@ -98,12 +131,13 @@
                         <th>ERP login URL</th>
                         <th>Password</th>
                         <th>Links</th>
+                        <th>Delete</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (_tenants.Count == 0)
                     {
-                        <tr><td colspan="11">No records yet.</td></tr>
+                        <tr><td colspan="12">No records yet.</td></tr>
                     }
                     else
                     {
@@ -180,14 +214,23 @@
                                     }
                                 </td>
                                 <td>
-                                    @if (t.HasStoredPassword)
+                                    @if (_isAdmin && !string.IsNullOrWhiteSpace(t.SiteKey))
+                                    {
+                                        <form method="post" action="/cp/tenants/write" style="display:inline">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                                            <input type="hidden" name="action" value="reset_operator_password" />
+                                            <input type="hidden" name="site_key" value="@t.SiteKey" />
+                                            <button type="submit" class="btn btn-xs btn-default">Reset password</button>
+                                        </form>
+                                    }
+                                    else if (t.HasStoredPassword)
                                     {
                                         <span class="epc-tcc-pwd-mask">••••••••</span>
-                                        <a class="small" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Reveal (Classic)</a>
                                     }
                                     else
                                     {
-                                        <a class="small" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Reset (Classic)</a>
+                                        <span class="text-muted">—</span>
                                     }
                                 </td>
                                 <td style="white-space:nowrap">
@@ -204,6 +247,23 @@
                                         <a class="btn btn-xs btn-info" target="_blank" rel="noopener" href="@t.ErpLoginUrl">ERP</a>
                                     }
                                 </td>
+                                <td>
+                                    @if (_isAdmin && t.TenantType == "erp_only" && !t.IsDemo && !string.IsNullOrWhiteSpace(t.SiteKey))
+                                    {
+                                        <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.3rem;align-items:center" onsubmit="return window.confirm('Permanently delete this ERP-only tenant and its dedicated database?');">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                                            <input type="hidden" name="action" value="delete_standalone_erp" />
+                                            <input type="hidden" name="site_key" value="@t.SiteKey" />
+                                            <input type="text" name="confirm_site_key" required placeholder="@t.SiteKey" title="Type the site key to confirm" style="width:7.5rem" />
+                                            <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
                             </tr>
                         }
                     }
@@ -211,7 +271,7 @@
             </table>
         </div>
 
-        <p class="help-block">Template tenants share the default commerce database until registered in Tenant Hub. Toggle and password reset require a registry row.</p>
+        <p class="help-block">Commerce tenants stay in this list for on/off only. Complete delete is limited to ERP-only rows (no storefront) after you type the site key. Protected commerce keys cannot be removed here.</p>
 
     </PhpCpDesktopChrome>
 }

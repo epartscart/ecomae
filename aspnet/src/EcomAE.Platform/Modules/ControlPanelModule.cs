@@ -100,7 +100,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only portal tenant digest. tenant_set_active POST /cp/tenants/write when confirmWrites=true. Password reset/reveal stay Classic."
+                note = "Read-only portal tenant digest. tenant_set_active / onboard_erp_only / delete_standalone_erp / reset_operator_password POST /cp/tenants/write when confirmWrites=true. Does not invent a send."
             });
         });
 
@@ -133,6 +133,10 @@ public sealed class ControlPanelModule : ISurfaceModule
             var siteKey = body.SiteKey;
             var active = body.Active;
             var confirm = body.ConfirmWrites;
+            var tradeName = body.TradeName;
+            var industryCode = body.IndustryCode;
+            var adminEmail = body.AdminEmail;
+            var confirmSiteKey = body.ConfirmSiteKey;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -140,6 +144,10 @@ public sealed class ControlPanelModule : ISurfaceModule
                 siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
                 active = LiveWriteFormBinder.Flag(form, "active");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                tradeName = LiveWriteFormBinder.Text(form, "trade_name", "tradeName");
+                industryCode = LiveWriteFormBinder.Text(form, "industry_code", "industryCode");
+                adminEmail = LiveWriteFormBinder.Text(form, "admin_email", "adminEmail");
+                confirmSiteKey = LiveWriteFormBinder.Text(form, "confirm_site_key", "confirmSiteKey");
             }
 
             var key = (action ?? string.Empty).Trim();
@@ -148,9 +156,22 @@ public sealed class ControlPanelModule : ISurfaceModule
                 key = "tenant_set_active";
             }
 
-            if (confirm && key is "tenant_set_active" or "set_active")
+            var known = key is "tenant_set_active" or "set_active"
+                or "onboard_erp_only" or "delete_standalone_erp" or "reset_operator_password";
+
+            if (confirm && known)
             {
-                var written = await writes.SetActiveAsync(new CpTenantsSetActiveRequest(siteKey, active), cancellationToken);
+                var written = key switch
+                {
+                    "onboard_erp_only" => await writes.OnboardErpOnlyAsync(
+                        new CpTenantsOnboardErpOnlyRequest(siteKey, tradeName, industryCode, adminEmail),
+                        cancellationToken),
+                    "delete_standalone_erp" => await writes.DeleteStandaloneErpAsync(
+                        new CpTenantsDeleteStandaloneRequest(siteKey, confirmSiteKey),
+                        cancellationToken),
+                    "reset_operator_password" => await writes.ResetOperatorPasswordAsync(siteKey, cancellationToken),
+                    _ => await writes.SetActiveAsync(new CpTenantsSetActiveRequest(siteKey, active), cancellationToken),
+                };
                 return LiveWriteFormBinder.Complete(
                     context,
                     "/cp/tenants-app",
@@ -163,13 +184,13 @@ public sealed class ControlPanelModule : ISurfaceModule
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "tenant_set_active" or "set_active",
+                wouldWrite = known,
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Password reset and reveal stay Classic."
-                    : "Dry-run. Set confirmWrites=true to set tenant active.",
+                    ? "Unknown tenant write action."
+                    : "Dry-run. Set confirmWrites=true to create, delete, reset, or set tenant active.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });
@@ -17400,7 +17421,11 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Action = null,
         bool ConfirmWrites = false,
         string? SiteKey = null,
-        bool Active = false);
+        bool Active = false,
+        string? TradeName = null,
+        string? IndustryCode = null,
+        string? AdminEmail = null,
+        string? ConfirmSiteKey = null);
     private sealed record CpTenantFeaturesWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

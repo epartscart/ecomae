@@ -31,9 +31,13 @@ public sealed class CpTenantsWriteTests
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"tenant_set_active\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"onboard_erp_only\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"delete_standalone_erp\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"reset_operator_password\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"site_key\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirm_site_key\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"industry_code\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
@@ -47,9 +51,25 @@ public sealed class CpTenantsWriteTests
         var write = SurfacePayloadContractCatalog.Functions.First(item =>
             item.AspNetRouteOrCapability == "/cp/tenants/write");
         Assert.Equal("write-live-gated", write.Status);
-        Assert.Contains("ajax_portal.php", write.Notes, StringComparison.Ordinal);
-        Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
-        Assert.Contains("stay Classic", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("onboard_erp_only", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("delete_standalone_erp", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("does not invent a send", write.Notes, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Erp_only_guards_protect_commerce_keys()
+    {
+        Assert.True(CpTenantsWriteService.IsProtectedSiteKey("ePartsCart"));
+        Assert.True(CpTenantsWriteService.IsProtectedSiteKey("taxofinca"));
+        Assert.False(CpTenantsWriteService.IsProtectedSiteKey("asap"));
+        Assert.False(CpTenantsWriteService.IsProtectedSiteKey("indj"));
+        Assert.False(CpTenantsWriteService.IsProtectedSiteKey("asapcustom"));
+        Assert.True(CpTenantsWriteService.IsAllowedIndustry("jewellery"));
+        Assert.True(CpTenantsWriteService.IsAllowedIndustry("auto_parts"));
+        Assert.False(CpTenantsWriteService.IsAllowedIndustry("platform_host"));
+        Assert.Equal("jewellery", CpTenantsWriteService.NormalizeIndustry("jewellery"));
+        Assert.False(CpTenantsWriteService.IsDroppableDatabase("ecomae"));
+        Assert.True(CpTenantsWriteService.IsDroppableDatabase("asap"));
     }
 
     [Fact]
@@ -64,6 +84,10 @@ public sealed class CpTenantsWriteTests
         Assert.Contains("epc_portal_tenant_control_set_active", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("UPDATE `epc_portal_tenants`", service, StringComparison.Ordinal);
+        Assert.Contains("OnboardErpOnlyAsync", service, StringComparison.Ordinal);
+        Assert.Contains("DeleteStandaloneErpAsync", service, StringComparison.Ordinal);
+        Assert.Contains("onboard_erp_only", module, StringComparison.Ordinal);
+        Assert.Contains("delete_standalone_erp", module, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
