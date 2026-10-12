@@ -24,8 +24,8 @@ public sealed class OnPremisesParityReporter : IOnPremisesParityReporter
             new(
                 "on-prem-installer",
                 "Self-hosted installer pack",
-                "scaffold",
-                "PHP deploy/on-premises/* remains authoritative. ASP.NET scaffold under deploy/on-premises-aspnet/ (setup/backup/health/license/install + compose scaffold) + dry-runs (writes=0). Dual-sample required before replacing PHP runtime."),
+                "aspnet-pack-live",
+                "ASP.NET pack deploy/on-premises-aspnet/ (setup.cmd, install.sh, compose, no PHP files) is the on-premises installer. PHP deploy/on-premises/* stays on disk as leftover fallback. ReadyToRemovePhp stays false."),
             new(
                 "on-prem-license-api",
                 "License activate + health intake APIs",
@@ -64,7 +64,7 @@ public sealed class OnPremisesParityReporter : IOnPremisesParityReporter
             [
                 "Dual-sample /erp/on-premises-app + /erp/on-premises/licenses vs PHP on_premises tab / registry.",
                 "Promote health + license-activate + setup-wizard + backup dry-runs via write-dryrun operator; PHP remains authoritative.",
-                "Grow deploy/on-premises-aspnet/ from scaffold to full ASP.NET Core installer host — separate from SaaS ERP-only tenants.",
+                "Keep new on-premises work in deploy/on-premises-aspnet/ and aspnet/. Do not add PHP files. Cloud PHP delete waits for ReadyToRemovePhp.",
             ],
             Notes:
             [

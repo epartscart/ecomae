@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Linux setup file. Same as install.sh — run this on the customer server.
+exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/install.sh" "$@"

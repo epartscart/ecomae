@@ -71,28 +71,44 @@ echo ""
 
 if [[ "$SKIP_ERP" -eq 0 ]]; then
     ONPREM=""
+    ASPNET_PACK=0
     for candidate in \
-        "$SCRIPT_DIR/../on-premises/install.sh" \
+        "$SCRIPT_DIR/../on-premises-aspnet/install.sh" \
+        "$SCRIPT_DIR/../on-premises-aspnet/ecomae-setup" \
+        "$ERP_DIR/ecomae-setup" \
         "$ERP_DIR/install.sh" \
+        "$SCRIPT_DIR/../on-premises/install.sh" \
+        "$PWD/on-premises-aspnet/install.sh" \
         "$PWD/on-premises/install.sh"
     do
         if [[ -x "$candidate" || -f "$candidate" ]]; then
             ONPREM="$candidate"
+            if [[ "$candidate" == *on-premises-aspnet* || "$candidate" == *ecomae-setup ]]; then
+                ASPNET_PACK=1
+            fi
             break
         fi
     done
     if [[ -z "$ONPREM" ]]; then
-        err "On-premises install.sh not found. Download the on-premises pack from Super CP"
-        err "  /cp/deployment-models/setup-pack?kind=on-premises"
+        err "On-premises setup not found. Download the platform pack from Super CP"
+        err "  /cp/deployment-models/setup-pack?kind=on-premises-aspnet"
         err "or re-run with --skip-erp if ERP is already installed in $ERP_DIR."
         exit 1
     fi
-    if [[ -z "$LICENSE_KEY" ]]; then
-        err "License key required to install ERP. Use --license KEY or --skip-erp."
-        exit 1
-    fi
     log "Installing on-premises ERP via $ONPREM"
-    bash "$ONPREM" --license "$LICENSE_KEY" --domain "$DOMAIN" --dir "$ERP_DIR"
+    if [[ "$ASPNET_PACK" -eq 1 ]]; then
+        if [[ -z "$LOCAL_DSN" && -z "${DB_PASSWORD:-}" ]]; then
+            err "Platform pack needs --dsn or an existing ERP password. The installer will not invent one."
+            exit 1
+        fi
+        bash "$ONPREM" --host "${DOMAIN:-erp.local}" --dsn "$LOCAL_DSN" --dir "$ERP_DIR"
+    else
+        if [[ -z "$LICENSE_KEY" ]]; then
+            err "Leftover pack needs --license KEY or use the platform pack / --skip-erp."
+            exit 1
+        fi
+        bash "$ONPREM" --license "$LICENSE_KEY" --domain "$DOMAIN" --dir "$ERP_DIR"
+    fi
 fi
 
 HYBRID_DIR="$ERP_DIR/hybrid"

@@ -75,7 +75,7 @@ public static class EcomAeRoutes
     public const string ControlPanelDeploymentModelsSetupFiles = "/cp/deployment-models/setup-files";
     /// <summary>Super-only allowlisted download of one setup-pack file.</summary>
     public const string ControlPanelDeploymentModelsSetupFile = "/cp/deployment-models/setup-file";
-    /// <summary>Super-only zip of one setup pack (on-premises or hybrid).</summary>
+    /// <summary>Super-only zip of one setup pack (on-premises, on-premises-aspnet, or hybrid).</summary>
     public const string ControlPanelDeploymentModelsSetupPack = "/cp/deployment-models/setup-pack";
     /// <summary>Super-only hybrid installation register (dry-run unless confirmWrites).</summary>
     public const string CpHybridSyncRegister = "/cp/hybrid-sync/register";

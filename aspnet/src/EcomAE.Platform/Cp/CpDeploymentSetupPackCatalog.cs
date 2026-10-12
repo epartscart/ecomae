@@ -11,6 +11,7 @@ namespace EcomAE.Platform.Cp;
 public static class CpDeploymentSetupPackCatalog
 {
     public const string OnPremises = "on-premises";
+    public const string OnPremisesAspNet = "on-premises-aspnet";
     public const string Hybrid = "hybrid";
 
     public sealed record PackFile(string Kind, string RelativePath, string Title, string ContentType);
@@ -29,8 +30,24 @@ public static class CpDeploymentSetupPackCatalog
         new(OnPremises, "health-check.php", "Health check + BOS report", "text/plain; charset=utf-8"),
         new(OnPremises, "epc_license_manager.php", "License manager", "text/plain; charset=utf-8"),
         new(OnPremises, "license_public_key.pem", "License public key (verify only)", "application/x-pem-file"),
+        new(OnPremisesAspNet, "README.md", "ASP.NET-only on-premises guide", "text/markdown; charset=utf-8"),
+        new(OnPremisesAspNet, "FUTURE_ASPNET_ONLY.md", "No future PHP in this pack", "text/markdown; charset=utf-8"),
+        new(OnPremisesAspNet, "install.sh", "Linux installer script", "text/x-shellscript; charset=utf-8"),
+        new(OnPremisesAspNet, "ecomae-setup", "Linux setup file", "text/x-shellscript; charset=utf-8"),
+        new(OnPremisesAspNet, "setup.exe", "Windows setup.exe", "application/vnd.microsoft.portable-executable"),
+        new(OnPremisesAspNet, "setup.cmd", "Windows setup (double-click)", "text/plain; charset=utf-8"),
+        new(OnPremisesAspNet, "setup.ps1", "Windows PowerShell setup", "text/plain; charset=utf-8"),
+        new(OnPremisesAspNet, "docker-compose.yml", "ASP.NET + MariaDB compose", "text/yaml; charset=utf-8"),
+        new(OnPremisesAspNet, "Dockerfile", "ASP.NET platform image", "text/plain; charset=utf-8"),
+        new(OnPremisesAspNet, ".env.example", "Environment template (no secrets)", "text/plain; charset=utf-8"),
+        new(OnPremisesAspNet, "setup/EcomAE.OnPremSetup.csproj", "setup.exe project", "text/xml; charset=utf-8"),
+        new(OnPremisesAspNet, "setup/Program.cs", "setup.exe source", "text/plain; charset=utf-8"),
         new(Hybrid, "README.md", "Hybrid install + sync guide", "text/markdown; charset=utf-8"),
         new(Hybrid, "install.sh", "Hybrid installer (ERP + sync agent)", "text/x-shellscript; charset=utf-8"),
+        new(Hybrid, "ecomae-setup", "Linux hybrid setup file", "text/x-shellscript; charset=utf-8"),
+        new(Hybrid, "setup.exe", "Windows hybrid setup.exe", "application/vnd.microsoft.portable-executable"),
+        new(Hybrid, "setup.cmd", "Windows hybrid setup (double-click)", "text/plain; charset=utf-8"),
+        new(Hybrid, "setup.ps1", "Windows hybrid PowerShell setup", "text/plain; charset=utf-8"),
         new(Hybrid, ".env.example", "Hybrid environment template", "text/plain; charset=utf-8"),
         new(Hybrid, "docker-compose.hybrid.yml", "Sync-agent Compose overlay", "text/yaml; charset=utf-8"),
         new(Hybrid, "sync-agent/sync-agent.py", "Outbound HTTPS sync agent", "text/x-python; charset=utf-8"),
@@ -42,13 +59,14 @@ public static class CpDeploymentSetupPackCatalog
     public static bool IsKind(string? kind)
     {
         var key = NormalizeKind(kind);
-        return key is OnPremises or Hybrid;
+        return key is OnPremises or OnPremisesAspNet or Hybrid;
     }
 
     public static string NormalizeKind(string? kind)
         => CpDeploymentModelsCatalog.NormalizeKind(kind) switch
         {
             "on-premises" => OnPremises,
+            "on-premises-aspnet" or "aspnet" or "aspnet-only" => OnPremisesAspNet,
             "hybrid" => Hybrid,
             _ => string.Empty,
         };
@@ -154,7 +172,7 @@ public static class CpDeploymentSetupPackCatalog
         var key = NormalizeKind(kind);
         if (key.Length == 0)
         {
-            throw new ArgumentException("Setup pack kind must be on-premises or hybrid.", nameof(kind));
+            throw new ArgumentException("Setup pack kind must be on-premises, on-premises-aspnet, or hybrid.", nameof(kind));
         }
 
         using var stream = new MemoryStream();
@@ -184,6 +202,7 @@ public static class CpDeploymentSetupPackCatalog
         => NormalizeKind(kind) switch
         {
             OnPremises => "ecomae-on-premises-setup.zip",
+            OnPremisesAspNet => "ecomae-on-premises-aspnet-setup.zip",
             Hybrid => "ecomae-hybrid-setup.zip",
             _ => "ecomae-setup.zip",
         };
