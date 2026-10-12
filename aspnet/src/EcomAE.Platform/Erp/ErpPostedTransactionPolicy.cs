@@ -1,15 +1,15 @@
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Accounting rule: a posted transaction is never edited or deleted.
-/// Correct it with void (cancel in place) or reverse (opposite document).
-/// Drafts may still be edited or deleted.
+/// Posted transactions cannot be edited in place.
+/// The register keeps both Void (row stays on file) and Delete (row is removed).
+/// Reverse remains available for posted documents.
 /// </summary>
 public static class ErpPostedTransactionPolicy
 {
-    public const string RefuseModify = "Posted transactions cannot be modified. Void or reverse them.";
-    public const string RefuseDelete = "Posted transactions cannot be deleted. Void or reverse them.";
-    public const string RefuseVoid = "Only a posted, not-yet-voided transaction can be voided.";
+    public const string RefuseModify = "Posted transactions cannot be modified. Void or delete them.";
+    public const string RefuseDelete = "This transaction is already voided or reversed.";
+    public const string RefuseVoid = "This transaction is already voided or reversed.";
     public const string AlreadyClosed = "This transaction is already voided or reversed.";
 
     public static bool IsVoided(string? status)
@@ -60,11 +60,17 @@ public static class ErpPostedTransactionPolicy
 
     public static bool CanModify(string? kind, string? status) => IsDraft(kind, status);
 
-    public static bool CanDelete(string? kind, string? status) => IsDraft(kind, status);
+    public static bool CanDelete(string? kind, string? status)
+        => IsLedgerDocument(kind) && !IsVoided(status);
 
-    public static bool CanVoid(string? kind, string? status) => IsPosted(kind, status);
+    public static bool CanVoid(string? kind, string? status)
+        => IsLedgerDocument(kind) && !IsVoided(status);
 
     public static bool CanReverse(string? kind, string? status) => IsPosted(kind, status);
+
+    public static bool IsLedgerDocument(string? kind)
+        => NormalizeKind(kind) is "acquisition" or "disposal" or "valuation" or "certificate"
+            or "contract" or "sale" or "deposit" or "lease" or "cheque" or "opportunity";
 
     public static string NormalizeKind(string? kind)
         => (kind ?? string.Empty).Trim().ToLowerInvariant() switch
