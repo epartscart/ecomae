@@ -1053,28 +1053,48 @@ a.epc-d365-ws,
     align-items: center;
     gap: 10px;
     min-height: 52px;
-    padding: 8px 12px;
+    padding: 8px 10px;
     overflow: hidden;
-    border: 1px solid #e1e5ea;
+    border: 1px solid #c5d7ea;
+    border-left: 3px solid #2563eb;
     border-radius: 4px;
-    background: #fff !important;
+    background: #eef4ff !important;
     box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
     color: #323130 !important;
     text-decoration: none !important;
 }
 
 a.epc-d365-ws:hover {
-    border-color: #0078d4;
-    box-shadow: 0 2px 8px rgba(0, 120, 212, .12);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .12);
+    filter: brightness(0.98);
 }
 
 a.epc-d365-ws i {
-    flex: 0 0 18px;
-    width: 18px;
-    color: #0078d4 !important;
-    font-size: 15px;
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    border-radius: 6px;
+    background: #2563eb !important;
+    color: #fff !important;
+    font-size: 13px;
     text-align: center;
 }
+
+a.epc-d365-ws:nth-child(7n+1) { background: #eef4ff !important; border-left-color: #2563eb; }
+a.epc-d365-ws:nth-child(7n+1) i { background: #2563eb !important; }
+a.epc-d365-ws:nth-child(7n+2) { background: #ecfeff !important; border-left-color: #0e7490; }
+a.epc-d365-ws:nth-child(7n+2) i { background: #0e7490 !important; }
+a.epc-d365-ws:nth-child(7n+3) { background: #ecfdf5 !important; border-left-color: #0f766e; }
+a.epc-d365-ws:nth-child(7n+3) i { background: #0f766e !important; }
+a.epc-d365-ws:nth-child(7n+4) { background: #fff7ed !important; border-left-color: #b45309; }
+a.epc-d365-ws:nth-child(7n+4) i { background: #b45309 !important; }
+a.epc-d365-ws:nth-child(7n+5) { background: #f5f3ff !important; border-left-color: #5b21b6; }
+a.epc-d365-ws:nth-child(7n+5) i { background: #5b21b6 !important; }
+a.epc-d365-ws:nth-child(7n+6) { background: #eef6ff !important; border-left-color: #1d4f91; }
+a.epc-d365-ws:nth-child(7n+6) i { background: #1d4f91 !important; }
+a.epc-d365-ws:nth-child(7n) { background: #fff1f2 !important; border-left-color: #c2410c; }
+a.epc-d365-ws:nth-child(7n) i { background: #c2410c !important; }
 
 a.epc-d365-ws .epc-moddir-link,
 a.epc-d365-ws .epc-moddir-link:link,

@@ -142,14 +142,17 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("a.ns-tile.rust { background: linear-gradient(145deg, #334155, #1e293b) !important; }", css, StringComparison.Ordinal);
         Assert.Contains("a.ns-tile.slate { background: linear-gradient(145deg, #b45309, #92400e) !important; }", css, StringComparison.Ordinal);
         Assert.Contains("grid-template-columns: repeat(7, minmax(0, 1fr))", css, StringComparison.Ordinal);
+        Assert.Contains("a.epc-d365-ws:nth-child(7n+1) { background: #eef4ff !important; border-left-color: #2563eb; }", css, StringComparison.Ordinal);
         Assert.DoesNotContain(".ns-tile,\n.epc-erp-content-body .ns-port", css.Replace("\r\n", "\n"), StringComparison.Ordinal);
+        Assert.DoesNotContain("a.epc-d365-ws { display:flex; align-items:center; gap:10px; min-height:52px; padding:8px 12px; background:#fff;", directory.Replace("\r\n", "\n"), StringComparison.Ordinal);
 
         Assert.Contains("epc-d365-ws", directory, StringComparison.Ordinal);
         Assert.Contains("data-epc-moddir-style=\"d365-fno\"", directory, StringComparison.Ordinal);
         Assert.Contains("epc-moddir-aspnet", directory, StringComparison.Ordinal);
+        Assert.Contains("background:#eef4ff !important", directory, StringComparison.Ordinal);
         Assert.Contains("data-epc-dash=\"color-tiles\"", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor")), StringComparison.Ordinal);
-        Assert.Contains("v=20261012d365", assets, StringComparison.Ordinal);
-        Assert.DoesNotContain("v=20261012color", assets, StringComparison.Ordinal);
+        Assert.Contains("v=20261012wscolor", assets, StringComparison.Ordinal);
+        Assert.DoesNotContain("v=20261012d365", assets, StringComparison.Ordinal);
     }
 
     [Fact]
