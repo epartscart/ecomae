@@ -69,6 +69,8 @@ public static class EcomAeRoutes
     public const string ControlPanelTenants = "/cp/tenants";
     /// <summary>CP portal tenants Blazor list (JSON digest remains <see cref="ControlPanelTenants"/>).</summary>
     public const string ControlPanelTenantsApp = "/cp/tenants-app";
+    /// <summary>Super CP Cloud / on-premises / hybrid ERP deployment models.</summary>
+    public const string ControlPanelDeploymentModelsApp = "/cp/deployment-models-app";
     /// <summary>PHP <c>/cp/client-erp</c> picker. Company login is <c>/cp/client-erp/{site_key}/</c>.</summary>
     public const string ClientErp = "/cp/client-erp";
     /// <summary>Super-CP tenant_set_active. <c>confirmWrites=true</c> twins PHP ajax_portal.php. Password reset/reveal stay Classic.</summary>

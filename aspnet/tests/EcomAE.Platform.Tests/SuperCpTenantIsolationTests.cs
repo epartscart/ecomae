@@ -326,7 +326,7 @@ public sealed class SuperCpTenantIsolationTests
         Assert.True(EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas.Count >= 100,
             $"expected ≥100 BOC areas, found {EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas.Count}");
 
-        foreach (var key in new[] { "command_center", "tenant_hub", "client_erp", "platform_mail", "platform_health", "auto_price", "cp_orders", "erp_gl", "integrations", "operator_guide" })
+        foreach (var key in new[] { "command_center", "tenant_hub", "client_erp", "deployment_models", "platform_mail", "platform_health", "auto_price", "cp_orders", "erp_gl", "integrations", "operator_guide" })
         {
             Assert.Contains(EcomAE.Platform.Presentation.PhpSuperCpBocNav.Areas, a => a.Key == key);
         }

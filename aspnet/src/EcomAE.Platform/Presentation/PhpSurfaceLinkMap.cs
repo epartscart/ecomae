@@ -145,6 +145,8 @@ public static class PhpSurfaceLinkMap
         ("shop/vin_fields", "/cp/vin-fields-app"),
         ("epc_client_erp", "/cp/client-erp"),
         ("control/portal/epc_client_erp", "/cp/client-erp"),
+        ("epc_deployment_models", "/cp/deployment-models-app"),
+        ("control/portal/epc_deployment_models", "/cp/deployment-models-app"),
         ("users/customer_approvals", "/cp/users-app"),
         ("customer_approvals", "/cp/users-app"),
         ("users/polya-registracii", "/cp/users-app"),

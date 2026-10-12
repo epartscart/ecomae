@@ -6,7 +6,8 @@ namespace EcomAE.Platform.Services;
 public enum TenantDeploymentKind
 {
     Cloud,
-    OnPremises
+    OnPremises,
+    Hybrid
 }
 
 public enum TenantInstallationStage
@@ -217,7 +218,9 @@ public static class TenantInstallationControlPlane
         }
 
         if (!string.Equals(envelope.Direction, "cloud-to-onpremises", StringComparison.Ordinal)
-            && !string.Equals(envelope.Direction, "onpremises-to-cloud", StringComparison.Ordinal))
+            && !string.Equals(envelope.Direction, "onpremises-to-cloud", StringComparison.Ordinal)
+            && !string.Equals(envelope.Direction, "cloud-to-hybrid", StringComparison.Ordinal)
+            && !string.Equals(envelope.Direction, "hybrid-to-cloud", StringComparison.Ordinal))
         {
             return new(false, "invalid-direction", "Synchronization direction is not supported.");
         }

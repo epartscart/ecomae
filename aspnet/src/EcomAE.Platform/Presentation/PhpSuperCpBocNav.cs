@@ -47,6 +47,7 @@ public static class PhpSuperCpBocNav
         new("tenant_hub", "Tenant hub / onboard", "lifecycle", "fa-sitemap", "shop/tenant_hub/tenant_hub", "Provision tenants"),
         new("tenant_control", "Tenant control", "lifecycle", "fa-sliders", "control/portal/epc_tenant_control_center", "Credentials & on/off"),
         new("client_erp", "Client ERP logins", "lifecycle", "fa-university", "control/portal/epc_client_erp", "ASAP / INDJ / FITO / REAL"),
+        new("deployment_models", "Cloud / on-prem / hybrid", "lifecycle", "fa-server", "control/portal/epc_deployment_models", "SaaS, installer, hybrid sync"),
         new("tenant_features", "Feature matrix", "lifecycle", "fa-th", "control/portal/epc_tenant_features", "Per-tenant flags"),
         new("demo_tenants", "Demo tenants", "lifecycle", "fa-flask", "control/portal/epc_demo_tenants_manage", "Sandbox lifecycle"),
         new("lifeos_clients", "LifeOS clients", "lifecycle", "fa-users", "control/portal/epc_lifeos_clients", "LifeOS client board"),

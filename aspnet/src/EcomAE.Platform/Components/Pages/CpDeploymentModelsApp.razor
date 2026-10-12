@@ -1,0 +1,215 @@
+@page "/cp/deployment-models-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ICpTenantControlCenterService ControlCenter
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Cloud · on-premises · hybrid · Control Panel</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+@if (_allowed)
+{
+    <PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <PhpParityModuleBody AppPath="/cp/deployment-models-app" IsAdmin="_isAdmin" />
+
+        <PhpCpModulePageHeader Title="ERP deployment models"
+                               Subtitle="On cloud, on premises, and hybrid — the three ways a company runs ECOM AE ERP. Super CP only."
+                               PhpTabHref="@_phpTab"
+                               ExtraPanelClass="epc-scp-panel--deploy">
+            <a class="ghost" href="/cp/tenants-app">Tenants</a>
+            <a class="ghost" href="/cp/client-erp">Client ERP</a>
+            <a class="ghost" href="/erp/on-premises-app">On-premises licenses</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a>
+        </PhpCpModulePageHeader>
+
+        <p class="help-block">
+            Devin built the cloud SaaS path and the on-premises PHP pack. Hybrid is a registered kind on the control plane — the live sync agent is not shipped yet.
+            This page does not invent a send.
+        </p>
+
+        <div class="epc-scp-kpi" aria-label="Deployment KPIs">
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Cloud tenants</div>
+                <div class="epc-scp-kpi__val">@_cloud</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">On-prem licenses</div>
+                <div class="epc-scp-kpi__val">@_onPremLicenses</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Hybrid</div>
+                <div class="epc-scp-kpi__val">@_hybrid</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Models</div>
+                <div class="epc-scp-kpi__val">3</div>
+            </div>
+        </div>
+
+        <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1.1rem 1.15rem">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem">
+                @foreach (var model in CpDeploymentModelsCatalog.Models)
+                {
+                    <div>
+                        <h3 style="margin:0 0 .35rem;font-size:1.05rem">
+                            @model.Title
+                            <span class="label @model.StatusClass">@model.Status</span>
+                        </h3>
+                        <p class="help-block" style="margin:0 0 .55rem">@model.Summary</p>
+                        <p style="margin:0 0 .4rem"><a href="@model.WhereToOpen">Open @model.WhereToOpen</a></p>
+                        <p class="help-block" style="margin:0 0 .2rem"><strong>Built</strong></p>
+                        <ul style="margin:0 0 .55rem;padding-left:1.2rem">
+                            @foreach (var live in model.Lives)
+                            {
+                                <li>@live</li>
+                            }
+                        </ul>
+                        <p class="help-block" style="margin:0 0 .2rem"><strong>Still missing</strong></p>
+                        <ul style="margin:0;padding-left:1.2rem">
+                            @foreach (var gap in model.Missing)
+                            {
+                                <li>@gap</li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="epc-scp-table-card" style="margin-bottom:1rem">
+            <table class="epc-scp-data-table table table-epc-pro">
+                <thead>
+                    <tr>
+                        <th>Capability</th>
+                        <th>On cloud</th>
+                        <th>On premises</th>
+                        <th>Hybrid</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in CpDeploymentModelsCatalog.Matrix)
+                    {
+                        <tr>
+                            <td>@row.Capability</td>
+                            <td>@row.Cloud</td>
+                            <td>@row.OnPremises</td>
+                            <td>@row.Hybrid</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="epc-scp-table-card">
+            <table class="epc-scp-data-table table table-epc-pro">
+                <thead>
+                    <tr>
+                        <th>Site key</th>
+                        <th>Company</th>
+                        <th>Type</th>
+                        <th>Model</th>
+                        <th>ERP login</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_tenants.Count == 0)
+                    {
+                        <tr><td colspan="5">No registry tenants yet. Create ERP-only companies on Tenants.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var t in _tenants)
+                        {
+                            var model = CpDeploymentModelsCatalog.Classify(t.TenantType, t.Hostname, null);
+                            <tr>
+                                <td><code>@t.SiteKey</code></td>
+                                <td>@(string.IsNullOrWhiteSpace(t.TradeName) ? "—" : t.TradeName)</td>
+                                <td>@t.TypeLabel</td>
+                                <td><span class="label @(model == "cloud" ? "label-success" : model == "hybrid" ? "label-info" : "label-warning")">@model</span></td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(t.ErpLoginUrl))
+                                    {
+                                        <a href="@t.ErpLoginUrl">@t.ErpLoginUrl</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </PhpCpDesktopChrome>
+}
+else
+{
+    <div style="padding:2rem;font-family:sans-serif;">
+        <h1>Not found</h1>
+        <p>Deployment models are available on the platform Super CP host only.</p>
+        <p><a href="/cp">Open Control Panel</a></p>
+    </div>
+}
+
+@code {
+    private const string _phpTab = "/CP/control/portal/epc_deployment_models";
+    private bool _allowed;
+    private bool _isAdmin;
+    private IReadOnlyList<CpTenantControlRow> _tenants = [];
+    private int _cloud;
+    private int _hybrid;
+    private int _onPremLicenses;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        _allowed = SuperCpHostGate.IsAllowed(ctx);
+        if (!_allowed || ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var result = await ControlCenter.LoadAsync(ctx.RequestAborted);
+        _tenants = result.Tenants;
+        foreach (var tenant in _tenants)
+        {
+            var model = CpDeploymentModelsCatalog.Classify(tenant.TenantType, tenant.Hostname, null);
+            if (model == "hybrid")
+            {
+                _hybrid++;
+            }
+            else if (model == "on-premises")
+            {
+            }
+            else
+            {
+                _cloud++;
+            }
+        }
+
+        try
+        {
+            var licenses = await Dashboards.ListOnPremisesLicensesAsync(100, ctx.RequestAborted);
+            _onPremLicenses = licenses.Licenses.Count;
+        }
+        catch
+        {
+            _onPremLicenses = 0;
+        }
+    }
+}

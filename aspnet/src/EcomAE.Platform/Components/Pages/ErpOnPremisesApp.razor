@@ -14,8 +14,13 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="On-Premises" BreadcrumbArea="Platform" BreadcrumbTab="On-Premises">
 
     <PhpErpModulePageHeader Title="On-Premises Deployment"
-                            Subtitle="Open a license for the notes excerpt and issued times. Fingerprint, IP, and modules stay omitted. License keys stay masked. Activate and health stay Classic."
+                            Subtitle="One of three ERP models: on cloud (SaaS), on premises (this license pack), and hybrid (kind registered, sync agent not live). Open a license for notes and issued times. Keys stay masked."
                             PhpTabHref="@_phpTab" />
+    <p class="help-block" style="margin:0 0 1rem">
+        <a href="/cp/deployment-models-app">Cloud / on-prem / hybrid matrix</a>
+        · Cloud SaaS companies stay on <a href="/cp/client-erp">/cp/client-erp</a>
+        · PHP installer pack remains authoritative at <code>deploy/on-premises</code>.
+    </p>
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/on-premises-app" />
 
