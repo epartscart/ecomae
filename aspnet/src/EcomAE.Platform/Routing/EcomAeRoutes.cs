@@ -71,6 +71,22 @@ public static class EcomAeRoutes
     public const string ControlPanelTenantsApp = "/cp/tenants-app";
     /// <summary>Super CP Cloud / on-premises / hybrid ERP deployment models.</summary>
     public const string ControlPanelDeploymentModelsApp = "/cp/deployment-models-app";
+    /// <summary>Super-only JSON catalog of downloadable on-premises and hybrid setup files.</summary>
+    public const string ControlPanelDeploymentModelsSetupFiles = "/cp/deployment-models/setup-files";
+    /// <summary>Super-only allowlisted download of one setup-pack file.</summary>
+    public const string ControlPanelDeploymentModelsSetupFile = "/cp/deployment-models/setup-file";
+    /// <summary>Super-only zip of one setup pack (on-premises or hybrid).</summary>
+    public const string ControlPanelDeploymentModelsSetupPack = "/cp/deployment-models/setup-pack";
+    /// <summary>Super-only hybrid installation register (dry-run unless confirmWrites).</summary>
+    public const string CpHybridSyncRegister = "/cp/hybrid-sync/register";
+    /// <summary>Hybrid change-log ingest (Super or enrollment; dry-run unless confirmWrites).</summary>
+    public const string CpHybridSyncIngest = "/cp/hybrid-sync/ingest";
+    /// <summary>Hybrid master pull (Super or enrollment). Empty when nothing is queued — does not invent a send.</summary>
+    public const string CpHybridSyncPull = "/cp/hybrid-sync/pull";
+    /// <summary>Hybrid pull acknowledgement (marks delivered master envelopes applied).</summary>
+    public const string CpHybridSyncAck = "/cp/hybrid-sync/ack";
+    /// <summary>Super-only hybrid cursor / conflict status.</summary>
+    public const string CpHybridSyncStatus = "/cp/hybrid-sync/status";
     /// <summary>PHP <c>/cp/client-erp</c> picker. Company login is <c>/cp/client-erp/{site_key}/</c>.</summary>
     public const string ClientErp = "/cp/client-erp";
     /// <summary>Super-CP tenant_set_active. <c>confirmWrites=true</c> twins PHP ajax_portal.php. Password reset/reveal stay Classic.</summary>

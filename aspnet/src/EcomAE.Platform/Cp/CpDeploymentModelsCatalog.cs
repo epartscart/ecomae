@@ -4,8 +4,8 @@ namespace EcomAE.Platform.Cp;
 
 /// <summary>
 /// Super CP Cloud / on-premises / hybrid ERP matrix. Honest: Cloud is live,
-/// on-premises uses the PHP pack plus license digest, Hybrid is a registered
-/// kind without a live sync agent.
+/// on-premises and hybrid setup packs download from this page, Hybrid sync
+/// is outbound HTTPS with a queued conflict cursor.
 /// </summary>
 public static class CpDeploymentModelsCatalog
 {
@@ -44,35 +44,35 @@ public static class CpDeploymentModelsCatalog
             "on-premises",
             TenantDeploymentKind.OnPremises,
             "On premises",
-            "PHP pack live · ASP.NET scaffold",
+            "PHP pack live · downloadable here",
             "label-warning",
-            "Customer runs ERP on their own server. Super CP issues a license and setup manifest. The PHP installer remains authoritative.",
-            "/erp/on-premises-app",
+            "Customer runs ERP on their own server. Super CP issues a license and the setup pack on this page. The PHP installer remains authoritative.",
+            "/cp/deployment-models/setup-pack?kind=on-premises",
             [
-                "deploy/on-premises install, Docker, setup-wizard, backup, health-check",
+                "Downloadable install.sh, Docker, setup-wizard, backup, health-check",
                 "Signed license activate + /erp/on-premises-app digest",
                 "TenantInstallationControlPlane manifest (no DB password in the package)",
             ],
             [
                 "ASP.NET installer pack is scaffold only (deploy/on-premises-aspnet)",
-                "Durable enrollment / heartbeat persistence",
+                "Per-tenant ERP version pinning (roadmap 6.1)",
             ]),
         new(
             "hybrid",
             TenantDeploymentKind.Hybrid,
             "Hybrid",
-            "Kind registered · sync agent not live",
-            "label-default",
+            "Setup pack + sync agent live",
+            "label-info",
             "On-site ERP plus cloud Super CP. Outbound HTTPS from the site; masters in the cloud, transactions on site; conflicts queued — never silently overwritten.",
-            "/cp/deployment-models-app",
+            "/cp/deployment-models/setup-pack?kind=hybrid",
             [
-                "TenantDeploymentKind.Hybrid on the control plane",
-                "Sync envelope shape (cloud-to-hybrid / hybrid-to-cloud)",
+                "Downloadable hybrid install + outbound HTTPS sync agent",
+                "Change-log cursor, idempotent replay, queued conflicts",
+                "Platform epc_hybrid_sync_* control-plane tables (no shop-table copy)",
             ],
             [
-                "Live sync agent and change-log cursor",
-                "Conflict review queue",
                 "Feature matrix enforced per tenant",
+                "Applying inbox rows into live shop master tables stays with the site ERP",
             ]),
     ];
 
@@ -84,7 +84,7 @@ public static class CpDeploymentModelsCatalog
         new("Installer package", "Not used", "Required", "Required"),
         new("Storefront", "Optional (ERP-only has none)", "Optional", "Optional"),
         new("Sync / conflicts", "n/a", "Heartbeat only", "Changelog + queued conflicts"),
-        new("Product status", "Live", "PHP pack", "Contract only"),
+        new("Product status", "Live", "PHP pack", "Sync agent live"),
     ];
 
     public static string Classify(string? tenantType, string? hostedOn, string? storedKind)

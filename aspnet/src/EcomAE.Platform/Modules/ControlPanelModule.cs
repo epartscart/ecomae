@@ -28,6 +28,7 @@ public sealed class ControlPanelModule : ISurfaceModule
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         CpPriceImportEndpoints.Map(endpoints, SessionPayload);
+        CpDeploymentModelsEndpoints.Map(endpoints, SessionPayload);
         endpoints.MapGet(EcomAeRoutes.ControlPanelParity, (IControlPanelParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelDashboardSummary, async (

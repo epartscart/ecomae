@@ -9,30 +9,51 @@ namespace EcomAE.Platform.Tests;
 public sealed class CpDeploymentModelsTests
 {
     [Fact]
-    public void Three_models_and_honest_hybrid_gap()
+    public void Three_models_and_hybrid_sync_pack()
     {
         Assert.Equal(3, CpDeploymentModelsCatalog.Models.Count);
         Assert.Equal(TenantDeploymentKind.Hybrid, CpDeploymentModelsCatalog.ParseKind("hybrid"));
         Assert.Equal("cloud", CpDeploymentModelsCatalog.Classify("erp_only", "platform", null));
         Assert.Equal("on-premises", CpDeploymentModelsCatalog.Classify("commerce", "client", "on_premises"));
         Assert.Equal("hybrid", CpDeploymentModelsCatalog.Classify("erp_only", "platform", "hybrid"));
-        Assert.Contains(CpDeploymentModelsCatalog.Models, m => m.Key == "hybrid" && m.Status.Contains("not live", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(CpDeploymentModelsCatalog.Models, m => m.Key == "hybrid" && m.Status.Contains("sync agent live", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(CpDeploymentModelsCatalog.Models, m => m.Key == "on-premises" && m.Status.Contains("downloadable", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(CpDeploymentModelsCatalog.Matrix, r => r.Capability.Contains("Who hosts", StringComparison.Ordinal));
+        Assert.Contains(CpDeploymentModelsCatalog.Matrix, r => r.Hybrid.Contains("Sync agent live", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void Page_is_super_cp_and_on_the_tenants_menu()
+    public void Page_is_super_cp_and_hosts_setup_downloads()
     {
         Assert.Equal("/cp/deployment-models-app", EcomAeRoutes.ControlPanelDeploymentModelsApp);
+        Assert.Equal("/cp/deployment-models/setup-pack", EcomAeRoutes.ControlPanelDeploymentModelsSetupPack);
+        Assert.Equal("/cp/hybrid-sync/ingest", EcomAeRoutes.CpHybridSyncIngest);
         var razor = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Components/Pages/CpDeploymentModelsApp.razor"));
         Assert.Contains("SuperCpHostGate", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("CpDeploymentModelsCatalog", razor, StringComparison.Ordinal);
+        Assert.Contains("/cp/deployment-models/setup-pack?kind=", razor, StringComparison.Ordinal);
+        Assert.Contains("install.sh", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
 
         Assert.Contains(PhpSuperCpBocNav.Areas, a => a.Key == "deployment_models" && a.Href == "/cp/deployment-models-app");
         Assert.Equal("/cp/deployment-models-app", PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_deployment_models"));
+    }
+
+    [Fact]
+    public void Setup_packs_resolve_from_the_repo_and_reject_traversal()
+    {
+        var root = FindRepoRoot();
+        Assert.Contains(CpDeploymentSetupPackCatalog.Files, f => f.Kind == "on-premises" && f.RelativePath == "install.sh");
+        Assert.Contains(CpDeploymentSetupPackCatalog.Files, f => f.Kind == "hybrid" && f.RelativePath == "sync-agent/sync-agent.py");
+        Assert.NotNull(CpDeploymentSetupPackCatalog.ResolveFile("on-premises", "install.sh", root));
+        Assert.NotNull(CpDeploymentSetupPackCatalog.ResolveFile("hybrid", "install.sh", root));
+        Assert.Null(CpDeploymentSetupPackCatalog.Find("hybrid", "../on-premises/install.sh"));
+        Assert.Null(CpDeploymentSetupPackCatalog.ResolveFile("hybrid", "../secret", root));
+        var zip = CpDeploymentSetupPackCatalog.ZipKind("hybrid", root);
+        Assert.True(zip.Length > 100);
+        Assert.Equal("ecomae-on-premises-setup.zip", CpDeploymentSetupPackCatalog.ZipFileName("on-premises"));
     }
 
     [Fact]
@@ -64,6 +85,57 @@ public sealed class CpDeploymentModelsTests
             DateTimeOffset.UtcNow);
         var result = TenantInstallationControlPlane.ValidateSyncEnvelope(envelope);
         Assert.True(result.Accepted);
+    }
+
+    [Fact]
+    public void Hybrid_ownership_queues_conflicts_and_does_not_invent_a_send()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var masterFromSite = new TenantSyncEnvelope(
+            "env-m",
+            "acme",
+            "inst_1",
+            "customer",
+            "c1",
+            1,
+            "hybrid-to-cloud",
+            TenantInstallationControlPlane.Sha256Hex("{}"),
+            now);
+        var masterDecision = HybridSyncControlPlane.DecideIngest(masterFromSite, null, 0, null);
+        Assert.Equal(HybridSyncDecisionKind.Conflict, masterDecision.Kind);
+        Assert.Equal("ownership-conflict", masterDecision.Code);
+
+        var txnFromCloud = new TenantSyncEnvelope(
+            "env-t",
+            "acme",
+            "inst_1",
+            "sales_order",
+            "so1",
+            1,
+            "cloud-to-hybrid",
+            TenantInstallationControlPlane.Sha256Hex("{}"),
+            now);
+        Assert.Equal(HybridSyncDecisionKind.Conflict, HybridSyncControlPlane.DecideIngest(txnFromCloud, null, 0, null).Kind);
+
+        var txnFromSite = new TenantSyncEnvelope(
+            "env-ok",
+            "acme",
+            "inst_1",
+            "sales_order",
+            "so1",
+            2,
+            "hybrid-to-cloud",
+            TenantInstallationControlPlane.Sha256Hex("{}"),
+            now);
+        Assert.Equal(HybridSyncDecisionKind.Accept, HybridSyncControlPlane.DecideIngest(txnFromSite, null, 0, null).Kind);
+        Assert.Equal(HybridSyncDecisionKind.Replay, HybridSyncControlPlane.DecideIngest(txnFromSite, "env-ok", 2, "queued").Kind);
+        Assert.Equal(HybridSyncDecisionKind.Conflict, HybridSyncControlPlane.DecideIngest(txnFromSite, "env-other", 3, "queued").Kind);
+
+        var empty = HybridSyncControlPlane.DecidePull(0);
+        Assert.Equal(HybridSyncDecisionKind.Empty, empty.Kind);
+        Assert.Contains("does not invent a send", empty.Detail, StringComparison.OrdinalIgnoreCase);
+        Assert.True(HybridSyncControlPlane.IsEnrollmentRequestId(HybridSyncControlPlane.NewEnrollmentRequestId()));
+        Assert.DoesNotContain("password", HybridSyncControlPlane.SanitizePayloadJson("""{"name":"Acme","password":"secret"}"""), StringComparison.OrdinalIgnoreCase);
     }
 
     private static string FindRepoRoot()

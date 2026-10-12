@@ -6,6 +6,7 @@
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @inject ICpTenantControlCenterService ControlCenter
+@inject IHybridSyncService HybridSync
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -29,7 +30,8 @@
         </PhpCpModulePageHeader>
 
         <p class="help-block">
-            Devin built the cloud SaaS path and the on-premises PHP pack. Hybrid is a registered kind on the control plane — the live sync agent is not shipped yet.
+            Download the on-premises and hybrid setup packs here and run them on the customer server.
+            Hybrid sync is outbound HTTPS: masters from the cloud, transactions from the site, conflicts queued — never silently overwritten.
             This page does not invent a send.
         </p>
 
@@ -82,6 +84,39 @@
             </div>
         </div>
 
+        <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1.1rem 1.15rem">
+            <h3 style="margin:0 0 .7rem;font-size:1.05rem">Setup packs — install on the customer server</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:1.1rem">
+                @foreach (var kind in new[] { "on-premises", "hybrid" })
+                {
+                    var files = CpDeploymentSetupPackCatalog.ForKind(kind);
+                    <div>
+                        <p style="margin:0 0 .45rem">
+                            <strong>@(kind == "hybrid" ? "Hybrid (ERP + sync agent)" : "On premises (ERP)")</strong>
+                        </p>
+                        <p style="margin:0 0 .55rem">
+                            <a class="ghost" href="/cp/deployment-models/setup-pack?kind=@kind">Download @kind zip</a>
+                        </p>
+                        <ul style="margin:0;padding-left:1.2rem">
+                            @foreach (var file in files)
+                            {
+                                <li>
+                                    <a href="/cp/deployment-models/setup-file?kind=@kind&amp;file=@Uri.EscapeDataString(file.RelativePath)">@file.RelativePath</a>
+                                    <span class="help-block" style="display:inline"> — @file.Title</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+            <p class="help-block" style="margin:.85rem 0 0">
+                On premises: <code>sudo ./install.sh --license KEY --domain erp.company.com</code>.
+                Hybrid: register the site with <code>POST /cp/hybrid-sync/register</code> then
+                <code>sudo ./install.sh --site-key KEY --cloud-url https://www.ecomae.com --enrollment enr_… --installation inst_…</code>.
+                Pass <code>--dsn</code> only when the operator already has a database password — the installer will not invent one.
+            </p>
+        </div>
+
         <div class="epc-scp-table-card" style="margin-bottom:1rem">
             <table class="epc-scp-data-table table table-epc-pro">
                 <thead>
@@ -126,7 +161,7 @@
                     {
                         @foreach (var t in _tenants)
                         {
-                            var model = CpDeploymentModelsCatalog.Classify(t.TenantType, t.Hostname, null);
+                            var model = CpDeploymentModelsCatalog.Classify(t.TenantType, t.Hostname, StoredKind(t.SiteKey));
                             <tr>
                                 <td><code>@t.SiteKey</code></td>
                                 <td>@(string.IsNullOrWhiteSpace(t.TradeName) ? "—" : t.TradeName)</td>
@@ -142,6 +177,39 @@
                                         <span class="text-muted">—</span>
                                     }
                                 </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="epc-scp-table-card" style="margin-top:1rem">
+            <table class="epc-scp-data-table table table-epc-pro">
+                <thead>
+                    <tr>
+                        <th>Hybrid site</th>
+                        <th>Installation</th>
+                        <th>Cursor</th>
+                        <th>Queued conflicts</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_installations.Count == 0)
+                    {
+                        <tr><td colspan="4">No hybrid installations enrolled yet. Register from Super CP, then run the hybrid pack on the server.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var inst in _installations)
+                        {
+                            var cursor = _cursors.FirstOrDefault(c => c.SiteKey == inst.SiteKey && c.InstallationId == inst.InstallationId);
+                            var conflicts = _conflicts.Count(c => c.SiteKey == inst.SiteKey);
+                            <tr>
+                                <td><code>@inst.SiteKey</code> · @inst.DeploymentKind</td>
+                                <td><code>@inst.InstallationId</code> · @inst.Status</td>
+                                <td>@(cursor is null ? "—" : cursor.Direction + " @" + cursor.LastVersion)</td>
+                                <td>@conflicts</td>
                             </tr>
                         }
                     }
@@ -164,6 +232,10 @@ else
     private bool _allowed;
     private bool _isAdmin;
     private IReadOnlyList<CpTenantControlRow> _tenants = [];
+    private IReadOnlyList<HybridSyncInstallationRow> _installations = [];
+    private IReadOnlyList<HybridSyncCursorRow> _cursors = [];
+    private IReadOnlyList<HybridSyncConflictRow> _conflicts = [];
+    private IReadOnlyDictionary<string, string> _kindBySite = new Dictionary<string, string>(StringComparer.Ordinal);
     private int _cloud;
     private int _hybrid;
     private int _onPremLicenses;
@@ -186,9 +258,22 @@ else
 
         var result = await ControlCenter.LoadAsync(ctx.RequestAborted);
         _tenants = result.Tenants;
+        try
+        {
+            var sync = await HybridSync.StatusAsync(null, ctx.RequestAborted);
+            _installations = sync.Installations;
+            _cursors = sync.Cursors;
+            _conflicts = sync.Conflicts;
+            _kindBySite = sync.KindBySiteKey;
+        }
+        catch
+        {
+            _installations = [];
+        }
+
         foreach (var tenant in _tenants)
         {
-            var model = CpDeploymentModelsCatalog.Classify(tenant.TenantType, tenant.Hostname, null);
+            var model = CpDeploymentModelsCatalog.Classify(tenant.TenantType, tenant.Hostname, StoredKind(tenant.SiteKey));
             if (model == "hybrid")
             {
                 _hybrid++;
@@ -202,6 +287,8 @@ else
             }
         }
 
+        _hybrid = Math.Max(_hybrid, _installations.Count(i => i.DeploymentKind == "hybrid"));
+
         try
         {
             var licenses = await Dashboards.ListOnPremisesLicensesAsync(100, ctx.RequestAborted);
@@ -212,4 +299,7 @@ else
             _onPremLicenses = 0;
         }
     }
+
+    private string? StoredKind(string siteKey)
+        => _kindBySite.TryGetValue(siteKey, out var kind) ? kind : null;
 }

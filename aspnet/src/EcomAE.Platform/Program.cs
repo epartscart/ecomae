@@ -832,6 +832,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSuperCustomerBoardService, Ecom
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpIntegrationsHubService, EcomAE.Platform.Cp.CpIntegrationsHubService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantsWriteService, EcomAE.Platform.Cp.CpTenantsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantControlCenterService, EcomAE.Platform.Cp.CpTenantControlCenterService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.IHybridSyncService, EcomAE.Platform.Cp.HybridSyncService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSocialHubWriteService, EcomAE.Platform.Cp.CpSocialHubWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMarketingBroadcastService, EcomAE.Platform.Cp.CpMarketingBroadcastService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMarketingBroadcastWriteService, EcomAE.Platform.Cp.CpMarketingBroadcastWriteService>();
