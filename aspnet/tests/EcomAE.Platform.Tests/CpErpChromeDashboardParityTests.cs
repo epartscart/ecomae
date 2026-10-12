@@ -153,7 +153,8 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("data-epc-dash=\"color-tiles\"", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ErpGlobalSearch", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor")), StringComparison.Ordinal);
         Assert.Contains("Search pages and workspaces", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/ErpGlobalSearch.razor")), StringComparison.Ordinal);
-        Assert.Contains("v=20261012dash1", assets, StringComparison.Ordinal);
+        Assert.Contains("v=20261012dash2", assets, StringComparison.Ordinal);
+        Assert.DoesNotContain("v=20261012dash1", assets, StringComparison.Ordinal);
         Assert.DoesNotContain("v=20261012search", assets, StringComparison.Ordinal);
         Assert.DoesNotContain("v=20261012home", assets, StringComparison.Ordinal);
         Assert.DoesNotContain("v=20261012prja", assets, StringComparison.Ordinal);
@@ -166,7 +167,9 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains(".ns-dash) .epc-module-visual-frame", chrome, StringComparison.Ordinal);
         Assert.Contains("data-epc-dash-home", chrome, StringComparison.Ordinal);
         Assert.Contains("IsDashboardHome", chrome, StringComparison.Ordinal);
+        Assert.Contains("IsErpHomePath", chrome, StringComparison.Ordinal);
         Assert.Contains("@if (!IsDashboardHome)", chrome, StringComparison.Ordinal);
+        Assert.Contains("IsDashboardHome ? _companyLabel", chrome, StringComparison.Ordinal);
 
         var dash = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
         Assert.Contains("epc-dash-repeat", dash, StringComparison.Ordinal);

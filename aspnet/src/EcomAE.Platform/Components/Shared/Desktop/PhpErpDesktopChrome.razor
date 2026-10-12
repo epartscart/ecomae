@@ -59,6 +59,10 @@
     .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-module-visual-frame,
     .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-op-context,
     .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-company-scope--panel { display:none !important; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-toolbar { margin-bottom:.15rem; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-host-sub { margin:0; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-title { margin-bottom:.2rem; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-body { padding-top:.15rem; }
 </style>
 </HeadContent>
 <style>
@@ -95,6 +99,10 @@
     .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-module-visual-frame,
     .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-op-context,
     .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-company-scope--panel { display:none !important; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-toolbar { margin-bottom:.15rem; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-host-sub { margin:0; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-title { margin-bottom:.2rem; }
+    .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-body { padding-top:.15rem; }
     .epc-erp-global-search__results { position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:5000; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 12px 28px rgba(15,23,42,.14); max-height:22rem; overflow:auto; color:#0f172a; }
     .epc-erp-global-search__hit { display:flex; gap:.55rem; align-items:center; padding:.55rem .7rem; color:#0f172a !important; text-decoration:none; }
     a.epc-erp-global-search__hit, a.epc-erp-global-search__hit span, a.epc-erp-global-search__hit i { color:#0f172a !important; }
@@ -245,7 +253,7 @@
                                     <span class="epc-erp-breadcrumb-current">@BreadcrumbTab</span>
                                 </nav>
                                 <h1 class="epc-erp-content-title">@Title</h1>
-                                <p class="epc-erp-host-sub">@_companyLabel · @_industryLabel@(_jewellery ? " · jewellery modules on" : " · core modules")</p>
+                                <p class="epc-erp-host-sub">@(IsDashboardHome ? _companyLabel : $"{_companyLabel} · {_industryLabel}{(_jewellery ? " · jewellery modules on" : " · core modules")}")</p>
                             </div>
                         </div>
                         @* PHP erp_main.php epc-erp-content-actions — company picker top-right *@
@@ -481,7 +489,16 @@
     [Parameter] public string BreadcrumbTab { get; set; } = "Dashboard";
 
     private bool IsDashboardHome =>
-        string.Equals(Title, "Dashboard", StringComparison.OrdinalIgnoreCase);
+        string.Equals(Title, "Dashboard", StringComparison.OrdinalIgnoreCase)
+        && IsErpHomePath(_currentPath);
+
+    private static bool IsErpHomePath(string path)
+    {
+        var p = (path ?? "").Split('?', 2)[0].TrimEnd('/');
+        return p.Equals("/erp", StringComparison.OrdinalIgnoreCase)
+               || p.Equals("/erp/app", StringComparison.OrdinalIgnoreCase)
+               || p.EndsWith("/erp/app", StringComparison.OrdinalIgnoreCase);
+    }
 
     private bool _showBos;
     private bool _clientErp;

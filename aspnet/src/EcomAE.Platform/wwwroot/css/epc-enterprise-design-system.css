@@ -1336,3 +1336,19 @@ a.epc-erp-global-search__hit {
 .ns-dash .epc-dash-repeat {
     display: none !important;
 }
+
+.epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-toolbar {
+    margin-bottom: .15rem;
+}
+
+.epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-host-sub {
+    margin: 0;
+}
+
+.epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-title {
+    margin-bottom: .2rem;
+}
+
+.epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-body {
+    padding-top: .15rem;
+}
