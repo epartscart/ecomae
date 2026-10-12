@@ -952,6 +952,9 @@ check 'on-premises ASP.NET installer scaffold README exists' test -f "$ROOT/depl
 check 'on-premises ASP.NET pack mentions leftover PHP fallback' contains "$ROOT/deploy/on-premises-aspnet/README.md" 'PHP'
 check 'on-premises ASP.NET pack has Windows setup.cmd' test -f "$ROOT/deploy/on-premises-aspnet/setup.cmd"
 check 'on-premises ASP.NET pack has Linux install.sh' test -f "$ROOT/deploy/on-premises-aspnet/install.sh"
+check 'on-premises pack has Linux ecomae-setup' test -f "$ROOT/deploy/on-premises-aspnet/ecomae-setup"
+check 'hybrid pack has Linux ecomae-setup' test -f "$ROOT/deploy/hybrid/ecomae-setup"
+check 'hybrid pack has Windows setup.cmd' test -f "$ROOT/deploy/hybrid/setup.cmd"
 check 'on-premises ASP.NET pack ships no PHP files' sh -c '! find "$ROOT/deploy/on-premises-aspnet" -name "*.php" | grep -q .'
 check 'ERP ajax write catalog covers ajax_erp' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/ErpAjaxWriteCatalog.cs" 'ajax_erp.php'
 check 'ERP ajax write catalog fully dedicated floor' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/ErpAjaxWriteCatalog.cs" 'DedicatedDryRuns'

@@ -14,6 +14,13 @@ Download both packs from Super CP `/cp/deployment-models-app`:
 | On premises (ERP install) | `/cp/deployment-models/setup-pack?kind=on-premises` |
 | Hybrid (this folder) | `/cp/deployment-models/setup-pack?kind=hybrid` |
 
+## Quick start (Windows PC)
+
+1. Download `ecomae-hybrid-setup.zip` from Super CP → Deployment models.
+2. Unzip. Double-click **`setup.exe`** (or `setup.cmd`).
+3. Enter site key, enrollment (`enr_…`), and installation (`inst_…`) from Super CP register.
+4. Do not invent a database password. Leave it empty to use JSON state, or paste an operator DSN.
+
 ## Quick start (Linux server)
 
 ```bash

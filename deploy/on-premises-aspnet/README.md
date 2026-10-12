@@ -4,10 +4,11 @@
 
 | File | What it does |
 | --- | --- |
-| `setup.cmd` | Windows: double-click. Same outcome as `setup.exe`. |
-| `setup.ps1` | Windows PowerShell installer (called by `setup.cmd`). |
-| `setup/EcomAE.OnPremSetup.csproj` | Build `setup.exe` with `dotnet publish` (see below). |
-| `install.sh` | Linux server / Docker host installer. |
+| `setup.exe` | Windows: double-click. Published into this pack on deploy. |
+| `setup.cmd` | Windows fallback if `setup.exe` is not yet next to the zip. |
+| `setup.ps1` | Windows PowerShell installer (called by `setup.exe` / `setup.cmd`). |
+| `ecomae-setup` | Linux: `chmod +x ecomae-setup && sudo ./ecomae-setup`. |
+| `install.sh` | Linux installer (same as `ecomae-setup`). |
 | `docker-compose.yml` | ASP.NET Kestrel + MariaDB. No PHP-FPM. |
 | `Dockerfile` | Publishes `EcomAE.Platform` only. |
 | `.env.example` | Template. `DB_PASSWORD` stays empty until the operator supplies one. |

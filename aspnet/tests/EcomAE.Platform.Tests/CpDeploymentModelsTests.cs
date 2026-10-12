@@ -37,6 +37,8 @@ public sealed class CpDeploymentModelsTests
         Assert.Contains("CpDeploymentModelsCatalog", razor, StringComparison.Ordinal);
         Assert.Contains("/cp/deployment-models/setup-pack?kind=", razor, StringComparison.Ordinal);
         Assert.Contains("on-premises-aspnet", razor, StringComparison.Ordinal);
+        Assert.Contains("setup.exe", razor, StringComparison.Ordinal);
+        Assert.Contains("ecomae-setup", razor, StringComparison.Ordinal);
         Assert.Contains("setup.cmd", razor, StringComparison.Ordinal);
         Assert.Contains("install.sh", razor, StringComparison.Ordinal);
         Assert.Contains("Do not add leftover runtime files", razor, StringComparison.Ordinal);
@@ -54,11 +56,17 @@ public sealed class CpDeploymentModelsTests
         var root = FindRepoRoot();
         Assert.Contains(CpDeploymentSetupPackCatalog.Files, f => f.Kind == "on-premises" && f.RelativePath == "install.sh");
         Assert.Contains(CpDeploymentSetupPackCatalog.Files, f => f.Kind == "on-premises-aspnet" && f.RelativePath == "setup.cmd");
+        Assert.Contains(CpDeploymentSetupPackCatalog.Files, f => f.Kind == "on-premises-aspnet" && f.RelativePath == "setup.exe");
+        Assert.Contains(CpDeploymentSetupPackCatalog.Files, f => f.Kind == "on-premises-aspnet" && f.RelativePath == "ecomae-setup");
+        Assert.Contains(CpDeploymentSetupPackCatalog.Files, f => f.Kind == "hybrid" && f.RelativePath == "setup.exe");
+        Assert.Contains(CpDeploymentSetupPackCatalog.Files, f => f.Kind == "hybrid" && f.RelativePath == "ecomae-setup");
         Assert.Contains(CpDeploymentSetupPackCatalog.Files, f => f.Kind == "hybrid" && f.RelativePath == "sync-agent/sync-agent.py");
         Assert.NotNull(CpDeploymentSetupPackCatalog.ResolveFile("on-premises", "install.sh", root));
         Assert.NotNull(CpDeploymentSetupPackCatalog.ResolveFile("on-premises-aspnet", "install.sh", root));
         Assert.NotNull(CpDeploymentSetupPackCatalog.ResolveFile("on-premises-aspnet", "setup.cmd", root));
+        Assert.NotNull(CpDeploymentSetupPackCatalog.ResolveFile("on-premises-aspnet", "ecomae-setup", root));
         Assert.NotNull(CpDeploymentSetupPackCatalog.ResolveFile("hybrid", "install.sh", root));
+        Assert.NotNull(CpDeploymentSetupPackCatalog.ResolveFile("hybrid", "ecomae-setup", root));
         Assert.Null(CpDeploymentSetupPackCatalog.Find("hybrid", "../on-premises/install.sh"));
         Assert.Null(CpDeploymentSetupPackCatalog.ResolveFile("hybrid", "../secret", root));
         var zip = CpDeploymentSetupPackCatalog.ZipKind("hybrid", root);
