@@ -283,9 +283,34 @@ public sealed class CpTenantControlCenterService : ICpTenantControlCenterService
     private static long Number(DbDataReader reader, string column)
         => long.TryParse(Text(reader, column), NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) ? value : 0;
 
+    /// <summary>
+    /// MariaDB TINYINT(1) often arrives as <c>bool</c>, not <c>"1"</c>. Treating it as text
+    /// marked every live ERP-only row as commerce / Off.
+    /// </summary>
+    public static bool CoerceFlag(object? value, bool whenNull)
+    {
+        if (value is null or DBNull)
+        {
+            return whenNull;
+        }
+
+        if (value is bool flag)
+        {
+            return flag;
+        }
+
+        if (value is byte or sbyte or short or ushort or int or uint or long or ulong)
+        {
+            return Convert.ToInt64(value, CultureInfo.InvariantCulture) != 0;
+        }
+
+        var text = Convert.ToString(value, CultureInfo.InvariantCulture)?.Trim();
+        return text is "1" or "true" or "True" or "yes" or "on";
+    }
+
     private static bool Flag(DbDataReader reader, string column, bool whenNull)
     {
         var ordinal = reader.GetOrdinal(column);
-        return reader.IsDBNull(ordinal) ? whenNull : Number(reader, column) != 0;
+        return reader.IsDBNull(ordinal) ? whenNull : CoerceFlag(reader.GetValue(ordinal), whenNull);
     }
 }

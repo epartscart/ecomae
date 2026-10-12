@@ -116,6 +116,21 @@ public sealed class CpTenantControlCenterParityTests
         Assert.DoesNotContain("db_password", service, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    [InlineData((byte)1, true)]
+    [InlineData((byte)0, false)]
+    [InlineData(1, true)]
+    [InlineData(0, false)]
+    [InlineData("1", true)]
+    [InlineData("True", true)]
+    [InlineData("0", false)]
+    public void Tinyint_flags_are_not_lost_as_text(object value, bool expected)
+    {
+        Assert.Equal(expected, CpTenantControlCenterService.CoerceFlag(value, false));
+    }
+
     [Fact]
     public void Page_renders_the_php_control_center_columns_and_registration()
     {
