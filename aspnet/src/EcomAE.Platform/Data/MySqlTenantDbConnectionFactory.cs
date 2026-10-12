@@ -73,7 +73,8 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
             builder.Password = password ?? string.Empty;
         }
         else if (string.IsNullOrWhiteSpace(databaseName)
-            && !string.IsNullOrWhiteSpace(tenant?.DbUser))
+            && tenant is not null
+            && tenant.HasUsableDedicatedCredentials)
         {
             builder.UserID = tenant.DbUser;
             builder.Password = (password ?? tenant.DbPassword) ?? string.Empty;
@@ -89,7 +90,13 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
             return OpenAsync(null, cancellationToken);
         }
 
-        return OpenAsync(tenant.DatabaseName, tenant.DbUser, tenant.DbPassword, cancellationToken);
+        if (tenant.HasUsableDedicatedCredentials)
+        {
+            return OpenAsync(tenant.DatabaseName, tenant.DbUser, tenant.DbPassword, cancellationToken);
+        }
+
+        // Empty dedicated password (ERP-only onboard) — registry CS + DatabaseName only.
+        return OpenAsync(tenant.DatabaseName, userName: null, password: null, cancellationToken);
     }
 
     public async Task<DbConnection> OpenRegistryAsync(CancellationToken cancellationToken = default)

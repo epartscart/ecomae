@@ -110,6 +110,55 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Equal("ecomae_asap", tenant.DatabaseName);
         Assert.Equal("asap_user", tenant.DbUser);
         Assert.Equal(TenantSurface.Erp, tenant.Surface);
+        Assert.True(tenant.HasUsableDedicatedCredentials);
+    }
+
+    [Fact]
+    public async Task SuperHostClientErpEmptyPasswordUsesRegistryCsNotInventedUser()
+    {
+        var resolver = ResolverWith(new HijackingRegistry(), new EmptyPasswordClientErpLookup());
+        var context = new DefaultHttpContext();
+        context.Request.Host = new HostString("www.ecomae.com");
+        context.Request.Path = "/cp/client-erp/indj/";
+
+        var tenant = await resolver.ResolveAsync(context);
+
+        Assert.Equal(TenantMode.ErpOnlyTenant, tenant.Mode);
+        Assert.Equal("indj", tenant.SiteKey);
+        Assert.Equal("indj", tenant.DatabaseName);
+        Assert.Null(tenant.DbUser);
+        Assert.Null(tenant.DbPassword);
+        Assert.False(tenant.HasUsableDedicatedCredentials);
+        Assert.True(TenantContext.UsableDedicatedCredentials("asap_user", "secret"));
+        Assert.False(TenantContext.UsableDedicatedCredentials("indj", ""));
+        Assert.False(TenantContext.UsableDedicatedCredentials("indj", null));
+        Assert.False(TenantContext.UsableDedicatedCredentials("", "secret"));
+    }
+
+    private sealed class EmptyPasswordClientErpLookup : IClientErpTenantLookup
+    {
+        public ValueTask<ClientErpTenantRecord?> FindActiveErpOnlyAsync(string siteKey, CancellationToken cancellationToken = default)
+        {
+            var key = ClientErpPath.NormalizeSiteKey(siteKey);
+            if (key != "indj")
+            {
+                return ValueTask.FromResult<ClientErpTenantRecord?>(null);
+            }
+
+            return ValueTask.FromResult<ClientErpTenantRecord?>(new ClientErpTenantRecord(
+                "indj",
+                "INDJ Jewellery",
+                "jewellery",
+                "indj",
+                "indj",
+                "",
+                DedicatedDb: true,
+                IsActive: true,
+                IsDemo: false));
+        }
+
+        public ValueTask<IReadOnlyList<ClientErpTenantRecord>> ListActiveErpOnlyAsync(CancellationToken cancellationToken = default)
+            => ValueTask.FromResult<IReadOnlyList<ClientErpTenantRecord>>([]);
     }
 
     [Fact]
@@ -260,6 +309,8 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Contains("yawer@ecomae.com", text, StringComparison.Ordinal);
         Assert.Contains("onboard_four_erp_only", text, StringComparison.Ordinal);
         Assert.Contains("Create ASAP / INDJ / FITO / REAL now", text, StringComparison.Ordinal);
+        Assert.Contains("repair_four_erp_only", text, StringComparison.Ordinal);
+        Assert.Contains("Repair ASAP / INDJ / FITO / REAL shop login", text, StringComparison.Ordinal);
         Assert.Contains("ErpOnlyLaunchClients.All", text, StringComparison.Ordinal);
         // Fleet console must not query tenant shop digests.
         Assert.DoesNotContain("ListCpOrdersAsync", text, StringComparison.Ordinal);

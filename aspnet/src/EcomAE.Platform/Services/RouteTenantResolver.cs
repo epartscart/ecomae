@@ -69,6 +69,14 @@ public sealed class RouteTenantResolver : ITenantResolver
 
                 if (erpOnly is not null && erpOnly.IsActive && !string.IsNullOrWhiteSpace(erpOnly.DatabaseName))
                 {
+                    var dedicatedUser = erpOnly.DbUser;
+                    var dedicatedPassword = erpOnly.DbPassword;
+                    if (!TenantContext.UsableDedicatedCredentials(dedicatedUser, dedicatedPassword))
+                    {
+                        dedicatedUser = null;
+                        dedicatedPassword = null;
+                    }
+
                     return new TenantContext(
                         host,
                         path,
@@ -76,8 +84,8 @@ public sealed class RouteTenantResolver : ITenantResolver
                         TenantMode.ErpOnlyTenant,
                         erpOnly.SiteKey,
                         erpOnly.DatabaseName,
-                        erpOnly.DbUser,
-                        erpOnly.DbPassword,
+                        dedicatedUser,
+                        dedicatedPassword,
                         erpOnly.DedicatedDb);
                 }
 

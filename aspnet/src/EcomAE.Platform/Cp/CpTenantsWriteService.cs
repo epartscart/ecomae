@@ -31,6 +31,12 @@ public interface ICpTenantsWriteService
         CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> OnboardFourLaunchClientsAsync(CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> RepairErpOnlyShopAsync(
+        string? siteKey,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> RepairFourLaunchClientsAsync(CancellationToken cancellationToken = default);
 }
 
 public sealed record CpTenantsSetActiveRequest(string? SiteKey, bool Active);
@@ -80,10 +86,14 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
     ];
 
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpOnlyShopBootstrap? _shopBootstrap;
 
-    public CpTenantsWriteService(IErpWriteConnectionFactory connections)
+    public CpTenantsWriteService(
+        IErpWriteConnectionFactory connections,
+        IErpOnlyShopBootstrap? shopBootstrap = null)
     {
         _connections = connections;
+        _shopBootstrap = shopBootstrap;
     }
 
     /// <summary>PHP <c>preg_replace('/[^a-z0-9_]/', '', strtolower($site_key))</c>.</summary>
@@ -251,7 +261,7 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
                 "",
                 email.Length > 120 ? email[..120] : email,
                 siteKey,
-                siteKey,
+                "",
                 "",
                 "ERP-only. No public storefront.",
                 intro,
@@ -271,11 +281,13 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
                 ErpDb.Positional("SELECT `id` FROM `epc_portal_tenants` WHERE `site_key`=? LIMIT 1"),
                 cancellationToken, siteKey).ConfigureAwait(false);
 
+            var shop = await EnsureShopAsync(siteKey, password, cancellationToken).ConfigureAwait(false);
             var login = "https://www.ecomae.com/cp/client-erp/" + siteKey + "/";
             var dbNote = dbProvisioned ? "dedicated DB created" : "registry saved — create the MySQL database on CloudPanel if CREATE was refused";
             return ErpSimpleWriteResult.Ok(
                 "ERP-only tenant " + siteKey + " created (" + industry + "). Login " + login
-                + " · temporary password " + password + " · " + dbNote
+                + " · email " + email + " · temporary password " + password + " · " + dbNote
+                + (shop.Ok ? " · " + shop.Message : "")
                 + ". Copy the password now — this page does not invent a send.",
                 id);
         }
@@ -334,6 +346,103 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
 
         parts.Add("Copy passwords now — this page does not invent a send.");
         return ErpSimpleWriteResult.Ok(string.Join(" ", parts), created.Count);
+    }
+
+    public async Task<ErpSimpleWriteResult> RepairErpOnlyShopAsync(
+        string? siteKey,
+        CancellationToken cancellationToken = default)
+    {
+        var key = NormalizeSiteKey(siteKey);
+        if (key.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Invalid site key");
+        }
+
+        if (IsProtectedSiteKey(key))
+        {
+            return ErpSimpleWriteResult.Fail("protected", "Commerce and platform tenants are not repaired here.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        string password;
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            var stored = await ErpDb.StringAsync(
+                connection, null,
+                ErpDb.Positional("SELECT IFNULL(`operator_temp_password`,'') FROM `epc_portal_tenants` WHERE `site_key`=? LIMIT 1"),
+                cancellationToken, key).ConfigureAwait(false);
+            if (stored is null)
+            {
+                return ErpSimpleWriteResult.Fail("not_found", "Tenant not in registry");
+            }
+
+            password = stored.Trim();
+            if (password.Length == 0)
+            {
+                password = NewTempPassword();
+                var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                await ErpDb.ExecuteAsync(
+                    connection, null,
+                    ErpDb.Positional("UPDATE `epc_portal_tenants` SET `operator_temp_password`=?, `updated_at`=? WHERE `site_key`=?"),
+                    cancellationToken, password, now, key).ConfigureAwait(false);
+            }
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Could not read the ERP-only tenant.");
+        }
+
+        var shop = await EnsureShopAsync(key, password, cancellationToken).ConfigureAwait(false);
+        if (!shop.Ok)
+        {
+            return ErpSimpleWriteResult.Fail("shop", shop.Message);
+        }
+
+        return ErpSimpleWriteResult.Ok(
+            "Shop login repaired for " + key + " · " + shop.Message
+            + " · temporary password " + password
+            + ". Copy it now — this page does not invent a send.",
+            1);
+    }
+
+    public async Task<ErpSimpleWriteResult> RepairFourLaunchClientsAsync(CancellationToken cancellationToken = default)
+    {
+        var ok = new List<string>();
+        var failed = new List<string>();
+        foreach (var client in ErpOnlyLaunchClients.All)
+        {
+            var result = await RepairErpOnlyShopAsync(client.SiteKey, cancellationToken).ConfigureAwait(false);
+            if (result.Succeeded)
+            {
+                ok.Add(client.SiteKey + " · " + result.Message);
+            }
+            else
+            {
+                failed.Add(client.SiteKey + ":" + result.Code);
+            }
+        }
+
+        if (ok.Count == 0)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "shop",
+                "Could not repair ASAP/INDJ/FITO/REAL shop login. " + string.Join("; ", failed));
+        }
+
+        var parts = new List<string> { "Repaired " + ok.Count + ": " + string.Join(" | ", ok) };
+        if (failed.Count > 0)
+        {
+            parts.Add("Failed: " + string.Join("; ", failed));
+        }
+
+        parts.Add("Copy passwords now — this page does not invent a send.");
+        return ErpSimpleWriteResult.Ok(string.Join(" ", parts), ok.Count);
     }
 
     public async Task<ErpSimpleWriteResult> DeleteStandaloneErpAsync(
@@ -454,8 +563,11 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
                 ErpDb.Positional("UPDATE `epc_portal_tenants` SET `operator_temp_password`=?, `updated_at`=? WHERE `site_key`=?"),
                 cancellationToken, password, now, key).ConfigureAwait(false);
 
+            var shop = await EnsureShopAsync(key, password, cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok(
-                "Temporary password for " + key + " is " + password + ". Copy it now — this page does not invent a send.",
+                "Temporary password for " + key + " is " + password
+                + (shop.Ok ? " · " + shop.Message : " · shop seed skipped — login will retry ensure")
+                + ". Copy it now — this page does not invent a send.",
                 id);
         }
         catch (DbException)
@@ -542,6 +654,19 @@ public sealed class CpTenantsWriteService : ICpTenantsWriteService
         }
 
         return true;
+    }
+
+    private async Task<ErpOnlyShopEnsureResult> EnsureShopAsync(
+        string siteKey,
+        string? password,
+        CancellationToken cancellationToken)
+    {
+        if (_shopBootstrap is null)
+        {
+            return new ErpOnlyShopEnsureResult(false, false, false, false, "shop bootstrap not registered");
+        }
+
+        return await _shopBootstrap.EnsureForSiteKeyAsync(siteKey, password, cancellationToken).ConfigureAwait(false);
     }
 
     private static string NewTempPassword()

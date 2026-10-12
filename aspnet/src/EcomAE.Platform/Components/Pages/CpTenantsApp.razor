@@ -261,6 +261,16 @@
                                             <input type="hidden" name="site_key" value="@t.SiteKey" />
                                             <button type="submit" class="btn btn-xs btn-default">Reset password</button>
                                         </form>
+                                        @if (t.TenantType == "erp_only")
+                                        {
+                                            <form method="post" action="/cp/tenants/write" style="display:inline;margin-left:.3rem">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                                                <input type="hidden" name="action" value="repair_erp_only_shop" />
+                                                <input type="hidden" name="site_key" value="@t.SiteKey" />
+                                                <button type="submit" class="btn btn-xs btn-warning">Repair shop login</button>
+                                            </form>
+                                        }
                                     }
                                     else if (t.HasStoredPassword)
                                     {

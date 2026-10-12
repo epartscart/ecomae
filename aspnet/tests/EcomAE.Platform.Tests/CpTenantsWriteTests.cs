@@ -35,6 +35,7 @@ public sealed class CpTenantsWriteTests
         Assert.Contains("value=\"onboard_four_erp_only\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"delete_standalone_erp\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"reset_operator_password\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"repair_erp_only_shop\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"site_key\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"confirm_site_key\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"industry_code\"", razor, StringComparison.Ordinal);
@@ -59,6 +60,8 @@ public sealed class CpTenantsWriteTests
         Assert.Contains("onboard_four_erp_only", write.Notes, StringComparison.Ordinal);
         Assert.Contains("delete_standalone_erp", write.Notes, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("repair_erp_only_shop", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("repair_four_erp_only", write.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -92,6 +95,7 @@ public sealed class CpTenantsWriteTests
     {
         var program = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Program.cs"));
         Assert.Contains("ICpTenantsWriteService", program, StringComparison.Ordinal);
+        Assert.Contains("IErpOnlyShopBootstrap", program, StringComparison.Ordinal);
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("ICpTenantsWriteService", module, StringComparison.Ordinal);
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
@@ -101,9 +105,18 @@ public sealed class CpTenantsWriteTests
         Assert.Contains("UPDATE `epc_portal_tenants`", service, StringComparison.Ordinal);
         Assert.Contains("OnboardErpOnlyAsync", service, StringComparison.Ordinal);
         Assert.Contains("DeleteStandaloneErpAsync", service, StringComparison.Ordinal);
+        Assert.Contains("RepairErpOnlyShopAsync", service, StringComparison.Ordinal);
         Assert.Contains("onboard_erp_only", module, StringComparison.Ordinal);
         Assert.Contains("delete_standalone_erp", module, StringComparison.Ordinal);
+        Assert.Contains("repair_erp_only_shop", module, StringComparison.Ordinal);
+        Assert.Contains("repair_four_erp_only", module, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
+        Assert.Contains("EnsureShopAsync", service, StringComparison.Ordinal);
+        var bootstrap = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/ErpOnlyShopBootstrap.cs"));
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `users`", bootstrap, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `sessions`", bootstrap, StringComparison.Ordinal);
+        Assert.Contains("do not remap TenantRegistry to PHP", bootstrap, StringComparison.Ordinal);
+        Assert.Contains("OpenAsync(dbName, userName: null, password: null", bootstrap, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
     }

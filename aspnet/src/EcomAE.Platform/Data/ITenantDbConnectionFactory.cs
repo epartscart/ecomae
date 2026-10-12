@@ -23,7 +23,10 @@ public interface ITenantDbConnectionFactory
         string? password,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Opens using tenant context database + credentials when available.</summary>
+    /// <summary>
+    /// Opens using tenant context database. Dedicated <c>db_user</c>/<c>db_password</c>
+    /// apply only when both are non-empty; otherwise registry CS + <c>DatabaseName</c>.
+    /// </summary>
     Task<DbConnection> OpenForTenantAsync(TenantContext? tenant, CancellationToken cancellationToken = default);
 
     /// <summary>

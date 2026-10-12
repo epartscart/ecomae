@@ -68,6 +68,16 @@ public sealed record TenantContext(
     public bool HasTenantDatabase => !string.IsNullOrWhiteSpace(DatabaseName);
 
     /// <summary>
+    /// Dedicated MySQL user+password only when both are present. ERP-only onboard
+    /// stores <c>db_user=site_key</c> with an empty password — that must not invent
+    /// a MySQL account (1045). Open <see cref="DatabaseName"/> with the registry CS.
+    /// </summary>
+    public bool HasUsableDedicatedCredentials => UsableDedicatedCredentials(DbUser, DbPassword);
+
+    public static bool UsableDedicatedCredentials(string? dbUser, string? dbPassword)
+        => !string.IsNullOrWhiteSpace(dbUser) && !string.IsNullOrWhiteSpace(dbPassword);
+
+    /// <summary>
     /// Public diagnostic projection — never includes <see cref="DbUser"/> / <see cref="DbPassword"/>.
     /// </summary>
     public TenantContextPublicDto ToPublicDto() => new(

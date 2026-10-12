@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Net;
 using EcomAE.Platform.Configuration;
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Services;
@@ -22,19 +23,22 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
     private readonly EcomAeOptions _options;
     private readonly IHttpContextAccessor _http;
     private readonly ILogger<DbLegacyAdminLoginService> _log;
+    private readonly IErpOnlyShopBootstrap? _shopBootstrap;
 
     public DbLegacyAdminLoginService(
         ITenantDbConnectionFactory connections,
         ILegacySessionStore sessions,
         IOptions<EcomAeOptions> options,
         IHttpContextAccessor http,
-        ILogger<DbLegacyAdminLoginService> log)
+        ILogger<DbLegacyAdminLoginService> log,
+        IErpOnlyShopBootstrap? shopBootstrap = null)
     {
         _connections = connections;
         _sessions = sessions;
         _options = options.Value;
         _http = http;
         _log = log;
+        _shopBootstrap = shopBootstrap;
     }
 
     public bool IsConfigured
@@ -100,6 +104,15 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
         var clientIp = LegacyLoginSecurity.ClientIp(_http.HttpContext);
         try
         {
+            if (clientErpBound
+                && _shopBootstrap is not null
+                && !string.IsNullOrWhiteSpace(tenant?.SiteKey))
+            {
+                await _shopBootstrap
+                    .EnsureForSiteKeyAsync(tenant.SiteKey, passwordOverride: null, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
             await using var connection = await _connections
                 .OpenForTenantAsync(tenant, cancellationToken)
                 .ConfigureAwait(false);

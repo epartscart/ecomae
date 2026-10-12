@@ -55,6 +55,7 @@ builder.Services.AddSingleton<ITenantRegistry>(sp =>
 
     return ActivatorUtilities.CreateInstance<DbBackedTenantRegistry>(sp);
 });
+builder.Services.AddSingleton<EcomAE.Platform.Cp.IErpOnlyShopBootstrap, EcomAE.Platform.Cp.ErpOnlyShopBootstrap>();
 builder.Services.AddSingleton<IClientErpTenantLookup>(sp =>
 {
     var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();

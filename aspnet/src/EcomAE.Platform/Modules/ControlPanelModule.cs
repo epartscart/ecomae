@@ -158,7 +158,8 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             var known = key is "tenant_set_active" or "set_active"
                 or "onboard_erp_only" or "onboard_four_erp_only"
-                or "delete_standalone_erp" or "reset_operator_password";
+                or "delete_standalone_erp" or "reset_operator_password"
+                or "repair_erp_only_shop" or "repair_four_erp_only";
 
             if (confirm && known)
             {
@@ -172,6 +173,8 @@ public sealed class ControlPanelModule : ISurfaceModule
                         new CpTenantsDeleteStandaloneRequest(siteKey, confirmSiteKey),
                         cancellationToken),
                     "reset_operator_password" => await writes.ResetOperatorPasswordAsync(siteKey, cancellationToken),
+                    "repair_erp_only_shop" => await writes.RepairErpOnlyShopAsync(siteKey, cancellationToken),
+                    "repair_four_erp_only" => await writes.RepairFourLaunchClientsAsync(cancellationToken),
                     _ => await writes.SetActiveAsync(new CpTenantsSetActiveRequest(siteKey, active), cancellationToken),
                 };
                 return LiveWriteFormBinder.Complete(
