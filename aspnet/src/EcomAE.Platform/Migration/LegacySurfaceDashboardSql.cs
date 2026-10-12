@@ -6352,7 +6352,7 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_jewel_voucher` v
         JOIN `epc_jewel_voucher_lines` vl ON vl.`voucher_id` = v.`id`
         WHERE (@companyId = 0 OR v.`company_id` = @companyId)
-          AND v.`voc_type` IN ('RIN','MSL','RSL')
+          AND v.`voc_type` IN ('RIN','RSI','MSL','MSI','RSL')
         GROUP BY v.`voc_date`
         ORDER BY v.`voc_date` DESC
         LIMIT @limit

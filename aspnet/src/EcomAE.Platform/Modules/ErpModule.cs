@@ -9835,7 +9835,10 @@ public sealed class ErpModule : ISurfaceModule
                     form["line_metal_amount"].Count,
                     form["line_stone_amount"].Count,
                     form["line_disc_amount"].Count,
-                    form["line_tag_no"].Count
+                    form["line_tag_no"].Count,
+                    form["line_pure_wt"].Count,
+                    form["line_wastage_pct"].Count,
+                    form["line_wastage_qty"].Count
                 }.Max();
                 if (lineCount > 0)
                 {
@@ -9849,11 +9852,14 @@ public sealed class ErpModule : ISurfaceModule
                             Qty: LiveWriteFormBinder.DecAt(form, "line_qty", index),
                             GrossWeight: LiveWriteFormBinder.DecAt(form, "line_gr_wt", index),
                             Purity: LiveWriteFormBinder.DecAt(form, "line_purity", index),
+                            PureWeight: LiveWriteFormBinder.DecAt(form, "line_pure_wt", index),
                             MakingRate: LiveWriteFormBinder.DecAt(form, "line_mkg_rate", index),
                             MakingAmount: LiveWriteFormBinder.DecAt(form, "line_mkg_amount", index),
                             MetalRate: LiveWriteFormBinder.DecAt(form, "line_metal_rate", index),
                             MetalAmount: LiveWriteFormBinder.DecAt(form, "line_metal_amount", index),
                             StoneAmount: LiveWriteFormBinder.DecAt(form, "line_stone_amount", index),
+                            WastagePercent: LiveWriteFormBinder.DecAt(form, "line_wastage_pct", index),
+                            WastageQuantity: LiveWriteFormBinder.DecAt(form, "line_wastage_qty", index),
                             DiscountAmount: LiveWriteFormBinder.DecAt(form, "line_disc_amount", index)))
                         .Where(line =>
                             !string.IsNullOrWhiteSpace(line.StockCode)
@@ -13787,16 +13793,18 @@ public sealed class ErpModule : ISurfaceModule
         new { ok = false, error = new { code = "unauthorized", message } },
         statusCode: StatusCodes.Status401Unauthorized);
 
-    private static string JewelleryVoucherReturnApp(string vocType) => vocType switch
+    private static string JewelleryVoucherReturnApp(string vocType) => ErpJwVocTypes.CanonicalOrSelf(vocType) switch
     {
-        "MMP" or "MLP" => "/erp/jewellery-fixing-app?tab=jw_metal_purchase",
-        "DMP" or "DLP" => "/erp/jewellery-fixing-app?tab=jw_diamond_purchase",
-        "MSI" or "MSC" => "/erp/jewellery-retail-app?tab=jw_metal_sales",
-        "SRN" or "SRC" => "/erp/jewellery-retail-app?tab=jw_sales_return",
-        "PCV" => "/erp/cash-accounts-app?tab=jw_petty_cash",
-        "RSL" => "/erp/jewellery-repairs-app?tab=jw_repair_sale",
-        "PAD" => "/erp/pos-overview-app",
-        "JVG" => "/erp/gl-journals-app?tab=jw_journal_voucher",
+        ErpJwVocTypes.MetalPurchase => "/erp/jewellery-fixing-app?tab=jw_metal_purchase",
+        ErpJwVocTypes.DiamondPurchase => "/erp/jewellery-fixing-app?tab=jw_diamond_purchase",
+        ErpJwVocTypes.MetalSale => "/erp/jewellery-retail-app?tab=jw_metal_sales",
+        ErpJwVocTypes.SalesReturn => "/erp/jewellery-retail-app?tab=jw_sales_return",
+        ErpJwVocTypes.PettyCash => "/erp/jewellery-retail-app?tab=jw_petty_cash",
+        ErpJwVocTypes.RepairSale => "/erp/jewellery-repairs-app?tab=jw_repair_sale",
+        ErpJwVocTypes.PosAdvance => "/erp/jewellery-retail-app?tab=jw_pos_advance",
+        ErpJwVocTypes.Journal => "/erp/jewellery-retail-app?tab=jw_journal_voucher",
+        ErpJwVocTypes.Manufacture => "/erp/jewellery-stock-verification-app?tab=jw_manufacture",
+        ErpJwVocTypes.BranchTransfer => "/erp/jewellery-stock-verification-app?tab=jw_branch_transfer",
         _ => "/erp/jewellery-retail-app?tab=jw_retail_sales"
     };
 

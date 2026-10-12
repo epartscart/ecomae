@@ -307,8 +307,8 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
 
             if (taggedLines.Length > 0)
             {
-                var isReturn = vocType.Equals("SRN", StringComparison.OrdinalIgnoreCase);
-                var isSale = vocType is "RSI" or "MSI";
+                var isReturn = ErpJwVocTypes.IsReturn(vocType);
+                var isSale = ErpJwVocTypes.IsSale(vocType);
                 if (!isReturn && !isSale)
                 {
                     await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
@@ -480,27 +480,7 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
     }
 
     public static string NormalizeVocType(string? vocType, string? action)
-    {
-        var raw = (vocType ?? string.Empty).Trim().ToUpperInvariant();
-        if (raw.Length > 0)
-        {
-            return Clip(raw, 10);
-        }
-
-        var act = (action ?? string.Empty).Trim().ToLowerInvariant();
-        return act switch
-        {
-            "jw_metal_purchase_save" or "jw_metal_purchase" => "MMP",
-            "jw_diamond_purchase_save" or "jw_diamond_purchase" => "DMP",
-            "jw_retail_sale_save" or "jw_retail_sales_save" or "jw_retail_sales" or "jewellery" or "retail_commerce" => "RSI",
-            "jw_metal_sale_save" or "jw_metal_sales" => "MSI",
-            "jw_sales_return_save" or "jw_sales_return" => "SRN",
-            "jw_pos_advance_save" => "PAD",
-            "jw_journal_voucher_save" => "JVG",
-            "jw_repair_sale_save" or "jw_repair_sale" => "RSL",
-            _ => string.Empty
-        };
-    }
+        => Clip(ErpJwVocTypes.Canonical(vocType, action), 10);
 
     private static string NormalizeDate(string? value)
     {

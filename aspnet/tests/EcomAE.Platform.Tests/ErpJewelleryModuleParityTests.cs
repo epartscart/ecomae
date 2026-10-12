@@ -1,3 +1,4 @@
+using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Routing;
@@ -251,6 +252,11 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("New Fixing", fixing, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryFixingSaveForm", fixing, StringComparison.Ordinal);
         Assert.Contains("Save fixing", fixing, StringComparison.Ordinal);
+        Assert.Contains("RDP", fixing, StringComparison.Ordinal);
+        Assert.Contains("RMP", fixing, StringComparison.Ordinal);
+        Assert.Contains("line_pure_wt", fixing, StringComparison.Ordinal);
+        Assert.Contains("line_wastage_pct", fixing, StringComparison.Ordinal);
+        Assert.Contains("IErpJwPurchaseHistoryReadService", fixing, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryFixUnfixCreateForm", fixing, StringComparison.Ordinal);
         Assert.Contains("Create fix / unfix", fixing, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryFixUnfixSettleForm", fixing, StringComparison.Ordinal);
@@ -260,6 +266,14 @@ public sealed class ErpJewelleryModuleParityTests
 
         var retail = ReadApp("CpJewelleryRetailApp.razor");
         Assert.Contains("jw_retail_sales", retail, StringComparison.Ordinal);
+        Assert.Contains("jw_pos_advance", retail, StringComparison.Ordinal);
+        Assert.Contains("jw_petty_cash", retail, StringComparison.Ordinal);
+        Assert.Contains("jw_journal_voucher", retail, StringComparison.Ordinal);
+        Assert.Contains("jw_tourist_vat", retail, StringComparison.Ordinal);
+        Assert.Contains("Save POS advance", retail, StringComparison.Ordinal);
+        Assert.Contains("Save petty cash", retail, StringComparison.Ordinal);
+        Assert.Contains("Save journal voucher", retail, StringComparison.Ordinal);
+        Assert.Contains("Save tourist VAT", retail, StringComparison.Ordinal);
         Assert.Contains("New Invoice", retail, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryVoucherSaveForm", retail, StringComparison.Ordinal);
         Assert.Contains("Save voucher", retail, StringComparison.Ordinal);
@@ -276,6 +290,12 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("Save stock verification", stock, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryMetalStockSaveForm", stock, StringComparison.Ordinal);
         Assert.Contains("Save metal stock", stock, StringComparison.Ordinal);
+        Assert.Contains("Save manufacture", stock, StringComparison.Ordinal);
+        Assert.Contains("Save branch transfer", stock, StringComparison.Ordinal);
+        Assert.Contains("jw_manufacture", stock, StringComparison.Ordinal);
+        Assert.Contains("jw_branch_transfer", stock, StringComparison.Ordinal);
+        Assert.Contains("voc_type\" value=\"MFG\"", stock, StringComparison.Ordinal);
+        Assert.Contains("voc_type\" value=\"BTR\"", stock, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", stock, StringComparison.Ordinal);
 
         var petty = ReadApp("ErpCashAccountsApp.razor");
@@ -318,7 +338,9 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains(ErpJewelleryModuleChrome.MasterTabs, t => t.Key == "gold_rate");
         Assert.Contains(ErpJewelleryModuleChrome.FixingTabs, t => t.Key == "jw_purchase_fixing");
         Assert.Contains(ErpJewelleryModuleChrome.RetailTabs, t => t.Key == "jw_retail_sales");
+        Assert.Contains(ErpJewelleryModuleChrome.RetailTabs, t => t.Key == "jw_pos_advance");
         Assert.Contains(ErpJewelleryModuleChrome.StockTabs, t => t.Key == "jw_metal_stock");
+        Assert.Contains(ErpJewelleryModuleChrome.StockTabs, t => t.Key == "jw_manufacture");
         Assert.Equal("jw_repairs", ErpJewelleryModuleChrome.NormalizeTab("", ErpJewelleryModuleChrome.RepairTabs, "jw_repairs"));
         Assert.Equal("jw_repair_delivery", ErpJewelleryModuleChrome.NormalizeTab("jw_repair_delivery", ErpJewelleryModuleChrome.RepairTabs, "jw_repairs"));
         Assert.Contains("/erp/jewellery-repairs-app?company=2&tab=jw_repairs", ErpJewelleryModuleChrome.AppHref("/erp/jewellery-repairs-app", 2, ("tab", "jw_repairs")), StringComparison.Ordinal);
@@ -335,6 +357,11 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.False(ErpIndustryNav.IsJewelleryFromHostOrPack("auto_parts", null, main));
         Assert.True(ErpIndustryNav.ShowJewelleryModules("jewellery", main));
         Assert.False(ErpIndustryNav.ShowJewelleryModules("auto_parts", main));
+        Assert.True(ErpIndustryNav.ShowJewelleryModules("auto_parts", jw));
+        Assert.True(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", jw));
+        Assert.False(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", main));
+        var fallback = ErpIndustryNav.EnsureSwitchableCompanies([], true, "ECOM AE");
+        Assert.Contains(fallback, c => c.Id == 2 && ErpIndustryNav.IsJewelleryCompany(c));
     }
 
     [Fact]
@@ -581,7 +608,7 @@ public sealed class ErpJewelleryModuleParityTests
         var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
         var module = ReadPlatformSource("Modules/ErpModule.cs");
         Assert.Contains("v.`company_id`=?", service, StringComparison.Ordinal);
-        Assert.Contains("v.`voc_type` IN ('RIN','MSL','RSL')", service, StringComparison.Ordinal);
+        Assert.Contains("v.`voc_type` IN ('RIN','RSI','MSL','MSI','RSL')", service, StringComparison.Ordinal);
         Assert.Contains("ErpJewellerySalesAnalysis", routes, StringComparison.Ordinal);
         Assert.Contains("HandleJewellerySalesAnalysisAsync", module, StringComparison.Ordinal);
         Assert.Contains("Sales analysis is read-only and company-scoped.", module, StringComparison.Ordinal);
@@ -649,7 +676,8 @@ public sealed class ErpJewelleryModuleParityTests
         var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
         var module = ReadPlatformSource("Modules/ErpModule.cs");
         Assert.Contains("FROM `epc_jewel_voucher`", service, StringComparison.Ordinal);
-        Assert.Contains("WHERE `company_id`=? AND `voc_type` IN (?,?)", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE `company_id`=? AND `voc_type` IN (", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJwVocTypes.Aliases(type)", service, StringComparison.Ordinal);
         Assert.Contains("ErpJewellerySaleHistory", routes, StringComparison.Ordinal);
         Assert.Contains("HandleJewellerySaleHistoryAsync", module, StringComparison.Ordinal);
         Assert.Contains("Sale history is read-only and company-scoped.", module, StringComparison.Ordinal);
@@ -661,7 +689,7 @@ public sealed class ErpJewelleryModuleParityTests
         var service = ReadSource("ErpJwAdvanceHistoryReadService.cs");
         var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
         var module = ReadPlatformSource("Modules/ErpModule.cs");
-        Assert.Contains("WHERE `company_id`=? AND `voc_type` IN ('PAD','PAR')", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE `company_id`=? AND `voc_type` IN ('ADV','PAD','PAR')", service, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryAdvanceHistory", routes, StringComparison.Ordinal);
         Assert.Contains("HandleJewelleryAdvanceHistoryAsync", module, StringComparison.Ordinal);
         Assert.Contains("Advance history is read-only and company-scoped.", module, StringComparison.Ordinal);
@@ -686,7 +714,7 @@ public sealed class ErpJewelleryModuleParityTests
         var service = ReadSource("ErpJwJournalHistoryReadService.cs");
         var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
         var module = ReadPlatformSource("Modules/ErpModule.cs");
-        Assert.Contains("WHERE `company_id`=? AND `voc_type` IN ('JVG','JVA')", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE `company_id`=? AND `voc_type` IN ('JVL','JVG','JVA')", service, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryJournalHistory", routes, StringComparison.Ordinal);
         Assert.Contains("HandleJewelleryJournalHistoryAsync", module, StringComparison.Ordinal);
         Assert.Contains("Journal history is read-only and company-scoped.", module, StringComparison.Ordinal);
@@ -698,9 +726,9 @@ public sealed class ErpJewelleryModuleParityTests
         var service = ReadSource("ErpJwPurchaseHistoryReadService.cs");
         var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
         var module = ReadPlatformSource("Modules/ErpModule.cs");
-        Assert.Contains("\"DIAMOND\" => (\"DMP\", \"DLP\")", service, StringComparison.Ordinal);
-        Assert.Contains("_ => (\"MMP\", \"MLP\")", service, StringComparison.Ordinal);
-        Assert.Contains("WHERE `company_id`=? AND `voc_type` IN (?,?)", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJwVocTypes.Aliases(type)", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJwVocTypes.MetalPurchaseAliases", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE `company_id`=? AND `voc_type` IN (", service, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryPurchaseHistory", routes, StringComparison.Ordinal);
         Assert.Contains("HandleJewelleryPurchaseHistoryAsync", module, StringComparison.Ordinal);
         Assert.Contains("Purchase history is read-only and company-scoped.", module, StringComparison.Ordinal);

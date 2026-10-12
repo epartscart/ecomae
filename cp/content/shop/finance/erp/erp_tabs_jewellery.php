@@ -79,6 +79,8 @@ $modules = array(
     'Stock & analysis' => array(
         'jw_stock_verification' => array('icon' => 'fa-check-square', 'label' => 'Stock verification', 'desc' => 'MSV — physical vs computer stock'),
         'jw_stock_balance' => array('icon' => 'fa-balance-scale', 'label' => 'Metal stock balance', 'desc' => 'Current stock by metal & karat'),
+        'jw_manufacture' => array('icon' => 'fa-industry', 'label' => 'Manufacture', 'desc' => 'MFG — metal / stone / other components'),
+        'jw_branch_transfer' => array('icon' => 'fa-exchange', 'label' => 'Branch transfer', 'desc' => 'BTR — move stock between branches'),
         'jw_sales_analysis' => array('icon' => 'fa-bar-chart', 'label' => 'Metal sales analysis', 'desc' => 'Sales trends by date, salesman, division'),
         'jw_barcode' => array('icon' => 'fa-barcode', 'label' => 'Barcode generation', 'desc' => 'Generate & print item barcodes'),
     ),

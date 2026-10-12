@@ -2,10 +2,12 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IErpJwPurchaseHistoryReadService Purchases
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -102,7 +104,7 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="action" value="@(_tab == "jw_diamond_purchase" ? "jw_diamond_purchase_save" : "jw_metal_purchase_save")" />
-                <input type="hidden" name="voc_type" value="@(_tab == "jw_diamond_purchase" ? "DMP" : "MMP")" />
+                <input type="hidden" name="voc_type" value="@(_tab == "jw_diamond_purchase" ? "RDP" : "RMP")" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
@@ -126,10 +128,16 @@
                 <label>Pcs <input class="form-control input-sm" name="line_pcs" type="number" min="0" value="1" /></label>
                 <label>Gross wt <input class="form-control input-sm" name="line_gr_wt" type="number" step="0.0001" value="0" /></label>
                 <label>Purity <input class="form-control input-sm" name="line_purity" type="number" step="0.000001" value="0.917" /></label>
+                <label>Pure wt <input class="form-control input-sm" name="line_pure_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Wastage % <input class="form-control input-sm" name="line_wastage_pct" type="number" step="0.0001" value="0" /></label>
+                <label>Wastage qty <input class="form-control input-sm" name="line_wastage_qty" type="number" step="0.0001" value="0" /></label>
                 <label>Metal rate <input class="form-control input-sm" name="line_metal_rate" type="number" step="0.00001" value="0" /></label>
                 <label>Making rate <input class="form-control input-sm" name="line_mkg_rate" type="number" step="0.0001" value="0" /></label>
                 <label>Stone amount <input class="form-control input-sm" name="line_stone_amount" type="number" step="0.01" value="0" /></label>
                 <label>Discount <input class="form-control input-sm" name="line_disc_amount" type="number" step="0.01" value="0" /></label>
+                <label>Supplier invoice <input class="form-control input-sm" name="supp_inv_no" maxlength="30" /></label>
+                <label>Credit days <input class="form-control input-sm" name="cr_days" type="number" min="0" value="0" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
                 <label>Net Amt <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" /></label>
                 <label>VAT <input class="form-control input-sm" name="vat_amount" type="number" step="0.01" value="0" /></label>
                 <label>Gross total <input class="form-control input-sm" name="gross_total" type="number" step="0.01" value="0" /></label>
@@ -218,7 +226,25 @@
                 </tr>
             </thead>
             <tbody>
-                @if (_display.Count == 0)
+                @if (_purchaseRows.Count > 0)
+                {
+                    @foreach (var row in _purchaseRows)
+                    {
+                        <tr>
+                            <td>@row.VoucherType</td>
+                            <td><strong>@row.VoucherNumber.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.VoucherDate) ? "—" : row.VoucherDate)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.PartyName) ? (string.IsNullOrWhiteSpace(row.PartyCode) ? "—" : row.PartyCode) : row.PartyName)</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td class="text-right">@row.NetAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Status) ? "—" : row.Status)</td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/jewellery-retail-app", "voc_id", row.Id)">Open</a></td>
+                        </tr>
+                    }
+                }
+                else if (_display.Count == 0)
                 {
                     <tr><td colspan="@(_spec.Columns.Count + 1)" class="text-muted">@(_isAdmin ? _spec.EmptyCopy : "Sign in with ERP or Control Panel capability for live rows.")</td></tr>
                 }
@@ -261,6 +287,7 @@
     private ErpJewelleryModuleChrome.TabSpec _spec = ErpJewelleryModuleChrome.FixingSpec("jw_purchase_fixing");
     private CpJewelleryFixingSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<FixRow> _display = [];
+    private IReadOnlyList<ErpJwPurchaseHistoryRow> _purchaseRows = [];
     private string _source = "n/a";
     private string _message = "";
     private string _ok = "";
@@ -336,6 +363,19 @@
             r.FixAmount.ToString("N2", CultureInfo.InvariantCulture),
             string.IsNullOrWhiteSpace(r.Status) ? "—" : r.Status)).ToList()
             : [];
+        if (_tab is "jw_metal_purchase" or "jw_diamond_purchase" && _company > 0)
+        {
+            var history = await Purchases.ReadAsync(
+                _company,
+                _tab == "jw_diamond_purchase" ? "DIAMOND" : "METAL",
+                100,
+                ctx.RequestAborted);
+            _purchaseRows = history.Rows;
+            if (!string.IsNullOrWhiteSpace(history.Message))
+            {
+                _message = history.Message;
+            }
+        }
         if (_openedId > 0)
         {
             var detail = await Dashboards.BuildCpJewelleryFixingDetailAsync(_openedId, _company, ctx.RequestAborted);
