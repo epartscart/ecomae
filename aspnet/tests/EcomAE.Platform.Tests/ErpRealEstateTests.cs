@@ -122,6 +122,30 @@ public sealed class ErpRealEstateTests
         Assert.DoesNotContain("DELETE FROM `epc_erp_re_leases`", src, StringComparison.Ordinal);
         Assert.DoesNotContain("DELETE FROM `epc_erp_re_acquisitions`", src, StringComparison.Ordinal);
         Assert.Contains("status` IN ('deposited','held','due_for_deposit')", src, StringComparison.Ordinal);
+        Assert.Contains("ErpPostedTransactionPolicy", src, StringComparison.Ordinal);
+        Assert.Contains("voided", src, StringComparison.Ordinal);
+        var razor = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor"));
+        Assert.Contains("void or reverse", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("value=\"void\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"reverse\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"delete\"", razor, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PostedTransactionsCannotBeEditedOrDeleted()
+    {
+        Assert.True(ErpPostedTransactionPolicy.IsPosted("acquisition", "completed"));
+        Assert.False(ErpPostedTransactionPolicy.CanModify("acquisition", "completed"));
+        Assert.False(ErpPostedTransactionPolicy.CanDelete("acquisition", "completed"));
+        Assert.True(ErpPostedTransactionPolicy.CanVoid("acquisition", "completed"));
+        Assert.True(ErpPostedTransactionPolicy.CanReverse("acquisition", "completed"));
+        Assert.True(ErpPostedTransactionPolicy.CanDelete("acquisition", "draft"));
+        Assert.False(ErpPostedTransactionPolicy.CanVoid("acquisition", "draft"));
+        Assert.False(ErpPostedTransactionPolicy.CanModify("cheque", "cleared"));
+        Assert.True(ErpPostedTransactionPolicy.CanModify("cheque", "deposited"));
+        Assert.True(ErpPostedTransactionPolicy.IsVoided("voided"));
+        Assert.Equal(ErpPostedTransactionPolicy.RefuseModify, "Posted transactions cannot be modified. Void or reverse them.");
+        Assert.Equal(ErpPostedTransactionPolicy.RefuseDelete, "Posted transactions cannot be deleted. Void or reverse them.");
     }
 
     private static string Find(string relative)
