@@ -34,8 +34,8 @@
         <div class="kpi"><div class="lbl">Active leases</div><div class="val">@_snap.Kpis.ActiveLeases.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Portfolio cost</div><div class="val">@_snap.Kpis.PortfolioCost.ToString("N0", CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Fair value</div><div class="val">@_snap.Kpis.PortfolioFair.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Gross yield</div><div class="val">@(_snap.Kpis.GrossYield * 100).ToString("0.00", CultureInfo.InvariantCulture)%</div></div>
-        <div class="kpi"><div class="lbl">Occupancy</div><div class="val">@(_snap.Kpis.Occupancy * 100).ToString("0.0", CultureInfo.InvariantCulture)%</div></div>
+        <div class="kpi"><div class="lbl">Gross yield</div><div class="val">@((_snap.Kpis.GrossYield * 100).ToString("0.00", CultureInfo.InvariantCulture))%</div></div>
+        <div class="kpi"><div class="lbl">Occupancy</div><div class="val">@((_snap.Kpis.Occupancy * 100).ToString("0.0", CultureInfo.InvariantCulture))%</div></div>
         <div class="kpi"><div class="lbl">Cost to complete</div><div class="val">@_snap.Kpis.CostToComplete.ToString("N0", CultureInfo.InvariantCulture)</div></div>
     </div>
 
