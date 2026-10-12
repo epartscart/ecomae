@@ -9870,7 +9870,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    private static async Task<string> ReadTenantLegalNameAsync(DbConnection connection, CancellationToken cancellationToken)
+    private async Task<string> ReadTenantLegalNameAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         try
         {
@@ -9879,6 +9879,31 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             cmd.CommandText =
                 "SELECT COALESCE(NULLIF(TRIM(`legal_name`),''), NULLIF(TRIM(`trade_name`),''), '')" +
                 " FROM `epc_co_profile` WHERE `id` = 1 LIMIT 1";
+            var value = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            var fromProfile = value is null or DBNull ? string.Empty : (Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty).Trim();
+            if (!LegalOrganizationLabel.IsGeneric(fromProfile))
+            {
+                return fromProfile;
+            }
+        }
+        catch
+        {
+            // Shop profile may be absent on lean tenants.
+        }
+
+        var http = _httpContextAccessor?.HttpContext;
+        var siteKey = ClientErpPath.BoundSiteKey(http) ?? ClientErpPath.CookieSiteKey(http?.Request);
+        if (string.IsNullOrWhiteSpace(siteKey))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            await using var registry = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
+            await using var cmd = registry.CreateCommand();
+            cmd.CommandText = "SELECT IFNULL(`trade_name`,'') FROM `epc_portal_tenants` WHERE `site_key` = @siteKey LIMIT 1";
+            AddParameter(cmd, "@siteKey", siteKey);
             var value = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
             return value is null or DBNull ? string.Empty : (Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty).Trim();
         }
