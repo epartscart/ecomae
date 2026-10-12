@@ -26,6 +26,23 @@
         .ns-fitout-scope-note i { color:#166534; margin-right:.25rem; }
     </style>
 </HeadContent>
+<style data-epc-dash="color-tiles">
+    a.ns-tile, .ns-dash a.ns-tile { position:relative; display:flex !important; flex-direction:column; justify-content:flex-end; min-height:6.75rem; padding:1rem .95rem; border-radius:12px; text-decoration:none !important; color:#fff !important; background:linear-gradient(145deg,#1d4f91,#163a6b) !important; box-shadow:0 8px 20px rgba(15,23,42,.14); }
+    a.ns-tile .tl, a.ns-tile .ic, a.ns-tile small { color:#fff !important; }
+    a.ns-tile .ic { position:absolute; top:14px; right:14px; font-size:28px; opacity:.32; }
+    a.ns-tile.gold { background:linear-gradient(145deg,#1d4f91,#163a6b) !important; }
+    a.ns-tile.green { background:linear-gradient(145deg,#0f766e,#0b5c56) !important; }
+    a.ns-tile.rust { background:linear-gradient(145deg,#334155,#1e293b) !important; }
+    a.ns-tile.slate { background:linear-gradient(145deg,#b45309,#92400e) !important; }
+    a.ns-tile.blue { background:linear-gradient(145deg,#2563eb,#1d4ed8) !important; }
+    a.ns-tile.teal { background:linear-gradient(145deg,#0e7490,#155e75) !important; }
+    a.ns-tile.purple { background:linear-gradient(145deg,#5b21b6,#4c1d95) !important; }
+    a.ns-tile.orange { background:linear-gradient(145deg,#c2410c,#9a3412) !important; }
+    .epc-infographic__node { color:#0f172a !important; background:linear-gradient(145deg,#eef6ff,#fff) !important; border-left:4px solid #0078d4 !important; }
+    .epc-infographic__node-label { color:#0078d4 !important; }
+    .epc-infographic__node-value, .epc-infographic__node-note { color:#0f172a !important; }
+    .epc-infographic__node-note { color:#475569 !important; }
+</style>
 
 @*
   PHP product /ERP on ecomae.com is the company workspace (erp_main + erp_dashboard_netsuite),
@@ -688,12 +705,12 @@
         </div>
     }
     <PhpHybridModuleDirectory
-        Title="Complete ERP area directory"
+        Title="Workspaces"
         Subtitle="@($"{PhpModuleCatalog.ErpAreaCount} ERP areas")"
         Links="@PhpModuleCatalog.ErpAreas"
         PhpWorkspaceBase="/erp/app" />
     <PhpHybridModuleDirectory
-        Title="Complete ERP module directory"
+        Title="All modules"
         Subtitle="@($"{_directoryTabs.Count} ERP modules")"
         Links="@_directoryTabs"
         PhpWorkspaceBase="/erp/app" />

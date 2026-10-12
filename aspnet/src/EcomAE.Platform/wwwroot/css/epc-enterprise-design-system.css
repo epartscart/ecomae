@@ -890,8 +890,7 @@
 }
 
 .epc-erp-content-body .ns-metric3d,
-.epc-erp-content-body .ns-port,
-.epc-erp-content-body .epc-infographic {
+.epc-erp-content-body .ns-port {
     border: 1px solid var(--epc-ui-line);
     border-radius: 10px;
     background: #fff;
@@ -899,6 +898,7 @@
 }
 
 .epc-erp-content-body .ns-tiles,
+.ns-dash .ns-tiles,
 .epc-erp-content-body .ns-qa-grid,
 .epc-erp-content-body .ns-kpi-grid {
     display: grid;
@@ -906,40 +906,74 @@
     gap: .75rem;
 }
 
-.epc-erp-content-body .ns-tile {
-    display: flex;
+/* Command tiles — never flatten to white (PHP premium CSS is paused). */
+a.ns-tile,
+.ns-dash a.ns-tile,
+.epc-erp-content-body a.ns-tile {
+    display: flex !important;
     flex-direction: column;
     justify-content: flex-end;
     align-items: flex-start;
     gap: .35rem;
     min-height: 6.75rem;
     padding: 1rem .95rem;
-    text-decoration: none;
+    text-decoration: none !important;
     overflow: hidden;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, .14);
     box-shadow: 0 8px 20px rgba(15, 23, 42, .14);
+    background: linear-gradient(145deg, #1d4f91, #163a6b) !important;
 }
 
-.epc-erp-content-body .ns-tile,
-.epc-erp-content-body .ns-tile:link,
-.epc-erp-content-body .ns-tile:visited,
-.epc-erp-content-body .ns-tile:hover,
-.epc-erp-content-body .ns-tile:focus,
-.epc-erp-content-body .ns-tile .tl,
-.epc-erp-content-body .ns-tile .ic,
-.epc-erp-content-body .ns-tile small {
+a.ns-tile,
+a.ns-tile:link,
+a.ns-tile:visited,
+a.ns-tile:hover,
+a.ns-tile:focus,
+a.ns-tile .tl,
+a.ns-tile .ic,
+a.ns-tile small {
     color: #fff !important;
 }
 
-.epc-erp-content-body .ns-tile.gold { background: linear-gradient(145deg, #1d4f91, #163a6b) !important; }
-.epc-erp-content-body .ns-tile.green { background: linear-gradient(145deg, #0f766e, #0b5c56) !important; }
-.epc-erp-content-body .ns-tile.rust { background: linear-gradient(145deg, #334155, #1e293b) !important; }
-.epc-erp-content-body .ns-tile.slate { background: linear-gradient(145deg, #b45309, #92400e) !important; }
-.epc-erp-content-body .ns-tile.blue { background: linear-gradient(145deg, #2563eb, #1d4ed8) !important; }
-.epc-erp-content-body .ns-tile.teal { background: linear-gradient(145deg, #0e7490, #155e75) !important; }
-.epc-erp-content-body .ns-tile.purple { background: linear-gradient(145deg, #5b21b6, #4c1d95) !important; }
-.epc-erp-content-body .ns-tile.orange { background: linear-gradient(145deg, #c2410c, #9a3412) !important; }
+a.ns-tile .ic {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-size: 28px;
+    opacity: .32;
+}
+
+a.ns-tile { position: relative; }
+
+a.ns-tile.gold { background: linear-gradient(145deg, #1d4f91, #163a6b) !important; }
+a.ns-tile.green { background: linear-gradient(145deg, #0f766e, #0b5c56) !important; }
+a.ns-tile.rust { background: linear-gradient(145deg, #334155, #1e293b) !important; }
+a.ns-tile.slate { background: linear-gradient(145deg, #b45309, #92400e) !important; }
+a.ns-tile.blue { background: linear-gradient(145deg, #2563eb, #1d4ed8) !important; }
+a.ns-tile.teal { background: linear-gradient(145deg, #0e7490, #155e75) !important; }
+a.ns-tile.purple { background: linear-gradient(145deg, #5b21b6, #4c1d95) !important; }
+a.ns-tile.orange { background: linear-gradient(145deg, #c2410c, #9a3412) !important; }
+
+.epc-infographic__node,
+.epc-infographic__node:link,
+.epc-infographic__node:visited {
+    color: #0f172a !important;
+    background: linear-gradient(145deg, #eef6ff, #ffffff) !important;
+    border: 1px solid #c5d7ea !important;
+    border-left: 4px solid #0078d4 !important;
+}
+
+.epc-infographic__node-label { color: #0078d4 !important; }
+.epc-infographic__node-value { color: #0f172a !important; }
+.epc-infographic__node-note { color: #475569 !important; }
+.epc-infographic__node:nth-child(1) { border-left-color: #0f766e !important; background: linear-gradient(145deg, #ecfdf5, #fff) !important; }
+.epc-infographic__node:nth-child(1) .epc-infographic__node-label { color: #0f766e !important; }
+.epc-infographic__node:nth-child(2) { border-left-color: #1d4ed8 !important; background: linear-gradient(145deg, #eef4ff, #fff) !important; }
+.epc-infographic__node:nth-child(3) { border-left-color: #b45309 !important; background: linear-gradient(145deg, #fff7ed, #fff) !important; }
+.epc-infographic__node:nth-child(3) .epc-infographic__node-label { color: #b45309 !important; }
+.epc-infographic__node:nth-child(4) { border-left-color: #0e7490 !important; background: linear-gradient(145deg, #ecfeff, #fff) !important; }
+.epc-infographic__node:nth-child(4) .epc-infographic__node-label { color: #0e7490 !important; }
 
 .epc-erp-content-body .ns-qa {
     display: flex;
@@ -952,135 +986,112 @@
     background: #fff;
     border: 1px solid var(--epc-ui-line);
     border-radius: 10px;
+    color: #0f172a !important;
 }
 
-/* Dynamics 365 F&O workspace tiles — lower module / area directory */
+/* Dynamics 365 F&O Workspaces page — compact icon + label tiles */
 .epc-moddir {
     margin-top: 1.35rem;
 }
 
 .epc-moddir-head h2 {
-    margin: 0 0 .35rem;
-    color: #0f172a;
-    font-size: 1.15rem;
-    font-weight: 750;
+    margin: 0 0 .45rem;
+    color: #605e5c;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
 }
 
 .epc-moddir-head p {
-    margin: 0 0 .45rem;
+    margin: 0 0 .4rem;
     color: #64748b;
-    font-size: .88rem;
+    font-size: .82rem;
     line-height: 1.4;
 }
 
 .epc-moddir-search {
     width: 100%;
     max-width: 28rem;
-    margin: 0 0 .95rem;
-    padding: .55rem .7rem;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
+    margin: 0 0 .85rem;
+    padding: .5rem .7rem;
+    border: 1px solid #d0d4da;
+    border-radius: 2px;
     background: #fff;
     font: inherit;
 }
 
 .epc-moddir-group {
-    margin: 0 0 1.15rem;
+    margin: 0 0 1.1rem;
 }
 
 .epc-moddir-group h3 {
-    margin: 0 0 .65rem;
-    padding-bottom: .35rem;
-    border-bottom: 2px solid #dbe4ee;
-    color: #1e293b;
-    font-size: .92rem;
-    font-weight: 750;
+    margin: 0 0 .55rem;
+    color: #323130;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
 }
 
 .epc-moddir-group h3 span {
-    color: #94a3b8;
+    color: #a19f9d;
     font-weight: 500;
 }
 
 .epc-moddir-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(15.75rem, 1fr));
-    gap: .85rem;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 10px 12px;
 }
 
-.epc-moddir-item.epc-ws-tile,
-a.epc-ws-tile {
-    display: flex;
-    flex-direction: column;
-    min-height: 9.25rem;
-    padding: 0;
-    overflow: hidden;
-    border: 1px solid #d4dbe4;
-    border-radius: 3px;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, .07);
-    text-decoration: none;
-    transition: transform .12s ease, box-shadow .12s ease;
-}
-
-.epc-ws-tile:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 22px rgba(15, 23, 42, .14);
-}
-
-.epc-ws-tile__bar {
-    display: flex;
+a.epc-moddir-item,
+a.epc-d365-ws,
+.epc-moddir-item.epc-d365-ws {
+    display: flex !important;
+    flex-direction: row;
     align-items: center;
-    min-height: 2.7rem;
-    padding: .45rem .75rem;
-    background: var(--ws-accent, #0078d4);
-    color: #fff;
+    gap: 10px;
+    min-height: 52px;
+    padding: 8px 12px;
+    overflow: hidden;
+    border: 1px solid #e1e5ea;
+    border-radius: 4px;
+    background: #fff !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+    color: #323130 !important;
+    text-decoration: none !important;
 }
 
-.epc-ws-tile__bar .epc-moddir-link,
-.epc-ws-tile__bar .epc-moddir-link:link,
-.epc-ws-tile__bar .epc-moddir-link:visited,
-.epc-ws-tile__bar .epc-moddir-link:hover {
-    color: #fff !important;
+a.epc-d365-ws:hover {
+    border-color: #0078d4;
+    box-shadow: 0 2px 8px rgba(0, 120, 212, .12);
+}
+
+a.epc-d365-ws i {
+    flex: 0 0 18px;
+    width: 18px;
+    color: #0078d4 !important;
+    font-size: 15px;
+    text-align: center;
+}
+
+a.epc-d365-ws .epc-moddir-link,
+a.epc-d365-ws .epc-moddir-link:link,
+a.epc-d365-ws .epc-moddir-link:visited,
+a.epc-d365-ws .epc-moddir-link:hover {
+    color: #323130 !important;
     font-size: 13px;
-    font-weight: 700;
-    line-height: 1.25;
-    text-decoration: none;
-}
-
-.epc-ws-tile__body {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    justify-content: flex-end;
-    gap: .45rem;
-    padding: .85rem .8rem .75rem;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, .08), transparent 40%),
-        #f8fafc;
-}
-
-.epc-ws-tile__body i {
-    width: auto;
-    color: var(--ws-accent, #0078d4);
-    font-size: 1.65rem;
-}
-
-.epc-ws-tile__body small {
-    color: #475569;
-    font-size: 11.5px;
     font-weight: 600;
-    line-height: 1.35;
+    line-height: 1.25;
+    text-decoration: none !important;
 }
 
-.epc-ws-tile.ws-blue { --ws-accent: #0078d4; }
-.epc-ws-tile.ws-teal { --ws-accent: #008575; }
-.epc-ws-tile.ws-orange { --ws-accent: #ca5010; }
-.epc-ws-tile.ws-purple { --ws-accent: #5c2d91; }
-.epc-ws-tile.ws-green { --ws-accent: #107c10; }
-.epc-ws-tile.ws-crimson { --ws-accent: #a80000; }
-.epc-ws-tile.ws-navy { --ws-accent: #00188f; }
-.epc-ws-tile.ws-magenta { --ws-accent: #b146c2; }
+@media (max-width: 1100px) {
+    .epc-moddir-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
 
 @media (max-width: 720px) {
     .epc-erp-content-body form:not([data-epc-inline="1"]),
@@ -1093,6 +1104,6 @@ a.epc-ws-tile {
     }
 
     .epc-moddir-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
     }
 }
