@@ -1,5 +1,6 @@
 using System.Text.Json;
 using EcomAE.Platform.Routing;
+using EcomAE.Platform.Services;
 using Microsoft.Extensions.Logging;
 
 namespace EcomAE.Platform.Auth;
@@ -131,6 +132,19 @@ public sealed class LegacyLoginBridgeMiddleware
             }
 
             LegacyLoginCookieWriter.Apply(context.Response, outcome.Success, remember);
+            if (ClientErpPath.TryParseSiteKey(context.Request.Path.Value, out var clientKey))
+            {
+                ClientErpPath.SetCookie(context.Response, clientKey);
+                if (string.IsNullOrWhiteSpace(redirect))
+                {
+                    redirect = ClientErpPath.ErpHomeUrl(clientKey);
+                }
+            }
+            else
+            {
+                ClientErpPath.ClearCookie(context.Response);
+            }
+
             var dest = string.IsNullOrWhiteSpace(redirect) ? outcome.Success.RedirectPath : redirect;
             if (!dest.StartsWith('/') || dest.StartsWith("//", StringComparison.Ordinal))
             {
@@ -175,13 +189,13 @@ public sealed class LegacyLoginBridgeMiddleware
             }
         }
 
-        return false;
+        return ClientErpPath.IsClientErpPath(path.Value);
     }
 
     private static string SurfaceFromPath(PathString path)
     {
         var p = path.Value ?? "";
-        if (p.StartsWith("/erp", StringComparison.OrdinalIgnoreCase))
+        if (ClientErpPath.IsClientErpPath(p) || p.StartsWith("/erp", StringComparison.OrdinalIgnoreCase))
         {
             return "erp";
         }
@@ -222,8 +236,12 @@ public sealed class LegacyLoginBridgeMiddleware
         if (wantsHtml)
         {
             context.Response.StatusCode = StatusCodes.Status302Found;
+            var login = ClientErpPath.TryParseSiteKey(context.Request.Path.Value, out var key)
+                ? ClientErpPath.LoginUrl(key)
+                : $"/{LegacyLoginSurfaceParser.Key(surface)}/login";
             context.Response.Headers.Location =
-                $"/{LegacyLoginSurfaceParser.Key(surface)}/login?" + new LegacyLoginFailure(message, code, waitMinutes).Query;
+                login + (login.Contains('?', StringComparison.Ordinal) ? "&" : "?")
+                + new LegacyLoginFailure(message, code, waitMinutes).Query;
             return;
         }
 

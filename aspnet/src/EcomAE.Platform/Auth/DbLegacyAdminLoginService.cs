@@ -66,11 +66,21 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
         var tenant = _http.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
         var host = _http.HttpContext?.Request.Host.Host ?? string.Empty;
         var superCpHost = PlatformHostPolicy.IsSuperCpHost(host);
+        var clientErpPath = ClientErpPath.IsClientErpPath(_http.HttpContext?.Request.Path.Value);
+        var clientErpBound = tenant is { Mode: TenantMode.ErpOnlyTenant } && clientErpPath;
+
+        if (clientErpPath && !clientErpBound)
+        {
+            return LegacyLoginOutcome.Failed(
+                "No Client ERP tenant is registered for this company URL.",
+                "client_erp_not_found");
+        }
 
         // Named tenants (storefront/CP/ERP) must use the shop DB — never silently fall through to
         // portal registry users (that yields false invalid_credentials). Super-CP hosts keep
-        // registry fallback for platform operator accounts.
-        var needsTenantShopDb = !superCpHost
+        // registry fallback for platform operator accounts — except /cp/client-erp/{key}
+        // which must authenticate against that company's dedicated DB.
+        var needsTenantShopDb = (!superCpHost || clientErpBound)
             && request.Surface is (LegacyLoginSurface.ControlPanel
                 or LegacyLoginSurface.Erp
                 or LegacyLoginSurface.Storefront);

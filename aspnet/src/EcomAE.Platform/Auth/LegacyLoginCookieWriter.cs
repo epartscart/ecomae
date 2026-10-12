@@ -1,3 +1,5 @@
+using EcomAE.Platform.Services;
+
 namespace EcomAE.Platform.Auth;
 
 /// <summary>Sets / clears PHP-compatible admin/customer session cookies on the response.</summary>
@@ -30,6 +32,7 @@ public static class LegacyLoginCookieWriter
                      "session",
                      "u_id",
                      "epc_erp_shell",
+                     ClientErpPath.CookieName,
                  })
         {
             response.Cookies.Append(name, string.Empty, expired);

@@ -55,6 +55,13 @@ builder.Services.AddSingleton<ITenantRegistry>(sp =>
 
     return ActivatorUtilities.CreateInstance<DbBackedTenantRegistry>(sp);
 });
+builder.Services.AddSingleton<IClientErpTenantLookup>(sp =>
+{
+    var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();
+    return connections.IsConfigured
+        ? ActivatorUtilities.CreateInstance<DbClientErpTenantLookup>(sp)
+        : NullClientErpTenantLookup.Instance;
+});
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<ILegacySessionStore>(sp =>
 {
@@ -1326,7 +1333,11 @@ app.UseMiddleware<MarketingStubToPhpRedirectMiddleware>();
 app.UseMiddleware<EcomaeMarketingSnapshotMiddleware>();
 // Legacy stub→PHP /en redirect. Skipped when PreferAspNetStorefrontApps (product ASP.NET primary).
 app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
+// Super-host /erp chrome links after a client-erp login stay under /cp/client-erp/{key}.
+app.UseMiddleware<ClientErpCookieRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
+// /cp/client-erp/{key}/erp… → /erp… after the company DB is bound.
+app.UseMiddleware<ClientErpPathRewriteMiddleware>();
 app.UseMiddleware<EcomAE.Platform.Storefront.StorefrontCheckoutConfirmSessionlessMiddleware>();
 // Shared ERP remains available to every tenant; industry-specific workspaces are gated
 // by host/company industry before Blazor can render or accept their forms.

@@ -14,6 +14,32 @@ namespace EcomAE.Platform.Tests;
 /// </summary>
 public sealed class SuperCpTenantIsolationTests
 {
+    private sealed class FakeClientErpLookup : IClientErpTenantLookup
+    {
+        public ValueTask<ClientErpTenantRecord?> FindActiveErpOnlyAsync(string siteKey, CancellationToken cancellationToken = default)
+        {
+            var key = ClientErpPath.NormalizeSiteKey(siteKey);
+            if (key != "asap")
+            {
+                return ValueTask.FromResult<ClientErpTenantRecord?>(null);
+            }
+
+            return ValueTask.FromResult<ClientErpTenantRecord?>(new ClientErpTenantRecord(
+                "asap",
+                "ASAP Autoparts",
+                "auto_parts",
+                "ecomae_asap",
+                "asap_user",
+                "secret",
+                DedicatedDb: true,
+                IsActive: true,
+                IsDemo: false));
+        }
+
+        public ValueTask<IReadOnlyList<ClientErpTenantRecord>> ListActiveErpOnlyAsync(CancellationToken cancellationToken = default)
+            => ValueTask.FromResult<IReadOnlyList<ClientErpTenantRecord>>([]);
+    }
+
     private sealed class HijackingRegistry : ITenantRegistry
     {
         // Simulates the live epc_portal_tenants lookup that returns an erp_only
@@ -34,7 +60,7 @@ public sealed class SuperCpTenantIsolationTests
                 DedicatedDb: true));
     }
 
-    private static RouteTenantResolver ResolverWith(ITenantRegistry registry) =>
+    private static RouteTenantResolver ResolverWith(ITenantRegistry registry, IClientErpTenantLookup? clientErp = null) =>
         new(Options.Create(new EcomAeOptions
         {
             PlatformHost = "www.ecomae.com",
@@ -42,7 +68,7 @@ public sealed class SuperCpTenantIsolationTests
             [
                 new TenantSeedOptions { Host = "www.ecomae.com", SiteKey = "platform", DatabaseName = "ecomae", Mode = TenantMode.Platform, BosEnabled = true },
             ]
-        }), registry);
+        }), registry, clientErp);
 
     [Theory]
     [InlineData("www.ecomae.com", "/cp")]
@@ -63,6 +89,72 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Equal("ecomae", tenant.DatabaseName);
         Assert.Null(tenant.DbUser);
         Assert.Null(tenant.DbPassword);
+    }
+
+    [Theory]
+    [InlineData("www.ecomae.com", "/cp/client-erp/asap")]
+    [InlineData("www.ecomae.com", "/cp/client-erp/asap/")]
+    [InlineData("www.ecomae.com", "/cp/client-erp/asap/erp")]
+    [InlineData("cp.ecomae.com", "/cp/client-erp/asap/erp/app")]
+    public async Task SuperHostClientErpPathBindsCompanyDatabase(string host, string path)
+    {
+        var resolver = ResolverWith(new HijackingRegistry(), new FakeClientErpLookup());
+        var context = new DefaultHttpContext();
+        context.Request.Host = new HostString(host);
+        context.Request.Path = path;
+
+        var tenant = await resolver.ResolveAsync(context);
+
+        Assert.Equal(TenantMode.ErpOnlyTenant, tenant.Mode);
+        Assert.Equal("asap", tenant.SiteKey);
+        Assert.Equal("ecomae_asap", tenant.DatabaseName);
+        Assert.Equal("asap_user", tenant.DbUser);
+        Assert.Equal(TenantSurface.Erp, tenant.Surface);
+    }
+
+    [Fact]
+    public async Task SuperHostClientErpUnknownKeyDoesNotBindHijackedRegistry()
+    {
+        var resolver = ResolverWith(new HijackingRegistry(), new FakeClientErpLookup());
+        var context = new DefaultHttpContext();
+        context.Request.Host = new HostString("www.ecomae.com");
+        context.Request.Path = "/cp/client-erp/missing/";
+
+        var tenant = await resolver.ResolveAsync(context);
+
+        Assert.Equal(TenantMode.ErpOnlyTenant, tenant.Mode);
+        Assert.Equal("missing", tenant.SiteKey);
+        Assert.False(tenant.HasTenantDatabase);
+        Assert.NotEqual("docpart", tenant.DatabaseName);
+    }
+
+    [Fact]
+    public async Task SuperHostBareCpAndErpStayPlatformWhenClientErpLookupExists()
+    {
+        var resolver = ResolverWith(new HijackingRegistry(), new FakeClientErpLookup());
+        foreach (var path in new[] { "/cp", "/erp", "/cp/login", "/erp/login" })
+        {
+            var context = new DefaultHttpContext();
+            context.Request.Host = new HostString("www.ecomae.com");
+            context.Request.Path = path;
+            var tenant = await resolver.ResolveAsync(context);
+            Assert.Equal(TenantMode.Platform, tenant.Mode);
+            Assert.Equal("ecomae", tenant.DatabaseName);
+        }
+    }
+
+    [Fact]
+    public void ClientErpPagesExistAndStayOffSuperCpCopy()
+    {
+        var login = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor"));
+        Assert.Contains("@page \"/cp/client-erp/{SiteKey}\"", login, StringComparison.Ordinal);
+        Assert.Contains("LoginHostBrand.ForErpOnly", login, StringComparison.Ordinal);
+        Assert.Contains("Client ERP not found", login, StringComparison.Ordinal);
+        Assert.DoesNotContain("Operator Access", login, StringComparison.Ordinal);
+
+        var picker = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpClientErpPickerApp.razor"));
+        Assert.Contains("@page \"/cp/client-erp\"", picker, StringComparison.Ordinal);
+        Assert.Contains("Choose company", picker, StringComparison.Ordinal);
     }
 
     [Fact]

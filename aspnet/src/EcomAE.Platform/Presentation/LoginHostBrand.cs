@@ -14,6 +14,7 @@ public static class LoginHostBrand
         Platform,
         AnimatedEparts,
         TenantImage,
+        CompanyMark,
     }
 
     public sealed record Brand(
@@ -102,6 +103,41 @@ public static class LoginHostBrand
                 ],
                 "bos-login--tenant-taxofinca"),
         };
+
+    /// <summary>Company ERP-only login on www.ecomae.com/cp/client-erp/{key} — never Super CP fleet copy.</summary>
+    public static Brand ForErpOnly(string siteKey, string? tradeName, string? industryCode = null)
+    {
+        var key = ClientErpPath.NormalizeSiteKey(siteKey);
+        if (key.Length > 0 && TenantCatalog.TryGetValue(key, out var known))
+        {
+            return known;
+        }
+
+        var label = string.IsNullOrWhiteSpace(tradeName) ? (key.Length == 0 ? "Client ERP" : key.ToUpperInvariant()) : tradeName.Trim();
+        var tagline = (industryCode ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "auto_parts" or "autoparts" => "Automotive spare parts ERP",
+            "jewellery" or "jewelry" => "Jewellery ERP",
+            "fit_out" or "fitout" or "fit-out" => "Fit-out ERP",
+            "real_estate" or "realestate" => "Real-estate ERP",
+            _ => "Company ERP",
+        };
+
+        return new(
+            Kind.CompanyMark,
+            key.Length == 0 ? "client_erp" : key,
+            label,
+            tagline,
+            null,
+            "#0d9488",
+            "rgba(13,148,136,.28)",
+            "teal-moon",
+            [
+                "rgba(45,212,191,.8)", "rgba(13,148,136,.55)", "rgba(56,189,248,.45)",
+                "rgba(255,255,255,.35)", "rgba(94,234,212,.4)"
+            ],
+            "bos-login--erp bos-login--client-erp");
+    }
 
     public static Brand Resolve(string? host, string surface = "cp")
     {

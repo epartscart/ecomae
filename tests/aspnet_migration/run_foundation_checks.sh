@@ -1704,6 +1704,11 @@ check 'onboard four ERP-only requires confirm' contains "$ROOT/scripts/cloudpane
 check 'onboard four ERP-only creates asap indj fito real' contains "$ROOT/scripts/cloudpanel_onboard_four_erp_only.sh" '("asap", "ASAP Autoparts", "auto_parts")'
 check 'super mail app lists yawer mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'yawer@ecomae.com'
 check 'super mail app uses PHP reference Open' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'PhpReferenceOnlyHref(_phpTab)'
+check 'client-erp login page is on ErpLoginApp' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" '@page "/cp/client-erp/{SiteKey}"'
+check 'client-erp login uses company brand' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" 'LoginHostBrand.ForErpOnly'
+check 'client-erp picker page exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpClientErpPickerApp.razor" '@page "/cp/client-erp"'
+check 'resolver binds client-erp path on Super host' contains "$ROOT/aspnet/src/EcomAE.Platform/Services/RouteTenantResolver.cs" '/cp/client-erp/{site_key}'
+check 'auth gate allowlists client-erp login' contains "$ROOT/aspnet/src/EcomAE.Platform/Middleware/AdminSurfaceAuthGateMiddleware.cs" 'IsClientErpLoginPath'
 check 'CloudPanel quick start warns against var www ecomae' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Do not use `/var/www/ecomae`'
 check 'CloudPanel continue-after-env script exists' test -x "$ROOT/scripts/cloudpanel_continue_after_env.sh"
 check 'CloudPanel quick start explains nano save/exit' contains "$ROOT/deploy/aspnet/CLOUDPANEL_QUICK_START.md" 'Ctrl+O'

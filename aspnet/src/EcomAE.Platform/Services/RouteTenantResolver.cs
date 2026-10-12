@@ -8,11 +8,16 @@ public sealed class RouteTenantResolver : ITenantResolver
 {
     private readonly EcomAeOptions _options;
     private readonly ITenantRegistry _tenantRegistry;
+    private readonly IClientErpTenantLookup _clientErpTenants;
 
-    public RouteTenantResolver(IOptions<EcomAeOptions> options, ITenantRegistry tenantRegistry)
+    public RouteTenantResolver(
+        IOptions<EcomAeOptions> options,
+        ITenantRegistry tenantRegistry,
+        IClientErpTenantLookup? clientErpTenants = null)
     {
         _options = options.Value;
         _tenantRegistry = tenantRegistry;
+        _clientErpTenants = clientErpTenants ?? NullClientErpTenantLookup.Instance;
     }
 
     public async ValueTask<TenantContext> ResolveAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
@@ -44,8 +49,41 @@ public sealed class RouteTenantResolver : ITenantResolver
         // shared tenants under the www hostname in epc_portal_tenants — a live registry
         // row must never bind the super host's CP/ERP to a TENANT database
         // (that leaked epartscart data onto ecomae.com/cp and /erp).
+        // Exception: /cp/client-erp/{site_key} is the PHP-parity company ERP URL on the
+        // Super host. Bind THAT dedicated DB only for this path; /cp and /erp stay platform.
         if (PlatformHostPolicy.IsSuperCpHost(host))
         {
+            if (ClientErpPath.TryParse(path, out var clientErp) && clientErp.SiteKey.Length > 0)
+            {
+                var erpOnly = await _clientErpTenants
+                    .FindActiveErpOnlyAsync(clientErp.SiteKey, cancellationToken)
+                    .ConfigureAwait(false);
+                if (erpOnly is not null && erpOnly.IsActive && !string.IsNullOrWhiteSpace(erpOnly.DatabaseName))
+                {
+                    return new TenantContext(
+                        host,
+                        path,
+                        TenantSurface.Erp,
+                        TenantMode.ErpOnlyTenant,
+                        erpOnly.SiteKey,
+                        erpOnly.DatabaseName,
+                        erpOnly.DbUser,
+                        erpOnly.DbPassword,
+                        erpOnly.DedicatedDb);
+                }
+
+                return new TenantContext(
+                    host,
+                    path,
+                    TenantSurface.Erp,
+                    TenantMode.ErpOnlyTenant,
+                    clientErp.SiteKey,
+                    DatabaseName: null,
+                    DbUser: null,
+                    DbPassword: null,
+                    DedicatedDb: false);
+            }
+
             var platformRecord = registryRecord?.Mode == TenantMode.Platform ? registryRecord : null;
             return new TenantContext(
                 host,

@@ -1,0 +1,61 @@
+@page "/cp/client-erp"
+@page "/cp/client-erp/"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject IClientErpTenantLookup ClientErpTenants
+@inject NavigationManager Nav
+
+<PageTitle>Client ERP — Choose company</PageTitle>
+<PhpSurfaceHead Surface="erp" IncludeLoginCss="true" />
+<PhpChromeBodyClass Surface="erp" LoginChrome="true" />
+
+<div class="epc-login-bos bos-login bos-login--erp" style="min-height:100vh;padding:2rem 1rem;">
+    <div class="bos-login__panel" style="margin:2rem auto;max-width:36rem;width:100%;">
+        <div class="bos-login__panel-inner">
+            <div class="bos-login__form-header">
+                <h2>Client ERP</h2>
+                <p>Select your company to open its ERP login. Each company has its own URL and database.</p>
+            </div>
+            @if (_tenants.Count == 0)
+            {
+                <p>No Client ERP tenants are currently available.</p>
+            }
+            else
+            {
+                <ul style="list-style:none;margin:0;padding:0;">
+                    @foreach (var row in _tenants)
+                    {
+                        var href = ClientErpPath.LoginUrl(row.SiteKey);
+                        var label = string.IsNullOrWhiteSpace(row.TradeName) ? row.SiteKey.ToUpperInvariant() : row.TradeName;
+                        <li style="margin:0 0 12px;">
+                            <a class="bos-login__btn bos-login__btn--erp" href="@href" style="display:block;text-align:left;">
+                                <strong>@label</strong>
+                                <span style="display:block;opacity:.8;font-size:.9rem;">@href</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+            <p class="bos-login__footer" style="margin-top:1.25rem;">
+                Platform operator? <a href="/cp/login">Open Super CP</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private IReadOnlyList<ClientErpTenantRecord> _tenants = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var listed = await ClientErpTenants.ListActiveErpOnlyAsync();
+        if (listed.Count == 1)
+        {
+            Nav.NavigateTo(ClientErpPath.LoginUrl(listed[0].SiteKey), replace: true);
+            return;
+        }
+
+        _tenants = listed;
+    }
+}

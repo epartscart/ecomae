@@ -1,10 +1,15 @@
 @page "/erp/login"
+@page "/cp/client-erp/{SiteKey}"
+@page "/cp/client-erp/{SiteKey}/"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Middleware
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
+@using EcomAE.Platform.Services
 @inject NavigationManager Nav
 @inject IHttpContextAccessor Http
+@inject IClientErpTenantLookup ClientErpTenants
 
 <PageTitle>@_content.HeroTitle — ERP</PageTitle>
 @* Tenant hosts: industry ERP copy only. Super host: platform Super ERP messaging. *@
@@ -63,6 +68,18 @@
     }
 </style>
 
+@if (_missing)
+{
+    <div class="epc-login-bos bos-login bos-login--erp" style="padding:2.5rem;font-family:system-ui,sans-serif;">
+        <div class="bos-login__panel" style="margin:auto;max-width:28rem;">
+            <h1>Client ERP not found</h1>
+            <p>No shared ERP-only company is registered for site key <code>@_clientErpKey</code>.</p>
+            <p><a href="/cp/client-erp">Choose company</a> · <a href="/cp/login">Super CP login</a></p>
+        </div>
+    </div>
+}
+else
+{
 @* ASP.NET presentation marker: epc-asp-login-erp. *@
 <div class="epc-login-bos bos-login @_brand.RootModifierClass epc-erp-portal-wrap"
      data-login-industry="@_content.IndustryCode"
@@ -78,14 +95,14 @@
     <div class="bos-login__hero">
         <div class="bos-login__hero-content">
             <div class="bos-login__brand-mark">
-                @if (_brand.LogoKind != LoginHostBrand.Kind.Platform)
-                {
-                    <PhpLoginHostBrand Brand="@_brand" />
-                    <h1 class="bos-login__brand-title">@_content.HeroTitle</h1>
-                    <p class="bos-login__brand-tagline">@_content.HeroTagline</p>
-                }
-                else
-                {
+            @if (_brand.LogoKind is not (LoginHostBrand.Kind.Platform or LoginHostBrand.Kind.CompanyMark))
+            {
+                <PhpLoginHostBrand Brand="@_brand" />
+                <h1 class="bos-login__brand-title">@_content.HeroTitle</h1>
+                <p class="bos-login__brand-tagline">@_content.HeroTagline</p>
+            }
+            else
+            {
                     <div class="bos-login__brand-icon">
                         <div class="bos-login__brand-icon-inner">
                             <i class="fa fa-university"></i>
@@ -142,10 +159,10 @@
                                       Heading="Continue with Google — credentials stay private"
                                       TenantKey="@_brand.SiteKey" />
                 <LoginAntiAutofill />
-                <form class="bos-login__form epc-login-html-form" id="erpLoginForm" method="post" action="@EcomAeRoutes.ErpLogin"
+                <form class="bos-login__form epc-login-html-form" id="erpLoginForm" method="post" action="@_loginAction"
                       autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other">
                     <input type="hidden" name="surface" value="erp" />
-                    <input type="hidden" name="redirect" value="/erp" />
+                    <input type="hidden" name="redirect" value="@_redirect" />
                     <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
                         <input type="text" name="epc_autofill_decoy_user" tabindex="-1" autocomplete="username" value="" />
                         <input type="password" name="epc_autofill_decoy_pass" tabindex="-1" autocomplete="current-password" value="" />
@@ -207,8 +224,16 @@
                     <span class="bos-login__footer-logo">@_brand.Label</span>
                     <span class="bos-login__footer-sep">&middot;</span>
                     <span>@_content.IndustryCode.Replace('_', ' ') ERP</span>
-                    <span class="bos-login__footer-sep">&middot;</span>
-                    <a href="/cp/login">CP</a>
+                    @if (string.IsNullOrEmpty(_clientErpKey))
+                    {
+                        <span class="bos-login__footer-sep">&middot;</span>
+                        <a href="/cp/login">CP</a>
+                    }
+                    else
+                    {
+                        <span class="bos-login__footer-sep">&middot;</span>
+                        <a href="/cp/client-erp">Other company</a>
+                    }
                 </div>
             </div>
         </div>
@@ -231,9 +256,17 @@
     apply();
 })();
 </script>
+}
 
 @code {
+    [Parameter]
+    public string? SiteKey { get; set; }
+
     private string? _error;
+    private string? _clientErpKey;
+    private bool _missing;
+    private string _loginAction = EcomAeRoutes.ErpLogin;
+    private string _redirect = "/erp";
     private LoginHostBrand.Brand _brand = LoginHostBrand.Resolve(null, "erp");
     private LoginIndustryContent.Content _content = LoginIndustryContent.For(LoginHostBrand.Resolve(null, "erp"), "erp");
 
@@ -245,10 +278,40 @@
         _ => "ai",
     };
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         _error = LoginErrorHelper.FromUri(Nav.Uri);
         var host = Http.HttpContext?.Request.Host.Host;
+        var path = Http.HttpContext?.Request.Path.Value;
+        var tenant = Http.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        var key = ClientErpPath.NormalizeSiteKey(SiteKey);
+        if (key.Length == 0)
+        {
+            ClientErpPath.TryParseSiteKey(path, out key);
+        }
+
+        if (key.Length == 0 && tenant is { Mode: TenantMode.ErpOnlyTenant } && !string.IsNullOrWhiteSpace(tenant.SiteKey))
+        {
+            key = ClientErpPath.NormalizeSiteKey(tenant.SiteKey);
+        }
+
+        if (key.Length > 0 && PlatformHostPolicy.IsSuperCpHost(host))
+        {
+            _clientErpKey = key;
+            _loginAction = ClientErpPath.LoginUrl(key);
+            _redirect = ClientErpPath.ErpHomeUrl(key);
+            var row = await ClientErpTenants.FindActiveErpOnlyAsync(key, Http.HttpContext?.RequestAborted ?? CancellationToken.None);
+            if (row is null || !row.IsActive || string.IsNullOrWhiteSpace(row.DatabaseName))
+            {
+                _missing = true;
+                return;
+            }
+
+            _brand = LoginHostBrand.ForErpOnly(row.SiteKey, row.TradeName, row.IndustryCode);
+            _content = LoginIndustryContent.For(_brand, "erp");
+            return;
+        }
+
         _brand = LoginHostBrand.Resolve(host, "erp");
         _content = LoginIndustryContent.For(_brand, "erp");
     }
