@@ -1307,6 +1307,25 @@ body:has(.epc-boc) {
     color: #64748b !important;
 }
 
+.epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__results,
+.epc-erp-global-search__results {
+    color: #0f172a !important;
+    background: #fff !important;
+}
+
+.epc-erp-cp-shell .epc-erp-topbar a.epc-erp-global-search__hit,
+.epc-erp-cp-shell .epc-erp-topbar a.epc-erp-global-search__hit span,
+.epc-erp-cp-shell .epc-erp-topbar a.epc-erp-global-search__hit i,
+.epc-erp-global-search__hit,
+a.epc-erp-global-search__hit {
+    color: #0f172a !important;
+}
+
+.epc-erp-cp-shell .epc-erp-topbar .epc-erp-global-search__hit small,
+.epc-erp-global-search__hit small {
+    color: #64748b !important;
+}
+
 /* Dashboard home: header already has legal name / industry. Hide the repeating chrome strip. */
 .epc-erp-cp-shell:has(.ns-dash) .epc-module-visual-frame,
 .epc-erp-cp-shell:has(.ns-dash) .epc-op-context,
