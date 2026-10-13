@@ -320,22 +320,7 @@
                 <label>Code <input class="form-control input-sm" name="code" placeholder="Code" style="width:120px;" value="@(_openedBudget is not null ? _openedBudget.Code : "")" /></label>
                 <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" value="@(_openedBudget is not null ? _openedBudget.Name : "")" /></label>
                 <label>Fiscal year <input class="form-control input-sm" name="fiscal_year" placeholder="FY" style="width:90px;" value="@(_openedBudget is not null ? _openedBudget.FiscalYear : "")" /></label>
-                @if (_businessUnits.Count == 0)
-                {
-                    <label>BU id <input class="form-control input-sm" name="business_unit_id" placeholder="0" style="width:80px;" value="@(_openedBudget is not null ? _openedBudget.BusinessUnitId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-                }
-                else
-                {
-                    <label>Business unit
-                        <select class="form-control input-sm" name="business_unit_id" style="min-width:12rem;">
-                            <option value="0">— none —</option>
-                            @foreach (var unit in _businessUnits)
-                            {
-                                <option value="@unit.Id" selected="@IsBusinessUnitSelected(unit.Id)">@unit.Code · @unit.Name</option>
-                            }
-                        </select>
-                    </label>
-                }
+                <ErpMasterPicker Kind="business_unit" FieldName="business_unit_id" Label="Business unit" Value="@(_openedBudget?.BusinessUnitId ?? 0)" InputId="budget-bu" />
                 <label>Master
                     <select class="form-control input-sm" name="is_master" style="width:80px;">
                         <option value="0">no</option>
@@ -385,22 +370,7 @@
                         </select>
                     </label>
                 }
-                @if (_businessUnits.Count == 0)
-                {
-                    <label>Parent BU id <input class="form-control input-sm" name="parent_id" placeholder="Optional" style="width:90px;" /></label>
-                }
-                else
-                {
-                    <label>Parent BU
-                        <select class="form-control input-sm" name="parent_id" style="min-width:12rem;">
-                            <option value="0">— none —</option>
-                            @foreach (var unit in _businessUnits)
-                            {
-                                <option value="@unit.Id">@unit.Code · @unit.Name</option>
-                            }
-                        </select>
-                    </label>
-                }
+                <ErpMasterPicker Kind="business_unit" FieldName="parent_id" Label="Parent business unit" InputId="budget-parent-bu" />
                 @if (_dimensions.Count == 0)
                 {
                     <label>Dimension id <input class="form-control input-sm" name="dimension_id" placeholder="Value parent" style="width:90px;" /></label>
@@ -471,7 +441,6 @@
     private IReadOnlyList<CpBudgetDigest> _budgets = [];
     private IReadOnlyList<(string Type, ErpOrganizationMasterRow Value)> _organizationRows = [];
     private IReadOnlyList<ErpOrganizationMasterRow> _legalEntities = [];
-    private IReadOnlyList<ErpOrganizationMasterRow> _businessUnits = [];
     private IReadOnlyList<ErpOrganizationMasterRow> _dimensions = [];
     private string _source = "n/a";
     private string _message = "";
@@ -488,9 +457,6 @@
                 ? ("Budget #" + _openedBudget.Id.ToString(CultureInfo.InvariantCulture))
                 : _openedBudget.Code)
             : _openedBudget.Name);
-
-    private bool IsBusinessUnitSelected(long id)
-        => _openedBudget is not null && _openedBudget.BusinessUnitId == id;
 
     protected override async Task OnInitializedAsync()
     {
@@ -518,7 +484,6 @@
 
         var masters = await OrganizationMasters.LoadAsync(100, ctx.RequestAborted);
         _legalEntities = masters.LegalEntities.Where(row => row.Active).ToList();
-        _businessUnits = masters.BusinessUnits.Where(row => row.Active).ToList();
         _dimensions = masters.Dimensions.Where(row => row.Active).ToList();
         _organizationRows = masters.LegalEntities.Select(r => ("Legal entity", r))
             .Concat(masters.BusinessUnits.Select(r => ("Business unit", r)))

@@ -127,7 +127,7 @@
             <label>Entity id <input type="number" name="entityId" value="@(_dimensionEntityId > 0 ? _dimensionEntityId.ToString(CultureInfo.InvariantCulture) : string.Empty)" min="1" required style="width:6rem" /></label>
             @if (_dimensionCatalog.Count == 0)
             {
-                <label>Business unit <input type="number" name="dim[business_unit]" min="0" style="width:6rem" /></label>
+                <ErpMasterPicker Kind="business_unit" FieldName="dim[business_unit]" Label="Business unit" InputId="inv-dim-bu" />
                 <label>Legal entity <input type="number" name="dim[legal_entity]" min="0" style="width:6rem" /></label>
                 <label>Class <input type="number" name="dim[class_unit]" min="0" style="width:6rem" /></label>
             }

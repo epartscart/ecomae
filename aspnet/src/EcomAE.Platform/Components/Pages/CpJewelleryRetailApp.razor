@@ -86,7 +86,7 @@
                 <dt>Party</dt><dd>@(string.IsNullOrWhiteSpace(_opened.PartyName) ? "—" : _opened.PartyName)</dd>
                 <dt>Party code</dt><dd>@(string.IsNullOrWhiteSpace(_opened.PartyCode) ? "—" : _opened.PartyCode)</dd>
                 <dt>Salesman</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Salesman) ? "—" : _opened.Salesman)</dd>
-                <dt>Branch</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Branch) ? "—" : _opened.Branch)</dd>
+                <dt>Business unit</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Branch) ? "—" : _opened.Branch)</dd>
                 <dt>Net</dt><dd>@_opened.NetAmount.ToString("N2", CultureInfo.InvariantCulture)</dd>
                 <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
             </dl>
@@ -285,7 +285,6 @@
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
-                <label>Branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
                 <ErpVoucherHeaderFields DateLabel="Invoice date" NumberLabel="Invoice no" NumberPreview="Auto" />
                 <label>Customer <input class="form-control input-sm" name="customer_name" required /></label>
                 <label>Customer code <input class="form-control input-sm" name="party_code" /></label>

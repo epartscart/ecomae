@@ -159,7 +159,7 @@
                     <input type="hidden" name="returnUrl" value="@OrgHref("cost_centres")" />
                     <label>Code <input class="form-control input-sm" name="code" required maxlength="30" placeholder="CC-ADMIN" /></label>
                     <label>Name <input class="form-control input-sm" name="name" maxlength="160" /></label>
-                    <label>Branch id <input class="form-control input-sm" type="number" name="branch_id" min="0" value="0" /></label>
+                    <ErpMasterPicker Kind="business_unit" FieldName="branch_id" Label="Business unit" InputId="org-cc-bu" />
                     <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save cost centre</button></div>
                 </form>
             </ErpPhpCreateWell>

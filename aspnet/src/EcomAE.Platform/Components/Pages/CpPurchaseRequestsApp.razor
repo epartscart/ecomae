@@ -13,7 +13,6 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
-@inject IErpOrganizationMasterReadService OrganizationMasters
 @inject ICpCsrfGuard Csrf
 
 <PageTitle>Purchase requests · ERP · eParts Cart</PageTitle>
@@ -89,22 +88,6 @@
             <input type="hidden" name="company_id" value="@EffectiveCompanyId.ToString(CultureInfo.InvariantCulture)" />
             <ErpVoucherHeaderFields DateLabel="Request date" DateFieldName="voc_date" NumberLabel="Requisition no" NumberPreview="Auto" />
             <label>Requester <input type="text" name="requester" maxlength="160" required /></label>
-            @if (_businessUnits.Count == 0)
-            {
-                <label>Business unit <input type="number" name="business_unit_id" min="0" style="width:6rem" /></label>
-            }
-            else
-            {
-                <label>Business unit
-                    <select name="business_unit_id" style="min-width:10rem">
-                        <option value="0">— none —</option>
-                        @foreach (var unit in _businessUnits)
-                        {
-                            <option value="@unit.Id">@unit.Code · @unit.Name</option>
-                        }
-                    </select>
-                </label>
-            }
             <label>Justification <input type="text" name="justification" maxlength="4000" style="width:16rem" /></label>
             <button type="submit" class="btn btn-primary btn-sm">Save requisition</button>
         </form>
@@ -322,7 +305,6 @@
     private bool _isAdmin;
     private CpPurchaseRequestsSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpPurchaseRequestDigest> _requests = [];
-    private IReadOnlyList<ErpOrganizationMasterRow> _businessUnits = [];
     private string _source = "n/a";
     private string _message = "";
     private string _flashOk = "";
@@ -441,13 +423,6 @@
                     && !string.Equals(row.Status, "converted", StringComparison.OrdinalIgnoreCase))
             };
         }
-
-        var masters = await OrganizationMasters.LoadAsync(200, ctx.RequestAborted);
-        _businessUnits = masters.BusinessUnits
-            .Where(unit => unit.Active)
-            .OrderBy(unit => unit.Code, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(unit => unit.Id)
-            .ToList();
 
         if (_openedId > 0)
         {

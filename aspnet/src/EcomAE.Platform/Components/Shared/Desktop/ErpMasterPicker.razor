@@ -4,8 +4,9 @@
 @inject IErpMasterLookupReadService Lookups
 @*
   Searchable master picker: customer, supplier, item, project, cash account,
-  property, unit, tenant, contractor. Posts the same field name the write
-  endpoint already expects. Optional code/name siblings are filled on pick.
+  property, unit, tenant, contractor, business unit (branch). Posts the same
+  field name the write endpoint already expects. Optional code/name siblings
+  are filled on pick.
 *@
 
 <div class="epc-erp-master-picker" data-erp-kind="@ResolvedKind" data-erp-value-mode="@ValueMode" data-erp-fill-code="@CodeFieldName" data-erp-fill-name="@NameFieldName" data-erp-fill-extra="@ExtraFieldName" data-erp-jw-stock="@(ResolvedKind == "jw-metal-stock" ? "1" : "")">

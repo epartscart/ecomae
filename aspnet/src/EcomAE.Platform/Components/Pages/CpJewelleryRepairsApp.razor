@@ -74,7 +74,7 @@
                 <dt>Weight in</dt><dd>@_opened.WeightIn.ToString("N3", CultureInfo.InvariantCulture)</dd>
                 <dt>Est. cost</dt><dd>@_opened.EstimatedCost.ToString("N2", CultureInfo.InvariantCulture)</dd>
                 <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
-                <dt>Branch</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Branch) ? "—" : _opened.Branch)</dd>
+                <dt>Business unit</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Branch) ? "—" : _opened.Branch)</dd>
                 <dt>Salesman</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Salesman) ? "—" : _opened.Salesman)</dd>
             </dl>
             <p class="text-muted" style="margin:.85rem 0 0">Phone omitted.</p>
@@ -199,7 +199,7 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <label>Repair # <input class="form-control input-sm" name="code" required /></label>
-                <label>To branch <input class="form-control input-sm" name="to_branch" value="WS1" /></label>
+                <ErpMasterPicker Kind="business_unit" FieldName="to_branch" Label="To business unit" ValueMode="code" Required="true" InputId="jw-repair-to-bu" />
                 <label>Narration <input class="form-control input-sm" name="narration" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save transfer</button>
             </form>

@@ -76,7 +76,7 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>Code <input class="form-control input-sm" name="code" required maxlength="30" style="width:110px;" /></label>
                 <label>Name <input class="form-control input-sm" name="name" maxlength="160" style="width:180px;" /></label>
-                <label>Branch id <input class="form-control input-sm" type="number" name="branch_id" min="0" value="0" style="width:90px;" /></label>
+                <ErpMasterPicker Kind="business_unit" FieldName="branch_id" Label="Business unit" InputId="fin-cc-bu" />
                 <button type="submit" class="btn btn-primary btn-sm">Save cost centre</button>
             </form>
         </ErpPhpCreateWell>

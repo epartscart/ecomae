@@ -336,7 +336,7 @@ public sealed class ErpPhpReadTwinTests
 
         Assert.Contains("IErpDimensionCatalogReadService", page, StringComparison.Ordinal);
         Assert.Contains("name=\"dim[@dimension.Key]\"", page, StringComparison.Ordinal);
-        Assert.Contains("name=\"dim[business_unit]\"", page, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"dim[business_unit]\"", page, StringComparison.Ordinal);
         Assert.DoesNotContain("name=\"dim.business_unit\"", page, StringComparison.Ordinal);
         Assert.DoesNotContain("name=\"dim.legal_entity\"", page, StringComparison.Ordinal);
         Assert.DoesNotContain("name=\"dim.class_unit\"", page, StringComparison.Ordinal);
@@ -353,7 +353,7 @@ public sealed class ErpPhpReadTwinTests
 
         Assert.Contains("IErpDimensionCatalogReadService", page, StringComparison.Ordinal);
         Assert.Contains("name=\"dim[@dimension.Key]\"", page, StringComparison.Ordinal);
-        Assert.Contains("name=\"dim[business_unit]\"", page, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"dim[business_unit]\"", page, StringComparison.Ordinal);
         Assert.DoesNotContain("name=\"dim.business_unit\"", page, StringComparison.Ordinal);
         Assert.DoesNotContain("name=\"dim.legal_entity\"", page, StringComparison.Ordinal);
     }

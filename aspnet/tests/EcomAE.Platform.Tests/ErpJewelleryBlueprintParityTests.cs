@@ -18,7 +18,7 @@ public sealed class ErpJewelleryBlueprintParityTests
         Assert.Contains("name=\"purity\"", masters, StringComparison.Ordinal);
         Assert.Contains("name=\"gross_wt\"", retail, StringComparison.Ordinal);
         Assert.Contains("name=\"line_purity\"", retail, StringComparison.Ordinal);
-        Assert.Contains("name=\"branch\"", stock, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"branch\"", stock, StringComparison.Ordinal);
         Assert.Contains("tab=jw_stock_verification", stock, StringComparison.Ordinal);
         Assert.Contains("name=\"code\"", stock, StringComparison.Ordinal);
         Assert.Contains("placeholder=\"Showroom\"", stock, StringComparison.Ordinal);

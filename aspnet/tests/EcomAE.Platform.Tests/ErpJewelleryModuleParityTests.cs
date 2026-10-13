@@ -292,7 +292,7 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("ErpJewelleryMetalStockSaveForm", stock, StringComparison.Ordinal);
         Assert.Contains("Save metal stock", stock, StringComparison.Ordinal);
         Assert.Contains("Save manufacture", stock, StringComparison.Ordinal);
-        Assert.Contains("Save branch transfer", stock, StringComparison.Ordinal);
+        Assert.Contains("Save business unit transfer", stock, StringComparison.Ordinal);
         Assert.Contains("jw_manufacture", stock, StringComparison.Ordinal);
         Assert.Contains("jw_branch_transfer", stock, StringComparison.Ordinal);
         Assert.Contains("voc_type\" value=\"MFG\"", stock, StringComparison.Ordinal);
@@ -390,7 +390,7 @@ public sealed class ErpJewelleryModuleParityTests
         var page = ReadApp("CpJewelleryStockVerificationApp.razor");
         Assert.Contains("jw_stock_balance", page, StringComparison.Ordinal);
         Assert.Contains("BuildCpJewelleryStockBalanceDigestAsync", page, StringComparison.Ordinal);
-        Assert.Contains("movement, as-of-date, branch, and valuation reconciliation remain on the legacy workflow until separately accepted", page, StringComparison.Ordinal);
+        Assert.Contains("movement, as-of-date, business unit, and valuation reconciliation remain on the legacy workflow until separately accepted", page, StringComparison.Ordinal);
     }
 
     [Fact]
