@@ -148,10 +148,26 @@ public sealed class ErpRealEstateTests
         Assert.Contains("save_escrow_receipt", src, StringComparison.Ordinal);
         Assert.Contains("generate_instalments", src, StringComparison.Ordinal);
         Assert.Contains("allocate_shared_cost", src, StringComparison.Ordinal);
+        Assert.Contains("reset_portfolio", src, StringComparison.Ordinal);
+        Assert.Contains("ErpRealEstatePortfolioReset", src, StringComparison.Ordinal);
         Assert.Contains("income statement", razor, StringComparison.Ordinal);
         Assert.Contains("save_boq_line", razor, StringComparison.Ordinal);
         Assert.Contains("Cheque maturity calendar", razor, StringComparison.Ordinal);
         Assert.Contains("\"calendar\", \"Calendars\"", razor, StringComparison.Ordinal);
+        Assert.Contains("reset_portfolio", razor, StringComparison.Ordinal);
+        Assert.Contains("Empty portfolio for new entry", razor, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PortfolioResetClearsOperationalRowsNotUsers()
+    {
+        var src = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Erp/ErpRealEstatePortfolioReset.cs"));
+        Assert.Contains("epc_erp_properties", src, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_re_leases", src, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_re_projects", src, StringComparison.Ordinal);
+        Assert.Contains("`reference` LIKE 'RE-%'", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("DELETE FROM `users`", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("DROP TABLE", src, StringComparison.Ordinal);
     }
 
     [Fact]
