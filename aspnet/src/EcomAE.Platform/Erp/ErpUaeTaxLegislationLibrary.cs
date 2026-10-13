@@ -24,12 +24,10 @@ public static class ErpUaeTaxLegislationLibrary
         {
             await using var cmd = connection.CreateCommand();
             cmd.CommandText =
-                """
-                SELECT `item_key`, `slug`, `title`, `issue_date`, `publish_date`, `category`, `tax_category`, `pdf_url`,
-                       `erp_summary`, `compliance_actions_json`, `pattern_key`, `is_new`, `is_updated`
-                  FROM `epc_uae_tax_legislation_items`
-                 ORDER BY `issue_date` DESC, `id` ASC
-                """;
+                "SELECT `item_key`, `slug`, `title`, `issue_date`, `publish_date`, `category`, `tax_category`, `pdf_url`,"
+                + " `erp_summary`, `compliance_actions_json`, `pattern_key`, `is_new`, `is_updated`"
+                + " FROM `epc_uae_tax_legislation_items` ORDER BY "
+                + ErpUaeTaxIssueDate.NewestFirstSql.TrimStart();
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -47,7 +45,7 @@ public static class ErpUaeTaxLegislationLibrary
 
         if (items.Count > 0)
         {
-            return items;
+            return ErpUaeTaxIssueDate.NewestFirst(items, item => item.IssueDate);
         }
 
         if (!await ColumnExistsAsync(connection, "epc_uae_tax_compliance_cache", "cache_key", cancellationToken).ConfigureAwait(false))
@@ -68,7 +66,7 @@ public static class ErpUaeTaxLegislationLibrary
                 : raw);
         }
 
-        return items;
+        return ErpUaeTaxIssueDate.NewestFirst(items, item => item.IssueDate);
     }
 
     public static async Task<int> SyncItemsAsync(

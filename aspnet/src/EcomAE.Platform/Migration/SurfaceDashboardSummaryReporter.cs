@@ -10788,6 +10788,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
+            rows = ErpUaeTaxIssueDate.NewestFirst(rows, item => item.IssueDate, item => item.Id).ToList();
             var summary = new CpUaeTaxComplianceSummary(legislation, advance, refunds, "database", string.Empty);
             return new(summary, rows, rows.Count, "database", string.Empty);
         }
@@ -10865,6 +10866,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
+            siblings = ErpUaeTaxIssueDate.NewestFirst(siblings, item => item.IssueDate, item => item.Id).ToList();
             return new(header, siblings, "database", string.Empty);
         }
         catch (Exception ex)
