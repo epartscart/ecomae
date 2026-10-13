@@ -53,7 +53,7 @@ public sealed class ErpD365WorkspaceWriteService : IErpD365WorkspaceWriteService
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
-        ErpD365Part3Catalog.TryGet(request.Tab, out var page);
+        ErpD365WorkspaceCatalog.TryGet(request.Tab, out var page);
         var area = Clip((request.Area ?? page?.Area) ?? string.Empty, 40);
         var tab = Clip(request.Tab, 64);
         var code = Clip(request.Code, 40);
@@ -89,7 +89,7 @@ public sealed class ErpD365WorkspaceWriteService : IErpD365WorkspaceWriteService
     public static ErpSimpleWriteResult? Validate(ErpD365WorkspaceWriteRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (!ErpD365Part3Catalog.TryGet(request.Tab, out var page))
+        if (!ErpD365WorkspaceCatalog.TryGet(request.Tab, out var page))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Unknown workspace page.");
         }

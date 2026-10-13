@@ -116,8 +116,8 @@ public sealed class ErpD365Part3CoverageTests
         Assert.Contains("@page \"/erp/organization-admin-app\"", text, StringComparison.Ordinal);
         Assert.Contains("@page \"/erp/payroll-workspace-app\"", text, StringComparison.Ordinal);
         Assert.Contains("@page \"/erp/procurement-workspace-app\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpD365Part3Catalog.SavePath", text, StringComparison.Ordinal);
-        Assert.Equal("/erp/d365-workspace/save", ErpD365Part3Catalog.SavePath);
+        Assert.Contains("ErpD365WorkspaceCatalog.SavePath", text, StringComparison.Ordinal);
+        Assert.Equal("/erp/d365-workspace/save", ErpD365WorkspaceCatalog.SavePath);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);

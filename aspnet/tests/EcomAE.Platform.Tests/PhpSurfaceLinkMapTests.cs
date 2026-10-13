@@ -25,7 +25,7 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/CP/shop/prices/price?price_id=4", "/cp/shop/prices/price?price_id=4")]
     [InlineData("/CP/shop/payments/payments", "/cp/payment-gateways-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "/erp/sales-orders-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/gl-journals-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/general-ledger-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=einvoice", "/erp/einvoice-documents-app")]
     [InlineData("/BOS/?m=command_center", "/bos/app")]
     [InlineData("/BOS/?m=fleet_cp", "/bos/tenants-app")]

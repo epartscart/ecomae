@@ -276,7 +276,7 @@ public static class ErpPhpTabRouteMap
             return true;
         }
 
-        return ErpD365Part3Catalog.TryMapTab(key, out href);
+        return ErpD365WorkspaceCatalog.TryMapTab(key, out href);
     }
 
     public static string MapTabOrModuleApp(string? tab)

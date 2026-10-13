@@ -69,7 +69,7 @@ public static partial class PhpModuleCatalog
     ];
 
     public static readonly IReadOnlyList<ModuleLink> AspNetErpTabs =
-        CoreAspNetErpTabs.Concat(ErpD365Part3Catalog.AsModuleLinks()).ToList();
+        CoreAspNetErpTabs.Concat(ErpD365WorkspaceCatalog.AsModuleLinks()).ToList();
 
     public static int TotalTrackedCount =>
         ErpCategoryCount

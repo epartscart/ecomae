@@ -29,7 +29,7 @@ public sealed class ErpD365WorkspaceDryRun : IErpD365WorkspaceDryRun
             return new("dry-run-invalid", check.Code, check.Message, 0, false);
         }
 
-        ErpD365Part3Catalog.TryGet(request.Tab, out var page);
+        ErpD365WorkspaceCatalog.TryGet(request.Tab, out var page);
         return new(
             "dry-run-validated",
             "ok",
