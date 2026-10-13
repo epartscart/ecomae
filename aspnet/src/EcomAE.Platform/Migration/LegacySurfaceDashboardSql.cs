@@ -3206,8 +3206,16 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`is_new`,0) AS is_new, IFNULL(`is_updated`,0) AS is_updated,
                IFNULL(`time_synced`,0) AS time_synced
         FROM `epc_uae_tax_legislation_items`
-        ORDER BY
-        """ + Erp.ErpUaeTaxIssueDate.NewestFirstSql + """
+        ORDER BY COALESCE(
+            STR_TO_DATE(`issue_date`, '%b %d, %Y'),
+            STR_TO_DATE(`issue_date`, '%b %e, %Y'),
+            STR_TO_DATE(`issue_date`, '%d %b %Y'),
+            STR_TO_DATE(`issue_date`, '%d %M %Y'),
+            STR_TO_DATE(`issue_date`, '%Y-%m-%d'),
+            STR_TO_DATE(`issue_date`, '%d/%m/%Y'),
+            STR_TO_DATE(`issue_date`, '%d-%m-%Y'),
+            STR_TO_DATE(`issue_date`, '%d %b %y')
+        ) DESC, `id` DESC
         LIMIT @limit
         """;
 
@@ -3235,8 +3243,16 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`time_synced`,0) AS time_synced
         FROM `epc_uae_tax_legislation_items`
         WHERE `tax_category` = @tax_category AND `id` <> @id
-        ORDER BY
-        """ + Erp.ErpUaeTaxIssueDate.NewestFirstSql + """
+        ORDER BY COALESCE(
+            STR_TO_DATE(`issue_date`, '%b %d, %Y'),
+            STR_TO_DATE(`issue_date`, '%b %e, %Y'),
+            STR_TO_DATE(`issue_date`, '%d %b %Y'),
+            STR_TO_DATE(`issue_date`, '%d %M %Y'),
+            STR_TO_DATE(`issue_date`, '%Y-%m-%d'),
+            STR_TO_DATE(`issue_date`, '%d/%m/%Y'),
+            STR_TO_DATE(`issue_date`, '%d-%m-%Y'),
+            STR_TO_DATE(`issue_date`, '%d %b %y')
+        ) DESC, `id` DESC
         LIMIT 50
         """;
 

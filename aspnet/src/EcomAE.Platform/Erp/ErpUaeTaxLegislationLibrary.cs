@@ -27,7 +27,7 @@ public static class ErpUaeTaxLegislationLibrary
                 "SELECT `item_key`, `slug`, `title`, `issue_date`, `publish_date`, `category`, `tax_category`, `pdf_url`,"
                 + " `erp_summary`, `compliance_actions_json`, `pattern_key`, `is_new`, `is_updated`"
                 + " FROM `epc_uae_tax_legislation_items` ORDER BY "
-                + ErpUaeTaxIssueDate.NewestFirstSql;
+                + ErpUaeTaxIssueDate.NewestFirstSql.TrimStart();
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {

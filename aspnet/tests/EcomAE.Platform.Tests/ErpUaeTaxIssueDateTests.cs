@@ -41,8 +41,10 @@ public sealed class ErpUaeTaxIssueDateTests
     [Fact]
     public void ListSql_OrdersByParsedIssueDateNotInsertId()
     {
-        Assert.Contains(ErpUaeTaxIssueDate.NewestFirstSql, LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
-        Assert.Contains(ErpUaeTaxIssueDate.NewestFirstSql, LegacySurfaceDashboardSql.SelectCpUaeTaxItemsCategorySiblings, StringComparison.Ordinal);
+        Assert.Contains("STR_TO_DATE(`issue_date`, '%b %d, %Y')", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
+        Assert.Contains("STR_TO_DATE(`issue_date`, '%b %d, %Y')", LegacySurfaceDashboardSql.SelectCpUaeTaxItemsCategorySiblings, StringComparison.Ordinal);
+        Assert.Contains("ORDER BY COALESCE(", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
+        Assert.DoesNotContain("ORDER BYCOALESCE", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.DoesNotContain("ORDER BY `id` DESC\n        LIMIT @limit", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
     }
 }
