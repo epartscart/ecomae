@@ -8,7 +8,7 @@
   endpoint already expects. Optional code/name siblings are filled on pick.
 *@
 
-<div class="epc-erp-master-picker" data-erp-kind="@ResolvedKind" data-erp-value-mode="@ValueMode" data-erp-fill-code="@CodeFieldName" data-erp-fill-name="@NameFieldName">
+<div class="epc-erp-master-picker" data-erp-kind="@ResolvedKind" data-erp-value-mode="@ValueMode" data-erp-fill-code="@CodeFieldName" data-erp-fill-name="@NameFieldName" data-erp-fill-extra="@ExtraFieldName" data-erp-jw-stock="@(ResolvedKind == "jw-metal-stock" ? "1" : "")">
     <label class="epc-erp-master-picker__label" for="@ResolvedInputId">@ResolvedLabel</label>
     @if (_rows.Count == 0)
     {
@@ -58,6 +58,8 @@
     /// <summary>When <c>code</c>, the posted value is the master code/SKU (item_code fields).</summary>
     [Parameter] public string ValueMode { get; set; } = "id";
     [Parameter] public string? SelectedCode { get; set; }
+    /// <summary>Optional sibling field filled from the option extra (karat purity, metal-stock metal · purity · karat).</summary>
+    [Parameter] public string? ExtraFieldName { get; set; }
 
     private IReadOnlyList<ErpMasterOption> _rows = [];
     private string ResolvedKind => ErpMasterLookupReadService.ResolveKind(Kind) is { Length: > 0 } kind ? kind : Kind;

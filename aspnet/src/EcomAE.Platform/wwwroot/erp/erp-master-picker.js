@@ -39,6 +39,13 @@
                 name.value = option.getAttribute('data-name') || name.value;
             }
         }
+        var extraName = root.getAttribute('data-erp-fill-extra');
+        if (extraName) {
+            var extra = form.querySelector('[name="' + extraName + '"]');
+            if (extra) {
+                extra.value = option.getAttribute('data-extra') || extra.value;
+            }
+        }
     }
 
     function filterSelect(select, query) {

@@ -106,6 +106,7 @@ public sealed class ErpJwCompanyTwoWriteTests
             var metalAgain = await writes.SaveAsync(new ErpJwVoucherSaveRequest(
                 CompanyId: 2,
                 Action: "jw_metal_purchase_save",
+                PartyCode: "SUP-JW2B",
                 PartyName: "Company 2 gold supplier 2",
                 Lines: [new ErpJwVoucherLineSaveRequest(StockCode: "22K-CO2B", Description: "22K bar 2", Division: "G", Pcs: 1)]));
             Assert.True(metalAgain.Succeeded, metalAgain.Message);

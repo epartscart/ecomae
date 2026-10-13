@@ -499,6 +499,21 @@ internal static class ErpJewelSchema
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """,
         """
+        CREATE TABLE IF NOT EXISTS `epc_jewel_voucher_addins` (
+        `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        `voucher_id` INT UNSIGNED NOT NULL,
+        `line_no` SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+        `addin_code` VARCHAR(20) NOT NULL DEFAULT '',
+        `description` VARCHAR(120) NOT NULL DEFAULT '',
+        `debit_ac` VARCHAR(20) NOT NULL DEFAULT '',
+        `credit_ac` VARCHAR(20) NOT NULL DEFAULT '',
+        `pct` DECIMAL(8,4) NOT NULL DEFAULT 0,
+        `amount` DECIMAL(14,2) NOT NULL DEFAULT 0,
+        `narration` VARCHAR(200) NOT NULL DEFAULT '',
+        KEY `fk_voc_a` (`voucher_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
         CREATE TABLE IF NOT EXISTS `epc_jewel_repair` (
         `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         `company_id` INT UNSIGNED NOT NULL DEFAULT 0,
@@ -924,5 +939,18 @@ internal static class ErpJewelSchema
         {
             await ErpDb.TryExecuteAsync(connection, sql, cancellationToken).ConfigureAwait(false);
         }
+
+        foreach (var sql in AlterStatements)
+        {
+            await ErpDb.TryExecuteAsync(connection, sql, cancellationToken).ConfigureAwait(false);
+        }
     }
+
+    private static readonly string[] AlterStatements =
+    [
+        "ALTER TABLE `epc_jewel_voucher` ADD COLUMN `place_of_supply` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_voucher` ADD COLUMN `shipment_company` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_voucher` ADD COLUMN `port_company` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_voucher` ADD COLUMN `item_curr_rate` DECIMAL(12,6) NOT NULL DEFAULT 1",
+    ];
 }

@@ -216,9 +216,9 @@ public static class ErpJewelleryModuleChrome
 
     public static TabSpec FixingSpec(string tab) => tab switch
     {
-        "jw_metal_purchase" => new("jw_metal_purchase", "Metal purchase", "Metal purchase",
-            "Unfixed and fixed metal purchase vouchers.",
-            ["Voc #", "Date", "Party", "Metal", "Karat", "Net Wt", "Amount", "Status"],
+        "jw_metal_purchase" => new("jw_metal_purchase", "Metal purchase", "Metal Purchase (FIXING GOLD)",
+            "Fixed / unfixed metal purchase — pick stock, party and add-in accounts from saved listings.",
+            ["Voc #", "Date", "Party", "Supp Inv", "Metal", "Net Amt", "Status"],
             "No metal purchases yet."),
         "jw_diamond_purchase" => new("jw_diamond_purchase", "Diamond purchase", "Diamond purchase",
             "Diamond purchase vouchers with stone details.",

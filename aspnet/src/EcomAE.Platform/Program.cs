@@ -755,6 +755,8 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSupplierWriteService, EcomAE.
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlSyncUnpostedWriteService, EcomAE.Platform.Erp.ErpGlSyncUnpostedWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlPostSalesWriteService, EcomAE.Platform.Erp.ErpGlPostSalesWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOrganizationMasterReadService, EcomAE.Platform.Erp.ErpOrganizationMasterReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpApSetupReadService, EcomAE.Platform.Erp.ErpApSetupReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSupplierOnboardReadService, EcomAE.Platform.Erp.ErpSupplierOnboardReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMasterLookupReadService, EcomAE.Platform.Erp.ErpMasterLookupReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMultiEntityPreferenceReadService, EcomAE.Platform.Erp.ErpMultiEntityPreferenceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMultiEntityMemberReadService, EcomAE.Platform.Erp.ErpMultiEntityMemberReadService>();
@@ -806,6 +808,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCustomerGroupsWriteService, E
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpReportSchedulerWriteService, EcomAE.Platform.Erp.ErpReportSchedulerWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpVirtualWarehouseWriteService, EcomAE.Platform.Erp.ErpVirtualWarehouseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwMetalStockWriteService, EcomAE.Platform.Erp.ErpJwMetalStockWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwMetalStockListReadService, EcomAE.Platform.Erp.ErpJwMetalStockListReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwFixingReadService, EcomAE.Platform.Erp.ErpJwFixingReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwSalesAnalysisReadService, EcomAE.Platform.Erp.ErpJwSalesAnalysisReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwMetalStockBalanceReadService, EcomAE.Platform.Erp.ErpJwMetalStockBalanceReadService>();

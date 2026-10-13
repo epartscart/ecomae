@@ -1385,3 +1385,77 @@ a.epc-erp-global-search__hit {
 .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-body {
     padding-top: .15rem;
 }
+
+.epc-jw-bm-form {
+    --epc-field-min: 9.25rem;
+    max-width: 82rem !important;
+}
+
+.epc-jw-bm-form .epc-erp-doc-header,
+.epc-jw-bm-flags,
+.epc-jw-line-grid,
+.epc-jw-panel-nav,
+.epc-jw-panel,
+.epc-jw-totals {
+    grid-column: 1 / -1;
+}
+
+.epc-jw-bm-flags {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+    gap: .35rem 1rem;
+    margin: .15rem 0 .4rem;
+}
+
+.epc-jw-bm-flags label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: .45rem;
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.epc-jw-line-grid {
+    overflow-x: auto;
+}
+
+.epc-jw-line-grid table input,
+.epc-jw-line-grid table select,
+.epc-jw-line-grid .epc-erp-master-picker {
+    min-width: 7.5rem;
+}
+
+.epc-jw-panel-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    margin: .2rem 0 .45rem;
+}
+
+.epc-jw-panel-nav a {
+    padding: .28rem .7rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #f8fafc;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.epc-jw-panel-nav a.is-active {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff;
+}
+
+.epc-jw-totals {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: .4rem .8rem;
+    padding: .65rem .75rem;
+    border: 1px solid #d7e3f0;
+    border-radius: 8px;
+    background: #f8fbff;
+}

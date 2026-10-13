@@ -1475,6 +1475,113 @@ internal static class ErpLazySchema
         }
     }
 
+    /// <summary>PHP <c>epc_erp_ensure_schema</c> supplier master (content/shop/finance/epc_erp_schema.php).</summary>
+    public static async Task EnsureSuppliersAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_suppliers` ("
+            + "`id` int(11) NOT NULL AUTO_INCREMENT,"
+            + "`storage_id` int(11) DEFAULT NULL,"
+            + "`name` varchar(255) NOT NULL,"
+            + "`contact_email` varchar(255) DEFAULT NULL,"
+            + "`contact_phone` varchar(64) DEFAULT NULL,"
+            + "`trn` varchar(64) DEFAULT NULL,"
+            + "`currency_code` varchar(8) NOT NULL DEFAULT 'AED',"
+            + "`active` tinyint(1) NOT NULL DEFAULT 1,"
+            + "`time_created` int(11) NOT NULL DEFAULT 0,"
+            + "`country_code` varchar(8) NOT NULL DEFAULT 'AE',"
+            + "`vat_registered` tinyint(1) NOT NULL DEFAULT 1,"
+            + "`vendor_account` varchar(32) DEFAULT NULL,"
+            + "`vendor_group` varchar(64) DEFAULT NULL,"
+            + "`legal_entity_id` int(11) NOT NULL DEFAULT 0,"
+            + "`business_unit_id` int(11) NOT NULL DEFAULT 0,"
+            + "`registration_number` varchar(64) DEFAULT NULL,"
+            + "`payment_terms` varchar(32) DEFAULT NULL,"
+            + "`payment_method` varchar(32) DEFAULT NULL,"
+            + "`delivery_terms` varchar(32) DEFAULT NULL,"
+            + "`delivery_mode` varchar(32) DEFAULT NULL,"
+            + "`credit_limit` decimal(14,2) NOT NULL DEFAULT 0.00,"
+            + "`on_hold` varchar(16) NOT NULL DEFAULT 'no',"
+            + "`tax_exempt` tinyint(1) NOT NULL DEFAULT 0,"
+            + "`bank_name` varchar(255) DEFAULT NULL,"
+            + "`bank_account_number` varchar(64) DEFAULT NULL,"
+            + "`iban` varchar(64) DEFAULT NULL,"
+            + "`swift_bic` varchar(32) DEFAULT NULL,"
+            + "`contact_person` varchar(255) DEFAULT NULL,"
+            + "`website` varchar(255) DEFAULT NULL,"
+            + "`address` varchar(512) DEFAULT NULL,"
+            + "`city` varchar(128) DEFAULT NULL,"
+            + "`state_region` varchar(128) DEFAULT NULL,"
+            + "`postal_code` varchar(32) DEFAULT NULL,"
+            + "`notes` varchar(1000) DEFAULT NULL,"
+            + "PRIMARY KEY (`id`), KEY `x_storage` (`storage_id`), KEY `x_active` (`active`)"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='ERP supplier master'",
+            ct).ConfigureAwait(false);
+        // Compact utf8 row size rejects the last PHP address columns; DYNAMIC stores overflow off-page.
+        await ErpDb.TryExecuteAsync(c, "ALTER TABLE `epc_erp_suppliers` ROW_FORMAT=DYNAMIC", ct).ConfigureAwait(false);
+        (string Column, string Definition)[] columns =
+        [
+            ("country_code", "varchar(8) NOT NULL DEFAULT 'AE'"),
+            ("vat_registered", "tinyint(1) NOT NULL DEFAULT 1"),
+            ("vendor_account", "varchar(32) DEFAULT NULL"),
+            ("vendor_group", "varchar(64) DEFAULT NULL"),
+            ("legal_entity_id", "int(11) NOT NULL DEFAULT 0"),
+            ("business_unit_id", "int(11) NOT NULL DEFAULT 0"),
+            ("registration_number", "varchar(64) DEFAULT NULL"),
+            ("payment_terms", "varchar(32) DEFAULT NULL"),
+            ("payment_method", "varchar(32) DEFAULT NULL"),
+            ("delivery_terms", "varchar(32) DEFAULT NULL"),
+            ("delivery_mode", "varchar(32) DEFAULT NULL"),
+            ("credit_limit", "decimal(14,2) NOT NULL DEFAULT 0.00"),
+            ("on_hold", "varchar(16) NOT NULL DEFAULT 'no'"),
+            ("tax_exempt", "tinyint(1) NOT NULL DEFAULT 0"),
+            ("bank_name", "varchar(255) DEFAULT NULL"),
+            ("bank_account_number", "varchar(64) DEFAULT NULL"),
+            ("iban", "varchar(64) DEFAULT NULL"),
+            ("swift_bic", "varchar(32) DEFAULT NULL"),
+            ("contact_person", "varchar(255) DEFAULT NULL"),
+            ("website", "varchar(255) DEFAULT NULL"),
+            ("address", "varchar(512) DEFAULT NULL"),
+            ("city", "varchar(128) DEFAULT NULL"),
+            ("state_region", "varchar(128) DEFAULT NULL"),
+            ("postal_code", "varchar(32) DEFAULT NULL"),
+            ("notes", "varchar(1000) DEFAULT NULL"),
+            ("supplier_code", "varchar(32) DEFAULT NULL"),
+            ("ap_coa_id", "int(11) NOT NULL DEFAULT 0"),
+            ("supplier_group_type", "varchar(32) DEFAULT NULL"),
+            ("supplier_category", "varchar(32) DEFAULT NULL"),
+            ("legal_name", "varchar(255) DEFAULT NULL"),
+            ("building", "varchar(128) DEFAULT NULL"),
+            ("street", "varchar(255) DEFAULT NULL"),
+            ("emirate", "varchar(64) DEFAULT NULL"),
+            ("scheme_id", "varchar(16) NOT NULL DEFAULT '0230'"),
+            ("approval_status", "varchar(16) NOT NULL DEFAULT 'approved'"),
+            ("approved_by", "int(11) NOT NULL DEFAULT 0"),
+            ("approved_at", "int(11) NOT NULL DEFAULT 0"),
+        ];
+        foreach (var (column, definition) in columns)
+        {
+            await AddColumnIfMissingAsync(c, "epc_erp_suppliers", column, definition, ct).ConfigureAwait(false);
+        }
+
+        await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_supplier_owners` ("
+            + "`id` int(11) NOT NULL AUTO_INCREMENT,"
+            + "`supplier_id` int(11) NOT NULL,"
+            + "`full_name` varchar(190) NOT NULL,"
+            + "`nationality` varchar(80) DEFAULT NULL,"
+            + "`id_number` varchar(64) DEFAULT NULL,"
+            + "`role` varchar(32) NOT NULL DEFAULT 'owner',"
+            + "`share_pct` decimal(7,3) NOT NULL DEFAULT 0.000,"
+            + "`notes` varchar(255) DEFAULT NULL,"
+            + "`time_created` int(11) NOT NULL DEFAULT 0,"
+            + "PRIMARY KEY (`id`), KEY `x_supplier` (`supplier_id`)"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='ERP supplier ownership'",
+            ct).ConfigureAwait(false);
+    }
+
     /// <summary>PHP <c>epc_erp_audit_ensure_schema</c> (content/shop/finance/epc_erp_audit.php).</summary>
     public static async Task EnsureAuditLogAsync(DbConnection c, CancellationToken ct)
     {
