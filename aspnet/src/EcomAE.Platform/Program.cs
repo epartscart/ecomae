@@ -757,6 +757,9 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSupplierWriteService, EcomAE.
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlSyncUnpostedWriteService, EcomAE.Platform.Erp.ErpGlSyncUnpostedWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlPostSalesWriteService, EcomAE.Platform.Erp.ErpGlPostSalesWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOrganizationMasterReadService, EcomAE.Platform.Erp.ErpOrganizationMasterReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365WorkspaceReadService, EcomAE.Platform.Erp.ErpD365WorkspaceReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365WorkspaceWriteService, EcomAE.Platform.Erp.ErpD365WorkspaceWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Migration.IErpD365WorkspaceDryRun, EcomAE.Platform.Migration.ErpD365WorkspaceDryRun>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpApSetupReadService, EcomAE.Platform.Erp.ErpApSetupReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSupplierOnboardReadService, EcomAE.Platform.Erp.ErpSupplierOnboardReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMasterLookupReadService, EcomAE.Platform.Erp.ErpMasterLookupReadService>();

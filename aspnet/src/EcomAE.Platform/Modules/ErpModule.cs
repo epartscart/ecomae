@@ -423,6 +423,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationAsk, HandleUaeTaxLegislationAskAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationRegen, HandleUaeTaxLegislationRegenAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationChecklistSet, HandleUaeTaxLegislationChecklistSetAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365WorkspaceSave, HandleD365WorkspaceSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPmSave, HandlePmSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRealEstateSave, HandleRealEstateSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpRealEstateReport, HandleRealEstateReportAsync);
@@ -24203,6 +24204,90 @@ public sealed class ErpModule : ISurfaceModule
                 impl_status = written.ImplStatus,
                 impl_pending = written.ImplPending,
                 impl_done = written.ImplDone,
+                session = SessionPayload(session),
+            });
+    }
+
+    private static async Task<IResult> HandleD365WorkspaceSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpD365WorkspaceDryRun dryRun,
+        IErpD365WorkspaceWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/leave-absence-app",
+                "Admin ERP capability required for workspace save.");
+        }
+
+        var area = "";
+        var tab = "";
+        var code = "";
+        var name = "";
+        var worker = "";
+        var party = "";
+        var kind = "";
+        var status = "";
+        var period = "";
+        var dateFrom = "";
+        var dateTo = "";
+        var extra = "";
+        var note = "";
+        var qty = 0m;
+        var amount = 0m;
+        var confirm = false;
+        var returnUrl = "/erp/leave-absence-app";
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            area = LiveWriteFormBinder.Text(form, "area");
+            tab = LiveWriteFormBinder.Text(form, "tab");
+            code = LiveWriteFormBinder.Text(form, "code");
+            name = LiveWriteFormBinder.Text(form, "name");
+            worker = LiveWriteFormBinder.Text(form, "worker");
+            party = LiveWriteFormBinder.Text(form, "party");
+            kind = LiveWriteFormBinder.Text(form, "kind");
+            status = LiveWriteFormBinder.Text(form, "status");
+            period = LiveWriteFormBinder.Text(form, "period");
+            dateFrom = LiveWriteFormBinder.Text(form, "date_from", "dateFrom");
+            dateTo = LiveWriteFormBinder.Text(form, "date_to", "dateTo");
+            extra = LiveWriteFormBinder.Text(form, "extra");
+            note = LiveWriteFormBinder.Text(form, "note");
+            qty = LiveWriteFormBinder.Dec(form, "qty");
+            amount = LiveWriteFormBinder.Dec(form, "amount");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+        }
+
+        var request = new ErpD365WorkspaceWriteRequest(
+            area, tab, code, name, worker, party, kind, status, period, dateFrom, dateTo, qty, amount, extra, note, session.UserId);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(request, false).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(request, cancellationToken);
+        var fallback = ErpD365Part3Catalog.TryGet(tab, out var page)
+            ? page.AppPath + "?tab=" + page.Tab
+            : "/erp/leave-absence-app";
+        return LiveWriteFormBinder.Complete(
+            context,
+            string.IsNullOrWhiteSpace(returnUrl) ? fallback : returnUrl,
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                status = written.Succeeded,
+                id = written.Id,
                 session = SessionPayload(session),
             });
     }

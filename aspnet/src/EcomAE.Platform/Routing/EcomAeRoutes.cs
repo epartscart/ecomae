@@ -3107,5 +3107,7 @@ public static class EcomAeRoutes
     public const string ErpEditLockHeartbeat = "/erp/edit-lock/heartbeat";
     /// <summary>HTML form POST for PHP cs_delete_declaration. confirmWrites=true writes via IErpCsDeleteDeclarationWriteService.</summary>
     public const string ErpCsDeleteDeclaration = "/erp/custom-shipping/delete";
+    /// <summary>Dynamics-style workspace save for leave, planning, equipment, organization, payroll, and procurement pages.</summary>
+    public const string ErpD365WorkspaceSave = "/erp/d365-workspace/save";
 
 }

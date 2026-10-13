@@ -1,0 +1,327 @@
+@page "/erp/leave-absence-app"
+@page "/erp/master-planning-app"
+@page "/erp/mhei-app"
+@page "/erp/organization-admin-app"
+@page "/erp/payroll-workspace-app"
+@page "/erp/procurement-workspace-app"
+@page "/erp/d365-workspace-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpD365WorkspaceReadService WorkspaceRows
+
+<PageTitle>@_title · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_title" BreadcrumbArea="@_areaLabel" BreadcrumbTab="@_page.Label">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="@_appPath" IsAdmin="_isAdmin" />
+    <PhpErpModulePageHeader Title="@_page.Label" Subtitle="@_page.Purpose" PhpTabHref="@_phpTab" />
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+
+    <div class="epc-d365-workspace">
+        <nav class="epc-d365-groups" aria-label="@_areaLabel pages">
+            @foreach (var group in _groups)
+            {
+                <div class="epc-d365-group">
+                    <strong>@group.Key</strong>
+                    <ul>
+                        @foreach (var entry in group)
+                        {
+                            <li>
+                                <a class="@TabClass(entry.Tab)" href="@PageHref(entry)">@entry.Label</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        </nav>
+
+        <section class="epc-d365-main">
+            <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Workspace KPIs">
+                <div class="kpi"><div class="lbl">Pages</div><div class="val">@_pages.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+                <div class="kpi"><div class="lbl">Rows</div><div class="val">@_rows.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+                <div class="kpi"><div class="lbl">Group</div><div class="val">@_page.Group</div></div>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_page.ExistingHref))
+            {
+                <p class="help-block">This page already has a dedicated form.
+                    <a class="btn btn-sm btn-primary" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, _page.ExistingHref)">Open @_page.Label</a>
+                </p>
+            }
+            else if (_isAdmin)
+            {
+                <ErpPhpCreateWell Title="@("New " + _page.Label)">
+                    <form method="post" action="@SaveAction">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@PageHref(_page)" />
+                        <input type="hidden" name="area" value="@_page.Area" />
+                        <input type="hidden" name="tab" value="@_page.Tab" />
+                        @if (Show("code"))
+                        {
+                            <label>Code <input class="form-control input-sm" name="code" maxlength="40" /></label>
+                        }
+                        @if (Show("name"))
+                        {
+                            <label>@NameLabel <input class="form-control input-sm" name="name" maxlength="190" /></label>
+                        }
+                        @if (Show("worker"))
+                        {
+                            <label>Worker <input class="form-control input-sm" name="worker" maxlength="120" /></label>
+                        }
+                        @if (Show("party"))
+                        {
+                            <label>@PartyLabel <input class="form-control input-sm" name="party" maxlength="160" /></label>
+                        }
+                        @if (Show("kind"))
+                        {
+                            <label>Type <input class="form-control input-sm" name="kind" maxlength="40" placeholder="@KindPlaceholder" /></label>
+                        }
+                        @if (Show("status"))
+                        {
+                            <label>Status
+                                <select class="form-control input-sm" name="status">
+                                    @foreach (var option in StatusOptions)
+                                    {
+                                        <option value="@option">@option</option>
+                                    }
+                                </select>
+                            </label>
+                        }
+                        @if (Show("period"))
+                        {
+                            <label>Period <input class="form-control input-sm" name="period" maxlength="24" placeholder="YYYY-MM" /></label>
+                        }
+                        @if (Show("dates"))
+                        {
+                            <label>From <input class="form-control input-sm" type="date" name="date_from" /></label>
+                            <label>To <input class="form-control input-sm" type="date" name="date_to" /></label>
+                        }
+                        @if (Show("qty"))
+                        {
+                            <label>@QtyLabel <input class="form-control input-sm" name="qty" type="number" step="0.0001" /></label>
+                        }
+                        @if (Show("amount"))
+                        {
+                            <label>Amount <input class="form-control input-sm" name="amount" type="number" step="0.01" /></label>
+                        }
+                        @if (Show("extra"))
+                        {
+                            <label>@ExtraLabel <input class="form-control input-sm" name="extra" maxlength="255" /></label>
+                        }
+                        <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                        <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save</button></div>
+                    </form>
+                </ErpPhpCreateWell>
+            }
+
+            <div class="epc-erp-table-wrap">
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Ref</th>
+                            <th>@NameLabel</th>
+                            @if (Show("worker")) { <th>Worker</th> }
+                            @if (Show("party")) { <th>@PartyLabel</th> }
+                            <th>Type</th>
+                            <th>Status</th>
+                            @if (Show("qty")) { <th class="text-right">@QtyLabel</th> }
+                            @if (Show("amount")) { <th class="text-right">Amount</th> }
+                            <th>Note</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_rows.Count == 0)
+                        {
+                            <tr><td colspan="8" class="text-muted">@(_isAdmin ? "No rows yet — create the first one above." : "Sign in with ERP capability to manage this page.")</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in _rows)
+                            {
+                                <tr>
+                                    <td><strong>@(string.IsNullOrWhiteSpace(row.Code) ? "#" + row.Id.ToString(CultureInfo.InvariantCulture) : row.Code)</strong></td>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
+                                    @if (Show("worker")) { <td>@(string.IsNullOrWhiteSpace(row.Worker) ? "—" : row.Worker)</td> }
+                                    @if (Show("party")) { <td>@(string.IsNullOrWhiteSpace(row.Party) ? "—" : row.Party)</td> }
+                                    <td>@(string.IsNullOrWhiteSpace(row.Kind) ? "—" : row.Kind)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Status) ? "—" : row.Status)</td>
+                                    @if (Show("qty")) { <td class="text-right">@row.Qty.ToString("N3", CultureInfo.InvariantCulture)</td> }
+                                    @if (Show("amount")) { <td class="text-right">@row.Amount.ToString("N2", CultureInfo.InvariantCulture)</td> }
+                                    <td>@(string.IsNullOrWhiteSpace(row.Note) ? "—" : row.Note)</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</PhpErpDesktopChrome>
+
+<style>
+    .epc-d365-workspace { display:flex; gap:16px; align-items:flex-start; }
+    .epc-d365-groups { flex:0 0 240px; max-height:70vh; overflow:auto; border:1px solid #dbe4ea; background:#f8fafc; padding:10px 12px; }
+    .epc-d365-group { margin:0 0 12px; }
+    .epc-d365-group strong { display:block; margin:0 0 4px; font-size:12px; color:#334155; }
+    .epc-d365-group ul { margin:0; padding:0 0 0 14px; }
+    .epc-d365-group li { margin:0 0 3px; }
+    .epc-d365-group a.active { font-weight:700; }
+    .epc-d365-main { flex:1 1 auto; min-width:0; }
+    @@media (max-width: 900px) {
+        .epc-d365-workspace { display:block; }
+        .epc-d365-groups { max-height:none; margin-bottom:12px; }
+    }
+</style>
+
+@code {
+    private bool _isAdmin;
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private string _area = "leave_abs";
+    private string _appPath = ErpD365Part3Catalog.LeaveApp;
+    private string _title = "Leave and absence";
+    private string _areaLabel = "Leave and absence";
+    private string _phpTab = "/ERP/?epc_erp_shell=1&area=leave_abs";
+    private ErpD365Part3Catalog.Page _page = ErpD365Part3Catalog.All[0];
+    private IReadOnlyList<ErpD365Part3Catalog.Page> _pages = [];
+    private IReadOnlyList<IGrouping<string, ErpD365Part3Catalog.Page>> _groups = [];
+    private IReadOnlyList<ErpD365WorkspaceRow> _rows = [];
+
+    private string SaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365Part3Catalog.SavePath);
+
+    private string NameLabel => _page.Kind switch
+    {
+        ErpD365Part3Catalog.FormKind.Order or ErpD365Part3Catalog.FormKind.Forecast or ErpD365Part3Catalog.FormKind.Procurement => "Item",
+        ErpD365Part3Catalog.FormKind.Calendar => "Calendar",
+        _ => "Name",
+    };
+
+    private string PartyLabel => _page.Kind switch
+    {
+        ErpD365Part3Catalog.FormKind.Queue => "Equipment",
+        ErpD365Part3Catalog.FormKind.Order => "Warehouse / supplier",
+        ErpD365Part3Catalog.FormKind.Forecast => "Party",
+        _ => "Vendor",
+    };
+
+    private string QtyLabel => _page.Kind switch
+    {
+        ErpD365Part3Catalog.FormKind.Request => "Days",
+        ErpD365Part3Catalog.FormKind.Payroll => "Hours / days",
+        _ => "Qty",
+    };
+
+    private string ExtraLabel => _page.Kind switch
+    {
+        ErpD365Part3Catalog.FormKind.Queue => "Payload",
+        ErpD365Part3Catalog.FormKind.Plan => "Accrual / method",
+        ErpD365Part3Catalog.FormKind.Action => "Parameters",
+        _ => "Detail",
+    };
+
+    private string KindPlaceholder => _page.Kind switch
+    {
+        ErpD365Part3Catalog.FormKind.Request => "annual",
+        ErpD365Part3Catalog.FormKind.Order => "purchase",
+        ErpD365Part3Catalog.FormKind.Queue => "inbound",
+        ErpD365Part3Catalog.FormKind.Payroll => "basic",
+        _ => "type",
+    };
+
+    private IReadOnlyList<string> StatusOptions => _page.Kind switch
+    {
+        ErpD365Part3Catalog.FormKind.Request => ["pending", "approved", "rejected", "cancelled"],
+        ErpD365Part3Catalog.FormKind.Action => ["queued", "running", "done", "error"],
+        ErpD365Part3Catalog.FormKind.Order => ["planned", "firmed", "cancelled"],
+        ErpD365Part3Catalog.FormKind.Queue => ["new", "processed", "error"],
+        ErpD365Part3Catalog.FormKind.Payroll => ["open", "approved", "paid"],
+        ErpD365Part3Catalog.FormKind.Procurement => ["draft", "submitted", "approved", "received"],
+        _ => ["active", "inactive"],
+    };
+
+    private bool Show(string field) => _page.Kind switch
+    {
+        ErpD365Part3Catalog.FormKind.Request => field is "worker" or "kind" or "status" or "dates" or "qty" or "note",
+        ErpD365Part3Catalog.FormKind.Plan => field is "code" or "name" or "kind" or "status" or "extra" or "note",
+        ErpD365Part3Catalog.FormKind.Calendar => field is "code" or "name" or "kind" or "dates" or "note",
+        ErpD365Part3Catalog.FormKind.Order => field is "code" or "name" or "party" or "kind" or "status" or "dates" or "qty" or "note",
+        ErpD365Part3Catalog.FormKind.Forecast => field is "name" or "party" or "period" or "qty" or "note",
+        ErpD365Part3Catalog.FormKind.Queue => field is "code" or "party" or "kind" or "status" or "extra" or "note",
+        ErpD365Part3Catalog.FormKind.Master => field is "code" or "name" or "kind" or "status" or "note",
+        ErpD365Part3Catalog.FormKind.Action => field is "code" or "name" or "status" or "extra" or "note",
+        ErpD365Part3Catalog.FormKind.Payroll => field is "worker" or "period" or "kind" or "status" or "qty" or "amount" or "note",
+        ErpD365Part3Catalog.FormKind.Procurement => field is "code" or "name" or "party" or "status" or "qty" or "amount" or "note",
+        _ => field is "code" or "name" or "note",
+    };
+
+    private string PageHref(ErpD365Part3Catalog.Page page)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, page.AppPath + "?tab=" + page.Tab);
+
+    private string TabClass(string tab)
+        => string.Equals(_page.Tab, tab, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _area = ResolveArea(ctx.Request.Path.Value, ctx.Request.Query["area"].ToString());
+        _appPath = ErpD365Part3Catalog.AppPathForArea(_area);
+        _title = AreaTitle(_area);
+        _areaLabel = _title;
+        _phpTab = "/ERP/?epc_erp_shell=1&area=" + _area;
+        _pages = ErpD365Part3Catalog.ForArea(_area);
+        _groups = _pages.GroupBy(p => p.Group).ToList();
+        var tab = ctx.Request.Query["tab"].ToString();
+        _page = _pages.FirstOrDefault(p => p.Tab.Equals(tab, StringComparison.OrdinalIgnoreCase))
+            ?? _pages.FirstOrDefault()
+            ?? ErpD365Part3Catalog.All[0];
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (!_isAdmin || _page.ExistingHref is not null)
+        {
+            return;
+        }
+
+        _rows = await WorkspaceRows.ListAsync(_page.Area, _page.Tab, 80, ctx.RequestAborted);
+    }
+
+    private static string ResolveArea(string? path, string? queryArea)
+    {
+        var fromQuery = (queryArea ?? string.Empty).Trim().ToLowerInvariant();
+        if (fromQuery.Length > 0)
+        {
+            return fromQuery;
+        }
+
+        var value = (path ?? string.Empty).ToLowerInvariant();
+        if (value.Contains("/master-planning-app", StringComparison.Ordinal)) return "master_planning_area";
+        if (value.Contains("/mhei-app", StringComparison.Ordinal)) return "mhei";
+        if (value.Contains("/organization-admin-app", StringComparison.Ordinal)) return "enterprise";
+        if (value.Contains("/payroll-workspace-app", StringComparison.Ordinal)) return "payroll_area";
+        if (value.Contains("/procurement-workspace-app", StringComparison.Ordinal)) return "purchasing";
+        return "leave_abs";
+    }
+
+    private static string AreaTitle(string area) => area switch
+    {
+        "master_planning_area" => "Master planning",
+        "mhei" => "Material handling equipment interface",
+        "enterprise" => "Organization administration",
+        "payroll_area" => "Payroll",
+        "purchasing" => "Procurement and sourcing",
+        _ => "Leave and absence",
+    };
+}

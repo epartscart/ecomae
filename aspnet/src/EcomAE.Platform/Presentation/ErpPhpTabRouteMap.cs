@@ -270,12 +270,13 @@ public static class ErpPhpTabRouteMap
         href = string.Empty;
         if (string.IsNullOrWhiteSpace(tab)) return false;
         var key = tab.Trim();
-        if (!TabRoutes.TryGetValue(key, out var mapped) || string.IsNullOrWhiteSpace(mapped))
+        if (TabRoutes.TryGetValue(key, out var mapped) && !string.IsNullOrWhiteSpace(mapped))
         {
-            return false;
+            href = mapped;
+            return true;
         }
-        href = mapped;
-        return true;
+
+        return ErpD365Part3Catalog.TryMapTab(key, out href);
     }
 
     public static string MapTabOrModuleApp(string? tab)
