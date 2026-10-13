@@ -188,11 +188,66 @@ public sealed class ErpTrialBalanceCoverageTests
             var read = new ErpTrialBalanceReadService(connections);
             await read.ReadAsync(ErpTrialBalanceParameters.FromQuery(
                 "2026-01-01", "2026-12-31", "current", "column", "1", "1", null, null, null, null));
+            var before = new DateTimeOffset(2025, 12, 15, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
+            var inPeriod = new DateTimeOffset(2026, 2, 10, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
+            var yearEnd = new DateTimeOffset(2026, 12, 31, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
             await using (var connection = await connections.OpenAsync())
             {
                 await using var update = connection.CreateCommand();
                 update.CommandText = "UPDATE `epc_erp_coa_accounts` SET `opening_balance` = 50 WHERE `code` IN ('1000','2000')";
                 await update.ExecuteNonQueryAsync();
+                await using var ids = connection.CreateCommand();
+                ids.CommandText = "SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` IN ('1000','2000') ORDER BY `code`";
+                var coa = new List<long>();
+                await using (var reader = await ids.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        coa.Add(reader.GetInt64(0));
+                    }
+                }
+
+                Assert.Equal(2, coa.Count);
+                async Task InsertJournal(string no, long date, string source, string reference, string description, string tax, decimal debit, decimal credit)
+                {
+                    await using var header = connection.CreateCommand();
+                    header.CommandText =
+                        "INSERT INTO `epc_erp_gl_journals` (`journal_no`,`journal_date`,`reference`,`description`,`source_type`,`source_id`,`company_id`,`uae_tax_legislation_ref`,`admin_id`,`active`,`time_created`) " +
+                        "VALUES (@no,@date,@ref,@desc,@src,0,1,@tax,1,1,@date)";
+                    header.Parameters.Add(new MySqlParameter("@no", no));
+                    header.Parameters.Add(new MySqlParameter("@date", date));
+                    header.Parameters.Add(new MySqlParameter("@ref", reference));
+                    header.Parameters.Add(new MySqlParameter("@desc", description));
+                    header.Parameters.Add(new MySqlParameter("@src", source));
+                    header.Parameters.Add(new MySqlParameter("@tax", tax));
+                    await header.ExecuteNonQueryAsync();
+                    var journalId = 0L;
+                    await using (var last = connection.CreateCommand())
+                    {
+                        last.CommandText = "SELECT LAST_INSERT_ID()";
+                        journalId = Convert.ToInt64(await last.ExecuteScalarAsync());
+                    }
+
+                    await using var line1 = connection.CreateCommand();
+                    line1.CommandText = "INSERT INTO `epc_erp_gl_lines` (`journal_id`,`coa_id`,`debit`,`credit`,`line_note`) VALUES (@j,@coa,@d,@c,'')";
+                    line1.Parameters.Add(new MySqlParameter("@j", journalId));
+                    line1.Parameters.Add(new MySqlParameter("@coa", coa[0]));
+                    line1.Parameters.Add(new MySqlParameter("@d", debit));
+                    line1.Parameters.Add(new MySqlParameter("@c", 0m));
+                    await line1.ExecuteNonQueryAsync();
+                    await using var line2 = connection.CreateCommand();
+                    line2.CommandText = "INSERT INTO `epc_erp_gl_lines` (`journal_id`,`coa_id`,`debit`,`credit`,`line_note`) VALUES (@j,@coa,@d,@c,'')";
+                    line2.Parameters.Add(new MySqlParameter("@j", journalId));
+                    line2.Parameters.Add(new MySqlParameter("@coa", coa[1]));
+                    line2.Parameters.Add(new MySqlParameter("@d", 0m));
+                    line2.Parameters.Add(new MySqlParameter("@c", credit));
+                    await line2.ExecuteNonQueryAsync();
+                }
+
+                await InsertJournal("OB-1", before, "opening", "open", "prior year", "", 20m, 20m);
+                await InsertJournal("GV-1", inPeriod, "manual", "rent", "February rent", "", 40m, 40m);
+                await InsertJournal("YE-1", yearEnd, "adjustment", "year-end close", "year-end close", "", 8m, 8m);
+                await InsertJournal("TX-1", inPeriod, "manual", "vat", "VAT journal", "AE-VAT", 3m, 3m);
             }
 
             var writes = new ErpTrialBalanceWriteService(connections, read);
@@ -203,10 +258,29 @@ public sealed class ErpTrialBalanceCoverageTests
             Assert.True(saved.Succeeded, saved.Message);
             Assert.True(saved.Id > 0);
 
-            var result = await read.ReadAsync(ErpTrialBalanceParameters.FromQuery(
-                "2026-01-01", "2026-12-31", "current", "column", "1", "1", null, null, null, null));
-            Assert.Contains(result.Lines, line => line.Code == "1000" && line.Opening == 50m);
-            Assert.Contains(result.Snapshots, snap => snap.TrackingId == "TB-TEST");
+            var full = await read.ReadAsync(ErpTrialBalanceParameters.FromQuery(
+                "2026-01-01", "2026-12-31", "current", "column", "1", "1", null, null, null, "1000"));
+            var cash = Assert.Single(full.Lines, line => line.Code == "1000");
+            Assert.Equal(70m, cash.Opening);
+            Assert.Equal(51m, cash.Debit);
+            Assert.Equal(121m, cash.Closing);
+            Assert.Contains(full.Snapshots, snap => snap.TrackingId == "TB-TEST");
+
+            var noClose = await read.ReadAsync(ErpTrialBalanceParameters.FromQuery(
+                "2026-01-01", "2026-12-31", "current", "column", "0", "1", null, null, null, null));
+            var cashNoClose = Assert.Single(noClose.Lines, line => line.Code == "1000");
+            Assert.Equal(43m, cashNoClose.Debit);
+
+            var operations = await read.ReadAsync(ErpTrialBalanceParameters.FromQuery(
+                "2026-01-01", "2026-12-31", "operations", "column", "1", "1", null, null, null, null));
+            var cashOps = Assert.Single(operations.Lines, line => line.Code == "1000");
+            Assert.Equal(48m, cashOps.Debit);
+
+            var tax = await read.ReadAsync(ErpTrialBalanceParameters.FromQuery(
+                "2026-01-01", "2026-12-31", "tax", "column", "1", "1", null, null, "1000", null));
+            var cashTax = Assert.Single(tax.Lines, line => line.Code == "1000");
+            Assert.Equal(3m, cashTax.Debit);
+            Assert.Contains(tax.Vouchers, v => v.JournalNo == "TX-1");
         }
         finally
         {
