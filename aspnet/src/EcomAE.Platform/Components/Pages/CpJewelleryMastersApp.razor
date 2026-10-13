@@ -6,8 +6,10 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IErpGoldRateSetWriteService GoldRates
+@inject IErpJwGoldSchemeWriteService GoldSchemes
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -124,7 +126,7 @@
     else if (_isAdmin && _tab == "gold_rate")
     {
         <ErpPhpCreateWell Title="Today's 24K base">
-            <form method="post" action="/erp/gold-rate/daily" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction("/erp/gold-rate/daily")" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="source" value="daily" />
@@ -148,7 +150,7 @@
             </form>
         </ErpPhpCreateWell>
         <ErpPhpCreateWell Title="One karat override">
-            <form method="post" action="/erp/gold-rate/set" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction("/erp/gold-rate/set")" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="source" value="manual" />
@@ -176,7 +178,7 @@
     else if (_isAdmin && _tab == "gold_scheme")
     {
         <ErpPhpCreateWell Title="Create scheme">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryGoldSchemeCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryGoldSchemeCreateForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
@@ -206,7 +208,7 @@
             </form>
         </ErpPhpCreateWell>
         <ErpPhpCreateWell Title="Enroll customer">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryGoldSchemeEnrollForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryGoldSchemeEnrollForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <label>Scheme id <input class="form-control input-sm" name="scheme_id" type="number" min="1" required /></label>
@@ -217,7 +219,7 @@
             </form>
         </ErpPhpCreateWell>
         <ErpPhpCreateWell Title="Pay instalment">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryGoldSchemePayForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryGoldSchemePayForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <label>Enrollment id <input class="form-control input-sm" name="enrollment_id" type="number" min="1" required /></label>
@@ -670,6 +672,22 @@
                         </tr>
                     }
                 }
+                else if (_tab == "gold_scheme" && _goldSchemes.Count > 0)
+                {
+                    @foreach (var row in _goldSchemes)
+                    {
+                        <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><strong>@(string.IsNullOrWhiteSpace(row.SchemeCode) ? "—" : row.SchemeCode)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.SchemeName) ? "—" : row.SchemeName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.SchemeType) ? "—" : row.SchemeType)</td>
+                            <td>@row.MaturityMonths.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.MinInstallment.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.CreatedAt) ? "—" : row.CreatedAt)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.CreatedBy) ? "—" : row.CreatedBy)</td>
+                        </tr>
+                    }
+                }
                 else if (_tab == "gold_rate" && _goldHistory.Count > 0)
                 {
                     @foreach (var row in _goldHistory)
@@ -738,6 +756,7 @@
     private IReadOnlyList<CpJewelleryMastersTagDigest> _tags = [];
     private IReadOnlyList<ErpGoldRateRow> _goldToday = [];
     private IReadOnlyList<ErpGoldRateDayPivot> _goldHistory = [];
+    private IReadOnlyList<ErpGoldSchemeRow> _goldSchemes = [];
     private IReadOnlyList<KaratRow> _karatDisplay = [];
     private string _source = "n/a";
     private string _message = "";
@@ -759,6 +778,12 @@
         _openedId > 0
             ? _listHref + "?karat_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
             : _returnHere;
+
+    private string WriteAction(string path)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, path);
+
+    private static bool IsStaleProvisionFlash(string err)
+        => err.Contains("tables are not provisioned", StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnInitializedAsync()
     {
@@ -817,6 +842,26 @@
                 {
                     Columns = ["No.", "Karat", "Buy", "Sell", "Unit", "Source", "Created date", "Created by"]
                 };
+            }
+
+            if (IsStaleProvisionFlash(_err) && !board.Message.Contains("not provisioned", StringComparison.OrdinalIgnoreCase))
+            {
+                _err = "";
+            }
+        }
+        else if (_tab == "gold_scheme")
+        {
+            var board = await GoldSchemes.LoadBoardAsync(_company, ctx.RequestAborted);
+            _goldSchemes = board.Schemes;
+            if (!string.IsNullOrWhiteSpace(board.Message))
+            {
+                _message = board.Message;
+            }
+
+            _source = board.Source;
+            if (IsStaleProvisionFlash(_err) && !board.Message.Contains("not provisioned", StringComparison.OrdinalIgnoreCase))
+            {
+                _err = "";
             }
         }
         if (_openedId > 0)

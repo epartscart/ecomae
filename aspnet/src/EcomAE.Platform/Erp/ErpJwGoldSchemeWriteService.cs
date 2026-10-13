@@ -23,6 +23,10 @@ public interface IErpJwGoldSchemeWriteService
     Task<ErpSimpleWriteResult> PayAsync(
         ErpJwGoldSchemePayRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ErpGoldSchemeBoardResult> LoadBoardAsync(
+        int companyId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpJwGoldSchemeCreateRequest(
@@ -45,6 +49,22 @@ public sealed record ErpJwGoldSchemeEnrollRequest(
     string? CustomerName = null,
     decimal InstallmentAmount = 0,
     string? StartDate = null);
+
+public sealed record ErpGoldSchemeRow(
+    long Id,
+    string SchemeCode,
+    string SchemeName,
+    string SchemeType,
+    int MaturityMonths,
+    string BonusType,
+    decimal MinInstallment,
+    string CreatedAt,
+    string CreatedBy);
+
+public sealed record ErpGoldSchemeBoardResult(
+    IReadOnlyList<ErpGoldSchemeRow> Schemes,
+    string Source,
+    string Message);
 
 public sealed record ErpJwGoldSchemePayRequest(
     long EnrollmentId = 0,
@@ -230,6 +250,48 @@ public sealed class ErpJwGoldSchemeWriteService : IErpJwGoldSchemeWriteService
         }
 
         return ErpSimpleWriteResult.Ok("Enrollment " + enrollNo + " created", id);
+    }
+
+    public async Task<ErpGoldSchemeBoardResult> LoadBoardAsync(
+        int companyId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new([], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpJewelSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (!await TableExistsAsync(connection, "epc_gold_schemes", cancellationToken).ConfigureAwait(false)
+            || !await ColumnExistsAsync(connection, "epc_gold_schemes", "scheme_code", cancellationToken).ConfigureAwait(false))
+        {
+            return new([], "database", "Gold scheme tables are not provisioned");
+        }
+
+        var rows = new List<ErpGoldSchemeRow>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional(
+            "SELECT `id`,`scheme_code`,`scheme_name`,`scheme_type`,`maturity_months`,`bonus_type`,`min_installment`,`time_created`,`created_by` FROM `epc_gold_schemes` "
+            + "WHERE ? = 0 OR `company_id` = ? ORDER BY `id` DESC");
+        var co = companyId < 0 ? 0 : companyId;
+        ErpDb.AddParameters(command, co, co);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new ErpGoldSchemeRow(
+                reader[0] is DBNull ? 0 : Convert.ToInt64(reader[0], CultureInfo.InvariantCulture),
+                Convert.ToString(reader[1], CultureInfo.InvariantCulture) ?? "",
+                Convert.ToString(reader[2], CultureInfo.InvariantCulture) ?? "",
+                Convert.ToString(reader[3], CultureInfo.InvariantCulture) ?? "",
+                reader[4] is DBNull ? 0 : Convert.ToInt32(reader[4], CultureInfo.InvariantCulture),
+                Convert.ToString(reader[5], CultureInfo.InvariantCulture) ?? "",
+                reader[6] is DBNull ? 0 : Convert.ToDecimal(reader[6], CultureInfo.InvariantCulture),
+                ErpJwMasterAudit.DisplayDate(reader[7]),
+                ErpJwMasterAudit.DisplayUser(Convert.ToString(reader[8], CultureInfo.InvariantCulture))));
+        }
+
+        return new(rows, "database", string.Empty);
     }
 
     public async Task<ErpSimpleWriteResult> PayAsync(

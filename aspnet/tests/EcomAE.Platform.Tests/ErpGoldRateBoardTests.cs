@@ -41,9 +41,13 @@ public sealed class ErpGoldRateBoardTests
 
         var scheme = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Erp/ErpJwGoldSchemeWriteService.cs"));
         Assert.Contains("ErpGoldRateBoard.ResolveSellAsync", scheme, StringComparison.Ordinal);
+        Assert.Contains("LoadBoardAsync", scheme, StringComparison.Ordinal);
 
         var page = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpJewelleryMastersApp.razor"));
         Assert.Contains("/erp/gold-rate/daily", page, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryGoldSchemeCreateForm", page, StringComparison.Ordinal);
+        Assert.Contains("WriteAction", page, StringComparison.Ordinal);
+        Assert.Contains("IsStaleProvisionFlash", page, StringComparison.Ordinal);
         Assert.Contains("Publish daily rates", page, StringComparison.Ordinal);
         Assert.Contains("applies on jewellery invoices", page, StringComparison.Ordinal);
 
