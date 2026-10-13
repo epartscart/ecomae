@@ -191,6 +191,11 @@ public sealed class ErpUaeTaxFtaFetchPhpParityTests
         Assert.Contains("ClientErpPathRewriteMiddleware.OriginalPathItem", text, StringComparison.Ordinal);
         Assert.Contains("name=\"csrf_guard_key\"", text, StringComparison.Ordinal);
         Assert.Contains("FetchAction", text, StringComparison.Ordinal);
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(
+            "/cp/client-erp/indj/erp/uae-tax-compliance-app", out _));
+        Assert.True(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(
+            "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1", out var mapped));
+        Assert.Equal("/erp/uae-tax-compliance-app", mapped);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
     }
