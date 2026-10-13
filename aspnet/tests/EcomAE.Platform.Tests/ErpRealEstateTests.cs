@@ -86,6 +86,7 @@ public sealed class ErpRealEstateTests
     {
         Assert.Equal("real_estate", IndustrySpecificRoutePolicy.RequiredIndustry("/erp/real-estate-app"));
         Assert.Equal("real_estate", IndustrySpecificRoutePolicy.RequiredIndustry("/erp/real-estate/save"));
+        Assert.Equal("real_estate", IndustrySpecificRoutePolicy.RequiredIndustry("/erp/real-estate/report"));
         Assert.True(IndustrySpecificRoutePolicy.Allows("real_estate", null, null, "real_estate"));
         Assert.False(IndustrySpecificRoutePolicy.Allows("real_estate", "auto_parts", null, "jewellery"));
         var company = new ErpCompanyDigest(4, "REAL", "Real Estate Company", "AED", "AE", "real-estate-development", true);
@@ -101,12 +102,16 @@ public sealed class ErpRealEstateTests
         var catalog = ErpGlobalSearchCatalog.Build(jewellery: false, fitOut: false, realEstate: true);
         Assert.Equal("Real estate workspace", catalog[0].Label);
         Assert.Contains(catalog, e => e.Href == "/erp/real-estate-app?tab=opportunities");
+        Assert.Contains(catalog, e => e.Href == "/erp/real-estate/report?format=html");
         Assert.True(ErpPhpTabRouteMap.TryMapTab("real_estate", out var href));
         Assert.Equal("/erp/real-estate-app", href);
         Assert.Contains(ErpCapabilityCatalog.Groups, g => g.Key == "real_estate" && g.Href == "/erp/real-estate-app");
         Assert.Contains(PhpModuleCatalog.AspNetErpTabs, t => t.Id == "projects/real_estate");
         Assert.Contains("IErpRealEstateWriteService", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Program.cs")), StringComparison.Ordinal);
         Assert.Contains("HandleRealEstateSaveAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs")), StringComparison.Ordinal);
+        Assert.Contains("HandleRealEstateReportAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs")), StringComparison.Ordinal);
+        Assert.Contains("re-board-dock", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("/erp/real-estate/report?format=", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor")), StringComparison.Ordinal);
         var razor = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor"));
         Assert.Contains("@((_snap.Kpis.GrossYield * 100).ToString(\"0.00\", CultureInfo.InvariantCulture))%", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@(_snap.Kpis.GrossYield * 100).ToString", razor, StringComparison.Ordinal);
@@ -147,6 +152,72 @@ public sealed class ErpRealEstateTests
         Assert.Contains("save_boq_line", razor, StringComparison.Ordinal);
         Assert.Contains("Cheque maturity calendar", razor, StringComparison.Ordinal);
         Assert.Contains("\"calendar\", \"Calendars\"", razor, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BoardPackEmitsColouredPdfWordAndHtml()
+    {
+        var snap = SampleBoardSnap();
+        var utc = new DateTime(2026, 10, 13, 4, 0, 0, DateTimeKind.Utc);
+        var pdf = ErpRealEstateReportPack.Pdf(snap, "REAL investment & construction", utc);
+        Assert.True(pdf.Length > 20_000);
+        Assert.Equal((byte)'%', pdf[0]);
+        Assert.Equal((byte)'P', pdf[1]);
+        Assert.Equal((byte)'D', pdf[2]);
+        Assert.Equal((byte)'F', pdf[3]);
+
+        var docx = ErpRealEstateReportPack.Docx(snap, "REAL investment & construction", utc);
+        Assert.Equal((byte)'P', docx[0]);
+        Assert.Equal((byte)'K', docx[1]);
+        Assert.Contains("word/document.xml", System.Text.Encoding.UTF8.GetString(docx), StringComparison.Ordinal);
+
+        var html = ErpRealEstateReportPack.Html(snap, "REAL investment & construction", "/erp/real-estate/report?format=pdf", "/erp/real-estate/report?format=docx", utc);
+        Assert.Contains("Executive summary", html, StringComparison.Ordinal);
+        Assert.Contains("Escrow held", html, StringComparison.Ordinal);
+        Assert.Contains("data:image/jpeg;base64,", html, StringComparison.Ordinal);
+        Assert.Contains("#c4a35a", html, StringComparison.Ordinal);
+        Assert.Contains("Download PDF", html, StringComparison.Ordinal);
+        Assert.Contains("Download Word", html, StringComparison.Ordinal);
+        Assert.Contains("SLICE-2026", html, StringComparison.Ordinal);
+
+        var sky = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Erp/ErpRealEstateReportVisual.cs"));
+        Assert.Contains("PaintSkyline", sky, StringComparison.Ordinal);
+        Assert.Contains("C4A35A", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Erp/ErpRealEstateReportPack.cs")), StringComparison.Ordinal);
+        Assert.Equal("ecomae-real-estate-board-pack-real-20261013", ErpRealEstateReportPack.FileStem("REAL", utc));
+    }
+
+    private static ErpRealEstateSnapshot SampleBoardSnap()
+    {
+        static ErpRealEstateRow Row(long id, string kind, string code, string name, string status, decimal amount, decimal amount2 = 0, string detail = "", bool owned = false)
+            => new(id, kind, code, name, status, amount, amount2, detail, owned);
+
+        return new ErpRealEstateSnapshot(
+            new ErpRealEstateKpis(2, 2, 4, 1, 3, 1, 1_850_000m, 2_200_000m, 350_000m, 180_000m, 0.0818m, 0.75m, 0.88m, 420_000m, 320_000m),
+            [Row(1, "opportunity", "OPP-1", "Marina screening", "screening", 2_000_000m, 1_900_000m, "Dubai")],
+            [Row(1, "property", "PR-1", "Marina tower", "active", 1_850_000m, 2_200_000m, "Dubai", true)],
+            [Row(3, "unit", "U-3", "Tower A 1204", "sold", 600_000m, 0, "project 3", true), Row(4, "unit", "U-4", "Tower A 1205", "available", 400_000m, 0, "project 3", true)],
+            [Row(1, "acquisition", "ACQ-1", "Seller LLC", "posted", 1_850_000m, 0, "completed")],
+            [],
+            [Row(1, "valuation", "VAL-1", "Marina tower", "approved", 2_200_000m, 2_150_000m, "IAS 40")],
+            [Row(1, "tenant", "TN-1", "Retail tenant", "active", 0, 0, "Ejari")],
+            [Row(1, "lease", "LS-1", "Retail tenant", "active", 180_000m, 0, "annual")],
+            [Row(6, "cheque", "CHQ-6", "Retail tenant", "bounced", 45_000m, 0, "prior clear journal kept")],
+            [Row(1, "deposit", "DEP-1", "Retail tenant", "held", 20_000m, 0, "2200")],
+            [],
+            [Row(3, "project", "SLICE-2026", "Off-plan tower", "active", 1_000_000m, 0, "escrow required")],
+            [Row(1, "sale", "SAL-1", "Buyer One", "reserved", 500_000m, 200_000m, "off-plan")],
+            [],
+            [Row(1, "contract", "CTR-1", "Main contractor", "active", 800_000m, 0, "BOQ linked")],
+            [Row(1, "certificate", "IPC-1", "Main contractor", "certified", 80_000m, 0, "escrow out")],
+            [Row(1, "boq", "BOQ-1", "Structure package", "awarded", 25_000m, 0, "qty × rate")],
+            [Row(1, "escrow", "ESC-IN", "Buyer collection", "posted", 200_000m, 0, "1140 / 2220"), Row(2, "escrow", "ESC-OUT", "Permitted works", "posted", 80_000m, 0, "disbursement")],
+            [Row(1, "milestone", "MS-1", "Foundation", "complete", 40, 0, "%")],
+            [Row(1, "instalment", "INS-1", "Sale 1", "collected", 200_000m, 200_000m, "milestone 1"), Row(2, "instalment", "INS-2", "Sale 1", "due", 300_000m, 0, "milestone 2")],
+            [Row(1, "allocation", "ALLOC-1", "U-3", "posted", 600_000m, 0, "GIA"), Row(2, "allocation", "ALLOC-2", "U-4", "posted", 400_000m, 0, "GIA")],
+            [],
+            [],
+            ErpRealEstateCalc.Definitions,
+            "Sample board pack");
     }
 
     [Fact]

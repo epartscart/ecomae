@@ -21,6 +21,24 @@
         PhpTabHref="/erp/real-estate-app" />
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
+    <div class="re-board-dock" aria-label="Download board pack from any tab">
+        <div>
+            <strong>Board pack</strong>
+            <span class="text-muted"> — premium visual report with photographs. Download PDF or Word from this tab or any other.</span>
+        </div>
+        <div class="re-board-dock__actions">
+            <a class="btn btn-sm re-board-btn" href="@ReportHref("html")" target="_blank" rel="noopener">Open presentation</a>
+            <a class="btn btn-sm re-board-btn" href="@ReportHref("pdf")">Download PDF</a>
+            <a class="btn btn-sm re-board-btn" href="@ReportHref("docx")">Download Word</a>
+        </div>
+    </div>
+    <style>
+        .re-board-dock { position: sticky; top: 0; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 14px; padding: 10px 14px; background: linear-gradient(90deg, #0b1f3a, #163a6b); color: #f6f1e7; border-bottom: 3px solid #c4a35a; border-radius: 6px; box-shadow: 0 8px 24px rgba(11,31,58,.22); }
+        .re-board-dock strong { color: #c4a35a; }
+        .re-board-dock .text-muted { color: #e2e8f0 !important; }
+        .re-board-btn { background: #c4a35a !important; color: #0b1f3a !important; border: 0 !important; font-weight: 600; }
+    </style>
+
     <nav class="epc-org-tabs" aria-label="Real estate workspaces">
         @foreach (var tab in Tabs)
         {
@@ -617,7 +635,8 @@
                     </tbody>
                 </table>
             </div>
-            <p class="text-muted">Portfolio, rent roll, cheque register, BOQ, escrow, off-plan instalments and contractor certificates are the grids on the other tabs. Open <a href="@FinanceHref("/erp/aging-app")">AR ageing</a>, <a href="@FinanceHref("/erp/cash-entries-app")">cash entries</a>, <a href="@FinanceHref("/erp/gl-journals-app")">GL journals</a>, <a href="@FinanceHref("/erp/invoices-app")">invoices</a> and <a href="@FinanceHref("/erp/vat-app")">VAT</a> for ledger reconciliation.</p>
+            <p class="text-muted">The coloured board pack above is the downloadable summary-plus-detail report (PDF or Word) with skyline and construction photographs. Portfolio, rent roll, cheque register, BOQ, escrow, off-plan instalments and contractor certificates are the grids on the other tabs. Open <a href="@FinanceHref("/erp/aging-app")">AR ageing</a>, <a href="@FinanceHref("/erp/cash-entries-app")">cash entries</a>, <a href="@FinanceHref("/erp/gl-journals-app")">GL journals</a>, <a href="@FinanceHref("/erp/invoices-app")">invoices</a> and <a href="@FinanceHref("/erp/vat-app")">VAT</a> for ledger reconciliation.</p>
+            <iframe title="Real estate board pack presentation" src="@ReportHref("html")" style="width:100%;min-height:720px;border:1px solid #c4a35a;border-radius:6px;background:#0b1f3a"></iframe>
         }
     }
 
@@ -697,6 +716,14 @@
             </tbody>
         </table>
     </div>
+    <div class="re-board-dock" style="margin-top:14px" aria-label="Download board pack again">
+        <div><strong>Need the pack from here?</strong> Same report — PDF or Word — from this position.</div>
+        <div class="re-board-dock__actions">
+            <a class="btn btn-sm re-board-btn" href="@ReportHref("html")" target="_blank" rel="noopener">Open presentation</a>
+            <a class="btn btn-sm re-board-btn" href="@ReportHref("pdf")">Download PDF</a>
+            <a class="btn btn-sm re-board-btn" href="@ReportHref("docx")">Download Word</a>
+        </div>
+    </div>
 </PhpErpDesktopChrome>
 
 @code {
@@ -738,6 +765,9 @@
 
     private string FinanceHref(string href)
         => ClientErpPath.PrefixIfBound(Http.HttpContext, href);
+
+    private string ReportHref(string format)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/real-estate/report?format=" + format);
 
     private string TabClass(string tab)
         => string.Equals(_tab, tab, StringComparison.OrdinalIgnoreCase) ? "active" : "";
