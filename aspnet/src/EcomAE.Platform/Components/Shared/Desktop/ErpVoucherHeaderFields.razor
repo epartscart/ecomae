@@ -35,23 +35,8 @@
 }
 @if (ShowBusinessUnit)
 {
-    <label>Business unit
-        @if (_businessUnits.Count == 0)
-        {
-            <input class="form-control input-sm" type="number" name="business_unit_id" min="0" value="0" title="No business unit rows yet — open Organization to add one" />
-        }
-        else
-        {
-            <select class="form-control input-sm" name="business_unit_id">
-                <option value="0">— none —</option>
-                @foreach (var unit in _businessUnits)
-                {
-                    <option value="@unit.Id">@unit.Code · @unit.Name</option>
-                }
-            </select>
-        }
-        <a class="epc-erp-header-org-link" href="/erp/organization-app?tab=business_units">Manage</a>
-    </label>
+    <input type="hidden" name="branch" value="" />
+    <ErpMasterPicker Kind="business_unit" FieldName="business_unit_id" Label="Business unit" CodeFieldName="branch" />
 }
 @if (ShowCostCentre)
 {
@@ -89,14 +74,12 @@
 
     private string DateDefault => string.IsNullOrWhiteSpace(DateValue) ? ErpVoucherHeader.TodayDate() : DateValue;
     private IReadOnlyList<ErpOrganizationMasterRow> _legalEntities = [];
-    private IReadOnlyList<ErpOrganizationMasterRow> _businessUnits = [];
     private IReadOnlyList<ErpOrganizationMasterRow> _costCentres = [];
 
     protected override async Task OnInitializedAsync()
     {
         var snapshot = await OrganizationMasters.LoadAsync(200);
         _legalEntities = snapshot.LegalEntities.Where(row => row.Active).Reverse().ToList();
-        _businessUnits = snapshot.BusinessUnits.Where(row => row.Active).Reverse().ToList();
         _costCentres = snapshot.CostCentres.Where(row => row.Active).Reverse().ToList();
         if (_costCentres.Count == 0)
         {

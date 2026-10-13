@@ -48,7 +48,7 @@
                 <dt>Unfixed qty</dt><dd>@_opened.UnfixedQty.ToString("N3", CultureInfo.InvariantCulture)</dd>
                 <dt>Ref voc</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ReferenceVoc) ? "—" : _opened.ReferenceVoc)</dd>
                 <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
-                <dt>Branch</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Branch) ? "—" : _opened.Branch)</dd>
+                <dt>Business unit</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Branch) ? "—" : _opened.Branch)</dd>
                 <dt>Created by</dt><dd>@(string.IsNullOrWhiteSpace(_opened.CreatedBy) ? "—" : _opened.CreatedBy)</dd>
             </dl>
             @if (!string.IsNullOrWhiteSpace(_opened.RemarksExcerpt))
@@ -111,7 +111,7 @@
                 }
                 <div class="epc-erp-doc-header">
                     <p class="epc-erp-doc-header__title">Invoice details</p>
-                    <label>Branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
+                    <ErpMasterPicker Kind="business_unit" FieldName="branch" Label="Business unit" ValueMode="code" SelectedCode="HQ" InputId="jw-mp-bu" />
                     <label>Voc Type <input class="form-control input-sm" name="voc_type_label" value="PUR" readonly /></label>
                     <ErpVoucherHeaderFields NumberPreview="Auto" DateLabel="Voc Date" NumberLabel="Voc No" ShowLegalEntity="false" ShowBusinessUnit="false" ShowCostCentre="false" />
                     <ErpMasterPicker Kind="supplier" FieldName="party_code" Label="Party Code" ValueMode="code" NameFieldName="party_name" Required="true" InputId="jw-party" />
@@ -252,7 +252,6 @@
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
-                <label>Branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
                 <ErpVoucherHeaderFields NumberPreview="Auto" />
                 <ErpMasterPicker Kind="supplier" FieldName="party_code" Label="Party Code" ValueMode="code" NameFieldName="party_name" InputId="jw-d-party" />
                 <label>Party Name <input class="form-control input-sm" name="party_name" required /></label>

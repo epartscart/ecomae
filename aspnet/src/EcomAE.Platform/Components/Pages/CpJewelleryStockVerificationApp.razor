@@ -43,7 +43,7 @@
                 <dt>Division</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Division) ? "—" : _opened.Division)</dd>
                 <dt>Remaining pcs</dt><dd>@_opened.RemainingPcs.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
-                <dt>Branch</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Branch) ? "—" : _opened.Branch)</dd>
+                <dt>Business unit</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Branch) ? "—" : _opened.Branch)</dd>
             </dl>
             @if (!string.IsNullOrWhiteSpace(_opened.RemarksExcerpt))
             {
@@ -129,7 +129,7 @@
             </table>
         </div>
         <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-                Source: @_balance.Source. This is the legacy metal-stock balance projection grouped by metal and karat; movement, as-of-date, branch, and valuation reconciliation remain on the legacy workflow until separately accepted.
+                Source: @_balance.Source. This is the legacy metal-stock balance projection grouped by metal and karat; movement, as-of-date, business unit, and valuation reconciliation remain on the legacy workflow until separately accepted.
             @if (!string.IsNullOrWhiteSpace(_balance.Message)) { <span> @_balance.Message</span> }
         </div>
     }
@@ -140,7 +140,7 @@
             <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryStockVerifySaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
-                <label>Branch <input class="form-control input-sm" name="branch" value="HO" /></label>
+                <ErpMasterPicker Kind="business_unit" FieldName="branch" Label="Business unit" ValueMode="code" SelectedCode="HQ" InputId="jw-sv-bu" />
                 <label>Location <input class="form-control input-sm" name="code" placeholder="Showroom" required /></label>
                 <label>Supervisor <input class="form-control input-sm" name="supervisor" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save stock verification</button>
@@ -159,7 +159,7 @@
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
-                <label>Branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
+                <ErpMasterPicker Kind="business_unit" FieldName="branch" Label="Business unit" ValueMode="code" SelectedCode="HQ" InputId="jw-mfg-bu" />
                 <label>Item code <input class="form-control input-sm" name="line_stock_code" required maxlength="20" /></label>
                 <label>Description <input class="form-control input-sm" name="line_description" required maxlength="120" /></label>
                 <label>Design / party <input class="form-control input-sm" name="party_name" /></label>
@@ -187,7 +187,7 @@
     }
     else if (_isAdmin && _tab == "jw_branch_transfer")
     {
-        <ErpPhpCreateWell Title="New branch transfer">
+        <ErpPhpCreateWell Title="New business unit transfer">
             <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
@@ -197,8 +197,8 @@
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
-                <label>From branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
-                <label>To branch <input class="form-control input-sm" name="party_code" required maxlength="20" placeholder="BR2" /></label>
+                <ErpMasterPicker Kind="business_unit" FieldName="branch" Label="From business unit" ValueMode="code" SelectedCode="HQ" InputId="jw-btr-from" />
+                <ErpMasterPicker Kind="business_unit" FieldName="party_code" Label="To business unit" ValueMode="code" Required="true" InputId="jw-btr-to" />
                 <label>Stock code <input class="form-control input-sm" name="line_stock_code" required maxlength="20" /></label>
                 <label>Description <input class="form-control input-sm" name="line_description" required maxlength="120" /></label>
                 <label>Pcs <input class="form-control input-sm" name="line_pcs" type="number" min="0" value="1" /></label>
@@ -206,7 +206,7 @@
                 <label>Purity <input class="form-control input-sm" name="line_purity" type="number" step="0.000001" value="0.917" /></label>
                 <label>Pure wt <input class="form-control input-sm" name="line_pure_wt" type="number" step="0.0001" value="0" /></label>
                 <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Save branch transfer</button>
+                <button type="submit" class="btn btn-primary btn-sm">Save business unit transfer</button>
             </form>
         </ErpPhpCreateWell>
     }

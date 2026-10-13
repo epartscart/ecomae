@@ -101,7 +101,7 @@ public sealed class ErpJwWorkshopReceiveWriteService : IErpJwWorkshopReceiveWrit
     private static string DefaultBranch(string? value)
     {
         var raw = (value ?? string.Empty).Trim();
-        return raw.Length == 0 ? "HO" : raw;
+        return raw.Length == 0 ? "HQ" : raw;
     }
 
     private static string FirstNonEmpty(params string?[] values)

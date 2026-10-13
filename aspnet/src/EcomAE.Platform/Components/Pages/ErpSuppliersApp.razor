@@ -397,10 +397,7 @@
                             </td>
                             <th>Business unit</th>
                             <td>
-                                <select class="form-control input-sm" name="business_unit_id">
-                                    <option value="0">— none —</option>
-                                    @foreach (var unit in _org.BusinessUnits.Where(r => r.Active)) { <option value="@unit.Id">@unit.Code · @unit.Name</option> }
-                                </select>
+                                <ErpMasterPicker Kind="business_unit" FieldName="business_unit_id" Label="" InputId="supplier-bu" />
                             </td>
                         </tr>
                         <tr>

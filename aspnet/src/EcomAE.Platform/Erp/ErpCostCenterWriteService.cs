@@ -48,7 +48,7 @@ public sealed class ErpCostCenterWriteService : IErpCostCenterWriteService
 
         if (branchId < 0)
         {
-            return ErpSimpleWriteResult.Fail("invalid", "Branch id cannot be negative.");
+            return ErpSimpleWriteResult.Fail("invalid", "Business unit cannot be negative.");
         }
 
         if (!_connections.IsConfigured)

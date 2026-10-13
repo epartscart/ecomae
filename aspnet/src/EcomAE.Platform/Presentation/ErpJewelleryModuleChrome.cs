@@ -69,11 +69,11 @@ public static class ErpJewelleryModuleChrome
         ("jw_metal_stock", "Metal stock"),
         ("jw_stock_balance", "Stock balance"),
         ("jw_manufacture", "Manufacture"),
-        ("jw_branch_transfer", "Branch transfer"),
+        ("jw_branch_transfer", "Business unit transfer"),
     ];
 
     public static readonly IReadOnlyList<string> RepairJobColumns =
-        ["No.", "Repair #", "Customer", "Phone", "Item", "Metal", "Karat", "Wt In (g)", "Repair Type", "Est. Cost", "Status", "Company", "Branch", "Actions"];
+        ["No.", "Repair #", "Customer", "Phone", "Item", "Metal", "Karat", "Wt In (g)", "Repair Type", "Est. Cost", "Status", "Company", "Business unit", "Actions"];
 
     public static readonly IReadOnlyList<string> RepairReceiptColumns =
         ["No.", "Job No", "Receipt Date", "Customer", "Phone", "Item", "Promise Date", "Status"];
@@ -94,7 +94,7 @@ public static class ErpJewelleryModuleChrome
         ["No.", "Inv No", "Inv Date", "Customer", "Salesman", "Items", "Net Amt", "Payment"];
 
     public static readonly IReadOnlyList<string> StockVerificationColumns =
-        ["Id", "Branch", "Type", "Date", "No", "Location", "Total", "Scanned", "Status"];
+        ["Id", "Business unit", "Type", "Date", "No", "Location", "Total", "Scanned", "Status"];
 
     public static readonly IReadOnlyList<string> MetalStockColumns =
         ["No.", "Metal", "Item Code", "Description", "Karat", "Purity", "Type", "Stock Pcs", "Stock Gms"];
@@ -298,10 +298,10 @@ public static class ErpJewelleryModuleChrome
             "MFG — manufactured item with metal / stone / other component lines on the manufacture voucher table.",
             ["Voc #", "Date", "Item", "Metal wt", "Amount", "Status"],
             "No manufacture vouchers yet."),
-        "jw_branch_transfer" => new("jw_branch_transfer", "Branch transfer", "Jewellery branch transfer",
-            "BTR — move tagged or metal stock from the source branch to a destination branch.",
+        "jw_branch_transfer" => new("jw_branch_transfer", "Business unit transfer", "Jewellery business unit transfer",
+            "BTR — move tagged or metal stock from the source business unit to a destination business unit.",
             ["Voc #", "Date", "From", "To", "Stock", "Wt", "Status"],
-            "No branch transfers yet."),
+            "No business unit transfers yet."),
         _ => new("jw_stock_verification", "Stock verification", "Stock Verification",
             "Physical count vs computer stock, barcode scanning.",
             StockVerificationColumns, "No records"),
@@ -323,12 +323,12 @@ public static class ErpJewelleryModuleChrome
             ["Repair #", "Customer", "Item", "Est. Cost", "Invoice", "Status"],
             "No repair sales yet."),
         "jw_repair_transfer" => new("jw_repair_transfer", "Transfer", "Repair transfer",
-            "Transfer a job to workshop or another branch.",
-            ["Repair #", "Branch", "Item", "Metal", "Status"],
+            "Transfer a job to workshop or another business unit.",
+            ["Repair #", "Business unit", "Item", "Metal", "Status"],
             "No repair transfers yet."),
         "jw_workshop_receive" => new("jw_workshop_receive", "Workshop", "Workshop receive",
             "Workshop intake of transferred repair jobs.",
-            ["Repair #", "Branch", "Item", "Metal", "Status"],
+            ["Repair #", "Business unit", "Item", "Metal", "Status"],
             "No workshop receipts yet."),
         "jw_repair_delivery" => new("jw_repair_delivery", "Delivery", "Repair delivery",
             "Deliver repaired items back to the customer.",

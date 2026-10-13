@@ -113,6 +113,7 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "unit" or "units" => "unit",
             "tenant" or "tenants" => "tenant",
             "contractor" or "contractors" => "contractor",
+            "business-unit" or "business-units" or "branch" or "branches" or "bu" => "business-unit",
             _ => string.Empty,
         };
     }
@@ -137,6 +138,7 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "unit" => "/erp/real-estate-app?tab=properties",
             "tenant" => "/erp/real-estate-app?tab=leases",
             "contractor" => "/erp/real-estate-app?tab=construction",
+            "business-unit" => "/erp/organization-app?tab=business_units",
             _ => "/erp",
         };
 
@@ -165,6 +167,7 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "unit" => "Unit",
             "tenant" => "Tenant",
             "contractor" => "Contractor",
+            "business-unit" => "Business unit",
             _ => "Master",
         };
 
@@ -272,6 +275,9 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "contractor" => await LoadSimpleAsync(
                 connection, "contractor", "epc_erp_re_contractors", "id", "code", "name", "code",
                 query, limit, cancellationToken).ConfigureAwait(false),
+            "business-unit" => await LoadSimpleAsync(
+                connection, "business-unit", "epc_erp_pm_business_units", "id", "code", "name", "code",
+                query, limit, cancellationToken, requireActive: true).ConfigureAwait(false),
             _ => [],
         };
     }

@@ -54,7 +54,7 @@
             <label>Country <input type="text" name="country_code" maxlength="8" placeholder="AE" /></label>
             @if (_dimensionCatalog.Count == 0)
             {
-                <label>Business unit <input type="number" name="dim[business_unit]" min="0" style="width:6rem" /></label>
+                <ErpMasterPicker Kind="business_unit" FieldName="dim[business_unit]" Label="Business unit" InputId="contact-dim-bu" />
                 <label>Legal entity <input type="number" name="dim[legal_entity]" min="0" style="width:6rem" /></label>
             }
             else

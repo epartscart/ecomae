@@ -28,6 +28,11 @@ public sealed class ErpMasterLookupTests
     [InlineData("property", "property")]
     [InlineData("tenant", "tenant")]
     [InlineData("contractor", "contractor")]
+    [InlineData("business_unit", "business-unit")]
+    [InlineData("business-unit", "business-unit")]
+    [InlineData("branch", "business-unit")]
+    [InlineData("branches", "business-unit")]
+    [InlineData("bu", "business-unit")]
     [InlineData("nope", "")]
     public void ResolveKind_NormalizesAliases(string raw, string expected)
         => Assert.Equal(expected, ErpMasterLookupReadService.ResolveKind(raw));
@@ -106,6 +111,13 @@ public sealed class ErpMasterLookupTests
     [InlineData("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor", "Kind=\"re-project\"", "projectId")]
     [InlineData("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor", "Kind=\"tenant\"", "tenantId")]
     [InlineData("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor", "Kind=\"contractor\"", "relatedId")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Pages/CpJewelleryFixingApp.razor", "Kind=\"business_unit\"", "jw-mp-bu")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Pages/CpJewelleryStockVerificationApp.razor", "Kind=\"business_unit\"", "jw-sv-bu")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Pages/CpJewelleryStockVerificationApp.razor", "Kind=\"business_unit\"", "jw-btr-from")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Pages/CpJewelleryRepairsApp.razor", "Kind=\"business_unit\"", "to_branch")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Pages/ErpOrganizationApp.razor", "Kind=\"business_unit\"", "branch_id")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Pages/CpFinAdvancedApp.razor", "Kind=\"business_unit\"", "branch_id")]
+    [InlineData("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/ErpVoucherHeaderFields.razor", "Kind=\"business_unit\"", "business_unit_id")]
     public void HighTrafficFormsUseMasterPicker(string relative, string needle, string field)
     {
         var text = File.ReadAllText(FindRepoFile(relative));

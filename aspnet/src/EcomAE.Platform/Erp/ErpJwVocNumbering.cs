@@ -47,7 +47,7 @@ public static class ErpJwVocNumbering
             cancellationToken,
             companyId < 0 ? 0 : companyId,
             vocType,
-            string.IsNullOrWhiteSpace(branch) ? "HO" : branch).ConfigureAwait(false);
+            string.IsNullOrWhiteSpace(branch) ? "HQ" : branch).ConfigureAwait(false);
         return (int)max + 1;
     }
 }
