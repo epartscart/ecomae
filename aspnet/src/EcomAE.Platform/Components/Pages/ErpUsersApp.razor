@@ -13,7 +13,7 @@
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Users & credentials" BreadcrumbArea="Administration" BreadcrumbTab="Users">
     <PhpErpModulePageHeader Title="Users &amp; credentials"
-                            Subtitle="Prepare department users (they do not need to be administrators), lock or reset their passwords, and open login plus audit logs at any time." />
+                            Subtitle="This company only: prepare department users, lock or reset passwords, and open login plus audit logs. Super CP reviews every tenant admin from Tenant admin users." />
 
     @if (!_isAdmin)
     {
@@ -41,6 +41,7 @@
         <p class="text-muted" style="margin:.4rem 0 1rem">
             Sales, finance, warehouse, and HR colleagues sign in with their own email and password.
             Bind them to a department — not the Administrator group — unless they must manage every module.
+            They sign in with email + password on this company login. You can open any user’s sessions and audit below.
             <a href="/erp/user-control-app">Current-session capabilities</a>
             · <a href="/erp/staff-app">Staff directory</a>
             · <a href="/erp/audit-trail-app">Full audit trail</a>

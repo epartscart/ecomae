@@ -58,6 +58,7 @@ public static class EcomaeEcosystemCatalog
     public static readonly IReadOnlyList<EcosystemNode> ClientManagement =
     [
         new("tenants", "Tenants", "Fleet of client sites and portals", "/cp/tenants-app", "live"),
+        new("tenant-admins", "Tenant admin users", "Cross-tenant admin logins and logs", "/cp/tenant-admins-app", "live"),
         new("tenant-features", "Tenant features", "Per-client feature flags", "/cp/tenant-features-app", "live"),
         new("customer-board", "Customer board", "Multi-client account board", "/cp/customer-board-app", "live"),
         new("fleet-summary", "BOS fleet", "Platform fleet health summary", "/bos/fleet-summary-app", "live"),

@@ -105,6 +105,88 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ControlPanelTenantAdmins, async (
+            HttpContext context,
+            string? siteKey,
+            string? q,
+            int? limit,
+            ILegacySessionValidator validator,
+            ICpTenantAdminDirectoryService directory,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Tenant admin directory is Super CP only. Tenant admins use /erp/users-app on their own company."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for tenant admin directory.");
+            }
+
+            var result = await directory.ListAsync(siteKey, q, limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                users = result.Users,
+                tenants = result.Tenants,
+                tenantCount = result.TenantCount,
+                adminCount = result.AdminCount,
+                openSessions = result.OpenSessions,
+                locked = result.Locked,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Super-CP tenant admin logins and how they sign in. Passwords are never returned. Tenant admins control their users on /erp/users-app."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelTenantAdminsDetail, async (
+            HttpContext context,
+            string? siteKey,
+            long? userId,
+            ILegacySessionValidator validator,
+            ICpTenantAdminDirectoryService directory,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Tenant admin logs are Super CP only. Tenant admins use /erp/users-app on their own company."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for tenant admin logs.");
+            }
+
+            var result = await directory.OpenAsync(siteKey ?? string.Empty, userId ?? 0, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = result.User is not null,
+                surface = "cp",
+                user = result.User,
+                sessions = result.Sessions,
+                audit = result.Audit,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Login sessions and audit for one tenant admin. Passwords are never returned."
+            });
+        });
+
         endpoints.MapPost(EcomAeRoutes.CpTenantsWrite, async (
             HttpContext context,
             ILegacySessionValidator validator,
