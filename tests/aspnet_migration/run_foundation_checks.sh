@@ -1721,7 +1721,11 @@ check 'launch clients catalog has yawer mailbox' contains "$ROOT/aspnet/src/Ecom
 check 'super CP home shows launch clients' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpCommandCentre.razor" 'onboard_four_erp_only'
 check 'super CP home links mailbox' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpCommandCentre.razor" '/cp/super-mail-app'
 check 'gated deploy onboards four ERP-only clients' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'cloudpanel_onboard_four_erp_only.sh'
-check 'super mail app uses PHP reference Open' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'PhpReferenceOnlyHref(_phpTab)'
+check 'super mail app Open stays on ASP.NET' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'AspNetPrimaryHref(_phpTab)'
+check 'super mail app has no PHP reference Open' lacks "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/CpSuperMailApp.razor" 'PhpReferenceOnlyHref'
+check 'php stack leak guard exists' test -f "$ROOT/scripts/forbid_php_stack_leak.py"
+check 'gated deploy runs php stack leak guard' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'forbid_php_stack_leak.py'
+check 'gated deploy prints no-new-php gate' contains "$ROOT/scripts/cloudpanel_deploy_main_gated.sh" 'GATE_NO_NEW_PHP=ON'
 check 'client-erp login page is on ErpLoginApp' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" '@page "/cp/client-erp/{SiteKey}"'
 check 'client-erp login has no trailing-slash duplicate route' lacks "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" '@page "/cp/client-erp/{SiteKey}/"'
 check 'client-erp login uses company brand' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpLoginApp.razor" 'LoginHostBrand.ForErpOnly'
