@@ -21,7 +21,7 @@
         <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/purchase-orders-app" IsAdmin="_isAdmin" />
     }
 
-    <PhpErpModulePageHeader Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" Subtitle="@(_barcodePurchase ? "In jewellery, the barcode is the purchase — cost, margin, and salesman at barcode level." : "Open a purchase order in the shared D365 workspace. Guarded save, approve, invoice, receive, and delete actions are available to authorized ERP users.")" PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" Subtitle="@(_barcodePurchase ? "In jewellery, the barcode is the purchase — cost, margin, and salesman at barcode level." : "LPO → PO → PI. Approve the PO, then invoice it. Official print preview opens after the document is posted.")" PhpTabHref="@_phpTab" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/purchase-orders-app" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     @if (!_barcodePurchase)
@@ -76,7 +76,15 @@
             <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="/erp/purchase-orders-app">Close</a>
-                <a class="btn btn-xs btn-default" href="/erp/purchase-order-print?id=@_openedDetail.Id" target="_blank" rel="noopener">Print</a>
+                <a class="btn btn-xs btn-default" href="/erp/purchase-order-print?id=@_openedDetail.Id" target="_blank" rel="noopener">Print PO</a>
+                @if (_openedDetail.OrderId > 0)
+                {
+                    <a class="btn btn-xs btn-default" href="/erp/lpo-print?id=@_openedDetail.OrderId.ToString(CultureInfo.InvariantCulture)" target="_blank" rel="noopener">Print LPO</a>
+                }
+                @if (_openedDetail.PurchaseId > 0)
+                {
+                    <a class="btn btn-xs btn-default" href="/erp/purchase-print?id=@_openedDetail.PurchaseId.ToString(CultureInfo.InvariantCulture)" target="_blank" rel="noopener">Print PI</a>
+                }
             </p>
             <ErpDocumentWorkspace
                 DocumentKind="Purchase order"
@@ -229,6 +237,7 @@
                             <td>@o.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>
                                 <a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/purchase-orders-app", "po_id", o.Id)">Open</a>
+                                <a class="btn btn-xs btn-default" href="/erp/purchase-order-print?id=@o.Id.ToString(CultureInfo.InvariantCulture)" target="_blank" rel="noopener">@(ErpPurchaseDocumentPrint.IsOfficialPo(o.Status) ? "Print" : "Preview")</a>
                                 @if (_isAdmin)
                                 {
                                     <span class="epc-po-actions" data-po-id="@o.Id.ToString(CultureInfo.InvariantCulture)">

@@ -20,7 +20,7 @@
 
 
     
-    <PhpErpModulePageHeader Title="Purchases" Subtitle="Supplier bills, VAT, lifecycle controls, and settlement-ready payable records." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Purchases" Subtitle="Purchase invoices (PI) after LPO and PO. Official tax-invoice print preview opens once the bill is posted." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/purchases-app" />
 
@@ -81,7 +81,11 @@
             <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="/erp/purchases-app">Close</a>
-                <a class="btn btn-xs btn-default" href="/erp/purchase-print?id=@_openedDetail.Id" target="_blank" rel="noopener">Print</a>
+                <a class="btn btn-xs btn-default" href="/erp/purchase-print?id=@_openedDetail.Id" target="_blank" rel="noopener">Print PI</a>
+                @if (_openedDetail.OrderId > 0)
+                {
+                    <a class="btn btn-xs btn-default" href="/erp/lpo-print?id=@_openedDetail.OrderId.ToString(CultureInfo.InvariantCulture)" target="_blank" rel="noopener">Print LPO</a>
+                }
             </p>
             <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
                 <dt>Purchase id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
@@ -229,7 +233,10 @@
                             <td>@p.PaidAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@p.AmountDue.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(p.OrderId > 0 ? p.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/purchases-app", "purchase_id", p.Id)">Open</a></td>
+                            <td>
+                                <a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/purchases-app", "purchase_id", p.Id)">Open</a>
+                                <a class="btn btn-xs btn-default" href="/erp/purchase-print?id=@p.Id.ToString(CultureInfo.InvariantCulture)" target="_blank" rel="noopener">@(ErpPurchaseDocumentPrint.IsOfficialPi(p.Status) ? "Print" : "Preview")</a>
+                            </td>
                         </tr>
                         @if (p.Lines.Count > 0)
                         {
