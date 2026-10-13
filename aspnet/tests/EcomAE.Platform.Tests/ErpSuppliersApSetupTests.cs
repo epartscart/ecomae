@@ -70,6 +70,10 @@ public sealed class ErpSuppliersApSetupTests
         Assert.True(ErpPmSaveWriteService.Registry.ContainsKey("epc_erp_pm_pay_methods"));
         Assert.True(ErpPmSaveWriteService.Registry.ContainsKey("epc_erp_pm_pay_terms"));
         Assert.True(ErpPmSaveWriteService.Registry.ContainsKey("epc_erp_pm_vendor_groups"));
+
+        var schema = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpLazySchema.cs"));
+        Assert.Contains("EnsureSuppliersAsync", schema, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_erp_suppliers`", schema, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)

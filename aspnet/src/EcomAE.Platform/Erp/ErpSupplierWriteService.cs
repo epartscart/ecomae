@@ -5,7 +5,8 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_erp_create_supplier</c> twin (ajax_erp.php <c>create_supplier</c>).
-/// Never provisions schema: missing PHP-owned table/columns fail closed.
+/// PHP <c>epc_erp_create_supplier</c> calls <c>epc_erp_ensure_schema</c> first so a fresh
+/// tenant (no prior AP write) still gets the supplier master table.
 /// </summary>
 public interface IErpSupplierWriteService
 {
@@ -84,6 +85,7 @@ public sealed class ErpSupplierWriteService : IErpSupplierWriteService
         }
 
         await using var c = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureSuppliersAsync(c, cancellationToken).ConfigureAwait(false);
         try
         {
             await ErpDb.ExecuteAsync(
@@ -146,6 +148,7 @@ public sealed class ErpSupplierWriteService : IErpSupplierWriteService
         }
 
         await using var c = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureSuppliersAsync(c, cancellationToken).ConfigureAwait(false);
         try
         {
             var storages = new List<(long Id, string Name)>();
