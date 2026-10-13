@@ -779,6 +779,8 @@ public static class EcomAeRoutes
     public const string ErpCashEntriesPaymentVoucher = "/erp/cash-entries/payment-voucher";
     /// <summary>Wave B dry-run for PHP create_supplier (writes=0).</summary>
     public const string ErpSuppliersCreate = "/erp/suppliers/create";
+    /// <summary>Approve a completed UAE supplier onboard pack. Draft stays off purchase pickers.</summary>
+    public const string ErpSuppliersApprove = "/erp/suppliers/approve";
     /// <summary>Wave B dry-run for PHP create_purchase (writes=0).</summary>
     public const string ErpPurchasesCreate = "/erp/purchases/create";
     /// <summary>Wave B dry-run for PHP purchase_delete draft (writes=0).</summary>

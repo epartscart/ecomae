@@ -2388,6 +2388,7 @@ public sealed class ErpModule : ISurfaceModule
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpSuppliersCreate, HandleSupplierCreateAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpSuppliersApprove, HandleSupplierApproveAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpPurchasesCreate, HandlePurchaseCreateAsync).DisableAntiforgery();
 
@@ -21758,6 +21759,9 @@ public sealed class ErpModule : ISurfaceModule
             BankName = body.BankName ?? string.Empty, BankAccountNumber = body.BankAccountNumber ?? string.Empty, Iban = body.Iban ?? string.Empty, SwiftBic = body.SwiftBic ?? string.Empty,
             ContactPerson = body.ContactPerson ?? string.Empty, Website = body.Website ?? string.Empty, Address = body.Address ?? string.Empty, City = body.City ?? string.Empty,
             StateRegion = body.StateRegion ?? string.Empty, PostalCode = body.PostalCode ?? string.Empty, Notes = body.Notes ?? string.Empty,
+            SupplierCode = body.SupplierCode ?? string.Empty, ApCoaId = body.ApCoaId, SupplierGroupType = body.SupplierGroupType ?? string.Empty, SupplierCategory = body.SupplierCategory ?? string.Empty,
+            LegalName = body.LegalName ?? string.Empty, Building = body.Building ?? string.Empty, Street = body.Street ?? string.Empty, Emirate = body.Emirate ?? string.Empty,
+            Owners = body.Owners ?? [],
         };
         IReadOnlyDictionary<string, long> dim = ErpDimensionWriteService.ParseDimMap(body.Dim);
         if (context.Request.HasFormContentType)
@@ -21775,6 +21779,9 @@ public sealed class ErpModule : ISurfaceModule
                 CreditLimit = LiveWriteFormBinder.Dec(form, "credit_limit"), OnHold = form.ContainsKey("on_hold") ? T("on_hold") : "no", TaxExempt = LiveWriteFormBinder.Flag(form, "tax_exempt"),
                 BankName = T("bank_name"), BankAccountNumber = T("bank_account_number"), Iban = T("iban"), SwiftBic = T("swift_bic"), ContactPerson = T("contact_person"), Website = T("website"),
                 Address = T("address"), City = T("city"), StateRegion = T("state_region"), PostalCode = T("postal_code"), Notes = T("notes"),
+                SupplierCode = T("supplier_code"), ApCoaId = LiveWriteFormBinder.Long(form, "ap_coa_id"), SupplierGroupType = T("supplier_group_type"), SupplierCategory = T("supplier_category"),
+                LegalName = T("legal_name"), Building = T("building"), Street = T("street"), Emirate = T("emirate"),
+                Owners = ReadSupplierOwners(form),
             };
             dim = ErpDimensionWriteService.ParseDimMap(form);
         }
@@ -21792,8 +21799,79 @@ public sealed class ErpModule : ISurfaceModule
                 await dimensions.SaveAsync("vendor", id, dim, cancellationToken);
             }
 
-            return ("Supplier created", (object)new { id });
+            return ("Supplier created as draft. Attach trade license and partner documents, then approve.", (object)new { id });
         });
+    }
+
+    private static async Task<IResult> HandleSupplierApproveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpSupplierWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSupplierApproveBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        var supplierId = body.SupplierId;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            supplierId = LiveWriteFormBinder.Long(form, "supplier_id");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, writesBlocked = true, supplier_id = supplierId, message = "Approve dry-run" });
+        }
+
+        return await ExecuteErpWriteAsync(
+            context,
+            session,
+            "/erp/suppliers-app?tab=ap_setup&supplier_id=" + supplierId.ToString(CultureInfo.InvariantCulture),
+            async () =>
+            {
+                await writes.ApproveAsync(supplierId, session.UserId, cancellationToken);
+                return ("Supplier approved and available for purchase", (object)new { id = supplierId });
+            });
+    }
+
+    private static IReadOnlyList<ErpSupplierOnboardOwner> ReadSupplierOwners(IFormCollection form)
+    {
+        var names = form["owner_name"];
+        var shares = form["owner_share"];
+        var nations = form["owner_nationality"];
+        var ids = form["owner_id_number"];
+        var roles = form["owner_role"];
+        var rows = new List<ErpSupplierOnboardOwner>();
+        for (var i = 0; i < names.Count; i++)
+        {
+            var name = (names[i] ?? "").Trim();
+            if (name.Length == 0)
+            {
+                continue;
+            }
+
+            decimal share = 0;
+            if (i < shares.Count)
+            {
+                decimal.TryParse(shares[i], NumberStyles.Any, CultureInfo.InvariantCulture, out share);
+            }
+
+            rows.Add(new(
+                name,
+                share,
+                i < nations.Count ? (nations[i] ?? "").Trim() : "",
+                i < ids.Count ? (ids[i] ?? "").Trim() : "",
+                i < roles.Count && !string.IsNullOrWhiteSpace(roles[i]) ? roles[i]!.Trim() : "owner"));
+        }
+
+        return rows;
     }
 
     private static async Task<IResult> HandleInvoiceFromOrderAsync(
@@ -27229,7 +27307,11 @@ public sealed class ErpModule : ISurfaceModule
         string? DeliveryTerms = null, string? DeliveryMode = null, decimal CreditLimit = 0, string? OnHold = null, bool TaxExempt = false,
         string? BankName = null, string? BankAccountNumber = null, string? Iban = null, string? SwiftBic = null, string? ContactPerson = null,
         string? Website = null, string? Address = null, string? City = null, string? StateRegion = null, string? PostalCode = null, string? Notes = null,
-        IReadOnlyDictionary<string, long>? Dim = null);
+        IReadOnlyDictionary<string, long>? Dim = null,
+        string? SupplierCode = null, long ApCoaId = 0, string? SupplierGroupType = null, string? SupplierCategory = null,
+        string? LegalName = null, string? Building = null, string? Street = null, string? Emirate = null,
+        IReadOnlyList<ErpSupplierOnboardOwner>? Owners = null);
+    private sealed record ErpSupplierApproveBody(long SupplierId = 0, bool ConfirmWrites = false);
     private sealed record ErpPurchaseCreateBody(
         long SupplierId, decimal AmountExVat, bool ConfirmWrites = false, long OrderId = 0, long StorageId = 0, string? InvoiceNumber = null,
         long PurchaseDate = 0, bool IsImport = false, bool CrossBorder = false, string? Status = null, string? Note = null, bool AllowOpenOrder = false,

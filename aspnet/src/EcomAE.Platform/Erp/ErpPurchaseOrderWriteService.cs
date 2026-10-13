@@ -122,6 +122,8 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpSupplierWriteService.RequireApprovedForPurchaseAsync(connection, input.SupplierId, cancellationToken)
+            .ConfigureAwait(false);
 
         var amountEx = ErpTaxAmountCalculator.Round2(input.AmountExVat);
         var tax = await _tax.CalcPurchaseAsync(connection, null, amountEx, input.SupplierId, false, cancellationToken).ConfigureAwait(false);

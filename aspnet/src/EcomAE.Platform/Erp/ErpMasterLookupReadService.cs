@@ -204,10 +204,7 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
         return kind switch
         {
             "customer" => await LoadCustomersAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
-            "supplier" => await LoadSimpleAsync(
-                connection, "supplier", "epc_erp_suppliers", "id", "name", "name",
-                await PreferColumnAsync(connection, "epc_erp_suppliers", "code", cancellationToken).ConfigureAwait(false),
-                query, limit, cancellationToken, requireActive: true).ConfigureAwait(false),
+            "supplier" => await LoadApprovedSuppliersAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
             "item" => await LoadItemsAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
             "project" => await LoadSimpleAsync(
                 connection, "project", "epc_prj_projects", "id", "code", "name", "code",
@@ -303,6 +300,37 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             + AndLike(query, ["CAST(`id` AS CHAR)", number, "`name`", type])
             + " ORDER BY `name` ASC LIMIT " + limit.ToString(CultureInfo.InvariantCulture);
         return await ReadRowsAsync(connection, "account", sql, query, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<IReadOnlyList<ErpMasterOption>> LoadApprovedSuppliersAsync(
+        DbConnection connection,
+        string query,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        var preferred = await ColumnExistsAsync(connection, "epc_erp_suppliers", "supplier_code", cancellationToken).ConfigureAwait(false)
+            ? "supplier_code"
+            : await PreferColumnAsync(connection, "epc_erp_suppliers", "vendor_account", cancellationToken).ConfigureAwait(false);
+        var rows = await LoadSimpleAsync(
+            connection, "supplier", "epc_erp_suppliers", "id", "name", "name", preferred,
+            query, limit, cancellationToken, requireActive: true).ConfigureAwait(false);
+        if (!await ColumnExistsAsync(connection, "epc_erp_suppliers", "approval_status", cancellationToken).ConfigureAwait(false))
+        {
+            return rows;
+        }
+
+        var allowed = new HashSet<long>();
+        await using (var cmd = connection.CreateCommand())
+        {
+            cmd.CommandText = "SELECT `id` FROM `epc_erp_suppliers` WHERE IFNULL(`approval_status`,'') IN ('','approved')";
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                allowed.Add(Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture));
+            }
+        }
+
+        return rows.Where(r => allowed.Contains(r.Id)).ToArray();
     }
 
     private static async Task<IReadOnlyList<ErpMasterOption>> LoadSimpleAsync(

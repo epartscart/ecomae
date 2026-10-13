@@ -182,6 +182,8 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
         int adminId,
         CancellationToken cancellationToken)
     {
+        await ErpSupplierWriteService.RequireApprovedForPurchaseAsync(connection, input.SupplierId, cancellationToken)
+            .ConfigureAwait(false);
         if (input.OrderId > 0 && !input.AllowOpenOrder)
         {
             await ErpOrderCompletionGuard.AssertCompleteAsync(

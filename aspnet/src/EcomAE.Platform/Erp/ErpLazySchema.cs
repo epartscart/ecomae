@@ -1547,11 +1547,39 @@ internal static class ErpLazySchema
             ("state_region", "varchar(128) DEFAULT NULL"),
             ("postal_code", "varchar(32) DEFAULT NULL"),
             ("notes", "varchar(1000) DEFAULT NULL"),
+            ("supplier_code", "varchar(32) DEFAULT NULL"),
+            ("ap_coa_id", "int(11) NOT NULL DEFAULT 0"),
+            ("supplier_group_type", "varchar(32) DEFAULT NULL"),
+            ("supplier_category", "varchar(32) DEFAULT NULL"),
+            ("legal_name", "varchar(255) DEFAULT NULL"),
+            ("building", "varchar(128) DEFAULT NULL"),
+            ("street", "varchar(255) DEFAULT NULL"),
+            ("emirate", "varchar(64) DEFAULT NULL"),
+            ("scheme_id", "varchar(16) NOT NULL DEFAULT '0230'"),
+            ("approval_status", "varchar(16) NOT NULL DEFAULT 'approved'"),
+            ("approved_by", "int(11) NOT NULL DEFAULT 0"),
+            ("approved_at", "int(11) NOT NULL DEFAULT 0"),
         ];
         foreach (var (column, definition) in columns)
         {
             await AddColumnIfMissingAsync(c, "epc_erp_suppliers", column, definition, ct).ConfigureAwait(false);
         }
+
+        await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_supplier_owners` ("
+            + "`id` int(11) NOT NULL AUTO_INCREMENT,"
+            + "`supplier_id` int(11) NOT NULL,"
+            + "`full_name` varchar(190) NOT NULL,"
+            + "`nationality` varchar(80) DEFAULT NULL,"
+            + "`id_number` varchar(64) DEFAULT NULL,"
+            + "`role` varchar(32) NOT NULL DEFAULT 'owner',"
+            + "`share_pct` decimal(7,3) NOT NULL DEFAULT 0.000,"
+            + "`notes` varchar(255) DEFAULT NULL,"
+            + "`time_created` int(11) NOT NULL DEFAULT 0,"
+            + "PRIMARY KEY (`id`), KEY `x_supplier` (`supplier_id`)"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='ERP supplier ownership'",
+            ct).ConfigureAwait(false);
     }
 
     /// <summary>PHP <c>epc_erp_audit_ensure_schema</c> (content/shop/finance/epc_erp_audit.php).</summary>
