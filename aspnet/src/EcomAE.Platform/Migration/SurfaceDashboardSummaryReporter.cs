@@ -10739,8 +10739,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var legislation = 0; var advance = 0; var refunds = 0;
-            await using (var stats = connection.CreateCommand())
+            try
             {
+                await using var stats = connection.CreateCommand();
                 stats.CommandText = LegacySurfaceDashboardSql.SelectCpUaeTaxStats;
                 await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -10748,6 +10749,21 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     legislation = Convert.ToInt32(reader["legislation_count"] is DBNull ? 0 : reader["legislation_count"], CultureInfo.InvariantCulture);
                     advance = Convert.ToInt32(reader["vat_advance_rows"] is DBNull ? 0 : reader["vat_advance_rows"], CultureInfo.InvariantCulture);
                     refunds = Convert.ToInt32(reader["vat_refund_rows"] is DBNull ? 0 : reader["vat_refund_rows"], CultureInfo.InvariantCulture);
+                }
+            }
+            catch (Exception)
+            {
+                // ERP-only shops may lack vat-refund / advance tables. Still list legislation.
+                try
+                {
+                    await using var count = connection.CreateCommand();
+                    count.CommandText = "SELECT COUNT(*) FROM `epc_uae_tax_legislation_items`";
+                    var raw = await count.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                    legislation = Convert.ToInt32(raw is DBNull or null ? 0 : raw, CultureInfo.InvariantCulture);
+                }
+                catch (Exception)
+                {
+                    legislation = 0;
                 }
             }
 

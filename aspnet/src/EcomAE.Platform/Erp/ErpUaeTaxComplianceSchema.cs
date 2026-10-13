@@ -107,5 +107,7 @@ public static class ErpUaeTaxComplianceSchema
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Per-instrument ERP compliance checklist implementation status'
             """,
             cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureVatRefundsAsync(connection, cancellationToken).ConfigureAwait(false);
     }
 }

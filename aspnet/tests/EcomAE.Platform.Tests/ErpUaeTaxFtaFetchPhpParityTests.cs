@@ -209,6 +209,7 @@ public sealed class ErpUaeTaxFtaFetchPhpParityTests
         Assert.Contains("epc_uae_ct_adjustments", text, StringComparison.Ordinal);
         Assert.Contains("epc_uae_tax_legislation_checklist", text, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS", text, StringComparison.Ordinal);
+        Assert.Contains("EnsureVatRefundsAsync", text, StringComparison.Ordinal);
     }
 
     [Fact]
