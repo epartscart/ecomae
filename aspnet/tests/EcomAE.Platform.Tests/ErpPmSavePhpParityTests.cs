@@ -14,7 +14,7 @@ public sealed class ErpPmSavePhpParityTests
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"pm_table\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"legal_entity_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"parent_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"parent_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"dimension_id\"", text, StringComparison.Ordinal);
         Assert.Contains("Organization and financial-dimension masters", text, StringComparison.Ordinal);
         Assert.Contains("Legal entity", text, StringComparison.Ordinal);
