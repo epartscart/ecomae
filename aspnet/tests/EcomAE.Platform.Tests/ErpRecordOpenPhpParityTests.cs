@@ -473,9 +473,12 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
         Assert.Contains("table-epc", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("contact_email", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("contact_phone", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("iban", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"contact_email\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"contact_phone\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"iban\"", razor, StringComparison.Ordinal);
+        Assert.Contains("action=\"@CreateAction\"", razor, StringComparison.Ordinal);
+        Assert.Contains("Add vendor", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Writes are not available", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);

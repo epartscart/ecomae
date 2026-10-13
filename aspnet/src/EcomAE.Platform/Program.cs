@@ -755,6 +755,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSupplierWriteService, EcomAE.
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlSyncUnpostedWriteService, EcomAE.Platform.Erp.ErpGlSyncUnpostedWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlPostSalesWriteService, EcomAE.Platform.Erp.ErpGlPostSalesWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOrganizationMasterReadService, EcomAE.Platform.Erp.ErpOrganizationMasterReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpApSetupReadService, EcomAE.Platform.Erp.ErpApSetupReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMasterLookupReadService, EcomAE.Platform.Erp.ErpMasterLookupReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMultiEntityPreferenceReadService, EcomAE.Platform.Erp.ErpMultiEntityPreferenceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMultiEntityMemberReadService, EcomAE.Platform.Erp.ErpMultiEntityMemberReadService>();

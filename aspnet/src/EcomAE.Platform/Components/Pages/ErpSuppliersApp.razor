@@ -5,11 +5,14 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Erp
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 @inject IErpDimensionLinkReadService DimensionLinks
+@inject IErpApSetupReadService ApSetup
+@inject IErpOrganizationMasterReadService OrganizationMasters
 
 <PageTitle>Suppliers · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -22,10 +25,11 @@
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/suppliers-app" />
 
     <p class="text-muted" style="margin:8px 0 12px;">
-        <a href="/erp/suppliers-app">Suppliers</a>
-        · <a href="/erp/suppliers-app?tab=ap_setup">AP setup</a>
-        · <a href="/erp/suppliers-app?tab=supplier_portal">Supplier portal</a>
+        <a href="@AppHref()">Suppliers</a>
+        · <a href="@AppHref("ap_setup")">AP setup</a>
+        · <a href="@AppHref("supplier_portal")">Supplier portal</a>
     </p>
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
     @if (_view == "supplier_portal")
     {
@@ -213,8 +217,225 @@
             </div>
         }
     }
+    else if (_view == "ap_setup" && _pmView is "methods" or "terms" or "groups" or "journals")
+    {
+        <ErpPhpViewTabs QueryName="pm_view" Active="@_pmView" BaseHref="@AppHref("ap_setup")" Tabs="@_apTabs" />
+        @if (_pmView == "journals")
+        {
+            <div class="epc-erp-section">
+                <h4 style="margin-top:0"><i class="fa fa-book"></i> Vendor journals</h4>
+                <p class="text-muted">Post and review vendor bills and payments from the live ledgers.</p>
+                <div class="btn-group" style="flex-wrap:wrap;">
+                    <a class="btn btn-default btn-sm" href="@Prefixed("/erp/purchases-app")"><i class="fa fa-file-text-o"></i> Vendor bill journal</a>
+                    <a class="btn btn-default btn-sm" href="@Prefixed("/erp/payables-app")"><i class="fa fa-money"></i> Vendor payment journal</a>
+                    <a class="btn btn-default btn-sm" href="@Prefixed("/erp/aging-app?aging_view=ap")"><i class="fa fa-hourglass-half"></i> Payables aging</a>
+                </div>
+            </div>
+        }
+        else if (_isAdmin)
+        {
+            @if (_pmView == "methods")
+            {
+                <ErpPhpCreateWell Title="New method of payment">
+                    <form method="post" action="@PmSaveAction" class="form-inline" style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@AppHref("ap_setup", "methods")" />
+                        <input type="hidden" name="pm_table" value="epc_erp_pm_pay_methods" />
+                        <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="BANK" /></label>
+                        <label>Name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
+                        <label>Type
+                            <select class="form-control input-sm" name="method_type">
+                                <option value="cash">Cash</option>
+                                <option value="bank">Bank transfer</option>
+                                <option value="cheque">Cheque</option>
+                                <option value="card">Card</option>
+                                <option value="online">Online</option>
+                            </select>
+                        </label>
+                        <label>GL account <input class="form-control input-sm" name="account_code" maxlength="40" placeholder="1020" /></label>
+                        <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Save method</button>
+                    </form>
+                </ErpPhpCreateWell>
+            }
+            else if (_pmView == "terms")
+            {
+                <ErpPhpCreateWell Title="New terms of payment">
+                    <form method="post" action="@PmSaveAction" class="form-inline" style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@AppHref("ap_setup", "terms")" />
+                        <input type="hidden" name="pm_table" value="epc_erp_pm_pay_terms" />
+                        <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="NET30" /></label>
+                        <label>Name <input class="form-control input-sm" name="name" required maxlength="190" placeholder="Net 30 days" /></label>
+                        <label>Net days <input class="form-control input-sm" type="number" name="net_days" min="0" value="30" /></label>
+                        <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Save terms</button>
+                    </form>
+                </ErpPhpCreateWell>
+            }
+            else
+            {
+                <ErpPhpCreateWell Title="New vendor group">
+                    <form method="post" action="@PmSaveAction" class="form-inline" style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@AppHref("ap_setup", "groups")" />
+                        <input type="hidden" name="pm_table" value="epc_erp_pm_vendor_groups" />
+                        <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="LOCAL" /></label>
+                        <label>Name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
+                        <label>Default terms
+                            <select class="form-control input-sm" name="terms_id">
+                                <option value="0">— none —</option>
+                                @foreach (var term in _ap.Terms.Where(r => r.Active))
+                                {
+                                    <option value="@term.Id">@term.Code · @term.Name</option>
+                                }
+                            </select>
+                        </label>
+                        <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Save vendor group</button>
+                    </form>
+                </ErpPhpCreateWell>
+            }
+
+            <div class="epc-erp-table-wrap">
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>@(_pmView == "methods" ? "Type / GL" : _pmView == "terms" ? "Net days" : "Default terms")</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_apRows.Count == 0)
+                        {
+                            <tr><td colspan="4" class="text-muted">No records yet — create the first one above.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in _apRows)
+                            {
+                                <tr>
+                                    <td><strong>@(string.IsNullOrWhiteSpace(row.Code) ? "—" : row.Code)</strong></td>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Extra) || row.Extra == "0" ? "—" : row.Extra)</td>
+                                    <td>@(row.Active ? "Active" : "Inactive")</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">Sign in with ERP capability to set up payment methods, terms, and vendor groups.</div>
+        }
+    }
     else
     {
+    @if (_view == "ap_setup")
+    {
+        <ErpPhpViewTabs QueryName="pm_view" Active="vendors" BaseHref="@AppHref("ap_setup")" Tabs="@_apTabs" />
+    }
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="Add vendor">
+            <form method="post" action="@CreateAction" class="form-horizontal" style="max-width:60rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@VendorReturnHref" />
+                <div class="row">
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Vendor name *</label><div class="col-sm-8"><input class="form-control input-sm" name="name" required maxlength="190" placeholder="Vendor name" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Vendor account</label><div class="col-sm-8"><input class="form-control input-sm" name="vendor_account" maxlength="64" placeholder="e.g. V-0001" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Vendor group</label><div class="col-sm-8">
+                        <input class="form-control input-sm" name="vendor_group" maxlength="64" placeholder="e.g. Local / Import / Service" list="erp-vendor-groups" />
+                        <datalist id="erp-vendor-groups">
+                            @foreach (var group in _ap.Groups.Where(r => r.Active))
+                            {
+                                <option value="@group.Code">@group.Name</option>
+                            }
+                        </datalist>
+                    </div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Legal entity</label><div class="col-sm-8">
+                        <select class="form-control input-sm" name="legal_entity_id">
+                            <option value="0">— none —</option>
+                            @foreach (var entity in _org.LegalEntities.Where(r => r.Active))
+                            {
+                                <option value="@entity.Id">@entity.Code · @entity.Name</option>
+                            }
+                        </select>
+                    </div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Business unit</label><div class="col-sm-8">
+                        <select class="form-control input-sm" name="business_unit_id">
+                            <option value="0">— none —</option>
+                            @foreach (var unit in _org.BusinessUnits.Where(r => r.Active))
+                            {
+                                <option value="@unit.Id">@unit.Code · @unit.Name</option>
+                            }
+                        </select>
+                    </div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Currency</label><div class="col-sm-8"><input class="form-control input-sm" name="currency_code" value="AED" maxlength="8" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Country</label><div class="col-sm-8"><input class="form-control input-sm" name="country_code" value="AE" maxlength="8" placeholder="Country (AE)" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">TRN / Tax reg.</label><div class="col-sm-8"><input class="form-control input-sm" name="trn" maxlength="40" placeholder="TRN (UAE VAT)" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Registration no.</label><div class="col-sm-8"><input class="form-control input-sm" name="registration_number" maxlength="64" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Payment terms</label><div class="col-sm-8">
+                        <input class="form-control input-sm" name="payment_terms" maxlength="64" placeholder="e.g. Net 30" list="erp-pay-terms" />
+                        <datalist id="erp-pay-terms">
+                            @foreach (var term in _ap.Terms.Where(r => r.Active))
+                            {
+                                <option value="@term.Code">@term.Name</option>
+                            }
+                        </datalist>
+                    </div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Payment method</label><div class="col-sm-8">
+                        <input class="form-control input-sm" name="payment_method" maxlength="64" placeholder="e.g. Bank transfer" list="erp-pay-methods" />
+                        <datalist id="erp-pay-methods">
+                            @foreach (var method in _ap.Methods.Where(r => r.Active))
+                            {
+                                <option value="@method.Code">@method.Name</option>
+                            }
+                        </datalist>
+                    </div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Delivery terms</label><div class="col-sm-8"><input class="form-control input-sm" name="delivery_terms" maxlength="64" placeholder="Incoterms e.g. CIF / FOB" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Delivery mode</label><div class="col-sm-8"><input class="form-control input-sm" name="delivery_mode" maxlength="64" placeholder="e.g. Sea / Air / Road" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Credit limit</label><div class="col-sm-8"><input class="form-control input-sm" type="number" step="0.01" name="credit_limit" placeholder="0.00" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">On hold</label><div class="col-sm-8">
+                        <select class="form-control input-sm" name="on_hold">
+                            <option value="no">No</option>
+                            <option value="invoice">Invoice</option>
+                            <option value="payment">Payment</option>
+                            <option value="all">All</option>
+                        </select>
+                    </div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Bank name</label><div class="col-sm-8"><input class="form-control input-sm" name="bank_name" maxlength="120" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Bank account no.</label><div class="col-sm-8"><input class="form-control input-sm" name="bank_account_number" maxlength="64" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">IBAN</label><div class="col-sm-8"><input class="form-control input-sm" name="iban" maxlength="64" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">SWIFT / BIC</label><div class="col-sm-8"><input class="form-control input-sm" name="swift_bic" maxlength="32" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Contact person</label><div class="col-sm-8"><input class="form-control input-sm" name="contact_person" maxlength="120" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">E-mail</label><div class="col-sm-8"><input class="form-control input-sm" type="email" name="contact_email" maxlength="120" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Phone</label><div class="col-sm-8"><input class="form-control input-sm" name="contact_phone" maxlength="64" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Website</label><div class="col-sm-8"><input class="form-control input-sm" name="website" maxlength="190" placeholder="https://" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Address</label><div class="col-sm-8"><input class="form-control input-sm" name="address" maxlength="190" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">City</label><div class="col-sm-8"><input class="form-control input-sm" name="city" maxlength="80" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">State / region</label><div class="col-sm-8"><input class="form-control input-sm" name="state_region" maxlength="80" /></div></div>
+                    <div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Postal code</label><div class="col-sm-8"><input class="form-control input-sm" name="postal_code" maxlength="20" /></div></div>
+                    <div class="col-sm-12 form-group"><label class="col-sm-2 control-label">Notes</label><div class="col-sm-10"><input class="form-control input-sm" name="notes" maxlength="255" /></div></div>
+                </div>
+                <label class="checkbox-inline"><input type="checkbox" name="vat_registered" value="1" checked="checked" /> UAE VAT registered (5% input)</label>
+                <label class="checkbox-inline"><input type="checkbox" name="tax_exempt" value="1" /> Tax exempt</label>
+                <div style="margin-top:8px;">
+                    <button type="submit" class="btn btn-sm btn-primary">Save vendor</button>
+                </div>
+            </form>
+        </ErpPhpCreateWell>
+        <form method="post" action="@SyncAction" class="form-inline" style="margin:0 0 12px">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@VendorReturnHref" />
+            <button type="submit" class="btn btn-default btn-sm">Create vendors from warehouses</button>
+            <span class="text-muted">Adds one supplier per warehouse that does not already have an active vendor.</span>
+        </form>
+    }
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Supplier KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_suppliers.Count</div></div>
         <div class="kpi"><div class="lbl">With non-zero balance</div><div class="val">@_openBalance</div></div>
@@ -236,7 +457,7 @@
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
             </dl>
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
-            <p class="text-muted" style="margin:.85rem 0 0">Email, phone, and bank details stay omitted. Writes are not available on this page.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Use Add vendor above to create or set up a supplier. Opened rows show the payable identity used on bills.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.TrnExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">TRN excerpt</p>
@@ -313,7 +534,21 @@
     private string _title = "Suppliers";
     private string _subtitle = "Supplier master and balances.";
     private string _view = "suppliers";
+    private string _pmView = "vendors";
+    private string _flashOk = "";
+    private string _flashErr = "";
     private bool _isAdmin;
+    private readonly IReadOnlyList<(string Key, string Label)> _apTabs =
+    [
+        ("vendors", "Vendors"),
+        ("methods", "Method of payment"),
+        ("terms", "Terms of payment"),
+        ("groups", "Vendor group"),
+        ("journals", "Journals"),
+    ];
+    private ErpApSetupSnapshot _ap = new([], [], [], "n/a", "");
+    private IReadOnlyList<ErpApSetupRow> _apRows = [];
+    private ErpOrganizationMasterSnapshot _org = new([], [], [], [], [], [], "n/a", "");
     private IReadOnlyList<ErpSupplierDigest> _suppliers = [];
     private ErpSupplierPortalSummary _portal = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<ErpSupplierPortalCardDigest> _cards = [];
@@ -366,9 +601,12 @@
         _subtitle = _view switch
         {
             "supplier_portal" => "Delivery, responsiveness, spend and payables scorecards.",
-            "ap_setup" => "Supplier master used for payable posting.",
-            _ => "Open a supplier for the TRN excerpt and currency. Email, phone, and bank details stay omitted. Writes are not available on this page."
+            "ap_setup" => "Add vendors and configure payment methods, terms, and vendor groups used on payable posting.",
+            _ => "Add a vendor, then open a row for the TRN excerpt and currency used on bills."
         };
+        _flashOk = (ctx.Request.Query["ok"].ToString() ?? string.Empty).Trim();
+        _flashErr = (ctx.Request.Query["err"].ToString() ?? string.Empty).Trim();
+        _pmView = NormalizePmView(ctx.Request.Query["pm_view"].ToString());
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -376,6 +614,15 @@
         {
             return; // guest browse — Sign in for live data
         }
+
+        _ap = await ApSetup.LoadAsync(200, ctx.RequestAborted);
+        _org = await OrganizationMasters.LoadAsync(200, ctx.RequestAborted);
+        _apRows = _pmView switch
+        {
+            "terms" => _ap.Terms,
+            "groups" => _ap.Groups,
+            _ => _ap.Methods,
+        };
 
         if (_view == "supplier_portal")
         {
@@ -389,6 +636,11 @@
             {
                 _portalDetail = await Dashboards.BuildErpSupplierPortalDetailAsync(_portalSupplierId, ctx.RequestAborted);
             }
+            return;
+        }
+
+        if (_view == "ap_setup" && _pmView is "methods" or "terms" or "groups" or "journals")
+        {
             return;
         }
 
@@ -434,6 +686,42 @@
         return ((decimal)(receivedAt - approvedAt) / 86400m).ToString("0.0", CultureInfo.InvariantCulture);
     }
 
+    private string CreateAction => Prefixed("/erp/suppliers/create");
+    private string SyncAction => Prefixed("/erp/suppliers/sync");
+    private string PmSaveAction => Prefixed("/erp/pm/save");
+    private string VendorReturnHref => _view == "ap_setup" ? AppHref("ap_setup", "vendors") : AppHref();
+
+    private string Prefixed(string href)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, href);
+
+    private string AppHref(string? tab = null, string? pmView = null)
+    {
+        var path = "/erp/suppliers-app";
+        if (!string.IsNullOrWhiteSpace(tab))
+        {
+            path += "?tab=" + Uri.EscapeDataString(tab);
+            if (!string.IsNullOrWhiteSpace(pmView))
+            {
+                path += "&pm_view=" + Uri.EscapeDataString(pmView);
+            }
+        }
+
+        return Prefixed(path);
+    }
+
     private static string SupplierPortalHref(long supplierId)
         => "/erp/suppliers-app?tab=supplier_portal&supplier_id=" + supplierId.ToString(CultureInfo.InvariantCulture);
+
+    private static string NormalizePmView(string? raw)
+    {
+        var view = (raw ?? string.Empty).Trim().ToLowerInvariant();
+        return view switch
+        {
+            "methods" or "method" => "methods",
+            "terms" or "term" => "terms",
+            "groups" or "group" or "vendor_groups" => "groups",
+            "journals" or "journal" => "journals",
+            _ => "vendors",
+        };
+    }
 }

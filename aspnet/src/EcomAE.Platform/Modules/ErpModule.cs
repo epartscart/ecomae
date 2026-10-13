@@ -21784,7 +21784,7 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpSupplierCreateRequest(input.Name, input.ContactEmail, false)).ToPayload(SessionPayload(session)));
         }
 
-        return await ExecuteErpWriteAsync(session, async () =>
+        return await ExecuteErpWriteAsync(context, session, "/erp/suppliers-app?tab=ap_setup", async () =>
         {
             var id = await writes.CreateAsync(input, cancellationToken);
             if (dim.Count > 0)
@@ -22136,7 +22136,7 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpSyncSuppliersRequest(false)).ToPayload(SessionPayload(session)));
         }
 
-        return await ExecuteErpWriteAsync(session, async () =>
+        return await ExecuteErpWriteAsync(context, session, "/erp/suppliers-app?tab=ap_setup", async () =>
         {
             var n = await writes.SyncFromStoragesAsync(cancellationToken);
             return ("Synced " + n + " supplier(s) from warehouses", (object)new { created = n });
