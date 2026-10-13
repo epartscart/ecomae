@@ -42,6 +42,8 @@ public sealed class ErpProductInfoJewelleryCatalogTests
         Assert.Contains("jw_metal_stock", text, StringComparison.Ordinal);
         Assert.Contains("/erp/inventory-stock-app", text, StringComparison.Ordinal);
         Assert.Contains("ClientErpPath.PrefixIfBound", text, StringComparison.Ordinal);
+        Assert.Contains("BaseHref=\"@ListHref\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BaseHref=\"@AppHref\"", text, StringComparison.Ordinal);
         Assert.Contains("IErpJwMetalStockListReadService", text, StringComparison.Ordinal);
         Assert.Contains("BuildCpJewelleryMastersDigestAsync", text, StringComparison.Ordinal);
         Assert.Contains("BuildCpJewelleryStockBalanceDigestAsync", text, StringComparison.Ordinal);

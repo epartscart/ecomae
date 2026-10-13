@@ -37,7 +37,7 @@
         }
     </div>
 
-    <ErpPhpViewTabs QueryName="pm_view" Active="@_view" BaseHref="@AppHref" Tabs="@_views" />
+    <ErpPhpViewTabs QueryName="pm_view" Active="@_view" BaseHref="@ListHref" Tabs="@_views" />
 
     @if (_jewellery && _view is "devkit" or "jw_masters" or "all")
     {
@@ -799,6 +799,7 @@
         new("Inventory", _count, InventoryHref(null)),
     ];
 
+    private string ListHref => Href(ErpJewelleryModuleChrome.AppHref(_listHref, _company));
     private string AppHref => Href(ErpJewelleryModuleChrome.AppHref(_listHref, _company, ("pm_view", _view)));
 
     private string StockReportHref => Href(ErpJewelleryModuleChrome.AppHref(
