@@ -12,7 +12,8 @@ public sealed class ErpPrjaTxnAddPhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpProjectAccountingApp.razor"));
         Assert.Contains("action=\"/erp/project-accounting/txns/add\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"project_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"project_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("<ErpMasterPicker Kind=\"project\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"txn_type\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"amount\"", text, StringComparison.Ordinal);
         Assert.Contains("Post transaction", text, StringComparison.Ordinal);

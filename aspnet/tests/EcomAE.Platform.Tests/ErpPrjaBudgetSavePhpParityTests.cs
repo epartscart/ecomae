@@ -11,7 +11,8 @@ public sealed class ErpPrjaBudgetSavePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpProjectAccountingApp.razor"));
         Assert.Contains("action=\"/erp/project-accounting/budgets/save\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"project_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"project_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("<ErpMasterPicker Kind=\"project\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"category\"", text, StringComparison.Ordinal);
         Assert.Contains("Save budget line", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
