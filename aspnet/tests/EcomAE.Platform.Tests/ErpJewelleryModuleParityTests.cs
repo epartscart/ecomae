@@ -280,7 +280,7 @@ public sealed class ErpJewelleryModuleParityTests
         var diamond = ReadSource("ErpJwDiamondWriteService.cs");
         var values = diamond.Split("VALUES (", 2, StringSplitOptions.None)[1]
             .Split(") ON DUPLICATE", 2, StringSplitOptions.None)[0];
-        Assert.Equal(51, values.Count(value => value == '?'));
+        Assert.Equal(52, values.Count(value => value == '?'));
 
         var voucher = ReadSource("ErpJwVoucherWriteService.cs");
         Assert.Contains("BeginTransactionAsync", voucher, StringComparison.Ordinal);
