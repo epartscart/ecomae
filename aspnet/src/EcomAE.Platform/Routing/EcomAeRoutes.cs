@@ -1046,6 +1046,13 @@ public static class EcomAeRoutes
     public const string ErpVirtualWarehouses = "/erp/virtual-warehouses";
     public const string ErpStaff = "/erp/staff";
     public const string ErpStaffApp = "/erp/staff-app";
+    /// <summary>Tenant ERP users: prepare department accounts, credentials, login and audit logs.</summary>
+    public const string ErpUsersApp = "/erp/users-app";
+    public const string ErpUsersPrepare = "/erp/users/prepare";
+    public const string ErpUsersCredentials = "/erp/users/credentials";
+    public const string ErpUsersDepartment = "/erp/users/department";
+    public const string ErpUsersSessions = "/erp/users/sessions";
+    public const string ErpUsersAudit = "/erp/users/audit";
     public const string ErpContracts = "/erp/contracts";
     public const string ErpContractsApp = "/erp/contracts-app";
     public const string ErpOpening = "/erp/opening";

@@ -55,6 +55,8 @@ public sealed class ErpPhpTabRouteMapTests
     [InlineData("ap_setup", "/erp/suppliers-app?tab=ap_setup")]
     [InlineData("ar_setup", "/erp/contacts-app?tab=ar_setup")]
     [InlineData("staff", "/erp/staff-app")]
+    [InlineData("users", "/erp/users-app")]
+    [InlineData("user_control", "/erp/user-control-app")]
     [InlineData("contracts", "/erp/contracts-app")]
     [InlineData("retail_commerce", "/erp/retail-commerce-app?tab=channels")]
     [InlineData("retail_barcode", "/erp/retail-commerce-app?tab=barcode")]
