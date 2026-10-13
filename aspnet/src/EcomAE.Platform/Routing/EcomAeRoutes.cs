@@ -69,6 +69,12 @@ public static class EcomAeRoutes
     public const string ControlPanelTenants = "/cp/tenants";
     /// <summary>CP portal tenants Blazor list (JSON digest remains <see cref="ControlPanelTenants"/>).</summary>
     public const string ControlPanelTenantsApp = "/cp/tenants-app";
+    /// <summary>Super-CP directory of every tenant admin login, sessions, and audit logs.</summary>
+    public const string ControlPanelTenantAdminsApp = "/cp/tenant-admins-app";
+    /// <summary>Super-only JSON digest of tenant admin users (passwords never returned).</summary>
+    public const string ControlPanelTenantAdmins = "/cp/tenant-admins";
+    /// <summary>Super-only JSON detail: one tenant admin plus login sessions and audit.</summary>
+    public const string ControlPanelTenantAdminsDetail = "/cp/tenant-admins/detail";
     /// <summary>Super CP Cloud / on-premises / hybrid ERP deployment models.</summary>
     public const string ControlPanelDeploymentModelsApp = "/cp/deployment-models-app";
     /// <summary>Super-only JSON catalog of downloadable on-premises and hybrid setup files.</summary>

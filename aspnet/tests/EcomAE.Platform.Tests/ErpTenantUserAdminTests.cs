@@ -118,6 +118,7 @@ public sealed class ErpTenantUserAdminTests
         Assert.Contains("action=\"/erp/users/department\"", page, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", page, StringComparison.Ordinal);
         Assert.Contains("Prepare a department user", page, StringComparison.Ordinal);
+        Assert.Contains("This company only", page, StringComparison.Ordinal);
         Assert.Contains("Login sessions", page, StringComparison.Ordinal);
         Assert.Contains("Audit log", page, StringComparison.Ordinal);
         Assert.Contains("grant_administrator", page, StringComparison.Ordinal);

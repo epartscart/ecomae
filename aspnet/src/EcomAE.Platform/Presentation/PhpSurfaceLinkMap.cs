@@ -185,6 +185,8 @@ public static class PhpSurfaceLinkMap
         ("control/portal/epc_super_cp_communication", "/cp/platform-communication-app"),
         ("control/portal/epc_super_cp_customer_board", "/cp/customer-board-app"),
         ("control/portal/epc_tenant_control_center", "/cp/tenants-app"),
+        ("control/portal/epc_tenant_admins", "/cp/tenant-admins-app"),
+        ("epc_tenant_admins", "/cp/tenant-admins-app"),
         ("control/portal/epc_industry_packs", "/cp/industry-packs-app"),
         ("control/portal/epc_notifications", "/cp/notifications-app"),
         ("control/notifications_settings", "/cp/notifications-app"),

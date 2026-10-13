@@ -314,6 +314,7 @@ public sealed class SuperCpTenantIsolationTests
         Assert.Contains("/cp/logout", text, StringComparison.Ordinal);
         Assert.Contains("/cp/super-mail-app", text, StringComparison.Ordinal);
         Assert.Contains("/cp/tenants-app", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/tenant-admins-app", text, StringComparison.Ordinal);
         Assert.Contains("/cp/client-erp", text, StringComparison.Ordinal);
         Assert.Contains("yawer@ecomae.com", text, StringComparison.Ordinal);
         Assert.Contains("onboard_four_erp_only", text, StringComparison.Ordinal);
