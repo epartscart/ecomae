@@ -561,7 +561,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedBudgetReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Id</dt><dd>@_openedBudget.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Project</dt><dd>@(_openedBudget.ProjectId > 0 ? _openedBudget.ProjectId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Category</dt><dd>@(string.IsNullOrWhiteSpace(_openedBudget.Category) ? "—" : _openedBudget.Category)</dd>
@@ -603,7 +603,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedTxnReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Id</dt><dd>@_openedTxn.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Project</dt><dd>@(_openedTxn.ProjectId > 0 ? _openedTxn.ProjectId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_openedTxn.TxnType) ? "—" : _openedTxn.TxnType)</dd>
@@ -647,7 +647,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedRecReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Id</dt><dd>@_openedRec.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Project</dt><dd>@(_openedRec.ProjectId > 0 ? _openedRec.ProjectId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Method</dt><dd>@(string.IsNullOrWhiteSpace(_openedRec.Method) ? "—" : _openedRec.Method)</dd>

@@ -521,7 +521,7 @@
                         </div>
                         <a class="btn btn-default btn-xs" href="@_listHref">Close</a>
                     </div>
-                    <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                    <dl class="epc-erp-facts">
                         <dt>Id</dt><dd>@(_opened?.Id ?? _selected?.Id ?? 0).ToString(CultureInfo.InvariantCulture)</dd>
                         <dt>Category</dt><dd>@(_opened?.CategoryId ?? _selected?.CategoryId ?? 0).ToString(CultureInfo.InvariantCulture)</dd>
                         <dt>Alias</dt><dd><code>@(!string.IsNullOrWhiteSpace(_opened?.Alias) ? _opened!.Alias : (!string.IsNullOrWhiteSpace(_selected?.Alias) ? _selected!.Alias : "—"))</code></dd>

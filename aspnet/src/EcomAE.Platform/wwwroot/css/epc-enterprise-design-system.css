@@ -367,10 +367,67 @@
 
 .epc-erp-content-body,
 .epc-cp-content-inner {
-    --epc-form-gap: .75rem 1rem;
-    --epc-field-min: 13.5rem;
-    --epc-control-h: 2.25rem;
-    --epc-card-pad: 1rem 1.1rem;
+    --epc-form-gap: .55rem .7rem;
+    --epc-field-min: 10.5rem;
+    --epc-control-h: 2.15rem;
+    --epc-card-pad: .75rem .85rem;
+}
+
+/* Opened-record facts: label+value chips wrap in a row instead of a tall 2-col stack. */
+.epc-erp-facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: .4rem .45rem;
+    margin: 0 0 .65rem;
+}
+
+.epc-erp-facts dt {
+    flex: 0 0 auto;
+    min-width: 5.1rem;
+    margin: 0;
+    padding: .38rem .2rem .38rem .55rem;
+    border: 1px solid #d9e2ec;
+    border-right: 0;
+    border-radius: 6px 0 0 6px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    line-height: 1.35;
+}
+
+.epc-erp-facts dd {
+    flex: 0 1 8.75rem;
+    margin: 0 .2rem 0 0;
+    padding: .38rem .65rem .38rem .3rem;
+    border: 1px solid #d9e2ec;
+    border-left: 0;
+    border-radius: 0 6px 6px 0;
+    background: #fff;
+    color: #15253d;
+    font-size: 12.5px;
+    font-weight: 750;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.epc-erp-opened {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .75rem 1rem;
+    align-items: start;
+    margin: 0 0 .75rem;
+}
+
+.epc-erp-opened:has(.epc-erp-action-pane) {
+    grid-template-columns: minmax(0, 1fr) minmax(16.5rem, 22rem);
+}
+
+.epc-erp-opened .epc-erp-facts {
+    margin-bottom: 0;
 }
 
 .epc-erp-content-body .well,
@@ -456,10 +513,23 @@
     grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 1fr));
     gap: var(--epc-form-gap);
     margin: 0 0 .15rem;
-    padding: .85rem .95rem;
+    padding: .7rem .8rem;
     border: 1px solid #d7e3f0;
     border-radius: 8px;
     background: linear-gradient(180deg, #f8fbff, #fff);
+}
+
+.epc-erp-doc-header .epc-erp-doc-header {
+    display: contents;
+    grid-column: unset;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+.epc-erp-doc-header .epc-erp-doc-header .epc-erp-doc-header__title {
+    display: none;
 }
 
 .epc-erp-doc-header__title {
@@ -1146,6 +1216,12 @@ a.epc-d365-ws .epc-moddir-link:hover {
     }
 }
 
+@media (max-width: 900px) {
+    .epc-erp-opened {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 720px) {
     .epc-erp-content-body form:not([data-epc-inline="1"]),
     .epc-cp-content-inner form:not([data-epc-inline="1"]),
@@ -1154,6 +1230,10 @@ a.epc-d365-ws .epc-moddir-link:hover {
     .epc-erp-content-body .ns-hero,
     .epc-erp-content-body .ns-hero-metrics {
         grid-template-columns: 1fr !important;
+    }
+
+    .epc-erp-facts dd {
+        flex-basis: 7rem;
     }
 
     .epc-moddir-grid {
@@ -1426,6 +1506,10 @@ a.epc-erp-global-search__hit {
 .epc-jw-line-grid table select,
 .epc-jw-line-grid .epc-erp-master-picker {
     min-width: 7.5rem;
+}
+
+.epc-jw-panel[hidden] {
+    display: none !important;
 }
 
 .epc-jw-panel-nav {

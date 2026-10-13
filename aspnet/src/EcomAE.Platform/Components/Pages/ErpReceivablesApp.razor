@@ -76,7 +76,7 @@
             <p style="margin:0 0 .5rem"><strong>Customer statement</strong>
                 <a class="btn btn-xs btn-default" href="/erp/receivables-app">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:10rem 1fr;gap:.35rem .75rem;margin:0 0 .85rem;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Customer</dt><dd>@(string.IsNullOrWhiteSpace(_openedRow.Email) ? $"#{_openedRow.UserId}" : _openedRow.Email)</dd>
                 <dt>Ledger balance</dt><dd>@_openedRow.Balance.ToString("N2", CultureInfo.InvariantCulture)</dd>
                 <dt>Open order due</dt><dd>@_openedRow.OrderReceivableDue.ToString("N2", CultureInfo.InvariantCulture)</dd>

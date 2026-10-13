@@ -222,7 +222,7 @@
                 <a class="btn btn-xs btn-default" href="/erp/sales-orders-app">Close</a>
                 <a class="btn btn-xs btn-default" href="/erp/sales-order-print?id=@_openedDetail.Id" target="_blank" rel="noopener">Print</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>SO id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>SO #</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.SoNo) ? "—" : _openedDetail.SoNo)</dd>
                 <dt>Title</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Title) ? "—" : _openedDetail.Title)</dd>

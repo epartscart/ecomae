@@ -167,7 +167,7 @@
         <div class="ef-window" style="margin-bottom:16px">
             <div class="ef-title">@OpenedCaption <a class="btn btn-xs btn-default" href="@_listHref">Close</a></div>
             <div class="ef-body">
-                <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dl class="epc-erp-facts">
                     <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                     <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Name) ? "—" : _opened.Name)</dd>
                     <dt>Site</dt><dd>@(string.IsNullOrWhiteSpace(_opened.SiteKey) ? "—" : _opened.SiteKey)</dd>

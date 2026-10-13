@@ -142,7 +142,7 @@
                             <a class="btn btn-xs btn-default pull-right" href="@ListHref">Close</a>
                         </div>
                         <div class="panel-body">
-                            <dl style="display:grid;grid-template-columns:10rem 1fr;gap:.35rem .75rem;margin:0 0 1rem;font-size:.9rem;">
+                            <dl class="epc-erp-facts">
                                 <dt>Tenant</dt><dd><code>@opened.SiteKey</code> · @opened.TenantTypeLabel</dd>
                                 <dt>Email</dt><dd><code>@(string.IsNullOrWhiteSpace(opened.Email) ? "—" : opened.Email)</code></dd>
                                 <dt>How they login</dt><dd>@opened.HowTheyLogin</dd>
