@@ -968,10 +968,13 @@
 }
 
 .epc-dash-customize__role:hover,
-.epc-dash-customize__role.is-active {
+.epc-dash-customize__role.is-active,
+.epc-erp-cp-shell .epc-dash-customize__role:hover,
+.epc-erp-cp-shell .epc-dash-customize__role.is-active,
+.epc-erp-cp-shell .epc-dash-customize__role.is-active:hover {
     background: #1d4ed8;
     border-color: #1d4ed8;
-    color: #fff;
+    color: #fff !important;
 }
 
 .epc-erp-content-body .ns-dash {
@@ -1524,14 +1527,18 @@ a.epc-erp-global-search__hit {
     border: 1px solid #cbd5e1;
     border-radius: 6px;
     background: #f8fafc;
+    color: #1e293b;
     font-size: 12px;
     font-weight: 700;
 }
 
-.epc-jw-panel-nav a.is-active {
+.epc-jw-panel-nav a.is-active,
+.epc-jw-panel-nav a.is-active:hover,
+.epc-erp-cp-shell .epc-jw-panel-nav a.is-active,
+.epc-erp-cp-shell .epc-jw-panel-nav a.is-active:hover {
     background: #1d4ed8;
     border-color: #1d4ed8;
-    color: #fff;
+    color: #fff !important;
 }
 
 .epc-jw-totals {

@@ -44,7 +44,7 @@ public sealed class ErpModulePhpLookParityTests
 
         var assets = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs"));
-        Assert.Contains("epc_erp_aspnet_module_parity.css?v=20260909clip", assets, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_aspnet_module_parity.css?v=20261013tab1", assets, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -65,6 +65,30 @@ public sealed class ErpModulePhpLookParityTests
         Assert.Contains("--epc-enterprise-navy", chrome, StringComparison.Ordinal);
         Assert.Contains("linear-gradient(115deg, #0b1f3a", chrome, StringComparison.Ordinal);
         Assert.Contains("box-shadow: 0 5px 18px", chrome, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SelectedErpTabsKeepWhiteLabelOnBlueFill()
+    {
+        var chrome = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Shared/PhpChromeStyles.razor"));
+        var parity = File.ReadAllText(FindRepoFile("content/shop/finance/epc_erp_aspnet_module_parity.css"));
+        var design = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/wwwroot/css/epc-enterprise-design-system.css"));
+
+        Assert.Contains("a:not(.btn):not(.is-active):not(.epc-dash-customize__role)", chrome, StringComparison.Ordinal);
+        Assert.Contains(".epc-jw-panel-nav a.is-active", chrome, StringComparison.Ordinal);
+        Assert.Contains(".epc-dash-customize__role.is-active", chrome, StringComparison.Ordinal);
+        Assert.Contains("color: #fff !important", chrome, StringComparison.Ordinal);
+
+        Assert.Contains("a:not(.btn):not(.is-active):not(.epc-dash-customize__role)", parity, StringComparison.Ordinal);
+        Assert.Contains(".epc-jw-panel-nav a.is-active", parity, StringComparison.Ordinal);
+        Assert.Contains("color: #fff !important", parity, StringComparison.Ordinal);
+
+        Assert.Contains(".epc-erp-cp-shell .epc-jw-panel-nav a.is-active:hover", design, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-cp-shell .epc-dash-customize__role.is-active:hover", design, StringComparison.Ordinal);
+        Assert.DoesNotContain(".epc-erp-cp-shell a {\n        color: var(--epc-erp-accent);", chrome.Replace("\r\n", "\n"), StringComparison.Ordinal);
+        Assert.DoesNotContain(".epc-erp-cp-shell a {\n        color: var(--epc-erp-accent);", parity.Replace("\r\n", "\n"), StringComparison.Ordinal);
     }
 
     [Fact]
