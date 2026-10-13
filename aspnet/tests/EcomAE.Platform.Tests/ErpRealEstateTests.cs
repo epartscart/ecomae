@@ -159,21 +159,23 @@ public sealed class ErpRealEstateTests
     {
         var snap = SampleBoardSnap();
         var utc = new DateTime(2026, 10, 13, 4, 0, 0, DateTimeKind.Utc);
-        var pdf = ErpRealEstateReportPack.Pdf(snap, "REAL investment & construction", utc);
+        var pdf = ErpRealEstateReportPack.Pdf(snap, "REAL investment real estate", utc);
         Assert.True(pdf.Length > 20_000);
         Assert.Equal((byte)'%', pdf[0]);
         Assert.Equal((byte)'P', pdf[1]);
         Assert.Equal((byte)'D', pdf[2]);
         Assert.Equal((byte)'F', pdf[3]);
 
-        var docx = ErpRealEstateReportPack.Docx(snap, "REAL investment & construction", utc);
+        var docx = ErpRealEstateReportPack.Docx(snap, "REAL investment real estate", utc);
         Assert.Equal((byte)'P', docx[0]);
         Assert.Equal((byte)'K', docx[1]);
         Assert.Contains("word/document.xml", System.Text.Encoding.UTF8.GetString(docx), StringComparison.Ordinal);
 
-        var html = ErpRealEstateReportPack.Html(snap, "REAL investment & construction", "/erp/real-estate/report?format=pdf", "/erp/real-estate/report?format=docx", utc);
+        var html = ErpRealEstateReportPack.Html(snap, "REAL investment real estate", "/erp/real-estate/report?format=pdf", "/erp/real-estate/report?format=docx", utc);
         Assert.Contains("Executive summary", html, StringComparison.Ordinal);
-        Assert.Contains("Escrow held", html, StringComparison.Ordinal);
+        Assert.Contains("Investment real estate", html, StringComparison.Ordinal);
+        Assert.Contains("Gross yield", html, StringComparison.Ordinal);
+        Assert.Contains("Annual rent", html, StringComparison.Ordinal);
         Assert.Contains("data:image/jpeg;base64,", html, StringComparison.Ordinal);
         Assert.Contains("#c4a35a", html, StringComparison.Ordinal);
         Assert.Contains("Download PDF", html, StringComparison.Ordinal);
@@ -182,8 +184,9 @@ public sealed class ErpRealEstateTests
 
         var sky = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Erp/ErpRealEstateReportVisual.cs"));
         Assert.Contains("PaintSkyline", sky, StringComparison.Ordinal);
+        Assert.Contains("INVESTMENT REAL ESTATE", sky, StringComparison.Ordinal);
         Assert.Contains("C4A35A", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Erp/ErpRealEstateReportPack.cs")), StringComparison.Ordinal);
-        Assert.Equal("ecomae-real-estate-board-pack-real-20261013", ErpRealEstateReportPack.FileStem("REAL", utc));
+        Assert.Equal("ecomae-investment-real-estate-real-20261013", ErpRealEstateReportPack.FileStem("REAL", utc));
     }
 
     private static ErpRealEstateSnapshot SampleBoardSnap()

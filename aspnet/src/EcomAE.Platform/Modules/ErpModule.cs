@@ -23542,12 +23542,12 @@ public sealed class ErpModule : ISurfaceModule
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/real-estate-app", "Admin ERP capability required for the real-estate board pack.");
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/real-estate-app", "Admin ERP capability required for the investment real-estate report.");
         }
 
         var snap = await reads.LoadAsync(cancellationToken);
         var site = ClientErpPath.BoundSiteKey(context) ?? "real";
-        var title = site.ToUpperInvariant() + " investment & construction";
+        var title = site.ToUpperInvariant() + " investment real estate";
         var utc = DateTime.UtcNow;
         var stem = ErpRealEstateReportPack.FileStem(site, utc);
         var format = (context.Request.Query["format"].ToString() ?? "").Trim().ToLowerInvariant();

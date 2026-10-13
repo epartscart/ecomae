@@ -5,8 +5,8 @@ using SkiaSharp;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Premium board-pack pages for the investment / construction workspace.
-/// Photographs are painted (dusk skyline, construction, lobby) so the pack
+/// Premium investment-real-estate board-pack pages (portfolio, yield, leases).
+/// Photographs are painted (dusk skyline, lobby, construction) so the pack
 /// always has colour imagery even when the tenant has not uploaded photos.
 /// </summary>
 internal static class ErpRealEstateReportVisual
@@ -31,8 +31,8 @@ internal static class ErpRealEstateReportVisual
             Encode(PaintCover(snap, title, asOf)),
             Encode(PaintSummary(snap, asOf)),
             Encode(PaintPortfolio(snap)),
-            Encode(PaintConstruction(snap)),
-            Encode(PaintSalesAndPolicy(snap)),
+            Encode(PaintIncome(snap)),
+            Encode(PaintPipelineAndIfrs(snap)),
         ];
     }
 
@@ -151,7 +151,7 @@ internal static class ErpRealEstateReportVisual
         using var gold = new SKPaint { Color = Gold, IsAntialias = true };
         c.DrawRect(new SKRect(0, PageHeight - 56, PageWidth, PageHeight), navy);
         c.DrawRect(new SKRect(0, PageHeight - 62, PageWidth, PageHeight - 56), gold);
-        Text(c, "Confidential board pack  ·  IAS 40 / IFRS 15 / IFRS 18  ·  " + asOf, 48, PageHeight - 24, 13, Cream, false);
+        Text(c, "Confidential investment report  ·  IAS 40 / IFRS 15 / IFRS 18  ·  " + asOf, 48, PageHeight - 24, 13, Cream, false);
         Text(c, page.ToString(CultureInfo.InvariantCulture) + " / " + total.ToString(CultureInfo.InvariantCulture), PageWidth - 90, PageHeight - 24, 13, Gold, true);
     }
 
@@ -176,14 +176,14 @@ internal static class ErpRealEstateReportVisual
         c.DrawRect(new SKRect(0, 520, PageWidth, 760), veil);
         using var gold = new SKPaint { Color = Gold, IsAntialias = true };
         c.DrawRect(new SKRect(48, 700, 220, 706), gold);
-        Text(c, "ECOMAE  ·  REAL ESTATE", 48, 690, 16, Gold, true);
-        Text(c, "Investment, development", 48, 820, 44, SKColors.White, true);
-        Text(c, "& construction board pack", 48, 876, 44, Gold, true);
+        Text(c, "ECOMAE  ·  INVESTMENT REAL ESTATE", 48, 690, 16, Gold, true);
+        Text(c, "Investment real estate", 48, 820, 44, SKColors.White, true);
+        Text(c, "portfolio board pack", 48, 876, 44, Gold, true);
         Text(c, title, 48, 940, 22, Cream, false);
         Wrap(c, "Prepared " + asOf + "  ·  Currency AED  ·  Download anytime from any workspace tab", 48, 980, PageWidth - 96, 16, new SKColor(203, 213, 225));
 
         DrawKpiStrip(c, snap, 48, 1080);
-        Wrap(c, "Photographs on this pack are corporate visualisations of the UAE skyline and construction floor — the figures are live tenant data.", 48, 1548, PageWidth - 96, 13, new SKColor(148, 163, 184));
+        Wrap(c, "Photographs are corporate visualisations of a UAE investment skyline and lobby — the figures are live tenant portfolio data (IAS 40 fair value, rent, occupancy).", 48, 1548, PageWidth - 96, 13, new SKColor(148, 163, 184));
         Footer(c, asOf, 1, 5);
         return bmp;
     }
@@ -192,13 +192,13 @@ internal static class ErpRealEstateReportVisual
     {
         var bmp = NewPage();
         using var c = new SKCanvas(bmp);
-        Header(c, "01  EXECUTIVE SUMMARY", "Portfolio at a glance");
+        Header(c, "01  EXECUTIVE SUMMARY", "Investment portfolio at a glance");
         using (var lobby = PaintLobby(PageWidth - 96, 220))
         {
             c.DrawBitmap(lobby, 48, 160);
         }
 
-        Wrap(c, "The register splits pipeline from owned assets. Opportunities stay off both statements. Completed acquisitions, escrow and certificates sit on the balance sheet; rent, IAS 40 fair-value moves and recognised IFRS 15 unit sales sit on the income statement.", 48, 404, PageWidth - 96, 15, Ink);
+        Wrap(c, "This is the investment real-estate register. Screening opportunities stay off both statements. Completed acquisitions sit on the balance sheet as IAS 40 investment property. Rent, occupancy and collection are income-statement operations. Fair-value movements go through P&L, not OCI.", 48, 404, PageWidth - 96, 15, Ink);
         DrawKpiStrip(c, snap, 48, 500);
 
         var bars = new (string Label, decimal Value, SKColor Color)[]
@@ -207,22 +207,19 @@ internal static class ErpRealEstateReportVisual
             ("Fair value", snap.Kpis.PortfolioFair, Gold),
             ("Unrealized", Math.Abs(snap.Kpis.Unrealized), snap.Kpis.Unrealized >= 0 ? Teal : Rust),
             ("Annual rent", snap.Kpis.AnnualRent, new SKColor(15, 118, 110)),
-            ("Escrow held", snap.Kpis.EscrowBalance, Navy),
-            ("Cost to complete", snap.Kpis.CostToComplete, Rust),
         };
-        DrawBars(c, bars, 48, 680, PageWidth - 96, 420);
+        DrawBars(c, bars, 48, 680, PageWidth - 96, 360);
         Wrap(c, "Gross yield " + Pct(snap.Kpis.GrossYield) + "   ·   Occupancy " + Pct(snap.Kpis.Occupancy)
             + "   ·   Collection " + Pct(snap.Kpis.Collection)
             + "   ·   Open opportunities " + snap.Kpis.Opportunities.ToString(CultureInfo.InvariantCulture),
-            48, 1130, PageWidth - 96, 16, Ink);
+            48, 1080, PageWidth - 96, 16, Ink);
 
-        var narrative = "Owned properties " + snap.Kpis.OwnedProperties.ToString(CultureInfo.InvariantCulture)
+        var narrative = "Owned investment properties " + snap.Kpis.OwnedProperties.ToString(CultureInfo.InvariantCulture)
             + ", units " + snap.Kpis.Units.ToString(CultureInfo.InvariantCulture)
             + ", active leases " + snap.Kpis.ActiveLeases.ToString(CultureInfo.InvariantCulture)
-            + ", open cheques " + snap.Kpis.OpenCheques.ToString(CultureInfo.InvariantCulture)
-            + ", development projects " + snap.Kpis.Projects.ToString(CultureInfo.InvariantCulture)
-            + ". Escrow cash is restricted (account 1140) and off-plan collections remain a contract liability (2220) until sold.";
-        Wrap(c, narrative, 48, 1180, PageWidth - 96, 16, Muted);
+            + ", open rent cheques " + snap.Kpis.OpenCheques.ToString(CultureInfo.InvariantCulture)
+            + ". Acquisition cost is never overwritten. A later valuation creates a new IAS 40 fair-value journal.";
+        Wrap(c, narrative, 48, 1140, PageWidth - 96, 16, Muted);
         Footer(c, asOf, 2, 5);
         return bmp;
     }
@@ -231,7 +228,7 @@ internal static class ErpRealEstateReportVisual
     {
         var bmp = NewPage();
         using var c = new SKCanvas(bmp);
-        Header(c, "02  PORTFOLIO & VALUATION", "Owned assets, buys, sells and fair value");
+        Header(c, "02  PORTFOLIO & VALUATION", "Owned investment property, buys, sells and fair value");
         DrawTable(c, 48, 168, "Owned / property register",
             ["Id", "Code", "Name", "Status", "Cost / value", "Detail"],
             snap.Properties.Take(8).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), r.Code, Clip(r.Name, 28), r.Status, Money(r.Amount), Clip(r.Detail, 28) }));
@@ -245,56 +242,56 @@ internal static class ErpRealEstateReportVisual
         return bmp;
     }
 
-    private static SKBitmap PaintConstruction(ErpRealEstateSnapshot snap)
+    private static SKBitmap PaintIncome(ErpRealEstateSnapshot snap)
     {
         var bmp = NewPage();
         using var c = new SKCanvas(bmp);
-        Header(c, "03  DEVELOPMENT & CONSTRUCTION", "Projects, escrow, BOQ and certificates");
-        using (var photo = PaintConstructionPhoto(PageWidth - 96, 200))
+        Header(c, "03  INCOME, LEASES & COLLECTIONS", "Rent roll, occupancy and cheque calendar");
+        using (var lobby = PaintLobby(PageWidth - 96, 180))
         {
-            c.DrawBitmap(photo, 48, 158);
+            c.DrawBitmap(lobby, 48, 158);
         }
 
-        DrawTable(c, 48, 380, "Development projects (escrow flag is now operational)",
-            ["Id", "Code", "Name", "Status", "Budget", "Detail"],
-            snap.Projects.Take(5).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), r.Code, Clip(r.Name, 22), r.Status, Money(r.Amount), Clip(r.Detail, 28) }));
-        DrawTable(c, 48, 720, "Escrow receipts and permitted disbursements",
-            ["Id", "Kind", "Reference", "Status", "Amount", "Detail"],
-            snap.Escrow.Take(6).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), r.Code, Clip(r.Name, 18), r.Status, Money(r.Amount), Clip(r.Detail, 24) }));
-        DrawTable(c, 48, 1060, "BOQ / tender lines (qty × rate)",
-            ["Id", "Code", "Description", "Status", "Amount"],
-            snap.BoqLines.Take(5).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), r.Code, Clip(r.Name, 28), r.Status, Money(r.Amount) }));
-        DrawTable(c, 48, 1360, "Payment certificates",
-            ["Id", "Code", "Contract", "Status", "Net payable"],
-            snap.Certificates.Take(4).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), r.Code, Clip(r.Name, 22), r.Status, Money(r.Amount) }));
+        DrawTable(c, 48, 360, "Active leases (Ejari registration is a separate status)",
+            ["Id", "Code", "Tenant", "Status", "Annual rent"],
+            snap.Leases.Take(6).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), r.Code, Clip(r.Name, 22), r.Status, Money(r.Amount) }));
+        DrawTable(c, 48, 700, "Tenants",
+            ["Id", "Code", "Name", "Status", "Detail"],
+            snap.Tenants.Take(5).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), r.Code, Clip(r.Name, 24), r.Status, Clip(r.Detail, 28) }));
+        DrawTable(c, 48, 1020, "Rent cheques (not cash until bank clearance)",
+            ["Id", "Cheque", "Status", "Amount", "Bank / date"],
+            snap.Cheques.Take(6).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), r.Code, r.Status, Money(r.Amount), Clip(r.Detail, 28) }));
+        DrawTable(c, 48, 1360, "Tenant deposits (liability 2200)",
+            ["Id", "Code", "Tenant", "Status", "Held"],
+            snap.Deposits.Take(4).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), r.Code, Clip(r.Name, 22), r.Status, Money(r.Amount) }));
         Footer(c, DateTime.UtcNow.ToString("dd MMM yyyy", CultureInfo.InvariantCulture), 4, 5);
         return bmp;
     }
 
-    private static SKBitmap PaintSalesAndPolicy(ErpRealEstateSnapshot snap)
+    private static SKBitmap PaintPipelineAndIfrs(ErpRealEstateSnapshot snap)
     {
         var bmp = NewPage();
         using var c = new SKCanvas(bmp);
-        Header(c, "04  SALES, CALENDAR & IFRS MAP", "Off-plan, shared cost and statement split");
-        DrawTable(c, 48, 168, "Unit sales (reserved stays off statements)",
+        Header(c, "04  PIPELINE & IFRS MAP", "Opportunities stay off statements until acquired");
+        DrawTable(c, 48, 168, "Investment opportunities (off both statements)",
+            ["Id", "Code", "Name", "Status", "Ask"],
+            snap.Opportunities.Take(5).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), r.Code, Clip(r.Name, 24), r.Status, Money(r.Amount) }));
+        DrawTable(c, 48, 500, "Development held as investment pipeline",
+            ["Id", "Code", "Name", "Status", "Budget"],
+            snap.Projects.Take(4).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), r.Code, Clip(r.Name, 22), r.Status, Money(r.Amount) }));
+        DrawTable(c, 48, 800, "Unit sales (reserved stays off statements)",
             ["Id", "Buyer", "Status", "Price", "Collected"],
-            snap.Sales.Take(6).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), Clip(r.Name, 24), r.Status, Money(r.Amount), Money(r.Amount2) }));
-        DrawTable(c, 48, 520, "Milestone-linked off-plan instalments",
+            snap.Sales.Take(5).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), Clip(r.Name, 24), r.Status, Money(r.Amount), Money(r.Amount2) }));
+        DrawTable(c, 48, 1120, "Off-plan instalments (contract liability until sold)",
             ["Id", "Sale", "Status", "Amount", "Collected"],
-            snap.Instalments.Take(6).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), Clip(r.Name, 20), r.Status, Money(r.Amount), Money(r.Amount2) }));
-        DrawTable(c, 48, 860, "Shared-cost allocations",
-            ["Id", "Unit", "Status", "Amount", "Basis"],
-            snap.Allocations.Take(6).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), Clip(r.Name, 20), r.Status, Money(r.Amount), Clip(r.Detail, 28) }));
-        DrawTable(c, 48, 1180, "Cheque maturity calendar",
-            ["Id", "Cheque", "Status", "Amount", "Bank / date"],
-            snap.Cheques.Take(5).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), r.Code, r.Status, Money(r.Amount), Clip(r.Detail, 28) }));
+            snap.Instalments.Take(4).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), Clip(r.Name, 20), r.Status, Money(r.Amount), Money(r.Amount2) }));
 
         using var card = new SKPaint { Color = Navy, IsAntialias = true };
-        c.DrawRoundRect(new SKRect(48, 1488, PageWidth - 48, 1688), 10, 10, card);
-        Text(c, "Balance sheet", 72, 1528, 16, Gold, true);
-        Wrap(c, "1510 investment property · 1520 CIP · 1140 escrow cash · 1120 PDC · 2200 deposits · 2210 contractor payable · 2220 buyer advances", 72, 1556, PageWidth - 160, 13, Cream);
-        Text(c, "Income statement", 72, 1610, 16, Gold, true);
-        Wrap(c, "4100 rent · 4110 development revenue (sold only) · 4200 / 6200 IAS 40 fair value · 6210 opex · 4300 / 6220 disposal", 72, 1638, PageWidth - 160, 13, Cream);
+        c.DrawRoundRect(new SKRect(48, 1460, PageWidth - 48, 1688), 10, 10, card);
+        Text(c, "Investment balance sheet", 72, 1500, 16, Gold, true);
+        Wrap(c, "1510 investment property · 1130 rent receivable · 1120 cheques under collection · 2200 tenant deposits · 1140 escrow · 2220 buyer advances", 72, 1528, PageWidth - 160, 13, Cream);
+        Text(c, "Investment income statement", 72, 1588, 16, Gold, true);
+        Wrap(c, "4100 rental income · 4200 / 6200 IAS 40 fair value through P&L · 6210 property opex · 4300 / 6220 disposal · 4110 development revenue only when sold", 72, 1616, PageWidth - 160, 13, Cream);
         Footer(c, DateTime.UtcNow.ToString("dd MMM yyyy", CultureInfo.InvariantCulture), 5, 5);
         return bmp;
     }
@@ -307,8 +304,8 @@ internal static class ErpRealEstateReportVisual
             ("Fair value", Compact(snap.Kpis.PortfolioFair)),
             ("Unrealized", Compact(snap.Kpis.Unrealized)),
             ("Gross yield", Pct(snap.Kpis.GrossYield)),
-            ("Escrow", Compact(snap.Kpis.EscrowBalance)),
-            ("To complete", Compact(snap.Kpis.CostToComplete)),
+            ("Occupancy", Pct(snap.Kpis.Occupancy)),
+            ("Annual rent", Compact(snap.Kpis.AnnualRent)),
         };
         var width = (PageWidth - 96 - 20) / 6f;
         for (var i = 0; i < cards.Length; i++)

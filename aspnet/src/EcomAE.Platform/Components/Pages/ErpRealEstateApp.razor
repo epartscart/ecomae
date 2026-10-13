@@ -21,10 +21,10 @@
         PhpTabHref="/erp/real-estate-app" />
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
-    <div class="re-board-dock" aria-label="Download board pack from any tab">
+    <div class="re-board-dock" aria-label="Download investment report from any tab">
         <div>
-            <strong>Board pack</strong>
-            <span class="text-muted"> — premium visual report with photographs. Download PDF or Word from this tab or any other.</span>
+            <strong>Investment report</strong>
+            <span class="text-muted"> — portfolio presentation with photographs (fair value, yield, leases). Download PDF or Word from this tab or any other.</span>
         </div>
         <div class="re-board-dock__actions">
             <a class="btn btn-sm re-board-btn" href="@ReportHref("html")" target="_blank" rel="noopener">Open presentation</a>
@@ -635,8 +635,8 @@
                     </tbody>
                 </table>
             </div>
-            <p class="text-muted">The coloured board pack above is the downloadable summary-plus-detail report (PDF or Word) with skyline and construction photographs. Portfolio, rent roll, cheque register, BOQ, escrow, off-plan instalments and contractor certificates are the grids on the other tabs. Open <a href="@FinanceHref("/erp/aging-app")">AR ageing</a>, <a href="@FinanceHref("/erp/cash-entries-app")">cash entries</a>, <a href="@FinanceHref("/erp/gl-journals-app")">GL journals</a>, <a href="@FinanceHref("/erp/invoices-app")">invoices</a> and <a href="@FinanceHref("/erp/vat-app")">VAT</a> for ledger reconciliation.</p>
-            <iframe title="Real estate board pack presentation" src="@ReportHref("html")" style="width:100%;min-height:720px;border:1px solid #c4a35a;border-radius:6px;background:#0b1f3a"></iframe>
+            <p class="text-muted">The coloured pack is the downloadable investment real-estate report (PDF or Word) with skyline and lobby photographs — summary plus property, valuation, lease and collection detail. Open <a href="@FinanceHref("/erp/aging-app")">AR ageing</a>, <a href="@FinanceHref("/erp/cash-entries-app")">cash entries</a>, <a href="@FinanceHref("/erp/gl-journals-app")">GL journals</a>, <a href="@FinanceHref("/erp/invoices-app")">invoices</a> and <a href="@FinanceHref("/erp/vat-app")">VAT</a> for ledger reconciliation.</p>
+            <iframe title="Investment real estate presentation" src="@ReportHref("html")" style="width:100%;min-height:720px;border:1px solid #c4a35a;border-radius:6px;background:#0b1f3a"></iframe>
         }
     }
 
@@ -716,8 +716,8 @@
             </tbody>
         </table>
     </div>
-    <div class="re-board-dock" style="margin-top:14px" aria-label="Download board pack again">
-        <div><strong>Need the pack from here?</strong> Same report — PDF or Word — from this position.</div>
+    <div class="re-board-dock" style="margin-top:14px" aria-label="Download investment report again">
+        <div><strong>Need the investment report from here?</strong> Same portfolio pack — PDF or Word — from this position.</div>
         <div class="re-board-dock__actions">
             <a class="btn btn-sm re-board-btn" href="@ReportHref("html")" target="_blank" rel="noopener">Open presentation</a>
             <a class="btn btn-sm re-board-btn" href="@ReportHref("pdf")">Download PDF</a>

@@ -6,13 +6,13 @@ using System.Text;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Downloadable investment / construction board pack: visual HTML presentation,
+/// Downloadable investment real-estate board pack: visual HTML presentation,
 /// colour PDF, and Word. Available from every tab of the real-estate workspace.
 /// </summary>
 public static class ErpRealEstateReportPack
 {
     public static string FileStem(string siteKey, DateTime utc)
-        => "ecomae-real-estate-board-pack-"
+        => "ecomae-investment-real-estate-"
            + ClipKey(siteKey)
            + "-"
            + utc.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
@@ -49,12 +49,11 @@ public static class ErpRealEstateReportPack
         ArgumentNullException.ThrowIfNull(snap);
         var asOf = utc.ToString("dd MMMM yyyy 'UTC'", CultureInfo.InvariantCulture);
         var sky = Convert.ToBase64String(ErpRealEstateReportVisual.SkylineJpeg());
-        var build = Convert.ToBase64String(ErpRealEstateReportVisual.ConstructionJpeg());
         var lobby = Convert.ToBase64String(ErpRealEstateReportVisual.LobbyJpeg());
         var k = snap.Kpis;
         var sb = new StringBuilder();
         sb.Append("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>");
-        sb.Append("<title>").Append(E(title)).Append(" · board pack</title>");
+        sb.Append("<title>").Append(E(title)).Append(" · investment report</title>");
         sb.Append("<style>");
         sb.Append("body{margin:0;background:#0b1f3a;color:#f6f1e7;font:16px/1.5 'Georgia','Times New Roman',serif}");
         sb.Append("a.btn{display:inline-block;background:#c4a35a;color:#0b1f3a;text-decoration:none;padding:10px 16px;border-radius:4px;font:600 14px/1 system-ui,sans-serif;margin:0 8px 8px 0}");
@@ -78,17 +77,17 @@ public static class ErpRealEstateReportPack
         sb.Append(".bar i{display:block;height:14px;background:linear-gradient(90deg,#c4a35a,#163a6b);border-radius:4px}");
         sb.Append("@media print{.dock a{display:none} body{background:#fff;color:#0b1f3a} table,.kpi{background:#fff;color:#0b1f3a}}");
         sb.Append("</style></head><body>");
-        sb.Append("<div class=\"dock\"><div><strong>Board pack</strong> · ").Append(E(title)).Append(" · ").Append(E(asOf)).Append("</div><div>");
+        sb.Append("<div class=\"dock\"><div><strong>Investment report</strong> · ").Append(E(title)).Append(" · ").Append(E(asOf)).Append("</div><div>");
         sb.Append("<a class=\"btn\" href=\"").Append(E(pdfHref)).Append("\">Download PDF</a>");
         sb.Append("<a class=\"btn\" href=\"").Append(E(docxHref)).Append("\">Download Word</a>");
         sb.Append("</div></div>");
         sb.Append("<div class=\"hero\"><img alt=\"Dusk skyline\" src=\"data:image/jpeg;base64,").Append(sky).Append("\"/>");
-        sb.Append("<div class=\"cap\"><div style=\"color:#c4a35a;letter-spacing:.16em;font:600 13px system-ui,sans-serif\">ECOMAE · REAL ESTATE</div>");
-        sb.Append("<h1>Investment, development<br/><span>&amp; construction</span></h1>");
-        sb.Append("<p class=\"note\">Live tenant figures · IAS 40 / IFRS 15 / IFRS 18 · AED</p></div></div>");
+        sb.Append("<div class=\"cap\"><div style=\"color:#c4a35a;letter-spacing:.16em;font:600 13px system-ui,sans-serif\">ECOMAE · INVESTMENT REAL ESTATE</div>");
+        sb.Append("<h1>Investment real estate<br/><span>portfolio report</span></h1>");
+        sb.Append("<p class=\"note\">Live tenant figures · IAS 40 fair value · rental income · occupancy · AED</p></div></div>");
         sb.Append("<div class=\"wrap\">");
         sb.Append("<h2>Executive summary</h2>");
-        sb.Append("<p class=\"note\">Pipeline opportunities stay off both statements. Owned properties, escrow cash and contractor certificates sit on the balance sheet. Rent, IAS 40 fair-value movements (through P&amp;L, not OCI) and recognised IFRS 15 unit sales sit on the income statement. Off-plan collections are a contract liability until sold. Bounce after clearance keeps the prior cash journal intact.</p>");
+        sb.Append("<p class=\"note\">This pack is the investment real-estate portfolio. Screening opportunities stay off both statements. Owned properties sit on the balance sheet as IAS 40 investment property (account 1510). Rent, occupancy and collection sit on the income statement (4100). Fair-value movements go through P&amp;L (4200 / 6200), not OCI. Acquisition cost is never overwritten. Tenant deposits are a liability (2200). Cheques are not cash until bank clearance.</p>");
         sb.Append("<div class=\"kpis\">");
         Kpi(sb, "Owned properties", k.OwnedProperties.ToString(CultureInfo.InvariantCulture));
         Kpi(sb, "Fair value", Money(k.PortfolioFair));
@@ -96,10 +95,10 @@ public static class ErpRealEstateReportPack
         Kpi(sb, "Unrealized", Money(k.Unrealized));
         Kpi(sb, "Gross yield", Pct(k.GrossYield));
         Kpi(sb, "Occupancy", Pct(k.Occupancy));
-        Kpi(sb, "Escrow held", Money(k.EscrowBalance));
-        Kpi(sb, "Cost to complete", Money(k.CostToComplete));
+        Kpi(sb, "Annual rent", Money(k.AnnualRent));
+        Kpi(sb, "Collection", Pct(k.Collection));
         sb.Append("</div>");
-        var max = new[] { k.PortfolioCost, k.PortfolioFair, Math.Abs(k.Unrealized), k.AnnualRent, k.EscrowBalance, k.CostToComplete }.Max();
+        var max = new[] { k.PortfolioCost, k.PortfolioFair, Math.Abs(k.Unrealized), k.AnnualRent }.Max();
         if (max <= 0)
         {
             max = 1;
@@ -110,28 +109,25 @@ public static class ErpRealEstateReportPack
         Bar(sb, "Fair value", k.PortfolioFair, max);
         Bar(sb, "Unrealized", Math.Abs(k.Unrealized), max);
         Bar(sb, "Annual rent", k.AnnualRent, max);
-        Bar(sb, "Escrow held", k.EscrowBalance, max);
-        Bar(sb, "Cost to complete", k.CostToComplete, max);
         sb.Append("</div>");
         sb.Append("<img class=\"photo\" alt=\"Lobby\" src=\"data:image/jpeg;base64,").Append(lobby).Append("\"/>");
         Table(sb, "Property register", snap.Properties, "Cost / value");
         Table(sb, "Valuation history", snap.Valuations, "Approved fair value");
         Table(sb, "Acquisitions", snap.Acquisitions, "Purchase");
         Table(sb, "Disposals", snap.Disposals, "Sale");
-        sb.Append("<img class=\"photo\" alt=\"Construction\" src=\"data:image/jpeg;base64,").Append(build).Append("\"/>");
-        Table(sb, "Development projects", snap.Projects, "Budget");
-        Table(sb, "Escrow movements", snap.Escrow, "Amount");
-        Table(sb, "BOQ / tender lines", snap.BoqLines, "Amount");
-        Table(sb, "Contracts", snap.Contracts, "Original");
-        Table(sb, "Certificates", snap.Certificates, "Net payable");
-        Table(sb, "Unit sales", snap.Sales, "Sale price");
-        Table(sb, "Off-plan instalments", snap.Instalments, "Amount");
-        Table(sb, "Shared-cost allocations", snap.Allocations, "Allocated");
+        Table(sb, "Tenants", snap.Tenants, "Detail");
+        Table(sb, "Leases", snap.Leases, "Annual rent");
         Table(sb, "Cheque maturity", snap.Cheques, "Amount");
         Table(sb, "Deposits", snap.Deposits, "Held");
-        sb.Append("<h2>IFRS statement map</h2><p class=\"note\"><strong>Balance sheet:</strong> 1510 investment property, 1520 CIP, 1140 restricted escrow cash, 1120 cheques under collection, 1130 rent receivable, 2200 tenant deposits, 2210 contractor payable, 2220 off-plan buyer advances.</p>");
-        sb.Append("<p class=\"note\"><strong>Income statement:</strong> 4100 rental income, 4110 development revenue when sold, 4200 / 6200 fair-value through P&amp;L, 6210 property opex, 4300 / 6220 disposal.</p>");
-        sb.Append("<p class=\"note\">Download this pack as PDF or Word from any tab of the real-estate workspace. Figures refresh from the live register each time.</p>");
+        sb.Append("<img class=\"photo\" alt=\"Skyline\" src=\"data:image/jpeg;base64,").Append(sky).Append("\"/>");
+        Table(sb, "Investment opportunities", snap.Opportunities, "Ask");
+        Table(sb, "Development pipeline", snap.Projects, "Budget");
+        Table(sb, "Escrow movements", snap.Escrow, "Amount");
+        Table(sb, "Unit sales", snap.Sales, "Sale price");
+        Table(sb, "Off-plan instalments", snap.Instalments, "Amount");
+        sb.Append("<h2>IFRS statement map</h2><p class=\"note\"><strong>Balance sheet:</strong> 1510 investment property, 1130 rent receivable, 1120 cheques under collection, 2200 tenant deposits, 1140 restricted escrow cash, 2220 off-plan buyer advances.</p>");
+        sb.Append("<p class=\"note\"><strong>Income statement:</strong> 4100 rental income, 4200 / 6200 fair-value through P&amp;L, 6210 property opex, 4300 / 6220 disposal. Development revenue (4110) only when a unit is sold.</p>");
+        sb.Append("<p class=\"note\">Download this investment report as PDF or Word from any tab of the real-estate workspace. Figures refresh from the live register each time.</p>");
         sb.Append("<p><a class=\"btn\" href=\"").Append(E(pdfHref)).Append("\">Download PDF</a><a class=\"btn\" href=\"").Append(E(docxHref)).Append("\">Download Word</a></p>");
         sb.Append("</div></body></html>");
         return sb.ToString();
@@ -178,30 +174,29 @@ public static class ErpRealEstateReportPack
             <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
             <w:body>
             """);
-        P(sb, "ECOMAE · REAL ESTATE BOARD PACK", true, "C4A35A", 28);
+        P(sb, "ECOMAE · INVESTMENT REAL ESTATE", true, "C4A35A", 28);
         P(sb, title + "  ·  " + asOf + "  ·  Currency AED", false, "0B1F3A", 16);
         sb.Append(Picture("rId4", 1, 5943600, 2209800));
         P(sb, "Executive summary", true, "0B1F3A", 22);
-        P(sb, "This pack summarises the live investment, development and construction register. Opportunities stay off both statements. Owned properties, escrow and certificates are balance-sheet items. Rent, IAS 40 fair-value movements and recognised IFRS 15 unit sales are income-statement items. Off-plan collections remain a contract liability until sold.", false, "1E293B", 14);
+        P(sb, "This is the investment real-estate portfolio pack. Screening opportunities stay off both statements. Owned properties are IAS 40 investment property. Rent, occupancy and collection are income-statement items. Fair-value movements go through P&L, not OCI. Acquisition cost is never overwritten. Cheques are not cash until bank clearance.", false, "1E293B", 14);
         P(sb, "Owned " + snap.Kpis.OwnedProperties.ToString(CultureInfo.InvariantCulture)
             + "  ·  Fair value " + Money(snap.Kpis.PortfolioFair)
             + "  ·  Cost " + Money(snap.Kpis.PortfolioCost)
             + "  ·  Unrealized " + Money(snap.Kpis.Unrealized)
             + "  ·  Yield " + Pct(snap.Kpis.GrossYield)
-            + "  ·  Escrow " + Money(snap.Kpis.EscrowBalance)
-            + "  ·  Cost to complete " + Money(snap.Kpis.CostToComplete), true, "0B1F3A", 14);
+            + "  ·  Occupancy " + Pct(snap.Kpis.Occupancy)
+            + "  ·  Annual rent " + Money(snap.Kpis.AnnualRent), true, "0B1F3A", 14);
         WordTable(sb, "Properties", snap.Properties);
         WordTable(sb, "Valuations", snap.Valuations);
-        sb.Append(Picture("rId5", 2, 5943600, 1782000));
-        WordTable(sb, "Projects", snap.Projects);
-        WordTable(sb, "Escrow", snap.Escrow);
-        WordTable(sb, "BOQ lines", snap.BoqLines);
-        WordTable(sb, "Certificates", snap.Certificates);
-        WordTable(sb, "Unit sales", snap.Sales);
-        WordTable(sb, "Instalments", snap.Instalments);
-        WordTable(sb, "Allocations", snap.Allocations);
+        WordTable(sb, "Acquisitions", snap.Acquisitions);
+        WordTable(sb, "Leases", snap.Leases);
         WordTable(sb, "Cheques", snap.Cheques);
-        P(sb, "IFRS map — Balance sheet: 1510, 1520, 1140 escrow, 1120 PDC, 2200 deposits, 2210 payable, 2220 advances. Income statement: 4100 rent, 4110 development revenue (sold only), 4200/6200 fair value, 6210 opex.", false, "1E293B", 13);
+        WordTable(sb, "Deposits", snap.Deposits);
+        sb.Append(Picture("rId5", 2, 5943600, 1782000));
+        WordTable(sb, "Opportunities", snap.Opportunities);
+        WordTable(sb, "Development pipeline", snap.Projects);
+        WordTable(sb, "Unit sales", snap.Sales);
+        P(sb, "IFRS map — Balance sheet: 1510 investment property, 1130 rent receivable, 1120 PDC, 2200 deposits. Income statement: 4100 rent, 4200/6200 IAS 40 fair value through P&L, 6210 opex.", false, "1E293B", 13);
         sb.Append("<w:sectPr><w:pgSz w:w=\"11906\" w:h=\"16838\"/></w:sectPr></w:body></w:document>");
         return sb.ToString();
     }
