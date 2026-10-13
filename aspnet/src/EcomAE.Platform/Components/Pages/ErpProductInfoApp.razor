@@ -6,11 +6,13 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 @inject IErpWriteConnectionFactory TenantDb
+@inject IErpJwMetalStockListReadService MetalStock
 
 <PageTitle>Product information · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -19,7 +21,7 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Product information" Subtitle="Open an item for track-expiry and same-type siblings. Field Open loads the 280-character options excerpt. Variant Open loads the 280-character combo excerpt. Create item writes here. Dimension-link save is not available on this page." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Product information" Subtitle="@(_jewellery ? "Jewellery item master: every jewellery master, metal-stock product, inventory, and stock report on one page." : "Open an item for track-expiry and same-type siblings. Field Open loads the 280-character options excerpt. Variant Open loads the 280-character combo excerpt. Create item writes here. Dimension-link save is not available on this page.")" PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
@@ -27,9 +29,30 @@
         <div class="kpi"><div class="lbl">Items</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Active</div><div class="val">@_active.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Fields</div><div class="val">@_fieldCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        @if (_jewellery)
+        {
+            <div class="kpi"><div class="lbl">Jewellery masters</div><div class="val">@_jwMasterTotal.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Metal stock</div><div class="val">@_metalRows.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Stock lines</div><div class="val">@_stockBalance.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        }
     </div>
 
-    <ErpPhpViewTabs QueryName="pm_view" Active="@_view" BaseHref="/erp/product-info-app" Tabs="@_views" />
+    <ErpPhpViewTabs QueryName="pm_view" Active="@_view" BaseHref="@ListHref" Tabs="@_views" />
+
+    @if (_jewellery && _view is "devkit" or "jw_masters" or "all")
+    {
+        <h2 style="font-size:16px;">Jewellery masters</h2>
+        <p class="text-muted">Every jewellery product master. Open a card to maintain it; metal stock is the inventory item, stock report is on-hand weight and value.</p>
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery master catalog">
+            @foreach (var card in JewelleryMasterCards)
+            {
+                <a class="kpi" href="@card.Href">
+                    <div class="lbl">@card.Label</div>
+                    <div class="val">@card.Count.ToString(CultureInfo.InvariantCulture)</div>
+                </a>
+            }
+        </div>
+    }
 
     @if (_isAdmin && _view is "all" or "devkit" or "released")
     {
@@ -346,6 +369,89 @@
             </table>
         </div>
     }
+    else if (_jewellery && _view == "jw_stock")
+    {
+        <h2 style="font-size:16px;">Metal stock products</h2>
+        <p class="text-muted">Jewellery products linked to inventory and the stock report. Each item_code is the SKU used on purchase, retail, and stock count.</p>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Description</th>
+                        <th>Metal</th>
+                        <th>Karat</th>
+                        <th>Type</th>
+                        <th class="text-right">Stock pcs</th>
+                        <th class="text-right">Stock g</th>
+                        <th class="text-right">Value</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_metalRows.Count == 0)
+                    {
+                        <tr><td colspan="9" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_metalMessage) ? "No metal stock products yet." : _metalMessage) : "Sign in with ERP capability for live rows.")</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _metalRows)
+                        {
+                            <tr>
+                                <td><strong>@(string.IsNullOrWhiteSpace(row.ItemCode) ? "—" : row.ItemCode)</strong></td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Description) ? "—" : row.Description)</td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Metal) ? "—" : row.Metal)</td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Karat) ? "—" : row.Karat)</td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Type) ? "—" : row.Type)</td>
+                                <td class="text-right">@row.StockPcs.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@row.StockGms.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@row.StockValue.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>
+                                    <a class="btn btn-xs btn-default" href="@MetalStockHref(row.ItemCode)">Master</a>
+                                    <a class="btn btn-xs btn-default" href="@InventoryHref(row.ItemCode)">Inventory</a>
+                                    <a class="btn btn-xs btn-primary" href="@StockReportHref">Stock report</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (_jewellery && _view == "jw_stock_report")
+    {
+        <h2 style="font-size:16px;">Stock report</h2>
+        <p class="text-muted">On-hand jewellery stock by metal and karat. Open inventory or the live stock-balance workspace for a product.</p>
+        <p>
+            <a class="btn btn-sm btn-default" href="@InventoryHref(null)">Inventory</a>
+            <a class="btn btn-sm btn-primary" href="@StockReportHref">Open stock balance</a>
+            <a class="btn btn-sm btn-default" href="@MetalStockHref(null)">Metal stock master</a>
+        </p>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Metal</th><th>Karat</th><th class="text-right">Pcs</th><th class="text-right">Gross wt</th><th class="text-right">Value</th></tr></thead>
+                <tbody>
+                    @if (_stockBalance.Rows.Count == 0)
+                    {
+                        <tr><td colspan="5" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_stockBalance.Message) ? "No stock report rows yet." : _stockBalance.Message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _stockBalance.Rows)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(row.Metal) ? "—" : row.Metal)</td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Karat) ? "—" : row.Karat)</td>
+                                <td class="text-right">@row.StockPcs.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@row.StockGms.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@row.StockValue.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
     else if (_view == "dimensions")
     {
         <h2 style="font-size:16px;">Dimensions &amp; variants</h2>
@@ -377,11 +483,25 @@
         <h2 style="font-size:16px;">@(_view == "devkit" ? "Product dev kit" : _view == "released" ? "Release product" : "All products")</h2>
         <div class="epc-erp-table-wrap">
             <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-                <thead><tr><th>SKU</th><th>Name</th><th>Type</th><th>Unit</th><th class="text-right">Sales price</th><th>Status</th><th></th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Unit</th>
+                        <th class="text-right">Sales price</th>
+                        <th>Status</th>
+                        @if (_jewellery)
+                        {
+                            <th></th>
+                        }
+                        <th></th>
+                    </tr>
+                </thead>
                 <tbody>
-                    @if (_shownItems.Count == 0)
+                    @if (_shownItems.Count == 0 && (!_jewellery || _metalRows.Count == 0))
                     {
-                        <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No product items yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                        <tr><td colspan="@(_jewellery ? 8 : 7)">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No product items yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                     }
                     else
                     {
@@ -394,8 +514,34 @@
                                 <td>@row.Unit</td>
                                 <td class="text-right">@row.SalesPrice.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td><span class="label label-default">@(row.Active ? "active" : "inactive")</span></td>
-                                <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "pm_item_id", row.Id)">Open</a></td>
+                                @if (_jewellery)
+                                {
+                                    <td>
+                                        <a class="btn btn-xs btn-default" href="@InventoryHref(row.Sku)">Inventory</a>
+                                        <a class="btn btn-xs btn-default" href="@StockReportHref">Stock report</a>
+                                    </td>
+                                }
+                                <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(AppHref, "pm_item_id", row.Id)">Open</a></td>
                             </tr>
+                        }
+                        @if (_jewellery)
+                        {
+                            @foreach (var row in _metalRows)
+                            {
+                                <tr>
+                                    <td>@(string.IsNullOrWhiteSpace(row.ItemCode) ? "—" : row.ItemCode)</td>
+                                    <td><strong>@(string.IsNullOrWhiteSpace(row.Description) ? row.ItemCode : row.Description)</strong></td>
+                                    <td>metal stock</td>
+                                    <td>g</td>
+                                    <td class="text-right">@row.SalePriceGms.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td><span class="label label-default">stock</span></td>
+                                    <td>
+                                        <a class="btn btn-xs btn-default" href="@InventoryHref(row.ItemCode)">Inventory</a>
+                                        <a class="btn btn-xs btn-default" href="@StockReportHref">Stock report</a>
+                                    </td>
+                                    <td><a class="btn btn-xs btn-primary" href="@MetalStockHref(row.ItemCode)">Open</a></td>
+                                </tr>
+                            }
                         }
                     }
                 </tbody>
@@ -412,10 +558,17 @@
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=pim&tab=product_info";
     private const string _listHref = "/erp/product-info-app";
-    private static readonly IReadOnlyList<(string Key, string Label)> _views =
+    private static readonly IReadOnlyList<(string Key, string Label)> CoreViews =
         [("devkit", "Product dev kit"), ("all", "All products"), ("released", "Release product"), ("dimensions", "Dimensions & variants"), ("fields", "Field setup"), ("pim_attrs", "PIM attributes")];
+    private static readonly IReadOnlyList<(string Key, string Label)> JewelleryViews =
+        [("jw_masters", "Jewellery masters"), ("jw_stock", "Metal stock"), ("jw_stock_report", "Stock report")];
+    private IReadOnlyList<(string Key, string Label)> _views => _jewellery
+        ? [CoreViews[0], CoreViews[1], CoreViews[2], JewelleryViews[0], JewelleryViews[1], JewelleryViews[2], CoreViews[3], CoreViews[4], CoreViews[5]]
+        : CoreViews;
     private const string PimHref = "/erp/product-info-app?pm_view=pim_attrs";
     private bool _isAdmin;
+    private bool _jewellery;
+    private int _company;
     private string _view = "all";
     private IReadOnlyList<ErpProductInfoItemDigest> _items = [];
     private IReadOnlyList<ErpProductInfoItemDigest> _shownItems = [];
@@ -439,6 +592,16 @@
     private IReadOnlyDictionary<long, IReadOnlyList<ErpPimCustomFields.Option>> _pimOptions = new Dictionary<long, IReadOnlyList<ErpPimCustomFields.Option>>();
     private IReadOnlyList<ErpPimCustomFields.DisplayRow> _openedItemPim = [];
     private string _pimFormHtml = "";
+    private CpJewelleryMastersDigestResult _jwMasters = new(
+        new(0, 0, 0, 0, "n/a", ""),
+        [], [], [], [], [], [], [], [], [],
+        0, "n/a", "");
+    private IReadOnlyList<ErpJwMetalStockListRow> _metalRows = [];
+    private string _metalMessage = "";
+    private CpJewelleryStockBalanceDigestResult _stockBalance = new([], 0, 0, 0, 0, "n/a", "");
+    private int _jwMasterTotal;
+
+    private sealed record JwMasterCard(string Label, int Count, string Href);
 
     private long _openedId => _openedItemId > 0 ? _openedItemId : (_openedFieldId > 0 ? _openedFieldId : _openedVariantId);
 
@@ -484,14 +647,19 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
-        var v = ctx.Request.Query["pm_view"].ToString();
-        _view = v is "devkit" or "released" or "dimensions" or "fields" or "pim_attrs" or "all" ? v : "all";
+        _company = ErpJewelleryModuleChrome.CompanyFromQuery(ctx.Request.Query["company"].ToString());
+        if (_company <= 0)
+        {
+            _company = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
+        }
+        var rawView = ctx.Request.Query["pm_view"].ToString();
+        _view = NormalizeView(rawView);
         _ok = ctx.Request.Query["ok"].ToString();
         _err = ctx.Request.Query["err"].ToString();
         _openedItemId = ErpRecordOpen.ReadId(ctx.Request, "pm_item_id");
         _openedFieldId = ErpRecordOpen.ReadId(ctx.Request, "pm_field_id");
         _openedVariantId = ErpRecordOpen.ReadId(ctx.Request, "pm_variant_id");
-        if (string.IsNullOrWhiteSpace(v))
+        if (string.IsNullOrWhiteSpace(rawView))
         {
             if (_openedFieldId > 0) _view = "fields";
             else if (_openedVariantId > 0) _view = "dimensions";
@@ -501,7 +669,23 @@
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin) { _message = "Sign in for live data."; return; }
 
+        var companies = (await Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted)).Companies;
+        var company = companies.FirstOrDefault(c => _company > 0 && c.Id == _company)
+            ?? companies.FirstOrDefault();
+        if (_company <= 0 && company is not null)
+        {
+            _company = (int)company.Id;
+        }
+        _jewellery = ErpIndustryNav.ShowJewelleryModules(
+            TenantContext.IndustryFrom(ctx),
+            company,
+            TenantContext.IndustryFrom(ctx));
+
         await LoadPimAsync(ctx.RequestAborted);
+        if (_jewellery)
+        {
+            await LoadJewelleryCatalogAsync(ctx.RequestAborted);
+        }
         var result = await Dashboards.BuildErpProductInfoDigestAsync(200, ctx.RequestAborted);
         _items = result.Items;
         _fields = result.FieldDefs;
@@ -575,6 +759,85 @@
                 _message = detail.Message;
             }
         }
+    }
+
+    private async Task LoadJewelleryCatalogAsync(CancellationToken ct)
+    {
+        _jwMasters = await Dashboards.BuildCpJewelleryMastersDigestAsync(200, _company, ct);
+        var metal = await MetalStock.ReadAsync(_company, 0, null, 200, ct);
+        _metalRows = metal.Rows;
+        _metalMessage = metal.Message;
+        _stockBalance = await Dashboards.BuildCpJewelleryStockBalanceDigestAsync(200, _company, ct);
+        _jwMasterTotal = _jwMasters.Karats.Count
+            + _jwMasters.RateTypes.Count
+            + _jwMasters.Currencies.Count
+            + _jwMasters.Diamonds.Count
+            + _jwMasters.Designs.Count
+            + _jwMasters.Pearls.Count
+            + _jwMasters.ColorStones.Count
+            + _jwMasters.BarcodeRows.Count
+            + _jwMasters.Tags.Count
+            + _metalRows.Count;
+    }
+
+    private IReadOnlyList<JwMasterCard> JewelleryMasterCards =>
+    [
+        new("Karat master", _jwMasters.Karats.Count, JwMasterHref("jw_karat")),
+        new("Gold rate", 0, JwMasterHref("gold_rate")),
+        new("Gold scheme", 0, JwMasterHref("gold_scheme")),
+        new("Jewellery tags", _jwMasters.Tags.Count, JwMasterHref("jewellery_tag")),
+        new("Barcode", _jwMasters.BarcodeRows.Count, JwMasterHref("jw_barcode")),
+        new("Diamond", _jwMasters.Diamonds.Count, JwMasterHref("jw_diamond")),
+        new("Pearl", _jwMasters.Pearls.Count, JwMasterHref("jw_pearl")),
+        new("Color stone", _jwMasters.ColorStones.Count, JwMasterHref("jw_color_stone")),
+        new("Design", _jwMasters.Designs.Count, JwMasterHref("jw_design")),
+        new("Currency", _jwMasters.Currencies.Count, JwMasterHref("jw_currency")),
+        new("Rate type", _jwMasters.RateTypes.Count, JwMasterHref("jw_rate_type")),
+        new("Seed data", 0, JwMasterHref("jw_seed_data")),
+        new("Metal stock", _metalRows.Count, MetalStockHref(null)),
+        new("Stock report", _stockBalance.Count, StockReportHref),
+        new("Inventory", _count, InventoryHref(null)),
+    ];
+
+    private string ListHref => Href(ErpJewelleryModuleChrome.AppHref(_listHref, _company));
+    private string AppHref => Href(ErpJewelleryModuleChrome.AppHref(_listHref, _company, ("pm_view", _view)));
+
+    private string StockReportHref => Href(ErpJewelleryModuleChrome.AppHref(
+        "/erp/jewellery-stock-verification-app", _company, ("tab", "jw_stock_balance")));
+
+    private string MetalStockHref(string? itemCode)
+        => Href(ErpJewelleryModuleChrome.AppHref(
+            "/erp/jewellery-stock-verification-app",
+            _company,
+            ("tab", "jw_metal_stock"),
+            ("item_code", itemCode ?? "")));
+
+    private string InventoryHref(string? sku)
+        => Href(string.IsNullOrWhiteSpace(sku)
+            ? ErpJewelleryModuleChrome.AppHref("/erp/inventory-stock-app", _company)
+            : ErpJewelleryModuleChrome.AppHref("/erp/inventory-stock-app", _company, ("q", sku)));
+
+    private string JwMasterHref(string tab)
+        => Href(ErpJewelleryModuleChrome.AppHref("/erp/jewellery-masters-app", _company, ("tab", tab)));
+
+    private string Href(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext, path);
+
+    private static string NormalizeView(string? raw)
+    {
+        var value = (raw ?? string.Empty).Trim().TrimEnd('-').Replace('_', '-');
+        return value switch
+        {
+            "devkit" => "devkit",
+            "released" => "released",
+            "dimensions" => "dimensions",
+            "fields" => "fields",
+            "pim-attrs" or "pim_attrs" => "pim_attrs",
+            "jw-masters" or "jewellery" or "jw-master" => "jw_masters",
+            "jw-stock" or "metal-stock" => "jw_stock",
+            "jw-stock-report" or "stock-report" or "stock" => "jw_stock_report",
+            "all" => "all",
+            _ => "all",
+        };
     }
 
     private async Task LoadPimAsync(CancellationToken ct)
