@@ -3,15 +3,15 @@
 @using EcomAE.Platform.Routing
 @inject IHttpContextAccessor Http
 
-<ErpPhpFlash Ok="@_ok" Err="@_err" />
-
-@if (_tabs.Count > 1)
-{
-    <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@_tabs" />
-}
-
 @if (ShowGhostScaffold)
 {
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
+
+    @if (_tabs.Count > 1)
+    {
+        <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@_tabs" />
+    }
+
     <div class="epc-ui-kpi-grid" aria-label="@_chrome.Title KPIs">
         @foreach (var kpi in _chrome.KpiLabels)
         {
@@ -81,7 +81,10 @@
 @code {
     [Parameter] public string AppPath { get; set; } = "";
     [Parameter] public bool IsAdmin { get; set; }
-    /// <summary>False by default — fake zero KPIs and empty scaffold tables look unfinished. Opt in only on leftover dumps that have no live table yet.</summary>
+    /// <summary>
+    /// False by default — live boards already render their own flash and tab strip.
+    /// Opt in only on leftover dumps that have no live table, tabs, or save banner yet.
+    /// </summary>
     [Parameter] public bool ShowGhostScaffold { get; set; }
 
     private string _tab = "list";

@@ -43,6 +43,32 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void LiveJewelleryBoards_RenderOneFlashAndOneTabStrip()
+    {
+        foreach (var name in new[]
+                 {
+                     "CpJewelleryMastersApp.razor",
+                     "CpJewelleryFixingApp.razor",
+                     "CpJewelleryRetailApp.razor",
+                     "CpJewelleryRepairsApp.razor",
+                     "CpJewelleryStockVerificationApp.razor",
+                     "ErpProductInfoApp.razor",
+                 })
+        {
+            var text = ReadApp(name);
+            Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+            Assert.Equal(1, CountOccurrences(text, "<ErpPhpFlash"));
+            Assert.Equal(1, CountOccurrences(text, "<ErpPhpViewTabs"));
+        }
+
+        var body = ReadPlatformSource("Components/Shared/Desktop/PhpParityModuleBody.razor");
+        var ghost = body.IndexOf("@if (ShowGhostScaffold)", StringComparison.Ordinal);
+        Assert.True(ghost >= 0);
+        Assert.True(body.IndexOf("<ErpPhpFlash", StringComparison.Ordinal) > ghost);
+        Assert.True(body.IndexOf("<ErpPhpViewTabs", StringComparison.Ordinal) > ghost);
+    }
+
+    [Fact]
     public void MastersApp_UsesKaratGoldRateAndSeedChrome()
     {
         var text = ReadApp("CpJewelleryMastersApp.razor");
@@ -835,5 +861,18 @@ public sealed class ErpJewelleryModuleParityTests
         }
 
         throw new InvalidOperationException("Could not locate repo root.");
+    }
+
+    private static int CountOccurrences(string text, string needle)
+    {
+        var count = 0;
+        var start = 0;
+        while (true)
+        {
+            var found = text.IndexOf(needle, start, StringComparison.Ordinal);
+            if (found < 0) return count;
+            count++;
+            start = found + needle.Length;
+        }
     }
 }

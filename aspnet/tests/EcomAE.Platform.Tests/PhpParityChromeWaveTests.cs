@@ -65,6 +65,9 @@ public sealed class PhpParityChromeWaveTests
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpParityModuleBody.razor"));
         Assert.Contains("ErpParityModuleSaveForm", body, StringComparison.Ordinal);
         Assert.Contains("method=\"post\"", body, StringComparison.Ordinal);
+        Assert.Contains("@if (ShowGhostScaffold)", body, StringComparison.Ordinal);
+        Assert.True(body.IndexOf("@if (ShowGhostScaffold)", StringComparison.Ordinal)
+                    < body.IndexOf("<ErpPhpFlash", StringComparison.Ordinal));
         Assert.DoesNotContain("@onclick", body, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", body, StringComparison.Ordinal);
     }
