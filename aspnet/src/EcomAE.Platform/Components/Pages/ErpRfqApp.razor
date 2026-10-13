@@ -88,12 +88,12 @@
             {
                 <div class="epc-erp-kpi epc-erp-stat-row" aria-label="RFQ comparison recommendation" style="margin-top:1rem">
                     <div class="kpi">
-                        <div class="lbl">PHP comparison recommendation</div>
+                        <div class="lbl">Comparison recommendation</div>
                         <div class="val">@(_opened.RecommendedSupplierId > 0 ? $"Supplier {_opened.RecommendedSupplierId.ToString(CultureInfo.InvariantCulture)}" : "No recommendation")</div>
                     </div>
                     <div class="kpi">
                         <div class="lbl">Award state</div>
-                        <div class="val">workspace-owned</div>
+                        <div class="val">open</div>
                     </div>
                 </div>
                 <p class="text-muted" style="margin:1rem 0 .4rem">Persisted supplier responses (comparison read-only)</p>

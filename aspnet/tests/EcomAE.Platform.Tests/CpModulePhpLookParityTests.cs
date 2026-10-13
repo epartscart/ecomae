@@ -55,7 +55,7 @@ public sealed class CpModulePhpLookParityTests
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpModulePageHeader.razor"));
         Assert.Contains("epc-scp-panel__hero", text, StringComparison.Ordinal);
         Assert.Contains("epc-scp-dashboard__title", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref", text, StringComparison.Ordinal);
         Assert.DoesNotContain("linear-gradient", text, StringComparison.Ordinal);
     }
 

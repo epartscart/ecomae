@@ -274,7 +274,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("action=\"/erp/purchases/void\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"purchaseId\"", razor, StringComparison.Ordinal);
-        Assert.Contains("workspace-owned", razor, StringComparison.Ordinal);
+        Assert.Contains("not available on this page", razor, StringComparison.Ordinal);
         Assert.Contains("erp-purchase-orders.js", razor, StringComparison.Ordinal);
         Assert.Contains("EcomAeRoutes.ErpJewelleryBarcodePurchaseCreateForm", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
@@ -1455,7 +1455,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("/cp/additional-texts/delete", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.Contains("s_page", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpAdditionalTextsDetailAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("excerpt yet.", text, StringComparison.Ordinal);
@@ -1667,7 +1667,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("name=\"action\" value=\"activation\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"activate_tab\"", text, StringComparison.Ordinal);
         Assert.Contains("s_page", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Full parameters JSON stays on the Classic twin", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
@@ -1802,7 +1802,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("/cp/geo-regions/write", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.Contains("class=\"hpanel\"", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpGeoRegionsDetailAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("excerpt yet.", text, StringComparison.Ordinal);
@@ -1844,7 +1844,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("name=\"available\"", text, StringComparison.Ordinal);
         Assert.Contains("values_from_form", text, StringComparison.Ordinal);
         Assert.Contains("name=\"pv_@p.Name\"", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpDeliveryModeDetailAsync", text, StringComparison.Ordinal);
@@ -1905,7 +1905,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.Contains("is_frontend", text, StringComparison.Ordinal);
         Assert.Contains("hpanel", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.Contains("content_id=", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpPagesDetailAsync", text, StringComparison.Ordinal);
@@ -1952,7 +1952,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.Contains("s_page", text, StringComparison.Ordinal);
         Assert.Contains("hpanel", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.Contains("menu_id=", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpMenusDetailAsync", text, StringComparison.Ordinal);
@@ -2034,7 +2034,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("/cp/offices/delete", text, StringComparison.Ordinal);
         Assert.Contains("/cp/offices/geo", text, StringComparison.Ordinal);
         Assert.Contains("/cp/storages/membership", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.Contains("office_id=", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpOfficesDetailAsync", text, StringComparison.Ordinal);
@@ -2065,7 +2065,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("Modules.ModuleEditorAsync(", text, StringComparison.Ordinal);
         Assert.Contains("Modules.ModulesAsync(", text, StringComparison.Ordinal);
         Assert.Contains("/cp/modules/write", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.Contains("module_id=", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpModulesDetailAsync", text, StringComparison.Ordinal);
@@ -2104,7 +2104,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("/erp/uae-tax/legislation/regen", text, StringComparison.Ordinal);
         Assert.Contains("/erp/uae-tax/ct-adjustments/save", text, StringComparison.Ordinal);
         Assert.Contains("/erp/uae-tax/legislation/checklist/set", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.Contains("leg_id=", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
@@ -2145,7 +2145,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
         Assert.Contains("table-epc", text, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.Contains("HasStaffAccess", text, StringComparison.Ordinal);
         Assert.Contains("aprice_id=", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
@@ -2429,7 +2429,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"template_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("class=\"hpanel\"", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpTemplatesManagerDetailAsync", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("stay on the Classic twin", razor, StringComparison.Ordinal);
@@ -2470,7 +2470,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("name=\"flag_value\"", razor, StringComparison.Ordinal);
         Assert.Contains("ControlLock", razor, StringComparison.Ordinal);
         Assert.Contains("class=\"hpanel\"", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpPluginsManagerDetailAsync", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("stay on the Classic twin", razor, StringComparison.Ordinal);
@@ -2510,7 +2510,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("/cp/content/create-sitemap", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\" value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("class=\"hpanel\"", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("Rebuild stays on the Classic twin", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("excerpt yet.", razor, StringComparison.Ordinal);
@@ -2549,7 +2549,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("class=\"hpanel\"", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
         Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("_opened.Stored", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-pl-hero", razor, StringComparison.Ordinal);
@@ -2582,7 +2582,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("value=\"create_crm_quote\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"mark_reviewed\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"process_upload\"", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("stay Classic", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
@@ -2775,7 +2775,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("SupplierRanking", razor, StringComparison.Ordinal);
         Assert.Contains("BestQuotes", razor, StringComparison.Ordinal);
         Assert.Contains("RecommendedSupplierId", razor, StringComparison.Ordinal);
-        Assert.Contains("PHP comparison recommendation", razor, StringComparison.Ordinal);
+        Assert.Contains("Comparison recommendation", razor, StringComparison.Ordinal);
         Assert.Contains("Best supplier per RFQ line", razor, StringComparison.Ordinal);
         Assert.Contains("AwardPreview", razor, StringComparison.Ordinal);
         Assert.Contains("draft PO preview", razor, StringComparison.OrdinalIgnoreCase);
@@ -4211,7 +4211,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("_openedLead?.Email", razor, StringComparison.Ordinal);
         Assert.Contains("_openedLead?.Phone", razor, StringComparison.Ordinal);
         Assert.Contains("table-epc", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
         Assert.Contains("epc-crm-hero", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w16-hero", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
@@ -4330,7 +4330,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("epc-erp-kpi", text, StringComparison.Ordinal);
         Assert.Contains("/cp/credit-limits/set", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.Contains("credit_id=", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);

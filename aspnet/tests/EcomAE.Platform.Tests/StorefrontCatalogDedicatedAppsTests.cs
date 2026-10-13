@@ -123,7 +123,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("class=\"hpanel\"", sms, StringComparison.Ordinal);
         Assert.Contains("panel-heading hbuilt", sms, StringComparison.Ordinal);
         Assert.Contains("table table-condensed table-striped", sms, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref", sms, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref", sms, StringComparison.Ordinal);
         Assert.Contains("/CP/control/sms_turning", sms, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", sms, StringComparison.Ordinal);
         Assert.Contains("/cp/sms-whatsapp/activate", sms, StringComparison.Ordinal);
@@ -158,7 +158,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("EcomAeRoutes.CpCommunicationsTest", text, StringComparison.Ordinal);
         Assert.Contains("id=\"email_for_test\"", text, StringComparison.Ordinal);
         Assert.Contains("id=\"phone_for_test\"", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref", text, StringComparison.Ordinal);
         Assert.Contains("/CP/control/communications", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-kpis", text, StringComparison.Ordinal);
@@ -282,7 +282,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         var sitemap = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpSitemapApp.razor"));
         Assert.Contains("class=\"hpanel\"", sitemap, StringComparison.Ordinal);
         Assert.Contains("/cp/content/create-sitemap", sitemap, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref", sitemap, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref", sitemap, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", sitemap, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", sitemap, StringComparison.Ordinal);
 
@@ -355,7 +355,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("class=\"hpanel\"", auto, StringComparison.Ordinal);
         Assert.Contains("HasStaffAccess", auto, StringComparison.Ordinal);
         Assert.DoesNotContain("Classic twin", auto, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref", auto, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref", auto, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-ap-hero", auto, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-ap-kpis", auto, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference", auto, StringComparison.Ordinal);
@@ -363,7 +363,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         var blocks = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpInfoBlocksApp.razor"));
         Assert.Contains("epc-scp-panel", blocks, StringComparison.Ordinal);
         Assert.DoesNotContain("Classic twin", blocks, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref", blocks, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref", blocks, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w19-hero", blocks, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w19-kpis", blocks, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate.IsAllowed", blocks, StringComparison.Ordinal);
@@ -460,7 +460,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         var dunning = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCollectionsDunningApp.razor"));
         Assert.Contains("class=\"hpanel\"", dunning, StringComparison.Ordinal);
         Assert.Contains("/cp/collections-dunning/write", dunning, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref", dunning, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref", dunning, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w15-hero", dunning, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference", dunning, StringComparison.Ordinal);
     }
@@ -470,7 +470,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
     {
         var growth = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpMarketingGrowthApp.razor"));
         Assert.Contains("class=\"hpanel\"", growth, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref", growth, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref", growth, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-mg-hero", growth, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference", growth, StringComparison.Ordinal);
 
