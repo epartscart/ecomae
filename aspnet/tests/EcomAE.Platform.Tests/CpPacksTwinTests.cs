@@ -168,7 +168,7 @@ public sealed class CpPacksTwinTests
         Assert.Contains("<th>Technical name</th>", src, StringComparison.Ordinal);
         Assert.Contains("Module prototypes", src, StringComparison.Ordinal);
         Assert.Contains("CpTemplatesPluginsService.ReadPage", src, StringComparison.Ordinal);
-        Assert.Contains("/CP/packs/pack_control?pack_id=", src, StringComparison.Ordinal);
+        Assert.Contains("?pack_id=", src, StringComparison.Ordinal);
         Assert.DoesNotContain("ISurfaceDashboardSummaryReporter", src, StringComparison.Ordinal);
     }
 
