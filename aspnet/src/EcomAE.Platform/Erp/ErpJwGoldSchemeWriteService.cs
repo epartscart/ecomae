@@ -8,7 +8,7 @@ namespace EcomAE.Platform.Erp;
 //   content/shop/finance/epc_erp_gold_scheme.php
 /// <summary>
 /// Live PHP <c>epc_gold_scheme_create</c> / <c>epc_gold_scheme_enroll</c> /
-/// <c>epc_gold_scheme_pay_installment</c> twin. Schema-ensure stays PHP.
+/// <c>epc_gold_scheme_pay_installment</c> twin. Missing tables are provisioned here.
 /// </summary>
 public interface IErpJwGoldSchemeWriteService
 {
@@ -281,6 +281,25 @@ public sealed class ErpJwGoldSchemeWriteService : IErpJwGoldSchemeWriteService
             request.EnrollmentId).ConfigureAwait(false);
         var amount = request.Amount > 0 ? RoundNonNeg(request.Amount, 4) : RoundNonNeg(installment, 4);
         var goldRate = RoundNonNeg(request.GoldRate, 4);
+        if (goldRate <= 0)
+        {
+            var companyId = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `company_id` FROM `epc_gold_scheme_enrollments` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                request.EnrollmentId).ConfigureAwait(false);
+            goldRate = RoundNonNeg(
+                await ErpGoldRateBoard.ResolveSellAsync(
+                    connection,
+                    companyId > int.MaxValue ? 0 : (int)companyId,
+                    "24K",
+                    "AED",
+                    request.PaymentDate,
+                    cancellationToken).ConfigureAwait(false),
+                4);
+        }
+
         var grams = goldRate > 0
             ? decimal.Round(amount / goldRate, 6, MidpointRounding.AwayFromZero)
             : 0m;

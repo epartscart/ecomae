@@ -112,6 +112,19 @@ public sealed class ErpJwBarcodePurchaseWriteService : IErpJwBarcodePurchaseWrit
 
         var net = RoundNonNeg(request.NetWeight, 3);
         var goldRate = RoundNonNeg(request.GoldRateAtPurchase, 4);
+        if (goldRate <= 0)
+        {
+            goldRate = RoundNonNeg(
+                await ErpGoldRateBoard.ResolveSellAsync(
+                    connection,
+                    companyId,
+                    request.Karat,
+                    "AED",
+                    null,
+                    cancellationToken).ConfigureAwait(false),
+                4);
+        }
+
         var metalValue = decimal.Round(net * goldRate, 2, MidpointRounding.AwayFromZero);
         var making = RoundNonNeg(request.MakingCharges, 2);
         var stoneValue = RoundNonNeg(request.StoneValue, 2);

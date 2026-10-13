@@ -1202,8 +1202,10 @@ public static class EcomAeRoutes
     public const string ErpRfidStartSessionForm = "/erp/rfid/start-session";
     /// <summary>PHP epc_rfid_process_scan. <c>confirmWrites=true</c> writes scan results.</summary>
     public const string ErpRfidProcessScanForm = "/erp/rfid/scan";
-    /// <summary>PHP epc_gold_rate_set (manual). <c>confirmWrites=true</c> UPSERTs <c>epc_gold_rates</c>. API fetch stays PHP.</summary>
+    /// <summary>PHP epc_gold_rate_set (manual). <c>confirmWrites=true</c> UPSERTs <c>epc_gold_rates</c>.</summary>
     public const string ErpGoldRateSetForm = "/erp/gold-rate/set";
+    /// <summary>Publish today's karat board from a 24K base. Invoices use the sell rate when metal rate is blank.</summary>
+    public const string ErpGoldRateDailyForm = "/erp/gold-rate/daily";
     /// <summary>PHP epc_aml_kyc_save. <c>confirmWrites=true</c> inserts/updates <c>epc_aml_kyc</c>.</summary>
     public const string ErpAmlKycSaveForm = "/erp/aml/kyc-save";
     /// <summary>PHP epc_aml_alert_set_status. <c>confirmWrites=true</c> updates <c>epc_aml_transactions.review_status</c>. Schema-ensure stays PHP.</summary>
