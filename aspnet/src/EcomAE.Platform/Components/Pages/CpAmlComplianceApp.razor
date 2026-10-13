@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -91,7 +92,7 @@
             <label><input type="checkbox" name="file_sar" value="1" /> File SAR</label>
             <button type="submit">Set alert status</button>
         </form>
-        <form method="post" action="/erp/uae-tax/fta-fetch" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/uae-tax/fta-fetch")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_returnHref" />
             <label><input type="checkbox" name="force" value="1" /> Force refetch</label>
@@ -298,10 +299,7 @@
         if (ctx is null) return;
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
-        var path = ctx.Request.Path.Value;
-        _listHref = string.Equals(path, "/erp/aml-compliance-app", StringComparison.OrdinalIgnoreCase)
-            ? "/erp/aml-compliance-app"
-            : "/erp/aml-compliance-app";
+        _listHref = ClientErpPath.PrefixIfBound(ctx, "/erp/aml-compliance-app");
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "kyc_id", "kyc");
         _returnHref = _openedId > 0
             ? ErpRecordOpen.Href(_listHref, "kyc_id", _openedId).Split('#')[0]

@@ -72,6 +72,7 @@ public sealed class ErpUaeTaxLegislationAskWriteService : IErpUaeTaxLegislationA
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpUaeTaxComplianceSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var items = await ErpUaeTaxLegislationLibrary.LoadSearchItemsAsync(connection, cancellationToken).ConfigureAwait(false);
         var answered = ErpUaeTaxLegislationAsk.Answer(question, items);
         if (!answered.Ok)

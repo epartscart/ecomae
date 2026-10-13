@@ -1556,6 +1556,15 @@ public static class PhpSurfaceLinkMap
             return false;
         }
 
+        // Company ERP on the Super host is already ASP.NET. Never remap
+        // /cp/client-erp/{key}/erp/… onto a PHP product href (that 302 plus the
+        // isolation cookie loops the browser and Fetch never lands).
+        if (path.StartsWith("/cp/client-erp/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/cp/client-erp", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
         var mapped = MapCpPhpPath(pathAndQuery);
         if (string.IsNullOrWhiteSpace(mapped))
         {
@@ -1609,8 +1618,17 @@ public static class PhpSurfaceLinkMap
         }
 
         // UAE tax lives under /finance/erp/… but must NOT be swallowed by the ERP shell remap.
+        // Already-app URLs (bare /erp or /cp/client-erp/{key}/erp) stay put.
         if (value.Contains("uae-tax-compliance", StringComparison.OrdinalIgnoreCase))
         {
+            var taxPath = value.Split('?', 2)[0].TrimEnd('/');
+            if (taxPath.EndsWith("/erp/uae-tax-compliance-app", StringComparison.OrdinalIgnoreCase)
+                || taxPath.Equals("/erp/uae-tax-compliance-app", StringComparison.OrdinalIgnoreCase)
+                || taxPath.Equals("/cp/uae-tax-compliance-app", StringComparison.OrdinalIgnoreCase))
+            {
+                return value;
+            }
+
             return ErpRecordOpen.PreserveRecordQuery("/erp/uae-tax-compliance-app", value);
         }
 

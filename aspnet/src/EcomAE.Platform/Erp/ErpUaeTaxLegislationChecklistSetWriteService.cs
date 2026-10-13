@@ -89,9 +89,10 @@ public sealed class ErpUaeTaxLegislationChecklistSetWriteService : IErpUaeTaxLeg
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpUaeTaxComplianceSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_uae_tax_legislation_checklist", "item_key", cancellationToken).ConfigureAwait(false))
         {
-            return ErpUaeTaxChecklistWriteResult.Fail("invalid", "Legislation checklist table is not provisioned");
+            return ErpUaeTaxChecklistWriteResult.Fail("invalid", "Legislation checklist table could not be created");
         }
 
         await ErpDb.ExecuteAsync(

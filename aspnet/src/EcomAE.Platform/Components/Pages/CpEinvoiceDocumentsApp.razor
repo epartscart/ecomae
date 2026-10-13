@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -85,7 +86,7 @@
             <label>Mode <input type="text" name="aspApiMode" value="manual" style="width:7rem" /></label>
             <button type="submit">Save ASP</button>
         </form>
-        <form method="post" action="/erp/uae-tax/fta-fetch" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/uae-tax/fta-fetch")" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_returnHref" />
             <label><input type="checkbox" name="force" value="1" /> Force refetch</label>
@@ -296,10 +297,7 @@
 
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
-        var path = ctx.Request.Path.Value;
-        _listHref = string.Equals(path, "/erp/einvoice-documents-app", StringComparison.OrdinalIgnoreCase)
-            ? "/erp/einvoice-documents-app"
-            : "/erp/einvoice-documents-app";
+        _listHref = ClientErpPath.PrefixIfBound(ctx, "/erp/einvoice-documents-app");
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "ei_id");
         _returnHref = _openedId > 0
             ? ErpRecordOpen.Href(_listHref, "ei_id", _openedId).Split('#')[0]
