@@ -166,6 +166,8 @@ public sealed class ErpTrialBalanceCoverageTests
         Assert.Contains("Financial dimension set", text, StringComparison.Ordinal);
         Assert.Contains("Posting layer", text, StringComparison.Ordinal);
         Assert.Contains(">Amount<", text, StringComparison.Ordinal);
+        Assert.Contains("AmountTotal.ToString", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("CreditTotal).ToString", text, StringComparison.Ordinal);
         Assert.Contains("Accounting source explorer", text, StringComparison.Ordinal);
         Assert.Contains("Cash flow forecasts", text, StringComparison.Ordinal);
         Assert.Contains("Include closing transactions", text, StringComparison.Ordinal);

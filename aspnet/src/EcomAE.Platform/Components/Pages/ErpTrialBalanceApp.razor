@@ -98,7 +98,7 @@
         <div class="kpi"><div class="lbl">Opening</div><div class="val">@_result.OpeningTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Debit</div><div class="val">@_result.DebitTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Credit</div><div class="val">@_result.CreditTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Amount</div><div class="val">@(_result.DebitTotal - _result.CreditTotal).ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Amount</div><div class="val">@AmountTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Closing</div><div class="val">@_result.ClosingTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
@@ -194,7 +194,7 @@
                         <td><strong>@_result.OpeningTotal.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
                         <td><strong>@_result.DebitTotal.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
                         <td><strong>@_result.CreditTotal.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
-                        <td><strong>@(_result.DebitTotal - _result.CreditTotal).ToString("N2", CultureInfo.InvariantCulture)</strong></td>
+                        <td><strong>@AmountTotal.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
                         <td><strong>@_result.ClosingTotal.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
                         <td></td>
                     </tr>
@@ -285,6 +285,7 @@
     private ErpTrialBalanceResult _result = new(ErpTrialBalanceParameters.FromQuery(null, null, null, null, null, null, null, null, null, null), [], [], [], 0, 0, 0, 0, "migration", "");
 
     private int Colspan => _parameters.SeparateDimensionColumns || _parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany ? 10 : 9;
+    private decimal AmountTotal => _result.DebitTotal - _result.CreditTotal;
 
     protected override async Task OnInitializedAsync()
     {
