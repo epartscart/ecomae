@@ -783,6 +783,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("notes", LegacySurfaceDashboardSql.SelectCpAutoPriceRulesSiteSiblings, StringComparison.Ordinal);
         Assert.Contains("@site_key", LegacySurfaceDashboardSql.SelectCpAutoPriceRulesSiteSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_uae_tax_legislation_items", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
+        Assert.Contains("STR_TO_DATE(`issue_date`, '%d %b %Y')", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.DoesNotContain("erp_summary", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.DoesNotContain("pdf_url", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`erp_summary`,''), 280)", LegacySurfaceDashboardSql.SelectCpUaeTaxItemsDetail, StringComparison.Ordinal);

@@ -3206,7 +3206,8 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`is_new`,0) AS is_new, IFNULL(`is_updated`,0) AS is_updated,
                IFNULL(`time_synced`,0) AS time_synced
         FROM `epc_uae_tax_legislation_items`
-        ORDER BY `id` DESC
+        ORDER BY
+        """ + Erp.ErpUaeTaxIssueDate.NewestFirstSql + """
         LIMIT @limit
         """;
 
@@ -3234,7 +3235,8 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`time_synced`,0) AS time_synced
         FROM `epc_uae_tax_legislation_items`
         WHERE `tax_category` = @tax_category AND `id` <> @id
-        ORDER BY `id` DESC
+        ORDER BY
+        """ + Erp.ErpUaeTaxIssueDate.NewestFirstSql + """
         LIMIT 50
         """;
 
