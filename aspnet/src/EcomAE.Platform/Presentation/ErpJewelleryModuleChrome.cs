@@ -79,13 +79,13 @@ public static class ErpJewelleryModuleChrome
         ["No.", "Job No", "Receipt Date", "Customer", "Phone", "Item", "Promise Date", "Status"];
 
     public static readonly IReadOnlyList<string> KaratColumns =
-        ["No.", "Karat Code", "Desc", "Std. Purity", "Gravity", "Division"];
+        ["No.", "Karat Code", "Desc", "Std. Purity", "Gravity", "Division", "Created date", "Created by"];
 
     public static readonly IReadOnlyList<string> GoldRateHistoryColumns =
-        ["Date", "Gold 24K", "Gold 22K", "Gold 18K", "Silver", "Change"];
+        ["Date", "Gold 24K", "Gold 22K", "Gold 18K", "Silver", "Change", "Created date", "Created by"];
 
     public static readonly IReadOnlyList<string> TagColumns =
-        ["No.", "TAG #", "Barcode", "Item Type", "Karat", "Net wt", "Sell price", "Location", "Status"];
+        ["No.", "TAG #", "Barcode", "Item Type", "Karat", "Net wt", "Sell price", "Location", "Status", "Created date", "Created by"];
 
     public static readonly IReadOnlyList<string> FixingColumns =
         ["No.", "Fix No", "Fix Date", "Ref Voc", "Party Code", "Metal", "Fixed Rate", "Net Wt", "Amount", "Status"];
@@ -172,38 +172,38 @@ public static class ErpJewelleryModuleChrome
             GoldRateHistoryColumns, "No rate history yet — configure a provider and refresh."),
         "gold_scheme" => new("gold_scheme", "Gold scheme", "Gold scheme",
             "Savings / gold-scheme enrolments against karat and tenure.",
-            ["Scheme #", "Customer", "Karat", "Tenure", "Instalment", "Status"],
+            ["Scheme #", "Customer", "Karat", "Tenure", "Instalment", "Status", "Created date", "Created by"],
             "No gold-scheme enrolments yet."),
         "jewellery_tag" => new("jewellery_tag", "Jewellery tags", "Jewellery TAG System",
             "Unique TAG per jewellery item — generated at barcode level. Used for invoicing, purchase tracking, sales, and audit trail.",
             TagColumns, "No jewellery tags yet — generate the first tag from this panel."),
         "jw_barcode" => new("jw_barcode", "Barcode", "Jewellery barcode",
             "Barcode formats and prefix rules for tagged jewellery items.",
-            ["Code", "Prefix", "Format", "Division", "Status"],
+            ["No.", "Barcode", "Stock code", "Item type", "Karat", "Gr.Wt", "Net.Wt", "Tag price", "Printed", "Created date", "Created by"],
             "No barcode formats yet."),
         "jw_diamond" => new("jw_diamond", "Diamond", "Diamond master",
             "Diamond shape, color, clarity and carat masters.",
-            ["No.", "Item Code", "Description", "Color", "Clarity", "Type", "Brand", "Currency", "Curr rate"],
+            ["No.", "Item Code", "Description", "Color", "Clarity", "Type", "Brand", "Currency", "Curr rate", "Created date", "Created by"],
             "No diamond masters yet."),
         "jw_pearl" => new("jw_pearl", "Pearl", "Pearl master",
             "Pearl type, size and origin masters.",
-            ["No.", "Code", "Description", "Size", "Color", "Rate"],
+            ["No.", "Code", "Description", "Size", "Color", "Rate", "Created date", "Created by"],
             "No pearl masters yet."),
         "jw_color_stone" => new("jw_color_stone", "Color stone", "Color stone master",
             "Colored-stone type and quality masters.",
-            ["No.", "Code", "Description", "Color", "Shape", "Size", "Rate"],
+            ["No.", "Code", "Description", "Color", "Shape", "Size", "Rate", "Created date", "Created by"],
             "No color-stone masters yet."),
         "jw_design" => new("jw_design", "Design", "Design master",
             "Jewellery design codes used on tags and invoices.",
-            ["No.", "Design", "Description", "Category", "Brand", "Cost", "Price 1"],
+            ["No.", "Design", "Description", "Category", "Brand", "Cost", "Price 1", "Created date", "Created by"],
             "No design codes yet."),
         "jw_currency" => new("jw_currency", "Currency", "Jewellery currency",
             "Rate currencies used on metal purchase and POS.",
-            ["Code", "Name", "Symbol", "Conv rate", "Status"],
+            ["Code", "Name", "Symbol", "Conv rate", "Status", "Created date", "Created by"],
             "No jewellery currencies yet."),
         "jw_rate_type" => new("jw_rate_type", "Rate type", "Rate type master",
             "Purchase / sales / making rate types.",
-            ["No.", "Metal", "Rate type", "Conv factor", "Currency", "Curr rate", "Status"],
+            ["No.", "Metal", "Rate type", "Conv factor", "Currency", "Curr rate", "Status", "Created date", "Created by"],
             "No rate types yet."),
         "jw_seed_data" => new("jw_seed_data", "Seed data", "Jewellery seed data",
             "Load default karat, rate type and division rows for a new jewellery company.",

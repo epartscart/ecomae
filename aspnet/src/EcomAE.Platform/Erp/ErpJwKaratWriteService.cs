@@ -23,7 +23,8 @@ public sealed record ErpJwKaratSaveRequest(
     decimal RangeTo = 0,
     decimal SpGravity = 0,
     decimal PosRateMinMax = 0,
-    string? Division = null);
+    string? Division = null,
+    string? CreatedBy = null);
 
 public sealed class ErpJwKaratWriteService : IErpJwKaratWriteService
 {
@@ -77,7 +78,7 @@ public sealed class ErpJwKaratWriteService : IErpJwKaratWriteService
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `epc_jewel_karat_master` (`company_id`,`karat_code`,`description`,`std_purity`,`range_from`,`range_to`,`sp_gravity`,`pos_rate_min_max`,`division`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `std_purity` = VALUES(`std_purity`), `range_from` = VALUES(`range_from`), `range_to` = VALUES(`range_to`), `sp_gravity` = VALUES(`sp_gravity`), `pos_rate_min_max` = VALUES(`pos_rate_min_max`), `division` = VALUES(`division`)"),
+                "INSERT INTO `epc_jewel_karat_master` (`company_id`,`karat_code`,`description`,`std_purity`,`range_from`,`range_to`,`sp_gravity`,`pos_rate_min_max`,`division`,`created_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `std_purity` = VALUES(`std_purity`), `range_from` = VALUES(`range_from`), `range_to` = VALUES(`range_to`), `sp_gravity` = VALUES(`sp_gravity`), `pos_rate_min_max` = VALUES(`pos_rate_min_max`), `division` = VALUES(`division`)"),
             cancellationToken,
             companyId,
             code,
@@ -87,7 +88,8 @@ public sealed class ErpJwKaratWriteService : IErpJwKaratWriteService
             rangeTo,
             spGravity,
             posRate,
-            division).ConfigureAwait(false);
+            division,
+            Clip((request.CreatedBy ?? string.Empty).Trim(), 80)).ConfigureAwait(false);
 
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         if (id <= 0)

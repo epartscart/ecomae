@@ -21,7 +21,8 @@ public sealed record ErpJwBarcodeGenerateRequest(
     string? Karat = null,
     decimal GrossWt = 0,
     decimal Purity = 0,
-    decimal TagPrice = 0);
+    decimal TagPrice = 0,
+    string? CreatedBy = null);
 
 public sealed class ErpJwBarcodeWriteService : IErpJwBarcodeWriteService
 {
@@ -81,7 +82,7 @@ public sealed class ErpJwBarcodeWriteService : IErpJwBarcodeWriteService
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `epc_jewel_barcode` (`company_id`,`stock_code`,`barcode`,`item_type`,`division`,`karat`,`gross_wt`,`net_wt`,`purity`,`tag_price`) VALUES (?, ?, ?, 'metal', ?, ?, ?, ?, ?, ?)"),
+                "INSERT INTO `epc_jewel_barcode` (`company_id`,`stock_code`,`barcode`,`item_type`,`division`,`karat`,`gross_wt`,`net_wt`,`purity`,`tag_price`,`created_by`) VALUES (?, ?, ?, 'metal', ?, ?, ?, ?, ?, ?, ?)"),
             cancellationToken,
             companyId,
             Clip(stockCode, 20),
@@ -91,7 +92,8 @@ public sealed class ErpJwBarcodeWriteService : IErpJwBarcodeWriteService
             gross,
             net,
             purity,
-            tagPrice).ConfigureAwait(false);
+            tagPrice,
+            Clip((request.CreatedBy ?? string.Empty).Trim(), 80)).ConfigureAwait(false);
 
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         if (id <= 0)

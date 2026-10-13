@@ -22,7 +22,8 @@ public sealed record ErpJwCurrencySaveRequest(
     decimal ConvRate = 1,
     decimal MinConvRate = 1,
     decimal MaxConvRate = 1,
-    string? Status = null);
+    string? Status = null,
+    string? CreatedBy = null);
 
 public sealed class ErpJwCurrencyWriteService : IErpJwCurrencyWriteService
 {
@@ -73,7 +74,7 @@ public sealed class ErpJwCurrencyWriteService : IErpJwCurrencyWriteService
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `epc_jewel_currency` (`company_id`,`curr_code`,`description`,`fraction`,`symbol`,`conv_rate`,`min_conv_rate`,`max_conv_rate`,`status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `fraction` = VALUES(`fraction`), `symbol` = VALUES(`symbol`), `conv_rate` = VALUES(`conv_rate`), `status` = VALUES(`status`)"),
+                "INSERT INTO `epc_jewel_currency` (`company_id`,`curr_code`,`description`,`fraction`,`symbol`,`conv_rate`,`min_conv_rate`,`max_conv_rate`,`status`,`created_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `fraction` = VALUES(`fraction`), `symbol` = VALUES(`symbol`), `conv_rate` = VALUES(`conv_rate`), `status` = VALUES(`status`)"),
             cancellationToken,
             companyId,
             code,
@@ -83,7 +84,8 @@ public sealed class ErpJwCurrencyWriteService : IErpJwCurrencyWriteService
             RoundNonNeg(request.ConvRate, 6),
             RoundNonNeg(request.MinConvRate, 6),
             RoundNonNeg(request.MaxConvRate, 6),
-            status).ConfigureAwait(false);
+            status,
+            Clip((request.CreatedBy ?? string.Empty).Trim(), 80)).ConfigureAwait(false);
 
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         if (id <= 0)

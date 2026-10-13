@@ -39,7 +39,8 @@ public sealed record ErpJwTagCreateRequest(
     int PurchaseId = 0,
     string? PurchaseDate = null,
     string? Location = null,
-    string? Description = null);
+    string? Description = null,
+    string? CreatedBy = null);
 
 public sealed record ErpJwTagSellRequest(
     long TagId = 0,
@@ -133,7 +134,7 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "INSERT INTO `epc_jw_tags` (`company_id`,`tag_no`,`barcode`,`item_type`,`karat`,`gross_weight`,`net_weight`,`stone_weight`,`stone_count`,`making_charges`,`making_type`,`cost_price`,`sell_price`,`margin_pct`,`design_no`,`category`,`subcategory`,`supplier_id`,`purchase_id`,`purchase_date`,`location`,`status`,`description`,`time_created`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'in_stock', ?, ?)"),
+                    "INSERT INTO `epc_jw_tags` (`company_id`,`tag_no`,`barcode`,`item_type`,`karat`,`gross_weight`,`net_weight`,`stone_weight`,`stone_count`,`making_charges`,`making_type`,`cost_price`,`sell_price`,`margin_pct`,`design_no`,`category`,`subcategory`,`supplier_id`,`purchase_id`,`purchase_date`,`location`,`status`,`description`,`created_by`,`time_created`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'in_stock', ?, ?, ?)"),
                 cancellationToken,
                 companyId,
                 tagNo,
@@ -157,6 +158,7 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
                 purchaseDate,
                 location,
                 Clip(description, 500),
+                Clip((request.CreatedBy ?? string.Empty).Trim(), 80),
                 now).ConfigureAwait(false);
 
             var id = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);

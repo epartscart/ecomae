@@ -26,7 +26,8 @@ public sealed record ErpJwRateTypeSaveRequest(
     decimal PosMarginMin = 1,
     decimal PosMarginMax = 50,
     string? Status = null,
-    bool IsDefault = false);
+    bool IsDefault = false,
+    string? CreatedBy = null);
 
 public sealed class ErpJwRateTypeWriteService : IErpJwRateTypeWriteService
 {
@@ -88,7 +89,7 @@ public sealed class ErpJwRateTypeWriteService : IErpJwRateTypeWriteService
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `epc_jewel_rate_type` (`company_id`,`metal`,`rate_type`,`conv_factor`,`conv_factor_oz`,`currency`,`curr_rate`,`rate_variance_pct`,`pos_margin_min`,`pos_margin_max`,`status`,`is_default`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `conv_factor` = VALUES(`conv_factor`), `conv_factor_oz` = VALUES(`conv_factor_oz`), `currency` = VALUES(`currency`), `curr_rate` = VALUES(`curr_rate`), `rate_variance_pct` = VALUES(`rate_variance_pct`), `pos_margin_min` = VALUES(`pos_margin_min`), `pos_margin_max` = VALUES(`pos_margin_max`), `status` = VALUES(`status`), `is_default` = VALUES(`is_default`)"),
+                "INSERT INTO `epc_jewel_rate_type` (`company_id`,`metal`,`rate_type`,`conv_factor`,`conv_factor_oz`,`currency`,`curr_rate`,`rate_variance_pct`,`pos_margin_min`,`pos_margin_max`,`status`,`is_default`,`created_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `conv_factor` = VALUES(`conv_factor`), `conv_factor_oz` = VALUES(`conv_factor_oz`), `currency` = VALUES(`currency`), `curr_rate` = VALUES(`curr_rate`), `rate_variance_pct` = VALUES(`rate_variance_pct`), `pos_margin_min` = VALUES(`pos_margin_min`), `pos_margin_max` = VALUES(`pos_margin_max`), `status` = VALUES(`status`), `is_default` = VALUES(`is_default`)"),
             cancellationToken,
             companyId,
             metal,
@@ -101,7 +102,8 @@ public sealed class ErpJwRateTypeWriteService : IErpJwRateTypeWriteService
             RoundNonNeg(request.PosMarginMin, 2),
             RoundNonNeg(request.PosMarginMax, 2),
             status,
-            request.IsDefault ? 1 : 0).ConfigureAwait(false);
+            request.IsDefault ? 1 : 0,
+            Clip((request.CreatedBy ?? string.Empty).Trim(), 80)).ConfigureAwait(false);
 
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         if (id <= 0)
