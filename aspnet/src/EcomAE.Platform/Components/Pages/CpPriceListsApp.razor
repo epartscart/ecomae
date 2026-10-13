@@ -18,14 +18,13 @@
             <div class="panel-heading hbuilt">
                 Price lists
                 <a class="btn btn-xs btn-default pull-right" href="/cp/auto-price-app">Auto-price</a>
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
                 <div class="alert alert-info" style="margin-bottom:.75rem">
                     <strong>Price Management</strong> (PHP shop/pricing twin: supplier / profile / brand / article margins, guest margin, VAT, customer assignment, live calculator) lives at
                     <a class="btn btn-sm btn-primary" href="/cp/price-management-app" style="margin-left:.4rem"><i class="fa fa-percent"></i> Open Price Management</a>
                 </div>
-                <p>Save or delete a supplier margin rule (overall, brand, or article). Price CSV import stays on the Classic twin.</p>
+                <p>Save or delete a supplier margin rule (overall, brand, or article). Price CSV import is not available on this page.</p>
             </div>
         </div>
     </div>
@@ -106,7 +105,7 @@
                         <dt>Priority</dt><dd>@_opened.Priority.ToString(CultureInfo.InvariantCulture)</dd>
                         <dt>Active</dt><dd>@(_opened.Active ? "yes" : "no")</dd>
                     </dl>
-                    <p class="text-muted" style="margin:.85rem 0 0">Price CSV import stays on the Classic twin. stored_relpath omitted.</p>
+                    <p class="text-muted" style="margin:.85rem 0 0">Price CSV import is not available on this page. stored_relpath omitted.</p>
                     @if (!string.IsNullOrWhiteSpace(_opened.StatsExcerpt))
                     {
                         <p class="text-muted" style="margin:.85rem 0 .35rem">stats excerpt</p>

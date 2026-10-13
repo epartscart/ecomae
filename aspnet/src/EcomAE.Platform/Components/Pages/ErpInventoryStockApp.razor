@@ -19,7 +19,7 @@
 
 
     
-    <PhpErpModulePageHeader Title="Inventory Stock" Subtitle="Create warehouse/item, sync from shop storages, set reorder, record movement, transfer, run a closing snapshot, import csv_text, or save dimension links. File CSV upload stays Classic." />
+    <PhpErpModulePageHeader Title="Inventory Stock" Subtitle="Create warehouse/item, sync from shop storages, set reorder, record movement, transfer, run a closing snapshot, import csv_text, or save dimension links. File CSV upload is not available on this page." />
     <PhpErpD365ActionPane RefreshHref="/erp/inventory-stock-app" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -257,7 +257,7 @@
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_summary.Source. Showing @_stock.Count.ToString(CultureInfo.InvariantCulture) of @_summary.RowCount.ToString(CultureInfo.InvariantCulture) rows;
         @_lowStock.Count.ToString(CultureInfo.InvariantCulture) low-stock alerts.
-        Movements, transfers, closing, and csv_text import stay on ERP ajax. File CSV upload stays Classic.
+        Movements, transfers, closing, and csv_text import stay on ERP ajax. File CSV upload is not available on this page.
         @if (!string.IsNullOrWhiteSpace(_summary.Message)) { <span> @_summary.Message</span> }
     </div>
     <script src="/erp/erp-inventory-stock.js" defer></script>

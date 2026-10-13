@@ -17,11 +17,10 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Marketplace apps
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/marketplace-apps-app")</p>
-                <p>Open an app for a short description excerpt, installs, and review titles. Install, uninstall, or add a review here. Config and seed stay on the Classic twin. This page does not invent a send.</p>
+                <p>Open an app for a short description excerpt, installs, and review titles. Install, uninstall, or add a review here. Config and seed are not available on this page. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -66,7 +65,7 @@
                         <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedApp.DescriptionExcerpt</pre>
                         @if (_openedApp.DescriptionLen > _openedApp.DescriptionExcerpt.Length)
                         {
-                            <p class="text-muted">Excerpt only (@_openedApp.DescriptionExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedApp.DescriptionLen.ToString(CultureInfo.InvariantCulture) chars). Full description and config stay on the Classic twin.</p>
+                            <p class="text-muted">Excerpt only (@_openedApp.DescriptionExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedApp.DescriptionLen.ToString(CultureInfo.InvariantCulture) chars). Full description and config are not available on this page.</p>
                         }
                     }
                     else
@@ -100,7 +99,7 @@
                             </div>
                             <button type="submit" class="btn btn-default">Uninstall</button>
                         </form>
-                        <p class="help-block" style="margin:.75rem 0 0">Config and seed stay Classic.</p>
+                        <p class="help-block" style="margin:.75rem 0 0">Config and seed are not available on this page.</p>
                     }
                 </div>
             </div>

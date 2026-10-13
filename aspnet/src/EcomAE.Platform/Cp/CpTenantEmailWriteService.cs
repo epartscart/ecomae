@@ -103,7 +103,7 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
                 cancellationToken).ConfigureAwait(false);
             if (id <= 0)
             {
-                return ErpSimpleWriteResult.Fail("missing", "Site settings row is missing. Schema ensure stays on the Classic twin.");
+                return ErpSimpleWriteResult.Fail("missing", "Site settings row is missing. Schema ensure is not available on this page.");
             }
 
             var raw = await ErpDb.StringAsync(
@@ -200,7 +200,7 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
             {
                 return ErpSimpleWriteResult.Fail(
                     "disabled",
-                    "Use tenant SMTP is off. Enable and save it here, or send from the Classic twin (platform default).");
+                    "Use tenant SMTP is off. Enable and save it here, or send with the platform default.");
             }
 
             var host = smtp.TryGetProperty("smtp_host", out var hostEl) ? hostEl.GetString() ?? string.Empty : string.Empty;

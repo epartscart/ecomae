@@ -98,7 +98,7 @@
                 RelatedDocuments="@PurchaseOrderRelatedDocuments"
                 HeaderActions="@PurchaseOrderHeaderActions" />
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
-            <p class="text-muted" style="margin:.85rem 0 0">The workspace is backed by the persisted purchase-order read model. Barcode purchase schema-ensure remains Classic-owned; purchase-order lifecycle actions use the guarded ERP routes shown in the action pane and list.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">The workspace is backed by the persisted purchase-order read model. Barcode purchase schema-ensure is not available on this page; purchase-order lifecycle actions use the guarded ERP routes shown in the action pane and list.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
@@ -306,7 +306,7 @@
     @if (_barcodePurchase)
     {
         <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-            Barcode purchase create and sell are live when confirmed. Schema-ensure stays Classic.
+            Barcode purchase create and sell are live when confirmed. Schema-ensure is not available on this page.
         </div>
     }
 

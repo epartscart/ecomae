@@ -19,7 +19,7 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Product information" Subtitle="Open an item for track-expiry and same-type siblings. Field Open loads the 280-character options excerpt. Variant Open loads the 280-character combo excerpt. Create item writes here. Dimension-link save stays Classic." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Product information" Subtitle="Open an item for track-expiry and same-type siblings. Field Open loads the 280-character options excerpt. Variant Open loads the 280-character combo excerpt. Create item writes here. Dimension-link save is not available on this page." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
@@ -71,7 +71,7 @@
                 <dt>Status</dt><dd>@(_openedItem.Active ? "active" : "inactive")</dd>
                 <dt>Created</dt><dd>@FormatTime(_openedItem.TimeCreated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Create item writes here. Dimension-link save stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Create item writes here. Dimension-link save is not available on this page.</p>
             @if (_openedItemPim.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">PIM attributes</p>
@@ -117,7 +117,7 @@
                 <dt>Role</dt><dd>@(string.IsNullOrWhiteSpace(_openedField.FieldRole) ? "—" : _openedField.FieldRole)</dd>
                 <dt>Status</dt><dd>@(_openedField.Active ? "active" : "inactive")</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Create item writes here. Dimension-link save stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Create item writes here. Dimension-link save is not available on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_openedField.OptionsExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">options excerpt</p>
@@ -172,7 +172,7 @@
                 <dt>Status</dt><dd>@(_openedVariant.Active ? "active" : "inactive")</dd>
                 <dt>Created</dt><dd>@FormatTime(_openedVariant.TimeCreated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Create item writes here. Dimension-link save stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Create item writes here. Dimension-link save is not available on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_openedVariant.ComboExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">combo excerpt</p>
@@ -404,7 +404,7 @@
     }
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Create item writes <code>epc_erp_inv_items</code> when confirmWrites is set. Dimension-link save stays Classic.
+        Source: @_source. Create item writes <code>epc_erp_inv_items</code> when confirmWrites is set. Dimension-link save is not available on this page.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

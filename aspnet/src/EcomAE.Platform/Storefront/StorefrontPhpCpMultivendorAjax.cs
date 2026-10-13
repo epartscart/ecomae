@@ -10,7 +10,7 @@ namespace EcomAE.Platform.Storefront;
 
 public static partial class StorefrontPhpAjax
 {
-    public const string MultivendorFileStaysClassic = "File ingest stays on the classic importer.";
+    public const string MultivendorFileStaysClassic = "File ingest is not available on this page.";
     public const string MultivendorChooseFile = "Choose an Excel/CSV file with multiple vendors";
 
     /// <summary>PHP <c>epc_multivendor_sample_csv</c> via <c>fputcsv</c>.</summary>

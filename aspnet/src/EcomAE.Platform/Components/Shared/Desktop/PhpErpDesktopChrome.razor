@@ -139,11 +139,6 @@
                 {
                     <a href="/cp">Control panel</a>
                 }
-                <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/")" target="_blank" rel="noopener">Classic ERP</a>
-                @if (_showControlPanel)
-                {
-                    <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/")" target="_blank" rel="noopener">Classic CP</a>
-                }
                 @if (_showBos && !_clientErp)
                 {
                     <a href="/erp/super-mail-app">Mail</a>
@@ -275,7 +270,7 @@
                     else if (!IsAdmin)
                     {
                         <div class="epc-erp-guest-banner alert alert-info" role="status" style="margin:0 0 12px;padding:8px 10px;">
-                            Session lacks <code>erp</code> capability for live digests. Interactive writes remain on the Classic module.
+                            Session lacks <code>erp</code> capability for live digests. Interactive writes stay on the ERP workspace.
                         </div>
                     }
                     @if (!IsDashboardHome)

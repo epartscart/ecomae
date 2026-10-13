@@ -22,8 +22,8 @@ public static partial class StorefrontPhpAjax
     public const string PacksPrepareSetupPath = "/cp/content/packs_control/ajax_prepare_setup.php";
     public const string PacksProcessingFilesPath = "/cp/content/packs_control/ajax_processing_files.php";
 
-    public const string VersionControlStaysClassic = "CMS self-update stays Classic. ASP.NET releases ship through the deploy pipeline.";
-    public const string PackInstallStaysClassic = "Pack install stays Classic. ASP.NET releases ship through the deploy pipeline.";
+    public const string VersionControlStaysClassic = "CMS self-update is not available on this page. ASP.NET releases ship through the deploy pipeline.";
+    public const string PackInstallStaysClassic = "Pack install is not available on this page. ASP.NET releases ship through the deploy pipeline.";
 
     public static readonly IReadOnlyList<string> VersionControlPaths = [VersionClearUpdatesPath, VersionGetUpdatePackPath, VersionQueryServerPath];
 

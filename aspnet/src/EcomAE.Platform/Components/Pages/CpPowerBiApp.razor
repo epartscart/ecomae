@@ -19,7 +19,6 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 <i class="fa fa-bar-chart"></i> Power BI
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>Connect Microsoft Power BI to live tenant ERP/commerce data via API key — no Azure AD required for Desktop refresh. Secure embed tokens wait until you supply Azure credentials.</p>
@@ -310,7 +309,7 @@
                             <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedConfig.NotesExcerpt</pre>
                             @if (_openedConfig.NotesLen > _openedConfig.NotesExcerpt.Length)
                             {
-                                <p class="text-muted">Excerpt only (@_openedConfig.NotesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedConfig.NotesLen.ToString(CultureInfo.InvariantCulture) chars). Full notes and embed stay on the Classic twin.</p>
+                                <p class="text-muted">Excerpt only (@_openedConfig.NotesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedConfig.NotesLen.ToString(CultureInfo.InvariantCulture) chars). Full notes and embed are not available on this page.</p>
                             }
                         }
                         else

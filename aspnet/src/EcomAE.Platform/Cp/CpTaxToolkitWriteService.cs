@@ -228,7 +228,7 @@ public sealed class CpTaxToolkitWriteService : ICpTaxToolkitWriteService
         {
             return CpTaxToolkitWriteResult.Fail(
                 "invalid",
-                "Tax kit not found: " + kitCode + " — worldwide seed stays on the Classic twin.");
+                "Tax kit not found: " + kitCode + " — worldwide seed is not available on this page.");
         }
 
         var writes = 0;

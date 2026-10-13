@@ -34,8 +34,8 @@ public sealed class CpDesignTokensWriteTests
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"save\"", razor, StringComparison.Ordinal);
         Assert.Contains("backend contracts, permissions, routes", razor, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
-        Assert.Contains("stays Classic", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("stays Classic", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);

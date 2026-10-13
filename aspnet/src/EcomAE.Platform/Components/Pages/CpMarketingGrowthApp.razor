@@ -16,11 +16,10 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Marketing growth
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/marketing-growth-app")</p>
-                <p>Save a review, mark a task done, or record a KPI here. Schema-ensure stays Classic. This page does not invent a send.</p>
+                <p>Save a review, mark a task done, or record a KPI here. Schema-ensure is not available on this page. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -61,7 +60,7 @@
                         <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedReview.NotesExcerpt</pre>
                         @if (_openedReview.NotesLen > _openedReview.NotesExcerpt.Length)
                         {
-                            <p class="text-muted">Excerpt only (@_openedReview.NotesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedReview.NotesLen.ToString(CultureInfo.InvariantCulture) chars). Full notes stay on the Classic twin.</p>
+                            <p class="text-muted">Excerpt only (@_openedReview.NotesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedReview.NotesLen.ToString(CultureInfo.InvariantCulture) chars). Full notes are not available on this page.</p>
                         }
                     }
                     else

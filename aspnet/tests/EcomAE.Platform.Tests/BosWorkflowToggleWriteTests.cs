@@ -33,7 +33,7 @@ public sealed class BosWorkflowToggleWriteTests
         Assert.Contains("name=\"workflow_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"active\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
-        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("stay Classic", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", razor, StringComparison.Ordinal);

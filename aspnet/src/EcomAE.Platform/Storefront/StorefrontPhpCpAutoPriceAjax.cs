@@ -15,9 +15,9 @@ public static partial class StorefrontPhpAjax
 {
     public const string CpAutoPricePath = "/cp/content/control/portal/ajax_auto_price.php";
     public const string AutoPriceAdminRequired = "Admin login required";
-    public const string AutoPriceTenantStaysClassic = "Auto price writes for another tenant database stay Classic.";
-    public const string AutoPriceLoginStaysClassic = "Discovery sources with a login or a product-line scope stay Classic.";
-    public const string AutoPriceActionStaysClassic = "Auto price action stays Classic: ";
+    public const string AutoPriceTenantStaysClassic = "Auto price writes for another tenant database are not available on this page.";
+    public const string AutoPriceLoginStaysClassic = "Discovery sources with a login or a product-line scope are not available on this page.";
+    public const string AutoPriceActionStaysClassic = "Auto price action is not available on this page: ";
 
     private static readonly Regex AutoPriceHostSuffix = new(@"\.[a-z0-9.-]+$", RegexOptions.CultureInvariant | RegexOptions.Compiled);
     private static readonly Regex AutoPriceSiteKeyUnsafe = new("[^a-z0-9_]", RegexOptions.CultureInvariant | RegexOptions.Compiled);

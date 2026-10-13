@@ -20,16 +20,15 @@
                 <a class="btn btn-xs btn-default pull-right" href="/sitemap.xml" target="_blank" rel="noopener">Sitemap.xml</a>
                 <a class="btn btn-xs btn-default pull-right" href="/cp/sitemap-app" style="margin-right:.4rem">Sitemap app</a>
                 <a class="btn btn-xs btn-default pull-right" href="/en/parts/JS%20ASAKASHI/C110J" target="_blank" rel="noopener" style="margin-right:.4rem">Probe CHPU SEO</a>
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
                 @* Operator note: ASP.NET-primary storefront SEO mirrors PHP epc_seo_indexing. *@
                 <p>
-                    Storefront SEO mirrors the Classic <code>epc_seo_indexing</code> rules:
+                    Storefront SEO mirrors the storefront indexing rules:
                     CHPU part pages emit Part-number titles, regional descriptions, Product JSON-LD, and stock-aware robots.
                     Content KPIs below come from the shop <code>content</code> table (same source as CP Content editor).
                 </p>
-                <p>Live SEO status: home uses body-stream canonical/OG/hreflang/JSON-LD; CHPU uses the Classic <em>Part number</em> title + description; no product <code>.php</code> URLs in canonicals. Source: <code>@_source</code>@if (!string.IsNullOrWhiteSpace(_message)) { <text> — @_message</text> }</p>
+                <p>Live SEO status: home uses body-stream canonical/OG/hreflang/JSON-LD; CHPU uses the <em>Part number</em> title + description; product URLs stay on the storefront routes. Source: <code>@_source</code>@if (!string.IsNullOrWhiteSpace(_message)) { <text> — @_message</text> }</p>
             </div>
         </div>
     </div>
@@ -81,7 +80,7 @@
                                 }
                                 else
                                 {
-                                    <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">PHP ops</a>
+                                    <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">SEO ops</a>
                                 }
                             </td>
                     </tr>
@@ -91,9 +90,9 @@
                     </table>
                 </div>
                 <p class="help-block">
-                    Edit per-page <code>title_tag</code> / <code>description_tag</code> / <code>robots_tag</code> in CP Content. CMS writes stay on the Classic twin.
-                    Warehouse CHPU SEO is generated from stock + article data (same rules as <code>epc_seo_indexing.php</code>).
-                    Sitemap warm/ping stay on Classic cron until workers leave dry-run.
+                    Edit per-page <code>title_tag</code> / <code>description_tag</code> / <code>robots_tag</code> in CP Content. CMS writes are not available on this page.
+                    Warehouse CHPU SEO is generated from stock + article data using the storefront indexing rules.
+                    Sitemap warm/ping stay on scheduled workers until they leave dry-run.
                 </p>
             </div>
         </div>

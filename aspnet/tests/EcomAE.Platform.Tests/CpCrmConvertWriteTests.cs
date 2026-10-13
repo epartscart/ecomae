@@ -24,7 +24,7 @@ public sealed class CpCrmConvertWriteTests
         Assert.Contains("value=\"convert_lead\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"lead_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"csrf_guard_key\"", razor, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", razor, StringComparison.Ordinal);
         Assert.Contains("epc-crm-convert-form", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);

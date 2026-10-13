@@ -17,11 +17,10 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 NL Reporting
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/nl-reporting-app")</p>
-                <p>Open a definition for a short query excerpt and run history. Save metadata or deactivate a definition here. Query template, recipients, and generate stay on the Classic twin. This page does not invent a send.</p>
+                <p>Open a definition for a short query excerpt and run history. Save metadata or deactivate a definition here. Query template, recipients, and generate are not available on this page. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -83,7 +82,7 @@
                         </div>
                         <button type="submit" class="btn btn-default">Save definition</button>
                     </form>
-                    <p class="help-block" style="margin:.75rem 0 0">Query template stay Classic.</p>
+                    <p class="help-block" style="margin:.75rem 0 0">Query template are not available on this page.</p>
                 </div>
             </div>
         </div>
@@ -119,7 +118,7 @@
                         <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedDef.QueryExcerpt</pre>
                         @if (_openedDef.QueryLen > _openedDef.QueryExcerpt.Length)
                         {
-                            <p class="text-muted">Excerpt only (@_openedDef.QueryExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedDef.QueryLen.ToString(CultureInfo.InvariantCulture) chars). Full query and recipients stay on the Classic twin.</p>
+                            <p class="text-muted">Excerpt only (@_openedDef.QueryExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedDef.QueryLen.ToString(CultureInfo.InvariantCulture) chars). Full query and recipients are not available on this page.</p>
                         }
                     }
                     else
@@ -203,7 +202,7 @@
                             <input type="hidden" name="id" value="@_openedDef.Id.ToString(CultureInfo.InvariantCulture)" />
                             <button type="submit" class="btn btn-default">Deactivate</button>
                         </form>
-                        <p class="help-block" style="margin:.75rem 0 0">Query template, recipients, and generate stay Classic.</p>
+                        <p class="help-block" style="margin:.75rem 0 0">Query template, recipients, and generate are not available on this page.</p>
                     }
                 </div>
             </div>

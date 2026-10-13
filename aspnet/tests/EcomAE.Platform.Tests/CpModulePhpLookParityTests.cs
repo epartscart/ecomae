@@ -55,7 +55,7 @@ public sealed class CpModulePhpLookParityTests
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpModulePageHeader.razor"));
         Assert.Contains("epc-scp-panel__hero", text, StringComparison.Ordinal);
         Assert.Contains("epc-scp-dashboard__title", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref", text, StringComparison.Ordinal);
         Assert.DoesNotContain("linear-gradient", text, StringComparison.Ordinal);
     }
 
@@ -66,10 +66,10 @@ public sealed class CpModulePhpLookParityTests
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpDesktopChrome.razor"));
         Assert.Contains("epc-cp-topbar-cta__glyph", text, StringComparison.Ordinal);
         Assert.Contains("epc-cp-topbar-cta__label", text, StringComparison.Ordinal);
-        Assert.Contains("Classic CP", text, StringComparison.Ordinal);
-        Assert.Contains("Classic ERP", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(\"/CP/\")", text, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(\"/ERP/\")", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic CP", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic ERP", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(\"/CP/\")", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(\"/ERP/\")", text, StringComparison.Ordinal);
         Assert.Contains("epc-cp-bos-host", text, StringComparison.Ordinal);
         Assert.Contains("epc-boc-mode", text, StringComparison.Ordinal);
         Assert.Contains("Quick destinations", text, StringComparison.Ordinal);

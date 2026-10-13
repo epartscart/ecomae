@@ -30,7 +30,7 @@ public sealed class CpBulkUploadReviewWriteTests
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"mark_reviewed\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"upload_id\"", razor, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);

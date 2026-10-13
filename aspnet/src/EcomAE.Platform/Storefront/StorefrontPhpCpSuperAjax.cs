@@ -10,8 +10,8 @@ namespace EcomAE.Platform.Storefront;
 
 public static partial class StorefrontPhpAjax
 {
-    public const string GovernanceRulesMissing = "Governance-rules table is missing — schema-ensure stays Classic.";
-    public const string FreeToolsUsageMissing = "Free-tools usage tables are missing — schema-ensure stays Classic.";
+    public const string GovernanceRulesMissing = "Governance-rules table is missing — schema-ensure is not available on this page.";
+    public const string FreeToolsUsageMissing = "Free-tools usage tables are missing — schema-ensure is not available on this page.";
     public const string GovernanceDbError = "DB error";
     public const string FreeToolsDbError = "Database connection failed";
 

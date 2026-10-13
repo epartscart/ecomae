@@ -10,9 +10,9 @@ namespace EcomAE.Platform.Storefront;
 
 public static partial class StorefrontPhpAjax
 {
-    public const string CrossSearchStaysClassic = "Cross search stays on the classic lookup.";
-    public const string CrossCatalogStaysClassic = "Full catalog import stays on the classic lookup.";
-    public const string CrossRepairStaysClassic = "Empty-brand repair stays on the classic cross helper.";
+    public const string CrossSearchStaysClassic = "Cross search is not available on this page.";
+    public const string CrossCatalogStaysClassic = "Full catalog import is not available on this page.";
+    public const string CrossRepairStaysClassic = "Empty-brand repair is not available on this page.";
 
     public static async Task<object> CrossCpAsync(
         DbConnection connection,

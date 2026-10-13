@@ -23,7 +23,7 @@ public sealed class BosNotificationDismissWriteTests
         Assert.Contains("name=\"notification_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"tenant_key\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
-        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("stay Classic", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", razor, StringComparison.Ordinal);

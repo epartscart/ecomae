@@ -36,7 +36,7 @@ public sealed class CpAbandonedCartsWriteTests
         }
 
         Assert.Contains("epc-details-row", razor, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpAbandonedCartsDigestAsync", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("stay Classic", razor, StringComparison.Ordinal);

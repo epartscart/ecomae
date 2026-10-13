@@ -23,7 +23,7 @@ public sealed class BosFulfillmentPickWriteTests
         Assert.Contains("name=\"item_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"qty_picked\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
-        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("stay Classic", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", razor, StringComparison.Ordinal);

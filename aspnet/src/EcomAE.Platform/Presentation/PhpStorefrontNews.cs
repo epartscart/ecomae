@@ -50,7 +50,7 @@ public static class PhpStorefrontNews
             "2026-02-18"),
         new("novosti/ucats-tires-wheels", "Tires and wheels catalogs",
             "Size pickers for tires, wheels, oil, and batteries are on the service catalogs hub.",
-            "Open the Epart service catalogs, pick a size or vehicle field, then search live stock. Deep UCats trees remain on the classic pickers.",
+            "Open the Epart service catalogs, pick a size or vehicle field, then search live stock. Deep UCats trees remain on the catalog pickers.",
             "2026-01-22"),
     ];
 

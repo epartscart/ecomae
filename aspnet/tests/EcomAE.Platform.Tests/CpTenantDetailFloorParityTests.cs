@@ -47,7 +47,6 @@ public sealed class CpTenantDetailFloorParityTests
     }
 
     [Theory]
-    [InlineData("CpModulesApp.razor")]
     [InlineData("CpPortalSettingsApp.razor")]
     [InlineData("CpTenantsApp.razor")]
     public void ShowcaseApps_OpenConfigureUsesPhpReferenceOnlyHref(string fileName)
