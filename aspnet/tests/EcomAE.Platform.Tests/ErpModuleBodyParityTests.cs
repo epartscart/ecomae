@@ -140,7 +140,7 @@ public sealed class ErpModuleBodyParityTests
     [Theory]
     [InlineData("/ERP/?epc_erp_shell=1&area=ap", "/erp/payables-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=ar", "/erp/receivables-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=purchasing", "/erp/purchase-orders-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=purchasing", "/erp/procurement-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales", "/erp/sales-orders-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/gl-journals-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax", "/erp/vat-app")]

@@ -80,7 +80,7 @@ public static class ErpPhpTabRouteMap
         ["ecommerce_integration"] = "/erp/integrations-app",
         ["einvoice"] = "/erp/einvoice-documents-app",
         ["elec_reporting"] = "/erp/electronic-reporting-app",
-        ["enterprise_reports"] = "/erp/report-center-app?tab=enterprise_reports",
+        ["enterprise_reports"] = "/erp/trial-balance-app",
         ["erp_setup"] = "/erp/tenant-config-app?tab=erp_setup",
         ["exec_dashboard"] = "/erp",
         ["expense_reports"] = "/erp/expense-reports-app",
@@ -144,7 +144,7 @@ public static class ErpPhpTabRouteMap
         ["jw_stock_balance"] = "/erp/jewellery-stock-verification-app?tab=jw_stock_balance",
         ["jw_stock_verification"] = "/erp/jewellery-stock-verification-app?tab=jw_stock_verification",
         ["jw_tourist_vat"] = "/erp/jewellery-retail-app?tab=jw_tourist_vat",
-        ["jw_trial_balance"] = "/erp/report-center-app?tab=jw_trial_balance",
+        ["jw_trial_balance"] = "/erp/trial-balance-app",
         ["jw_workshop_receive"] = "/erp/jewellery-repairs-app?tab=jw_workshop_receive",
         ["knowledge"] = "/erp/guide-app",
         ["knowledge_base"] = "/erp/guide-app",
@@ -270,12 +270,13 @@ public static class ErpPhpTabRouteMap
         href = string.Empty;
         if (string.IsNullOrWhiteSpace(tab)) return false;
         var key = tab.Trim();
-        if (!TabRoutes.TryGetValue(key, out var mapped) || string.IsNullOrWhiteSpace(mapped))
+        if (TabRoutes.TryGetValue(key, out var mapped) && !string.IsNullOrWhiteSpace(mapped))
         {
-            return false;
+            href = mapped;
+            return true;
         }
-        href = mapped;
-        return true;
+
+        return ErpD365Part3Catalog.TryMapTab(key, out href);
     }
 
     public static string MapTabOrModuleApp(string? tab)

@@ -14,7 +14,7 @@ public static partial class PhpModuleCatalog
             .ToList();
 
     /// <summary>ERP tabs that exist only on ASP.NET (owner-accepted enhancements), shown in the top nav after the PHP tabs of their area.</summary>
-    public static readonly IReadOnlyList<ModuleLink> AspNetErpTabs =
+    private static readonly IReadOnlyList<ModuleLink> CoreAspNetErpTabs =
     [
         new("inventory_mgmt/syncron", "Inventory policy (Syncron)", "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=syncron", "fa-sliders", "inventory_mgmt",
             "Safety stock, reorder points, demand forecast and service levels", false, false, "Periodic"),
@@ -67,6 +67,9 @@ public static partial class PhpModuleCatalog
         new("projects/real_estate_projects", "Development and construction", "/erp/real-estate-app?tab=projects", "fa-hard-hat", "projects",
             "Development projects, unit sales and contractor certificates", false, false, "Periodic"),
     ];
+
+    public static readonly IReadOnlyList<ModuleLink> AspNetErpTabs =
+        CoreAspNetErpTabs.Concat(ErpD365Part3Catalog.AsModuleLinks()).ToList();
 
     public static int TotalTrackedCount =>
         ErpCategoryCount

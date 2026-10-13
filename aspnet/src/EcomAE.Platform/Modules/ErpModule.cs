@@ -423,6 +423,10 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationAsk, HandleUaeTaxLegislationAskAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationRegen, HandleUaeTaxLegislationRegenAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationChecklistSet, HandleUaeTaxLegislationChecklistSetAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365WorkspaceSave, HandleD365WorkspaceSaveAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpTrialBalance, HandleTrialBalanceDigestAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpTrialBalanceExport, HandleTrialBalanceExportAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpTrialBalanceSnapshot, HandleTrialBalanceSnapshotAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPmSave, HandlePmSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRealEstateSave, HandleRealEstateSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpRealEstateReport, HandleRealEstateReportAsync);
@@ -24203,6 +24207,274 @@ public sealed class ErpModule : ISurfaceModule
                 impl_status = written.ImplStatus,
                 impl_pending = written.ImplPending,
                 impl_done = written.ImplDone,
+                session = SessionPayload(session),
+            });
+    }
+
+    private static ErpTrialBalanceParameters TrialBalanceParametersFrom(HttpRequest request)
+    {
+        string Get(string key)
+            => request.HasFormContentType ? request.Form[key].ToString() : request.Query[key].ToString();
+
+        return ErpTrialBalanceParameters.FromQuery(
+            Get("from"),
+            Get("to"),
+            Get("layer"),
+            Get("opening"),
+            Get("include_closing"),
+            Get("include_closing_adj"),
+            Get("dimension_set"),
+            Get("separate_dims"),
+            Get("account"),
+            Get("limit"),
+            Get("interval"),
+            string.IsNullOrWhiteSpace(Get("q")) ? Get("filter") : Get("q"));
+    }
+
+    private static async Task<IResult> HandleTrialBalanceDigestAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTrialBalanceReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required for trial-balance readback.");
+        }
+
+        var parameters = TrialBalanceParametersFrom(context.Request);
+        var result = await read.ReadAsync(parameters, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = true,
+            surface = "erp",
+            from = parameters.FromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            to = parameters.ToDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            interval = parameters.Interval,
+            postingLayer = ErpTrialBalanceParameters.LayerKey(parameters.PostingLayer),
+            openingDisplay = ErpTrialBalanceParameters.OpeningKey(parameters.OpeningDisplay),
+            includeClosingTransactions = parameters.IncludeClosingTransactions,
+            includeClosingAdjustments = parameters.IncludeClosingAdjustments,
+            dimensionSet = ErpTrialBalanceParameters.DimensionKey(parameters.DimensionSet),
+            separateDimensionColumns = parameters.SeparateDimensionColumns,
+            filter = parameters.Filter,
+            lines = result.Lines,
+            vouchers = result.Vouchers,
+            snapshots = result.Snapshots,
+            openingTotal = result.OpeningTotal,
+            debitTotal = result.DebitTotal,
+            creditTotal = result.CreditTotal,
+            amountTotal = result.DebitTotal - result.CreditTotal,
+            closingTotal = result.ClosingTotal,
+            count = result.Lines.Count,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Dynamics-style trial balance. Click an account on /erp/trial-balance-app to drill to voucher transactions.",
+        });
+    }
+
+    private static async Task<IResult> HandleTrialBalanceExportAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTrialBalanceReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/trial-balance-app", "Admin ERP capability required for trial-balance export.");
+        }
+
+        var parameters = TrialBalanceParametersFrom(context.Request);
+        var result = await read.ReadAsync(parameters, cancellationToken);
+        var csv = new System.Text.StringBuilder();
+        csv.AppendLine("MainAccount,Name,Type,Company,Opening,Debit,Credit,Amount,Closing,Posting layer");
+        foreach (var line in result.Lines)
+        {
+            csv.Append(Csv(line.Code)).Append(',')
+                .Append(Csv(line.Name)).Append(',')
+                .Append(Csv(line.AccountType)).Append(',')
+                .Append(Csv(line.Company)).Append(',')
+                .Append(line.Opening.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+                .Append(line.Debit.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+                .Append(line.Credit.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+                .Append(line.Amount.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+                .Append(line.Closing.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+                .Append(Csv(ErpTrialBalanceParameters.LayerLabel(parameters.PostingLayer))).AppendLine();
+        }
+
+        csv.Append("Total,,,,").Append(result.OpeningTotal.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+            .Append(result.DebitTotal.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+            .Append(result.CreditTotal.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+            .Append((result.DebitTotal - result.CreditTotal).ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+            .Append(result.ClosingTotal.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+            .AppendLine();
+        return Results.File(
+            System.Text.Encoding.UTF8.GetBytes(csv.ToString()),
+            "text/csv",
+            "trial-balance-" + parameters.FromDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture)
+                + "-" + parameters.ToDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + ".csv");
+    }
+
+    private static string Csv(string? value)
+    {
+        var text = value ?? string.Empty;
+        return text.Contains(',') || text.Contains('"') || text.Contains('\n')
+            ? "\"" + text.Replace("\"", "\"\"", StringComparison.Ordinal) + "\""
+            : text;
+    }
+
+    private static async Task<IResult> HandleTrialBalanceSnapshotAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTrialBalanceDryRun dryRun,
+        IErpTrialBalanceWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/trial-balance-app",
+                "Admin ERP capability required for trial-balance snapshot.");
+        }
+
+        var from = "";
+        var to = "";
+        var layer = "";
+        var opening = "";
+        var includeClosing = "";
+        var includeClosingAdj = "";
+        var dimensionSet = "";
+        var separateDims = "";
+        var trackingId = "";
+        var confirm = false;
+        var returnUrl = "/erp/trial-balance-app";
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            from = LiveWriteFormBinder.Text(form, "from");
+            to = LiveWriteFormBinder.Text(form, "to");
+            layer = LiveWriteFormBinder.Text(form, "layer");
+            opening = LiveWriteFormBinder.Text(form, "opening");
+            includeClosing = LiveWriteFormBinder.Text(form, "include_closing");
+            includeClosingAdj = LiveWriteFormBinder.Text(form, "include_closing_adj");
+            dimensionSet = LiveWriteFormBinder.Text(form, "dimension_set");
+            separateDims = LiveWriteFormBinder.Text(form, "separate_dims");
+            trackingId = LiveWriteFormBinder.Text(form, "tracking_id", "trackingId");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+        }
+
+        var request = new ErpTrialBalanceSnapshotRequest(
+            from, to, layer, opening, includeClosing, includeClosingAdj, dimensionSet, separateDims, trackingId, session.UserId);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(request, false).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveSnapshotAsync(request, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            string.IsNullOrWhiteSpace(returnUrl) ? "/erp/trial-balance-app" : returnUrl,
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                status = written.Succeeded,
+                id = written.Id,
+                session = SessionPayload(session),
+            });
+    }
+
+    private static async Task<IResult> HandleD365WorkspaceSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpD365WorkspaceDryRun dryRun,
+        IErpD365WorkspaceWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/leave-absence-app",
+                "Admin ERP capability required for workspace save.");
+        }
+
+        var area = "";
+        var tab = "";
+        var code = "";
+        var name = "";
+        var worker = "";
+        var party = "";
+        var kind = "";
+        var status = "";
+        var period = "";
+        var dateFrom = "";
+        var dateTo = "";
+        var extra = "";
+        var note = "";
+        var qty = 0m;
+        var amount = 0m;
+        var confirm = false;
+        var returnUrl = "/erp/leave-absence-app";
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            area = LiveWriteFormBinder.Text(form, "area");
+            tab = LiveWriteFormBinder.Text(form, "tab");
+            code = LiveWriteFormBinder.Text(form, "code");
+            name = LiveWriteFormBinder.Text(form, "name");
+            worker = LiveWriteFormBinder.Text(form, "worker");
+            party = LiveWriteFormBinder.Text(form, "party");
+            kind = LiveWriteFormBinder.Text(form, "kind");
+            status = LiveWriteFormBinder.Text(form, "status");
+            period = LiveWriteFormBinder.Text(form, "period");
+            dateFrom = LiveWriteFormBinder.Text(form, "date_from", "dateFrom");
+            dateTo = LiveWriteFormBinder.Text(form, "date_to", "dateTo");
+            extra = LiveWriteFormBinder.Text(form, "extra");
+            note = LiveWriteFormBinder.Text(form, "note");
+            qty = LiveWriteFormBinder.Dec(form, "qty");
+            amount = LiveWriteFormBinder.Dec(form, "amount");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+        }
+
+        var request = new ErpD365WorkspaceWriteRequest(
+            area, tab, code, name, worker, party, kind, status, period, dateFrom, dateTo, qty, amount, extra, note, session.UserId);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(request, false).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(request, cancellationToken);
+        var fallback = ErpD365Part3Catalog.TryGet(tab, out var page)
+            ? page.AppPath + "?tab=" + page.Tab
+            : "/erp/leave-absence-app";
+        return LiveWriteFormBinder.Complete(
+            context,
+            string.IsNullOrWhiteSpace(returnUrl) ? fallback : returnUrl,
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                status = written.Succeeded,
+                id = written.Id,
                 session = SessionPayload(session),
             });
     }
