@@ -61,10 +61,11 @@ public sealed class ErpUaeTaxLegislationRegenWriteService : IErpUaeTaxLegislatio
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpUaeTaxComplianceSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ErpUaeTaxLegislationLibrary.ColumnExistsAsync(connection, "epc_uae_tax_compliance_cache", "cache_key", cancellationToken).ConfigureAwait(false)
             || !await ErpUaeTaxLegislationLibrary.ColumnExistsAsync(connection, "epc_uae_tax_legislation_items", "item_key", cancellationToken).ConfigureAwait(false))
         {
-            return ErpUaeTaxLegislationRegenWriteResult.Fail("invalid", "UAE tax legislation tables are not provisioned");
+            return ErpUaeTaxLegislationRegenWriteResult.Fail("invalid", "UAE tax legislation tables could not be created");
         }
 
         var loaded = await ErpUaeTaxLegislationLibrary.LoadSearchItemsAsync(connection, cancellationToken).ConfigureAwait(false);

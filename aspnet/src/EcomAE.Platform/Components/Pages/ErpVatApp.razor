@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -147,8 +148,8 @@
         <h2 style="font-size:16px;margin-top:18px;">Tax legislation</h2>
         @if (_isAdmin)
         {
-            <form method="post" action="/erp/uae-tax/fta-fetch" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 1rem;">
-                <input type="hidden" name="returnUrl" value="/erp/vat-app" />
+            <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/uae-tax/fta-fetch")" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 1rem;">
+                <input type="hidden" name="returnUrl" value="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/vat-app")" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label><input type="checkbox" name="force" value="1" /> Force refetch</label>
                 <button type="submit" class="btn btn-primary btn-sm">Fetch FTA legislation</button>

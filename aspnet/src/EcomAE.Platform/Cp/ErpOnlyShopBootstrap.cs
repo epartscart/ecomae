@@ -216,6 +216,7 @@ public sealed class ErpOnlyShopBootstrap : IErpOnlyShopBootstrap
             + ",'Admins',1,1)",
             cancellationToken).ConfigureAwait(false);
         await LegacyLoginSecurity.EnsureTableAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpUaeTaxComplianceSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
