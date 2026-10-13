@@ -137,7 +137,7 @@
                 </label>
                 <button type="submit">Import with this column map</button>
             </form>
-            <p class="help-block">Same column numbers as PHP ajax_5: 1-based file columns saved on the list, then the file is imported. Header rows are skipped.</p>
+            <p class="help-block">Same 1-based file columns saved on the list, then the file is imported. Header rows are skipped.</p>
         }
 
         @if (_isAdmin && _way == "cron")
@@ -172,8 +172,7 @@
         else if (_view == "multivendor")
         {
             <div class="epc-prices-note">
-                Multi-vendor ingest is PHP <code>ajax_epc_multivendor_ingest</code>
-                (<code>cp/content/shop/prices_upload/for_multivendor/form.php</code>).
+                Multi-vendor ingest uses the combined Excel/CSV drop on this workspace.
                 Drop a combined Excel/CSV there. File ingest are not available on this page.
             </div>
             @if (_isAdmin)
@@ -208,8 +207,8 @@
             @if (_detail is null)
             {
                 <div class="epc-prices-note">
-                    Creating a list writes to <code>shop_docpart_prices</code> via PHP <code>price.php</code>.
-                    This console is read-only. Use the live PHP manager to add FTP / e-mail / URL credentials.
+                    Creating a list writes to <code>shop_docpart_prices</code> on this workspace.
+                    This console is read-only. Use the live price-list manager to add FTP / e-mail / URL credentials.
                 </div>
             }
             else

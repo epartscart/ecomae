@@ -245,7 +245,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("same-status siblings", text, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("action=\"/erp/sales-orders/cancel\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"salesOrderId\"", text, StringComparison.Ordinal);
-        Assert.Contains("PHP remains the behavioral reference", text, StringComparison.Ordinal);
+        Assert.Contains("guarded by the ERP write endpoints", text, StringComparison.Ordinal);
         Assert.Contains("/erp/orders/settlement", text, StringComparison.Ordinal);
         Assert.Contains("erp-sales-orders.js", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
@@ -1993,7 +1993,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("epc-scp-users-workspace", text, StringComparison.Ordinal);
         Assert.Contains("product_id=", text, StringComparison.Ordinal);
         Assert.Contains("_selected", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
@@ -2793,7 +2793,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("epc_scm_rfq_responses", awardService, StringComparison.Ordinal);
         Assert.Contains("IErpPurchaseOrderWriteService", awardService, StringComparison.Ordinal);
         Assert.Contains("status`='awarded'", awardService, StringComparison.Ordinal);
-        Assert.Contains("When PHP SCM lines exist", razor, StringComparison.Ordinal);
+        Assert.Contains("When SCM lines exist", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
@@ -4005,7 +4005,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
         Assert.Contains("table-epc", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
@@ -4088,12 +4088,12 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("DetailsExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("same-order siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Full details JSON omitted", razor, StringComparison.Ordinal);
-        Assert.Contains("Pipeline execution stays PHP", razor, StringComparison.Ordinal);
+        Assert.Contains("Pipeline execution stays on this workspace", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
         Assert.Contains("table-epc", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);

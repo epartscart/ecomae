@@ -80,6 +80,8 @@ SHA="$(git rev-parse --short HEAD)"
 FULL="$(git rev-parse HEAD)"
 printf 'SHA=%s FULL=%s\n' "$SHA" "$FULL"
 [[ -f scripts/cloudpanel_production_lock.sh ]] || die "production lock helper missing after checkout"
+[[ -f scripts/forbid_php_stack_leak.py ]] || die "php_stack_leak_guard missing after checkout"
+python3 scripts/forbid_php_stack_leak.py || die "php_stack_leak_or_new_php"
 
 [[ -f scripts/cloudpanel_production_deploy_foundation.sh ]] || die "production deploy script missing after checkout"
 [[ -f "${ECOMAE_ASPNET_ENV_DIR}/platform.env" ]] || die "missing ${ECOMAE_ASPNET_ENV_DIR}/platform.env"
@@ -87,7 +89,7 @@ if grep -Eq 'User=<db_user>|Password=<db_password>|<db_user>|<db_password>' "${E
   die "platform.env still has placeholders"
 fi
 
-printf 'GATE_HEALTH=ON GATE_CUTOVER=OFF GATE_PHP_REMOVAL=OFF GATE_ISOLATION=OFF GATE_PRODUCTION_LOCK=ON GATE_PHP_PRIMARY=BLOCKED\n'
+printf 'GATE_HEALTH=ON GATE_CUTOVER=OFF GATE_PHP_REMOVAL=OFF GATE_ISOLATION=OFF GATE_PRODUCTION_LOCK=ON GATE_PHP_PRIMARY=BLOCKED GATE_NO_NEW_PHP=ON GATE_NO_STACK_WORDS=ON\n'
 sudo ECOMAE_BRANCH="$ECOMAE_BRANCH" \
   ECOMAE_RUN_SYSTEMD="$ECOMAE_RUN_SYSTEMD" \
   ECOMAE_EMERGENCY_PUBLISH=0 \
@@ -113,7 +115,7 @@ printf 'HEALTH_LOOPBACK=%s READY_LOOPBACK=%s RELEASE_LOOPBACK=%s\n' "$HEALTH_COD
 
 bash scripts/cloudpanel_production_lock.sh write "$FULL" "$ECOMAE_BRANCH" \
   || die "production_lock_write_failed"
-printf 'PHP remains fallback. Do not enable broad nginx cutover. Do not remove PHP.\n'
+printf 'PHP remains fallback. Do not enable broad nginx cutover. Do not remove PHP. New PHP is blocked. Production UI must not mention PHP or classic.\n'
 printf 'PRODUCTION_LOCK written. Later publishes cannot roll back to an older SHA.\n'
 printf 'PHP-primary restore is blocked. PHP file delete stays REFUSE until ReadyToRemovePhp=true.\n'
 printf 'TEST_MATRIX=\n'

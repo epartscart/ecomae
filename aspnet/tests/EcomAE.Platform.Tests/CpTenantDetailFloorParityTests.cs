@@ -46,15 +46,23 @@ public sealed class CpTenantDetailFloorParityTests
             "Jewellery repairs floor must expose Company or Branch.");
     }
 
-    [Theory]
-    [InlineData("CpPortalSettingsApp.razor")]
-    [InlineData("CpTenantsApp.razor")]
-    public void ShowcaseApps_OpenConfigureUsesPhpReferenceOnlyHref(string fileName)
+    [Fact]
+    public void PortalSettings_OpenStaysOnAspNetPrimary()
     {
         var text = File.ReadAllText(FindRepoFile(
-            $"aspnet/src/EcomAE.Platform/Components/Pages/{fileName}"));
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpPortalSettingsApp.razor"));
+        Assert.Contains("AspNetPrimaryHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TenantsApp_HasNoPhpReferenceOrLeftoverOpenDoor()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpTenantsApp.razor"));
+        Assert.DoesNotContain("PhpReferenceOnlyHref", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)

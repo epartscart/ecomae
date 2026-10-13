@@ -22,7 +22,7 @@
                                PhpTabHref="@_phpTab">
             <a class="ghost" href="/cp/tenants-app">Tenants</a>
             <a class="ghost" href="/cp/tenant-email-app">Tenant SMTP</a>
-            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a>
         </PhpCpModulePageHeader>
 
         <div class="epc-scp-table-card">
@@ -64,7 +64,7 @@
                 </tbody>
             </table>
         </div>
-        <p class="help-block">IMAP/SMTP send for these addresses is the Purelymail fleet. Super CP can reset ERP-only passwords on Tenants. PHP files stay on disk.</p>
+        <p class="help-block">IMAP/SMTP send for these addresses is the Purelymail fleet. Super CP can reset ERP-only passwords on Tenants. Mailbox files stay on the host.</p>
     </PhpCpDesktopChrome>
 }
 else

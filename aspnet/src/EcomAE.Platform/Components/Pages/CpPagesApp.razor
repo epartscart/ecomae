@@ -307,7 +307,7 @@
                             <div class="col-lg-6">
                                 <select name="content_type" id="content_type_select" onchange="content_type_changed();" class="form-control">
                                     <option value="text" selected="@(e.ContentType != "php")">TEXT</option>
-                                    <option value="php" selected="@(e.ContentType == "php")">PHP</option>
+                                    <option value="php" selected="@(e.ContentType == "php")">Script</option>
                                 </select>
                             </div>
                         </div>
@@ -357,7 +357,7 @@
                                 <div class="col-lg-12"><textarea name="content" id="content_input" class="form-control" style="min-height:400px;font-family:monospace">@e.Content</textarea></div>
                             </div>
                             <div class="form-group" id="content_php_group" style="display:none">
-                                <label class="col-lg-6 control-label">PHP script path (relative to the site root)</label>
+                                <label class="col-lg-6 control-label">Script path (relative to the site root)</label>
                                 <div class="col-lg-6"><input type="text" id="content_php_input" value="@(e.ContentType == "php" ? e.Content : "")" class="form-control" /></div>
                             </div>
                         </div>

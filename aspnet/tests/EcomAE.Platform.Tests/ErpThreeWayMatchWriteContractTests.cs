@@ -30,8 +30,8 @@ public sealed class ErpThreeWayMatchWriteContractTests
         Assert.Contains("Route exception", page, StringComparison.Ordinal);
         Assert.Contains("DecisionLabel", page, StringComparison.Ordinal);
         Assert.Contains("Decision variance", page, StringComparison.Ordinal);
-        Assert.Contains("PHP tolerance", page, StringComparison.Ordinal);
-        Assert.Contains("persisted with PHP-compatible server-side evidence", page, StringComparison.Ordinal);
+        Assert.Contains("Match tolerance", page, StringComparison.Ordinal);
+        Assert.Contains("persisted with server-side evidence", page, StringComparison.Ordinal);
         Assert.Contains("ecomae_erp_three_way_matches", readService, StringComparison.Ordinal);
         Assert.Contains("TableExistsAsync", readService, StringComparison.Ordinal);
         Assert.Contains("IErpThreeWayMatchDecisionReadService", program, StringComparison.Ordinal);

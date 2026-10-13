@@ -42,9 +42,9 @@
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Homepage slots</h3>
             <p style="margin:0;color:#475569;font-size:.86rem;">Save writes here. Drag-tree is not available on this page.</p>
         </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/related_products")">
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#related">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Related</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">PHP related_products</p>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Related-product links</p>
         </a>
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#reviews">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Reviews</h3>
@@ -469,7 +469,7 @@
                         <h3>Catalogue products</h3>
                         <p class="epc-users-hint">Open a row for read console. Tree JSON save writes here; drag-tree UX is not available on this page.</p>
                     </div>
-                    <a class="btn btn-primary btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open editor</a>
+                    <a class="btn btn-primary btn-xs" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open editor</a>
                 </div>
                 <div class="table-responsive">
                     <table class="epc-scp-data-table table table-epc-pro table-hover">
@@ -486,7 +486,7 @@
                         <tbody>
                             @if (_products.Count == 0)
                             {
-                                <tr><td colspan="6">Nothing to show yet — bind shop DB / seed catalogue, or open the PHP editor.</td></tr>
+                                <tr><td colspan="6">Nothing to show yet — bind shop DB / seed catalogue, or open the catalogue editor.</td></tr>
                             }
                             else
                             {
@@ -579,7 +579,7 @@
                         <p class="text-muted">No same-category siblings yet.</p>
                     }
                     <p style="margin:.85rem 0 0;font-size:.86rem;">
-                        <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref($"{_phpTab}?product_id={(_opened?.Id ?? _selected?.Id ?? 0).ToString(CultureInfo.InvariantCulture)}")">Edit product</a>
+                        <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref($"{_phpTab}?product_id={(_opened?.Id ?? _selected?.Id ?? 0).ToString(CultureInfo.InvariantCulture)}")">Edit product</a>
                     </p>
                 </div>
             </div>
