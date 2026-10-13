@@ -144,7 +144,7 @@
             <div class="panel-heading"><strong>New purchase order</strong> <span class="text-muted">PO number, VAT and totals follow the tenant jurisdiction kit.</span></div>
             <div class="panel-body">
                 <div class="row">
-                    <div class="col-sm-2"><label for="po-supplier">Supplier id</label><input id="po-supplier" class="form-control" type="number" min="1" step="1" /></div>
+                    <div class="col-sm-3"><ErpMasterPicker Kind="supplier" FieldName="supplier_id" InputId="po-supplier" Label="Supplier" Required="true" /></div>
                     <div class="col-sm-4"><label for="po-title">Title</label><input id="po-title" class="form-control" type="text" maxlength="255" /></div>
                     <div class="col-sm-2"><label for="po-amount">Amount (ex VAT)</label><input id="po-amount" class="form-control" type="number" min="0" step="0.01" readonly aria-describedby="po-amount-help" /><span id="po-amount-help" class="help-block small">Sum of lines</span></div>
                     <div class="col-sm-3"><label for="po-notes">Notes</label><input id="po-notes" class="form-control" type="text" /></div>

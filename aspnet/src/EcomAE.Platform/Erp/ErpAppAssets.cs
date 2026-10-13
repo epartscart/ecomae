@@ -14,6 +14,7 @@ public static class ErpAppAssets
         "erp-cash-entries.js",
         "erp-inventory-stock.js",
         "erp-purchase-orders.js",
+        "erp-master-picker.js",
     };
 
     public const string StylePrefix = "/platform-assets/css";

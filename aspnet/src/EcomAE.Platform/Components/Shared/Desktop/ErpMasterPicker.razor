@@ -1,0 +1,95 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Globalization
+@using EcomAE.Platform.Erp
+@inject IErpMasterLookupReadService Lookups
+@*
+  Searchable master picker: customer, supplier, item, project, cash account,
+  property, unit, tenant, contractor. Posts the same field name the write
+  endpoint already expects. Optional code/name siblings are filled on pick.
+*@
+
+<div class="epc-erp-master-picker" data-erp-kind="@ResolvedKind" data-erp-value-mode="@ValueMode" data-erp-fill-code="@CodeFieldName" data-erp-fill-name="@NameFieldName">
+    <label class="epc-erp-master-picker__label" for="@ResolvedInputId">@ResolvedLabel</label>
+    @if (_rows.Count == 0)
+    {
+        <input class="form-control input-sm" type="@(UseCodeValue ? "text" : "number")" name="@FieldName" id="@ResolvedInputId" min="@(UseCodeValue ? null : Min)" value="@ValueText" required="@Required" placeholder="@Placeholder" />
+        <p class="help-block small epc-erp-master-picker__hint">No @ResolvedLabel.ToLowerInvariant() masters yet — type the id, or <a href="@MasterHref">add one</a>.</p>
+    }
+    else
+    {
+        <input type="search" class="form-control input-sm epc-erp-master-picker__q" placeholder="Search @ResolvedLabel.ToLowerInvariant() code or name" autocomplete="off" data-erp-picker-q aria-controls="@ResolvedInputId" />
+        <select class="form-control input-sm" name="@FieldName" id="@ResolvedInputId" required="@Required" data-erp-picker-select>
+            @if (!Required)
+            {
+                <option value="@(UseCodeValue ? "" : "0")" selected="@(!HasSelected)">— none —</option>
+            }
+            else
+            {
+                <option value="" selected="@(!HasSelected)">— pick @ResolvedLabel.ToLowerInvariant() —</option>
+            }
+            @foreach (var row in _rows)
+            {
+                var optionValue = UseCodeValue
+                    ? (string.IsNullOrWhiteSpace(row.Code) ? row.Id.ToString(CultureInfo.InvariantCulture) : row.Code)
+                    : row.Id.ToString(CultureInfo.InvariantCulture);
+                <option value="@optionValue"
+                        data-id="@row.Id.ToString(CultureInfo.InvariantCulture)"
+                        data-code="@row.Code"
+                        data-name="@row.Name"
+                        data-extra="@row.Extra"
+                        selected="@IsSelected(row)">@FormatOption(row)</option>
+            }
+        </select>
+        <p class="help-block small epc-erp-master-picker__hint">Pick from saved masters. <a href="@MasterHref">Manage</a></p>
+    }
+</div>
+
+@code {
+    [Parameter] public string Kind { get; set; } = "customer";
+    [Parameter] public string FieldName { get; set; } = "id";
+    [Parameter] public string? InputId { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public long Value { get; set; }
+    [Parameter] public bool Required { get; set; }
+    [Parameter] public string? CodeFieldName { get; set; }
+    [Parameter] public string? NameFieldName { get; set; }
+    [Parameter] public int Min { get; set; } = 0;
+    [Parameter] public string? Placeholder { get; set; }
+    /// <summary>When <c>code</c>, the posted value is the master code/SKU (item_code fields).</summary>
+    [Parameter] public string ValueMode { get; set; } = "id";
+    [Parameter] public string? SelectedCode { get; set; }
+
+    private IReadOnlyList<ErpMasterOption> _rows = [];
+    private string ResolvedKind => ErpMasterLookupReadService.ResolveKind(Kind) is { Length: > 0 } kind ? kind : Kind;
+    private string ResolvedLabel => string.IsNullOrWhiteSpace(Label) ? ErpMasterLookupReadService.KindLabel(ResolvedKind) : Label;
+    private string ResolvedInputId => string.IsNullOrWhiteSpace(InputId) ? FieldName : InputId!;
+    private string MasterHref => ErpMasterLookupReadService.MasterHref(ResolvedKind);
+    private bool UseCodeValue => string.Equals(ValueMode, "code", StringComparison.OrdinalIgnoreCase);
+    private bool HasSelected => Value > 0 || !string.IsNullOrWhiteSpace(SelectedCode);
+    private string? ValueText => UseCodeValue
+        ? SelectedCode
+        : (Value > 0 ? Value.ToString(CultureInfo.InvariantCulture) : null);
+
+    private bool IsSelected(ErpMasterOption row)
+        => UseCodeValue
+            ? !string.IsNullOrWhiteSpace(SelectedCode) && string.Equals(row.Code, SelectedCode, StringComparison.OrdinalIgnoreCase)
+            : Value > 0 && Value == row.Id;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await Lookups.SearchAsync(ResolvedKind, null, ErpFirstPaint.PickerLimit);
+        _rows = result.Options;
+    }
+
+    private static string FormatOption(ErpMasterOption row)
+    {
+        var code = string.IsNullOrWhiteSpace(row.Code) ? row.Id.ToString(CultureInfo.InvariantCulture) : row.Code.Trim();
+        var name = string.IsNullOrWhiteSpace(row.Name) ? "" : row.Name.Trim();
+        if (name.Length == 0 || string.Equals(code, name, StringComparison.OrdinalIgnoreCase))
+        {
+            return string.IsNullOrWhiteSpace(row.Extra) ? code : code + " · " + row.Extra;
+        }
+
+        return string.IsNullOrWhiteSpace(row.Extra) ? code + " · " + name : code + " · " + name + " · " + row.Extra;
+    }
+}

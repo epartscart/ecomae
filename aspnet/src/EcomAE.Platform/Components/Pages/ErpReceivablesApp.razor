@@ -37,7 +37,7 @@
         <form method="post" action="/erp/customers/master-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/receivables-app" />
-            <label>Customer ID <input type="number" name="customer_id" min="1" required style="width:6rem" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" Label="Customer" Required="true" Min="1" CodeFieldName="customer_account" NameFieldName="customer_name" />
             <label>Account <input type="text" name="customer_account" maxlength="32" placeholder="C-0001" /></label>
             <label>Name <input type="text" name="customer_name" maxlength="255" /></label>
             <label>Credit limit <input type="text" name="credit_limit" placeholder="0.00" /></label>
@@ -49,7 +49,7 @@
         <form method="post" action="/erp/customers/settlement" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/receivables-app" />
-            <label>Customer ID <input type="number" name="user_id" min="1" required style="width:6rem" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="user_id" Label="Customer" Required="true" Min="1" />
             <label>Amount <input type="text" name="amount" required placeholder="0.00" /></label>
             <label>Direction
                 <select name="direction">
