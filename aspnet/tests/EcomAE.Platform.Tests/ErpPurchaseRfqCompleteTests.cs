@@ -80,6 +80,7 @@ public sealed class ErpPurchaseRfqCompleteTests
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("classic", text, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("linear-gradient(135deg", text, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
