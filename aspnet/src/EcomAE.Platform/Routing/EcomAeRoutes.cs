@@ -750,6 +750,8 @@ public static class EcomAeRoutes
     public const string ErpDashboardSummaryApp = "/erp/dashboard-summary-app";
     /// <summary>ERP legal entities / company picker digest (PHP <c>epc_erp_companies_list</c>).</summary>
     public const string ErpCompanies = "/erp/companies";
+    /// <summary>Read-only master picker catalog (customers, suppliers, items, projects, cash accounts, real-estate).</summary>
+    public const string ErpLookups = "/erp/lookups";
     public const string ErpAccountsSummary = "/erp/accounts-summary";
     /// <summary>ERP accounts summary Blazor KPI UI (JSON digest remains <see cref="ErpAccountsSummary"/>).</summary>
     public const string ErpAccountsSummaryApp = "/erp/accounts-summary-app";

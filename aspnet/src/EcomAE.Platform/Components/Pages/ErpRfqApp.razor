@@ -70,7 +70,7 @@
                                 }
                             </select>
                         </label>
-                        <label>Supplier ID<input type="number" name="supplier_id" min="1" required /></label>
+                        <ErpMasterPicker Kind="supplier" FieldName="supplier_id" Label="Supplier" Required="true" Min="1" />
                         <label>Unit price<input type="number" name="unit_price" min="0" step="0.0001" required /></label>
                         <label>Lead time days<input type="number" name="lead_time_days" min="0" value="0" required /></label>
                         <label>Notes<input name="notes" maxlength="1000" /></label>
@@ -352,7 +352,7 @@
             <form method="post" action="/erp/ajax/save-rfq">
                 <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
                 <input type="hidden" name="id" value="@_opened.Id" />
-                <label>Supplier <input type="number" name="supplier_id" min="0" value="@_opened.SupplierId" /></label>
+                <ErpMasterPicker Kind="supplier" FieldName="supplier_id" Label="Supplier" Value="@_opened.SupplierId" />
                 <label>Title <input type="text" name="title" required maxlength="255" value="@_opened.Title" /></label>
                 <label>Estimate <input type="text" name="amount_est" value="@_opened.AmountEst.ToString("0.00", CultureInfo.InvariantCulture)" /></label>
                 <label>Status

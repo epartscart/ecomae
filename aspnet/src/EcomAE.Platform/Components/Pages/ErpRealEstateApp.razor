@@ -124,7 +124,7 @@
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@OrgHref("properties")" />
                     <input type="hidden" name="action" value="save_unit" />
-                    <label>Property id <input class="form-control input-sm" type="number" name="propertyId" required min="1" /></label>
+                    <ErpMasterPicker Kind="property" FieldName="propertyId" Label="Property" Required="true" Min="1" />
                     <label>Unit code <input class="form-control input-sm" name="code" required /></label>
                     <label>Name <input class="form-control input-sm" name="name" /></label>
                     <label>Type <input class="form-control input-sm" name="category" value="apartment" /></label>
@@ -142,7 +142,7 @@
                     <input type="hidden" name="returnUrl" value="@OrgHref("acquisitions")" />
                     <input type="hidden" name="action" value="save_acquisition" />
                     <label>Code <input class="form-control input-sm" name="code" required /></label>
-                    <label>Property id <input class="form-control input-sm" type="number" name="propertyId" required min="1" /></label>
+                    <ErpMasterPicker Kind="property" FieldName="propertyId" Label="Property" Required="true" Min="1" />
                     <label>Legal entity id <input class="form-control input-sm" type="number" name="legalEntityId" value="0" /></label>
                     <label>Seller <input class="form-control input-sm" name="counterparty" /></label>
                     <label>Purchase price <input class="form-control input-sm" type="number" step="0.01" name="amount" required /></label>
@@ -164,7 +164,7 @@
                     <input type="hidden" name="returnUrl" value="@OrgHref("acquisitions")" />
                     <input type="hidden" name="action" value="save_disposal" />
                     <label>Code <input class="form-control input-sm" name="code" required /></label>
-                    <label>Property id <input class="form-control input-sm" type="number" name="propertyId" required min="1" /></label>
+                    <ErpMasterPicker Kind="property" FieldName="propertyId" Label="Property" Required="true" Min="1" />
                     <label>Buyer <input class="form-control input-sm" name="counterparty" /></label>
                     <label>Sale price <input class="form-control input-sm" type="number" step="0.01" name="amount" required /></label>
                     <label>Disposal costs <input class="form-control input-sm" type="number" step="0.01" name="amount2" /></label>
@@ -181,7 +181,7 @@
                     <input type="hidden" name="returnUrl" value="@OrgHref("valuations")" />
                     <input type="hidden" name="action" value="save_valuation" />
                     <label>Code <input class="form-control input-sm" name="code" required /></label>
-                    <label>Property id <input class="form-control input-sm" type="number" name="propertyId" required min="1" /></label>
+                    <ErpMasterPicker Kind="property" FieldName="propertyId" Label="Property" Required="true" Min="1" />
                     <label>Date <input class="form-control input-sm" type="date" name="date1" /></label>
                     <label>Estimated <input class="form-control input-sm" type="number" step="0.01" name="amount" /></label>
                     <label>Appraised <input class="form-control input-sm" type="number" step="0.01" name="amount2" /></label>
@@ -237,9 +237,9 @@
                     <input type="hidden" name="returnUrl" value="@OrgHref("leases")" />
                     <input type="hidden" name="action" value="save_lease" />
                     <label>Lease no <input class="form-control input-sm" name="code" required /></label>
-                    <label>Property id <input class="form-control input-sm" type="number" name="propertyId" required min="1" /></label>
-                    <label>Unit id <input class="form-control input-sm" type="number" name="unitId" value="0" /></label>
-                    <label>Tenant id <input class="form-control input-sm" type="number" name="tenantId" required min="1" /></label>
+                    <ErpMasterPicker Kind="property" FieldName="propertyId" Label="Property" Required="true" Min="1" />
+                    <ErpMasterPicker Kind="unit" FieldName="unitId" Label="Unit" />
+                    <ErpMasterPicker Kind="tenant" FieldName="tenantId" Label="Tenant" Required="true" Min="1" />
                     <label>Start <input class="form-control input-sm" type="date" name="date1" required /></label>
                     <label>End <input class="form-control input-sm" type="date" name="date2" required /></label>
                     <label>Annual rent <input class="form-control input-sm" type="number" step="0.01" name="amount" required /></label>
@@ -338,7 +338,7 @@
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@OrgHref("maintenance")" />
                     <input type="hidden" name="action" value="save_maintenance" />
-                    <label>Property id <input class="form-control input-sm" type="number" name="propertyId" required min="1" /></label>
+                    <ErpMasterPicker Kind="property" FieldName="propertyId" Label="Property" Required="true" Min="1" />
                     <label>Description <input class="form-control input-sm" name="name" required /></label>
                     <label>Type <input class="form-control input-sm" name="category" value="corrective" /></label>
                     <label>Vendor <input class="form-control input-sm" name="counterparty" /></label>
@@ -357,7 +357,7 @@
                     <input type="hidden" name="action" value="save_project" />
                     <label>Code <input class="form-control input-sm" name="code" required /></label>
                     <label>Name <input class="form-control input-sm" name="name" required /></label>
-                    <label>Land / property id <input class="form-control input-sm" type="number" name="propertyId" value="0" /></label>
+                    <ErpMasterPicker Kind="property" FieldName="propertyId" Label="Land / property" />
                     <label>Legal entity id <input class="form-control input-sm" type="number" name="legalEntityId" value="0" /></label>
                     <label>Emirate <input class="form-control input-sm" name="emirate" /></label>
                     <label>Land cost <input class="form-control input-sm" type="number" step="0.01" name="amount" /></label>
@@ -372,8 +372,8 @@
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@OrgHref("projects")" />
                     <input type="hidden" name="action" value="save_project_unit" />
-                    <label>Project id <input class="form-control input-sm" type="number" name="projectId" required min="1" /></label>
-                    <label>Property id <input class="form-control input-sm" type="number" name="propertyId" value="0" /></label>
+                    <ErpMasterPicker Kind="re-project" FieldName="projectId" Label="Project" Required="true" Min="1" />
+                    <ErpMasterPicker Kind="property" FieldName="propertyId" Label="Property" />
                     <label>Unit code <input class="form-control input-sm" name="code" required /></label>
                     <label>Asking <input class="form-control input-sm" type="number" step="0.01" name="amount" /></label>
                     <label>Area sqm <input class="form-control input-sm" type="number" step="0.01" name="area" /></label>
@@ -385,7 +385,7 @@
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@OrgHref("projects")" />
                     <input type="hidden" name="action" value="save_milestone" />
-                    <label>Project id <input class="form-control input-sm" type="number" name="projectId" required min="1" /></label>
+                    <ErpMasterPicker Kind="re-project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                     <label>Code <input class="form-control input-sm" name="code" required /></label>
                     <label>Name <input class="form-control input-sm" name="name" required placeholder="On booking / 20% structure" /></label>
                     <label>Percent of sale <input class="form-control input-sm" type="number" step="0.01" name="percent" required /></label>
@@ -398,7 +398,7 @@
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@OrgHref("projects")" />
                     <input type="hidden" name="action" value="save_escrow_receipt" />
-                    <label>Project id <input class="form-control input-sm" type="number" name="projectId" required min="1" /></label>
+                    <ErpMasterPicker Kind="re-project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                     <label>Amount <input class="form-control input-sm" type="number" step="0.01" name="amount" required /></label>
                     <label>Reference <input class="form-control input-sm" name="code" /></label>
                     <label>Date <input class="form-control input-sm" type="date" name="date1" /></label>
@@ -408,7 +408,7 @@
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@OrgHref("projects")" />
                     <input type="hidden" name="action" value="save_escrow_disbursement" />
-                    <label>Project id <input class="form-control input-sm" type="number" name="projectId" required min="1" /></label>
+                    <ErpMasterPicker Kind="re-project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                     <label>Amount <input class="form-control input-sm" type="number" step="0.01" name="amount" required /></label>
                     <label>Certificate id (optional) <input class="form-control input-sm" type="number" name="relatedId" value="0" /></label>
                     <label>Date <input class="form-control input-sm" type="date" name="date1" /></label>
@@ -420,7 +420,7 @@
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@OrgHref("projects")" />
                     <input type="hidden" name="action" value="allocate_shared_cost" />
-                    <label>Project id <input class="form-control input-sm" type="number" name="projectId" required min="1" /></label>
+                    <ErpMasterPicker Kind="re-project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                     <label>Amount (0 = land + actual) <input class="form-control input-sm" type="number" step="0.01" name="amount" value="0" /></label>
                     <label>Basis
                         <select class="form-control input-sm" name="category">
@@ -439,8 +439,8 @@
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@OrgHref("sales")" />
                     <input type="hidden" name="action" value="save_sale" />
-                    <label>Unit id <input class="form-control input-sm" type="number" name="unitId" required min="1" /></label>
-                    <label>Project id <input class="form-control input-sm" type="number" name="projectId" value="0" /></label>
+                    <ErpMasterPicker Kind="unit" FieldName="unitId" Label="Unit" Required="true" Min="1" />
+                    <ErpMasterPicker Kind="re-project" FieldName="projectId" Label="Project" />
                     <label>Buyer <input class="form-control input-sm" name="name" required /></label>
                     <label>Sale price <input class="form-control input-sm" type="number" step="0.01" name="amount" required /></label>
                     <label>Collected <input class="form-control input-sm" type="number" step="0.01" name="amount2" value="0" /></label>
@@ -493,8 +493,8 @@
                     <input type="hidden" name="returnUrl" value="@OrgHref("construction")" />
                     <input type="hidden" name="action" value="save_contract" />
                     <label>Code <input class="form-control input-sm" name="code" required /></label>
-                    <label>Project id <input class="form-control input-sm" type="number" name="projectId" required min="1" /></label>
-                    <label>Contractor id <input class="form-control input-sm" type="number" name="relatedId" required min="1" /></label>
+                    <ErpMasterPicker Kind="re-project" FieldName="projectId" Label="Project" Required="true" Min="1" />
+                    <ErpMasterPicker Kind="contractor" FieldName="relatedId" Label="Contractor" Required="true" Min="1" />
                     <label>Original amount <input class="form-control input-sm" type="number" step="0.01" name="amount" required /></label>
                     <label>Retention % <input class="form-control input-sm" type="number" step="0.01" name="percent" value="10" /></label>
                     <label>Advance <input class="form-control input-sm" type="number" step="0.01" name="amount2" /></label>

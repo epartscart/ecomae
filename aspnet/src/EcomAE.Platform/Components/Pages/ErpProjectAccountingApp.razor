@@ -65,7 +65,7 @@
             <h3>Estimate revisions</h3>
             <p>Compare BOQ revisions for one project.</p>
             <form method="get" action="@FitOutHref("/erp/fitout/estimates/revision-comparison")" data-epc-inline="1">
-                <label>Project id <input type="number" name="projectId" min="1" placeholder="Project id" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                 <button type="submit" class="btn btn-default">Compare estimate revisions JSON</button>
             </form>
         </article>
@@ -81,7 +81,7 @@
             <h3>Approval evidence</h3>
             <p>Queue plus audit trail for one project.</p>
             <form method="get" action="@FitOutHref("/erp/fitout/approval-evidence")" data-epc-inline="1">
-                <label>Project id <input type="number" name="projectId" min="1" placeholder="Project id" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                 <button type="submit" class="btn btn-default">Open approval evidence JSON</button>
             </form>
         </article>
@@ -94,7 +94,7 @@
             <h3>Project P&amp;L / forecast</h3>
             <p>Budget, actual, and forecast margin.</p>
             <form method="get" action="@FitOutHref("/erp/fitout/project-pnl")" data-epc-inline="1">
-                <label>Project id <input type="number" name="projectId" min="1" /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" />
                 <button type="submit" class="btn btn-default">Open project P&amp;L / forecast JSON</button>
             </form>
         </article>
@@ -106,7 +106,7 @@
                 {
                     <input type="hidden" name="company" value="@_activeCompanyId.ToString(CultureInfo.InvariantCulture)" />
                 }
-                <label>Project id <input type="number" name="projectId" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                 <button type="submit" class="btn btn-default">Open VAT / invoice links JSON</button>
             </form>
         </article>
@@ -118,7 +118,7 @@
                 {
                     <input type="hidden" name="company" value="@_activeCompanyId.ToString(CultureInfo.InvariantCulture)" />
                 }
-                <label>Project id <input type="number" name="projectId" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                 <button type="submit" class="btn btn-default">Open approved billing reconciliation JSON</button>
             </form>
         </article>
@@ -130,7 +130,7 @@
                 {
                     <input type="hidden" name="company" value="@_activeCompanyId.ToString(CultureInfo.InvariantCulture)" />
                 }
-                <label>Project id <input type="number" name="projectId" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                 <button type="submit" class="btn btn-default">Open contract balance and certification split JSON</button>
             </form>
         </article>
@@ -138,7 +138,7 @@
             <h3>Contract closure</h3>
             <p>Close-out checklist and remaining holds.</p>
             <form method="get" action="@FitOutHref("/erp/fitout/contract-closure")" data-epc-inline="1">
-                <label>Project id <input type="number" name="projectId" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                 <button type="submit" class="btn btn-default">Open contract closure JSON</button>
             </form>
         </article>
@@ -146,7 +146,7 @@
             <h3>Retention ageing</h3>
             <p>Held and released retention by age.</p>
             <form method="get" action="@FitOutHref("/erp/fitout/retention-ageing")" data-epc-inline="1">
-                <label>Project id <input type="number" name="projectId" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                 <button type="submit" class="btn btn-default">Open retention ageing JSON</button>
             </form>
         </article>
@@ -154,7 +154,7 @@
             <h3>Proforma / receipts</h3>
             <p>Proforma invoices and cash receipts.</p>
             <form method="get" action="@FitOutHref("/erp/fitout/proforma-receipts")" data-epc-inline="1">
-                <label>Project id <input type="number" name="projectId" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                 <button type="submit" class="btn btn-default">Open proforma and receipt history JSON</button>
             </form>
         </article>
@@ -162,7 +162,7 @@
             <h3>Approval audit</h3>
             <p>Who approved what, and when.</p>
             <form method="get" action="@FitOutHref("/erp/fitout/approval-audit")" data-epc-inline="1">
-                <label>Project id <input type="number" name="projectId" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                 <button type="submit" class="btn btn-default">Open approval audit JSON</button>
             </form>
         </article>
@@ -170,7 +170,7 @@
             <h3>Subcontract reconciliation</h3>
             <p>Subcontractor orders, claims, and certificates.</p>
             <form method="get" action="@FitOutHref("/erp/fitout/subcontract-reconciliation")" data-epc-inline="1">
-                <label>Project id <input type="number" name="projectId" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                 <button type="submit" class="btn btn-default">Open subcontract reconciliation JSON</button>
             </form>
         </article>
@@ -178,7 +178,7 @@
             <h3>Pending approvals</h3>
             <p>Open the approval queue for a project or the company.</p>
             <form method="get" action="@FitOutHref("/erp/fitout/approval-queue")" data-epc-inline="1">
-                <label>Project id <input type="number" name="projectId" min="1" /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" />
                 <button type="submit" class="btn btn-default">Open pending approval queue JSON</button>
             </form>
         </article>
@@ -190,7 +190,7 @@
                 {
                     <input type="hidden" name="company" value="@_activeCompanyId.ToString(CultureInfo.InvariantCulture)" />
                 }
-                <label>Project id <input type="number" name="projectId" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                 <button type="submit" class="btn btn-default">Open acceptance evidence JSON</button>
             </form>
         </article>
@@ -198,7 +198,7 @@
             <h3>Recovery summary</h3>
             <p>Retention and advance recovery position.</p>
             <form method="get" action="@FitOutHref("/erp/fitout/recovery-summary")" data-epc-inline="1">
-                <label>Project id <input type="number" name="projectId" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="projectId" Label="Project" Required="true" Min="1" />
                 <button type="submit" class="btn btn-default">Open recovery summary JSON</button>
             </form>
         </article>
@@ -212,7 +212,7 @@
             <div class="epc-erp-form-panel__head"><strong>Post transaction</strong></div>
             <form method="post" action="/erp/project-accounting/txns/add">
                 <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
-                <label>Project id <input type="number" name="project_id" min="0" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="project_id" Label="Project" Required="true" />
                 <label>Type
                     <select name="txn_type">
                         <option value="cost">cost</option>
@@ -236,7 +236,7 @@
             <form method="post" action="/erp/project-accounting/budgets/save">
                 <input type="hidden" name="returnUrl" value="@_returnUrl" />
                 <input type="hidden" name="id" value="0" />
-                <label>Project id <input type="number" name="project_id" min="0" value="0" /></label>
+                <ErpMasterPicker Kind="project" FieldName="project_id" Label="Project" />
                 <label>Category <input type="text" name="category" maxlength="60" placeholder="general" /></label>
                 <label>Cost <input type="text" name="cost_budget" placeholder="0.00" /></label>
                 <label>Revenue <input type="text" name="revenue_budget" placeholder="0.00" /></label>
@@ -257,9 +257,9 @@
             <div class="epc-erp-form-panel__head"><strong>Fit-out lead / customer handoff</strong></div>
             <form method="post" action="/erp/fitout/lead-handoff/save">
                 <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
-                <label>Project id <input type="number" name="project_id" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="project_id" Label="Project" Required="true" Min="1" />
                 <label>Lead id <input type="number" name="lead_id" min="0" /></label>
-                <label>Customer id <input type="number" name="customer_id" min="0" /></label>
+                <ErpMasterPicker Kind="customer" FieldName="customer_id" Label="Customer" />
                 <label>Estimate id <input type="number" name="estimate_id" min="0" /></label>
                 <label>Status
                     <select name="status">
@@ -280,7 +280,7 @@
             <div class="epc-erp-form-panel__head"><strong>Fit-out estimate / BOQ revision</strong></div>
             <form method="post" action="/erp/fitout/estimates/save">
                 <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
-                <label>Project id <input type="number" name="project_id" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="project_id" Label="Project" Required="true" Min="1" />
                 <label>Code <input type="text" name="code" maxlength="60" required placeholder="QT-2026-00001" /></label>
                 <label>Title <input type="text" name="title" maxlength="200" required /></label>
                 <label>Revision <input type="number" name="revision" min="1" value="1" /></label>
@@ -325,7 +325,7 @@
             <div class="epc-erp-form-panel__head"><strong>Fit-out hierarchical cost code</strong></div>
             <form method="post" action="/erp/fitout/cost-codes/save">
                 <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
-                <label>Project id <input type="number" name="project_id" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="project_id" Label="Project" Required="true" Min="1" />
                 <label>Parent id <input type="number" name="parent_id" min="0" value="0" /></label>
                 <label>Code <input type="text" name="code" maxlength="60" required placeholder="01.10" /></label>
                 <label>Name <input type="text" name="name" maxlength="200" required /></label>
@@ -370,7 +370,7 @@
             <div class="epc-erp-form-panel__head"><strong>Fit-out VAT / invoice bridge</strong></div>
             <form method="post" action="/erp/fitout/invoice-bridge/save">
                 <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
-                <label>Project id <input type="number" name="project_id" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="project_id" Label="Project" Required="true" Min="1" />
                 <label>Invoice id <input type="number" name="invoice_id" min="1" required /></label>
                 <label>Billing stage
                     <select name="stage">
@@ -397,7 +397,7 @@
             <div class="epc-erp-form-panel__head"><strong>Fit-out procurement PR / PO / GRN linkage</strong></div>
             <form method="post" action="/erp/fitout/procurement-links/save">
             <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
-            <label>Project id <input type="number" name="project_id" min="1" required style="width:7rem" /></label>
+            <ErpMasterPicker Kind="project" FieldName="project_id" Label="Project" Required="true" Min="1" />
             <label>Cost code id <input type="number" name="cost_code_id" min="0" value="0" style="width:7rem" /></label>
             <label>Requisition id <input type="number" name="requisition_id" min="0" value="0" style="width:7rem" /></label>
             <label>Purchase order id <input type="number" name="purchase_order_id" min="0" value="0" style="width:7rem" /></label>
@@ -424,7 +424,7 @@
             <div class="epc-erp-form-panel__head"><strong>Fit-out three-way match / tolerance</strong></div>
             <form method="post" action="/erp/fitout/three-way-matches/save">
                 <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
-                <label>Project id <input type="number" name="project_id" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="project_id" Label="Project" Required="true" Min="1" />
                 <label>Link id <input type="number" name="procurement_link_id" min="0" value="0" /></label>
                 <label>PO id <input type="number" name="purchase_order_id" min="0" value="0" /></label>
                 <label>GRN id <input type="number" name="goods_receipt_id" min="0" value="0" /></label>
@@ -443,9 +443,9 @@
             <div class="epc-erp-form-panel__head"><strong>Fit-out material issue / return</strong></div>
             <form method="post" action="/erp/fitout/material-movements/save">
                 <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
-                <label>Project id <input type="number" name="project_id" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="project_id" Label="Project" Required="true" Min="1" />
                 <label>Cost code id <input type="number" name="cost_code_id" min="0" value="0" /></label>
-                <label>Item code <input type="text" name="item_code" maxlength="80" required placeholder="MAT-JOINERY" /></label>
+                <ErpMasterPicker Kind="item" FieldName="item_code" Label="Item" Required="true" ValueMode="code" Placeholder="MAT-JOINERY" />
                 <label>Description <input type="text" name="description" maxlength="240" required placeholder="Issue to site" /></label>
                 <label>Qty <input type="number" name="quantity" min="0.001" step="0.001" required /></label>
                 <label>Unit cost <input type="number" name="unit_cost" min="0" step="0.01" /></label>
@@ -466,7 +466,7 @@
             <div class="epc-erp-form-panel__head"><strong>Fit-out subcontract / site / variation / claim record</strong></div>
             <form method="post" action="/erp/fitout/delivery-records/save">
             <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
-            <label>Project id <input type="number" name="project_id" min="1" required style="width:7rem" /></label>
+            <ErpMasterPicker Kind="project" FieldName="project_id" Label="Project" Required="true" Min="1" />
             <label>Cost code id <input type="number" name="cost_code_id" min="0" value="0" style="width:7rem" /></label>
             <label>Parent id <input type="number" name="parent_id" min="0" value="0" style="width:6rem" /></label>
             <label>Subcontractor id <input type="number" name="subcontractor_id" min="0" value="0" style="width:8rem" /></label>
@@ -769,7 +769,7 @@
             <div class="epc-erp-form-panel__head"><strong>Run recognition</strong></div>
             <form method="post" action="/erp/ajax/prja-recognize">
                 <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
-                <label>Project id <input type="number" name="project_id" min="1" required /></label>
+                <ErpMasterPicker Kind="project" FieldName="project_id" Label="Project" Required="true" Min="1" />
                 <label>Method
                     <select name="method">
                         <option value="poc">percentage of completion</option>

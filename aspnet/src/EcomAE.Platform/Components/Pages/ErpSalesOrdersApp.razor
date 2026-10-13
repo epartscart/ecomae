@@ -367,7 +367,7 @@
                     <ErpVoucherHeaderFields DateLabel="Order date" DateFieldName="order_date" NumberLabel="Sales order no" NumberPreview="Auto" />
                 </div>
                 <div class="row">
-                    <div class="col-sm-2"><label for="so-customer">Customer user id</label><input id="so-customer" class="form-control" type="number" min="1" step="1" /></div>
+                    <div class="col-sm-3"><ErpMasterPicker Kind="customer" FieldName="customer_user_id" InputId="so-customer" Label="Customer" Required="true" /></div>
                     <div class="col-sm-4"><label for="so-title">Title</label><input id="so-title" class="form-control" type="text" maxlength="255" /></div>
                     <div class="col-sm-2"><label for="so-amount">Amount (ex VAT)</label><input id="so-amount" class="form-control" type="number" min="0" step="0.01" readonly aria-describedby="so-amount-help" /><span id="so-amount-help" class="help-block small">Sum of lines</span></div>
                     <div class="col-sm-3"><label for="so-notes">Notes</label><input id="so-notes" class="form-control" type="text" /></div>

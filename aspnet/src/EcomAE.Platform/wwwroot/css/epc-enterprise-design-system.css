@@ -492,6 +492,39 @@
     font-weight: 700;
 }
 
+.epc-erp-master-picker {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .3rem;
+    min-width: 12rem;
+}
+
+.epc-erp-master-picker__label {
+    margin: 0;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.epc-erp-master-picker__q {
+    order: 2;
+}
+
+.epc-erp-master-picker [data-erp-picker-select] {
+    order: 3;
+}
+
+.epc-erp-master-picker__hint {
+    order: 4;
+    margin: 0 !important;
+}
+
+.epc-fno-form .epc-erp-master-picker,
+.epc-fno-form .field .epc-erp-master-picker {
+    width: 100%;
+}
+
 .epc-erp-content-body form:not([data-epc-inline="1"]),
 .epc-cp-content-inner form:not([data-epc-inline="1"]) {
     display: grid !important;

@@ -50,7 +50,7 @@
                         </select>
                     </label>
                     <label>Order <input type="number" name="order_id" min="0" value="@(_fOrderId?.ToString(CultureInfo.InvariantCulture) ?? "")" style="width:7rem" /></label>
-                    <label>User <input type="number" name="user_id" min="0" value="@(_fUserId?.ToString(CultureInfo.InvariantCulture) ?? "")" style="width:7rem" /></label>
+                    <ErpMasterPicker Kind="customer" FieldName="user_id" Label="Customer" Value="@(_fUserId ?? 0)" />
                     <input type="hidden" name="sort" value="@_sortField" />
                     <input type="hidden" name="dir" value="@(_ascending ? "asc" : "desc")" />
                     <button type="submit" class="btn btn-success">Apply</button>
@@ -65,7 +65,7 @@
                 <form method="post" action="/erp/operations/create-entry" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@Nav.Uri" />
-                    <label>User id <input type="number" name="user_id" min="0" required value="0" style="width:7rem" /></label>
+                    <ErpMasterPicker Kind="customer" FieldName="user_id" Label="Customer" Required="true" />
                     <label>Direction
                         <select name="income">
                             <option value="0" selected>expense</option>

@@ -1931,6 +1931,7 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpLookups, HandleErpLookupsAsync);
         endpoints.MapGet(EcomAeRoutes.ErpCompanies, async (
             int? limit,
             ISurfaceDashboardSummaryReporter dashboards,
@@ -23531,6 +23532,56 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleErpLookupsAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpMasterLookupReadService lookups,
+        string? kind,
+        string? q,
+        int? limit,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required for master lookups.");
+        }
+
+        var result = await lookups.SearchAsync(kind, q, limit ?? ErpFirstPaint.PickerLimit, cancellationToken);
+        if (string.IsNullOrWhiteSpace(result.Kind))
+        {
+            return Results.Json(new
+            {
+                ok = false,
+                error = "unknown-kind",
+                message = result.Message,
+                session = SessionPayload(session)
+            }, statusCode: 400);
+        }
+
+        return Results.Ok(new
+        {
+            ok = true,
+            kind = result.Kind,
+            q = result.Query,
+            options = result.Options.Select(row => new
+            {
+                id = row.Id,
+                kind = row.Kind,
+                code = row.Code,
+                name = row.Name,
+                extra = row.Extra,
+                label = (string.IsNullOrWhiteSpace(row.Code) ? row.Id.ToString(CultureInfo.InvariantCulture) : row.Code)
+                    + (string.IsNullOrWhiteSpace(row.Name) ? "" : " · " + row.Name)
+            }),
+            count = result.Count,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Read-only master picker catalog. Writes stay on the document save routes."
+        });
     }
 
     private static async Task<IResult> HandleRealEstateReportAsync(
