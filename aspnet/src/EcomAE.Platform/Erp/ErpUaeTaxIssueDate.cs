@@ -10,6 +10,8 @@ public static class ErpUaeTaxIssueDate
 {
     public const string NewestFirstSql =
         "COALESCE("
+        + "STR_TO_DATE(`issue_date`, '%b %d, %Y'),"
+        + "STR_TO_DATE(`issue_date`, '%b %e, %Y'),"
         + "STR_TO_DATE(`issue_date`, '%d %b %Y'),"
         + "STR_TO_DATE(`issue_date`, '%d %M %Y'),"
         + "STR_TO_DATE(`issue_date`, '%Y-%m-%d'),"
@@ -20,6 +22,10 @@ public static class ErpUaeTaxIssueDate
 
     private static readonly string[] Formats =
     [
+        "MMM d, yyyy",
+        "MMM dd, yyyy",
+        "MMMM d, yyyy",
+        "MMMM dd, yyyy",
         "d MMM yyyy",
         "dd MMM yyyy",
         "d MMMM yyyy",

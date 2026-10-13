@@ -11,6 +11,9 @@ public sealed class ErpUaeTaxIssueDateTests
     [InlineData("01 Jan 2018", 2018, 1, 1)]
     [InlineData("23 Nov 2017", 2017, 11, 23)]
     [InlineData("01 January 2026", 2026, 1, 1)]
+    [InlineData("Jul 16, 2026", 2026, 7, 16)]
+    [InlineData("Sep 15, 2026", 2026, 9, 15)]
+    [InlineData("Jun 02, 2026", 2026, 6, 2)]
     [InlineData("2025-12-31", 2025, 12, 31)]
     [InlineData("15/03/2024", 2024, 3, 15)]
     public void TryParse_ReadsFtaDisplayDates(string raw, int year, int month, int day)
@@ -24,15 +27,15 @@ public sealed class ErpUaeTaxIssueDateTests
     {
         var rows = new[]
         {
-            new CpUaeTaxItemDigest(30, "old-id", "Older insert, older date", "01 Jan 2018", "Laws", "vat", false, false, 1),
-            new CpUaeTaxItemDigest(10, "new-date", "Newer date, older id", "01 Jan 2026", "Decisions", "einvoicing", false, false, 1),
-            new CpUaeTaxItemDigest(20, "mid", "Mid date", "01 Dec 2022", "Laws", "corporate_tax", false, false, 1),
-            new CpUaeTaxItemDigest(40, "blank", "No date", "", "Laws", "general", false, false, 1),
+            new CpUaeTaxItemDigest(1987, "old-id", "Newer insert, older date", "Jul 16, 2026", "Laws", "vat", false, false, 1),
+            new CpUaeTaxItemDigest(1980, "new-date", "Older insert, newest date", "Sep 15, 2026", "Decisions", "einvoicing", false, false, 1),
+            new CpUaeTaxItemDigest(1982, "mid", "Mid date", "Sep 01, 2026", "Laws", "corporate_tax", false, false, 1),
+            new CpUaeTaxItemDigest(3158, "blank", "No date", "NA", "Laws", "general", false, false, 1),
         };
 
         var ordered = ErpUaeTaxIssueDate.NewestFirst(rows, item => item.IssueDate, item => item.Id);
-        Assert.Equal(new[] { 10L, 20L, 30L, 40L }, ordered.Select(item => item.Id).ToArray());
-        Assert.Equal("01 Jan 2026", ordered[0].IssueDate);
+        Assert.Equal(new[] { 1980L, 1982L, 1987L, 3158L }, ordered.Select(item => item.Id).ToArray());
+        Assert.Equal("Sep 15, 2026", ordered[0].IssueDate);
     }
 
     [Fact]
