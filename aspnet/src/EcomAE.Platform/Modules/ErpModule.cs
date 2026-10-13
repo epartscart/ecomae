@@ -13186,7 +13186,8 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapGet(EcomAeRoutes.ErpPurchasePrint, async (
             HttpContext context,
-            long id,
+            long? id,
+            long? jwId,
             ILegacySessionValidator validator,
             IErpO2cDocumentPrintService print,
             CancellationToken cancellationToken) =>
@@ -13197,7 +13198,27 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for supplier-bill print.");
             }
 
-            var html = await print.RenderPurchaseAsync(id, cancellationToken);
+            var html = jwId is > 0
+                ? await print.RenderJewelleryVoucherAsync(jwId.Value, cancellationToken)
+                : await print.RenderPurchaseAsync(id ?? 0, cancellationToken);
+            return html is null ? Results.NotFound() : Results.Content(html, "text/html; charset=utf-8");
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpLpoPrint, async (
+            HttpContext context,
+            long? id,
+            long? poId,
+            ILegacySessionValidator validator,
+            IErpO2cDocumentPrintService print,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for LPO print.");
+            }
+
+            var html = await print.RenderLpoAsync(id ?? 0, poId ?? 0, cancellationToken);
             return html is null ? Results.NotFound() : Results.Content(html, "text/html; charset=utf-8");
         });
 
