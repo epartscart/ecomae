@@ -9570,12 +9570,54 @@ public sealed class ErpModule : ISurfaceModule
             var metal = body.Metal;
             var itemCode = body.ItemCode;
             var description = body.Description;
+            var ccMaking = body.CcMaking;
+            var ccMetal = body.CcMetal;
             var karat = body.Karat;
             var purity = body.Purity;
             var type = body.Type;
+            var brand = body.Brand;
             var category = body.Category;
+            var subCategory = body.SubCategory;
+            var vendor = body.Vendor;
+            var vendorRef = body.VendorRef;
+            var country = body.Country;
+            var hsCode = body.HsCode;
             var mcUnit = body.McUnit;
             var stdCost = body.StdCost;
+            var discountPct = body.DiscountPct;
+            var minQty = body.MinQty;
+            var maxQty = body.MaxQty;
+            var reorderLevel = body.ReorderLevel;
+            var reorderQty = body.ReorderQty;
+            var purCostGms = body.PurCostGms;
+            var salePriceGms = body.SalePriceGms;
+            var pcWeightGms = body.PcWeightGms;
+            var pcWeightOz = body.PcWeightOz;
+            var includeStoneWeight = body.IncludeStoneWeight;
+            var passPurityDiff = body.PassPurityDiff;
+            var inPieces = body.InPieces;
+            var createBarcodes = body.CreateBarcodes;
+            var barcodePrefix = body.BarcodePrefix;
+            var blockGrossWtSales = body.BlockGrossWtSales;
+            var askSupplier = body.AskSupplier;
+            var askWastage = body.AskWastage;
+            var excludeGstTrn = body.ExcludeGstTrn;
+            var gstTrnOnMakingStone = body.GstTrnOnMakingStone;
+            var allowNegativeStock = body.AllowNegativeStock;
+            var allowLessThanCost = body.AllowLessThanCost;
+            var loyaltyItem = body.LoyaltyItem;
+            var popStockFilter = body.PopStockFilter;
+            var gstTrnMakingOnly = body.GstTrnMakingOnly;
+            var convFactorOz = body.ConvFactorOz;
+            var abcCode = body.AbcCode;
+            var price1Code = body.Price1Code;
+            var price1Label = body.Price1Label;
+            var price2Code = body.Price2Code;
+            var price2Label = body.Price2Label;
+            var price3Code = body.Price3Code;
+            var price4Code = body.Price4Code;
+            var price5Code = body.Price5Code;
+            var createdBy = body.CreatedBy;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -9584,12 +9626,54 @@ public sealed class ErpModule : ISurfaceModule
                 metal = LiveWriteFormBinder.Text(form, "metal");
                 itemCode = LiveWriteFormBinder.Text(form, "item_code", "itemCode", "code");
                 description = LiveWriteFormBinder.Text(form, "description", "name");
+                ccMaking = LiveWriteFormBinder.Text(form, "cc_making", "ccMaking");
+                ccMetal = LiveWriteFormBinder.Text(form, "cc_metal", "ccMetal");
                 karat = LiveWriteFormBinder.Text(form, "karat");
                 purity = LiveWriteFormBinder.Dec(form, "purity");
                 type = LiveWriteFormBinder.Text(form, "type");
+                brand = LiveWriteFormBinder.Text(form, "brand");
                 category = LiveWriteFormBinder.Text(form, "category");
+                subCategory = LiveWriteFormBinder.Text(form, "sub_category", "subCategory");
+                vendor = LiveWriteFormBinder.Text(form, "vendor", "vendor_code");
+                vendorRef = LiveWriteFormBinder.Text(form, "vendor_ref", "vendorRef");
+                country = LiveWriteFormBinder.Text(form, "country");
+                hsCode = LiveWriteFormBinder.Text(form, "hs_code", "hsCode");
                 mcUnit = LiveWriteFormBinder.Text(form, "mc_unit", "mcUnit");
                 stdCost = LiveWriteFormBinder.Dec(form, "std_cost", "stdCost");
+                discountPct = LiveWriteFormBinder.Dec(form, "discount_pct", "discountPct");
+                minQty = LiveWriteFormBinder.Dec(form, "min_qty", "minQty");
+                maxQty = LiveWriteFormBinder.Dec(form, "max_qty", "maxQty");
+                reorderLevel = LiveWriteFormBinder.Dec(form, "reorder_level", "reorderLevel");
+                reorderQty = LiveWriteFormBinder.Dec(form, "reorder_qty", "reorderQty");
+                purCostGms = LiveWriteFormBinder.Dec(form, "pur_cost_gms", "purCostGms");
+                salePriceGms = LiveWriteFormBinder.Dec(form, "sale_price_gms", "salePriceGms");
+                pcWeightGms = LiveWriteFormBinder.Dec(form, "pc_weight_gms", "pcWeightGms");
+                pcWeightOz = LiveWriteFormBinder.Dec(form, "pc_weight_oz", "pcWeightOz");
+                includeStoneWeight = LiveWriteFormBinder.Flag(form, "include_stone_weight", "includeStoneWeight");
+                passPurityDiff = LiveWriteFormBinder.Flag(form, "pass_purity_diff", "passPurityDiff");
+                inPieces = LiveWriteFormBinder.Flag(form, "in_pieces", "inPieces");
+                createBarcodes = LiveWriteFormBinder.Flag(form, "create_barcodes", "createBarcodes");
+                barcodePrefix = LiveWriteFormBinder.Text(form, "barcode_prefix", "barcodePrefix");
+                blockGrossWtSales = LiveWriteFormBinder.Flag(form, "block_gross_wt_sales", "blockGrossWtSales");
+                askSupplier = LiveWriteFormBinder.Flag(form, "ask_supplier", "askSupplier");
+                askWastage = LiveWriteFormBinder.Flag(form, "ask_wastage", "askWastage");
+                excludeGstTrn = LiveWriteFormBinder.Flag(form, "exclude_gst_trn", "excludeGstTrn");
+                gstTrnOnMakingStone = LiveWriteFormBinder.Flag(form, "gst_trn_on_making_stone", "gstTrnOnMakingStone");
+                allowNegativeStock = LiveWriteFormBinder.Flag(form, "allow_negative_stock", "allowNegativeStock");
+                allowLessThanCost = LiveWriteFormBinder.Flag(form, "allow_less_than_cost", "allowLessThanCost");
+                loyaltyItem = LiveWriteFormBinder.Flag(form, "loyalty_item", "loyaltyItem");
+                popStockFilter = LiveWriteFormBinder.Flag(form, "pop_stock_filter", "popStockFilter");
+                gstTrnMakingOnly = LiveWriteFormBinder.Flag(form, "gst_trn_making_only", "gstTrnMakingOnly");
+                convFactorOz = LiveWriteFormBinder.Dec(form, "conv_factor_oz", "convFactorOz");
+                abcCode = LiveWriteFormBinder.Text(form, "abc_code", "abcCode");
+                price1Code = LiveWriteFormBinder.Text(form, "price1_code", "price1Code");
+                price1Label = LiveWriteFormBinder.Text(form, "price1_label", "price1Label");
+                price2Code = LiveWriteFormBinder.Text(form, "price2_code", "price2Code");
+                price2Label = LiveWriteFormBinder.Text(form, "price2_label", "price2Label");
+                price3Code = LiveWriteFormBinder.Text(form, "price3_code", "price3Code");
+                price4Code = LiveWriteFormBinder.Text(form, "price4_code", "price4Code");
+                price5Code = LiveWriteFormBinder.Text(form, "price5_code", "price5Code");
+                createdBy = LiveWriteFormBinder.Text(form, "created_by", "createdBy");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -9613,18 +9697,54 @@ public sealed class ErpModule : ISurfaceModule
                     Metal: metal,
                     ItemCode: itemCode,
                     Description: description,
+                    CcMaking: ccMaking,
+                    CcMetal: ccMetal,
                     Karat: karat,
                     Purity: purity,
                     Type: type,
+                    Brand: brand,
                     Category: category,
+                    SubCategory: subCategory,
+                    Vendor: vendor,
+                    VendorRef: vendorRef,
+                    Country: country,
+                    HsCode: hsCode,
                     McUnit: mcUnit,
+                    IncludeStoneWeight: includeStoneWeight,
+                    PassPurityDiff: passPurityDiff,
+                    InPieces: inPieces,
+                    PcWeightGms: pcWeightGms,
+                    PcWeightOz: pcWeightOz,
+                    CreateBarcodes: createBarcodes,
+                    BarcodePrefix: barcodePrefix,
+                    BlockGrossWtSales: blockGrossWtSales,
+                    AskSupplier: askSupplier,
+                    AskWastage: askWastage,
+                    ExcludeGstTrn: excludeGstTrn,
+                    GstTrnOnMakingStone: gstTrnOnMakingStone,
+                    AllowNegativeStock: allowNegativeStock,
+                    AllowLessThanCost: allowLessThanCost,
+                    ConvFactorOz: convFactorOz,
+                    AbcCode: abcCode,
+                    LoyaltyItem: loyaltyItem,
                     StdCost: stdCost,
-                    IncludeStoneWeight: body.IncludeStoneWeight,
-                    InPieces: body.InPieces,
-                    GstTrnOnMakingStone: body.GstTrnOnMakingStone,
-                    ConvFactorOz: body.ConvFactorOz,
-                    Price1Code: body.Price1Code,
-                    Price1Label: body.Price1Label),
+                    DiscountPct: discountPct,
+                    MinQty: minQty,
+                    MaxQty: maxQty,
+                    ReorderLevel: reorderLevel,
+                    ReorderQty: reorderQty,
+                    PurCostGms: purCostGms,
+                    SalePriceGms: salePriceGms,
+                    Price1Code: price1Code,
+                    Price1Label: price1Label,
+                    Price2Code: price2Code,
+                    Price2Label: price2Label,
+                    Price3Code: price3Code,
+                    Price4Code: price4Code,
+                    Price5Code: price5Code,
+                    PopStockFilter: popStockFilter,
+                    GstTrnMakingOnly: gstTrnMakingOnly,
+                    CreatedBy: createdBy),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
@@ -9812,6 +9932,15 @@ public sealed class ErpModule : ISurfaceModule
             var goldSchemeRedeem = body.GoldSchemeRedeem;
             var lines = body.Lines;
             var receipts = body.Receipts;
+            var addins = body.Addins;
+            var itemCurrency = body.ItemCurrency;
+            var itemCurrencyRate = body.ItemCurrencyRate;
+            var metalRate = body.MetalRate;
+            var isFixed = body.IsFixed;
+            var placeOfSupply = body.PlaceOfSupply;
+            var shipmentCompany = body.ShipmentCompany;
+            var portCompany = body.PortCompany;
+            var otherAmount = body.OtherAmount;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -9907,6 +10036,38 @@ public sealed class ErpModule : ISurfaceModule
                         .Where(receipt => receipt.AmountFc > 0 || receipt.AmountLc > 0)
                         .ToArray();
                 }
+                itemCurrency = LiveWriteFormBinder.Text(form, "item_curr", "item_currency", "itemCurr");
+                itemCurrencyRate = LiveWriteFormBinder.Dec(form, "item_curr_rate", "item_currency_rate", "itemCurrRate");
+                metalRate = LiveWriteFormBinder.Dec(form, "metal_rate", "fixed_metal_rate", "metalRate");
+                isFixed = LiveWriteFormBinder.Flag(form, "is_fixed", "fixed", "isFixed");
+                placeOfSupply = LiveWriteFormBinder.Text(form, "place_of_supply", "placeOfSupply");
+                shipmentCompany = LiveWriteFormBinder.Text(form, "shipment_company", "shipmentCompany");
+                portCompany = LiveWriteFormBinder.Text(form, "port_company", "portCompany");
+                otherAmount = LiveWriteFormBinder.Dec(form, "other_amount", "otherAmount");
+                var addinCount = new[]
+                {
+                    form["addin_code"].Count,
+                    form["addin_description"].Count,
+                    form["addin_debit_ac"].Count,
+                    form["addin_credit_ac"].Count,
+                    form["addin_pct"].Count,
+                    form["addin_amount"].Count
+                }.Max();
+                if (addinCount > 0)
+                {
+                    addins = Enumerable.Range(0, addinCount)
+                        .Select(index => new ErpJwVoucherAddinSaveRequest(
+                            AddinCode: LiveWriteFormBinder.TextAt(form, "addin_code", index),
+                            Description: LiveWriteFormBinder.TextAt(form, "addin_description", index),
+                            DebitAccount: LiveWriteFormBinder.TextAt(form, "addin_debit_ac", index),
+                            CreditAccount: LiveWriteFormBinder.TextAt(form, "addin_credit_ac", index),
+                            Percent: LiveWriteFormBinder.DecAt(form, "addin_pct", index),
+                            Amount: LiveWriteFormBinder.DecAt(form, "addin_amount", index),
+                            Narration: LiveWriteFormBinder.TextAt(form, "addin_narration", index)))
+                        .Where(row => !string.IsNullOrWhiteSpace(row.AddinCode) || row.Amount != 0)
+                        .ToArray();
+                }
+
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -9957,6 +10118,15 @@ public sealed class ErpModule : ISurfaceModule
                     GoldSchemeRedeem: goldSchemeRedeem,
                     Lines: lines,
                     Receipts: receipts,
+                    Addins: addins,
+                    ItemCurrency: itemCurrency,
+                    ItemCurrencyRate: itemCurrencyRate,
+                    MetalRate: metalRate,
+                    IsFixed: isFixed,
+                    PlaceOfSupply: placeOfSupply,
+                    ShipmentCompany: shipmentCompany,
+                    PortCompany: portCompany,
+                    OtherAmount: otherAmount,
                     ActorUserId: session.UserId),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
@@ -29096,6 +29266,15 @@ public sealed class ErpModule : ISurfaceModule
         decimal OldGoldExchange = 0,
         decimal GoldSchemeRedeem = 0,
         IReadOnlyList<ErpJwVoucherReceiptSaveRequest>? Receipts = null,
+        IReadOnlyList<ErpJwVoucherAddinSaveRequest>? Addins = null,
+        string? ItemCurrency = null,
+        decimal ItemCurrencyRate = 0,
+        decimal MetalRate = 0,
+        bool IsFixed = false,
+        string? PlaceOfSupply = null,
+        string? ShipmentCompany = null,
+        string? PortCompany = null,
+        decimal OtherAmount = 0,
         bool ConfirmWrites = false);
     private sealed record ErpJwFixingSaveBody(
         int CompanyId = 0,
@@ -29128,18 +29307,54 @@ public sealed class ErpModule : ISurfaceModule
         string? Metal = null,
         string? ItemCode = null,
         string? Description = null,
+        string? CcMaking = null,
+        string? CcMetal = null,
         string? Karat = null,
         decimal Purity = 0,
         string? Type = null,
+        string? Brand = null,
         string? Category = null,
+        string? SubCategory = null,
+        string? Vendor = null,
+        string? VendorRef = null,
+        string? Country = null,
+        string? HsCode = null,
         string? McUnit = null,
         decimal StdCost = 0,
+        decimal DiscountPct = 0,
+        decimal MinQty = 0,
+        decimal MaxQty = 0,
+        decimal ReorderLevel = 0,
+        decimal ReorderQty = 0,
+        decimal PurCostGms = 0,
+        decimal SalePriceGms = 0,
+        decimal PcWeightGms = 0,
+        decimal PcWeightOz = 0,
         bool IncludeStoneWeight = false,
-        bool InPieces = true,
-        bool GstTrnOnMakingStone = true,
+        bool PassPurityDiff = false,
+        bool InPieces = false,
+        bool CreateBarcodes = false,
+        string? BarcodePrefix = null,
+        bool BlockGrossWtSales = false,
+        bool AskSupplier = false,
+        bool AskWastage = false,
+        bool ExcludeGstTrn = false,
+        bool GstTrnOnMakingStone = false,
+        bool AllowNegativeStock = false,
+        bool AllowLessThanCost = false,
+        bool LoyaltyItem = false,
+        bool PopStockFilter = false,
+        bool GstTrnMakingOnly = false,
         decimal ConvFactorOz = 31.10347m,
+        string? AbcCode = null,
         string? Price1Code = null,
         string? Price1Label = null,
+        string? Price2Code = null,
+        string? Price2Label = null,
+        string? Price3Code = null,
+        string? Price4Code = null,
+        string? Price5Code = null,
+        string? CreatedBy = null,
         bool ConfirmWrites = false);
     private sealed record ErpJwBarcodeGenerateBody(
         int CompanyId = 0,

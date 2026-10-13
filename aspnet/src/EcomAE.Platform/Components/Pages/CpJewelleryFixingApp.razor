@@ -97,30 +97,179 @@
 
     <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.FixingTabs" />
 
-    @if (_isAdmin && (_tab == "jw_metal_purchase" || _tab == "jw_diamond_purchase"))
+    @if (_isAdmin && _tab == "jw_metal_purchase")
+    {
+        <ErpPhpCreateWell Title="Metal Purchase (FIXING GOLD)">
+            <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" class="epc-jw-bm-form" data-epc-jw-purchase="1">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                <input type="hidden" name="action" value="jw_metal_purchase_save" />
+                <input type="hidden" name="voc_type" value="RMP" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <div class="epc-erp-doc-header">
+                    <p class="epc-erp-doc-header__title">Invoice details</p>
+                    <label>Branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
+                    <label>Voc Type <input class="form-control input-sm" name="voc_type_label" value="PUR" readonly /></label>
+                    <ErpVoucherHeaderFields NumberPreview="Auto" DateLabel="Voc Date" NumberLabel="Voc No" ShowLegalEntity="false" ShowBusinessUnit="false" ShowCostCentre="false" />
+                    <ErpMasterPicker Kind="supplier" FieldName="party_code" Label="Party Code" ValueMode="code" NameFieldName="party_name" Required="true" InputId="jw-party" />
+                    <label>Party Name <input class="form-control input-sm" name="party_name" required maxlength="120" /></label>
+                    <ErpMasterPicker Kind="jw-currency" FieldName="currency" Label="Party Curr" ValueMode="code" SelectedCode="AED" InputId="jw-party-curr" />
+                    <label>Party Curr rate <input class="form-control input-sm" name="currency_rate" type="number" step="0.000001" value="1" /></label>
+                    <ErpMasterPicker Kind="jw-currency" FieldName="item_curr" Label="Item Curr" ValueMode="code" SelectedCode="AED" InputId="jw-item-curr" />
+                    <label>Item Curr rate <input class="form-control input-sm" name="item_curr_rate" type="number" step="0.000001" value="1" /></label>
+                    <label><input type="checkbox" name="is_fixed" value="true" checked /> Fixed Metal Rate GMS</label>
+                    <label>Metal Rate <input class="form-control input-sm" name="metal_rate" type="number" step="0.00001" value="0" /></label>
+                    <label>Cr. Days <input class="form-control input-sm" name="cr_days" type="number" min="0" value="0" /></label>
+                    <ErpMasterPicker Kind="customer" FieldName="salesman" Label="Salesman" ValueMode="code" InputId="jw-salesman" />
+                    <label>Supp. Inv No <input class="form-control input-sm" name="supp_inv_no" maxlength="30" /></label>
+                    <label>Supp. Inv Date <input class="form-control input-sm" name="supp_inv_date" type="date" /></label>
+                </div>
+                <div class="epc-jw-panel-nav" aria-label="Metal purchase panels">
+                    <a class="@(_panel == "lines" ? "is-active" : "")" href="@PanelHref("lines")">1. Line Items</a>
+                    <a class="@(_panel == "addins" ? "is-active" : "")" href="@PanelHref("addins")">2. Other Amounts</a>
+                    <a class="@(_panel == "attach" ? "is-active" : "")" href="@PanelHref("attach")">3. Attachments</a>
+                </div>
+                @if (_panel != "attach")
+                {
+                    <div class="epc-jw-panel epc-jw-line-grid">
+                        <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Stock Code</th>
+                                    <th>PCS</th>
+                                    <th>Gr. Wt</th>
+                                    <th>Stone Wt</th>
+                                    <th>Purity</th>
+                                    <th>Pure Wt</th>
+                                    <th>Mkg. Rate</th>
+                                    <th>Mkg. Amount</th>
+                                    <th>Metal Amount</th>
+                                    <th>St. Amount</th>
+                                    <th>Wstg %</th>
+                                    <th>Wstg Qty</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>
+                                        <ErpMasterPicker Kind="jw-metal-stock" FieldName="line_stock_code" Label="" ValueMode="code" NameFieldName="line_description" Required="true" InputId="jw-stock" />
+                                        <input type="hidden" name="line_description" value="" />
+                                        <input type="hidden" name="line_division" value="G" />
+                                        <input type="hidden" name="line_karat" value="" />
+                                    </td>
+                                    <td><input class="form-control input-sm" name="line_pcs" type="number" min="0" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="line_gr_wt" type="number" step="0.0001" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="line_stone_wt" type="number" step="0.0001" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="line_purity" type="number" step="0.000001" value="0.999000" /></td>
+                                    <td><input class="form-control input-sm" name="line_pure_wt" type="number" step="0.0001" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="line_mkg_rate" type="number" step="0.0001" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="line_mkg_amount" type="number" step="0.01" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="line_metal_amount" type="number" step="0.01" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="line_stone_amount" type="number" step="0.01" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="line_wastage_pct" type="number" step="0.0001" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="line_wastage_qty" type="number" step="0.0001" value="0" /></td>
+                                    <td><span data-jw-item-total>0.00</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <input type="hidden" name="line_metal_rate" value="0" />
+                    </div>
+                    <div class="epc-jw-panel epc-jw-line-grid">
+                        <p class="epc-erp-doc-header__title">Other amounts</p>
+                        <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Addin Code</th>
+                                    <th>Description</th>
+                                    <th>Debit A/c</th>
+                                    <th>Credit A/c</th>
+                                    <th>%</th>
+                                    <th>Amount</th>
+                                    <th>Narration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td><ErpMasterPicker Kind="jw-addin" FieldName="addin_code" Label="" ValueMode="code" NameFieldName="addin_description" InputId="jw-addin" /></td>
+                                    <td><input class="form-control input-sm" name="addin_description" maxlength="120" /></td>
+                                    <td><ErpMasterPicker Kind="account" FieldName="addin_debit_ac" Label="" ValueMode="code" InputId="jw-addin-dr" /></td>
+                                    <td><ErpMasterPicker Kind="supplier" FieldName="addin_credit_ac" Label="" ValueMode="code" InputId="jw-addin-cr" /></td>
+                                    <td><input class="form-control input-sm" name="addin_pct" type="number" step="0.0001" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="addin_amount" type="number" step="0.01" value="0" /></td>
+                                    <td><input class="form-control input-sm" name="addin_narration" maxlength="200" /></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="epc-jw-panel">
+                        <p class="text-muted">Attach supplier invoice / packing documents after the voucher is saved, or upload now against this purchase.</p>
+                        <label>Document
+                            <input class="form-control input-sm" type="file" name="file" form="jw-mp-attach" />
+                        </label>
+                    </div>
+                }
+                <div class="epc-jw-totals">
+                    <label>Narration <textarea class="form-control input-sm" name="narration" rows="2" maxlength="200"></textarea></label>
+                    <label>Place of Supply <input class="form-control input-sm" name="place_of_supply" maxlength="80" /></label>
+                    <label>Shipment company <input class="form-control input-sm" name="shipment_company" maxlength="80" /></label>
+                    <label>Port / company <input class="form-control input-sm" name="port_company" maxlength="80" /></label>
+                    <label>Input VAT <input class="form-control input-sm" name="vat_amount" type="number" step="0.01" value="0" /></label>
+                    <label>RCM VAT <input class="form-control input-sm" name="rcm_vat" type="number" step="0.01" value="0" /></label>
+                    <label>Other Amt <input class="form-control input-sm" name="other_amount" type="number" step="0.01" value="0" /></label>
+                    <label>Net Amt <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" /></label>
+                    <label>Rnd Off <input class="form-control input-sm" name="round_off" type="number" step="0.01" value="0" /></label>
+                    <label>Gross Total <input class="form-control input-sm" name="gross_total" type="number" step="0.01" value="0" /></label>
+                    <p>Other amounts total <strong data-jw-other-total>0.00</strong></p>
+                    <p>Gross <strong data-jw-gross-total>0.00</strong></p>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Save voucher</button>
+            </form>
+            @if (_panel == "attach")
+            {
+                <form id="jw-mp-attach" method="post" action="/erp/ajax/document-upload" enctype="multipart/form-data" style="margin-top:8px;">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                    <input type="hidden" name="doc_type" value="jw_metal_purchase" />
+                    <button type="submit" class="btn btn-default btn-sm">Upload attachment</button>
+                </form>
+            }
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_diamond_purchase")
     {
         <ErpPhpCreateWell Title="@("New " + _spec.Label)">
             <form method="post" action="@WriteAction(EcomAeRoutes.ErpJewelleryVoucherSaveForm)" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
-                <input type="hidden" name="action" value="@(_tab == "jw_diamond_purchase" ? "jw_diamond_purchase_save" : "jw_metal_purchase_save")" />
-                <input type="hidden" name="voc_type" value="@(_tab == "jw_diamond_purchase" ? "RDP" : "RMP")" />
+                <input type="hidden" name="action" value="jw_diamond_purchase_save" />
+                <input type="hidden" name="voc_type" value="RDP" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
                 <label>Branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
                 <ErpVoucherHeaderFields NumberPreview="Auto" />
-                <label>Party Code <input class="form-control input-sm" name="party_code" /></label>
+                <ErpMasterPicker Kind="supplier" FieldName="party_code" Label="Party Code" ValueMode="code" NameFieldName="party_name" InputId="jw-d-party" />
                 <label>Party Name <input class="form-control input-sm" name="party_name" required /></label>
-                <label>Currency <input class="form-control input-sm" name="currency" value="AED" maxlength="5" /></label>
+                <ErpMasterPicker Kind="jw-currency" FieldName="currency" Label="Currency" ValueMode="code" SelectedCode="AED" InputId="jw-d-curr" />
                 <label>Currency rate <input class="form-control input-sm" name="currency_rate" type="number" step="0.000001" value="1" /></label>
                 <label>Stock code <input class="form-control input-sm" name="line_stock_code" required /></label>
                 <label>Description <input class="form-control input-sm" name="line_description" required /></label>
                 <label>Division
                     <select class="form-control input-sm" name="line_division">
-                        <option value="G">Gold</option>
                         <option value="D">Diamond</option>
+                        <option value="G">Gold</option>
                         <option value="S">Silver</option>
                         <option value="P">Pearl</option>
                     </select>
@@ -294,6 +443,7 @@
     private string _ok = "";
     private string _err = "";
     private string _listHref = "/erp/jewellery-fixing-app";
+    private string _panel = "lines";
     private long _openedId;
     private CpJewelleryFixingDetail? _opened;
     private IReadOnlyList<CpJewelleryFixingRowDigest> _openedSiblings = [];
@@ -306,6 +456,9 @@
             : ("Fixing #" + _opened.FixNo.ToString(CultureInfo.InvariantCulture));
 
     private string WriteAction(string path) => ErpJewelleryModuleChrome.AppHref(path, _company);
+
+    private string PanelHref(string panel)
+        => ErpJewelleryModuleChrome.AppHref(_appPath, _company, ("tab", _tab), ("panel", panel));
 
     private string ReturnHref =>
         _openedId > 0
@@ -324,6 +477,8 @@
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "fixing_id");
         _company = ErpJewelleryModuleChrome.CompanyFromQuery(ctx.Request.Query["company"].ToString());
         _tab = ErpJewelleryModuleChrome.NormalizeTab(ctx.Request.Query["tab"].ToString(), ErpJewelleryModuleChrome.FixingTabs, "jw_purchase_fixing");
+        var panelRaw = (ctx.Request.Query["panel"].ToString() ?? "").Trim().ToLowerInvariant();
+        _panel = panelRaw is "addins" or "attach" ? panelRaw : "lines";
         _ok = ctx.Request.Query["ok"].ToString();
         _err = ctx.Request.Query["err"].ToString();
         _spec = ErpJewelleryModuleChrome.FixingSpec(_tab);

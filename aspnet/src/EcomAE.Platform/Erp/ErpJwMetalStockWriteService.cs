@@ -58,6 +58,13 @@ public sealed record ErpJwMetalStockSaveRequest(
     decimal SalePriceGms = 0,
     string? Price1Code = null,
     string? Price1Label = null,
+    string? Price2Code = null,
+    string? Price2Label = null,
+    string? Price3Code = null,
+    string? Price4Code = null,
+    string? Price5Code = null,
+    bool PopStockFilter = false,
+    bool GstTrnMakingOnly = false,
     string? CreatedBy = null);
 
 public sealed class ErpJwMetalStockWriteService : IErpJwMetalStockWriteService
@@ -128,7 +135,7 @@ public sealed class ErpJwMetalStockWriteService : IErpJwMetalStockWriteService
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `epc_jewel_metal_stock` (`company_id`,`metal`,`item_code`,`description`,`cc_making`,`cc_metal`,`karat`,`purity`,`type`,`brand`,`category`,`sub_category`,`vendor`,`vendor_ref`,`country`,`hs_code`,`mc_unit`,`include_stone_weight`,`pass_purity_diff`,`in_pieces`,`pc_weight_gms`,`pc_weight_oz`,`create_barcodes`,`barcode_prefix`,`block_gross_wt_sales`,`ask_supplier`,`ask_wastage`,`exclude_gst_trn`,`gst_trn_on_making_stone`,`allow_negative_stock`,`allow_less_than_cost`,`conv_factor_oz`,`abc_code`,`loyalty_item`,`std_cost`,`discount_pct`,`min_qty`,`max_qty`,`reorder_level`,`reorder_qty`,`pur_cost_gms`,`sale_price_gms`,`price1_code`,`price1_label`,`created_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `metal` = VALUES(`metal`), `description` = VALUES(`description`), `cc_making` = VALUES(`cc_making`), `cc_metal` = VALUES(`cc_metal`), `karat` = VALUES(`karat`), `purity` = VALUES(`purity`), `type` = VALUES(`type`), `brand` = VALUES(`brand`), `category` = VALUES(`category`), `sub_category` = VALUES(`sub_category`), `vendor` = VALUES(`vendor`), `vendor_ref` = VALUES(`vendor_ref`), `country` = VALUES(`country`), `hs_code` = VALUES(`hs_code`), `mc_unit` = VALUES(`mc_unit`), `include_stone_weight` = VALUES(`include_stone_weight`), `pass_purity_diff` = VALUES(`pass_purity_diff`), `in_pieces` = VALUES(`in_pieces`), `pc_weight_gms` = VALUES(`pc_weight_gms`), `pc_weight_oz` = VALUES(`pc_weight_oz`), `create_barcodes` = VALUES(`create_barcodes`), `barcode_prefix` = VALUES(`barcode_prefix`), `block_gross_wt_sales` = VALUES(`block_gross_wt_sales`), `ask_supplier` = VALUES(`ask_supplier`), `ask_wastage` = VALUES(`ask_wastage`), `exclude_gst_trn` = VALUES(`exclude_gst_trn`), `gst_trn_on_making_stone` = VALUES(`gst_trn_on_making_stone`), `allow_negative_stock` = VALUES(`allow_negative_stock`), `allow_less_than_cost` = VALUES(`allow_less_than_cost`), `conv_factor_oz` = VALUES(`conv_factor_oz`), `abc_code` = VALUES(`abc_code`), `loyalty_item` = VALUES(`loyalty_item`), `std_cost` = VALUES(`std_cost`), `discount_pct` = VALUES(`discount_pct`), `min_qty` = VALUES(`min_qty`), `max_qty` = VALUES(`max_qty`), `reorder_level` = VALUES(`reorder_level`), `reorder_qty` = VALUES(`reorder_qty`), `pur_cost_gms` = VALUES(`pur_cost_gms`), `sale_price_gms` = VALUES(`sale_price_gms`), `price1_code` = VALUES(`price1_code`), `price1_label` = VALUES(`price1_label`), `created_by` = VALUES(`created_by`)"),
+                "INSERT INTO `epc_jewel_metal_stock` (`company_id`,`metal`,`item_code`,`description`,`cc_making`,`cc_metal`,`karat`,`purity`,`type`,`brand`,`category`,`sub_category`,`vendor`,`vendor_ref`,`country`,`hs_code`,`mc_unit`,`include_stone_weight`,`pass_purity_diff`,`in_pieces`,`pc_weight_gms`,`pc_weight_oz`,`create_barcodes`,`barcode_prefix`,`block_gross_wt_sales`,`ask_supplier`,`ask_wastage`,`exclude_gst_trn`,`gst_trn_on_making_stone`,`allow_negative_stock`,`allow_less_than_cost`,`conv_factor_oz`,`abc_code`,`loyalty_item`,`pop_stock_filter`,`gst_trn_making_only`,`std_cost`,`discount_pct`,`min_qty`,`max_qty`,`reorder_level`,`reorder_qty`,`pur_cost_gms`,`sale_price_gms`,`price1_code`,`price1_label`,`price2_code`,`price2_label`,`price3_code`,`price4_code`,`price5_code`,`created_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `metal` = VALUES(`metal`), `description` = VALUES(`description`), `cc_making` = VALUES(`cc_making`), `cc_metal` = VALUES(`cc_metal`), `karat` = VALUES(`karat`), `purity` = VALUES(`purity`), `type` = VALUES(`type`), `brand` = VALUES(`brand`), `category` = VALUES(`category`), `sub_category` = VALUES(`sub_category`), `vendor` = VALUES(`vendor`), `vendor_ref` = VALUES(`vendor_ref`), `country` = VALUES(`country`), `hs_code` = VALUES(`hs_code`), `mc_unit` = VALUES(`mc_unit`), `include_stone_weight` = VALUES(`include_stone_weight`), `pass_purity_diff` = VALUES(`pass_purity_diff`), `in_pieces` = VALUES(`in_pieces`), `pc_weight_gms` = VALUES(`pc_weight_gms`), `pc_weight_oz` = VALUES(`pc_weight_oz`), `create_barcodes` = VALUES(`create_barcodes`), `barcode_prefix` = VALUES(`barcode_prefix`), `block_gross_wt_sales` = VALUES(`block_gross_wt_sales`), `ask_supplier` = VALUES(`ask_supplier`), `ask_wastage` = VALUES(`ask_wastage`), `exclude_gst_trn` = VALUES(`exclude_gst_trn`), `gst_trn_on_making_stone` = VALUES(`gst_trn_on_making_stone`), `allow_negative_stock` = VALUES(`allow_negative_stock`), `allow_less_than_cost` = VALUES(`allow_less_than_cost`), `conv_factor_oz` = VALUES(`conv_factor_oz`), `abc_code` = VALUES(`abc_code`), `loyalty_item` = VALUES(`loyalty_item`), `pop_stock_filter` = VALUES(`pop_stock_filter`), `gst_trn_making_only` = VALUES(`gst_trn_making_only`), `std_cost` = VALUES(`std_cost`), `discount_pct` = VALUES(`discount_pct`), `min_qty` = VALUES(`min_qty`), `max_qty` = VALUES(`max_qty`), `reorder_level` = VALUES(`reorder_level`), `reorder_qty` = VALUES(`reorder_qty`), `pur_cost_gms` = VALUES(`pur_cost_gms`), `sale_price_gms` = VALUES(`sale_price_gms`), `price1_code` = VALUES(`price1_code`), `price1_label` = VALUES(`price1_label`), `price2_code` = VALUES(`price2_code`), `price2_label` = VALUES(`price2_label`), `price3_code` = VALUES(`price3_code`), `price4_code` = VALUES(`price4_code`), `price5_code` = VALUES(`price5_code`), `created_by` = VALUES(`created_by`)"),
             cancellationToken,
             companyId,
             metal,
@@ -164,6 +171,8 @@ public sealed class ErpJwMetalStockWriteService : IErpJwMetalStockWriteService
             RoundNonNeg(convOz, 5),
             Clip((request.AbcCode ?? string.Empty).Trim().ToUpperInvariant(), 1),
             request.LoyaltyItem ? 1 : 0,
+            request.PopStockFilter ? 1 : 0,
+            request.GstTrnMakingOnly ? 1 : 0,
             RoundNonNeg(request.StdCost, 2),
             RoundNonNeg(request.DiscountPct, 2),
             RoundNonNeg(request.MinQty, 2),
@@ -174,6 +183,11 @@ public sealed class ErpJwMetalStockWriteService : IErpJwMetalStockWriteService
             RoundNonNeg(request.SalePriceGms, 2),
             price1Code,
             price1Label,
+            Clip((request.Price2Code ?? string.Empty).Trim(), 5),
+            Clip((request.Price2Label ?? string.Empty).Trim(), 20),
+            Clip((request.Price3Code ?? string.Empty).Trim(), 5),
+            Clip((request.Price4Code ?? string.Empty).Trim(), 5),
+            Clip((request.Price5Code ?? string.Empty).Trim(), 5),
             Clip((request.CreatedBy ?? string.Empty).Trim(), 40)).ConfigureAwait(false);
 
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);

@@ -94,6 +94,18 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "customer" or "customers" or "user" or "users" or "user-id" or "customer-user-id" => "customer",
             "supplier" or "suppliers" or "vendor" or "vendors" => "supplier",
             "item" or "items" or "sku" or "inventory" or "item-code" => "item",
+            "jw-metal-stock" or "metal-stock" or "jw-item" or "jw-stock" or "jw-stock-code" => "jw-metal-stock",
+            "jw-karat" or "karat" or "karats" => "jw-karat",
+            "jw-currency" or "jw-curr" => "jw-currency",
+            "jw-rate-type" or "rate-type" => "jw-rate-type",
+            "jw-type" or "jw-item-type" => "jw-type",
+            "jw-brand" or "brand" or "brands" => "jw-brand",
+            "jw-category" or "jw-cat" => "jw-category",
+            "jw-sub-category" or "jw-subcategory" => "jw-sub-category",
+            "jw-country" or "country" or "countries" => "jw-country",
+            "jw-cc" or "jw-cost-centre" or "cc-making" or "cc-metal" => "jw-cc",
+            "jw-addin" or "addin" or "addins" => "jw-addin",
+            "jw-hs" or "hs-code" or "hscode" => "jw-hs",
             "project" or "projects" or "prj" => "project",
             "re-project" or "reproject" or "real-estate-project" => "re-project",
             "account" or "accounts" or "cash" or "bank" or "cash-account" => "account",
@@ -111,6 +123,13 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "customer" => "/erp/receivables-app",
             "supplier" => "/erp/suppliers-app",
             "item" => "/erp/inventory-stock-app",
+            "jw-metal-stock" => "/erp/jewellery-stock-verification-app?tab=jw_metal_stock",
+            "jw-karat" => "/erp/jewellery-masters-app?tab=jw_karat",
+            "jw-currency" => "/erp/jewellery-masters-app?tab=jw_currency",
+            "jw-rate-type" => "/erp/jewellery-masters-app?tab=jw_rate_type",
+            "jw-type" or "jw-brand" or "jw-category" or "jw-sub-category" or "jw-country" or "jw-cc" or "jw-hs"
+                => "/erp/jewellery-stock-verification-app?tab=jw_metal_stock",
+            "jw-addin" => "/erp/jewellery-fixing-app?tab=jw_metal_purchase",
             "project" => "/erp/project-accounting-app",
             "re-project" => "/erp/real-estate-app?tab=projects",
             "account" => "/erp/cash-accounts-app",
@@ -127,6 +146,18 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "customer" => "Customer",
             "supplier" => "Supplier",
             "item" => "Item",
+            "jw-metal-stock" => "Metal stock",
+            "jw-karat" => "Karat",
+            "jw-currency" => "Currency",
+            "jw-rate-type" => "Rate type",
+            "jw-type" => "Type",
+            "jw-brand" => "Brand",
+            "jw-category" => "Category",
+            "jw-sub-category" => "Sub-category",
+            "jw-country" => "Country",
+            "jw-cc" => "Cost centre",
+            "jw-addin" => "Add-in",
+            "jw-hs" => "HS code",
             "project" => "Project",
             "re-project" => "Development project",
             "account" => "Cash / bank account",
@@ -206,6 +237,22 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "customer" => await LoadCustomersAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
             "supplier" => await LoadApprovedSuppliersAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
             "item" => await LoadItemsAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
+            "jw-metal-stock" => await LoadMetalStockAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
+            "jw-karat" => await LoadKaratsAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
+            "jw-currency" => await LoadSimpleAsync(
+                connection, "jw-currency", "epc_jewel_currency", "id", "curr_code", "description", "curr_code",
+                query, limit, cancellationToken).ConfigureAwait(false),
+            "jw-rate-type" => await LoadSimpleAsync(
+                connection, "jw-rate-type", "epc_jewel_rate_type", "id", "rate_type", "currency", "rate_type",
+                query, limit, cancellationToken).ConfigureAwait(false),
+            "jw-type" => await LoadDistinctAsync(connection, "jw-type", "epc_jewel_metal_stock", "type", query, limit, cancellationToken).ConfigureAwait(false),
+            "jw-brand" => await LoadDistinctAsync(connection, "jw-brand", "epc_jewel_metal_stock", "brand", query, limit, cancellationToken).ConfigureAwait(false),
+            "jw-category" => await LoadDistinctAsync(connection, "jw-category", "epc_jewel_metal_stock", "category", query, limit, cancellationToken).ConfigureAwait(false),
+            "jw-sub-category" => await LoadDistinctAsync(connection, "jw-sub-category", "epc_jewel_metal_stock", "sub_category", query, limit, cancellationToken).ConfigureAwait(false),
+            "jw-country" => await LoadDistinctAsync(connection, "jw-country", "epc_jewel_metal_stock", "country", query, limit, cancellationToken).ConfigureAwait(false),
+            "jw-cc" => await LoadCostCentresAsync(connection, query, limit, cancellationToken).ConfigureAwait(false),
+            "jw-addin" => await LoadDistinctAsync(connection, "jw-addin", "epc_jewel_voucher_addins", "addin_code", query, limit, cancellationToken).ConfigureAwait(false),
+            "jw-hs" => await LoadDistinctAsync(connection, "jw-hs", "epc_jewel_metal_stock", "hs_code", query, limit, cancellationToken).ConfigureAwait(false),
             "project" => await LoadSimpleAsync(
                 connection, "project", "epc_prj_projects", "id", "code", "name", "code",
                 query, limit, cancellationToken).ConfigureAwait(false),
@@ -258,6 +305,87 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             + WhereLike(query, ["CAST(`u`.`user_id` AS CHAR)", codeExpr, nameExpr, email, phone])
             + " ORDER BY `u`.`user_id` DESC LIMIT " + limit.ToString(CultureInfo.InvariantCulture);
         return await ReadRowsAsync(connection, "customer", sql, query, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<IReadOnlyList<ErpMasterOption>> LoadMetalStockAsync(
+        DbConnection connection,
+        string query,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        if (!await TableExistsAsync(connection, "epc_jewel_metal_stock", cancellationToken).ConfigureAwait(false))
+        {
+            return [];
+        }
+
+        var extra = "TRIM(CONCAT_WS(' · ', NULLIF(TRIM(`metal`),''), NULLIF(TRIM(CAST(`purity` AS CHAR)),''), NULLIF(TRIM(`karat`),'')))";
+        var sql = "SELECT `id`, IFNULL(`item_code`,''), IFNULL(`description`,''), " + extra
+            + " FROM `epc_jewel_metal_stock`"
+            + WhereLike(query, ["CAST(`id` AS CHAR)", "`item_code`", "`description`", "`karat`", "`metal`"])
+            + " ORDER BY `item_code` ASC LIMIT " + limit.ToString(CultureInfo.InvariantCulture);
+        return await ReadRowsAsync(connection, "jw-metal-stock", sql, query, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<IReadOnlyList<ErpMasterOption>> LoadKaratsAsync(
+        DbConnection connection,
+        string query,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        if (!await TableExistsAsync(connection, "epc_jewel_karat_master", cancellationToken).ConfigureAwait(false))
+        {
+            return [];
+        }
+
+        var sql = "SELECT `id`, IFNULL(`karat_code`,''), IFNULL(`description`,''), CAST(`std_purity` AS CHAR)"
+            + " FROM `epc_jewel_karat_master`"
+            + WhereLike(query, ["CAST(`id` AS CHAR)", "`karat_code`", "`description`"])
+            + " ORDER BY `karat_code` ASC LIMIT " + limit.ToString(CultureInfo.InvariantCulture);
+        return await ReadRowsAsync(connection, "jw-karat", sql, query, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<IReadOnlyList<ErpMasterOption>> LoadCostCentresAsync(
+        DbConnection connection,
+        string query,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        var fromStock = await LoadDistinctAsync(
+            connection, "jw-cc", "epc_jewel_metal_stock", "cc_making", query, limit, cancellationToken).ConfigureAwait(false);
+        var metal = await LoadDistinctAsync(
+            connection, "jw-cc", "epc_jewel_metal_stock", "cc_metal", query, limit, cancellationToken).ConfigureAwait(false);
+        var org = await LoadSimpleAsync(
+            connection, "jw-cc", "epc_erp_cost_centres", "id", "code", "name", "code",
+            query, limit, cancellationToken, requireActive: true).ConfigureAwait(false);
+        return fromStock.Concat(metal).Concat(org)
+            .GroupBy(row => row.Code, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .Where(row => !string.IsNullOrWhiteSpace(row.Code))
+            .Take(limit)
+            .ToArray();
+    }
+
+    private static async Task<IReadOnlyList<ErpMasterOption>> LoadDistinctAsync(
+        DbConnection connection,
+        string kind,
+        string table,
+        string column,
+        string query,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        if (!await TableExistsAsync(connection, table, cancellationToken).ConfigureAwait(false)
+            || !await ColumnExistsAsync(connection, table, column, cancellationToken).ConfigureAwait(false))
+        {
+            return [];
+        }
+
+        var sql = "SELECT MIN(`id`), TRIM(`" + column + "`), TRIM(`" + column + "`), '' FROM `" + table + "`"
+            + " WHERE TRIM(`" + column + "`) <> ''"
+            + AndLike(query, ["TRIM(`" + column + "`)"] )
+            + " GROUP BY TRIM(`" + column + "`) ORDER BY TRIM(`" + column + "`) ASC LIMIT "
+            + limit.ToString(CultureInfo.InvariantCulture);
+        return await ReadRowsAsync(connection, kind, sql, query, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<IReadOnlyList<ErpMasterOption>> LoadItemsAsync(
