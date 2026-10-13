@@ -1328,6 +1328,132 @@ public sealed class ErpModule : ISurfaceModule
                 });
             });
         });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxItemReserve, async (
+            HttpContext context,
+            ErpItemReserveBody? body,
+            ILegacySessionValidator validator,
+            IErpItemReserveDryRun dryRun,
+            IErpInventoryReservationWriteService reservations,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required.");
+            }
+
+            body ??= new();
+            if (!body.ConfirmWrites)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpItemReserveRequest(
+                    body.ItemId,
+                    body.Sku,
+                    body.Qty,
+                    body.SourceType,
+                    body.SourceId,
+                    false)).ToPayload(SessionPayload(session)));
+            }
+
+            var reserved = await reservations.ReserveAsync(
+                new ErpReserveInput
+                {
+                    ItemId = body.ItemId,
+                    Sku = body.Sku ?? string.Empty,
+                    Qty = body.Qty <= 0 ? 1m : body.Qty,
+                    SourceType = body.SourceType ?? "sales_order",
+                    SourceId = body.SourceId,
+                    SourceLineKey = body.SourceLineKey ?? string.Empty,
+                    AdminId = session.UserId,
+                },
+                cancellationToken);
+            return Results.Ok(new
+            {
+                ok = reserved.Succeeded,
+                status = reserved.Succeeded,
+                surface = "erp",
+                writes = reserved.Succeeded ? 1 : 0,
+                writesBlocked = !reserved.Succeeded,
+                validation_code = reserved.Code,
+                message = reserved.Message,
+                reservationId = reserved.ReservationId,
+                itemId = reserved.ItemId,
+                sku = reserved.Sku,
+                qty = reserved.Qty,
+                onHand = reserved.OnHand,
+                reserved = reserved.Reserved,
+                available = reserved.Available,
+                holdStatus = reserved.Status,
+                expiresAt = reserved.ExpiresAt,
+                session = SessionPayload(session),
+            });
+        });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxItemRelease, async (
+            HttpContext context,
+            ErpItemReleaseBody? body,
+            ILegacySessionValidator validator,
+            IErpInventoryReservationWriteService reservations,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required.");
+            }
+
+            body ??= new();
+            if (!body.ConfirmWrites)
+            {
+                return Results.Ok(new
+                {
+                    ok = true,
+                    writes = 0,
+                    writesBlocked = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to release the hold.",
+                    session = SessionPayload(session),
+                });
+            }
+
+            var released = await reservations.ReleaseAsync(body.ReservationId, session.UserId, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = released.Succeeded,
+                status = released.Succeeded,
+                writes = released.Succeeded ? 1 : 0,
+                validation_code = released.Code,
+                message = released.Message,
+                reservationId = released.ReservationId,
+                session = SessionPayload(session),
+            });
+        });
+        endpoints.MapGet(EcomAeRoutes.ErpAjaxItemAtp, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpInventoryReservationWriteService reservations,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required.");
+            }
+
+            long.TryParse(context.Request.Query["itemId"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var itemId);
+            var sku = context.Request.Query["sku"].ToString();
+            var atp = await reservations.AtpAsync(itemId, sku, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = atp.ItemId > 0,
+                surface = "erp",
+                itemId = atp.ItemId,
+                sku = atp.Sku,
+                name = atp.Name,
+                onHand = atp.OnHand,
+                reserved = atp.Reserved,
+                available = atp.Available,
+                session = SessionPayload(session),
+            });
+        });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxTransferVoucher, async (
             HttpContext context,
             ErpTransferVoucherBody? body,
@@ -29045,6 +29171,15 @@ public sealed class ErpModule : ISurfaceModule
         string? LinesJson = null);
     private sealed record ErpSoStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpSoToInvoiceBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpItemReserveBody(
+        long ItemId = 0,
+        string? Sku = null,
+        decimal Qty = 1m,
+        string? SourceType = null,
+        long SourceId = 0,
+        string? SourceLineKey = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpItemReleaseBody(long ReservationId = 0, bool ConfirmWrites = false);
     private sealed record ErpTransferVoucherBody(
         long Id = 0,
         string? Code = null,

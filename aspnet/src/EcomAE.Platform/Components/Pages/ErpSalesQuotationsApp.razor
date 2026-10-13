@@ -5,10 +5,12 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpInventoryReservationWriteService Reservations
 
 <PageTitle>Sales quotations · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -126,12 +128,27 @@
                     </select>
                 </label>
                 <label>Notes <input type="text" name="notes" /></label>
-                <label>Line <input type="text" name="line_description" maxlength="512" /></label>
+                <label>Item
+                    <select name="item_id" id="quote-item-picker">
+                        <option value="0">— pick to reserve —</option>
+                        @foreach (var item in _items)
+                        {
+                            var available = AtpFor(item.Id)?.Available ?? 0m;
+                            <option value="@item.Id.ToString(CultureInfo.InvariantCulture)"
+                                    data-sku="@item.Sku"
+                                    data-name="@item.Name"
+                                    data-price="@item.SalesPrice.ToString("0.00", CultureInfo.InvariantCulture)"
+                                    disabled="@(available <= 0)">@item.Sku — @item.Name · @available.ToString("0.###", CultureInfo.InvariantCulture) avail</option>
+                        }
+                    </select>
+                </label>
+                <input type="hidden" name="sku" id="quote-item-sku" />
+                <label>Line <input type="text" name="line_description" id="quote-line-description" maxlength="512" /></label>
                 <label>Qty <input type="text" name="line_qty" inputmode="decimal" value="1" /></label>
-                <label>Price <input type="text" name="line_unit_price" inputmode="decimal" value="0" /></label>
+                <label>Price <input type="text" name="line_unit_price" id="quote-line-price" inputmode="decimal" value="0" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Create quote</button>
             </form>
-            <p class="help-block" style="margin:.75rem 0 0">Accept and quote email are not available on this page.</p>
+            <p class="help-block" style="margin:.75rem 0 0">Picking an item reserves it for 30 minutes. First click wins. Accept and quote email are not available on this page.</p>
         </div>
     }
 
@@ -181,6 +198,42 @@
             </tbody>
         </table>
     </div>
+    @if (_isAdmin)
+    {
+        <script>
+            (function () {
+                var picker = document.getElementById('quote-item-picker');
+                if (!picker) { return; }
+                picker.addEventListener('change', function () {
+                    var option = picker.options[picker.selectedIndex];
+                    if (!option || !option.value || option.value === '0') { return; }
+                    var sku = option.getAttribute('data-sku') || '';
+                    var name = option.getAttribute('data-name') || '';
+                    var price = option.getAttribute('data-price') || '0';
+                    var skuInput = document.getElementById('quote-item-sku');
+                    var desc = document.getElementById('quote-line-description');
+                    var priceInput = document.getElementById('quote-line-price');
+                    if (skuInput) { skuInput.value = sku; }
+                    if (desc && !desc.value) { desc.value = name; }
+                    if (priceInput && (!priceInput.value || priceInput.value === '0')) { priceInput.value = price; }
+                    fetch('/erp/ajax/item-reserve', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            confirmWrites: true,
+                            itemId: parseInt(option.value, 10) || 0,
+                            sku: sku,
+                            qty: 1,
+                            sourceType: 'quote',
+                            sourceId: 0,
+                            sourceLineKey: 'quote-pick-' + option.value
+                        })
+                    });
+                });
+            })();
+        </script>
+    }
 
 </PhpErpDesktopChrome>
 
@@ -197,6 +250,8 @@
     private long _openedId;
     private ErpSalesQuotationDetail? _opened;
     private IReadOnlyList<ErpSalesQuotationDigest> _openedSiblings = [];
+    private IReadOnlyList<ErpInventoryItemPickerDigest> _items = [];
+    private IReadOnlyList<ErpItemAtp> _atp = [];
     private static readonly string[] _statuses = ["draft", "sent", "accepted", "rejected"];
 
     private IReadOnlyList<string> QuotationWorkspaceTabs =>
@@ -250,6 +305,18 @@
                         }
                     </select>
                 </label>
+                <label>Item
+                    <select name="item_id">
+                        <option value="0">— pick to reserve —</option>
+                        @foreach (var item in _items)
+                        {
+                            var available = AtpFor(item.Id)?.Available ?? 0m;
+                            <option value="@item.Id.ToString(CultureInfo.InvariantCulture)"
+                                    data-sku="@item.Sku"
+                                    disabled="@(available <= 0)">@item.Sku — @available.ToString("0.###", CultureInfo.InvariantCulture) avail</option>
+                        }
+                    </select>
+                </label>
                 <label>Line <input type="text" name="line_description" maxlength="512" /></label>
                 <label>Qty <input type="text" name="line_qty" inputmode="decimal" value="1" /></label>
                 <label>Price <input type="text" name="line_unit_price" inputmode="decimal" value="0" /></label>
@@ -297,6 +364,8 @@
         _quotations = result.Quotations;
         _source = result.Source;
         _message = result.Message;
+        _items = (await Dashboards.ListErpInventoryItemsForPickerAsync(ErpFirstPaint.PickerLimit, ctx.RequestAborted)).Items;
+        _atp = await Reservations.ListAtpAsync(_items.Select(i => i.Id).ToList(), ctx.RequestAborted);
 
         if (_openedId > 0)
         {
@@ -313,4 +382,7 @@
             }
         }
     }
+
+    private ErpItemAtp? AtpFor(long itemId)
+        => _atp.FirstOrDefault(row => row.ItemId == itemId);
 }

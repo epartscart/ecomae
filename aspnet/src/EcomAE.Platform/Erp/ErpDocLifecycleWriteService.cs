@@ -75,17 +75,20 @@ public sealed class ErpDocLifecycleWriteService : IErpDocLifecycleWriteService
     private readonly IErpGlLedgerWriteService _ledger;
     private readonly IErpTaxAmountCalculator _tax;
     private readonly IErpAuditLogWriter _audit;
+    private readonly IErpInventoryReservationWriteService? _reservations;
 
     public ErpDocLifecycleWriteService(
         IErpWriteConnectionFactory connections,
         IErpGlLedgerWriteService ledger,
         IErpTaxAmountCalculator tax,
-        IErpAuditLogWriter audit)
+        IErpAuditLogWriter audit,
+        IErpInventoryReservationWriteService? reservations = null)
     {
         _connections = connections;
         _ledger = ledger;
         _tax = tax;
         _audit = audit;
+        _reservations = reservations;
     }
 
     public async Task<ErpVoidResult> CashVoucherVoidAsync(
@@ -528,6 +531,10 @@ public sealed class ErpDocLifecycleWriteService : IErpDocLifecycleWriteService
     {
         EnsureConfigured();
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        if (_reservations is not null)
+        {
+            await ErpInventoryReservationWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
 
         var order = await SalesOrderAsync(connection, salesOrderId, cancellationToken).ConfigureAwait(false)
             ?? throw new ErpWriteException("Sales order not found");
@@ -550,6 +557,17 @@ public sealed class ErpDocLifecycleWriteService : IErpDocLifecycleWriteService
             cancellationToken,
             DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             salesOrderId).ConfigureAwait(false);
+
+        if (_reservations is not null)
+        {
+            await _reservations.ReleaseBySourceAsync(
+                connection,
+                null,
+                ErpInventoryReservationWriteService.SourceSalesOrder,
+                salesOrderId,
+                adminId,
+                cancellationToken).ConfigureAwait(false);
+        }
 
         await _audit.LogAsync(
             connection,

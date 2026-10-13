@@ -142,11 +142,47 @@
                 return;
             }
 
-            row.querySelector('.epc-so-code').value = option.getAttribute('data-sku') || '';
-            row.querySelector('.epc-so-desc').value = option.getAttribute('data-name') || '';
-            row.querySelector('.epc-so-unit').value = option.getAttribute('data-price') || '0';
+            var qtyInput = row.querySelector('.epc-so-qty');
+            var qty = Math.max(0.001, parseFloat(qtyInput && qtyInput.value ? qtyInput.value : '1') || 1);
+            var itemId = parseInt(option.value, 10) || 0;
+            var sku = option.getAttribute('data-sku') || '';
+            var name = option.getAttribute('data-name') || '';
+            var price = option.getAttribute('data-price') || '0';
             picker.selectedIndex = 0;
-            recalc();
+            say('Reserving ' + sku + '…', true);
+            fetch('/erp/ajax/item-reserve', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    confirmWrites: true,
+                    itemId: itemId,
+                    sku: sku,
+                    qty: qty,
+                    sourceType: 'sales_order',
+                    sourceId: numeric('so-id'),
+                    sourceLineKey: 'so-pick-' + itemId
+                })
+            }).then(function (response) {
+                return response.json().catch(function () {
+                    return { status: false, message: 'HTTP ' + response.status };
+                });
+            }).then(function (data) {
+                var ok = !!data && (data.status === true || data.ok === true);
+                if (!ok) {
+                    say((data && data.message) || 'Item already reserved by another sales user.', false);
+                    return;
+                }
+
+                row.querySelector('.epc-so-code').value = sku;
+                row.querySelector('.epc-so-desc').value = name;
+                row.querySelector('.epc-so-unit').value = price;
+                row.setAttribute('data-reservation-id', data.reservationId || '');
+                say((data && data.message) || 'Reserved.', true);
+                recalc();
+            }).catch(function (error) {
+                say(String(error), false);
+            });
         });
     }
 
