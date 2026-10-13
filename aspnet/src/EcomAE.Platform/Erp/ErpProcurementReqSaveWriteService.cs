@@ -3,8 +3,9 @@ using System.Globalization;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_proc_req_save</c> twin. Schema ensure stays PHP.
-/// Submit / decision / convert are <c>IErpProcurementReqWriteService</c>.
+/// Live PHP <c>epc_proc_req_save</c> twin. Native <c>ErpProcurementSchema</c>
+/// on confirmed writes. Submit / decision / convert are
+/// <c>IErpProcurementReqWriteService</c>.
 /// </summary>
 public interface IErpProcurementReqSaveWriteService
 {
@@ -66,6 +67,7 @@ public sealed class ErpProcurementReqSaveWriteService : IErpProcurementReqSaveWr
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpProcurementSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         if (id > 0)
         {
             await ErpDb.ExecuteAsync(

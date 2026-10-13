@@ -27,6 +27,8 @@ public sealed class ErpOnlyShopBootstrapTests
         Assert.Contains("erp_industry_profile", bootstrap, StringComparison.Ordinal);
         Assert.Contains("industry_pack", bootstrap, StringComparison.Ordinal);
         Assert.Contains("ErpJewelSchema.EnsureAsync", bootstrap, StringComparison.Ordinal);
+        Assert.Contains("ErpProcurementSchema.EnsureSchemaAsync", bootstrap, StringComparison.Ordinal);
+        Assert.Contains("ErpRfqSchema.EnsureSchemaAsync", bootstrap, StringComparison.Ordinal);
 
         var factory = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Data/MySqlTenantDbConnectionFactory.cs"));
         Assert.Contains("HasUsableDedicatedCredentials", factory, StringComparison.Ordinal);

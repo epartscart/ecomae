@@ -3,17 +3,33 @@
 @using System.Globalization
 @using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Middleware
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Erp
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 @inject IErpDimensionCatalogReadService DimensionCatalog
 @inject IErpDimensionLinkReadService DimensionLinks
+@inject ICpCsrfGuard Csrf
 
 <PageTitle>RFQs · ERP · eParts Cart</PageTitle>
+<HeadContent>
+    <style>
+        .epc-rfq-create{margin:0 0 14px;padding:16px 18px;border:1px solid #bfdbfe;border-radius:14px;background:linear-gradient(135deg,#eff6ff 0%,#fff 60%,#f0fdf4 100%);box-shadow:0 10px 24px rgba(15,23,42,.06);}
+        .epc-rfq-create h2{margin:0 0 6px;color:#1e3a8a;font-size:18px;font-weight:800;}
+        .epc-rfq-create p{margin:0 0 12px;max-width:52rem;color:#475569;font-size:13px;line-height:1.5;}
+        .epc-rfq-create form{display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0;}
+        .epc-rfq-empty{margin:0 0 14px;padding:28px 18px;border:1px dashed #93c5fd;border-radius:14px;background:#f8fbff;text-align:center;}
+        .epc-rfq-empty h3{margin:0 0 6px;color:#1e3a8a;font-size:16px;font-weight:800;}
+        .epc-rfq-empty p{margin:0 0 12px;color:#475569;font-size:13px;}
+        .epc-rfq-chip{display:inline-flex;align-items:center;padding:4px 9px;border:1px solid #cbd5e1;border-radius:999px;background:#fff;color:#1d4ed8;font-size:11px;font-weight:700;}
+    </style>
+</HeadContent>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="RFQs" BreadcrumbArea="Procure to Pay" BreadcrumbTab="RFQ">
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/rfq-app" IsAdmin="_isAdmin" />
@@ -22,6 +38,47 @@
 
     <PhpErpModulePageHeader Title="RFQs" Subtitle="Create and edit supplier requests for quotation. Unsupported workflow actions are not available on this page." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    @if (_companyId > 0)
+    {
+        <p style="margin:0 0 12px"><span class="epc-rfq-chip">Company @_companyId.ToString(CultureInfo.InvariantCulture)</span></p>
+    }
+
+    @if (_isAdmin)
+    {
+        <section class="epc-rfq-create" aria-labelledby="epc-rfq-create-title">
+            <h2 id="epc-rfq-create-title">New request for quotation</h2>
+            <p>Create an RFQ header for a supplier. Open a saved row to edit, collect responses, and award a draft purchase order.</p>
+            <form id="erp-rfq-new" method="post" action="@Href("/erp/ajax/save-rfq")">
+                <input type="hidden" name="returnUrl" value="@_listHref" />
+                <input type="hidden" name="id" value="0" />
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                <ErpMasterPicker Kind="supplier" FieldName="supplier_id" Label="Supplier" />
+                <label>Title <input type="text" name="title" required maxlength="255" /></label>
+                <label>Estimate <input type="text" name="amount_est" value="0.00" /></label>
+                <label>Status
+                    <select name="status">
+                        @foreach (var status in RfqStatuses)
+                        {
+                            <option value="@status">@status</option>
+                        }
+                    </select>
+                </label>
+                <label>Due <input type="date" name="due_date" /></label>
+                <label>Order <input type="number" name="order_id" min="0" value="0" /></label>
+                <label>Description <input type="text" name="description" maxlength="4000" /></label>
+                <button type="submit" name="confirmWrites" value="true" class="btn btn-primary btn-sm">Save RFQ</button>
+            </form>
+        </section>
+    }
+
+    @if (_isAdmin && _rfqs.Count == 0)
+    {
+        <section class="epc-rfq-empty" aria-labelledby="epc-rfq-empty-title">
+            <h3 id="epc-rfq-empty-title">No RFQs yet</h3>
+            <p>Use the form above to save the first supplier request for quotation. The list stays empty until a header is saved.</p>
+            <a class="btn btn-primary btn-sm" href="#erp-rfq-new">Create RFQ</a>
+        </section>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="RFQs KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_rfqs.Count</div></div>
@@ -59,8 +116,10 @@
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             @if (_isAdmin && _opened.Lines.Count > 0)
             {
-                <form method="post" action="/erp/ajax/save-rfq-response" class="epc-erp-form" style="margin-top:1rem">
+                <form method="post" action="@Href("/erp/ajax/save-rfq-response")" class="epc-erp-form" style="margin-top:1rem">
                     <input type="hidden" name="rfq_id" value="@_opened.Id" />
+                    <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                    <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
                     <div class="epc-form-grid">
                         <label>RFQ line
                             <select name="rfq_line_id" required>
@@ -186,9 +245,11 @@
                     <p class="text-muted">This preview uses only persisted responses. Awarding creates a draft purchase order through the existing ERP PO writer, then records the award on the existing SCM RFQ row.</p>
                     @if (_isAdmin && awardPreview.QuotedLineCount == awardPreview.RfqLineCount && !string.Equals(_opened.Status, "awarded", StringComparison.OrdinalIgnoreCase))
                     {
-                        <form method="post" action="/erp/ajax/award-rfq" class="epc-erp-form" style="margin-top:1rem">
+                        <form method="post" action="@Href("/erp/ajax/award-rfq")" class="epc-erp-form" style="margin-top:1rem">
                             <input type="hidden" name="rfq_id" value="@_opened.Id" />
                             <input type="hidden" name="supplier_id" value="@awardPreview.SupplierId" />
+                            <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
                             <label style="display:flex;align-items:flex-start;gap:.45rem">
                                 <input type="checkbox" name="confirmWrites" value="true" required />
                                 <span>I confirm this supplier selection and authorize creation of a draft purchase order.</span>
@@ -263,7 +324,7 @@
             <tbody>
                 @if (_rfqs.Count == 0)
                 {
-                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="8">@(_isAdmin ? "No records yet." : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -300,8 +361,10 @@
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=purchasing&tab=rfq";
-    private const string _listHref = "/erp/rfq-app";
+    private string _listHref = "/erp/rfq-app";
     private bool _isAdmin;
+    private long _companyId;
+    private string _csrf = "";
     private IReadOnlyList<ErpRfqDigest> _rfqs = [];
     private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
@@ -349,9 +412,10 @@
     private RenderFragment? RfqHeaderActions => _isAdmin && _opened is not null
         ? @<div>
             <strong>RFQ lifecycle</strong>
-            <form method="post" action="/erp/ajax/save-rfq">
+            <form method="post" action="@Href("/erp/ajax/save-rfq")">
                 <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
                 <input type="hidden" name="id" value="@_opened.Id" />
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
                 <ErpMasterPicker Kind="supplier" FieldName="supplier_id" Label="Supplier" Value="@_opened.SupplierId" />
                 <label>Title <input type="text" name="title" required maxlength="255" value="@_opened.Title" /></label>
                 <label>Estimate <input type="text" name="amount_est" value="@_opened.AmountEst.ToString("0.00", CultureInfo.InvariantCulture)" /></label>
@@ -386,6 +450,14 @@
 
     private static readonly string[] RfqStatuses = ["draft", "sent", "quoted", "accepted", "rejected", "cancelled"];
 
+    private string Href(string path) => ClientErpPath.PrefixIfBound(Http.HttpContext, path);
+
+    private static bool IsSchemaGap(string? message)
+        => !string.IsNullOrWhiteSpace(message)
+           && (message.Contains("doesn't exist", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("does not exist", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("Unknown table", StringComparison.OrdinalIgnoreCase));
+
     private static string FormatId(long id) => id > 0
         ? id.ToString(CultureInfo.InvariantCulture)
         : "—";
@@ -399,7 +471,8 @@
                 : ("RFQ #" + _opened.Id.ToString(CultureInfo.InvariantCulture))));
 
     private string OpenedReturnHref => _openedId > 0
-        ? _listHref + "?rfq_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+        ? _listHref + (_listHref.Contains('?', StringComparison.Ordinal) ? "&" : "?")
+            + "rfq_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
         : _listHref;
 
     protected override async Task OnInitializedAsync()
@@ -407,9 +480,35 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _listHref = "/erp/rfq-app";
+        if (ctx.Items.TryGetValue(ClientErpPathRewriteMiddleware.OriginalPathItem, out var original)
+            && original is string originalPath
+            && originalPath.Contains("rfq-app", StringComparison.OrdinalIgnoreCase))
+        {
+            _listHref = originalPath.Split('?', 2)[0];
+        }
+        else
+        {
+            _listHref = Href("/erp/rfq-app");
+        }
+
+        long.TryParse(
+            ctx.Request.Query["company"].FirstOrDefault()
+            ?? ctx.Request.Query["company_id"].FirstOrDefault()
+            ?? ctx.Request.Query["companyId"].FirstOrDefault(),
+            NumberStyles.Integer,
+            CultureInfo.InvariantCulture,
+            out _companyId);
+        if (_companyId > 0)
+        {
+            _listHref += (_listHref.Contains('?', StringComparison.Ordinal) ? "&" : "?")
+                + "company=" + _companyId.ToString(CultureInfo.InvariantCulture);
+        }
+
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "rfq_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _csrf = _isAdmin ? await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted) : "";
         if (!_isAdmin)
         {
             _message = "Sign in for live data.";
@@ -419,7 +518,7 @@
         var result = await Dashboards.ListErpRfqsAsync(_limit, ctx.RequestAborted);
         _rfqs = result.Rfqs;
         _source = result.Source;
-        _message = result.Message;
+        _message = IsSchemaGap(result.Message) ? string.Empty : result.Message;
         _dimensionCatalog = await DimensionCatalog.LoadAsync(100, ctx.RequestAborted);
 
         if (_openedId > 0)

@@ -5,7 +5,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_proc_req_add_line</c> twin. Recalc total / requires_approval.
-/// Schema ensure stays PHP. Does not CREATE tables.
+/// Native <c>ErpProcurementSchema</c> on confirmed writes.
 /// </summary>
 public interface IErpProcurementReqAddLineWriteService
 {
@@ -48,6 +48,7 @@ public sealed class ErpProcurementReqAddLineWriteService : IErpProcurementReqAdd
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpProcurementSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_proc_req", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_proc_req", "status", cancellationToken).ConfigureAwait(false)
             || !await TableExistsAsync(connection, "epc_proc_req_line", cancellationToken).ConfigureAwait(false)
