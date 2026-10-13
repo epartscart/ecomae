@@ -59,6 +59,7 @@ public static class ErpNetsuiteDashboardCatalog
         ["hr"] = new("hr", "Human resources", "fa-users", "green", "/erp/hr-overview-app"),
         ["payroll"] = new("payroll", "Payroll", "fa-credit-card", "rust", "/erp/payroll-app"),
         ["staff"] = new("staff", "Staff directory", "fa-id-badge", "slate", "/erp/staff-app"),
+        ["users"] = new("users", "Users & credentials", "fa-users", "blue", "/erp/users-app"),
         ["workflow"] = new("workflow", "Workflow", "fa-tasks", "gold", "/erp/workflow-app"),
         ["marketing"] = new("marketing", "Marketing", "fa-bullhorn", "rust", "/erp/marketing-app"),
         ["processflow"] = new("processflow", "Process flow", "fa-sitemap", "green", "/erp/process-flow-tasks-app"),

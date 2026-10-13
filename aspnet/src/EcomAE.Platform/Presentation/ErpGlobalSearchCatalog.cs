@@ -62,6 +62,7 @@ public static class ErpGlobalSearchCatalog
         }
 
         rows.Add(new("Master lookup (customers, suppliers, items, projects)", "/erp/lookups?kind=customer", "masters", "fa-search"));
+        rows.Add(new("Users & credentials (department users, login logs, audit)", "/erp/users-app", "administration", "fa-users"));
 
         return rows
             .GroupBy(e => e.Href, StringComparer.OrdinalIgnoreCase)

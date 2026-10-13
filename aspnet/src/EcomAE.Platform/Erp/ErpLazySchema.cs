@@ -1475,6 +1475,19 @@ internal static class ErpLazySchema
         }
     }
 
+    /// <summary>PHP <c>epc_erp_audit_ensure_schema</c> (content/shop/finance/epc_erp_audit.php).</summary>
+    public static async Task EnsureAuditLogAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_audit_log` (`id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL DEFAULT 0, `admin_id` int(11) NOT NULL DEFAULT 0, `action` varchar(64) NOT NULL, `entity_type` varchar(32) NOT NULL DEFAULT '', `entity_id` int(11) NOT NULL DEFAULT 0, `summary` varchar(512) DEFAULT NULL, `detail_json` text, `old_json` text, `new_json` text, `ip_address` varchar(45) DEFAULT NULL, `user_agent` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`), KEY `x_time` (`time`), KEY `x_action` (`action`), KEY `x_entity` (`entity_type`, `entity_id`), KEY `x_admin` (`admin_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ERP audit trail'",
+            ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_audit_log", "old_json", "text NULL", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_audit_log", "new_json", "text NULL", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_audit_log", "ip_address", "varchar(45) DEFAULT NULL", ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_audit_log", "user_agent", "varchar(255) DEFAULT NULL", ct).ConfigureAwait(false);
+    }
+
     /// <summary>PHP <c>epc_entity_ensure_schema</c> (content/shop/finance/epc_multi_entity.php).</summary>
     public static async Task EnsureMultiEntityAsync(DbConnection c, CancellationToken ct)
     {

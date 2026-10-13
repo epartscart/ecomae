@@ -394,6 +394,9 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpSecurityDutiesAttachPriv, HandleRbacDutyPrivAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpSecurityRolesAttachDuty, HandleRbacRoleDutyAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpSecurityUsersAssignRole, HandleRbacUserRoleAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpUsersPrepare, HandleErpUsersPrepareAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpUsersCredentials, HandleErpUsersCredentialsAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpUsersDepartment, HandleErpUsersDepartmentAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpQualityTestAddForm, HandleQmTestAddAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpProcurementCategorySave, HandleProcCategorySaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpProcurementPolicySave, HandleProcPolicySaveAsync).DisableAntiforgery();
@@ -1932,6 +1935,8 @@ public sealed class ErpModule : ISurfaceModule
         });
 
         endpoints.MapGet(EcomAeRoutes.ErpLookups, HandleErpLookupsAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpUsersSessions, HandleErpUsersSessionsAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpUsersAudit, HandleErpUsersAuditAsync);
         endpoints.MapGet(EcomAeRoutes.ErpCompanies, async (
             int? limit,
             ISurfaceDashboardSummaryReporter dashboards,
@@ -19397,6 +19402,244 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleErpUsersPrepareAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTenantUserAdminService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/users-app", "Admin ERP capability required to prepare users.");
+        }
+
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "New"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/users-app", "ERP administration capability required to prepare users.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpUsersPrepareBody>(context, cancellationToken) ?? new();
+        var email = body.Email;
+        var displayName = body.DisplayName;
+        var jobTitle = body.JobTitle;
+        var department = body.Department;
+        var password = body.Password;
+        var phone = body.Phone;
+        var unlocked = body.Unlocked;
+        var grantAdmin = body.GrantAdministrator;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            email = LiveWriteFormBinder.Text(form, "email");
+            displayName = LiveWriteFormBinder.Text(form, "displayName", "display_name", "name");
+            jobTitle = LiveWriteFormBinder.Text(form, "jobTitle", "job_title");
+            department = LiveWriteFormBinder.Text(form, "department", "department_code");
+            password = LiveWriteFormBinder.Text(form, "password");
+            phone = LiveWriteFormBinder.Text(form, "phone");
+            unlocked = LiveWriteFormBinder.Flag(form, "unlocked");
+            grantAdmin = LiveWriteFormBinder.Flag(form, "grantAdministrator", "grant_administrator", "administrator");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            var preview = ErpTenantUserAdminService.ValidatePrepare(new ErpTenantUserPrepareRequest(
+                email, displayName, jobTitle, department, password, phone, unlocked, grantAdmin, session.UserId));
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                phpAuthoritative = false,
+                validation_code = preview?.Code ?? "confirm_required",
+                message = preview?.Message ?? "Set confirmWrites=true to prepare the department user.",
+                session = SessionPayload(session)
+            });
+        }
+
+        var written = await writes.PrepareAsync(
+            new ErpTenantUserPrepareRequest(email, displayName, jobTitle, department, password, phone, unlocked, grantAdmin, session.UserId),
+            cancellationToken);
+        var dest = written.Succeeded && written.Id > 0
+            ? "/erp/users-app?user_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+            : "/erp/users-app";
+        return LiveWriteFormBinder.Complete(
+            context,
+            dest,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleErpUsersCredentialsAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTenantUserAdminService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/users-app", "Admin ERP capability required for credential control.");
+        }
+
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Edit"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/users-app", "ERP administration capability required for credential control.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpUsersCredentialsBody>(context, cancellationToken) ?? new();
+        var userId = body.UserId;
+        var action = body.Action;
+        var password = body.Password;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            userId = LiveWriteFormBinder.Long(form, "userId", "user_id");
+            action = LiveWriteFormBinder.Text(form, "action");
+            password = LiveWriteFormBinder.Text(form, "password");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            var preview = ErpTenantUserAdminService.ValidateCredentials(new ErpTenantUserCredentialsRequest(userId, action ?? string.Empty, password, session.UserId));
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                phpAuthoritative = false,
+                validation_code = preview?.Code ?? "confirm_required",
+                message = preview?.Message ?? "Set confirmWrites=true to change credentials.",
+                session = SessionPayload(session)
+            });
+        }
+
+        var written = await writes.SetCredentialsAsync(
+            new ErpTenantUserCredentialsRequest(userId, action ?? string.Empty, password, session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/users-app?user_id=" + userId.ToString(CultureInfo.InvariantCulture),
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleErpUsersDepartmentAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTenantUserAdminService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/users-app", "Admin ERP capability required to set department.");
+        }
+
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Edit"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/users-app", "ERP administration capability required to set department.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpUsersDepartmentBody>(context, cancellationToken) ?? new();
+        var userId = body.UserId;
+        var department = body.Department;
+        var displayName = body.DisplayName;
+        var jobTitle = body.JobTitle;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            userId = LiveWriteFormBinder.Long(form, "userId", "user_id");
+            department = LiveWriteFormBinder.Text(form, "department", "department_code");
+            displayName = LiveWriteFormBinder.Text(form, "displayName", "display_name");
+            jobTitle = LiveWriteFormBinder.Text(form, "jobTitle", "job_title");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            var preview = ErpTenantUserAdminService.ValidateDepartment(new ErpTenantUserDepartmentRequest(userId, department, displayName, jobTitle, session.UserId));
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                phpAuthoritative = false,
+                validation_code = preview?.Code ?? "confirm_required",
+                message = preview?.Message ?? "Set confirmWrites=true to update the department.",
+                session = SessionPayload(session)
+            });
+        }
+
+        var written = await writes.SetDepartmentAsync(
+            new ErpTenantUserDepartmentRequest(userId, department, displayName, jobTitle, session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/users-app?user_id=" + userId.ToString(CultureInfo.InvariantCulture),
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleErpUsersSessionsAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTenantUserAdminService users,
+        long? userId,
+        int? limit,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required for login sessions.");
+        }
+
+        var rows = await users.ListSessionsAsync(userId ?? 0, limit ?? 40, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = true,
+            userId = userId ?? 0,
+            sessions = rows,
+            count = rows.Count,
+            session = SessionPayload(session),
+            note = "Login sessions for tenant ERP users. Check any time."
+        });
+    }
+
+    private static async Task<IResult> HandleErpUsersAuditAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTenantUserAdminService users,
+        long? userId,
+        string? q,
+        int? limit,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required for user audit logs.");
+        }
+
+        var rows = await users.ListAuditAsync(userId ?? 0, q, limit ?? 40, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = true,
+            userId = userId ?? 0,
+            q,
+            entries = rows,
+            count = rows.Count,
+            session = SessionPayload(session),
+            note = "ERP audit log for tenant users. Check any time."
+        });
+    }
+
     private static async Task<IResult> HandleQmPlanSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -28086,6 +28329,27 @@ public sealed class ErpModule : ISurfaceModule
         long UserId = 0,
         long RoleId = 0,
         int? Assign = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpUsersPrepareBody(
+        string? Email = null,
+        string? DisplayName = null,
+        string? JobTitle = null,
+        string? Department = null,
+        string? Password = null,
+        string? Phone = null,
+        bool Unlocked = true,
+        bool GrantAdministrator = false,
+        bool ConfirmWrites = false);
+    private sealed record ErpUsersCredentialsBody(
+        long UserId = 0,
+        string? Action = null,
+        string? Password = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpUsersDepartmentBody(
+        long UserId = 0,
+        string? Department = null,
+        string? DisplayName = null,
+        string? JobTitle = null,
         bool ConfirmWrites = false);
     private sealed record ErpRtlChannelSaveBody(
         long Id = 0,

@@ -1045,6 +1045,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRbacRoleSaveWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRbacDutyPrivWriteService, EcomAE.Platform.Erp.ErpRbacDutyPrivWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRbacRoleDutyWriteService, EcomAE.Platform.Erp.ErpRbacRoleDutyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRbacUserRoleWriteService, EcomAE.Platform.Erp.ErpRbacUserRoleWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTenantUserAdminService, EcomAE.Platform.Erp.ErpTenantUserAdminService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRbacAuditReadService, EcomAE.Platform.Erp.ErpRbacAuditReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPermissionScopeReadService, EcomAE.Platform.Erp.ErpPermissionScopeReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpQmPlanSaveWriteService, EcomAE.Platform.Erp.ErpQmPlanSaveWriteService>();

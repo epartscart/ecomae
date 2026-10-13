@@ -1,0 +1,431 @@
+@page "/erp/users-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpTenantUserAdminService Users
+
+<PageTitle>Users &amp; credentials · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Users & credentials" BreadcrumbArea="Administration" BreadcrumbTab="Users">
+    <PhpErpModulePageHeader Title="Users &amp; credentials"
+                            Subtitle="Prepare department users (they do not need to be administrators), lock or reset their passwords, and open login plus audit logs at any time." />
+
+    @if (!_isAdmin)
+    {
+        <div class="alert alert-info">Sign in with ERP capability to prepare users and review credential logs.</div>
+    }
+    else
+    {
+        @if (_flashOk.Length > 0)
+        {
+            <div class="alert alert-success" role="status">@_flashOk</div>
+        }
+        @if (_flashErr.Length > 0)
+        {
+            <div class="alert alert-danger" role="alert">@_flashErr</div>
+        }
+
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="ERP users summary">
+            <div class="kpi"><div class="lbl">Prepared users</div><div class="val">@_directory.Total.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Locked</div><div class="val">@_directory.Locked.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Departments</div><div class="val">@_directory.DepartmentCount.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Open sessions (8h)</div><div class="val">@_directory.OpenSessions.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Audit last 24h</div><div class="val">@_directory.AuditToday.ToString(CultureInfo.InvariantCulture)</div></div>
+        </div>
+
+        <p class="text-muted" style="margin:.4rem 0 1rem">
+            Sales, finance, warehouse, and HR colleagues sign in with their own email and password.
+            Bind them to a department — not the Administrator group — unless they must manage every module.
+            <a href="/erp/user-control-app">Current-session capabilities</a>
+            · <a href="/erp/staff-app">Staff directory</a>
+            · <a href="/erp/audit-trail-app">Full audit trail</a>
+        </p>
+
+        <div class="hpanel epc-erp-section">
+            <div class="panel-heading hbuilt"><i class="fa fa-user-plus"></i> Prepare a department user</div>
+            <div class="panel-body">
+                <form method="post" action="/erp/users/prepare" class="form-horizontal" style="max-width:52rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@_listHref" />
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label" for="prep-email">Email</label>
+                        <div class="col-sm-9"><input id="prep-email" class="form-control" type="email" name="email" required maxlength="120" autocomplete="off" /></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label" for="prep-name">Display name</label>
+                        <div class="col-sm-9"><input id="prep-name" class="form-control" type="text" name="display_name" required maxlength="128" /></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label" for="prep-job">Job title</label>
+                        <div class="col-sm-9"><input id="prep-job" class="form-control" type="text" name="job_title" maxlength="128" placeholder="Sales executive, storekeeper…" /></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label" for="prep-dept">Department</label>
+                        <div class="col-sm-9">
+                            <select id="prep-dept" class="form-control" name="department" required>
+                                <option value="">Choose department</option>
+                                @foreach (var dept in ErpStaffDepartmentCatalog.All)
+                                {
+                                    <option value="@dept.Code">@dept.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label" for="prep-phone">Phone</label>
+                        <div class="col-sm-9"><input id="prep-phone" class="form-control" type="text" name="phone" maxlength="64" /></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label" for="prep-password">Password</label>
+                        <div class="col-sm-9"><input id="prep-password" class="form-control" type="password" name="password" required minlength="8" maxlength="200" autocomplete="new-password" /></div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <label class="checkbox-inline"><input type="checkbox" name="unlocked" value="1" checked="checked" /> Account unlocked (can sign in)</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <label class="checkbox-inline"><input type="checkbox" name="grant_administrator" value="1" /> Also grant Administrator (leave off for department staff)</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <button type="submit" class="btn btn-primary">Prepare user</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="hpanel epc-erp-section">
+            <div class="panel-heading hbuilt"><i class="fa fa-users"></i> Department directory</div>
+            <div class="panel-body">
+                <form method="get" action="/erp/users-app" class="form-inline" style="margin-bottom:.8rem">
+                    <input class="form-control" type="search" name="q" value="@_query" placeholder="Email, name, job, id" />
+                    <select class="form-control" name="department">
+                        <option value="">All departments</option>
+                        @foreach (var dept in ErpStaffDepartmentCatalog.All)
+                        {
+                            <option value="@dept.Code" selected="@(string.Equals(_department, dept.Code, StringComparison.OrdinalIgnoreCase))">@dept.Name</option>
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-default">Filter</button>
+                    <a class="btn btn-link" href="/erp/users-app">Reset</a>
+                </form>
+                <div class="epc-erp-table-wrap">
+                    <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Department</th>
+                                <th>Job title</th>
+                                <th>Credential</th>
+                                <th>Access</th>
+                                <th>Sessions</th>
+                                <th>Last visit</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_directory.Users.Count == 0)
+                            {
+                                <tr><td colspan="8" class="text-muted">@(string.IsNullOrWhiteSpace(_directory.Message) ? "No matching ERP users." : _directory.Message)</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in _directory.Users)
+                                {
+                                    <tr id="erp-row-@row.UserId.ToString(CultureInfo.InvariantCulture)" class="@(_openedId == row.UserId ? "info" : "")">
+                                        <td>
+                                            <strong>@(string.IsNullOrWhiteSpace(row.DisplayName) ? row.Email : row.DisplayName)</strong>
+                                            <div><code>@(string.IsNullOrWhiteSpace(row.Email) ? ("#" + row.UserId.ToString(CultureInfo.InvariantCulture)) : row.Email)</code></div>
+                                        </td>
+                                        <td>@row.DepartmentName</td>
+                                        <td>@(string.IsNullOrWhiteSpace(row.JobTitle) ? "—" : row.JobTitle)</td>
+                                        <td>@(row.Unlocked ? "unlocked" : "locked")</td>
+                                        <td>@(row.Administrator ? "Administrator" : (row.ErpTeam ? "ERP department" : "department"))</td>
+                                        <td>@row.OpenSessions.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@FormatTime(row.LastVisit)</td>
+                                        <td><a class="btn btn-xs btn-primary" href="@UserHref(row.UserId)">Open</a></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @if (_opened is not null)
+        {
+            <div class="hpanel epc-erp-section" id="erp-user-open">
+                <div class="panel-heading hbuilt">
+                    <i class="fa fa-id-badge"></i> @_opened.DisplayName
+                    <a class="btn btn-xs btn-default pull-right" href="@_listHref">Close</a>
+                </div>
+                <div class="panel-body">
+                    <dl style="display:grid;grid-template-columns:9rem 1fr;gap:.35rem .75rem;margin:0 0 1rem;font-size:.9rem;">
+                        <dt>User id</dt><dd>@_opened.UserId.ToString(CultureInfo.InvariantCulture)</dd>
+                        <dt>Email</dt><dd><code>@_opened.Email</code></dd>
+                        <dt>Department</dt><dd>@_opened.DepartmentName</dd>
+                        <dt>Job title</dt><dd>@(string.IsNullOrWhiteSpace(_opened.JobTitle) ? "—" : _opened.JobTitle)</dd>
+                        <dt>Credential</dt><dd>@(_opened.Unlocked ? "unlocked" : "locked")</dd>
+                        <dt>Access</dt><dd>@(_opened.Administrator ? "Administrator" : "Department user (not a full administrator)")</dd>
+                    </dl>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <h4>Credential control</h4>
+                            @if (_opened.UserId != _actorUserId)
+                            {
+                                <form method="post" action="/erp/users/credentials" style="display:inline-block;margin-right:.4rem">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="@UserHref(_opened.UserId)" />
+                                    <input type="hidden" name="user_id" value="@_opened.UserId.ToString(CultureInfo.InvariantCulture)" />
+                                    <input type="hidden" name="action" value="@(_opened.Unlocked ? "lock" : "unlock")" />
+                                    <button type="submit" class="btn btn-sm @(_opened.Unlocked ? "btn-warning" : "btn-success")">
+                                        @(_opened.Unlocked ? "Lock account" : "Unlock account")
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <p class="text-muted">You cannot lock your own account.</p>
+                            }
+                            <form method="post" action="/erp/users/credentials" class="form-inline" style="margin-top:.7rem">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="@UserHref(_opened.UserId)" />
+                                <input type="hidden" name="user_id" value="@_opened.UserId.ToString(CultureInfo.InvariantCulture)" />
+                                <input type="hidden" name="action" value="password" />
+                                <input class="form-control" type="password" name="password" required minlength="8" maxlength="200" placeholder="New password" autocomplete="new-password" />
+                                <button type="submit" class="btn btn-sm btn-default">Reset password</button>
+                            </form>
+                        </div>
+                        <div class="col-sm-6">
+                            <h4>Department</h4>
+                            <form method="post" action="/erp/users/department">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="@UserHref(_opened.UserId)" />
+                                <input type="hidden" name="user_id" value="@_opened.UserId.ToString(CultureInfo.InvariantCulture)" />
+                                <input type="hidden" name="display_name" value="@_opened.DisplayName" />
+                                <input type="hidden" name="job_title" value="@_opened.JobTitle" />
+                                <select class="form-control" name="department" style="max-width:18rem;display:inline-block">
+                                    @foreach (var dept in ErpStaffDepartmentCatalog.All)
+                                    {
+                                        <option value="@dept.Code" selected="@(string.Equals(_opened.DepartmentCode, dept.Code, StringComparison.OrdinalIgnoreCase))">@dept.Name</option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-primary">Save department</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <h4 style="margin-top:1.2rem">This user’s login sessions</h4>
+                    <div class="epc-erp-table-wrap">
+                        <table class="table table-condensed table-bordered table-epc epc-erp-table">
+                            <thead><tr><th>When</th><th>Last activity</th><th>Type</th><th>Contact</th></tr></thead>
+                            <tbody>
+                                @if (_userSessions.Count == 0)
+                                {
+                                    <tr><td colspan="4" class="text-muted">No open or recent sessions.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var session in _userSessions)
+                                    {
+                                        <tr>
+                                            <td>@FormatTime(session.Time)</td>
+                                            <td>@FormatTime(session.LastActivity)</td>
+                                            <td>@(session.Type == 1 ? "ERP / staff" : "session")</td>
+                                            <td>@(string.IsNullOrWhiteSpace(session.ContactType) ? "—" : session.ContactType)</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h4>This user’s audit log</h4>
+                    <div class="epc-erp-table-wrap">
+                        <table class="table table-condensed table-bordered table-epc epc-erp-table">
+                            <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Summary</th><th>IP</th></tr></thead>
+                            <tbody>
+                                @if (_userAudit.Count == 0)
+                                {
+                                    <tr><td colspan="5" class="text-muted">No audit rows for this user yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var entry in _userAudit)
+                                    {
+                                        <tr>
+                                            <td>@FormatTime(entry.Time)</td>
+                                            <td>#@entry.AdminId.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@entry.Action</td>
+                                            <td>@(string.IsNullOrWhiteSpace(entry.Summary) ? "—" : entry.Summary)</td>
+                                            <td>@(string.IsNullOrWhiteSpace(entry.IpAddress) ? "—" : entry.IpAddress)</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="hpanel epc-erp-section">
+            <div class="panel-heading hbuilt"><i class="fa fa-sign-in"></i> Login sessions — check any time</div>
+            <div class="panel-body">
+                <p class="text-muted" style="margin-top:0">Recent staff sessions on this tenant. Open a user to filter to that account.</p>
+                <div class="epc-erp-table-wrap">
+                    <table class="table table-striped table-condensed table-bordered table-epc epc-erp-table">
+                        <thead>
+                            <tr><th>User</th><th>Started</th><th>Last activity</th><th>Type</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            @if (_sessions.Count == 0)
+                            {
+                                <tr><td colspan="5" class="text-muted">No sessions recorded.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var session in _sessions)
+                                {
+                                    <tr>
+                                        <td>@(string.IsNullOrWhiteSpace(session.Email) ? ("#" + session.UserId.ToString(CultureInfo.InvariantCulture)) : session.Email)</td>
+                                        <td>@FormatTime(session.Time)</td>
+                                        <td>@FormatTime(session.LastActivity)</td>
+                                        <td>@(session.Type == 1 ? "ERP / staff" : "session")</td>
+                                        <td>@if (session.UserId > 0) { <a class="btn btn-xs btn-default" href="@UserHref(session.UserId)">Open user</a> }</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="hpanel epc-erp-section">
+            <div class="panel-heading hbuilt"><i class="fa fa-history"></i> Audit log — check any time</div>
+            <div class="panel-body">
+                <form method="get" action="/erp/users-app" class="form-inline" style="margin-bottom:.8rem">
+                    @if (_openedId > 0)
+                    {
+                        <input type="hidden" name="user_id" value="@_openedId.ToString(CultureInfo.InvariantCulture)" />
+                    }
+                    <input type="hidden" name="q" value="@_query" />
+                    <input type="hidden" name="department" value="@_department" />
+                    <input class="form-control" type="search" name="audit_q" value="@_auditQuery" placeholder="Action, summary, user…" />
+                    <button type="submit" class="btn btn-default">Search audit</button>
+                </form>
+                <div class="epc-erp-table-wrap">
+                    <table class="table table-striped table-condensed table-bordered table-epc epc-erp-table">
+                        <thead>
+                            <tr><th>Time</th><th>Actor</th><th>Action</th><th>Entity</th><th>Record</th><th>Summary</th><th>IP</th></tr>
+                        </thead>
+                        <tbody>
+                            @if (_audit.Count == 0)
+                            {
+                                <tr><td colspan="7" class="text-muted">No audit rows match.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var entry in _audit)
+                                {
+                                    <tr>
+                                        <td>@FormatTime(entry.Time)</td>
+                                        <td>#@entry.AdminId.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@entry.Action</td>
+                                        <td>@entry.EntityType</td>
+                                        <td>@entry.EntityId.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(entry.Summary) ? "—" : entry.Summary)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(entry.IpAddress) ? "—" : entry.IpAddress)</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _listHref = "/erp/users-app";
+    private bool _isAdmin;
+    private int _actorUserId;
+    private string _query = string.Empty;
+    private string _department = string.Empty;
+    private string _auditQuery = string.Empty;
+    private string _flashOk = string.Empty;
+    private string _flashErr = string.Empty;
+    private long _openedId;
+    private ErpTenantUserDirectory _directory = new([], 0, 0, 0, 0, 0, "n/a", "");
+    private ErpTenantUserRow? _opened;
+    private IReadOnlyList<ErpTenantUserSessionRow> _sessions = [];
+    private IReadOnlyList<ErpTenantUserSessionRow> _userSessions = [];
+    private IReadOnlyList<ErpTenantUserAuditRow> _audit = [];
+    private IReadOnlyList<ErpTenantUserAuditRow> _userAudit = [];
+
+    private string UserHref(long userId)
+    {
+        var parts = new List<string> { "user_id=" + userId.ToString(CultureInfo.InvariantCulture) };
+        if (_query.Length > 0) parts.Add("q=" + Uri.EscapeDataString(_query));
+        if (_department.Length > 0) parts.Add("department=" + Uri.EscapeDataString(_department));
+        return _listHref + "?" + string.Join("&", parts);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _query = (ctx.Request.Query["q"].ToString() ?? string.Empty).Trim();
+        _department = ErpTenantUserAdminService.NormalizeDepartment(ctx.Request.Query["department"].ToString());
+        _auditQuery = (ctx.Request.Query["audit_q"].ToString() ?? string.Empty).Trim();
+        _flashOk = (ctx.Request.Query["ok"].ToString() ?? string.Empty).Trim();
+        _flashErr = (ctx.Request.Query["err"].ToString() ?? string.Empty).Trim();
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "user_id");
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session) && session.Capabilities.Contains("erp");
+        _actorUserId = session.UserId;
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _directory = await Users.ListAsync(_query, _department, 200, ctx.RequestAborted);
+        _opened = _directory.Users.FirstOrDefault(row => row.UserId == _openedId);
+        if (_opened is null && _openedId > 0)
+        {
+            var unfiltered = await Users.ListAsync(null, null, 200, ctx.RequestAborted);
+            _opened = unfiltered.Users.FirstOrDefault(row => row.UserId == _openedId);
+        }
+
+        _sessions = await Users.ListSessionsAsync(0, 40, ctx.RequestAborted);
+        _audit = await Users.ListAuditAsync(0, _auditQuery, 40, ctx.RequestAborted);
+        if (_openedId > 0)
+        {
+            _userSessions = await Users.ListSessionsAsync(_openedId, 20, ctx.RequestAborted);
+            _userAudit = await Users.ListAuditAsync(_openedId, null, 30, ctx.RequestAborted);
+        }
+    }
+
+    private static string FormatTime(long unix)
+        => unix <= 0
+            ? "—"
+            : DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm 'UTC'", CultureInfo.InvariantCulture);
+}

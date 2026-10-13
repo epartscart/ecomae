@@ -227,6 +227,8 @@ public static class ErpPhpTabRouteMap
         ["tax_compliance"] = "/erp/uae-tax-compliance-app",
         ["tenant_config"] = "/erp/tenant-config-app",
         ["user_control"] = "/erp/user-control-app",
+        ["users"] = "/erp/users-app",
+        ["tenant_users"] = "/erp/users-app",
         ["three_way_match"] = "/erp/three-way-match-app",
         ["tickets"] = "/erp/crm-tickets-app",
         ["tourist_refund"] = "/erp/vat-app?tab=tourist_refund",

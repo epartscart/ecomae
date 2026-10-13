@@ -15,7 +15,7 @@ public static class ErpCapabilityCatalog
         new("Real estate", "real_estate", "Investment, property, leasing, development, construction and ROI", "/erp/real-estate-app", "fa-home", "teal"),
         new("Jewellery", "jewellery", "Metal and diamond masters, karat, workshop, tourist VAT, and verification", "/erp/jewellery-masters-app", "fa-diamond", "gold"),
         new("HR / payroll", "people", "People, leave, attendance, payroll, and recruitment", "/erp/payroll-app", "fa-users", "teal"),
-        new("Administration", "administration", "Setup, users, roles, module packs, audit, and integrations", "/erp/user-control-app", "fa-shield", "blue"),
+        new("Administration", "administration", "Setup, users, roles, module packs, audit, and integrations", "/erp/users-app", "fa-shield", "blue"),
     ];
 
     public static IReadOnlyList<string> Actions { get; } =

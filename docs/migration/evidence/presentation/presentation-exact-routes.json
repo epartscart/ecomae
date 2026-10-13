@@ -5,7 +5,7 @@
   "generatedFrom": [
     "deploy/aspnet/nginx-presentation-app-shadow-example.conf"
   ],
-  "routeCount": 418,
+  "routeCount": 419,
   "note": "Exact-route presentation/app shadows for www.ecomae.com only. Not product cutover. Live marketing / remains PHP.",
   "routes": [
     "/cp/app",
@@ -416,6 +416,7 @@
     "/erp/tenant-config-app",
     "/erp/three-way-match-app",
     "/erp/uae-tax-compliance-app",
+    "/erp/users-app",
     "/erp/vat-app",
     "/erp/warehouse-wms-app",
     "/erp/withholding-app",
