@@ -23,6 +23,7 @@ internal static class ErpJewelSchema
         `sp_gravity` DECIMAL(7,4) NOT NULL DEFAULT 0,
         `pos_rate_min_max` DECIMAL(12,2) NOT NULL DEFAULT 0,
         `division` CHAR(2) NOT NULL DEFAULT 'G',
+        `created_by` VARCHAR(80) NOT NULL DEFAULT '',
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY `uk_co_karat` (`company_id`, `karat_code`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -42,6 +43,7 @@ internal static class ErpJewelSchema
         `pos_margin_max` DECIMAL(6,2) NOT NULL DEFAULT 50,
         `status` VARCHAR(10) NOT NULL DEFAULT 'MULTIPLY',
         `is_default` TINYINT(1) NOT NULL DEFAULT 0,
+        `created_by` VARCHAR(80) NOT NULL DEFAULT '',
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY `uk_co_rt` (`company_id`, `metal`, `rate_type`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -58,6 +60,7 @@ internal static class ErpJewelSchema
         `min_conv_rate` DECIMAL(12,6) NOT NULL DEFAULT 1,
         `max_conv_rate` DECIMAL(12,6) NOT NULL DEFAULT 1,
         `status` VARCHAR(10) NOT NULL DEFAULT 'MULTIPLY',
+        `created_by` VARCHAR(80) NOT NULL DEFAULT '',
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY `uk_co_curr` (`company_id`, `curr_code`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -765,6 +768,7 @@ internal static class ErpJewelSchema
         `purity` DECIMAL(7,6) NOT NULL DEFAULT 0,
         `tag_price` DECIMAL(14,2) NOT NULL DEFAULT 0,
         `printed` TINYINT(1) NOT NULL DEFAULT 0,
+        `created_by` VARCHAR(80) NOT NULL DEFAULT '',
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY `uk_bc` (`company_id`, `barcode`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -847,6 +851,7 @@ internal static class ErpJewelSchema
         `rfid_tag` varchar(100) NOT NULL DEFAULT '',
         `description` varchar(500) NOT NULL DEFAULT '',
         `image_path` varchar(500) NOT NULL DEFAULT '',
+        `created_by` varchar(80) NOT NULL DEFAULT '',
         `time_created` int(11) NOT NULL DEFAULT 0,
         `time_updated` int(11) NOT NULL DEFAULT 0,
         PRIMARY KEY (`id`),
@@ -952,5 +957,20 @@ internal static class ErpJewelSchema
         "ALTER TABLE `epc_jewel_voucher` ADD COLUMN `shipment_company` VARCHAR(80) NOT NULL DEFAULT ''",
         "ALTER TABLE `epc_jewel_voucher` ADD COLUMN `port_company` VARCHAR(80) NOT NULL DEFAULT ''",
         "ALTER TABLE `epc_jewel_voucher` ADD COLUMN `item_curr_rate` DECIMAL(12,6) NOT NULL DEFAULT 1",
+        "ALTER TABLE `epc_jewel_karat_master` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_karat_master` ADD COLUMN `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP",
+        "ALTER TABLE `epc_jewel_rate_type` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_rate_type` ADD COLUMN `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP",
+        "ALTER TABLE `epc_jewel_currency` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_currency` ADD COLUMN `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP",
+        "ALTER TABLE `epc_jewel_barcode` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_barcode` ADD COLUMN `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP",
+        "ALTER TABLE `epc_jewel_diamond_master` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_pearl_master` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_color_stone_master` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jewel_design` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jw_tags` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_gold_schemes` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_gold_rates` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
     ];
 }

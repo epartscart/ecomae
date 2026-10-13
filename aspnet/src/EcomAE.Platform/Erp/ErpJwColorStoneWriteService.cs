@@ -27,7 +27,8 @@ public sealed record ErpJwColorStoneSaveRequest(
     string? CertificateNo = null,
     string? Vendor = null,
     string? CostCentre = null,
-    string? Grade = null);
+    string? Grade = null,
+    string? CreatedBy = null);
 
 public sealed class ErpJwColorStoneWriteService : IErpJwColorStoneWriteService
 {
@@ -103,7 +104,7 @@ public sealed class ErpJwColorStoneWriteService : IErpJwColorStoneWriteService
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `epc_jewel_color_stone_master` (`company_id`,`code`,`description`,`category`,`shape`,`clarity`,`size`,`color`,`finish`,`country`,`certificate_no`,`vendor`,`cost_centre`,`grade`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `category` = VALUES(`category`), `shape` = VALUES(`shape`), `clarity` = VALUES(`clarity`), `size` = VALUES(`size`), `color` = VALUES(`color`), `finish` = VALUES(`finish`), `country` = VALUES(`country`), `certificate_no` = VALUES(`certificate_no`), `vendor` = VALUES(`vendor`), `cost_centre` = VALUES(`cost_centre`), `grade` = VALUES(`grade`)"),
+                "INSERT INTO `epc_jewel_color_stone_master` (`company_id`,`code`,`description`,`category`,`shape`,`clarity`,`size`,`color`,`finish`,`country`,`certificate_no`,`vendor`,`cost_centre`,`grade`,`created_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `category` = VALUES(`category`), `shape` = VALUES(`shape`), `clarity` = VALUES(`clarity`), `size` = VALUES(`size`), `color` = VALUES(`color`), `finish` = VALUES(`finish`), `country` = VALUES(`country`), `certificate_no` = VALUES(`certificate_no`), `vendor` = VALUES(`vendor`), `cost_centre` = VALUES(`cost_centre`), `grade` = VALUES(`grade`)"),
             cancellationToken,
             companyId,
             code,
@@ -118,7 +119,8 @@ public sealed class ErpJwColorStoneWriteService : IErpJwColorStoneWriteService
             Clip((request.CertificateNo ?? string.Empty).Trim(), 40),
             Clip((request.Vendor ?? string.Empty).Trim(), 20),
             costCentre,
-            Clip((request.Grade ?? string.Empty).Trim(), 20)).ConfigureAwait(false);
+            Clip((request.Grade ?? string.Empty).Trim(), 20),
+            Clip((request.CreatedBy ?? string.Empty).Trim(), 80)).ConfigureAwait(false);
 
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         if (id <= 0)

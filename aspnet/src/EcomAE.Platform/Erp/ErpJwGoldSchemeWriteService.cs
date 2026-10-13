@@ -35,7 +35,8 @@ public sealed record ErpJwGoldSchemeCreateRequest(
     decimal BonusValue = 0,
     decimal MinInstallment = 500,
     decimal MaxInstallment = 50000,
-    string? TermsText = null);
+    string? TermsText = null,
+    string? CreatedBy = null);
 
 public sealed record ErpJwGoldSchemeEnrollRequest(
     int CompanyId = 0,
@@ -110,7 +111,7 @@ public sealed class ErpJwGoldSchemeWriteService : IErpJwGoldSchemeWriteService
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `epc_gold_schemes` (`company_id`,`scheme_code`,`scheme_name`,`scheme_type`,`maturity_months`,`bonus_type`,`bonus_value`,`min_installment`,`max_installment`,`terms_text`,`time_created`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+                "INSERT INTO `epc_gold_schemes` (`company_id`,`scheme_code`,`scheme_name`,`scheme_type`,`maturity_months`,`bonus_type`,`bonus_value`,`min_installment`,`max_installment`,`terms_text`,`created_by`,`time_created`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
             cancellationToken,
             request.CompanyId < 0 ? 0 : request.CompanyId,
             code,
@@ -122,6 +123,7 @@ public sealed class ErpJwGoldSchemeWriteService : IErpJwGoldSchemeWriteService
             minInst,
             maxInst,
             request.TermsText ?? string.Empty,
+            Clip((request.CreatedBy ?? string.Empty).Trim(), 80),
             UnixNow()).ConfigureAwait(false);
 
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);

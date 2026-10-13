@@ -115,18 +115,57 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("name=\"certificate_no\"", text, StringComparison.Ordinal);
         Assert.Contains(ErpJewelleryModuleChrome.KaratColumns, c => c.Contains("Purity", StringComparison.Ordinal));
         Assert.Equal(
-            ["No.", "Item Code", "Description", "Color", "Clarity", "Type", "Brand", "Currency", "Curr rate"],
+            ["No.", "Item Code", "Description", "Color", "Clarity", "Type", "Brand", "Currency", "Curr rate", "Created date", "Created by"],
             ErpJewelleryModuleChrome.MasterSpec("jw_diamond").Columns);
         Assert.Equal(
-            ["No.", "Code", "Description", "Size", "Color", "Rate"],
+            ["No.", "Code", "Description", "Size", "Color", "Rate", "Created date", "Created by"],
             ErpJewelleryModuleChrome.MasterSpec("jw_pearl").Columns);
         Assert.Equal(
-            ["No.", "Code", "Description", "Color", "Shape", "Size", "Rate"],
+            ["No.", "Code", "Description", "Color", "Shape", "Size", "Rate", "Created date", "Created by"],
             ErpJewelleryModuleChrome.MasterSpec("jw_color_stone").Columns);
         Assert.DoesNotContain("295.50", text, StringComparison.Ordinal);
         Assert.DoesNotContain("2,458", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MastersApp_ShowsCreatedDateAndCreatedByOnEveryMaster()
+    {
+        var page = ReadApp("CpJewelleryMastersApp.razor");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        foreach (var tab in new[] { "jw_karat", "jw_rate_type", "jw_currency", "jw_diamond", "jw_design", "jw_pearl", "jw_color_stone", "jw_barcode", "jewellery_tag" })
+        {
+            var columns = ErpJewelleryModuleChrome.MasterSpec(tab).Columns;
+            Assert.Contains("Created date", columns);
+            Assert.Contains("Created by", columns);
+        }
+
+        Assert.Contains("row.CreatedAt", page, StringComparison.Ordinal);
+        Assert.Contains("row.CreatedBy", page, StringComparison.Ordinal);
+        Assert.Contains("row.Row.CreatedAt", page, StringComparison.Ordinal);
+        Assert.Contains("row.Row.CreatedBy", page, StringComparison.Ordinal);
+        Assert.Contains("_opened.CreatedAt", page, StringComparison.Ordinal);
+        Assert.Contains("_opened.CreatedBy", page, StringComparison.Ordinal);
+        Assert.Contains("ErpJwMasterAudit.Actor(session.Email, session.UserId)", module, StringComparison.Ordinal);
+
+        foreach (var file in new[]
+                 {
+                     "ErpJwKaratWriteService.cs",
+                     "ErpJwRateTypeWriteService.cs",
+                     "ErpJwCurrencyWriteService.cs",
+                     "ErpJwDiamondWriteService.cs",
+                     "ErpJwDesignWriteService.cs",
+                     "ErpJwPearlWriteService.cs",
+                     "ErpJwColorStoneWriteService.cs",
+                     "ErpJwBarcodeWriteService.cs",
+                     "ErpJwTagWriteService.cs",
+                 })
+        {
+            var source = ReadSource(file);
+            Assert.Contains("`created_by`", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("`created_by` = VALUES(`created_by`)", source, StringComparison.Ordinal);
+        }
     }
 
     [Fact]
@@ -241,7 +280,7 @@ public sealed class ErpJewelleryModuleParityTests
         var diamond = ReadSource("ErpJwDiamondWriteService.cs");
         var values = diamond.Split("VALUES (", 2, StringSplitOptions.None)[1]
             .Split(") ON DUPLICATE", 2, StringSplitOptions.None)[0];
-        Assert.Equal(51, values.Count(value => value == '?'));
+        Assert.Equal(52, values.Count(value => value == '?'));
 
         var voucher = ReadSource("ErpJwVoucherWriteService.cs");
         Assert.Contains("BeginTransactionAsync", voucher, StringComparison.Ordinal);

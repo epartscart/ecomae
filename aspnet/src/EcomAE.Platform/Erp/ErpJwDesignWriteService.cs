@@ -32,7 +32,8 @@ public sealed record ErpJwDesignSaveRequest(
     string? Price1Code = null,
     decimal Price1Pct = 0,
     decimal Price1Fc = 0,
-    decimal Price1Lc = 0);
+    decimal Price1Lc = 0,
+    string? CreatedBy = null);
 
 public sealed class ErpJwDesignWriteService : IErpJwDesignWriteService
 {
@@ -87,7 +88,7 @@ public sealed class ErpJwDesignWriteService : IErpJwDesignWriteService
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `epc_jewel_design` (`company_id`,`design_code`,`description`,`currency`,`currency_rate`,`cost_centre`,`category`,`sub_category`,`type`,`brand`,`color`,`country`,`vendor`,`vendor_ref`,`cost_amount`,`price1_code`,`price1_pct`,`price1_fc`,`price1_lc`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `category` = VALUES(`category`), `type` = VALUES(`type`), `cost_amount` = VALUES(`cost_amount`)"),
+                "INSERT INTO `epc_jewel_design` (`company_id`,`design_code`,`description`,`currency`,`currency_rate`,`cost_centre`,`category`,`sub_category`,`type`,`brand`,`color`,`country`,`vendor`,`vendor_ref`,`cost_amount`,`price1_code`,`price1_pct`,`price1_fc`,`price1_lc`,`created_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `category` = VALUES(`category`), `type` = VALUES(`type`), `cost_amount` = VALUES(`cost_amount`)"),
             cancellationToken,
             companyId,
             code,
@@ -107,7 +108,8 @@ public sealed class ErpJwDesignWriteService : IErpJwDesignWriteService
             price1Code,
             RoundNonNeg(request.Price1Pct, 2),
             RoundNonNeg(request.Price1Fc, 2),
-            RoundNonNeg(request.Price1Lc, 2)).ConfigureAwait(false);
+            RoundNonNeg(request.Price1Lc, 2),
+            Clip((request.CreatedBy ?? string.Empty).Trim(), 80)).ConfigureAwait(false);
 
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         if (id <= 0)

@@ -6848,7 +6848,8 @@ public sealed class ErpModule : ISurfaceModule
                     rangeTo,
                     spGravity,
                     posRate,
-                    division),
+                    division,
+                    ErpJwMasterAudit.Actor(session.Email, session.UserId)),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
@@ -6974,7 +6975,8 @@ public sealed class ErpModule : ISurfaceModule
                     posMarginMin,
                     posMarginMax,
                     status,
-                    isDefault),
+                    isDefault,
+                    ErpJwMasterAudit.Actor(session.Email, session.UserId)),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
@@ -7076,7 +7078,8 @@ public sealed class ErpModule : ISurfaceModule
                     convRate,
                     minConvRate,
                     maxConvRate,
-                    status),
+                    status,
+                    ErpJwMasterAudit.Actor(session.Email, session.UserId)),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
@@ -7294,7 +7297,8 @@ public sealed class ErpModule : ISurfaceModule
                     uaeTrnItem,
                     custSku,
                     ageingDate,
-                    promotional),
+                    promotional,
+                    ErpJwMasterAudit.Actor(session.Email, session.UserId)),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
@@ -7416,7 +7420,8 @@ public sealed class ErpModule : ISurfaceModule
                     price1Code,
                     price1Pct,
                     price1Fc,
-                    price1Lc),
+                    price1Lc,
+                    ErpJwMasterAudit.Actor(session.Email, session.UserId)),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
@@ -7556,7 +7561,8 @@ public sealed class ErpModule : ISurfaceModule
                     price1Code,
                     price1Pct,
                     price1Fc,
-                    price1Lc),
+                    price1Lc,
+                    ErpJwMasterAudit.Actor(session.Email, session.UserId)),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
@@ -7658,7 +7664,8 @@ public sealed class ErpModule : ISurfaceModule
                     certificateNo,
                     vendor,
                     costCentre,
-                    grade),
+                    grade,
+                    ErpJwMasterAudit.Actor(session.Email, session.UserId)),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
@@ -7730,7 +7737,15 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             var written = await writes.GenerateAsync(
-                new ErpJwBarcodeGenerateRequest(companyId, stockCode, division, karat, grossWt, purity, tagPrice),
+                new ErpJwBarcodeGenerateRequest(
+                    companyId,
+                    stockCode,
+                    division,
+                    karat,
+                    grossWt,
+                    purity,
+                    tagPrice,
+                    ErpJwMasterAudit.Actor(session.Email, session.UserId)),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
@@ -7849,7 +7864,8 @@ public sealed class ErpModule : ISurfaceModule
                     purchaseId,
                     purchaseDate,
                     location,
-                    description),
+                    description,
+                    ErpJwMasterAudit.Actor(session.Email, session.UserId)),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
@@ -7994,7 +8010,8 @@ public sealed class ErpModule : ISurfaceModule
                     bonusValue,
                     minInstallment,
                     maxInstallment,
-                    termsText),
+                    termsText,
+                    ErpJwMasterAudit.Actor(session.Email, session.UserId)),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {

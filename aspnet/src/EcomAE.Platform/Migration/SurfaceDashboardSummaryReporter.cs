@@ -16015,7 +16015,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToDecimal(reader["range_to"] is DBNull ? 0 : reader["range_to"], CultureInfo.InvariantCulture),
                         Convert.ToDecimal(reader["sp_gravity"] is DBNull ? 0 : reader["sp_gravity"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["division"] is DBNull ? string.Empty : reader["division"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                        ErpJwMasterAudit.DisplayDate(reader["created_at"]),
+                        ErpJwMasterAudit.DisplayUser(Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture))));
                 }
             }
 
@@ -16037,7 +16038,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToString(reader["currency"] is DBNull ? string.Empty : reader["currency"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToDecimal(reader["curr_rate"] is DBNull ? 0 : reader["curr_rate"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToInt32(reader["is_default"] is DBNull ? 0 : reader["is_default"], CultureInfo.InvariantCulture)));
+                        Convert.ToInt32(reader["is_default"] is DBNull ? 0 : reader["is_default"], CultureInfo.InvariantCulture),
+                        ErpJwMasterAudit.DisplayDate(reader["created_at"]),
+                        ErpJwMasterAudit.DisplayUser(Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture))));
                 }
             }
 
@@ -16057,7 +16060,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToString(reader["description"] is DBNull ? string.Empty : reader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["symbol"] is DBNull ? string.Empty : reader["symbol"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToDecimal(reader["conv_rate"] is DBNull ? 0 : reader["conv_rate"], CultureInfo.InvariantCulture),
-                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty));
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        ErpJwMasterAudit.DisplayDate(reader["created_at"]),
+                        ErpJwMasterAudit.DisplayUser(Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture))));
                 }
             }
 
@@ -16080,7 +16085,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToString(reader["type"] is DBNull ? string.Empty : reader["type"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["brand"] is DBNull ? string.Empty : reader["brand"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["currency"] is DBNull ? string.Empty : reader["currency"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToDecimal(reader["currency_rate"] is DBNull ? 0 : reader["currency_rate"], CultureInfo.InvariantCulture)));
+                        Convert.ToDecimal(reader["currency_rate"] is DBNull ? 0 : reader["currency_rate"], CultureInfo.InvariantCulture),
+                        ErpJwMasterAudit.DisplayDate(reader["created_at"]),
+                        ErpJwMasterAudit.DisplayUser(Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture))));
                 }
             }
 
@@ -16101,7 +16108,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToString(reader["category"] is DBNull ? string.Empty : reader["category"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["brand"] is DBNull ? string.Empty : reader["brand"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToDecimal(reader["cost_amount"] is DBNull ? 0 : reader["cost_amount"], CultureInfo.InvariantCulture),
-                        Convert.ToDecimal(reader["price1_lc"] is DBNull ? 0 : reader["price1_lc"], CultureInfo.InvariantCulture)));
+                        Convert.ToDecimal(reader["price1_lc"] is DBNull ? 0 : reader["price1_lc"], CultureInfo.InvariantCulture),
+                        ErpJwMasterAudit.DisplayDate(reader["created_at"]),
+                        ErpJwMasterAudit.DisplayUser(Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture))));
                 }
             }
 
@@ -16121,7 +16130,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToString(reader["description"] is DBNull ? string.Empty : reader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["size"] is DBNull ? string.Empty : reader["size"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["color"] is DBNull ? string.Empty : reader["color"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToDecimal(reader["rate"] is DBNull ? 0 : reader["rate"], CultureInfo.InvariantCulture)));
+                        Convert.ToDecimal(reader["rate"] is DBNull ? 0 : reader["rate"], CultureInfo.InvariantCulture),
+                        ErpJwMasterAudit.DisplayDate(reader["created_at"]),
+                        ErpJwMasterAudit.DisplayUser(Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture))));
                 }
             }
 
@@ -16142,7 +16153,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToString(reader["color"] is DBNull ? string.Empty : reader["color"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["shape"] is DBNull ? string.Empty : reader["shape"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["size"] is DBNull ? string.Empty : reader["size"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToDecimal(reader["rate"] is DBNull ? 0 : reader["rate"], CultureInfo.InvariantCulture)));
+                        Convert.ToDecimal(reader["rate"] is DBNull ? 0 : reader["rate"], CultureInfo.InvariantCulture),
+                        ErpJwMasterAudit.DisplayDate(reader["created_at"]),
+                        ErpJwMasterAudit.DisplayUser(Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture))));
                 }
             }
 
@@ -16165,7 +16178,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToDecimal(reader["gross_wt"] is DBNull ? 0 : reader["gross_wt"], CultureInfo.InvariantCulture),
                         Convert.ToDecimal(reader["net_wt"] is DBNull ? 0 : reader["net_wt"], CultureInfo.InvariantCulture),
                         Convert.ToDecimal(reader["tag_price"] is DBNull ? 0 : reader["tag_price"], CultureInfo.InvariantCulture),
-                        Convert.ToInt32(reader["printed"] is DBNull ? 0 : reader["printed"], CultureInfo.InvariantCulture)));
+                        Convert.ToInt32(reader["printed"] is DBNull ? 0 : reader["printed"], CultureInfo.InvariantCulture),
+                        ErpJwMasterAudit.DisplayDate(reader["created_at"]),
+                        ErpJwMasterAudit.DisplayUser(Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture))));
                 }
             }
 
@@ -16188,7 +16203,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToDecimal(reader["net_weight"] is DBNull ? 0 : reader["net_weight"], CultureInfo.InvariantCulture),
                         Convert.ToDecimal(reader["sell_price"] is DBNull ? 0 : reader["sell_price"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["location"] is DBNull ? string.Empty : reader["location"], CultureInfo.InvariantCulture) ?? string.Empty));
+                        Convert.ToString(reader["location"] is DBNull ? string.Empty : reader["location"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        ErpJwMasterAudit.DisplayDate(reader["created_at"]),
+                        ErpJwMasterAudit.DisplayUser(Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture))));
                 }
             }
 
@@ -16237,7 +16254,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToDecimal(reader["sp_gravity"] is DBNull ? 0 : reader["sp_gravity"], CultureInfo.InvariantCulture),
                         Convert.ToDecimal(reader["pos_rate_min_max"] is DBNull ? 0 : reader["pos_rate_min_max"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["division"] is DBNull ? string.Empty : reader["division"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        ErpJwMasterAudit.DisplayDate(reader["created_at"]),
+                        ErpJwMasterAudit.DisplayUser(Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture)),
                         Convert.ToInt32(reader["description_len"] is DBNull ? 0 : reader["description_len"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["description_excerpt"] is DBNull ? string.Empty : reader["description_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
                 }
@@ -16267,7 +16285,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToDecimal(reader["range_to"] is DBNull ? 0 : reader["range_to"], CultureInfo.InvariantCulture),
                         Convert.ToDecimal(reader["sp_gravity"] is DBNull ? 0 : reader["sp_gravity"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["division"] is DBNull ? string.Empty : reader["division"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                        ErpJwMasterAudit.DisplayDate(reader["created_at"]),
+                        ErpJwMasterAudit.DisplayUser(Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture))));
                 }
             }
 
