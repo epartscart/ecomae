@@ -37,6 +37,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await new ErpVoucherNumberService().EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpRealEstateGl.EnsureCoaAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try

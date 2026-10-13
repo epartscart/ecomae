@@ -1,8 +1,10 @@
+using System.Data.Common;
 using System.Globalization;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
+using MySqlConnector;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -213,6 +215,177 @@ public sealed class ErpRealEstateTests
         Assert.True(ErpPostedTransactionPolicy.CanModify("cheque", "deposited"));
         Assert.True(ErpPostedTransactionPolicy.IsVoided("voided"));
         Assert.Equal(ErpPostedTransactionPolicy.RefuseModify, "Posted transactions cannot be modified. Void or delete them.");
+    }
+
+    [Fact]
+    public async Task CompletedDocumentsPostToBalanceSheetAndIncomeStatement()
+    {
+        var (admin, cs) = ThrowawayCs();
+        if (admin is null)
+        {
+            return;
+        }
+
+        await Exec(admin, "CREATE DATABASE `" + DbName(cs) + "`");
+        try
+        {
+            var writes = new ErpRealEstateWriteService(
+                new ThrowawayConnections(cs),
+                new ErpAuditLogWriter(),
+                new ErpGlPostingService(new ErpVoucherNumberService()));
+
+            var opp = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_opportunity",
+                Code: "OPP-IFRS",
+                Name: "Marina tower",
+                Amount: 1_000_000m,
+                Amount2: 1_050_000m,
+                LegalEntityId: 1,
+                ConfirmWrites: true));
+            Assert.True(opp.Succeeded, opp.Message);
+
+            var bought = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "convert_opportunity",
+                Id: opp.Id,
+                Amount: 50_000m,
+                LegalEntityId: 1,
+                ActorId: 1,
+                ConfirmWrites: true));
+            Assert.True(bought.Succeeded, bought.Message);
+            Assert.Contains("balance sheet", bought.Message, StringComparison.OrdinalIgnoreCase);
+
+            var valuation = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_valuation",
+                PropertyId: bought.Id,
+                Code: "VAL-IFRS",
+                Amount: 1_100_000m,
+                Amount2: 1_200_000m,
+                Amount3: 1_250_000m,
+                LegalEntityId: 1,
+                ActorId: 1,
+                ConfirmWrites: true));
+            Assert.True(valuation.Succeeded, valuation.Message);
+            Assert.Contains("income statement", valuation.Message, StringComparison.OrdinalIgnoreCase);
+
+            var deposit = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_deposit",
+                LeaseId: 1,
+                Amount: 20_000m,
+                LegalEntityId: 1,
+                ActorId: 1,
+                ConfirmWrites: true));
+            Assert.True(deposit.Succeeded, deposit.Message);
+
+            var cheque = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_cheque",
+                ChequeNo: "PDC-IFRS-1",
+                Amount: 12_000m,
+                PropertyId: bought.Id,
+                LegalEntityId: 1,
+                ActorId: 1,
+                ConfirmWrites: true));
+            Assert.True(cheque.Succeeded, cheque.Message);
+
+            var opex = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_maintenance",
+                PropertyId: bought.Id,
+                Name: "Chiller service",
+                Amount: 5_000m,
+                VatCode: "opex",
+                LegalEntityId: 1,
+                ActorId: 1,
+                ConfirmWrites: true));
+            Assert.True(opex.Succeeded, opex.Message);
+
+            var reserved = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_sale",
+                UnitId: 1,
+                Name: "Buyer A",
+                Amount: 800_000m,
+                Status: "reserved",
+                LegalEntityId: 1,
+                ActorId: 1,
+                ConfirmWrites: true));
+            Assert.True(reserved.Succeeded, reserved.Message);
+            Assert.Contains("off the statements", reserved.Message, StringComparison.OrdinalIgnoreCase);
+
+            var journals = await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_journals` WHERE `uae_tax_legislation_ref`='IAS40/IFRS15/IFRS18' AND `active`=1");
+            Assert.True(journals >= 4, "expected IAS 40 / IFRS journals, got " + journals);
+
+            Assert.Equal(1L, await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_re_acquisitions` WHERE `gl_journal_id`>0"));
+            Assert.Equal(1L, await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_re_valuations` WHERE `gl_journal_id`>0"));
+            Assert.Equal(1L, await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_re_deposits` WHERE `gl_journal_id`>0"));
+            Assert.Equal(1L, await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_re_cheques` WHERE `gl_journal_id`>0"));
+            Assert.Equal(0L, await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_re_sales` WHERE `gl_journal_id`>0"));
+
+            Assert.True(await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.code='1510' AND l.debit>0") > 0);
+            Assert.True(await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.code='2200' AND a.account_type='liability' AND l.credit>0") > 0);
+            Assert.True(await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.code='4200' AND a.account_type='revenue' AND l.credit>0") > 0);
+            Assert.True(await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.code='4100' AND a.account_type='revenue' AND l.credit>0") > 0);
+            Assert.True(await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.code='6210' AND a.account_type='expense' AND l.debit>0") > 0);
+            Assert.Equal(0L, await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.code='4110'"));
+
+            var bs = await Scalar(
+                cs,
+                "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.account_type IN ('asset','liability','equity')");
+            var pl = await Scalar(
+                cs,
+                "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.account_type IN ('revenue','income','expense')");
+            Assert.True(bs >= 6, "balance-sheet lines " + bs);
+            Assert.True(pl >= 3, "income-statement lines " + pl);
+        }
+        finally
+        {
+            await Exec(admin, "DROP DATABASE IF EXISTS `" + DbName(cs) + "`");
+        }
+    }
+
+    private static (string? Admin, string Cs) ThrowawayCs()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return (null, string.Empty);
+        }
+
+        var database = "ecomae_re_ifrs_" + Guid.NewGuid().ToString("N")[..12];
+        return (
+            "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;",
+            "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;");
+    }
+
+    private static string DbName(string cs) => cs.Split("Database=")[1].Split(';')[0];
+
+    private static async Task Exec(string connectionString, string sql)
+    {
+        await using var connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync();
+        await using var command = new MySqlCommand(sql, connection);
+        await command.ExecuteNonQueryAsync();
+    }
+
+    private static async Task<long> Scalar(string connectionString, string sql)
+    {
+        await using var connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync();
+        await using var command = new MySqlCommand(sql, connection);
+        return Convert.ToInt64(await command.ExecuteScalarAsync(), CultureInfo.InvariantCulture);
+    }
+
+    private sealed class ThrowawayConnections : IErpWriteConnectionFactory
+    {
+        private readonly string _connectionString;
+
+        public ThrowawayConnections(string connectionString) => _connectionString = connectionString;
+
+        public bool IsConfigured => true;
+
+        public async Task<DbConnection> OpenAsync(CancellationToken cancellationToken = default)
+        {
+            var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync(cancellationToken);
+            return connection;
+        }
     }
 
     private static string Find(string relative)
