@@ -59,7 +59,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedItemReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Item id</dt><dd>@_openedItem.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>SKU</dt><dd>@(string.IsNullOrWhiteSpace(_openedItem.Sku) ? "—" : _openedItem.Sku)</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_openedItem.Name) ? "—" : _openedItem.Name)</dd>
@@ -109,7 +109,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedFieldReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Field id</dt><dd>@_openedField.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Key</dt><dd>@(string.IsNullOrWhiteSpace(_openedField.FieldKey) ? "—" : _openedField.FieldKey)</dd>
                 <dt>Label</dt><dd>@(string.IsNullOrWhiteSpace(_openedField.Label) ? "—" : _openedField.Label)</dd>
@@ -163,7 +163,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedVariantReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Variant id</dt><dd>@_openedVariant.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Variant SKU</dt><dd>@(string.IsNullOrWhiteSpace(_openedVariant.VariantSku) ? "—" : _openedVariant.VariantSku)</dd>
                 <dt>Base</dt><dd>@(string.IsNullOrWhiteSpace(_openedVariant.BaseSku) ? "—" : _openedVariant.BaseSku)</dd>

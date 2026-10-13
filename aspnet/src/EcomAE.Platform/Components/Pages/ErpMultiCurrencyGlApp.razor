@@ -104,7 +104,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedRateReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Rate id</dt><dd>@_openedRate.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Base</dt><dd>@(string.IsNullOrWhiteSpace(_openedRate.BaseCurrency) ? "—" : _openedRate.BaseCurrency)</dd>
                 <dt>Target</dt><dd>@(string.IsNullOrWhiteSpace(_openedRate.TargetCurrency) ? "—" : _openedRate.TargetCurrency)</dd>
@@ -147,7 +147,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedEntryReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Entry id</dt><dd>@_openedEntry.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Site</dt><dd>@(string.IsNullOrWhiteSpace(_openedEntry.SiteKey) ? "—" : _openedEntry.SiteKey)</dd>
                 <dt>Journal</dt><dd>@(string.IsNullOrWhiteSpace(_openedEntry.JournalRef) ? "—" : _openedEntry.JournalRef)</dd>

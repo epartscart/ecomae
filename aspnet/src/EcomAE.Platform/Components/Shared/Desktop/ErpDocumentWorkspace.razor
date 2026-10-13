@@ -38,35 +38,37 @@
         }
     </nav>
 
-    <details id="general" open class="epc-document-workspace__section">
-        <summary>General and operational context</summary>
-        <div class="epc-document-workspace__fields">
-            @foreach (var field in Fields.Where(f => f.Group is "General" or "Operational"))
-            {
-                <div><span>@field.Label</span><strong>@field.Value</strong></div>
-            }
-        </div>
-    </details>
+    <div class="epc-document-workspace__field-row">
+        <details id="general" open class="epc-document-workspace__section">
+            <summary>General and operational context</summary>
+            <div class="epc-document-workspace__fields">
+                @foreach (var field in Fields.Where(f => f.Group is "General" or "Operational"))
+                {
+                    <div><span>@field.Label</span><strong>@field.Value</strong></div>
+                }
+            </div>
+        </details>
 
-    <details id="address" class="epc-document-workspace__section">
-        <summary>Address, delivery and warehouse</summary>
-        <div class="epc-document-workspace__fields">
-            @foreach (var field in Fields.Where(f => f.Group is "Address" or "Delivery"))
-            {
-                <div><span>@field.Label</span><strong>@field.Value</strong></div>
-            }
-        </div>
-    </details>
+        <details id="address" open class="epc-document-workspace__section">
+            <summary>Address, delivery and warehouse</summary>
+            <div class="epc-document-workspace__fields">
+                @foreach (var field in Fields.Where(f => f.Group is "Address" or "Delivery"))
+                {
+                    <div><span>@field.Label</span><strong>@field.Value</strong></div>
+                }
+            </div>
+        </details>
 
-    <details id="financial" class="epc-document-workspace__section">
-        <summary>Payment, tax and financial dimensions</summary>
-        <div class="epc-document-workspace__fields">
-            @foreach (var field in Fields.Where(f => f.Group is "Financial" or "Dimensions"))
-            {
-                <div><span>@field.Label</span><strong>@field.Value</strong></div>
-            }
-        </div>
-    </details>
+        <details id="financial" open class="epc-document-workspace__section">
+            <summary>Payment, tax and financial dimensions</summary>
+            <div class="epc-document-workspace__fields">
+                @foreach (var field in Fields.Where(f => f.Group is "Financial" or "Dimensions"))
+                {
+                    <div><span>@field.Label</span><strong>@field.Value</strong></div>
+                }
+            </div>
+        </details>
+    </div>
 
     @foreach (var group in CustomGroups)
     {

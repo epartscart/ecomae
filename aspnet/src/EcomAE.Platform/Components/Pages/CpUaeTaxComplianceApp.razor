@@ -127,7 +127,7 @@
                     <a class="btn btn-xs btn-default pull-right" href="@_listHref">Close</a>
                 </div>
                 <div class="panel-body">
-                    <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                    <dl class="epc-erp-facts">
                         <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                         <dt>Slug</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Slug) ? "—" : _opened.Slug)</dd>
                         <dt>Issue date</dt><dd>@(string.IsNullOrWhiteSpace(_opened.IssueDate) ? "—" : _opened.IssueDate)</dd>

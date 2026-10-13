@@ -61,7 +61,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedCategoryReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Category id</dt><dd>@_openedCategory.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Code</dt><dd>@(string.IsNullOrWhiteSpace(_openedCategory.Code) ? "—" : _openedCategory.Code)</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_openedCategory.Name) ? "—" : _openedCategory.Name)</dd>
@@ -104,7 +104,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedPolicyReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Policy id</dt><dd>@_openedPolicy.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_openedPolicy.Name) ? "—" : _openedPolicy.Name)</dd>
                 <dt>Category</dt><dd>@(_openedPolicy.CategoryId > 0 ? _openedPolicy.CategoryId.ToString(CultureInfo.InvariantCulture) : "—")</dd>

@@ -87,7 +87,7 @@
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Batch #</dt><dd>@(string.IsNullOrWhiteSpace(_opened.BatchNo) ? "—" : _opened.BatchNo)</dd>
                 <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_opened.BatchType) ? "—" : _opened.BatchType)</dd>

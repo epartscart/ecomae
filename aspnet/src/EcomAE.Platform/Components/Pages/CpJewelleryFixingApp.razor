@@ -32,7 +32,7 @@
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong> <a class="btn btn-xs btn-default" href="@_listHref">Close</a></p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Fix no</dt><dd>@_opened.FixNo.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Date</dt><dd>@(string.IsNullOrWhiteSpace(_opened.FixDate) ? "—" : _opened.FixDate)</dd>
@@ -132,9 +132,7 @@
                     <a class="@(_panel == "addins" ? "is-active" : "")" href="@PanelHref("addins")">2. Other Amounts</a>
                     <a class="@(_panel == "attach" ? "is-active" : "")" href="@PanelHref("attach")">3. Attachments</a>
                 </div>
-                @if (_panel != "attach")
-                {
-                    <div class="epc-jw-panel epc-jw-line-grid">
+                <div class="epc-jw-panel epc-jw-line-grid" hidden="@(_panel != "lines")">
                         <table class="table table-bordered table-condensed table-epc epc-erp-table">
                             <thead>
                                 <tr>
@@ -180,7 +178,7 @@
                         </table>
                         <input type="hidden" name="line_metal_rate" value="0" />
                     </div>
-                    <div class="epc-jw-panel epc-jw-line-grid">
+                    <div class="epc-jw-panel epc-jw-line-grid" hidden="@(_panel != "addins")">
                         <p class="epc-erp-doc-header__title">Other amounts</p>
                         <table class="table table-bordered table-condensed table-epc epc-erp-table">
                             <thead>
@@ -209,16 +207,12 @@
                             </tbody>
                         </table>
                     </div>
-                }
-                else
-                {
-                    <div class="epc-jw-panel">
+                    <div class="epc-jw-panel" hidden="@(_panel != "attach")">
                         <p class="text-muted">Attach supplier invoice / packing documents after the voucher is saved, or upload now against this purchase.</p>
                         <label>Document
                             <input class="form-control input-sm" type="file" name="file" form="jw-mp-attach" />
                         </label>
                     </div>
-                }
                 <div class="epc-jw-totals">
                     <label>Narration <textarea class="form-control input-sm" name="narration" rows="2" maxlength="200"></textarea></label>
                     <label>Place of Supply <input class="form-control input-sm" name="place_of_supply" maxlength="80" /></label>

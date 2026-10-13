@@ -31,7 +31,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="/erp/on-premises-app">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>License id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Customer</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.CustomerName) ? "—" : _openedDetail.CustomerName)</dd>
                 <dt>Tier</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Tier) ? "—" : _openedDetail.Tier)</dd>

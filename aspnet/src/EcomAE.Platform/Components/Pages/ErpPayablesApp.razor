@@ -59,7 +59,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="/erp/payables-app">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Supplier id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Name) ? "—" : _openedDetail.Name)</dd>
                 <dt>Storage</dt><dd>@(_openedDetail.StorageId > 0 ? _openedDetail.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</dd>

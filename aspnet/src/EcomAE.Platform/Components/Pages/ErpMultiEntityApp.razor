@@ -149,7 +149,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedGroupReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Group id</dt><dd>@_openedGroup.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Code</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.GroupCode) ? "—" : _openedGroup.GroupCode)</dd>
                 <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.GroupName) ? "—" : _openedGroup.GroupName)</dd>
@@ -220,7 +220,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedIcReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Txn id</dt><dd>@_openedIc.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Group</dt><dd>@(_openedIc.GroupId > 0 ? _openedIc.GroupId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>From</dt><dd>@(string.IsNullOrWhiteSpace(_openedIc.FromSiteKey) ? "—" : _openedIc.FromSiteKey)</dd>

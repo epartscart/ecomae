@@ -77,7 +77,7 @@
                 <a class="btn btn-xs btn-default" href="/erp/invoices-app">Close</a>
                 <a class="btn btn-xs btn-default" href="/erp/invoice-print?id=@_openedDetail.Id" target="_blank" rel="noopener">Print</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+            <dl class="epc-erp-facts">
                 <dt>Invoice id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Invoice #</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.InvoiceNumber) ? "—" : _openedDetail.InvoiceNumber)</dd>
                 <dt>Category</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.DocCategory) ? "—" : _openedDetail.DocCategory)</dd>
