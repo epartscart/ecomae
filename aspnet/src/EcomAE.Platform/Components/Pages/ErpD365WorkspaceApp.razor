@@ -21,6 +21,19 @@
 @page "/erp/hr-workspace-app"
 @page "/erp/inventory-workspace-app"
 @page "/erp/landed-cost-workspace-app"
+@page "/erp/pim-workspace-app"
+@page "/erp/production-workspace-app"
+@page "/erp/projects-workspace-app"
+@page "/erp/questionnaire-workspace-app"
+@page "/erp/rebate-workspace-app"
+@page "/erp/retail-workspace-app"
+@page "/erp/sales-workspace-app"
+@page "/erp/service-workspace-app"
+@page "/erp/system-admin-workspace-app"
+@page "/erp/tax-workspace-app"
+@page "/erp/time-attendance-app"
+@page "/erp/transportation-workspace-app"
+@page "/erp/warehouse-workspace-app"
 @page "/erp/d365-workspace-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
@@ -346,6 +359,19 @@
         if (value.Contains("/hr-workspace-app", StringComparison.Ordinal)) return "people";
         if (value.Contains("/inventory-workspace-app", StringComparison.Ordinal)) return "inventory_mgmt";
         if (value.Contains("/landed-cost-workspace-app", StringComparison.Ordinal)) return "landed_cost_area";
+        if (value.Contains("/pim-workspace-app", StringComparison.Ordinal)) return "pim";
+        if (value.Contains("/production-workspace-app", StringComparison.Ordinal)) return "production";
+        if (value.Contains("/projects-workspace-app", StringComparison.Ordinal)) return "projects";
+        if (value.Contains("/questionnaire-workspace-app", StringComparison.Ordinal)) return "questionnaire";
+        if (value.Contains("/rebate-workspace-app", StringComparison.Ordinal)) return "rebate_mgmt";
+        if (value.Contains("/retail-workspace-app", StringComparison.Ordinal)) return "retail";
+        if (value.Contains("/sales-workspace-app", StringComparison.Ordinal)) return "sales";
+        if (value.Contains("/service-workspace-app", StringComparison.Ordinal)) return "service_mgmt";
+        if (value.Contains("/system-admin-workspace-app", StringComparison.Ordinal)) return "setup";
+        if (value.Contains("/tax-workspace-app", StringComparison.Ordinal)) return "tax";
+        if (value.Contains("/time-attendance-app", StringComparison.Ordinal)) return "time_att";
+        if (value.Contains("/transportation-workspace-app", StringComparison.Ordinal)) return "transportation";
+        if (value.Contains("/warehouse-workspace-app", StringComparison.Ordinal)) return "warehouse";
         return "leave_abs";
     }
 
@@ -373,6 +399,19 @@
         "people" => "Human resources",
         "inventory_mgmt" or "inventory" => "Inventory management",
         "landed_cost_area" => "Landed cost",
+        "pim" => "Product information management",
+        "production" => "Production control",
+        "projects" => "Project management and accounting",
+        "questionnaire" => "Questionnaire",
+        "rebate_mgmt" => "Rebate management",
+        "retail" => "Retail and commerce",
+        "sales" => "Sales and marketing",
+        "service_mgmt" => "Service management",
+        "setup" => "System administration",
+        "tax" => "Tax",
+        "time_att" => "Time and attendance",
+        "transportation" or "logistics" => "Transportation management",
+        "warehouse" => "Warehouse management",
         _ => "Leave and absence",
     };
 }

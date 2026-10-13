@@ -33,17 +33,17 @@ public static class LegacyDesktopChromeCatalog
         {
             ["home"] = ["overview"],
             ["record_to_report"] = ["finance", "budgeting", "consolidations", "cost_acct", "audit_wb", "fixed_assets"],
-            ["procure_to_pay"] = ["purchasing", "ap", "landed_cost_area", "expense"],
+            ["procure_to_pay"] = ["purchasing", "ap", "landed_cost_area", "expense", "rebate_mgmt"],
             ["order_to_cash"] = ["sales", "ar", "credit_coll", "retail", "service_mgmt"],
             ["cash_treasury"] = ["banking"],
             ["inventory_fulfilment"] =
             [
                 "inventory_mgmt", "pim", "cost_mgmt", "production", "warehouse", "mhei", "logistics",
-                "master_planning_area", "asset_mgmt"
+                "master_planning_area", "asset_mgmt", "transportation"
             ],
-            ["hr_payroll"] = ["people", "payroll_area", "leave_abs", "projects"],
+            ["hr_payroll"] = ["people", "payroll_area", "leave_abs", "projects", "time_att"],
             ["compliance_tax"] = ["tax", "risk"],
-            ["setup_admin"] = ["setup", "enterprise", "common"],
+            ["setup_admin"] = ["setup", "enterprise", "common", "questionnaire"],
         };
 
     /// <summary>Short labels from <c>epc_erp_nav_categories_config</c>.</summary>
