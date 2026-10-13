@@ -27,7 +27,7 @@ public sealed class ErpRealEstateTests
         Assert.Equal(2.00m, ErpRealEstateCalc.DebtServiceCoverage(80_000m, 40_000m));
         Assert.Equal(0.20m, ErpRealEstateCalc.ProjectMargin(1_000_000m, 800_000m));
         Assert.Equal(250_000.00m, ErpRealEstateCalc.CostToComplete(1_000_000m, 750_000m));
-        Assert.Contains(ErpRealEstateCalc.Definitions, d => d.Key == "unrealized" && d.Formula.Contains("not posted to GL", StringComparison.Ordinal));
+        Assert.Contains(ErpRealEstateCalc.Definitions, d => d.Key == "unrealized" && d.Formula.Contains("IAS 40 through P&L", StringComparison.Ordinal));
         Assert.Contains(ErpRealEstateCalc.Definitions, d => d.Currency == "AED");
     }
 
@@ -132,6 +132,69 @@ public sealed class ErpRealEstateTests
         Assert.Contains(">Delete<", razor, StringComparison.Ordinal);
         Assert.Contains(">Void<", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("else if (ErpPostedTransactionPolicy.CanVoid", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRealEstateIfrs", src, StringComparison.Ordinal);
+        Assert.Contains("PostIfrsAsync", src, StringComparison.Ordinal);
+        Assert.Contains("IAS 40 investment property", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("Fair-value changes stay off the ledger", src, StringComparison.Ordinal);
+        Assert.Contains("income statement", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor")), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void IfrsRecipesSplitBalanceSheetAndIncomeStatement()
+    {
+        Assert.True(ErpRealEstateIfrs.IsOffStatement("opportunity"));
+        Assert.False(ErpRealEstateIfrs.IsOffStatement("acquisition"));
+        Assert.Equal("balance_sheet", ErpRealEstateIfrs.StatementFor(ErpRealEstateIfrs.InvestmentProperty));
+        Assert.Equal("balance_sheet", ErpRealEstateIfrs.StatementFor(ErpRealEstateIfrs.TenantDeposits));
+        Assert.Equal("balance_sheet", ErpRealEstateIfrs.StatementFor(ErpRealEstateIfrs.ChequesUnderCollection));
+        Assert.Equal("balance_sheet", ErpRealEstateIfrs.StatementFor(ErpRealEstateIfrs.PropertyUnderConstruction));
+        Assert.Equal("income_statement", ErpRealEstateIfrs.StatementFor(ErpRealEstateIfrs.RentalIncome));
+        Assert.Equal("income_statement", ErpRealEstateIfrs.StatementFor(ErpRealEstateIfrs.FairValueGain));
+        Assert.Equal("income_statement", ErpRealEstateIfrs.StatementFor(ErpRealEstateIfrs.DevelopmentRevenue));
+        Assert.Equal("income_statement", ErpRealEstateIfrs.StatementFor(ErpRealEstateIfrs.PropertyOpex));
+
+        var acq = ErpRealEstateIfrs.Acquisition(1_050_000m);
+        Assert.Equal(2, acq.Count);
+        Assert.Equal(1_050_000m, acq.Sum(l => l.Debit));
+        Assert.Equal(acq.Sum(l => l.Debit), acq.Sum(l => l.Credit));
+        Assert.Contains(acq, l => l.Code == ErpRealEstateIfrs.InvestmentProperty && l.Debit == 1_050_000m);
+        Assert.Contains(acq, l => l.Code == ErpRealEstateIfrs.Bank && l.Credit == 1_050_000m);
+
+        var fvUp = ErpRealEstateIfrs.FairValueMovement(1_000_000m, 1_200_000m);
+        Assert.Contains(fvUp, l => l.Code == ErpRealEstateIfrs.FairValueGain && l.Credit == 200_000m);
+        var fvDown = ErpRealEstateIfrs.FairValueMovement(1_000_000m, 900_000m);
+        Assert.Contains(fvDown, l => l.Code == ErpRealEstateIfrs.FairValueLoss && l.Debit == 100_000m);
+        Assert.Empty(ErpRealEstateIfrs.FairValueMovement(1_000_000m, 1_000_000m));
+
+        var disposal = ErpRealEstateIfrs.Disposal(1_230_000m, 1_150_000m);
+        Assert.Equal(disposal.Sum(l => l.Debit), disposal.Sum(l => l.Credit));
+        Assert.Contains(disposal, l => l.Code == ErpRealEstateIfrs.DisposalGain && l.Credit == 80_000m);
+
+        var deposit = ErpRealEstateIfrs.DepositHeld(20_000m);
+        Assert.Contains(deposit, l => l.Code == ErpRealEstateIfrs.TenantDeposits && l.Credit == 20_000m);
+        Assert.Equal("balance_sheet", ErpRealEstateIfrs.StatementFor(deposit[1].Code));
+
+        var cheque = ErpRealEstateIfrs.ChequeReceived(12_000m);
+        Assert.Contains(cheque, l => l.Code == ErpRealEstateIfrs.ChequesUnderCollection && l.Debit == 12_000m);
+        Assert.Contains(cheque, l => l.Code == ErpRealEstateIfrs.RentalIncome && l.Credit == 12_000m);
+        var cleared = ErpRealEstateIfrs.ChequeCleared(12_000m);
+        Assert.Contains(cleared, l => l.Code == ErpRealEstateIfrs.Bank && l.Debit == 12_000m);
+
+        var opex = ErpRealEstateIfrs.OperatingExpense(5_000m);
+        Assert.Equal("income_statement", ErpRealEstateIfrs.StatementFor(opex[0].Code));
+        var capex = ErpRealEstateIfrs.CapitalExpenditure(5_000m);
+        Assert.Equal("balance_sheet", ErpRealEstateIfrs.StatementFor(capex[0].Code));
+
+        var cert = ErpRealEstateIfrs.Certificate(152_500m);
+        Assert.Contains(cert, l => l.Code == ErpRealEstateIfrs.PropertyUnderConstruction && l.Debit == 152_500m);
+        Assert.Contains(cert, l => l.Code == ErpRealEstateIfrs.ContractorPayable && l.Credit == 152_500m);
+
+        var sale = ErpRealEstateIfrs.DevelopmentSale(800_000m, 500_000m);
+        Assert.Contains(sale, l => l.Code == ErpRealEstateIfrs.DevelopmentRevenue && l.Credit == 800_000m);
+        Assert.Equal(sale.Sum(l => l.Debit), sale.Sum(l => l.Credit));
+        Assert.All(ErpRealEstateIfrs.Accounts, a => Assert.Contains(a.Type, new[] { "asset", "liability", "revenue", "expense" }));
+        Assert.Contains(ErpRealEstateIfrs.Accounts, a => a.Type is "asset" or "liability" && a.Statement == "balance_sheet");
+        Assert.Contains(ErpRealEstateIfrs.Accounts, a => a.Type is "revenue" or "expense" && a.Statement == "income_statement");
     }
 
     [Fact]

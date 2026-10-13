@@ -7,11 +7,16 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IErpAuditLogWriter _audit;
+    private readonly IErpGlPostingService _gl;
 
-    public ErpRealEstateWriteService(IErpWriteConnectionFactory connections, IErpAuditLogWriter audit)
+    public ErpRealEstateWriteService(
+        IErpWriteConnectionFactory connections,
+        IErpAuditLogWriter audit,
+        IErpGlPostingService gl)
     {
         _connections = connections;
         _audit = audit;
+        _gl = gl;
     }
 
     public async Task<ErpSimpleWriteResult> SaveAsync(
@@ -31,6 +36,8 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpRealEstateGl.EnsureCoaAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -253,6 +260,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
           `approved_fair_value` DECIMAL(18,4) NOT NULL DEFAULT 0,
           `valuer` VARCHAR(190) NOT NULL DEFAULT '',
           `status` VARCHAR(40) NOT NULL DEFAULT 'draft',
+          `gl_journal_id` BIGINT NOT NULL DEFAULT 0,
           `notes` VARCHAR(255) NOT NULL DEFAULT '',
           PRIMARY KEY (`id`),
           KEY `idx_re_val_prop` (`property_id`,`valuation_date`)
@@ -324,6 +332,8 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
           `clearance_date` DATE DEFAULT NULL,
           `status` VARCHAR(40) NOT NULL DEFAULT 'received',
           `replacement_id` BIGINT NOT NULL DEFAULT 0,
+          `gl_journal_id` BIGINT NOT NULL DEFAULT 0,
+          `gl_clear_journal_id` BIGINT NOT NULL DEFAULT 0,
           `notes` VARCHAR(255) NOT NULL DEFAULT '',
           PRIMARY KEY (`id`),
           UNIQUE KEY `uk_re_chq` (`cheque_no`,`bank_name`),
@@ -338,6 +348,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
           `amount` DECIMAL(18,4) NOT NULL DEFAULT 0,
           `held` DECIMAL(18,4) NOT NULL DEFAULT 0,
           `status` VARCHAR(40) NOT NULL DEFAULT 'held',
+          `gl_journal_id` BIGINT NOT NULL DEFAULT 0,
           `notes` VARCHAR(255) NOT NULL DEFAULT '',
           PRIMARY KEY (`id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -375,6 +386,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
           `recognized` DECIMAL(18,4) NOT NULL DEFAULT 0,
           `status` VARCHAR(40) NOT NULL DEFAULT 'reserved',
           `vat_code` VARCHAR(20) NOT NULL DEFAULT 'standard',
+          `gl_journal_id` BIGINT NOT NULL DEFAULT 0,
           PRIMARY KEY (`id`),
           KEY `idx_re_sale_unit` (`unit_id`,`status`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -423,6 +435,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
           `vat_amount` DECIMAL(18,4) NOT NULL DEFAULT 0,
           `net_payable` DECIMAL(18,4) NOT NULL DEFAULT 0,
           `status` VARCHAR(40) NOT NULL DEFAULT 'draft',
+          `gl_journal_id` BIGINT NOT NULL DEFAULT 0,
           PRIMARY KEY (`id`),
           UNIQUE KEY `uk_re_cert_code` (`code`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -464,6 +477,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
           `cost` DECIMAL(18,4) NOT NULL DEFAULT 0,
           `currency` CHAR(3) NOT NULL DEFAULT 'AED',
           `status` VARCHAR(40) NOT NULL DEFAULT 'planned',
+          `gl_journal_id` BIGINT NOT NULL DEFAULT 0,
           `created_at` INT UNSIGNED NOT NULL DEFAULT 0,
           PRIMARY KEY (`id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -487,6 +501,13 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         "ALTER TABLE `epc_erp_properties` MODIFY `status` VARCHAR(40) NOT NULL DEFAULT 'active'",
         "ALTER TABLE `epc_erp_properties` MODIFY `type` VARCHAR(40) NOT NULL DEFAULT 'residential'",
         "ALTER TABLE `epc_erp_properties` MODIFY `ownership` VARCHAR(40) NOT NULL DEFAULT 'owned'",
+        "ALTER TABLE `epc_erp_re_valuations` ADD COLUMN `gl_journal_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_re_deposits` ADD COLUMN `gl_journal_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_re_cheques` ADD COLUMN `gl_journal_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_re_cheques` ADD COLUMN `gl_clear_journal_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_re_certificates` ADD COLUMN `gl_journal_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_re_sales` ADD COLUMN `gl_journal_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_property_maintenance` ADD COLUMN `gl_journal_id` BIGINT NOT NULL DEFAULT 0",
     ];
 
     private static async Task<ErpSimpleWriteResult> SaveOpportunityAsync(
@@ -523,7 +544,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         return ErpSimpleWriteResult.Ok("Investment opportunity saved", await LastId(c, tx, ct).ConfigureAwait(false));
     }
 
-    private static async Task<ErpSimpleWriteResult> ConvertOpportunityAsync(
+    private async Task<ErpSimpleWriteResult> ConvertOpportunityAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         if (r.OpportunityId <= 0 && r.Id <= 0)
@@ -577,12 +598,16 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             "INSERT INTO `epc_erp_re_acquisitions` (`property_id`,`opportunity_id`,`legal_entity_id`,`code`,`seller`,`purchase_price`,`eligible_costs`,`completion_date`,`status`) VALUES (?,?,?,?,?,?,?,?,'completed')"),
             ct, propertyId, oppId, le, "ACQ-" + code, seller, Money(price), Money(r.Amount),
             DateOnly.FromDateTime(DateTime.UtcNow).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ConfigureAwait(false);
+        var acqId = await LastId(c, tx, ct).ConfigureAwait(false);
 
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "UPDATE `epc_erp_re_opportunities` SET `status`='acquired',`stage`='acquired' WHERE `id`=?"),
             ct, oppId).ConfigureAwait(false);
-
-        return ErpSimpleWriteResult.Ok("Opportunity purchased into owned property " + propCode, propertyId);
+        var cost = ErpRealEstateCalc.AcquisitionCost(Money(price), Money(r.Amount));
+        var journalId = await PostIfrsAsync(c, tx, r.ActorId, le, acqId, "RE-ACQ-" + acqId.ToString(CultureInfo.InvariantCulture),
+            "IAS 40 investment property acquisition " + propCode, ErpRealEstateIfrs.Acquisition(cost), ct).ConfigureAwait(false);
+        await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_acquisitions", acqId, journalId, ct).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Opportunity purchased into owned property " + propCode + ". Posted to the balance sheet.", propertyId);
     }
 
     private static async Task<ErpSimpleWriteResult> SavePropertyAsync(
@@ -665,7 +690,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         return ErpSimpleWriteResult.Ok("Acquisition recorded (cost " + cost.ToString("0.00", CultureInfo.InvariantCulture) + " AED)", id);
     }
 
-    private static async Task<ErpSimpleWriteResult> CompleteAcquisitionAsync(
+    private async Task<ErpSimpleWriteResult> CompleteAcquisitionAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         if (r.Id <= 0)
@@ -684,16 +709,32 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             return PostedBlock(current, "acquisition");
         }
 
+        var purchase = await ScalarDec(c, tx, "SELECT IFNULL(`purchase_price`,0) FROM `epc_erp_re_acquisitions` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        var eligible = await ScalarDec(c, tx, "SELECT IFNULL(`eligible_costs`,0) FROM `epc_erp_re_acquisitions` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        var le = await ScalarLong(c, tx, "SELECT IFNULL(`legal_entity_id`,0) FROM `epc_erp_re_acquisitions` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        var existingGl = await ScalarLong(c, tx, "SELECT IFNULL(`gl_journal_id`,0) FROM `epc_erp_re_acquisitions` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "UPDATE `epc_erp_re_acquisitions` SET `status`='completed',`completion_date`=COALESCE(`completion_date`, CURRENT_DATE) WHERE `id`=? AND `status`='draft'"),
             ct, r.Id).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "UPDATE `epc_erp_properties` p JOIN `epc_erp_re_acquisitions` a ON a.property_id=p.id SET p.status='active', p.acquired_date=COALESCE(p.acquired_date, CURRENT_DATE), p.acquisition_cost=a.purchase_price+a.eligible_costs WHERE a.id=?"),
             ct, r.Id).ConfigureAwait(false);
-        return ErpSimpleWriteResult.Ok("Acquisition completed for the legal entity. Fair-value changes stay off the ledger until policy posting.", r.Id);
+
+        if (existingGl <= 0)
+        {
+            var cost = ErpRealEstateCalc.AcquisitionCost(purchase, eligible);
+            var journalId = await PostIfrsAsync(c, tx, r.ActorId, CompanyOf(r, le), r.Id,
+                "RE-ACQ-" + r.Id.ToString(CultureInfo.InvariantCulture),
+                "IAS 40 investment property acquisition",
+                ErpRealEstateIfrs.Acquisition(cost), ct).ConfigureAwait(false);
+            await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_acquisitions", r.Id, journalId, ct).ConfigureAwait(false);
+        }
+
+        return ErpSimpleWriteResult.Ok("Acquisition completed. Investment property posted to the balance sheet (IAS 40).", r.Id);
     }
 
-    private static async Task<ErpSimpleWriteResult> SaveDisposalAsync(
+    private async Task<ErpSimpleWriteResult> SaveDisposalAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         if (r.PropertyId <= 0 || string.IsNullOrWhiteSpace(r.Code))
@@ -701,7 +742,12 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Property and disposal code are required.");
         }
 
-        var carrying = await ScalarDec(c, tx, "SELECT IFNULL(acquisition_cost,0)+IFNULL(capex,0) FROM epc_erp_properties WHERE id=?", ct, r.PropertyId).ConfigureAwait(false);
+        var carrying = await ScalarDec(
+            c,
+            tx,
+            "SELECT COALESCE(NULLIF(IFNULL(`fair_value`,0),0), IFNULL(`acquisition_cost`,0)+IFNULL(`capex`,0)) FROM `epc_erp_properties` WHERE `id`=?",
+            ct,
+            r.PropertyId).ConfigureAwait(false);
         var proceeds = ErpRealEstateCalc.NetSaleProceeds(r.Amount, r.Amount2, r.Amount3);
         var gain = ErpRealEstateCalc.RealizedGain(proceeds, carrying);
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
@@ -712,10 +758,16 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "UPDATE `epc_erp_properties` SET `status`='disposed',`disposed_date`=CURRENT_DATE WHERE `id`=?"),
             ct, r.PropertyId).ConfigureAwait(false);
-        return ErpSimpleWriteResult.Ok("Disposal saved. Realized " + gain.ToString("0.00", CultureInfo.InvariantCulture) + " AED vs carrying basis.", id);
+        var le = await CompanyForPropertyAsync(c, tx, r, r.PropertyId, ct).ConfigureAwait(false);
+        var journalId = await PostIfrsAsync(c, tx, r.ActorId, le, id,
+            "RE-DSP-" + id.ToString(CultureInfo.InvariantCulture),
+            "IAS 40 disposal of investment property",
+            ErpRealEstateIfrs.Disposal(proceeds, carrying), ct).ConfigureAwait(false);
+        await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_disposals", id, journalId, ct).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Disposal posted. Realized " + gain.ToString("0.00", CultureInfo.InvariantCulture) + " AED is on the income statement.", id);
     }
 
-    private static async Task<ErpSimpleWriteResult> SaveValuationAsync(
+    private async Task<ErpSimpleWriteResult> SaveValuationAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         if (r.PropertyId <= 0 || string.IsNullOrWhiteSpace(r.Code))
@@ -723,6 +775,12 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Property and valuation code are required.");
         }
 
+        var previous = await ScalarDec(
+            c,
+            tx,
+            "SELECT COALESCE(NULLIF(IFNULL(`fair_value`,0),0), IFNULL(`acquisition_cost`,0)+IFNULL(`capex`,0)) FROM `epc_erp_properties` WHERE `id`=?",
+            ct,
+            r.PropertyId).ConfigureAwait(false);
         var fair = Money(r.Amount3 > 0 ? r.Amount3 : (r.Amount2 > 0 ? r.Amount2 : r.Amount));
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "INSERT INTO `epc_erp_re_valuations` (`property_id`,`code`,`valuation_date`,`purpose`,`method`,`estimated_value`,`appraised_value`,`approved_fair_value`,`valuer`,`status`,`notes`) VALUES (?,?,?,?,?,?,?,?,?,'approved',?)"),
@@ -733,7 +791,13 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "UPDATE `epc_erp_properties` SET `fair_value`=?,`market_value`=? WHERE `id`=?"),
             ct, fair, fair, r.PropertyId).ConfigureAwait(false);
-        return ErpSimpleWriteResult.Ok("Valuation saved. Acquisition cost was not overwritten.", id);
+        var le = await CompanyForPropertyAsync(c, tx, r, r.PropertyId, ct).ConfigureAwait(false);
+        var journalId = await PostIfrsAsync(c, tx, r.ActorId, le, id,
+            "RE-FV-" + id.ToString(CultureInfo.InvariantCulture),
+            "IAS 40 fair-value movement through profit or loss",
+            ErpRealEstateIfrs.FairValueMovement(previous, fair), ct).ConfigureAwait(false);
+        await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_valuations", id, journalId, ct).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Valuation saved. Fair-value movement posted to the income statement (IAS 40). Acquisition cost was not overwritten.", id);
     }
 
     private static async Task<ErpSimpleWriteResult> SaveTenantAsync(
@@ -751,7 +815,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         return ErpSimpleWriteResult.Ok("Tenant saved", await LastId(c, tx, ct).ConfigureAwait(false));
     }
 
-    private static async Task<ErpSimpleWriteResult> SaveLeaseAsync(
+    private async Task<ErpSimpleWriteResult> SaveLeaseAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         if (r.PropertyId <= 0 || r.TenantId <= 0 || string.IsNullOrWhiteSpace(r.Code) || string.IsNullOrWhiteSpace(r.Date1) || string.IsNullOrWhiteSpace(r.Date2))
@@ -779,6 +843,12 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
                 "INSERT INTO `epc_erp_re_deposits` (`lease_id`,`tenant_id`,`amount`,`held`,`status`) VALUES (?,?,?,?,'held')"),
                 ct, leaseId, r.TenantId, Money(r.Amount2), Money(r.Amount2)).ConfigureAwait(false);
+            var depositId = await LastId(c, tx, ct).ConfigureAwait(false);
+            var journalId = await PostIfrsAsync(c, tx, r.ActorId, CompanyOf(r, r.LegalEntityId), depositId,
+                "RE-DEP-" + depositId.ToString(CultureInfo.InvariantCulture),
+                "Tenant security deposit — liability, not income",
+                ErpRealEstateIfrs.DepositHeld(r.Amount2), ct).ConfigureAwait(false);
+            await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_deposits", depositId, journalId, ct).ConfigureAwait(false);
         }
 
         if (r.UnitId > 0)
@@ -894,7 +964,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         return ErpSimpleWriteResult.Ok("Lease terminated. History preserved.", r.LeaseId);
     }
 
-    private static async Task<ErpSimpleWriteResult> SaveChequeAsync(
+    private async Task<ErpSimpleWriteResult> SaveChequeAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(r.ChequeNo) || r.Amount <= 0)
@@ -910,10 +980,16 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "INSERT INTO `epc_erp_re_alerts` (`kind`,`title`,`due_date`,`related_id`,`status`) VALUES ('cheque_deposit',?,?,?,'open')"),
             ct, "Cheque " + Clip(r.ChequeNo, 40) + " due for deposit", r.Date1, id).ConfigureAwait(false);
-        return ErpSimpleWriteResult.Ok("Cheque received. It is not cash until bank clearance.", id);
+        var le = await CompanyForPropertyAsync(c, tx, r, r.PropertyId, ct).ConfigureAwait(false);
+        var journalId = await PostIfrsAsync(c, tx, r.ActorId, le, id,
+            "RE-CHQ-" + id.ToString(CultureInfo.InvariantCulture),
+            "PDC received — cheques under collection, not cash",
+            ErpRealEstateIfrs.ChequeReceived(r.Amount), ct).ConfigureAwait(false);
+        await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_cheques", id, journalId, ct).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Cheque received. It is not cash until bank clearance. Rental income is on the income statement; the PDC sits on the balance sheet.", id);
     }
 
-    private static async Task<ErpSimpleWriteResult> ChequeStatusAsync(
+    private async Task<ErpSimpleWriteResult> ChequeStatusAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         var status = Clip(r.Status, 40).ToLowerInvariant();
@@ -941,7 +1017,15 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
                 "UPDATE `epc_erp_re_cheques` SET `status`='cleared',`clearance_date`=CURRENT_DATE WHERE `id`=? AND `status` IN ('deposited','held','due_for_deposit')"),
                 ct, r.Id).ConfigureAwait(false);
             await AllocateChequeAsync(c, tx, r.Id, ct).ConfigureAwait(false);
-            return ErpSimpleWriteResult.Ok("Cheque cleared after bank confirmation.", r.Id);
+            var amount = await ScalarDec(c, tx, "SELECT IFNULL(`amount`,0) FROM `epc_erp_re_cheques` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+            var propertyId = await ScalarLong(c, tx, "SELECT IFNULL(`property_id`,0) FROM `epc_erp_re_cheques` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+            var le = await CompanyForPropertyAsync(c, tx, r, propertyId, ct).ConfigureAwait(false);
+            var journalId = await PostIfrsAsync(c, tx, r.ActorId, le, r.Id,
+                "RE-CHQ-CLR-" + r.Id.ToString(CultureInfo.InvariantCulture),
+                "PDC cleared into bank",
+                ErpRealEstateIfrs.ChequeCleared(amount), ct).ConfigureAwait(false);
+            await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_cheques", r.Id, journalId, ct, "gl_clear_journal_id").ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Cheque cleared after bank confirmation. Cash is now on the balance sheet.", r.Id);
         }
 
         if (status == "bounced")
@@ -952,7 +1036,9 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
                 "INSERT INTO `epc_erp_re_alerts` (`kind`,`title`,`related_id`,`status`) VALUES ('cheque_bounce',?,?,'open')"),
                 ct, "Bounced cheque " + r.Id, r.Id).ConfigureAwait(false);
-            return ErpSimpleWriteResult.Ok("Cheque marked bounced. Receipt allocation was not created.", r.Id);
+            var receivedJournal = await ScalarLong(c, tx, "SELECT IFNULL(`gl_journal_id`,0) FROM `epc_erp_re_cheques` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+            await ErpRealEstateGl.ReverseAsync(_gl, c, tx, r.ActorId, receivedJournal, ct).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Cheque marked bounced. Receipt allocation was not created. The PDC and rental income journals were reversed.", r.Id);
         }
 
         if (status == "replaced")
@@ -1002,7 +1088,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         }
     }
 
-    private static async Task<ErpSimpleWriteResult> SaveDepositAsync(
+    private async Task<ErpSimpleWriteResult> SaveDepositAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         if (r.LeaseId <= 0 || r.Amount <= 0)
@@ -1013,10 +1099,16 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "INSERT INTO `epc_erp_re_deposits` (`lease_id`,`tenant_id`,`amount`,`held`,`status`,`notes`) VALUES (?,?,?,?,'held',?)"),
             ct, r.LeaseId, r.TenantId, Money(r.Amount), Money(r.Amount), Clip(r.Note, 255)).ConfigureAwait(false);
-        return ErpSimpleWriteResult.Ok("Security deposit held as a liability, not income.", await LastId(c, tx, ct).ConfigureAwait(false));
+        var id = await LastId(c, tx, ct).ConfigureAwait(false);
+        var journalId = await PostIfrsAsync(c, tx, r.ActorId, CompanyOf(r, r.LegalEntityId), id,
+            "RE-DEP-" + id.ToString(CultureInfo.InvariantCulture),
+            "Tenant security deposit — liability, not income",
+            ErpRealEstateIfrs.DepositHeld(r.Amount), ct).ConfigureAwait(false);
+        await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_deposits", id, journalId, ct).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Security deposit held as a liability on the balance sheet, not income.", id);
     }
 
-    private static async Task<ErpSimpleWriteResult> SaveMaintenanceAsync(
+    private async Task<ErpSimpleWriteResult> SaveMaintenanceAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         if (r.PropertyId <= 0 || string.IsNullOrWhiteSpace(r.Name))
@@ -1024,6 +1116,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Property and work-order description are required.");
         }
 
+        var nature = Clip(r.VatCode, 20, "opex").ToLowerInvariant();
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "INSERT INTO `epc_erp_property_maintenance` (`property_id`,`type`,`description`,`vendor`,`scheduled_date`,`cost`,`status`,`created_at`) VALUES (?,?,?,?,?,?,?,?)"),
             ct, r.PropertyId, Clip(r.Category, 40, "corrective"), Clip(r.Name, 500), Clip(r.Counterparty, 190),
@@ -1033,10 +1126,23 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         {
             await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
                 "UPDATE `epc_erp_properties` SET `capex`=`capex`+? WHERE `id`=? AND ?='capex'"),
-                ct, Money(r.Amount), r.PropertyId, Clip(r.VatCode, 20, "opex")).ConfigureAwait(false);
+                ct, Money(r.Amount), r.PropertyId, nature).ConfigureAwait(false);
+            var le = await CompanyForPropertyAsync(c, tx, r, r.PropertyId, ct).ConfigureAwait(false);
+            var recipe = nature == "capex"
+                ? ErpRealEstateIfrs.CapitalExpenditure(r.Amount)
+                : ErpRealEstateIfrs.OperatingExpense(r.Amount);
+            var journalId = await PostIfrsAsync(c, tx, r.ActorId, le, id,
+                "RE-WO-" + id.ToString(CultureInfo.InvariantCulture),
+                nature == "capex" ? "Subsequent cost capitalised to investment property" : "Property operating expense",
+                recipe, ct).ConfigureAwait(false);
+            await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_property_maintenance", id, journalId, ct).ConfigureAwait(false);
         }
 
-        return ErpSimpleWriteResult.Ok("Maintenance work order saved", id);
+        return ErpSimpleWriteResult.Ok(
+            nature == "capex"
+                ? "Maintenance work order saved. Capex posted to the balance sheet."
+                : "Maintenance work order saved. Opex posted to the income statement.",
+            id);
     }
 
     private static async Task<ErpSimpleWriteResult> SaveProjectAsync(
@@ -1070,7 +1176,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         return ErpSimpleWriteResult.Ok("Saleable unit added to project inventory", await LastId(c, tx, ct).ConfigureAwait(false));
     }
 
-    private static async Task<ErpSimpleWriteResult> SaveSaleAsync(
+    private async Task<ErpSimpleWriteResult> SaveSaleAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         if (r.UnitId <= 0 || string.IsNullOrWhiteSpace(r.Name) || r.Amount <= 0)
@@ -1086,15 +1192,34 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             return ErpSimpleWriteResult.Fail("unit_sold", "This unit is already reserved or sold.");
         }
 
+        var status = Clip(r.Status, 40, "reserved").ToLowerInvariant();
+        if (status is not ("reserved" or "sold" or "handed_over" or "recognized"))
+        {
+            status = "reserved";
+        }
+
+        var recognized = Money(r.Amount3 > 0 ? r.Amount3 : (status is "sold" or "handed_over" or "recognized" ? r.Amount : 0));
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
-            "INSERT INTO `epc_erp_re_sales` (`code`,`project_id`,`unit_id`,`buyer`,`sale_price`,`collected`,`invoiced`,`recognized`,`status`,`vat_code`) VALUES (?,?,?,?,?,?,0,0,'reserved',?)"),
+            "INSERT INTO `epc_erp_re_sales` (`code`,`project_id`,`unit_id`,`buyer`,`sale_price`,`collected`,`invoiced`,`recognized`,`status`,`vat_code`) VALUES (?,?,?,?,?,?,0,?,?,?)"),
             ct, Clip(r.Code, 40, "SAL-" + r.UnitId), r.ProjectId, r.UnitId, Clip(r.Name, 190), Money(r.Amount),
-            Money(r.Amount2), Clip(r.VatCode, 20, "standard")).ConfigureAwait(false);
+            Money(r.Amount2), recognized, status, Clip(r.VatCode, 20, "standard")).ConfigureAwait(false);
         var id = await LastId(c, tx, ct).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
-            "UPDATE `epc_erp_re_units` SET `status`='reserved' WHERE `id`=?"),
-            ct, r.UnitId).ConfigureAwait(false);
-        return ErpSimpleWriteResult.Ok("Unit reserved/sold. Contractual value, invoiced, collected and recognized stay separate.", id);
+            "UPDATE `epc_erp_re_units` SET `status`=? WHERE `id`=?"),
+            ct, status == "reserved" ? "reserved" : "sold", r.UnitId).ConfigureAwait(false);
+
+        if (recognized > 0)
+        {
+            var unitCost = await ScalarDec(c, tx, "SELECT IFNULL(`asking_price`,0) FROM `epc_erp_re_units` WHERE `id`=?", ct, r.UnitId).ConfigureAwait(false);
+            var journalId = await PostIfrsAsync(c, tx, r.ActorId, CompanyOf(r, r.LegalEntityId), id,
+                "RE-SAL-" + id.ToString(CultureInfo.InvariantCulture),
+                "IFRS 15 development revenue when performance obligations are met",
+                ErpRealEstateIfrs.DevelopmentSale(recognized, unitCost), ct).ConfigureAwait(false);
+            await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_sales", id, journalId, ct).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Unit sold. IFRS 15 revenue posted to the income statement.", id);
+        }
+
+        return ErpSimpleWriteResult.Ok("Unit reserved. Reservation stays off the statements until sold (IFRS 15).", id);
     }
 
     private static async Task<ErpSimpleWriteResult> SaveContractorAsync(
@@ -1140,7 +1265,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         return ErpSimpleWriteResult.Ok("Approved variation added to the contract.", r.ContractId);
     }
 
-    private static async Task<ErpSimpleWriteResult> SaveCertificateAsync(
+    private async Task<ErpSimpleWriteResult> SaveCertificateAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         if (r.ContractId <= 0 || string.IsNullOrWhiteSpace(r.Code))
@@ -1161,7 +1286,12 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "UPDATE `epc_erp_re_projects` p JOIN `epc_erp_re_contracts` c ON c.project_id=p.id SET p.actual_cost=p.actual_cost+? WHERE c.id=?"),
             ct, net, r.ContractId).ConfigureAwait(false);
-        return ErpSimpleWriteResult.Ok("Payment certificate saved. Net payable " + net.ToString("0.00", CultureInfo.InvariantCulture) + " AED.", id);
+        var journalId = await PostIfrsAsync(c, tx, r.ActorId, CompanyOf(r, r.LegalEntityId), id,
+            "RE-CERT-" + id.ToString(CultureInfo.InvariantCulture),
+            "Construction certificate — CIP asset and contractor payable",
+            ErpRealEstateIfrs.Certificate(net), ct).ConfigureAwait(false);
+        await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_certificates", id, journalId, ct).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Payment certificate posted. Net payable " + net.ToString("0.00", CultureInfo.InvariantCulture) + " AED is on the balance sheet.", id);
     }
 
     private static async Task<ErpSimpleWriteResult> SaveDocumentAsync(
@@ -1201,7 +1331,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         return ErpSimpleWriteResult.Ok("Alert acknowledged", r.Id);
     }
 
-    private static async Task<ErpSimpleWriteResult> VoidDocumentAsync(
+    private async Task<ErpSimpleWriteResult> VoidDocumentAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         var kind = ErpPostedTransactionPolicy.NormalizeKind(r.Category ?? r.Status);
@@ -1230,11 +1360,11 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "UPDATE `" + map.Value.Table + "` SET `status`='voided' WHERE `id`=?"),
             ct, r.Id).ConfigureAwait(false);
-        await UnwindAsync(c, tx, kind, r.Id, ct).ConfigureAwait(false);
+        await UnwindAsync(c, tx, kind, r.Id, r.ActorId, ct).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok(kind + " voided. The original row stays on file.", r.Id);
     }
 
-    private static async Task<ErpSimpleWriteResult> ReverseDocumentAsync(
+    private async Task<ErpSimpleWriteResult> ReverseDocumentAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         var kind = ErpPostedTransactionPolicy.NormalizeKind(r.Category ?? r.Status);
@@ -1258,11 +1388,11 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "UPDATE `" + map.Value.Table + "` SET `status`='reversed' WHERE `id`=?"),
             ct, r.Id).ConfigureAwait(false);
-        await UnwindAsync(c, tx, kind, r.Id, ct).ConfigureAwait(false);
+        await UnwindAsync(c, tx, kind, r.Id, r.ActorId, ct).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Posted " + kind + " reversed. The original row stays on file.", r.Id);
     }
 
-    private static async Task<ErpSimpleWriteResult> DeleteDraftAsync(
+    private async Task<ErpSimpleWriteResult> DeleteDraftAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
         var kind = ErpPostedTransactionPolicy.NormalizeKind(r.Category ?? r.Status);
@@ -1288,15 +1418,37 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             return ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.AlreadyClosed);
         }
 
-        await UnwindAsync(c, tx, kind, r.Id, ct).ConfigureAwait(false);
+        await UnwindAsync(c, tx, kind, r.Id, r.ActorId, ct).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "DELETE FROM `" + map.Value.Table + "` WHERE `id`=?"),
             ct, r.Id).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok(kind + " deleted.", r.Id);
     }
 
-    private static async Task UnwindAsync(DbConnection c, DbTransaction tx, string kind, long id, CancellationToken ct)
+    private async Task UnwindAsync(DbConnection c, DbTransaction tx, string kind, long id, int actorId, CancellationToken ct)
     {
+        if (kind is "acquisition" or "disposal" or "valuation" or "cheque" or "deposit" or "sale" or "certificate")
+        {
+            try
+            {
+                var map = TableFor(kind);
+                if (map is not null)
+                {
+                    var journalId = await ScalarLong(c, tx, "SELECT IFNULL(`gl_journal_id`,0) FROM `" + map.Value.Table + "` WHERE `id`=?", ct, id).ConfigureAwait(false);
+                    await ErpRealEstateGl.ReverseAsync(_gl, c, tx, actorId, journalId, ct).ConfigureAwait(false);
+                }
+
+                if (kind == "cheque")
+                {
+                    var clearId = await ScalarLong(c, tx, "SELECT IFNULL(`gl_clear_journal_id`,0) FROM `epc_erp_re_cheques` WHERE `id`=?", ct, id).ConfigureAwait(false);
+                    await ErpRealEstateGl.ReverseAsync(_gl, c, tx, actorId, clearId, ct).ConfigureAwait(false);
+                }
+            }
+            catch (DbException)
+            {
+            }
+        }
+
         switch (kind)
         {
             case "acquisition":
@@ -1342,6 +1494,34 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             "opportunity" => ("epc_erp_re_opportunities", true),
             _ => null,
         };
+
+    private Task<long> PostIfrsAsync(
+        DbConnection c,
+        DbTransaction tx,
+        int actorId,
+        long companyId,
+        long sourceId,
+        string reference,
+        string description,
+        IReadOnlyList<ErpRealEstateIfrs.JournalLine> recipe,
+        CancellationToken ct)
+        => ErpRealEstateGl.PostAsync(_gl, c, tx, actorId, companyId, sourceId, reference, description, recipe, ct);
+
+    private static long CompanyOf(ErpRealEstateWriteRequest r, long fallback)
+        => r.LegalEntityId > 0 ? r.LegalEntityId : fallback;
+
+    private static async Task<long> CompanyForPropertyAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, long propertyId, CancellationToken ct)
+    {
+        if (r.LegalEntityId > 0)
+        {
+            return r.LegalEntityId;
+        }
+
+        return propertyId > 0
+            ? await ScalarLong(c, tx, "SELECT IFNULL(`legal_entity_id`,0) FROM `epc_erp_properties` WHERE `id`=?", ct, propertyId).ConfigureAwait(false)
+            : 0;
+    }
 
     private static ErpSimpleWriteResult PostedBlock(string? status, string kind)
         => ErpPostedTransactionPolicy.IsVoided(status)
