@@ -132,7 +132,7 @@ public sealed class ErpSupplierWriteService : IErpSupplierWriteService
                 input.Notes.Trim(),
                 DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
         }
-        catch (DbException ex)
+        catch (Exception ex) when (ex is DbException or InvalidOperationException or ArgumentException)
         {
             throw new ErpWriteException("epc_erp_suppliers is not writable with the PHP schema: " + ex.Message);
         }

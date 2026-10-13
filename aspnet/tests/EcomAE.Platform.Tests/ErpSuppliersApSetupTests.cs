@@ -74,6 +74,9 @@ public sealed class ErpSuppliersApSetupTests
         var schema = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpLazySchema.cs"));
         Assert.Contains("EnsureSuppliersAsync", schema, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_erp_suppliers`", schema, StringComparison.Ordinal);
+        Assert.Contains("ROW_FORMAT=DYNAMIC", schema, StringComparison.Ordinal);
+        Assert.Contains("`city` varchar(128)", schema, StringComparison.Ordinal);
+        Assert.Contains("`notes` varchar(1000)", schema, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)
