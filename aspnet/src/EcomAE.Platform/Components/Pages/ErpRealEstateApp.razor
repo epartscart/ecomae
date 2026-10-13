@@ -17,7 +17,7 @@
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/real-estate-app" IsAdmin="_isAdmin" />
     <PhpErpModulePageHeader
         Title="Investment, development and construction"
-        Subtitle="Property master, pipeline, leases, cheques, projects and contractor certificates — linked to legal entities, GL, VAT and existing finance. Posted rows cannot be edited; void (keep on file) or delete them. Reverse remains available. Opportunities are not owned assets. Fair-value moves stay off the ledger until policy posting."
+        Subtitle="Property master, pipeline, leases, cheques, projects and contractor certificates — linked to legal entities, GL, VAT and existing finance. Posted rows cannot be edited; void (keep on file) or delete them. Reverse remains available. Opportunities stay off both statements. Completed acquisitions, deposits, cheques and certificates hit the balance sheet; rent, fair-value moves (IAS 40 through P&L, not OCI) and recognized unit sales (IFRS 15) hit the income statement."
         PhpTabHref="/erp/real-estate-app" />
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
@@ -321,6 +321,14 @@
                     <label>Buyer <input class="form-control input-sm" name="name" required /></label>
                     <label>Sale price <input class="form-control input-sm" type="number" step="0.01" name="amount" required /></label>
                     <label>Collected <input class="form-control input-sm" type="number" step="0.01" name="amount2" value="0" /></label>
+                    <label>Recognized (IFRS 15) <input class="form-control input-sm" type="number" step="0.01" name="amount3" value="0" /></label>
+                    <label>Status
+                        <select class="form-control input-sm" name="status">
+                            <option value="reserved">reserved — off statements</option>
+                            <option value="sold">sold — post IFRS 15</option>
+                            <option value="handed_over">handed over — post IFRS 15</option>
+                        </select>
+                    </label>
                     <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Reserve / sell unit</button></div>
                 </form>
             </ErpPhpCreateWell>

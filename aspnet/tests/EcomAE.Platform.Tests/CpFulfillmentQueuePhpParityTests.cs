@@ -64,7 +64,7 @@ public sealed class CpFulfillmentQueuePhpParityTests
         Assert.Contains("action\" value=\"pack_item\"", text, StringComparison.Ordinal);
         Assert.Contains("QtyPicked", text, StringComparison.Ordinal);
         Assert.Contains("CpFulfillmentQueueWriteService.AllowedNextStatuses", text, StringComparison.Ordinal);
-        Assert.Contains("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
         var routes = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs"));
         Assert.Contains("CpFulfillmentQueueWrite", routes, StringComparison.Ordinal);
         Assert.Contains("/cp/fulfillment-queue/write", routes, StringComparison.Ordinal);
@@ -198,7 +198,7 @@ public sealed class CpFulfillmentQueuePhpParityTests
         Assert.Contains("@page \"/cp/fulfillment-queue/packing-slip/{FulfillmentId:long}\"", text, StringComparison.Ordinal);
         Assert.Contains("data-epc-packing-slip", text, StringComparison.Ordinal);
         Assert.Contains("BuildPackingSlip", text, StringComparison.Ordinal);
-        Assert.Contains("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);

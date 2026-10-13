@@ -27,7 +27,7 @@ public sealed class CpPosReceiptPhpParityTests
         Assert.Contains("@page \"/cp/pos/receipt/{SaleId:long}\"", text, StringComparison.Ordinal);
         Assert.Contains("data-epc-pos-receipt", text, StringComparison.Ordinal);
         Assert.Contains("onclick=\"window.print()\"", text, StringComparison.Ordinal);
-        Assert.Contains("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);

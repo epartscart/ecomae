@@ -83,7 +83,7 @@ public sealed class StorefrontBulkUploadHistoryWriteTests
         Assert.DoesNotContain("CREATE TABLE IF NOT EXISTS `epc_bulk_upload_history`", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Storefront/StorefrontBulkUploadHistoryWriteService.cs"));
         Assert.Contains("INSERT INTO `epc_bulk_upload_history`", service, StringComparison.Ordinal);
-        Assert.Contains("Schema ensure stays on the Classic twin", service, StringComparison.Ordinal);
+        Assert.Contains("Schema ensure is not available on this page", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
     }
 

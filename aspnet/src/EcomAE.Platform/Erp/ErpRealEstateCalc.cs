@@ -3,7 +3,7 @@ namespace EcomAE.Platform.Erp;
 /// <summary>
 /// UAE real-estate investment, development and construction metrics.
 /// Money is decimal. Opportunities are never included in owned-property totals.
-/// Fair-value movements are informational until an approved accounting policy posts them.
+/// Fair-value movements post through profit or loss (IAS 40), not OCI.
 /// </summary>
 public static class ErpRealEstateCalc
 {
@@ -27,7 +27,7 @@ public static class ErpRealEstateCalc
         new("acquisition_cost", "Acquisition cost", "purchase_price + eligible_acquisition_costs", "transaction", Currency, "epc_erp_re_acquisitions", "1"),
         new("carrying_value", "Accounting carrying value", "acquisition_cost + capex - disposed_basis", "as-of", Currency, "acquisitions + capex + disposals", "1"),
         new("fair_value", "Current fair value", "latest approved valuation.approved_fair_value", "as-of", Currency, "epc_erp_re_valuations", "1"),
-        new("unrealized", "Unrealized appreciation/depreciation", "fair_value - carrying_value (not posted to GL)", "as-of", Currency, "valuation vs carrying", "1"),
+        new("unrealized", "Unrealized appreciation/depreciation", "fair_value - carrying_value (IAS 40 through P&L)", "as-of", Currency, "valuation vs carrying", "1"),
         new("realized_gain", "Realized capital gain/loss", "net_sale_proceeds - carrying_basis_disposed", "transaction", Currency, "epc_erp_re_disposals", "1"),
         new("gross_yield", "Gross rental yield", "annual_contractual_rent / acquisition_cost", "year", "ratio", "leases / acquisitions", "acquisition_cost"),
         new("noi", "Net operating income", "collected_rent - operating_expenses", "year", Currency, "schedules + opex", "1"),

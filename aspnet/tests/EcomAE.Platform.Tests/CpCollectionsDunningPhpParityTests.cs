@@ -24,7 +24,7 @@ public sealed class CpCollectionsDunningPhpParityTests
         Assert.Contains("/erp/collections/cases/status", text, StringComparison.Ordinal);
         Assert.Contains("AmountDue", text, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"queue_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("javascript:void(0)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Open PHP reference", text, StringComparison.Ordinal);
