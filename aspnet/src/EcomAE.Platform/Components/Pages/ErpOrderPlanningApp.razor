@@ -42,7 +42,7 @@
                 <div class="col-md-4"><label>Demand JSON</label><input class="form-control input-sm" name="demand" placeholder='{"1001":10}' required /></div>
                 <div class="col-md-4"><label>On-hand JSON</label><input class="form-control input-sm" name="onHand" placeholder='{"1001":2}' /></div>
             </div>
-            <p class="text-muted" style="margin:.5rem 0">JSON keys are item IDs. This guarded action replaces prior company MRP rows and writes planned production/purchase rows in PHP-compatible level order.</p>
+            <p class="text-muted" style="margin:.5rem 0">JSON keys are item IDs. This guarded action replaces prior company MRP rows and writes planned production/purchase rows in level order.</p>
             <button type="submit" class="btn btn-sm btn-primary">Regenerate MRP</button>
         </form>
         <div class="epc-erp-table-wrap">
@@ -281,7 +281,7 @@
         {
             _isMasterPlanning = true;
             _title = "Master planning";
-            _subtitle = "Persisted MRP planned orders from the PHP-owned manufacturing planning tables.";
+            _subtitle = "Persisted MRP planned orders from the manufacturing planning tables.";
             _phpTab = "/ERP/?epc_erp_shell=1&area=planning&tab=master_planning";
             _listHref = "/erp/order-planning-app?tab=master_planning";
         }

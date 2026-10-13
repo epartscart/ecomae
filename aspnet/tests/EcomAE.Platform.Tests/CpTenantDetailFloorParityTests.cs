@@ -49,12 +49,12 @@ public sealed class CpTenantDetailFloorParityTests
     [Theory]
     [InlineData("CpPortalSettingsApp.razor")]
     [InlineData("CpTenantsApp.razor")]
-    public void ShowcaseApps_OpenConfigureUsesPhpReferenceOnlyHref(string fileName)
+    public void ShowcaseApps_OpenConfigureUsesAspNetPrimaryHref(string fileName)
     {
         var text = File.ReadAllText(FindRepoFile(
             $"aspnet/src/EcomAE.Platform/Components/Pages/{fileName}"));
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.Contains("AspNetPrimaryHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)

@@ -46,7 +46,7 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/config-items-app")</p>
-                <p class="text-muted" style="margin:0">Site-wide settings that power the control panel and the public storefront. Values are stored in <code>config.php</code>, so the classic modules read the same settings.</p>
+                <p class="text-muted" style="margin:0">Site-wide settings that power the control panel and the public storefront. Values are stored in site configuration, so every module reads the same settings.</p>
                 <div class="epc-cfg-legend">
                     <span class="epc-cfg-pill">@_groups.Count.ToString(CultureInfo.InvariantCulture) groups</span>
                     <span class="epc-cfg-pill">@_itemCount.ToString(CultureInfo.InvariantCulture) parameters</span>
@@ -188,7 +188,7 @@
                     @if (_canSave)
                     {
                         <div class="epc-cfg-sticky-save">
-                            <div class="text-muted">Changes write to <code>config.php</code>. Frontend-facing values apply on the next page load.</div>
+                            <div class="text-muted">Changes write to site configuration. Frontend-facing values apply on the next page load.</div>
                             <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save settings</button>
                         </div>
                     }

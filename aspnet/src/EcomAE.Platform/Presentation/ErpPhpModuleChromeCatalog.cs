@@ -62,7 +62,7 @@ public static class ErpPhpModuleChromeCatalog
                 [("directory", "Staff directory"), ("departments", "Department map")],
                 ["Active staff", "Open workflow tasks", "Active campaigns", "Departments"],
                 [
-                    new("Department map", null, ["Department", "ERP tabs", "Open tasks", "Standard workflow"], [], "Department map is always available from the PHP staff config."),
+                    new("Department map", null, ["Department", "ERP tabs", "Open tasks", "Standard workflow"], [], "Department map is always available from the staff config."),
                     new("Staff directory & dashboard centres", "Dashboard centre is resolved from: explicit override → job title → department default.",
                         ["Name", "Department", "Job title", "Dashboard centre", "Login e-mail"],
                         [new("display_name", "Name"), new("department_code", "Department"), new("job_title", "Job title")],
@@ -122,7 +122,7 @@ public static class ErpPhpModuleChromeCatalog
                     [new("code", "Code"), new("name", "Name")],
                     "No records yet — use the form to add the first one.")]),
             _ => new(key.Length == 0 ? "module" : key, ToTitle(key),
-                "PHP-parity module layout. Create the first record from the form — live rows bind when the shop database is available.",
+                "Workspace layout. Create the first record from the form — live rows bind when the shop database is available.",
                 [("list", "Records")],
                 ["Records"],
                 [new(ToTitle(key), null, ["Code", "Name", "Status"],

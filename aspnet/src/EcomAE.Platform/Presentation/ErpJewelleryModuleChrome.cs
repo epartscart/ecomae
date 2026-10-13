@@ -295,7 +295,7 @@ public static class ErpJewelleryModuleChrome
             ["Metal", "Karat", "Pcs", "Gross wt", "Net wt", "Value"],
             "No stock balance rows yet."),
         "jw_manufacture" => new("jw_manufacture", "Manufacture", "Jewellery manufacture",
-            "MFG — manufactured item with metal / stone / other component lines on the PHP voucher table.",
+            "MFG — manufactured item with metal / stone / other component lines on the manufacture voucher table.",
             ["Voc #", "Date", "Item", "Metal wt", "Amount", "Status"],
             "No manufacture vouchers yet."),
         "jw_branch_transfer" => new("jw_branch_transfer", "Branch transfer", "Jewellery branch transfer",

@@ -4,12 +4,24 @@ using Xunit;
 namespace EcomAE.Platform.Tests;
 
 /// <summary>
-/// Tenants must not see stack names (PHP / ASP.NET) in product UI copy, link text, or meta.
+/// Production ERP / CP / BOS / storefront markup must not mention PHP, classic, or classical,
+/// and must not expose /php-reference links. Existing sources stay on disk; new UI copy cannot
+/// bring those words back.
 /// </summary>
 public sealed class TenantUiStackDisclosureTests
 {
     private static readonly string ComponentsRoot = Path.GetFullPath(
         Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "src", "EcomAE.Platform", "Components"));
+
+    private static readonly Regex ForbiddenWord = new(
+        @"\b(PHP|classic|classical|ASP\.NET)\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+    private static readonly string[] VisibleAttrs =
+    [
+        "title", "subtitle", "placeholder", "aria-label", "alt", "label",
+        "aria-description", "aria-roledescription"
+    ];
 
     [Fact]
     public void ProductSurfaceRazor_HasNoTenantVisibleStackDisclosure()
@@ -19,53 +31,108 @@ public sealed class TenantUiStackDisclosureTests
         var offenders = new List<string>();
         foreach (var file in Directory.EnumerateFiles(ComponentsRoot, "*.razor", SearchOption.AllDirectories))
         {
-            if (file.Contains($"{Path.DirectorySeparatorChar}Migration", StringComparison.OrdinalIgnoreCase)
-                || Path.GetFileName(file).StartsWith("Migration", StringComparison.OrdinalIgnoreCase))
+            if (IsOperatorConsole(file))
             {
                 continue;
             }
 
             var text = File.ReadAllText(file);
-            var visible = StripRazorCommentsAndCode(text);
+            var visible = VisibleCopy(text);
 
-            // Match tenant-readable stack words only (not C# identifiers like AspNetPrimaryHref).
-            foreach (var phrase in new[]
-                     {
-                         "ASP.NET",
-                         "PHP reference", "PHP archive", "PHP ERP", "Full PHP",
-                         "PHP Command", "PHP-authoritative", "PHP is reference",
-                         "PHP compare", "ASP.NET shell", "ASP.NET modules",
-                         "ASP.NET BOS", "ASP.NET ERP", "ASP.NET Core",
-                         "ecomae-php-chrome", "aspnet-php-assets",
-                         "epc-moddir-aspnet", "epc-asp-login",
-                         "Classic twin", "Classic CP", "Classic ERP",
-                         "classic helper", "classic importer", "classic lookup",
-                         "classic reader", "classic folder", "classic form",
-                         "stays on the Classic", "stay Classic", "stays Classic",
-                         "Open PHP",
-                     })
+            foreach (Match match in ForbiddenWord.Matches(visible))
             {
-                if (visible.Contains(phrase, StringComparison.OrdinalIgnoreCase))
-                {
-                    offenders.Add($"{Rel(file)}: contains '{phrase}'");
-                }
+                offenders.Add($"{Rel(file)}: contains '{match.Value}'");
             }
 
-            if (Regex.IsMatch(visible, @"<a[^>]+href\s*=\s*[""']/php-reference/", RegexOptions.IgnoreCase))
+            if (Regex.IsMatch(text, @"PhpReferenceOnlyHref\s*\(", RegexOptions.IgnoreCase)
+                && !file.EndsWith("ErpModuleApp.razor", StringComparison.Ordinal)
+                && !file.EndsWith("PhpHybridWorkspaceFrame.razor", StringComparison.Ordinal))
+            {
+                offenders.Add($"{Rel(file)}: product page still links PhpReferenceOnlyHref");
+            }
+
+            if (Regex.IsMatch(text, @"<a[^>]+href\s*=\s*[""']/php-reference/", RegexOptions.IgnoreCase))
             {
                 offenders.Add($"{Rel(file)}: visible /php-reference link");
             }
         }
 
-        Assert.True(offenders.Count == 0, "Stack disclosure in tenant UI:\n" + string.Join("\n", offenders.Take(50)));
+        Assert.True(offenders.Count == 0, "Stack disclosure in tenant UI:\n" + string.Join("\n", offenders.Distinct().Take(80)));
+    }
+
+    [Fact]
+    public void RenderedPresentationCopy_HasNoTenantVisibleStackDisclosure()
+    {
+        var root = FindRepoRoot();
+        var files = new[]
+        {
+            "aspnet/src/EcomAE.Platform/Presentation/CpPhpModuleCopy.cs",
+            "aspnet/src/EcomAE.Platform/Presentation/ErpPhpTabChromeRows.cs",
+            "aspnet/src/EcomAE.Platform/Presentation/ErpPhpModuleChromeCatalog.cs",
+            "aspnet/src/EcomAE.Platform/Presentation/ErpJewelleryModuleChrome.cs",
+            "aspnet/src/EcomAE.Platform/Presentation/LoginErrorHelper.cs",
+            "aspnet/src/EcomAE.Platform/Presentation/OperatorGuideChapters.cs",
+            "aspnet/src/EcomAE.Platform/Presentation/ErpGuideBooks.cs",
+        };
+        var offenders = new List<string>();
+        foreach (var rel in files)
+        {
+            var text = File.ReadAllText(Path.Combine(root, rel));
+            text = Regex.Replace(text, @"//.*?$", "", RegexOptions.Multiline);
+            text = Regex.Replace(text, @"/\*.*?\*/", "", RegexOptions.Singleline);
+            text = Regex.Replace(text, @"///.*?$", "", RegexOptions.Multiline);
+            foreach (Match match in ForbiddenWord.Matches(text))
+            {
+                offenders.Add($"{rel}: contains '{match.Value}'");
+            }
+        }
+
+        Assert.True(offenders.Count == 0, "Stack disclosure in rendered presentation copy:\n" + string.Join("\n", offenders.Distinct().Take(40)));
+    }
+
+    private static bool IsOperatorConsole(string file)
+    {
+        var name = Path.GetFileName(file);
+        return file.Contains($"{Path.DirectorySeparatorChar}Migration", StringComparison.OrdinalIgnoreCase)
+               || name.StartsWith("Migration", StringComparison.OrdinalIgnoreCase)
+               || name.StartsWith("ZeroPhp", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string FindRepoRoot()
+    {
+        var dir = new DirectoryInfo(ComponentsRoot);
+        while (dir is not null)
+        {
+            if (File.Exists(Path.Combine(dir.FullName, "docs/governance/php-source-allowlist.txt")))
+            {
+                return dir.FullName;
+            }
+
+            dir = dir.Parent;
+        }
+
+        throw new DirectoryNotFoundException("repo root");
     }
 
     private string Rel(string file) => Path.GetRelativePath(ComponentsRoot, file);
 
-    private static string StripRazorCommentsAndCode(string razor)
+    private static string VisibleCopy(string razor)
     {
-        var noBlockComments = Regex.Replace(razor, @"@\*.*?\*@", "", RegexOptions.Singleline);
-        var noCode = Regex.Replace(noBlockComments, @"@code\s*\{.*\}\s*$", "", RegexOptions.Singleline);
-        return Regex.Replace(noCode, @"<!--.*?-->", "", RegexOptions.Singleline);
+        var text = Regex.Replace(razor, @"@\*.*?\*@", "", RegexOptions.Singleline);
+        text = Regex.Replace(text, @"<!--.*?-->", "", RegexOptions.Singleline);
+        text = Regex.Replace(text, @"<script\b[^>]*>.*?</script>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+        text = Regex.Replace(text, @"<style\b[^>]*>.*?</style>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+        text = Regex.Replace(text, @"@code\s*\{.*\}\s*$", "", RegexOptions.Singleline);
+        var attrs = new List<string>();
+        foreach (var name in VisibleAttrs)
+        {
+            foreach (Match m in Regex.Matches(text, name + @"\s*=\s*""([^""]*)""", RegexOptions.IgnoreCase))
+            {
+                attrs.Add(m.Groups[1].Value);
+            }
+        }
+
+        text = Regex.Replace(text, @"<[^>]+>", " ");
+        return string.Join(' ', attrs) + " " + text;
     }
 }

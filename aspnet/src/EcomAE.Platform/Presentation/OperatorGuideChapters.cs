@@ -27,7 +27,7 @@ internal static class OperatorGuideChapters
                     "Product brochure is a separate public brochure, not this guideline."
                 ]),
             OperatorGuidesCatalog.Ch("Quick start cards",
-                "PHP quick-jump cards at the top of the guideline.",
+                "Quick-jump cards at the top of the guideline.",
                 [
                     "Settings — jump-nav groups plus Frontend / Backend impact chips for storefront values.",
                     "Price profiles — Retail / Wholesale margins, guest %, brand and article rules.",
@@ -90,11 +90,11 @@ internal static class OperatorGuideChapters
             OperatorGuidesCatalog.Ch("Menu map",
                 "Every item from the left sidebar, grouped, with a short “what it does”.",
                 [
-                    "PHP loads control_groups / control_items and shows a hint per URL.",
+                    "The page loads control_groups / control_items and shows a hint per URL.",
                     "Hints cover price-management, prices/guide, OMS, fulfilment, WhatsApp, logistics, ERP, document control, and Settings.",
                     "Open depends on admin group. Access-denied items stay hidden unless show_anyway=1.",
                     "Live menu cards need the tenant shop database — without it the map stays empty here."
-                ], "PHP page hints are the source of truth for each sidebar URL.")
+                ], "Page hints are the source of truth for each sidebar URL.")
             ],
             ["/cp/guides-app?g=prices-upload", "/cp/guides-app?g=oms-daily", "/cp/config-items-app"])
 ,
@@ -116,7 +116,7 @@ internal static class OperatorGuideChapters
                     "Working writes: POST /cp/prices/upload-file, POST /cp/prices/update-now, POST /cp/prices/cron-tasks, GET /cp/prices/cron-tick, POST /api/prices/deploy-upload."
                 ]),
             OperatorGuidesCatalog.Ch("System health / live snapshot",
-                "PHP loads shop_docpart_prices, upload history, cron tasks, and pyprices pending tasks. Health checks that call pyprices/cron over HTTP run via AJAX only — not on initial page load.",
+                "The page loads shop_docpart_prices, upload history, cron tasks, and pyprices pending tasks. Health checks that call pyprices/cron over HTTP run via AJAX only — not on initial page load.",
                 [
                     "Load modes: 1 Manual, 2 FTP, 3 E-mail, 4 URL.",
                     "Price lists by update source show count and records per load_mode.",
@@ -128,7 +128,7 @@ internal static class OperatorGuideChapters
                 [
                     "Each list in E-mail mode has its own rules. Pyprices scans the inbox and, for each configured list, looks for an unread message that matches that list’s sender, subject (if set), and attachment file name.",
                     "Only the matching list is updated; other lists are unchanged.",
-                    "Site mailbox (IMAP) comes from config.php: prices_email_username / server / port.",
+                    "Site mailbox (IMAP) comes from config: prices_email_username / server / port.",
                     "Supplier checklist: use the mailbox (or an address allowed by sender filter).",
                     "Attach one file per list; the file name must include the substring (e.g. S-UAE.xlsx → only list S-UAE).",
                     "Subject line only matters if “Subject must contain” is set; words like “price list” alone do not route mail to all lists.",
@@ -145,7 +145,7 @@ internal static class OperatorGuideChapters
                     "History codes: cp_wizard, pyprices_upload, pyprices_ftp, pyprices_email, pyprices_url, deploy_api."
                 ]),
             OperatorGuidesCatalog.Ch("1. CP upload wizard (file from PC — CSV / Excel / archive)",
-                "Engine: PHP steps ajax_1 → ajax_6. History: cp_wizard.",
+                "Engine: steps ajax_1 → ajax_6. History: cp_wizard.",
                 [
                     "Create or edit the price list — set column numbers, separator, rows to skip, file name substring.",
                     "Open /cp/shop/prices/upload?price_id=ID (column-mapping wizard) or the green Upload on /cp/prices-upload-app.",
@@ -153,7 +153,7 @@ internal static class OperatorGuideChapters
                     "POST /cp/prices/upload-file with channel=wizard saves that map and imports. channel=pc is the row file input.",
                     "Check row count on the manager page and Upload history (skipped lines CSV if any).",
                     "Test: 5–10 row CSV with known brand/article/price. Confirm records_count increases and history shows cp_wizard.",
-                    "Excel is supported via step 3 (ajax_3_excel_convert.php). Prefer UTF-8 CSV for large files."
+                    "Excel is supported via step 3 (ajax_3_excel_convert). Prefer UTF-8 CSV for large files."
                 ]),
             OperatorGuidesCatalog.Ch("2. Pyprices — upload file from PC (manager row)",
                 "Engine: POST /cp/prices/upload-file (channel=pc). History source: pyprices_upload.",
@@ -176,7 +176,7 @@ internal static class OperatorGuideChapters
             OperatorGuidesCatalog.Ch("4. Update from E-mail (one list per matching message)",
                 "Engine: pyprices IMAP. Set load_mode = E-mail (3) on each list that should use mail.",
                 [
-                    "Configure global mailbox in config.php: prices_email_server, port, encryption, username, password (Gmail: App Password, IMAP SSL 993).",
+                    "Configure global mailbox in config: prices_email_server, port, encryption, username, password (Gmail: App Password, IMAP SSL 993).",
                     "Edit each price list → E-mail block: sender e-mail, optional subject substring, required file name substring.",
                     "Supplier sends one attachment per list; filename must contain that list’s substring.",
                     "Manual test: E-mail button (POST /cp/prices/update-now). Scheduled: add the list on /cp/prices-upload-app?way=cron.",
@@ -203,11 +203,11 @@ internal static class OperatorGuideChapters
                 [
                     "Open Multi-vendor upload (/cp/shop/prices/multivendor) and download the sample CSV.",
                     "Short code appears on the storefront; full name stays in CP only.",
-                    "POST /epc-upload-multivendor-prices.php is the deploy API twin.",
+                    "POST /epc-upload-multivendor-prices is the deploy API twin.",
                     "Warehouses are created/linked automatically per vendor."
                 ]),
             OperatorGuidesCatalog.Ch("8–11. Deploy API, Treelax API, manual grid, price review",
-                "Remaining channels from the PHP accordion.",
+                "Remaining channels from the accordion.",
                 [
                     "Deploy API — POST price_file + key (tech_key) to /api/prices/deploy-upload. Actions: upload, reupload_latest, list_prices, list_latest_uploads. History: deploy_api.",
                     "Treelax API — supplier API pull when configured on the list.",
@@ -215,7 +215,7 @@ internal static class OperatorGuideChapters
                     "Price review — browse imported rows, preview site price per customer profile, edit lines."
                 ]),
             OperatorGuidesCatalog.Ch("Test environment checklist",
-                "PHP checklist at the bottom of the guide.",
+                "Checklist at the bottom of the guide.",
                 [
                     "At least one list per load_mode you use (Manual / FTP / E-mail / URL).",
                     "file_name_substring set on every list that uses FTP, e-mail, or PC upload.",
@@ -239,7 +239,7 @@ internal static class OperatorGuideChapters
             OperatorGuidesCatalog.Ch("1 Open the day",
                 "Start every shift from SHOP → OMS · Orders (not separate “items” or “statuses” pages).",
                 [
-                    "Go to /cp/orders (PHP /CP/shop/orders/orders).",
+                    "Go to /cp/orders.",
                     "Check the KPI cards: Open orders, Today, Pending ship.",
                     "Use the Open tab (default) so unfinished work is listed first. Use Completed only when you need history.",
                     "Sort by last modified if you want the most recently touched orders on top."
@@ -250,7 +250,7 @@ internal static class OperatorGuideChapters
                     "Status pills — quick filter (Placed, Executing, Sent, etc.). Completed is its own tab, not mixed into Open.",
                     "Advanced filter — date range, order #, customer, phone, article, paid flag, shop.",
                     "Click a row — opens that order in the OMS console on the right (same page).",
-                    "Ctrl+click — classic full order card (rare; prefer OMS).",
+                    "Ctrl+click — full order card (rare; prefer OMS).",
                     "Unread mail icon on a row means the customer sent a message — open that order first."
                 ]),
             OperatorGuidesCatalog.Ch("3 OMS console (right pane)",
@@ -341,7 +341,7 @@ internal static class OperatorGuideChapters
             "End-to-end: registration → checkout → automatic e-mails → supplier LPO → CP processing → statuses → payment → delivery → API warehouses → troubleshoot.",
             [
             OperatorGuidesCatalog.Ch("End-to-end flow (overview)",
-                "PHP overview list.",
+                "Overview list.",
                 [
                     "Customer registers (Retail or Wholesale) → wholesale may need CP approval + fixed dealing currency.",
                     "Shop — search, cart, checkout (blocked if trade approval pending).",
@@ -351,7 +351,7 @@ internal static class OperatorGuideChapters
                     "Complete — order and line statuses set to finished; customer notified if configured on status change."
                 ]),
             OperatorGuidesCatalog.Ch("Live status",
-                "PHP snapshot: order_stats, storages LPO-ready, pending trade approvals, recent LPO logs. Needs tenant DB.",
+                "Snapshot: order_stats, storages LPO-ready, pending trade approvals, recent LPO logs. Needs tenant DB.",
                 [
                     "Orders today / last 7 days / total.",
                     "Warehouses with LPO e-mail vs total storages.",
@@ -369,7 +369,7 @@ internal static class OperatorGuideChapters
                 [
                     "Set LPO e-mail on each warehouse (Logistics → Storages).",
                     "Lines group by warehouse; each warehouse gets its own LPO mail.",
-                    "Recent supplier LPO log entries appear on the PHP guide when the shop DB is present."
+                    "Recent supplier LPO log entries appear on this guide when the shop DB is present."
                 ]),
             OperatorGuidesCatalog.Ch("1. Customer registration & trade approval",
                 "Retail / Wholesale.",
@@ -410,7 +410,7 @@ internal static class OperatorGuideChapters
                 "Configured once by admin; daily staff apply them.",
                 [
                     "Order-level statuses (Placed, Executing, Sent, Completed, …).",
-                    "Line item statuses (first 20 shown on the PHP guide from the tenant DB).",
+                    "Line item statuses (first 20 shown on this guide from the tenant DB).",
                     "Do not use a separate “Orders statuses” menu for routine work."
                 ]),
             OperatorGuidesCatalog.Ch("7. Payment & customer balance",
@@ -438,7 +438,7 @@ internal static class OperatorGuideChapters
                 "When a notification is missing.",
                 [
                     "Resend manager / customer / LPO from the order card when the tenant supports it.",
-                    "Check Communications test lab on the PHP guide (tech staff).",
+                    "Check Communications test lab on this guide (tech staff).",
                     "Site performance lab is a separate probe — not required for daily fulfilment."
                 ])
             ],
@@ -487,7 +487,7 @@ internal static class OperatorGuideChapters
             OperatorGuidesCatalog.Ch("Language",
                 "All prefilled share text is bilingual EN then AR in one message (customer can reply in either language).",
                 [
-                    "Do not split EN and AR into two buttons — PHP builds one bilingual body."
+                    "Do not split EN and AR into two buttons — the page builds one bilingual body."
                 ]),
             OperatorGuidesCatalog.Ch("Supplier phone for LPO shares",
                 "ERP supplier linked to warehouse.",
@@ -497,7 +497,7 @@ internal static class OperatorGuideChapters
                     "If empty, the LPO button still works but targets sales so staff can forward manually."
                 ]),
             OperatorGuidesCatalog.Ch("Phase 2 — automated notifications (Cloud API)",
-                "Installed. When Meta WhatsApp Cloud API credentials are set and epc_whatsapp_api_enabled = 1, order and status e-mails also trigger WhatsApp via send_notify_dispatch.php.",
+                "Installed. When Meta WhatsApp Cloud API credentials are set and epc_whatsapp_api_enabled = 1, order and status e-mails also trigger WhatsApp via send_notify_dispatch.",
                 [
                     "Meta Business → WhatsApp → API setup → copy phone_number_id and permanent token.",
                     "Configuration → set token, phone_number_id, enable API (1).",
@@ -506,7 +506,7 @@ internal static class OperatorGuideChapters
                     "Log table: epc_whatsapp_notify_log (success/fail per send)."
                 ]),
             OperatorGuidesCatalog.Ch("FAQ",
-                "PHP FAQ.",
+                "FAQ.",
                 [
                     "“Message customer” is missing — add phone on the order (guest checkout) or in the customer profile.",
                     "Wrong number opens — update epc_whatsapp_number; hard-refresh the storefront.",
@@ -532,7 +532,7 @@ internal static class OperatorGuideChapters
                     "Menu: Logistics group in CP sidebar. Obtaining mode: epc_carriers."
                 ]),
             OperatorGuidesCatalog.Ch("Live snapshot",
-                "PHP dashboard: carrier accounts, shipments shipped/total, shop orders. Needs tenant DB.",
+                "Dashboard: carrier accounts, shipments shipped/total, shop orders. Needs tenant DB.",
                 [
                     "Carrier accounts (DHL, FedEx, Aramex, UPS).",
                     "Shipments shipped / total.",
@@ -592,13 +592,13 @@ internal static class OperatorGuideChapters
             OperatorGuidesCatalog.Ch("Step 6–7 — Carriers reference & go live",
                 "Catalog + live checklist.",
                 [
-                    "Carrier codes, demo services, and track URLs live in the PHP catalog.",
+                    "Carrier codes, demo services, and track URLs live in the catalog.",
                     "DHL MyDHL, FedEx Ship, Aramex, UPS OAuth — store credentials in carrier accounts.",
                     "Turn off Demo mode on obtaining mode when live rating/labels work.",
                     "Test one storefront order + one label before production traffic."
                 ]),
             OperatorGuidesCatalog.Ch("Database tables & FAQ",
-                "PHP reference.",
+                "Reference.",
                 [
                     "epc_carrier_accounts — credentials and demo_mode.",
                     "epc_carrier_shipments — labels for any shop order: tracking, cost, status.",
@@ -641,12 +641,12 @@ internal static class OperatorGuideChapters
                 "ajax_create_operation → go_to_pay → IPN.",
                 [
                     "Customer selects a payment method and clicks pay.",
-                    "ajax_create_operation.php creates a pending shop_users_accounting row (optional pay_handler).",
-                    "Browser opens /content/shop/finance/payment_systems/{handler}/go_to_pay.php.",
-                    "Webhook / IPN hits notification.php → pay_for_order.php marks the order paid."
+                    "ajax_create_operation creates a pending shop_users_accounting row (optional pay_handler).",
+                    "Browser opens /content/shop/finance/payment_systems/{handler}/go_to_pay.",
+                    "Webhook / IPN hits notification → pay_for_order marks the order paid."
                 ]),
             OperatorGuidesCatalog.Ch("GCC & MENA",
-                "PHP gateway table.",
+                "Gateway table.",
                 [
                     "Telr (telr) — UAE + GCC cards / Apple Pay.",
                     "PayTabs (paytabs) — MENA cards & wallets.",
@@ -669,7 +669,7 @@ internal static class OperatorGuideChapters
                     "Legacy CIS (Tinkoff, YooKassa, Robokassa, etc.) — Legacy tab."
                 ]),
             OperatorGuidesCatalog.Ch("Going live checklist",
-                "PHP checklist.",
+                "Checklist.",
                 [
                     "Trade license + merchant account with the acquirer.",
                     "HTTPS on the shop host.",
@@ -697,7 +697,7 @@ internal static class OperatorGuideChapters
                     "Menu: Channels group in CP sidebar."
                 ]),
             OperatorGuidesCatalog.Ch("Live snapshot",
-                "PHP dashboard: marketplace orders, SKU mappings, channel count. Needs tenant DB.",
+                "Dashboard: marketplace orders, SKU mappings, channel count. Needs tenant DB.",
                 [
                     "Marketplace orders (awaiting ship/import).",
                     "SKU mappings (active).",
@@ -737,7 +737,7 @@ internal static class OperatorGuideChapters
                     "Test one SKU sync and one order import on staging."
                 ]),
             OperatorGuidesCatalog.Ch("Database tables",
-                "PHP reference.",
+                "Reference.",
                 [
                     "epc_marketplace_channels — Amazon/eBay config.",
                     "epc_marketplace_sku_map — catalog ↔ marketplace SKU mapping.",
@@ -779,7 +779,7 @@ internal static class OperatorGuideChapters
                     "Seller-side e-invoices for your sales are in ERP → E-Invoicing."
                 ]),
             OperatorGuidesCatalog.Ch("Live snapshot",
-                "PHP dashboard: suppliers (with TRN), purchase bills, payable AED, advances AED. Needs tenant DB.",
+                "Dashboard: suppliers (with TRN), purchase bills, payable AED, advances AED. Needs tenant DB.",
                 [
                     "Without the shop database the counts stay zero."
                 ])
@@ -796,7 +796,7 @@ internal static class OperatorGuideChapters
             "Customer lifecycle in one panel: registration, profile, orders, advances, tax invoices, returns. Also registered at /CP/users/customer_mgmt_guide.",
             [
             OperatorGuidesCatalog.Ch("Customer lifecycle",
-                "PHP numbered flow.",
+                "Numbered flow.",
                 [
                     "Registration — customer registers on shop. B2B: approve via Approvals tab.",
                     "Customer profile — Tab Customers: buyer name, TRN, address, Peppol endpoint (UAE e-invoicing mandatory fields for B2B).",
@@ -872,7 +872,7 @@ internal static class OperatorGuideChapters
                 [
                     "The old Russian module (/cp/shop/modul-pechati-dokumentov) redirects to this panel.",
                     "Russian TORG-12 / UPD forms remain in the database for reference but are not recommended for UAE operations.",
-                    "Setup script (server): /epc-document-control-cp-setup.php?token=…"
+                    "Setup script (server): /epc-document-control-cp-setup?token=…"
                 ])
             ],
             ["/cp/document-control-app", "/cp/print-docs-app"]),
@@ -884,7 +884,7 @@ internal static class OperatorGuideChapters
             "fa-code",
             "/CP/control/portal/epc_api_documentation_guide",
             "/cp/guides-app?g=api-docs",
-            "Phase 1 public REST API at /epc-api/v1/ — read-only, tenant-scoped via X-API-Key. Super CP (www.ecomae.com) only in PHP.",
+            "Phase 1 public REST API at /epc-api/v1/ — read-only, tenant-scoped via X-API-Key. Super CP (www.ecomae.com) only.",
             [
             OperatorGuidesCatalog.Ch("Quick links",
                 "Marketing + operator surfaces.",
@@ -897,8 +897,8 @@ internal static class OperatorGuideChapters
             OperatorGuidesCatalog.Ch("Issue API keys (operators)",
                 "Keys live in platform DB (ecomae), never in marketing HTML.",
                 [
-                    "Run setup on platform stack once per environment (epc-api-keys-setup.php). Creates epc_api_keys and rotates demo keys for epartscart and asap. Plain keys print in setup output only — copy to password manager.",
-                    "Register Super CP menu if missing (epc-api-documentation-cp-setup.php).",
+                    "Run setup on platform stack once per environment (epc-api-keys-setup). Creates epc_api_keys and rotates demo keys for epartscart and asap. Plain keys print in setup output only — copy to password manager.",
+                    "Register Super CP menu if missing (epc-api-documentation-cp-setup).",
                     "For enterprise tenants, insert a row in epc_api_keys with SHA-256 hash of the key, tenant site_key, and scopes JSON."
                 ]),
             OperatorGuidesCatalog.Ch("Scopes (Phase 1)",
@@ -912,7 +912,7 @@ internal static class OperatorGuideChapters
                     "read:* — all authenticated read endpoints."
                 ]),
             OperatorGuidesCatalog.Ch("Security rules",
-                "PHP security block.",
+                "Security block.",
                 [
                     "Send X-API-Key on every request. Never embed keys in storefront HTML.",
                     "Tenant scope is enforced server-side from the key row — clients cannot switch site_key by query.",
@@ -931,7 +931,7 @@ internal static class OperatorGuideChapters
             "Universal Auto Price AI workflow — discover, compare, import, and keep prices fresh for every tenant.",
             [
             OperatorGuidesCatalog.Ch("Open the engine",
-                "PHP standalone route /cp/control/portal/epc_auto_price_guide?site_key=…",
+                "Route /cp/auto-price-app?site_key=…",
                 [
                     "Super CP defaults site_key to electronicae when empty.",
                     "Tenant CP infers epartscart / electronicae / platform from the host.",
@@ -964,7 +964,7 @@ internal static class OperatorGuideChapters
             "Professional repair workshop: check-in → job card (parts + labour) → estimate → bay/tech → QC → ready → handover. Linked to storefront booking and Client ERP.",
             [
             OperatorGuidesCatalog.Ch("Process flow",
-                "PHP flow chips.",
+                "Flow chips.",
                 [
                     "1 Check-in",
                     "2 Estimate",
@@ -1023,7 +1023,7 @@ internal static class OperatorGuideChapters
             OperatorGuidesCatalog.Ch("Deploy module files",
                 "Push ERP files, then run the setup endpoint on the tenant site.",
                 [
-                    "Setup URL: /epc-custom-shipping-setup.php?token=…",
+                    "Setup URL: /epc-custom-shipping-setup?token=…",
                     "Registers declaration types from the C&L Excel workbook plus LGP warehouse intake and five reports."
                 ]),
             OperatorGuidesCatalog.Ch("Operator workflow (tenant CP)",
@@ -1056,7 +1056,7 @@ internal static class OperatorGuideChapters
             "Super CP only. Clients who need only ERP — no storefront, no client domain. All companies log in at www.ecomae.com/cp/; each company has its own MySQL database.",
             [
             OperatorGuidesCatalog.Ch("Model — multi-company on one host",
-                "PHP model list.",
+                "Model list.",
                 [
                     "hosted_on=platform + erp_only_shared=1 in tenant registry.",
                     "Hostname always www.ecomae.com — no DNS, no nginx alias per client.",
@@ -1075,7 +1075,7 @@ internal static class OperatorGuideChapters
                     "Create users & hand off — CP → Users on www.ecomae.com (tenant context after login). Share https://www.ecomae.com/cp/."
                 ]),
             OperatorGuidesCatalog.Ch("Login URL (ERP-only companies)",
-                "PHP pre block.",
+                "Example block.",
                 [
                     "Super CP operator (tenant hub): https://www.ecomae.com/cp/",
                     "Platform ERP (ECOM AE company, ecomae DB): https://www.ecomae.com/cp/platform-erp/",
@@ -1085,7 +1085,7 @@ internal static class OperatorGuideChapters
             OperatorGuidesCatalog.Ch("ASAP (reference tenant)",
                 "First shared ERP company: site key asap, Full ERP modules.",
                 [
-                    "Provision with epc-asap-erp-onboard.php on the server."
+                    "Provision with epc-asap-erp-onboard on the server."
                 ])
             ],
             ["/cp/tenants-app", "/erp/guide-app?book=erp-only"]),
@@ -1146,7 +1146,7 @@ internal static class OperatorGuideChapters
                 "Preview without flipping production.",
                 [
                     "Open /epc-platform-splash.html?epc_splash_preview=1&mode=backup_active.",
-                    "Status JSON: /epc-platform-status.json. Status page: /epc-platform-status.php."
+                    "Status JSON: /epc-platform-status.json. Status page: /epc-platform-status."
                 ]),
             OperatorGuidesCatalog.Ch("2. Configure backup URL (laptop / premises)",
                 "backup_base_url in failover config.",
@@ -1167,7 +1167,7 @@ internal static class OperatorGuideChapters
                 "Custom error page for 525.",
                 [
                     "Cloudflare custom error page for 525.",
-                    "thejewellerytrend.com 525 / SSL handshake notes stay in the PHP guide."
+                    "thejewellerytrend.com 525 / SSL handshake notes stay in this guide."
                 ]),
             OperatorGuidesCatalog.Ch("7–9. Deploy, cache, prevention",
                 "Deploy files from laptop; optional Cloudflare cache purge.",
@@ -1193,7 +1193,7 @@ internal static class OperatorGuideChapters
                     "Needs your Microsoft account later: Azure AD / service principal embed and scheduled Service refresh that Microsoft hosts."
                 ]),
             OperatorGuidesCatalog.Ch("Step-by-step",
-                "PHP epc_power_bi_guide_steps() order.",
+                "Power BI guide steps order.",
                 [
                     "Issue or copy an API key with read:bi (or read:erp / read:*).",
                     "Open Power BI settings and store workspace / report IDs if you embed.",
@@ -1261,7 +1261,7 @@ internal static class OperatorGuideChapters
                     "Communication — platform mail/SMS defaults and test send."
                 ]),
             OperatorGuidesCatalog.Ch("Typical operator day",
-                "PHP typical day.",
+                "Typical day.",
                 [
                     "Check fleet health, then tenant hub for onboard / Live.",
                     "Answer support from Customer board — do not log into every tenant CP first.",

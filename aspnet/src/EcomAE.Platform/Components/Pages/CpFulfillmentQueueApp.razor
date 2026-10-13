@@ -50,7 +50,7 @@
         <div class="epc-scp-kpi__card">
             <div class="epc-scp-kpi__label">Delivery complete</div>
             <div class="epc-scp-kpi__val">@_pipeline.DeliveryDone</div>
-            <div class="epc-scp-kpi__hint">Orders in a PHP finish status</div>
+            <div class="epc-scp-kpi__hint">Orders in a finish status</div>
         </div>
         <div class="epc-scp-kpi__card">
             <div class="epc-scp-kpi__label">Returns open</div>
@@ -185,7 +185,7 @@
 
     @if (!_isAdmin)
     {
-        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live fulfilment digests. Guest browse shows the PHP-parity shell.</div>
+        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live fulfilment digests. Guest browse shows the empty workspace shell.</div>
     }
 
     <div class="epc-scp-orders-workspace @(_selectedId > 0 ? "is-oms-active" : null)">

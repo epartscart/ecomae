@@ -16,7 +16,7 @@ public static class CpPhpModuleCopy
         if (path.Contains("/hr-overview", StringComparison.OrdinalIgnoreCase))
             return "Basic + allowances = fixed monthly salary for a 30-day month. Set days worked before generating payroll. End-of-service and statutory leave follow the company country (UAE default).";
         if (path.Contains("/po-approvals", StringComparison.OrdinalIgnoreCase))
-            return "Purchase-order approval queue. Approve or reject pending POs — writes stay on the ASP.NET approval endpoints.";
+            return "Purchase-order approval queue. Approve or reject pending POs — writes stay on the approval endpoints.";
         if (path.Contains("/credit-limits", StringComparison.OrdinalIgnoreCase))
             return "Customer credit limits and exposure. Set a limit per account; orders over the cap stay blocked until credit is raised.";
         if (path.Contains("/landed-cost", StringComparison.OrdinalIgnoreCase))
@@ -86,7 +86,7 @@ public static class CpPhpModuleCopy
         if (path.Contains("/page-builder", StringComparison.OrdinalIgnoreCase))
             return "CMS pages and page builder.";
         if (path.Contains("/pages-app", StringComparison.OrdinalIgnoreCase))
-            return "Content pages. Create or edit a page, set published or main, save a text/php body, or save the page tree here. TinyMCE image upload is not available on this page.";
+            return "Content pages. Create or edit a page, set published or main, save a text or script body, or save the page tree here. TinyMCE image upload is not available on this page.";
         if (path.Contains("/modules-app", StringComparison.OrdinalIgnoreCase))
             return "Catalogue and control modules. Create, save, activate, or delete a module here. Page binding and group access write with the save.";
         if (path.Contains("/menus-app", StringComparison.OrdinalIgnoreCase))
@@ -136,7 +136,7 @@ public static class CpPhpModuleCopy
 
         var slug = path.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? "module";
         slug = slug.Replace("-app", "", StringComparison.OrdinalIgnoreCase).Replace('-', ' ');
-        return char.ToUpperInvariant(slug[0]) + slug[1..] + " — PHP-parity control-panel module. Create or review records here; live rows bind when the shop database is available.";
+        return char.ToUpperInvariant(slug[0]) + slug[1..] + " — control-panel module. Create or review records here; live rows bind when the shop database is available.";
     }
 
     private static string PathOnly(string? uriOrPath)

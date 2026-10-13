@@ -80,7 +80,7 @@
                                 <td>@(!string.IsNullOrWhiteSpace(row.AccessMode) ? row.AccessMode : "—")</td>
                                 <td>@(!string.IsNullOrWhiteSpace(row.CpDefaultLang) ? row.CpDefaultLang : "—")</td>
                                 <td>@(!string.IsNullOrWhiteSpace(row.CountryCode) ? row.CountryCode : "—")</td>
-                                <td class="epc-scp-actions-cell"><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
+                                <td class="epc-scp-actions-cell"><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                             </tr>
                         }
                     }
@@ -90,7 +90,7 @@
 
         <p class="text-muted small" style="margin-top:12px">
             Super CP only. Tenant hosts (e.g. epartscart.com) receive a not-found gate — no fleet inventory, deploy targets, or platform credentials.
-            Writes remain PHP industry/portal settings authoritative.
+            Industry and portal settings writes stay on this page.
             @if (!string.IsNullOrWhiteSpace(_message))
             {
                 <span> · @_message (@_source)</span>

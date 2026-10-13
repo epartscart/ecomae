@@ -1,0 +1,14 @@
+---
+description: Block new PHP development; production UI cannot mention PHP or classic
+alwaysApply: true
+---
+
+# No new PHP development
+
+- All new product work is ASP.NET Core only (`aspnet/src/EcomAE.Platform`).
+- Do not add new `.php` files. Existing PHP stays on disk until `readyToRemovePhp=true`.
+- Do not invent PHP decommission, broad nginx cutover, or PHP-primary restore.
+- Production ERP / CP / BOS / storefront UI must not display the words `PHP`, `classic`, or `classical`, and must not link `/php-reference/*` or “classic ERP / classical CP”.
+- Gated deploy runs `scripts/forbid_php_stack_leak.py` and refuses publish on leak or new PHP.
+- Tests: `TenantUiStackDisclosureTests`, `NewPhpDevelopmentBlockedTests`.
+- Do not raise the frozen PHP file count or rewrite the allowlist to sneak in new PHP.
