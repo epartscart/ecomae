@@ -296,6 +296,9 @@ public sealed class LiveSurfaceLinkReporterTests
             && link.AspNetRouteHint == "/erp/gold-rate/set");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/gold-rate/daily");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
             && link.AspNetRouteHint == "/erp/aml/kyc-save");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"

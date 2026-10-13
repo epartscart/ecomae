@@ -8970,7 +8970,81 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             var written = await writes.SetAsync(
-                new ErpGoldRateSetRequest(companyId, rateDate, karat, currency, buyRate, sellRate, unit, source),
+                new ErpGoldRateSetRequest(companyId, rateDate, karat, currency, buyRate, sellRate, unit, source, ErpJwMasterAudit.Actor(session.Email, session.UserId)),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpGoldRateDailyForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpGoldRateSetWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=gold_rate",
+                    "Admin ERP capability required for daily gold rate.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpGoldRateDailyBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var rateDate = body.RateDate;
+            var currency = body.Currency;
+            var baseBuy = body.BaseBuy;
+            var baseSell = body.BaseSell;
+            var unit = body.Unit;
+            var source = body.Source;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                rateDate = LiveWriteFormBinder.Text(form, "rateDate", "rate_date");
+                currency = LiveWriteFormBinder.Text(form, "currency");
+                baseBuy = LiveWriteFormBinder.Dec(form, "baseBuy", "base_buy", "buy_rate");
+                baseSell = LiveWriteFormBinder.Dec(form, "baseSell", "base_sell", "sell_rate");
+                unit = LiveWriteFormBinder.Text(form, "unit");
+                source = LiveWriteFormBinder.Text(form, "source");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/jewellery-masters-app?tab=gold_rate";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("gold_rate_daily", currency ?? "AED", false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.PublishDailyAsync(
+                new ErpGoldRateDailyRequest(
+                    companyId,
+                    rateDate,
+                    currency,
+                    baseBuy,
+                    baseSell,
+                    unit,
+                    string.IsNullOrWhiteSpace(source) ? "daily" : source,
+                    ErpJwMasterAudit.Actor(session.Email, session.UserId)),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
@@ -29716,6 +29790,15 @@ public sealed class ErpModule : ISurfaceModule
         string? Currency = null,
         decimal BuyRate = 0,
         decimal SellRate = 0,
+        string? Unit = null,
+        string? Source = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpGoldRateDailyBody(
+        int CompanyId = 0,
+        string? RateDate = null,
+        string? Currency = null,
+        decimal BaseBuy = 0,
+        decimal BaseSell = 0,
         string? Unit = null,
         string? Source = null,
         bool ConfirmWrites = false);

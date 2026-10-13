@@ -223,6 +223,18 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
         }
 
         var metalRate = RoundNonNeg(request.MetalRate, 5);
+        if (metalRate <= 0)
+        {
+            metalRate = RoundNonNeg(
+                await ErpGoldRateBoard.ResolveSellAsync(
+                    connection,
+                    companyId,
+                    "24K",
+                    currency,
+                    vocDate,
+                    cancellationToken).ConfigureAwait(false),
+                5);
+        }
         var placeOfSupply = Clip((request.PlaceOfSupply ?? string.Empty).Trim(), 80);
         var shipment = Clip((request.ShipmentCompany ?? string.Empty).Trim(), 80);
         var port = Clip((request.PortCompany ?? string.Empty).Trim(), 80);

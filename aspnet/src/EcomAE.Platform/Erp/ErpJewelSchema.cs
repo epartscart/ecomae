@@ -923,6 +923,107 @@ internal static class ErpJewelSchema
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Fix/unfix purchase structure tracking'
         """,
         """
+        CREATE TABLE IF NOT EXISTS `epc_gold_rates` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `company_id` int(11) NOT NULL DEFAULT 0,
+        `rate_date` date NOT NULL,
+        `karat` varchar(10) NOT NULL DEFAULT '24K',
+        `currency` varchar(3) NOT NULL DEFAULT 'AED',
+        `buy_rate` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `sell_rate` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `unit` varchar(10) NOT NULL DEFAULT 'gram',
+        `source` varchar(50) NOT NULL DEFAULT 'manual',
+        `time_created` int(11) NOT NULL DEFAULT 0,
+        `created_by` varchar(80) NOT NULL DEFAULT '',
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `ux_date_karat_cur` (`company_id`, `rate_date`, `karat`, `currency`),
+        KEY `x_date` (`rate_date`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_gold_rate_config` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `company_id` int(11) NOT NULL DEFAULT 0,
+        `api_provider` varchar(50) NOT NULL DEFAULT 'manual',
+        `api_key` varchar(200) NOT NULL DEFAULT '',
+        `api_endpoint` varchar(500) NOT NULL DEFAULT '',
+        `base_currency` varchar(3) NOT NULL DEFAULT 'AED',
+        `karats` varchar(100) NOT NULL DEFAULT '24K,22K,21K,18K',
+        `auto_fetch` tinyint(1) NOT NULL DEFAULT 1,
+        `fetch_time` varchar(5) NOT NULL DEFAULT '09:00',
+        `margin_buy_pct` decimal(5,2) NOT NULL DEFAULT 0.00,
+        `margin_sell_pct` decimal(5,2) NOT NULL DEFAULT 1.50,
+        `time_updated` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`),
+        KEY `x_company` (`company_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_gold_schemes` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `company_id` int(11) NOT NULL DEFAULT 0,
+        `scheme_code` varchar(32) NOT NULL DEFAULT '',
+        `scheme_name` varchar(200) NOT NULL DEFAULT '',
+        `scheme_type` enum('value','gram') NOT NULL DEFAULT 'value',
+        `maturity_months` int(11) NOT NULL DEFAULT 11,
+        `bonus_type` enum('free_month','free_making','discount_pct','bonus_gram','none') NOT NULL DEFAULT 'free_month',
+        `bonus_value` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `min_installment` decimal(14,2) NOT NULL DEFAULT 500.00,
+        `max_installment` decimal(14,2) NOT NULL DEFAULT 50000.00,
+        `is_active` tinyint(1) NOT NULL DEFAULT 1,
+        `terms_text` text,
+        `created_by` varchar(80) NOT NULL DEFAULT '',
+        `time_created` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`),
+        KEY `x_company` (`company_id`),
+        KEY `x_active` (`is_active`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_gold_scheme_enrollments` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `company_id` int(11) NOT NULL DEFAULT 0,
+        `scheme_id` int(11) NOT NULL DEFAULT 0,
+        `customer_id` int(11) NOT NULL DEFAULT 0,
+        `customer_name` varchar(200) NOT NULL DEFAULT '',
+        `enrollment_no` varchar(32) NOT NULL DEFAULT '',
+        `installment_amount` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `start_date` date DEFAULT NULL,
+        `maturity_date` date DEFAULT NULL,
+        `total_paid` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `installments_paid` int(11) NOT NULL DEFAULT 0,
+        `status` enum('active','matured','redeemed','cancelled','defaulted') NOT NULL DEFAULT 'active',
+        `bonus_earned` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `redemption_invoice_id` int(11) NOT NULL DEFAULT 0,
+        `notes` text,
+        `time_created` int(11) NOT NULL DEFAULT 0,
+        `time_updated` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`),
+        KEY `x_company` (`company_id`),
+        KEY `x_scheme` (`scheme_id`),
+        KEY `x_customer` (`customer_id`),
+        KEY `x_status` (`status`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_gold_scheme_payments` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `enrollment_id` int(11) NOT NULL DEFAULT 0,
+        `installment_no` int(11) NOT NULL DEFAULT 0,
+        `amount` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `payment_mode` varchar(50) NOT NULL DEFAULT 'cash',
+        `gold_rate_at_payment` decimal(14,4) NOT NULL DEFAULT 0.0000,
+        `grams_equivalent` decimal(14,6) NOT NULL DEFAULT 0.000000,
+        `receipt_no` varchar(64) NOT NULL DEFAULT '',
+        `payment_date` date DEFAULT NULL,
+        `notes` varchar(300) NOT NULL DEFAULT '',
+        `time_created` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`),
+        KEY `x_enrollment` (`enrollment_id`),
+        KEY `x_date` (`payment_date`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
         CREATE TABLE IF NOT EXISTS `epc_fix_unfix_settlements` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `purchase_fix_id` int(11) NOT NULL DEFAULT 0,

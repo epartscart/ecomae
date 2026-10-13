@@ -82,7 +82,7 @@ public static class ErpJewelleryModuleChrome
         ["No.", "Karat Code", "Desc", "Std. Purity", "Gravity", "Division", "Created date", "Created by"];
 
     public static readonly IReadOnlyList<string> GoldRateHistoryColumns =
-        ["Date", "Gold 24K", "Gold 22K", "Gold 18K", "Silver", "Change", "Created date", "Created by"];
+        ["Date", "Gold 24K", "Gold 22K", "Gold 21K", "Gold 18K", "Silver", "Change", "Created date", "Created by"];
 
     public static readonly IReadOnlyList<string> TagColumns =
         ["No.", "TAG #", "Barcode", "Item Type", "Karat", "Net wt", "Sell price", "Location", "Status", "Created date", "Created by"];
@@ -167,13 +167,13 @@ public static class ErpJewelleryModuleChrome
 
     public static TabSpec MasterSpec(string tab) => tab switch
     {
-        "gold_rate" => new("gold_rate", "Gold rate", "Gold Rate (Live)",
-            "Fetch real-time gold, silver, and platinum rates from configured API providers. Rates bind when the shop rate board is available — demo numbers are not shown as live KPIs.",
-            GoldRateHistoryColumns, "No rate history yet — configure a provider and refresh."),
+        "gold_rate" => new("gold_rate", "Gold rate", "Daily gold rate",
+            "Publish today's 24K base. The board writes 22K / 21K / 18K from karat purity and invoices use today's sell rate when the document metal rate is blank. Demo figures are not shown as live KPIs.",
+            GoldRateHistoryColumns, "No daily rate yet — publish today's 24K base."),
         "gold_scheme" => new("gold_scheme", "Gold scheme", "Gold scheme",
-            "Savings / gold-scheme enrolments against karat and tenure.",
-            ["Scheme #", "Customer", "Karat", "Tenure", "Instalment", "Status", "Created date", "Created by"],
-            "No gold-scheme enrolments yet."),
+            "Create savings schemes, enroll customers, and take instalments. Tables are provisioned on this page.",
+            ["Scheme #", "Code", "Name", "Type", "Tenure", "Min instalment", "Created date", "Created by"],
+            "No gold schemes yet — create the first scheme from this panel."),
         "jewellery_tag" => new("jewellery_tag", "Jewellery tags", "Jewellery TAG System",
             "Unique TAG per jewellery item — generated at barcode level. Used for invoicing, purchase tracking, sales, and audit trail.",
             TagColumns, "No jewellery tags yet — generate the first tag from this panel."),
