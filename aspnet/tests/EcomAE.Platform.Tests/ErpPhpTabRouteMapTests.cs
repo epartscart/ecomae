@@ -142,8 +142,8 @@ public sealed class ErpPhpTabRouteMapTests
     [Theory]
     [InlineData("/ERP/?epc_erp_shell=1&area=ap&tab=payables", "/erp/payables-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=ar&tab=receivables", "/erp/receivables-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=ap", "/erp/payables-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=ar", "/erp/receivables-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ap", "/erp/payables-workspace-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ar", "/erp/receivables-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing", "/erp/procurement-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=leave_abs", "/erp/leave-absence-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=master_planning_area", "/erp/master-planning-app")]
@@ -151,9 +151,9 @@ public sealed class ErpPhpTabRouteMapTests
     [InlineData("/ERP/?epc_erp_shell=1&area=payroll_area", "/erp/payroll-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=enterprise", "/erp/organization-admin-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales", "/erp/sales-orders-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll", "/erp/collections-dunning-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=banking", "/erp/cash-accounts-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/gl-journals-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll", "/erp/credit-collections-workspace-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=banking", "/erp/cash-bank-workspace-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/general-ledger-workspace-app")]
     public void AreaAndTabHubsMatchModuleNames(string php, string expected)
     {
         Assert.Equal(expected, PhpSurfaceLinkMap.AspNetPrimaryHref(php));

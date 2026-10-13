@@ -4,6 +4,23 @@
 @page "/erp/organization-admin-app"
 @page "/erp/payroll-workspace-app"
 @page "/erp/procurement-workspace-app"
+@page "/erp/payables-workspace-app"
+@page "/erp/receivables-workspace-app"
+@page "/erp/asset-management-app"
+@page "/erp/audit-workbench-app"
+@page "/erp/budgeting-workspace-app"
+@page "/erp/cash-bank-workspace-app"
+@page "/erp/common-workspace-app"
+@page "/erp/consolidations-workspace-app"
+@page "/erp/cost-accounting-app"
+@page "/erp/cost-management-app"
+@page "/erp/credit-collections-workspace-app"
+@page "/erp/expense-workspace-app"
+@page "/erp/fixed-assets-workspace-app"
+@page "/erp/general-ledger-workspace-app"
+@page "/erp/hr-workspace-app"
+@page "/erp/inventory-workspace-app"
+@page "/erp/landed-cost-workspace-app"
 @page "/erp/d365-workspace-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
@@ -188,12 +205,12 @@
     private string _title = "Leave and absence";
     private string _areaLabel = "Leave and absence";
     private string _phpTab = "/ERP/?epc_erp_shell=1&area=leave_abs";
-    private ErpD365Part3Catalog.Page _page = ErpD365Part3Catalog.All[0];
+    private ErpD365Part3Catalog.Page _page = ErpD365WorkspaceCatalog.All[0];
     private IReadOnlyList<ErpD365Part3Catalog.Page> _pages = [];
     private IReadOnlyList<IGrouping<string, ErpD365Part3Catalog.Page>> _groups = [];
     private IReadOnlyList<ErpD365WorkspaceRow> _rows = [];
 
-    private string SaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365Part3Catalog.SavePath);
+    private string SaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365WorkspaceCatalog.SavePath);
 
     private string NameLabel => _page.Kind switch
     {
@@ -277,16 +294,16 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _area = ResolveArea(ctx.Request.Path.Value, ctx.Request.Query["area"].ToString());
-        _appPath = ErpD365Part3Catalog.AppPathForArea(_area);
+        _appPath = ErpD365WorkspaceCatalog.AppPathForArea(_area);
         _title = AreaTitle(_area);
         _areaLabel = _title;
         _phpTab = "/ERP/?epc_erp_shell=1&area=" + _area;
-        _pages = ErpD365Part3Catalog.ForArea(_area);
+        _pages = ErpD365WorkspaceCatalog.ForArea(_area);
         _groups = _pages.GroupBy(p => p.Group).ToList();
         var tab = ctx.Request.Query["tab"].ToString();
         _page = _pages.FirstOrDefault(p => p.Tab.Equals(tab, StringComparison.OrdinalIgnoreCase))
             ?? _pages.FirstOrDefault()
-            ?? ErpD365Part3Catalog.All[0];
+            ?? ErpD365WorkspaceCatalog.All[0];
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -312,6 +329,23 @@
         if (value.Contains("/organization-admin-app", StringComparison.Ordinal)) return "enterprise";
         if (value.Contains("/payroll-workspace-app", StringComparison.Ordinal)) return "payroll_area";
         if (value.Contains("/procurement-workspace-app", StringComparison.Ordinal)) return "purchasing";
+        if (value.Contains("/payables-workspace-app", StringComparison.Ordinal)) return "ap";
+        if (value.Contains("/receivables-workspace-app", StringComparison.Ordinal)) return "ar";
+        if (value.Contains("/asset-management-app", StringComparison.Ordinal)) return "asset_mgmt";
+        if (value.Contains("/audit-workbench-app", StringComparison.Ordinal)) return "audit_wb";
+        if (value.Contains("/budgeting-workspace-app", StringComparison.Ordinal)) return "budgeting";
+        if (value.Contains("/cash-bank-workspace-app", StringComparison.Ordinal)) return "banking";
+        if (value.Contains("/common-workspace-app", StringComparison.Ordinal)) return "common";
+        if (value.Contains("/consolidations-workspace-app", StringComparison.Ordinal)) return "consolidations";
+        if (value.Contains("/cost-accounting-app", StringComparison.Ordinal)) return "cost_acct";
+        if (value.Contains("/cost-management-app", StringComparison.Ordinal)) return "cost_mgmt";
+        if (value.Contains("/credit-collections-workspace-app", StringComparison.Ordinal)) return "credit_coll";
+        if (value.Contains("/expense-workspace-app", StringComparison.Ordinal)) return "expense";
+        if (value.Contains("/fixed-assets-workspace-app", StringComparison.Ordinal)) return "fixed_assets";
+        if (value.Contains("/general-ledger-workspace-app", StringComparison.Ordinal)) return "gl";
+        if (value.Contains("/hr-workspace-app", StringComparison.Ordinal)) return "people";
+        if (value.Contains("/inventory-workspace-app", StringComparison.Ordinal)) return "inventory_mgmt";
+        if (value.Contains("/landed-cost-workspace-app", StringComparison.Ordinal)) return "landed_cost_area";
         return "leave_abs";
     }
 
@@ -322,6 +356,23 @@
         "enterprise" => "Organization administration",
         "payroll_area" => "Payroll",
         "purchasing" => "Procurement and sourcing",
+        "ap" => "Accounts payable",
+        "ar" => "Accounts receivable",
+        "asset_mgmt" => "Asset management",
+        "audit_wb" or "audit" => "Audit workbench",
+        "budgeting" => "Budgeting",
+        "banking" => "Cash and bank management",
+        "common" => "Common",
+        "consolidations" => "Consolidations",
+        "cost_acct" => "Cost accounting",
+        "cost_mgmt" => "Cost management",
+        "credit_coll" => "Credit and collections",
+        "expense" => "Expense management",
+        "fixed_assets" => "Fixed assets",
+        "gl" or "finance" or "general_ledger" => "General ledger",
+        "people" => "Human resources",
+        "inventory_mgmt" or "inventory" => "Inventory management",
+        "landed_cost_area" => "Landed cost",
         _ => "Leave and absence",
     };
 }

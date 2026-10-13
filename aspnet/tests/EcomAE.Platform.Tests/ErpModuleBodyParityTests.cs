@@ -138,11 +138,11 @@ public sealed class ErpModuleBodyParityTests
     }
 
     [Theory]
-    [InlineData("/ERP/?epc_erp_shell=1&area=ap", "/erp/payables-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=ar", "/erp/receivables-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ap", "/erp/payables-workspace-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ar", "/erp/receivables-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing", "/erp/procurement-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales", "/erp/sales-orders-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/gl-journals-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/general-ledger-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax", "/erp/vat-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=logistics", "/erp/fulfillment-queue-app")]
     public void AreaHubsStayOnAspNetApps(string php, string expected)

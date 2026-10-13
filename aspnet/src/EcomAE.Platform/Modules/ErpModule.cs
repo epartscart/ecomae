@@ -24458,7 +24458,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var written = await writes.SaveAsync(request, cancellationToken);
-        var fallback = ErpD365Part3Catalog.TryGet(tab, out var page)
+        var fallback = ErpD365WorkspaceCatalog.TryGet(tab, out var page)
             ? page.AppPath + "?tab=" + page.Tab
             : "/erp/leave-absence-app";
         return LiveWriteFormBinder.Complete(
