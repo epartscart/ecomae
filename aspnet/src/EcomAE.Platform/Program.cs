@@ -500,6 +500,7 @@ builder.Services.AddSingleton<IErpPoReceiveLinesDryRun, ErpPoReceiveLinesDryRun>
 builder.Services.AddSingleton<IErpPoToInvoiceDryRun, ErpPoToInvoiceDryRun>();
 builder.Services.AddSingleton<IErpCustomerCreateDryRun, ErpCustomerCreateDryRun>();
 builder.Services.AddSingleton<IErpSoSaveDryRun, ErpSoSaveDryRun>();
+builder.Services.AddSingleton<IErpItemReserveDryRun, ErpItemReserveDryRun>();
 // Live ERP writes (PHP epc_erp_vouchers.php parity) — used when confirmWrites=true.
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWriteConnectionFactory, EcomAE.Platform.Erp.ErpWriteConnectionFactory>();
 builder.Services.AddScoped<EcomAE.Platform.Presentation.IErpNavTenantRules, EcomAE.Platform.Presentation.ErpNavTenantRules>();
@@ -507,6 +508,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpVoucherNumberService, EcomAE.
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTaxAmountCalculator, EcomAE.Platform.Erp.ErpTaxAmountCalculator>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAuditLogWriter, EcomAE.Platform.Erp.ErpAuditLogWriter>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSalesOrderWriteService, EcomAE.Platform.Erp.ErpSalesOrderWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryReservationWriteService, EcomAE.Platform.Erp.ErpInventoryReservationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlPostingService, EcomAE.Platform.Erp.ErpGlPostingService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSettlementAllocationService, EcomAE.Platform.Erp.ErpSettlementAllocationService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAdvanceVatService, EcomAE.Platform.Erp.ErpAdvanceVatService>();

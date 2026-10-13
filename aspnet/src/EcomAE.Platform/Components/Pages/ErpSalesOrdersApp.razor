@@ -11,6 +11,7 @@
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 @inject IErpDimensionLinkReadService DimensionLinks
+@inject IErpInventoryReservationWriteService Reservations
 
 <PageTitle>Sales Orders · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -361,7 +362,7 @@
     @if (_isAdmin)
     {
         <div class="panel panel-default" id="erp-module-new">
-            <div class="panel-heading"><strong>New sales order</strong> <span class="text-muted">SO number, VAT and totals follow the tenant jurisdiction kit.</span></div>
+            <div class="panel-heading"><strong>New sales order</strong> <span class="text-muted">First click on an item reserves it for 30 minutes so other sales users cannot take the same qty.</span></div>
             <div class="panel-body">
                 <div class="row" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:.65rem;align-items:end;padding:0 15px;">
                     <ErpVoucherHeaderFields DateLabel="Order date" DateFieldName="order_date" NumberLabel="Sales order no" NumberPreview="Auto" />
@@ -404,19 +405,35 @@
                     </table>
                 </div>
                 <button id="so-line-add" type="button" class="btn btn-default btn-xs">Add line</button>
-                <select id="so-item-picker" class="form-control input-sm" style="display:inline-block;width:auto;margin-left:8px" aria-label="Link inventory item to the last line">
-                    <option value="">-- Link Inventory Item --</option>
+                <select id="so-item-picker" class="form-control input-sm" style="display:inline-block;width:auto;margin-left:8px" aria-label="Reserve inventory item on the last line">
+                    <option value="">-- Reserve inventory item --</option>
                     @foreach (var item in _items)
                     {
                         var price = item.SalesPrice.ToString("0.00", CultureInfo.InvariantCulture);
+                        var atp = AtpFor(item.Id);
+                        var available = atp?.Available ?? 0m;
                         <option value="@item.Id.ToString(CultureInfo.InvariantCulture)"
                                 data-sku="@item.Sku"
                                 data-name="@item.Name"
-                                data-price="@price">@item.Sku — @item.Name</option>
+                                data-price="@price"
+                                data-available="@available.ToString("0.###", CultureInfo.InvariantCulture)"
+                                disabled="@(available <= 0)">@item.Sku — @item.Name · @available.ToString("0.###", CultureInfo.InvariantCulture) available</option>
                     }
                 </select>
                 <input id="so-id" type="hidden" value="0" />
                 <p id="so-feedback" class="text-muted" role="status" aria-live="polite"></p>
+                @if (_holds.Count > 0)
+                {
+                    <div class="epc-erp-facts" style="margin-top:.6rem" aria-label="Open item holds">
+                        @foreach (var hold in _holds.Take(8))
+                        {
+                            <div>
+                                <dt>@hold.Sku</dt>
+                                <dd>@hold.Qty.ToString("0.###", CultureInfo.InvariantCulture) · @hold.SourceType #@hold.SourceId · @hold.Status</dd>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
         </div>
         <form method="post" action="/erp/edit-lock/heartbeat" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
@@ -561,6 +578,8 @@
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private IReadOnlyList<ErpSalesOrderDigest> _orders = [];
     private IReadOnlyList<ErpInventoryItemPickerDigest> _items = [];
+    private IReadOnlyList<ErpItemAtp> _atp = [];
+    private IReadOnlyList<ErpReservationHold> _holds = [];
     private ErpSubscriptionsSummary _subs = new(0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<ErpSubscriptionDigest> _subscriptions = [];
     private IReadOnlyList<ErpDocumentWorkspaceField> SalesOrderWorkspaceFields =>
@@ -573,7 +592,7 @@
                 new("Requested ship date", "Not captured"),
                 new("Confirmed ship date", "Not captured"),
                 new("Warehouse", "Tenant default", "Delivery"),
-                new("Fulfilment policy", "Standard reservation", "Delivery"),
+                new("Fulfilment policy", "First-click hold, then confirm", "Delivery"),
                 new("Payment terms", "Tenant profile", "Financial"),
                 new("Sales tax", _openedDetail.VatAmount.ToString("N2", CultureInfo.InvariantCulture), "Financial"),
                 new("Financial dimensions", "Company / site / department", "Dimensions"),
@@ -712,6 +731,8 @@
             }
         }
         _items = (await Dashboards.ListErpInventoryItemsForPickerAsync(ErpFirstPaint.PickerLimit, ctx.RequestAborted)).Items;
+        _atp = await Reservations.ListAtpAsync(_items.Select(i => i.Id).ToList(), ctx.RequestAborted);
+        _holds = await Reservations.ListActiveHoldsAsync(40, ctx.RequestAborted);
         _open = _orders.Count(o => !string.Equals(o.Status, "closed", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(o.Status, "cancelled", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(o.Status, "canceled", StringComparison.OrdinalIgnoreCase));
@@ -750,4 +771,7 @@
         if (unix <= 0) return "—";
         return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
     }
+
+    private ErpItemAtp? AtpFor(long itemId)
+        => _atp.FirstOrDefault(row => row.ItemId == itemId);
 }

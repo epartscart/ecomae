@@ -1933,6 +1933,12 @@ public static class EcomAeRoutes
     public const string ErpAjaxSoStatus = "/erp/ajax/so-status";
     /// <summary>Wave B dry-run for PHP so_to_invoice (writes=0).</summary>
     public const string ErpAjaxSoToInvoice = "/erp/ajax/so-to-invoice";
+    /// <summary>First-click ATP reserve. <c>confirmWrites=true</c> writes <c>epc_erp_inv_reservations</c>.</summary>
+    public const string ErpAjaxItemReserve = "/erp/ajax/item-reserve";
+    /// <summary>Release an open ATP hold. <c>confirmWrites=true</c> required.</summary>
+    public const string ErpAjaxItemRelease = "/erp/ajax/item-release";
+    /// <summary>Available-to-promise read for one inventory item (on hand − open holds).</summary>
+    public const string ErpAjaxItemAtp = "/erp/ajax/item-atp";
     /// <summary>Wave B dry-run for PHP transfer_voucher (writes=0).</summary>
     public const string ErpAjaxTransferVoucher = "/erp/ajax/transfer-voucher";
     /// <summary>ERP payment_batch_save compatibility endpoint with dry-run and confirmed-write modes.</summary>

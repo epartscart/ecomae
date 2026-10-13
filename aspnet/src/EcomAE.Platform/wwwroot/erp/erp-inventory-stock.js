@@ -19,10 +19,26 @@
       fetch('/erp/inv-on-hand?warehouseId=' + encodeURIComponent(wh) + '&itemId=' + encodeURIComponent(it), { credentials: 'same-origin' })
         .then(function (r) { if (my !== seq) { return null; } return r.json(); })
         .then(function (j) {
+          if (!j) { return null; }
+          return fetch('/erp/ajax/item-atp?itemId=' + encodeURIComponent(it), { credentials: 'same-origin' })
+            .then(function (r) { return r.json().catch(function () { return {}; }); })
+            .then(function (atp) {
+              j.reserved = atp && atp.reserved;
+              j.available = atp && atp.available;
+              return j;
+            })
+            .catch(function () { return j; });
+        })
+        .then(function (j) {
           if (!j) { return; }
           if (!j.ok) { hint.textContent = 'warehouse ' + wh + ' / item ' + it + ': no stock rows'; return; }
           var onHand = Number(j.qtyOnHand || 0);
-          var label = (j.sku || ('#' + j.itemId)) + ' — on hand ' + onHand.toFixed(2) + ' @ avg ' + Number(j.avgUnitCost || 0).toFixed(2);
+          var reserved = Number(j.reserved || 0);
+          var available = Number(j.available || (onHand - reserved));
+          var label = (j.sku || ('#' + j.itemId)) + ' — on hand ' + onHand.toFixed(2)
+            + ' reserved ' + reserved.toFixed(2)
+            + ' available ' + available.toFixed(2)
+            + ' @ avg ' + Number(j.avgUnitCost || 0).toFixed(2);
           if (j.atReorder) { label += ' — at/below reorder level'; }
           var qty = qtyInput ? parseFloat(qtyInput.value) : NaN;
           var isOut = outTypes === null || (typeInput && outTypes.indexOf(typeInput.value) !== -1);

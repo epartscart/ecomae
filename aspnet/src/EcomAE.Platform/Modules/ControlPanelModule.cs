@@ -3077,7 +3077,9 @@ public sealed class ControlPanelModule : ISurfaceModule
                             input.TextOrNull("notes"),
                             input.TextOrNull("line_description"),
                             input.Has("line_qty") ? input.Dec("line_qty") : 1m,
-                            input.Dec("line_unit_price")),
+                            input.Dec("line_unit_price"),
+                            input.Long("item_id", "itemId"),
+                            input.TextOrNull("sku", "item_code")),
                         cancellationToken);
                     return Json(written.Succeeded, written.Succeeded ? "Quote saved" : written.Message,
                         new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "quotes", written.Id, "quote_id");
@@ -11960,6 +11962,8 @@ public sealed class ControlPanelModule : ISurfaceModule
             var lineDescription = body.LineDescription;
             var lineQty = body.LineQty;
             var lineUnitPrice = body.LineUnitPrice;
+            var itemId = body.ItemId;
+            var sku = body.Sku;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -11975,6 +11979,8 @@ public sealed class ControlPanelModule : ISurfaceModule
                 lineDescription = LiveWriteFormBinder.Text(form, "line_description", "lineDescription");
                 lineQty = LiveWriteFormBinder.Dec(form, "line_qty", "lineQty");
                 lineUnitPrice = LiveWriteFormBinder.Dec(form, "line_unit_price", "lineUnitPrice");
+                itemId = LiveWriteFormBinder.Long(form, "item_id", "itemId");
+                sku = LiveWriteFormBinder.Text(form, "sku", "item_code");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -11984,7 +11990,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 var written = await writes.SaveAsync(
                     new CpCrmQuoteSaveRequest(
                         id, opportunityId, leadId, customerUserId, quoteNumber, status, notes,
-                        lineDescription, lineQty, lineUnitPrice),
+                        lineDescription, lineQty, lineUnitPrice, itemId, sku),
                     cancellationToken);
                 var dest = written.Succeeded && written.Id > 0
                     ? "/erp/sales-quotations-app?quote_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
@@ -17820,7 +17826,9 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Notes = null,
         string? LineDescription = null,
         decimal LineQty = 1,
-        decimal LineUnitPrice = 0);
+        decimal LineUnitPrice = 0,
+        long ItemId = 0,
+        string? Sku = null);
     private sealed record CpCrmTicketsWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
