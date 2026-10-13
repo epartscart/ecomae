@@ -620,13 +620,29 @@ body.epc-erp-cp-shell .table-responsive {
         letter-spacing: .03em;
     }
 
-    .epc-erp-cp-shell a {
+    .epc-erp-cp-shell a:not(.btn):not(.is-active):not(.epc-dash-customize__role) {
         color: var(--epc-erp-accent);
     }
 
-    .epc-erp-cp-shell a:hover {
+    .epc-erp-cp-shell a:not(.btn):not(.is-active):not(.epc-dash-customize__role):hover {
         color: #0e5a93;
         text-decoration: none;
+    }
+
+    .epc-erp-cp-shell a.btn-primary,
+    .epc-erp-cp-shell a.btn-primary:hover,
+    .epc-erp-cp-shell a.btn-primary:focus,
+    .epc-erp-cp-shell a.is-active,
+    .epc-erp-cp-shell a.is-active:hover,
+    .epc-erp-cp-shell a.is-active:focus,
+    .epc-erp-cp-shell .pm-module-tabs a.btn-primary,
+    .epc-erp-cp-shell .pm-module-tabs a.btn-primary:hover,
+    .epc-erp-cp-shell .epc-jw-panel-nav a.is-active,
+    .epc-erp-cp-shell .epc-jw-panel-nav a.is-active:hover,
+    .epc-erp-cp-shell .epc-dash-customize__role:hover,
+    .epc-erp-cp-shell .epc-dash-customize__role.is-active,
+    .epc-erp-cp-shell .epc-dash-customize__role.is-active:hover {
+        color: #fff !important;
     }
 
     .epc-erp-cp-shell .alert {

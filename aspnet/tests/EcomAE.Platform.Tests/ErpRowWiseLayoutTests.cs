@@ -96,7 +96,7 @@ public sealed class ErpRowWiseLayoutTests
     {
         var assets = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs"));
-        Assert.Contains("epc-enterprise-design-system.css?v=20261013row1", assets, StringComparison.Ordinal);
+        Assert.Contains("epc-enterprise-design-system.css?v=20261013tab1", assets, StringComparison.Ordinal);
         Assert.Contains("erp-document-workspace.css?v=20261013row1", assets, StringComparison.Ordinal);
     }
 
