@@ -3109,5 +3109,9 @@ public static class EcomAeRoutes
     public const string ErpCsDeleteDeclaration = "/erp/custom-shipping/delete";
     /// <summary>Dynamics-style workspace save for leave, planning, equipment, organization, payroll, and procurement pages.</summary>
     public const string ErpD365WorkspaceSave = "/erp/d365-workspace/save";
+    public const string ErpTrialBalance = "/erp/trial-balance";
+    public const string ErpTrialBalanceApp = "/erp/trial-balance-app";
+    public const string ErpTrialBalanceSnapshot = "/erp/trial-balance/snapshot";
+    public const string ErpTrialBalanceExport = "/erp/trial-balance/export";
 
 }

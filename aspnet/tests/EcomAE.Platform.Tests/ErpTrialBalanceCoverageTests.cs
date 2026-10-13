@@ -1,0 +1,254 @@
+using System.Data.Common;
+using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
+using EcomAE.Platform.Presentation;
+using EcomAE.Platform.Routing;
+using MySqlConnector;
+using Xunit;
+
+namespace EcomAE.Platform.Tests;
+
+public sealed class ErpTrialBalanceCoverageTests
+{
+    [Fact]
+    public void Parameters_MatchLedgerTrialBalanceListPage()
+    {
+        var parameters = ErpTrialBalanceParameters.FromQuery(
+            "2026-01-01", "2026-03-31", "operations", "include_in_period",
+            "0", "1", "company", "1", "1000", "50");
+        Assert.Equal(new DateOnly(2026, 1, 1), parameters.FromDate);
+        Assert.Equal(new DateOnly(2026, 3, 31), parameters.ToDate);
+        Assert.Equal(ErpTrialBalancePostingLayer.Operations, parameters.PostingLayer);
+        Assert.Equal(ErpTrialBalanceOpeningDisplay.IncludeInPeriod, parameters.OpeningDisplay);
+        Assert.False(parameters.IncludeClosingTransactions);
+        Assert.True(parameters.IncludeClosingAdjustments);
+        Assert.Equal(ErpTrialBalanceDimensionSet.MainAccountCompany, parameters.DimensionSet);
+        Assert.True(parameters.SeparateDimensionColumns);
+        Assert.Equal("1000", parameters.AccountCode);
+        Assert.Equal(50, parameters.Limit);
+        Assert.True(parameters.FromUnix < parameters.ToUnix);
+        Assert.Contains("layer=operations", parameters.QueryString(), StringComparison.Ordinal);
+        Assert.StartsWith("/erp/trial-balance-app?", parameters.AppHref(), StringComparison.Ordinal);
+        Assert.StartsWith("/erp/trial-balance/export?", parameters.ExportHref(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Parameters_SwapInvertedDatesAndDefaultLayer()
+    {
+        var parameters = ErpTrialBalanceParameters.FromQuery(
+            "2026-12-31", "2026-01-01", null, null, null, null, null, null, null, null);
+        Assert.Equal(new DateOnly(2026, 1, 1), parameters.FromDate);
+        Assert.Equal(new DateOnly(2026, 12, 31), parameters.ToDate);
+        Assert.Equal(ErpTrialBalancePostingLayer.Current, parameters.PostingLayer);
+        Assert.Equal(ErpTrialBalanceOpeningDisplay.Column, parameters.OpeningDisplay);
+        Assert.True(parameters.IncludeClosingTransactions);
+        Assert.True(parameters.IncludeClosingAdjustments);
+    }
+
+    [Fact]
+    public void Math_BuildsSignedOpeningPeriodAndClosing()
+    {
+        var debit = ErpTrialBalanceParameters.BuildLine(
+            "1000", "Cash", "asset", "debit", 100m, 20m, 5m, 40m, 10m);
+        Assert.Equal(115m, debit.Opening);
+        Assert.Equal(40m, debit.Debit);
+        Assert.Equal(10m, debit.Credit);
+        Assert.Equal(145m, debit.Closing);
+
+        var folded = ErpTrialBalanceParameters.BuildLine(
+            "1000", "Cash", "asset", "debit", 100m, 0m, 0m, 10m, 0m,
+            openingDisplay: ErpTrialBalanceOpeningDisplay.IncludeInPeriod);
+        Assert.Equal(0m, folded.Opening);
+        Assert.Equal(110m, folded.Debit);
+        Assert.Equal(110m, folded.Closing);
+
+        var hidden = ErpTrialBalanceParameters.BuildLine(
+            "1000", "Cash", "asset", "debit", 100m, 20m, 0m, 10m, 0m,
+            openingDisplay: ErpTrialBalanceOpeningDisplay.Exclude);
+        Assert.Equal(0m, hidden.Opening);
+        Assert.Equal(10m, hidden.Debit);
+        Assert.Equal(10m, hidden.Closing);
+
+        var credit = ErpTrialBalanceParameters.BuildLine(
+            "2000", "AP", "liability", "credit", 80m, 0m, 0m, 5m, 15m);
+        Assert.Equal(-80m, credit.Opening);
+        Assert.Equal(-90m, credit.Closing);
+    }
+
+    [Fact]
+    public void Filters_ClosingAndPostingLayer()
+    {
+        Assert.True(ErpTrialBalanceParameters.IsClosingTransaction("adjustment", "YE-1", "year-end close", ""));
+        Assert.True(ErpTrialBalanceParameters.IsClosingAdjustment("adjustment", "", "", "Closing adjustment"));
+        Assert.False(ErpTrialBalanceParameters.IsClosingTransaction("manual", "GV-1", "", "rent"));
+        Assert.True(ErpTrialBalanceParameters.IsTaxLayer("FTA-2026"));
+        Assert.False(ErpTrialBalanceParameters.IsTaxLayer(""));
+
+        var current = ErpTrialBalanceParameters.FromQuery("2026-01-01", "2026-12-31", "current", "column", "0", "0", null, null, null, null);
+        Assert.False(current.AcceptsJournal("adjustment", "YE-1", "year-end", "", ""));
+        Assert.True(current.AcceptsJournal("manual", "GV-1", "", "", ""));
+
+        var tax = ErpTrialBalanceParameters.FromQuery("2026-01-01", "2026-12-31", "tax", "column", "1", "1", null, null, null, null);
+        Assert.False(tax.AcceptsJournal("manual", "GV-1", "", "", ""));
+        Assert.True(tax.AcceptsJournal("manual", "GV-1", "", "", "AE-VAT"));
+
+        var operations = ErpTrialBalanceParameters.FromQuery("2026-01-01", "2026-12-31", "operations", "column", "1", "1", null, null, null, null);
+        Assert.False(operations.AcceptsJournal("manual", "GV-1", "", "", "AE-VAT"));
+        Assert.True(operations.AcceptsJournal("manual", "GV-1", "", "", ""));
+    }
+
+    [Fact]
+    public void Snapshot_ValidatesDatesAndDryRun()
+    {
+        Assert.Equal("invalid", ErpTrialBalanceWriteService.Validate(new ErpTrialBalanceSnapshotRequest())!.Code);
+        Assert.Null(ErpTrialBalanceWriteService.Validate(new ErpTrialBalanceSnapshotRequest(FromDate: "2026-01-01", ToDate: "2026-03-31")));
+        var dry = new ErpTrialBalanceDryRun();
+        var ok = dry.Evaluate(new ErpTrialBalanceSnapshotRequest(FromDate: "2026-01-01", ToDate: "2026-03-31"), false);
+        Assert.Equal("dry-run-validated", ok.Status);
+        Assert.True(ok.WouldWrite);
+        Assert.Equal(0, ok.Writes);
+        var refused = dry.Evaluate(new ErpTrialBalanceSnapshotRequest(FromDate: "2026-01-01", ToDate: "2026-03-31"), true);
+        Assert.Equal("confirm_writes_refused", refused.ValidationCode);
+    }
+
+    [Fact]
+    public void RoutesAndChrome_OpenDedicatedListPage()
+    {
+        Assert.True(ErpPhpTabRouteMap.TryMapTab("enterprise_reports", out var enterprise));
+        Assert.Equal("/erp/trial-balance-app", enterprise);
+        Assert.True(ErpPhpTabRouteMap.TryMapTab("jw_trial_balance", out var jewellery));
+        Assert.Equal("/erp/trial-balance-app", jewellery);
+        Assert.Equal("/erp/trial-balance-app", EcomAeRoutes.ErpTrialBalanceApp);
+        Assert.Equal("/erp/trial-balance/snapshot", EcomAeRoutes.ErpTrialBalanceSnapshot);
+        Assert.Equal("/erp/trial-balance/export", EcomAeRoutes.ErpTrialBalanceExport);
+        Assert.Contains(LegacyChromeNavCatalog.ErpQuickActions, item => item.Href == "/erp/trial-balance-app");
+        var write = SurfacePayloadContractCatalog.Functions.First(item =>
+            item.AspNetRouteOrCapability.Contains("/erp/trial-balance/snapshot", StringComparison.Ordinal));
+        Assert.Equal("write-live-gated", write.Status);
+    }
+
+    [Fact]
+    public void App_EmitsListPageWithoutForbiddenWords()
+    {
+        var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpTrialBalanceApp.razor"));
+        Assert.Contains("@page \"/erp/trial-balance-app\"", text, StringComparison.Ordinal);
+        Assert.Contains("Parameters", text, StringComparison.Ordinal);
+        Assert.Contains("Posting layer", text, StringComparison.Ordinal);
+        Assert.Contains("Include closing transactions", text, StringComparison.Ordinal);
+        Assert.Contains("Trial balance snapshots", text, StringComparison.Ordinal);
+        Assert.Contains("Open in Excel", text, StringComparison.Ordinal);
+        Assert.Contains("Voucher transactions", text, StringComparison.Ordinal);
+        Assert.Contains("ErpTrialBalanceParameters.SnapshotPath", text, StringComparison.Ordinal);
+        Assert.Equal("/erp/trial-balance/snapshot", ErpTrialBalanceParameters.SnapshotPath);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHP", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SchemaAndRoutes_AreRegistered()
+    {
+        var schema = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpLazySchema.cs"));
+        Assert.Contains("epc_erp_tb_snapshots", schema, StringComparison.Ordinal);
+        Assert.Contains("EnsureTrialBalanceSnapshotsAsync", schema, StringComparison.Ordinal);
+        var program = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs"));
+        Assert.Contains("IErpTrialBalanceReadService", program, StringComparison.Ordinal);
+        Assert.Contains("IErpTrialBalanceWriteService", program, StringComparison.Ordinal);
+        var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+        Assert.Contains("HandleTrialBalanceSnapshotAsync", module, StringComparison.Ordinal);
+        Assert.Contains("HandleTrialBalanceExportAsync", module, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task WriteService_InsertsSnapshotOnThrowawayDb()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_tb_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var cs = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using (var adminConn = new MySqlConnection(admin))
+        {
+            await adminConn.OpenAsync();
+            await using var create = new MySqlCommand("CREATE DATABASE `" + database + "`", adminConn);
+            await create.ExecuteNonQueryAsync();
+        }
+
+        try
+        {
+            var connections = new Connections(cs);
+            var read = new ErpTrialBalanceReadService(connections);
+            await read.ReadAsync(ErpTrialBalanceParameters.FromQuery(
+                "2026-01-01", "2026-12-31", "current", "column", "1", "1", null, null, null, null));
+            await using (var connection = await connections.OpenAsync())
+            {
+                await using var update = connection.CreateCommand();
+                update.CommandText = "UPDATE `epc_erp_coa_accounts` SET `opening_balance` = 50 WHERE `code` IN ('1000','2000')";
+                await update.ExecuteNonQueryAsync();
+            }
+
+            var writes = new ErpTrialBalanceWriteService(connections, read);
+            var saved = await writes.SaveSnapshotAsync(new ErpTrialBalanceSnapshotRequest(
+                FromDate: "2026-01-01",
+                ToDate: "2026-12-31",
+                TrackingId: "TB-TEST"));
+            Assert.True(saved.Succeeded, saved.Message);
+            Assert.True(saved.Id > 0);
+
+            var result = await read.ReadAsync(ErpTrialBalanceParameters.FromQuery(
+                "2026-01-01", "2026-12-31", "current", "column", "1", "1", null, null, null, null));
+            Assert.Contains(result.Lines, line => line.Code == "1000" && line.Opening == 50m);
+            Assert.Contains(result.Snapshots, snap => snap.TrackingId == "TB-TEST");
+        }
+        finally
+        {
+            await using var adminConn = new MySqlConnection(admin);
+            await adminConn.OpenAsync();
+            await using var drop = new MySqlCommand("DROP DATABASE IF EXISTS `" + database + "`", adminConn);
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
+    private static string FindRepoFile(string relative)
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            var candidate = Path.Combine(dir.FullName, relative);
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+
+            var alt = Path.GetFullPath(Path.Combine(dir.FullName, "..", "..", "..", "..", "..", relative));
+            if (File.Exists(alt))
+            {
+                return alt;
+            }
+
+            dir = dir.Parent;
+        }
+
+        throw new FileNotFoundException(relative);
+    }
+
+    private sealed class Connections(string cs) : IErpWriteConnectionFactory
+    {
+        public bool IsConfigured => true;
+
+        public async Task<DbConnection> OpenAsync(CancellationToken cancellationToken = default)
+        {
+            var connection = new MySqlConnection(cs);
+            await connection.OpenAsync(cancellationToken);
+            return connection;
+        }
+    }
+}

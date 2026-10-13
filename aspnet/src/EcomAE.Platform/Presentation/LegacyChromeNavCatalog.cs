@@ -146,6 +146,7 @@ public static class LegacyChromeNavCatalog
         new("Inventory stock", "/erp/inventory-stock-app"),
         new("Stock movements", "/erp/stock-movements-app"),
         new("Report center", "/erp/report-center-app"),
+        new("Trial balance", "/erp/trial-balance-app"),
         new("Aging", "/erp/aging-app"),
         new("Bank reconciliation", "/erp/bank-reconciliation-app"),
         new("Stock transfers", "/erp/stock-transfers-app"),

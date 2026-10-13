@@ -78,6 +78,8 @@ public sealed class ErpPhpTabRouteMapTests
     [InlineData("doc_attachment", "/erp/doc-attachments-app")]
     [InlineData("inventory_report", "/erp/inventory-report-app")]
     [InlineData("dashboard", "/erp/dashboard-summary-app")]
+    [InlineData("enterprise_reports", "/erp/trial-balance-app")]
+    [InlineData("jw_trial_balance", "/erp/trial-balance-app")]
     [InlineData("pl", "/erp/report-center-app?tab=pl")]
     [InlineData("balance_sheet", "/erp/report-center-app?tab=balance_sheet")]
     [InlineData("reports", "/erp/report-center-app?tab=reports")]

@@ -760,6 +760,9 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOrganizationMasterReadService
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365WorkspaceReadService, EcomAE.Platform.Erp.ErpD365WorkspaceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365WorkspaceWriteService, EcomAE.Platform.Erp.ErpD365WorkspaceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Migration.IErpD365WorkspaceDryRun, EcomAE.Platform.Migration.ErpD365WorkspaceDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTrialBalanceReadService, EcomAE.Platform.Erp.ErpTrialBalanceReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTrialBalanceWriteService, EcomAE.Platform.Erp.ErpTrialBalanceWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Migration.IErpTrialBalanceDryRun, EcomAE.Platform.Migration.ErpTrialBalanceDryRun>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpApSetupReadService, EcomAE.Platform.Erp.ErpApSetupReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSupplierOnboardReadService, EcomAE.Platform.Erp.ErpSupplierOnboardReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMasterLookupReadService, EcomAE.Platform.Erp.ErpMasterLookupReadService>();

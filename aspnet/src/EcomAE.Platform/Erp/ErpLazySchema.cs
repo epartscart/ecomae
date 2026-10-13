@@ -1626,6 +1626,34 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Dynamics-style workspace rows'",
             ct);
 
+    public static Task EnsureTrialBalanceSnapshotsAsync(DbConnection c, CancellationToken ct) =>
+        ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_tb_snapshots` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`tracking_id` varchar(64) NOT NULL DEFAULT ''," +
+            "`date_from` varchar(16) NOT NULL DEFAULT ''," +
+            "`date_to` varchar(16) NOT NULL DEFAULT ''," +
+            "`posting_layer` varchar(24) NOT NULL DEFAULT 'current'," +
+            "`opening_display` varchar(24) NOT NULL DEFAULT 'column'," +
+            "`include_closing` tinyint(1) NOT NULL DEFAULT 1," +
+            "`include_closing_adj` tinyint(1) NOT NULL DEFAULT 1," +
+            "`dimension_set` varchar(40) NOT NULL DEFAULT 'main_account'," +
+            "`separate_dims` tinyint(1) NOT NULL DEFAULT 0," +
+            "`row_count` int(11) NOT NULL DEFAULT 0," +
+            "`opening_total` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`debit_total` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`credit_total` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`closing_total` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`payload_json` longtext," +
+            "`created_by` int(11) NOT NULL DEFAULT 0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_tracking` (`tracking_id`)," +
+            "KEY `x_dates` (`date_from`,`date_to`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Dynamics-style trial balance snapshots'",
+            ct);
+
     /// <summary>PHP <c>epc_entity_ensure_schema</c> (content/shop/finance/epc_multi_entity.php).</summary>
     public static async Task EnsureMultiEntityAsync(DbConnection c, CancellationToken ct)
     {

@@ -37,7 +37,7 @@ public static class ErpReportCenterRegistry
         new("proc_categories", "purchasing", "Procurement categories", "Category hierarchy.", SourceKind.Table, "epc_proc_category"),
         new("tax_withholding", "tax", "Withholding register", "Withholding tax transactions.", SourceKind.Table, "epc_wht_txn"),
         new("tax_er_runs", "tax", "Electronic reporting runs", "Generated electronic reporting runs.", SourceKind.Table, "epc_er_run"),
-        new("gl_trial_balance", "finance", "Trial balance", "Account balances as of today.", SourceKind.Computed),
+        new("gl_trial_balance", "finance", "Trial balance", "Date-range trial balance with opening, period debit/credit, and closing.", SourceKind.Computed),
         new("gl_profit_loss", "finance", "Profit and loss", "Income and expense from the chart of accounts as of today.", SourceKind.Computed),
         new("gl_balance_sheet", "finance", "Balance sheet", "Assets, liabilities and equity from the chart of accounts as of today.", SourceKind.Computed),
         new("gl_journals", "finance", "Journal register", "General ledger journals.", SourceKind.Table, "epc_erp_gl_journals"),
