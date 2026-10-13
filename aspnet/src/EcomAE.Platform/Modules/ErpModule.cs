@@ -422,6 +422,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationChecklistSet, HandleUaeTaxLegislationChecklistSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPmSave, HandlePmSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRealEstateSave, HandleRealEstateSaveAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpRealEstateReport, HandleRealEstateReportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpIndustryApply, HandleIndustryApplyAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpIndustryCurrent, HandleIndustryCurrentAsync);
         endpoints.MapPost(EcomAeRoutes.ErpPmBudgetSave, HandlePmBudgetSaveAsync).DisableAntiforgery();
@@ -23532,6 +23533,44 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleRealEstateReportAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpRealEstateReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/real-estate-app", "Admin ERP capability required for the investment real-estate report.");
+        }
+
+        var snap = await reads.LoadAsync(cancellationToken);
+        var site = ClientErpPath.BoundSiteKey(context) ?? "real";
+        var title = site.ToUpperInvariant() + " investment real estate";
+        var utc = DateTime.UtcNow;
+        var stem = ErpRealEstateReportPack.FileStem(site, utc);
+        var format = (context.Request.Query["format"].ToString() ?? "").Trim().ToLowerInvariant();
+        var pdfHref = ClientErpPath.PrefixIfBound(context, EcomAeRoutes.ErpRealEstateReport + "?format=pdf");
+        var docxHref = ClientErpPath.PrefixIfBound(context, EcomAeRoutes.ErpRealEstateReport + "?format=docx");
+        if (format is "pdf")
+        {
+            return Results.File(ErpRealEstateReportPack.Pdf(snap, title, utc), "application/pdf", stem + ".pdf");
+        }
+
+        if (format is "docx" or "word" or "doc")
+        {
+            return Results.File(
+                ErpRealEstateReportPack.Docx(snap, title, utc),
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                stem + ".docx");
+        }
+
+        return Results.Content(
+            ErpRealEstateReportPack.Html(snap, title, pdfHref, docxHref, utc),
+            "text/html; charset=utf-8");
+    }
+
     private static async Task<IResult> HandleRealEstateSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -23560,6 +23599,7 @@ public sealed class ErpModule : ISurfaceModule
             ProjectId: form is null ? 0 : LiveWriteFormBinder.Long(form, "projectId", "project_id"),
             ContractId: form is null ? 0 : LiveWriteFormBinder.Long(form, "contractId", "contract_id"),
             OpportunityId: form is null ? 0 : LiveWriteFormBinder.Long(form, "opportunityId", "opportunity_id"),
+            SaleId: form is null ? 0 : LiveWriteFormBinder.Long(form, "saleId", "sale_id"),
             Code: form is null ? null : LiveWriteFormBinder.Text(form, "code"),
             Name: form is null ? null : LiveWriteFormBinder.Text(form, "name"),
             Status: form is null ? null : LiveWriteFormBinder.Text(form, "status"),

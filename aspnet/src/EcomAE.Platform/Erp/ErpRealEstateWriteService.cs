@@ -68,6 +68,13 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
                 "save_contract" => await SaveContractAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
                 "save_variation" => await SaveVariationAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
                 "save_certificate" => await SaveCertificateAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "save_boq_line" => await SaveBoqLineAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "save_escrow_receipt" => await SaveEscrowReceiptAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "save_escrow_disbursement" => await SaveEscrowDisbursementAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "save_milestone" => await SaveMilestoneAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "generate_instalments" => await GenerateInstalmentsAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "collect_instalment" => await CollectInstalmentAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "allocate_shared_cost" => await AllocateSharedCostAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
                 "save_document" => await SaveDocumentAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
                 "ack_alert" => await AckAlertAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
                 "void" or "void_document" => await VoidDocumentAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
@@ -467,6 +474,78 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """,
         """
+        CREATE TABLE IF NOT EXISTS `epc_erp_re_boq_lines` (
+          `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `contract_id` BIGINT NOT NULL,
+          `code` VARCHAR(40) NOT NULL,
+          `description` VARCHAR(190) NOT NULL DEFAULT '',
+          `trade` VARCHAR(80) NOT NULL DEFAULT '',
+          `qty` DECIMAL(18,4) NOT NULL DEFAULT 0,
+          `rate` DECIMAL(18,4) NOT NULL DEFAULT 0,
+          `amount` DECIMAL(18,4) NOT NULL DEFAULT 0,
+          `status` VARCHAR(40) NOT NULL DEFAULT 'draft',
+          PRIMARY KEY (`id`),
+          KEY `idx_re_boq_ctr` (`contract_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_erp_re_escrow` (
+          `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `project_id` BIGINT NOT NULL,
+          `kind` VARCHAR(20) NOT NULL DEFAULT 'receipt',
+          `amount` DECIMAL(18,4) NOT NULL DEFAULT 0,
+          `certificate_id` BIGINT NOT NULL DEFAULT 0,
+          `reference` VARCHAR(80) NOT NULL DEFAULT '',
+          `txn_date` DATE DEFAULT NULL,
+          `status` VARCHAR(40) NOT NULL DEFAULT 'received',
+          `gl_journal_id` BIGINT NOT NULL DEFAULT 0,
+          `notes` VARCHAR(255) NOT NULL DEFAULT '',
+          PRIMARY KEY (`id`),
+          KEY `idx_re_escrow_proj` (`project_id`,`kind`,`status`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_erp_re_milestones` (
+          `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `project_id` BIGINT NOT NULL,
+          `code` VARCHAR(40) NOT NULL,
+          `name` VARCHAR(190) NOT NULL,
+          `due_date` DATE DEFAULT NULL,
+          `percent` DECIMAL(9,4) NOT NULL DEFAULT 0,
+          `status` VARCHAR(40) NOT NULL DEFAULT 'planned',
+          PRIMARY KEY (`id`),
+          KEY `idx_re_ms_proj` (`project_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_erp_re_instalments` (
+          `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `sale_id` BIGINT NOT NULL,
+          `milestone_id` BIGINT NOT NULL DEFAULT 0,
+          `due_date` DATE DEFAULT NULL,
+          `percent` DECIMAL(9,4) NOT NULL DEFAULT 0,
+          `amount` DECIMAL(18,4) NOT NULL DEFAULT 0,
+          `collected` DECIMAL(18,4) NOT NULL DEFAULT 0,
+          `status` VARCHAR(40) NOT NULL DEFAULT 'due',
+          `gl_journal_id` BIGINT NOT NULL DEFAULT 0,
+          PRIMARY KEY (`id`),
+          KEY `idx_re_inst_sale` (`sale_id`,`status`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_erp_re_cost_allocs` (
+          `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `project_id` BIGINT NOT NULL,
+          `unit_id` BIGINT NOT NULL,
+          `basis` VARCHAR(20) NOT NULL DEFAULT 'area',
+          `weight` DECIMAL(18,4) NOT NULL DEFAULT 0,
+          `amount` DECIMAL(18,4) NOT NULL DEFAULT 0,
+          `status` VARCHAR(40) NOT NULL DEFAULT 'allocated',
+          PRIMARY KEY (`id`),
+          KEY `idx_re_alloc_proj` (`project_id`,`unit_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
         CREATE TABLE IF NOT EXISTS `epc_erp_property_maintenance` (
           `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
           `property_id` INT UNSIGNED NOT NULL DEFAULT 0,
@@ -509,6 +588,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         "ALTER TABLE `epc_erp_re_certificates` ADD COLUMN `gl_journal_id` BIGINT NOT NULL DEFAULT 0",
         "ALTER TABLE `epc_erp_re_sales` ADD COLUMN `gl_journal_id` BIGINT NOT NULL DEFAULT 0",
         "ALTER TABLE `epc_erp_property_maintenance` ADD COLUMN `gl_journal_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_re_units` ADD COLUMN `allocated_cost` DECIMAL(18,4) NOT NULL DEFAULT 0",
     ];
 
     private static async Task<ErpSimpleWriteResult> SaveOpportunityAsync(
@@ -1005,11 +1085,26 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
 
         var current = await ScalarText(c, tx, "SELECT `status` FROM `epc_erp_re_cheques` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
         if (ErpPostedTransactionPolicy.IsVoided(current)
-            || string.Equals(current, "cleared", StringComparison.OrdinalIgnoreCase)
             || string.Equals(current, "bounced", StringComparison.OrdinalIgnoreCase)
             || string.Equals(current, "replaced", StringComparison.OrdinalIgnoreCase))
         {
             return ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.RefuseModify);
+        }
+
+        if (string.Equals(current, "cleared", StringComparison.OrdinalIgnoreCase))
+        {
+            if (status != "bounced")
+            {
+                return ErpSimpleWriteResult.Fail("posted", ErpPostedTransactionPolicy.RefuseModify);
+            }
+
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_re_cheques` SET `status`='bounced' WHERE `id`=?"),
+                ct, r.Id).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "INSERT INTO `epc_erp_re_alerts` (`kind`,`title`,`related_id`,`status`) VALUES ('cheque_bounce',?,?,'open')"),
+                ct, "Bounced after clearance " + r.Id, r.Id).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Cheque bounced after clearance. Prior cleared allocation and cash journal were left intact.", r.Id);
         }
 
         if (status == "cleared")
@@ -1211,7 +1306,9 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
 
         if (recognized > 0)
         {
-            var unitCost = await ScalarDec(c, tx, "SELECT IFNULL(`asking_price`,0) FROM `epc_erp_re_units` WHERE `id`=?", ct, r.UnitId).ConfigureAwait(false);
+            var allocated = await ScalarDec(c, tx, "SELECT IFNULL(`allocated_cost`,0) FROM `epc_erp_re_units` WHERE `id`=?", ct, r.UnitId).ConfigureAwait(false);
+            var asking = await ScalarDec(c, tx, "SELECT IFNULL(`asking_price`,0) FROM `epc_erp_re_units` WHERE `id`=?", ct, r.UnitId).ConfigureAwait(false);
+            var unitCost = ErpRealEstateCalc.UnitCostOfSale(allocated, asking);
             var journalId = await PostIfrsAsync(c, tx, r.ActorId, CompanyOf(r, r.LegalEntityId), id,
                 "RE-SAL-" + id.ToString(CultureInfo.InvariantCulture),
                 "IFRS 15 development revenue when performance obligations are met",
@@ -1293,6 +1390,335 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             ErpRealEstateIfrs.Certificate(net), ct).ConfigureAwait(false);
         await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_certificates", id, journalId, ct).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Payment certificate posted. Net payable " + net.ToString("0.00", CultureInfo.InvariantCulture) + " AED is on the balance sheet.", id);
+    }
+
+    private static async Task<ErpSimpleWriteResult> SaveBoqLineAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (r.ContractId <= 0 || string.IsNullOrWhiteSpace(r.Code))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Contract and BOQ line code are required.");
+        }
+
+        var qty = r.Amount;
+        var rate = r.Amount2;
+        var amount = ErpRealEstateCalc.BoqAmount(qty, rate);
+        if (amount <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "BOQ qty and rate must produce a positive amount.");
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "INSERT INTO `epc_erp_re_boq_lines` (`contract_id`,`code`,`description`,`trade`,`qty`,`rate`,`amount`,`status`) VALUES (?,?,?,?,?,?,?,'draft')"),
+            ct, r.ContractId, Clip(r.Code, 40), Clip(r.Name, 190), Clip(r.Category, 80), Money(qty), Money(rate), amount).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok(
+            "BOQ line saved. Amount " + amount.ToString("0.00", CultureInfo.InvariantCulture) + " AED (qty × rate). Tender grid stays operational until certified.",
+            await LastId(c, tx, ct).ConfigureAwait(false));
+    }
+
+    private async Task<ErpSimpleWriteResult> SaveEscrowReceiptAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (r.ProjectId <= 0 || r.Amount <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Project and escrow receipt amount are required.");
+        }
+
+        var required = await ScalarLong(c, tx, "SELECT IFNULL(`escrow_required`,0) FROM `epc_erp_re_projects` WHERE `id`=?", ct, r.ProjectId).ConfigureAwait(false);
+        if (required <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("escrow", "This project is not flagged for escrow. Set escrow required on the project first.");
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "INSERT INTO `epc_erp_re_escrow` (`project_id`,`kind`,`amount`,`reference`,`txn_date`,`status`,`notes`) VALUES (?, 'receipt', ?, ?, ?, 'received', ?)"),
+            ct, r.ProjectId, Money(r.Amount), Clip(r.Code, 80, "ESC-IN"), DateOrNull(r.Date1), Clip(r.Note, 255)).ConfigureAwait(false);
+        var id = await LastId(c, tx, ct).ConfigureAwait(false);
+        var journalId = await PostIfrsAsync(c, tx, r.ActorId, CompanyOf(r, r.LegalEntityId), id,
+            "RE-ESC-IN-" + id.ToString(CultureInfo.InvariantCulture),
+            "Project escrow receipt — restricted cash and IFRS 15 contract liability",
+            ErpRealEstateIfrs.EscrowReceipt(r.Amount), ct).ConfigureAwait(false);
+        await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_escrow", id, journalId, ct).ConfigureAwait(false);
+        var (receipts, disbursed) = await EscrowTotalsAsync(c, tx, r.ProjectId, ct).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok(
+            "Escrow receipt posted to the balance sheet (restricted cash, not income). Balance "
+            + ErpRealEstateCalc.EscrowBalance(receipts, disbursed).ToString("0.00", CultureInfo.InvariantCulture) + " AED.",
+            id);
+    }
+
+    private async Task<ErpSimpleWriteResult> SaveEscrowDisbursementAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (r.ProjectId <= 0 || r.Amount <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Project and disbursement amount are required.");
+        }
+
+        var required = await ScalarLong(c, tx, "SELECT IFNULL(`escrow_required`,0) FROM `epc_erp_re_projects` WHERE `id`=?", ct, r.ProjectId).ConfigureAwait(false);
+        if (required <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("escrow", "This project is not flagged for escrow. Permitted disbursements are blocked.");
+        }
+
+        var (receipts, disbursed) = await EscrowTotalsAsync(c, tx, r.ProjectId, ct).ConfigureAwait(false);
+        if (!ErpRealEstateCalc.EscrowDisbursementPermitted(receipts, disbursed, r.Amount))
+        {
+            return ErpSimpleWriteResult.Fail(
+                "escrow",
+                "Disbursement is not permitted. Escrow receipts "
+                + receipts.ToString("0.00", CultureInfo.InvariantCulture)
+                + " AED, already disbursed "
+                + disbursed.ToString("0.00", CultureInfo.InvariantCulture)
+                + " AED.");
+        }
+
+        var certificateId = r.RelatedId > 0 ? r.RelatedId : r.ContractId;
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "INSERT INTO `epc_erp_re_escrow` (`project_id`,`kind`,`amount`,`certificate_id`,`reference`,`txn_date`,`status`,`notes`) VALUES (?, 'disbursement', ?, ?, ?, ?, 'disbursed', ?)"),
+            ct, r.ProjectId, Money(r.Amount), certificateId, Clip(r.Code, 80, "ESC-OUT"), DateOrNull(r.Date1), Clip(r.Note, 255)).ConfigureAwait(false);
+        var id = await LastId(c, tx, ct).ConfigureAwait(false);
+        var journalId = await PostIfrsAsync(c, tx, r.ActorId, CompanyOf(r, r.LegalEntityId), id,
+            "RE-ESC-OUT-" + id.ToString(CultureInfo.InvariantCulture),
+            certificateId > 0
+                ? "Permitted escrow disbursement settling contractor payable"
+                : "Permitted escrow disbursement to construction in progress",
+            ErpRealEstateIfrs.EscrowDisbursement(r.Amount, certificateId > 0), ct).ConfigureAwait(false);
+        await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_escrow", id, journalId, ct).ConfigureAwait(false);
+        var balance = ErpRealEstateCalc.EscrowBalance(receipts, disbursed + Money(r.Amount));
+        return ErpSimpleWriteResult.Ok(
+            "Permitted escrow disbursement posted. Remaining escrow "
+            + balance.ToString("0.00", CultureInfo.InvariantCulture) + " AED.",
+            id);
+    }
+
+    private static async Task<ErpSimpleWriteResult> SaveMilestoneAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (r.ProjectId <= 0 || string.IsNullOrWhiteSpace(r.Code) || string.IsNullOrWhiteSpace(r.Name))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Project, milestone code and name are required.");
+        }
+
+        if (r.Percent <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Milestone percent of the sale price is required.");
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "INSERT INTO `epc_erp_re_milestones` (`project_id`,`code`,`name`,`due_date`,`percent`,`status`) VALUES (?,?,?,?,?,'planned')"),
+            ct, r.ProjectId, Clip(r.Code, 40), Clip(r.Name, 190), DateOrNull(r.Date1), r.Percent).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Construction milestone saved. Off-plan instalments can now be generated from it.", await LastId(c, tx, ct).ConfigureAwait(false));
+    }
+
+    private static async Task<ErpSimpleWriteResult> GenerateInstalmentsAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        var saleId = r.SaleId > 0 ? r.SaleId : r.RelatedId;
+        if (saleId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Sale id is required to generate the instalment calendar.");
+        }
+
+        var existing = await ScalarLong(c, tx,
+            "SELECT COUNT(*) FROM `epc_erp_re_instalments` WHERE `sale_id`=? AND `status` NOT IN ('voided','reversed')",
+            ct, saleId).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            return ErpSimpleWriteResult.Fail("exists", "Instalments already exist for this sale.");
+        }
+
+        var price = await ScalarDec(c, tx, "SELECT IFNULL(`sale_price`,0) FROM `epc_erp_re_sales` WHERE `id`=?", ct, saleId).ConfigureAwait(false);
+        var projectId = await ScalarLong(c, tx, "SELECT IFNULL(`project_id`,0) FROM `epc_erp_re_sales` WHERE `id`=?", ct, saleId).ConfigureAwait(false);
+        if (price <= 0 || projectId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Sale must have a price and a development project.");
+        }
+
+        var milestones = new List<(long Id, decimal Percent, string Due)>();
+        await using (var command = c.CreateCommand())
+        {
+            command.Transaction = tx;
+            command.CommandText = ErpDb.Positional(
+                "SELECT `id`,`percent`,IFNULL(`due_date`,'') FROM `epc_erp_re_milestones` WHERE `project_id`=? AND `status` NOT IN ('voided','reversed') ORDER BY `id`");
+            ErpDb.AddParameters(command, projectId);
+            await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                milestones.Add((
+                    Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader.GetValue(1), CultureInfo.InvariantCulture),
+                    Convert.ToString(reader.GetValue(2), CultureInfo.InvariantCulture) ?? ""));
+            }
+        }
+
+        if (milestones.Count == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Add project milestones before generating the off-plan calendar.");
+        }
+
+        var amounts = milestones.Select(m => ErpRealEstateCalc.OffPlanInstalment(price, m.Percent)).ToList();
+        if (Math.Abs(milestones.Sum(m => m.Percent) - 100m) < 0.011m && amounts.Count > 0)
+        {
+            var head = amounts.Take(amounts.Count - 1).Sum();
+            amounts[^1] = Money(price - head);
+        }
+
+        for (var i = 0; i < milestones.Count; i++)
+        {
+            var due = string.IsNullOrWhiteSpace(milestones[i].Due) ? (object)DBNull.Value : milestones[i].Due;
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "INSERT INTO `epc_erp_re_instalments` (`sale_id`,`milestone_id`,`due_date`,`percent`,`amount`,`collected`,`status`) VALUES (?,?,?,?,?,0,'due')"),
+                ct, saleId, milestones[i].Id, due, milestones[i].Percent, amounts[i]).ConfigureAwait(false);
+        }
+
+        return ErpSimpleWriteResult.Ok(
+            milestones.Count.ToString(CultureInfo.InvariantCulture) + " off-plan instalments generated from construction milestones.",
+            saleId);
+    }
+
+    private async Task<ErpSimpleWriteResult> CollectInstalmentAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (r.Id <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Instalment id is required.");
+        }
+
+        var current = await ScalarText(c, tx, "SELECT `status` FROM `epc_erp_re_instalments` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(current))
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Instalment was not found.");
+        }
+
+        if (!ErpPostedTransactionPolicy.CanModify("instalment", current))
+        {
+            return PostedBlock(current, "instalment");
+        }
+
+        var due = await ScalarDec(c, tx, "SELECT IFNULL(`amount`,0) FROM `epc_erp_re_instalments` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        var already = await ScalarDec(c, tx, "SELECT IFNULL(`collected`,0) FROM `epc_erp_re_instalments` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        var collect = r.Amount > 0 ? Money(r.Amount) : Money(due - already);
+        if (collect <= 0 || collect > Money(due - already))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Collection must be a positive amount not exceeding the instalment balance.");
+        }
+
+        var saleId = await ScalarLong(c, tx, "SELECT `sale_id` FROM `epc_erp_re_instalments` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        var saleStatus = await ScalarText(c, tx, "SELECT `status` FROM `epc_erp_re_sales` WHERE `id`=?", ct, saleId).ConfigureAwait(false);
+        var projectId = await ScalarLong(c, tx, "SELECT IFNULL(`project_id`,0) FROM `epc_erp_re_sales` WHERE `id`=?", ct, saleId).ConfigureAwait(false);
+        var escrow = projectId > 0
+            && await ScalarLong(c, tx, "SELECT IFNULL(`escrow_required`,0) FROM `epc_erp_re_projects` WHERE `id`=?", ct, projectId).ConfigureAwait(false) > 0;
+        var recognized = saleStatus is "sold" or "handed_over" or "recognized";
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_re_instalments` SET `collected`=`collected`+?, `status`=CASE WHEN `collected`+?>=`amount` THEN 'collected' ELSE 'due' END WHERE `id`=?"),
+            ct, collect, collect, r.Id).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_re_sales` SET `collected`=`collected`+? WHERE `id`=?"),
+            ct, collect, saleId).ConfigureAwait(false);
+
+        var journalId = await PostIfrsAsync(c, tx, r.ActorId, CompanyOf(r, r.LegalEntityId), r.Id,
+            "RE-INST-" + r.Id.ToString(CultureInfo.InvariantCulture),
+            recognized
+                ? "Off-plan collection against IFRS 15 receivable"
+                : "Off-plan collection — contract liability, not revenue",
+            ErpRealEstateIfrs.OffPlanCollection(collect, escrow, recognized), ct).ConfigureAwait(false);
+        await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_instalments", r.Id, journalId, ct).ConfigureAwait(false);
+
+        if (escrow)
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "INSERT INTO `epc_erp_re_escrow` (`project_id`,`kind`,`amount`,`reference`,`txn_date`,`status`,`gl_journal_id`,`notes`) VALUES (?, 'receipt', ?, ?, CURRENT_DATE, 'received', ?, ?)"),
+                ct, projectId, collect, "INST-" + r.Id.ToString(CultureInfo.InvariantCulture), journalId,
+                "Off-plan instalment collection into escrow").ConfigureAwait(false);
+        }
+
+        return ErpSimpleWriteResult.Ok(
+            recognized
+                ? "Instalment collected against the IFRS 15 receivable on the balance sheet."
+                : "Instalment collected as an IFRS 15 contract liability. It is not development revenue until the unit is sold.",
+            r.Id);
+    }
+
+    private static async Task<ErpSimpleWriteResult> AllocateSharedCostAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (r.ProjectId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Project id is required to allocate shared cost.");
+        }
+
+        var land = await ScalarDec(c, tx, "SELECT IFNULL(`land_cost`,0) FROM `epc_erp_re_projects` WHERE `id`=?", ct, r.ProjectId).ConfigureAwait(false);
+        var actual = await ScalarDec(c, tx, "SELECT IFNULL(`actual_cost`,0) FROM `epc_erp_re_projects` WHERE `id`=?", ct, r.ProjectId).ConfigureAwait(false);
+        var total = r.Amount > 0 ? Money(r.Amount) : Money(land + actual);
+        if (total <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Nothing to allocate. Set a project land/actual cost or pass an amount.");
+        }
+
+        var basis = Clip(r.Category, 20, "area").ToLowerInvariant();
+        if (basis is not ("area" or "equal"))
+        {
+            basis = "area";
+        }
+
+        var units = new List<(long Id, decimal Area)>();
+        await using (var command = c.CreateCommand())
+        {
+            command.Transaction = tx;
+            command.CommandText = ErpDb.Positional(
+                "SELECT `id`,IFNULL(`area_sqm`,0) FROM `epc_erp_re_units` WHERE `project_id`=? ORDER BY `id`");
+            ErpDb.AddParameters(command, r.ProjectId);
+            await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                units.Add((
+                    Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader.GetValue(1), CultureInfo.InvariantCulture)));
+            }
+        }
+
+        if (units.Count == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Add saleable units to the project before allocating shared cost.");
+        }
+
+        var weights = units.Select(u => basis == "equal" ? 1m : u.Area).ToArray();
+        var parts = ErpRealEstateCalc.AllocateSharedCost(total, weights);
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_re_cost_allocs` SET `status`='reversed' WHERE `project_id`=? AND `status`='allocated'"),
+            ct, r.ProjectId).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_re_units` SET `allocated_cost`=0 WHERE `project_id`=?"),
+            ct, r.ProjectId).ConfigureAwait(false);
+
+        for (var i = 0; i < units.Count; i++)
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "INSERT INTO `epc_erp_re_cost_allocs` (`project_id`,`unit_id`,`basis`,`weight`,`amount`,`status`) VALUES (?,?,?,?,?,'allocated')"),
+                ct, r.ProjectId, units[i].Id, basis, weights[i], parts[i]).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_re_units` SET `allocated_cost`=? WHERE `id`=?"),
+                ct, parts[i], units[i].Id).ConfigureAwait(false);
+        }
+
+        return ErpSimpleWriteResult.Ok(
+            "Shared cost of " + total.ToString("0.00", CultureInfo.InvariantCulture)
+            + " AED allocated across " + units.Count.ToString(CultureInfo.InvariantCulture)
+            + " units by " + basis + ". IFRS 15 unit cost will use the allocated figure.",
+            r.ProjectId);
+    }
+
+    private static async Task<(decimal Receipts, decimal Disbursed)> EscrowTotalsAsync(
+        DbConnection c, DbTransaction tx, long projectId, CancellationToken ct)
+    {
+        var receipts = await ScalarDec(c, tx,
+            "SELECT IFNULL(SUM(`amount`),0) FROM `epc_erp_re_escrow` WHERE `project_id`=? AND `kind`='receipt' AND `status` NOT IN ('voided','reversed')",
+            ct, projectId).ConfigureAwait(false);
+        var disbursed = await ScalarDec(c, tx,
+            "SELECT IFNULL(SUM(`amount`),0) FROM `epc_erp_re_escrow` WHERE `project_id`=? AND `kind`='disbursement' AND `status` NOT IN ('voided','reversed')",
+            ct, projectId).ConfigureAwait(false);
+        return (receipts, disbursed);
     }
 
     private static async Task<ErpSimpleWriteResult> SaveDocumentAsync(
@@ -1428,7 +1854,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
 
     private async Task UnwindAsync(DbConnection c, DbTransaction tx, string kind, long id, int actorId, CancellationToken ct)
     {
-        if (kind is "acquisition" or "disposal" or "valuation" or "cheque" or "deposit" or "sale" or "certificate")
+        if (kind is "acquisition" or "disposal" or "valuation" or "cheque" or "deposit" or "sale" or "certificate" or "escrow" or "instalment")
         {
             try
             {
@@ -1493,6 +1919,11 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             "certificate" => ("epc_erp_re_certificates", true),
             "contract" => ("epc_erp_re_contracts", true),
             "opportunity" => ("epc_erp_re_opportunities", true),
+            "boq" => ("epc_erp_re_boq_lines", true),
+            "escrow" => ("epc_erp_re_escrow", false),
+            "milestone" => ("epc_erp_re_milestones", true),
+            "instalment" => ("epc_erp_re_instalments", false),
+            "allocation" => ("epc_erp_re_cost_allocs", false),
             _ => null,
         };
 
@@ -1561,5 +1992,11 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         }
 
         return text.Length <= max ? text : text[..max];
+    }
+
+    private static object DateOrNull(string? value)
+    {
+        var text = (value ?? string.Empty).Trim();
+        return text.Length == 0 ? DBNull.Value : text;
     }
 }

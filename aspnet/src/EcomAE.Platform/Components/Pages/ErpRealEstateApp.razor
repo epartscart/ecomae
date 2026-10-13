@@ -17,9 +17,27 @@
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/real-estate-app" IsAdmin="_isAdmin" />
     <PhpErpModulePageHeader
         Title="Investment, development and construction"
-        Subtitle="Property master, pipeline, leases, cheques, projects and contractor certificates — linked to legal entities, GL, VAT and existing finance. Posted rows cannot be edited; void (keep on file) or delete them. Reverse remains available. Opportunities stay off both statements. Completed acquisitions, deposits, cheques and certificates hit the balance sheet; rent, fair-value moves (IAS 40 through P&L, not OCI) and recognized unit sales (IFRS 15) hit the income statement."
+        Subtitle="Property master, pipeline, leases, cheques, development, BOQ, escrow, off-plan instalments and contractor certificates — linked to legal entities, GL, VAT and existing finance. Posted rows cannot be edited; void (keep on file) or delete them. Reverse remains available. Opportunities stay off both statements. Completed acquisitions, deposits, cheques, escrow and certificates hit the balance sheet; rent, fair-value moves (IAS 40 through P&L, not OCI) and recognized unit sales (IFRS 15) hit the income statement. Off-plan collections stay a contract liability until sold."
         PhpTabHref="/erp/real-estate-app" />
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+
+    <div class="re-board-dock" aria-label="Download investment report from any tab">
+        <div>
+            <strong>Investment report</strong>
+            <span class="text-muted"> — portfolio presentation with photographs (fair value, yield, leases). Download PDF or Word from this tab or any other.</span>
+        </div>
+        <div class="re-board-dock__actions">
+            <a class="btn btn-sm re-board-btn" href="@ReportHref("html")" target="_blank" rel="noopener">Open presentation</a>
+            <a class="btn btn-sm re-board-btn" href="@ReportHref("pdf")">Download PDF</a>
+            <a class="btn btn-sm re-board-btn" href="@ReportHref("docx")">Download Word</a>
+        </div>
+    </div>
+    <style>
+        .re-board-dock { position: sticky; top: 0; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 14px; padding: 10px 14px; background: linear-gradient(90deg, #0b1f3a, #163a6b); color: #f6f1e7; border-bottom: 3px solid #c4a35a; border-radius: 6px; box-shadow: 0 8px 24px rgba(11,31,58,.22); }
+        .re-board-dock strong { color: #c4a35a; }
+        .re-board-dock .text-muted { color: #e2e8f0 !important; }
+        .re-board-btn { background: #c4a35a !important; color: #0b1f3a !important; border: 0 !important; font-weight: 600; }
+    </style>
 
     <nav class="epc-org-tabs" aria-label="Real estate workspaces">
         @foreach (var tab in Tabs)
@@ -37,6 +55,7 @@
         <div class="kpi"><div class="lbl">Gross yield</div><div class="val">@((_snap.Kpis.GrossYield * 100).ToString("0.00", CultureInfo.InvariantCulture))%</div></div>
         <div class="kpi"><div class="lbl">Occupancy</div><div class="val">@((_snap.Kpis.Occupancy * 100).ToString("0.0", CultureInfo.InvariantCulture))%</div></div>
         <div class="kpi"><div class="lbl">Cost to complete</div><div class="val">@_snap.Kpis.CostToComplete.ToString("N0", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Escrow held</div><div class="val">@_snap.Kpis.EscrowBalance.ToString("N0", CultureInfo.InvariantCulture)</div></div>
     </div>
 
     <p class="text-muted">Finance links: legal entity, invoices, cash/bank, ageing, GL and VAT stay on the existing ERP modules. Cheques are not cash until bank clearance. Residential/commercial VAT is taken from the configured tax engine, not hardcoded by property type. Posted documents cannot be edited. Use Void to keep the original row, or Delete to remove it. Reverse is also available on posted rows.</p>
@@ -171,6 +190,32 @@
                     <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save valuation</button></div>
                 </form>
             </ErpPhpCreateWell>
+            <div class="epc-erp-table-wrap">
+                <h4>Valuation timeline</h4>
+                <table class="table table-condensed table-bordered table-epc">
+                    <thead><tr><th>Id</th><th>Code</th><th>Approved</th><th>Estimated</th><th>Change</th><th>When</th></tr></thead>
+                    <tbody>
+                    @if (_valuationTimeline.Count == 0)
+                    {
+                        <tr><td colspan="6" class="text-muted">No valuations yet.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var point in _valuationTimeline)
+                        {
+                            <tr>
+                                <td>@point.Row.Id</td>
+                                <td>@point.Row.Code</td>
+                                <td>@point.Row.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@point.Row.Amount2.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@((point.Change * 100).ToString("0.00", CultureInfo.InvariantCulture))%</td>
+                                <td>@point.Row.Detail</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
         }
         else if (_tab == "leases")
         {
@@ -258,7 +303,33 @@
                     <label>Replacement cheque id <input class="form-control input-sm" type="number" name="relatedId" value="0" /></label>
                     <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Update cheque</button></div>
                 </form>
+                <p class="text-muted">Bounce after a cleared cheque keeps the prior cleared allocation and cash journal intact.</p>
             </ErpPhpCreateWell>
+            <div class="epc-erp-table-wrap">
+                <h4>Cheque maturity calendar</h4>
+                <table class="table table-condensed table-bordered table-epc">
+                    <thead><tr><th>Id</th><th>Cheque</th><th>Amount</th><th>Status</th><th>Bank / date</th></tr></thead>
+                    <tbody>
+                    @if (_snap.Cheques.Count == 0)
+                    {
+                        <tr><td colspan="5" class="text-muted">No cheques on the register.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _snap.Cheques)
+                        {
+                            <tr>
+                                <td>@row.Id</td>
+                                <td>@row.Code</td>
+                                <td>@row.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@row.Status</td>
+                                <td>@row.Detail</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
         }
         else if (_tab == "maintenance")
         {
@@ -305,7 +376,59 @@
                     <label>Property id <input class="form-control input-sm" type="number" name="propertyId" value="0" /></label>
                     <label>Unit code <input class="form-control input-sm" name="code" required /></label>
                     <label>Asking <input class="form-control input-sm" type="number" step="0.01" name="amount" /></label>
+                    <label>Area sqm <input class="form-control input-sm" type="number" step="0.01" name="area" /></label>
                     <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Add unit inventory</button></div>
+                </form>
+            </ErpPhpCreateWell>
+            <ErpPhpCreateWell Title="Project milestone (off-plan calendar)">
+                <form method="post" action="@SaveAction">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("projects")" />
+                    <input type="hidden" name="action" value="save_milestone" />
+                    <label>Project id <input class="form-control input-sm" type="number" name="projectId" required min="1" /></label>
+                    <label>Code <input class="form-control input-sm" name="code" required /></label>
+                    <label>Name <input class="form-control input-sm" name="name" required placeholder="On booking / 20% structure" /></label>
+                    <label>Percent of sale <input class="form-control input-sm" type="number" step="0.01" name="percent" required /></label>
+                    <label>Due date <input class="form-control input-sm" type="date" name="date1" /></label>
+                    <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save milestone</button></div>
+                </form>
+            </ErpPhpCreateWell>
+            <ErpPhpCreateWell Title="Escrow receipt / permitted disbursement">
+                <form method="post" action="@SaveAction" style="margin-bottom:1rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("projects")" />
+                    <input type="hidden" name="action" value="save_escrow_receipt" />
+                    <label>Project id <input class="form-control input-sm" type="number" name="projectId" required min="1" /></label>
+                    <label>Amount <input class="form-control input-sm" type="number" step="0.01" name="amount" required /></label>
+                    <label>Reference <input class="form-control input-sm" name="code" /></label>
+                    <label>Date <input class="form-control input-sm" type="date" name="date1" /></label>
+                    <button type="submit" class="btn btn-primary btn-sm">Post escrow receipt</button>
+                </form>
+                <form method="post" action="@SaveAction">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("projects")" />
+                    <input type="hidden" name="action" value="save_escrow_disbursement" />
+                    <label>Project id <input class="form-control input-sm" type="number" name="projectId" required min="1" /></label>
+                    <label>Amount <input class="form-control input-sm" type="number" step="0.01" name="amount" required /></label>
+                    <label>Certificate id (optional) <input class="form-control input-sm" type="number" name="relatedId" value="0" /></label>
+                    <label>Date <input class="form-control input-sm" type="date" name="date1" /></label>
+                    <button type="submit" class="btn btn-default btn-sm">Permit disbursement</button>
+                </form>
+            </ErpPhpCreateWell>
+            <ErpPhpCreateWell Title="Allocate shared project cost across units">
+                <form method="post" action="@SaveAction">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("projects")" />
+                    <input type="hidden" name="action" value="allocate_shared_cost" />
+                    <label>Project id <input class="form-control input-sm" type="number" name="projectId" required min="1" /></label>
+                    <label>Amount (0 = land + actual) <input class="form-control input-sm" type="number" step="0.01" name="amount" value="0" /></label>
+                    <label>Basis
+                        <select class="form-control input-sm" name="category">
+                            <option value="area">by area</option>
+                            <option value="equal">equal</option>
+                        </select>
+                    </label>
+                    <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Allocate shared cost</button></div>
                 </form>
             </ErpPhpCreateWell>
         }
@@ -330,6 +453,23 @@
                         </select>
                     </label>
                     <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Reserve / sell unit</button></div>
+                </form>
+            </ErpPhpCreateWell>
+            <ErpPhpCreateWell Title="Milestone-linked off-plan instalments">
+                <form method="post" action="@SaveAction" style="margin-bottom:1rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("sales")" />
+                    <input type="hidden" name="action" value="generate_instalments" />
+                    <label>Sale id <input class="form-control input-sm" type="number" name="saleId" required min="1" /></label>
+                    <button type="submit" class="btn btn-primary btn-sm">Generate calendar from milestones</button>
+                </form>
+                <form method="post" action="@SaveAction">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("sales")" />
+                    <input type="hidden" name="action" value="collect_instalment" />
+                    <label>Instalment id <input class="form-control input-sm" type="number" name="id" required min="1" /></label>
+                    <label>Amount (0 = balance) <input class="form-control input-sm" type="number" step="0.01" name="amount" value="0" /></label>
+                    <button type="submit" class="btn btn-default btn-sm">Collect instalment</button>
                 </form>
             </ErpPhpCreateWell>
         }
@@ -383,6 +523,76 @@
                     <button type="submit" class="btn btn-primary btn-sm">Save certificate</button>
                 </form>
             </ErpPhpCreateWell>
+            <ErpPhpCreateWell Title="BOQ / tender line">
+                <form method="post" action="@SaveAction">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@OrgHref("construction")" />
+                    <input type="hidden" name="action" value="save_boq_line" />
+                    <label>Contract id <input class="form-control input-sm" type="number" name="contractId" required min="1" /></label>
+                    <label>Line code <input class="form-control input-sm" name="code" required /></label>
+                    <label>Description <input class="form-control input-sm" name="name" /></label>
+                    <label>Trade <input class="form-control input-sm" name="category" /></label>
+                    <label>Qty <input class="form-control input-sm" type="number" step="0.01" name="amount" required /></label>
+                    <label>Rate <input class="form-control input-sm" type="number" step="0.01" name="amount2" required /></label>
+                    <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Add BOQ line</button></div>
+                </form>
+            </ErpPhpCreateWell>
+        }
+        else if (_tab == "calendar")
+        {
+            <div class="epc-erp-table-wrap">
+                <h4>Cheque maturity</h4>
+                <table class="table table-condensed table-bordered table-epc">
+                    <thead><tr><th>Id</th><th>Cheque</th><th>Amount</th><th>Status</th><th>Bank / date</th></tr></thead>
+                    <tbody>
+                    @if (_snap.Cheques.Count == 0)
+                    {
+                        <tr><td colspan="5" class="text-muted">No cheques.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _snap.Cheques)
+                        {
+                            <tr><td>@row.Id</td><td>@row.Code</td><td>@row.Amount.ToString("N2", CultureInfo.InvariantCulture)</td><td>@row.Status</td><td>@row.Detail</td></tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+                <h4>Off-plan instalments</h4>
+                <table class="table table-condensed table-bordered table-epc">
+                    <thead><tr><th>Id</th><th>Sale</th><th>Due</th><th>Amount</th><th>Collected</th><th>Status</th></tr></thead>
+                    <tbody>
+                    @if (_snap.Instalments.Count == 0)
+                    {
+                        <tr><td colspan="6" class="text-muted">No instalments. Generate them from project milestones on Unit sales.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _snap.Instalments)
+                        {
+                            <tr><td>@row.Id</td><td>@row.Name</td><td>@row.Detail</td><td>@row.Amount.ToString("N2", CultureInfo.InvariantCulture)</td><td>@row.Amount2.ToString("N2", CultureInfo.InvariantCulture)</td><td>@row.Status</td></tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+                <h4>Construction milestones</h4>
+                <table class="table table-condensed table-bordered table-epc">
+                    <thead><tr><th>Id</th><th>Code</th><th>Name</th><th>%</th><th>Due</th></tr></thead>
+                    <tbody>
+                    @if (_snap.Milestones.Count == 0)
+                    {
+                        <tr><td colspan="5" class="text-muted">No milestones.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _snap.Milestones)
+                        {
+                            <tr><td>@row.Id</td><td>@row.Code</td><td>@row.Name</td><td>@row.Amount.ToString("0.##", CultureInfo.InvariantCulture)</td><td>@row.Detail</td></tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
         }
         else if (_tab == "documents")
         {
@@ -425,7 +635,8 @@
                     </tbody>
                 </table>
             </div>
-            <p class="text-muted">Portfolio, rent roll, cheque register and contractor certificates are the grids on the other tabs. Open <a href="@FinanceHref("/erp/aging-app")">AR ageing</a>, <a href="@FinanceHref("/erp/cash-entries-app")">cash entries</a>, <a href="@FinanceHref("/erp/gl-journals-app")">GL journals</a>, <a href="@FinanceHref("/erp/invoices-app")">invoices</a> and <a href="@FinanceHref("/erp/vat-app")">VAT</a> for ledger reconciliation.</p>
+            <p class="text-muted">The coloured pack is the downloadable investment real-estate report (PDF or Word) with skyline and lobby photographs — summary plus property, valuation, lease and collection detail. Open <a href="@FinanceHref("/erp/aging-app")">AR ageing</a>, <a href="@FinanceHref("/erp/cash-entries-app")">cash entries</a>, <a href="@FinanceHref("/erp/gl-journals-app")">GL journals</a>, <a href="@FinanceHref("/erp/invoices-app")">invoices</a> and <a href="@FinanceHref("/erp/vat-app")">VAT</a> for ledger reconciliation.</p>
+            <iframe title="Investment real estate presentation" src="@ReportHref("html")" style="width:100%;min-height:720px;border:1px solid #c4a35a;border-radius:6px;background:#0b1f3a"></iframe>
         }
     }
 
@@ -505,6 +716,14 @@
             </tbody>
         </table>
     </div>
+    <div class="re-board-dock" style="margin-top:14px" aria-label="Download investment report again">
+        <div><strong>Need the investment report from here?</strong> Same portfolio pack — PDF or Word — from this position.</div>
+        <div class="re-board-dock__actions">
+            <a class="btn btn-sm re-board-btn" href="@ReportHref("html")" target="_blank" rel="noopener">Open presentation</a>
+            <a class="btn btn-sm re-board-btn" href="@ReportHref("pdf")">Download PDF</a>
+            <a class="btn btn-sm re-board-btn" href="@ReportHref("docx")">Download Word</a>
+        </div>
+    </div>
 </PhpErpDesktopChrome>
 
 @code {
@@ -521,6 +740,7 @@
         ("projects", "Development", "fa-sitemap"),
         ("sales", "Unit sales", "fa-home"),
         ("construction", "Contracts", "fa-hard-hat"),
+        ("calendar", "Calendars", "fa-calendar"),
         ("documents", "Documents", "fa-folder-open"),
         ("alerts", "Alerts", "fa-bell"),
         ("reports", "Reports", "fa-bar-chart"),
@@ -532,10 +752,11 @@
     private string _flashOk = "";
     private string _flashErr = "";
     private ErpRealEstateSnapshot _snap = new(
-        new ErpRealEstateKpis(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
+        new ErpRealEstateKpis(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+        [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
         ErpRealEstateCalc.Definitions, "");
     private IReadOnlyList<ErpRealEstateRow> _rows = [];
+    private IReadOnlyList<(ErpRealEstateRow Row, decimal Change)> _valuationTimeline = [];
 
     private string SaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/real-estate/save");
 
@@ -544,6 +765,9 @@
 
     private string FinanceHref(string href)
         => ClientErpPath.PrefixIfBound(Http.HttpContext, href);
+
+    private string ReportHref(string format)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/real-estate/report?format=" + format);
 
     private string TabClass(string tab)
         => string.Equals(_tab, tab, StringComparison.OrdinalIgnoreCase) ? "active" : "";
@@ -568,6 +792,7 @@
         }
 
         _snap = await RealEstate.LoadAsync(ctx.RequestAborted);
+        _valuationTimeline = BuildValuationTimeline(_snap.Valuations);
         _rows = _tab switch
         {
             "opportunities" => _snap.Opportunities,
@@ -577,9 +802,10 @@
             "leases" => _snap.Tenants.Concat(_snap.Leases).ToArray(),
             "collections" => _snap.Cheques.Concat(_snap.Deposits).ToArray(),
             "maintenance" => _snap.Maintenance,
-            "projects" => _snap.Projects.Concat(_snap.Units).ToArray(),
-            "sales" => _snap.Sales,
-            "construction" => _snap.Contractors.Concat(_snap.Contracts).Concat(_snap.Certificates).ToArray(),
+            "projects" => _snap.Projects.Concat(_snap.Units).Concat(_snap.Milestones).Concat(_snap.Escrow).Concat(_snap.Allocations).ToArray(),
+            "sales" => _snap.Sales.Concat(_snap.Instalments).ToArray(),
+            "construction" => _snap.Contractors.Concat(_snap.Contracts).Concat(_snap.Certificates).Concat(_snap.BoqLines).ToArray(),
+            "calendar" => _snap.Cheques.Concat(_snap.Instalments).Concat(_snap.Milestones).ToArray(),
             "documents" => _snap.Documents,
             "alerts" => _snap.Alerts.Select(a => new ErpRealEstateRow(a.Id, a.Kind, a.Kind, a.Title, a.Status, 0, 0, a.DueDate, false)).ToArray(),
             _ => _snap.Properties.Where(p => p.OwnedAsset).Concat(_snap.Opportunities.Select(o => o with { OwnedAsset = false })).ToArray(),
@@ -590,5 +816,21 @@
     {
         var tab = (raw ?? string.Empty).Trim().ToLowerInvariant();
         return Tabs.Any(t => t.Key == tab) ? tab : "dashboard";
+    }
+
+    private static IReadOnlyList<(ErpRealEstateRow Row, decimal Change)> BuildValuationTimeline(
+        IReadOnlyList<ErpRealEstateRow> valuations)
+    {
+        var ordered = valuations.OrderBy(v => v.Id).ToArray();
+        var points = new List<(ErpRealEstateRow, decimal)>(ordered.Length);
+        decimal previous = 0;
+        foreach (var row in ordered)
+        {
+            var change = previous == 0 ? 0 : ErpRealEstateCalc.ValuationChangePct(row.Amount, previous);
+            points.Add((row, change));
+            previous = row.Amount;
+        }
+
+        return points;
     }
 }

@@ -40,6 +40,10 @@ public static class ErpRealEstateCalc
         new("project_margin", "Project net margin", "(recognized_sales - project_cost) / recognized_sales", "project", "ratio", "sales / project cost", "recognized_sales"),
         new("cost_to_complete", "Cost to complete", "revised_budget - actual_cost", "project", Currency, "project budgets", "1"),
         new("certificate_net", "Certificate net payable", "gross_certified - advance_recovery - retention - other + vat", "certificate", Currency, "epc_erp_re_certificates", "1"),
+        new("boq_amount", "BOQ line amount", "qty * rate", "line", Currency, "epc_erp_re_boq_lines", "1"),
+        new("escrow_balance", "Project escrow balance", "escrow_receipts - permitted_disbursements", "project", Currency, "epc_erp_re_escrow", "1"),
+        new("offplan_instalment", "Off-plan instalment", "sale_price * milestone_percent / 100", "milestone", Currency, "epc_erp_re_instalments", "sale_price"),
+        new("shared_cost", "Shared-cost allocation", "project_cost * unit_weight / sum(weights); last unit takes remainder", "project", Currency, "epc_erp_re_cost_allocs", "sum(weights)"),
         new("irr", "Unlevered IRR/XIRR", "XIRR of dated cash flows (acquisition outflow, NOI, sale)", "holding period", "ratio", "dated cash flows", "n/a"),
     ];
 
@@ -202,4 +206,75 @@ public static class ErpRealEstateCalc
             "annual" => Money(annualRent),
             _ => Money(annualRent / 12m),
         };
+
+    public static decimal BoqAmount(decimal qty, decimal rate)
+        => Money(qty * rate);
+
+    public static decimal EscrowBalance(decimal receipts, decimal disbursements)
+        => Money(receipts - disbursements);
+
+    public static bool EscrowDisbursementPermitted(decimal receipts, decimal disbursements, decimal requested)
+        => requested > 0 && EscrowBalance(receipts, disbursements) >= Money(requested);
+
+    public static decimal OffPlanInstalment(decimal salePrice, decimal percent)
+        => percent <= 0 || salePrice <= 0 ? 0 : Money(salePrice * percent / 100m);
+
+    public static decimal UnitCostOfSale(decimal allocatedCost, decimal askingPrice)
+        => allocatedCost > 0 ? Money(allocatedCost) : Money(askingPrice);
+
+    /// <summary>
+    /// Splits <paramref name="total"/> across units. Zero weights are skipped.
+    /// When every weight is zero the split is equal. The last positive unit
+    /// receives the remainder so the parts always sum to the money total.
+    /// </summary>
+    public static IReadOnlyList<decimal> AllocateSharedCost(decimal total, IReadOnlyList<decimal> weights)
+    {
+        var money = Money(total);
+        if (weights is null || weights.Count == 0)
+        {
+            return [];
+        }
+
+        var result = new decimal[weights.Count];
+        if (money <= 0)
+        {
+            return result;
+        }
+
+        var effective = weights.Select(w => w > 0 ? w : 0m).ToArray();
+        var sum = effective.Sum();
+        if (sum <= 0)
+        {
+            var each = Money(money / weights.Count);
+            decimal running = 0;
+            for (var i = 0; i < weights.Count; i++)
+            {
+                result[i] = i == weights.Count - 1 ? Money(money - running) : each;
+                running += result[i];
+            }
+
+            return result;
+        }
+
+        decimal allocated = 0;
+        var lastPositive = -1;
+        for (var i = 0; i < weights.Count; i++)
+        {
+            if (effective[i] <= 0)
+            {
+                continue;
+            }
+
+            lastPositive = i;
+            result[i] = Money(money * (effective[i] / sum));
+            allocated += result[i];
+        }
+
+        if (lastPositive >= 0)
+        {
+            result[lastPositive] = Money(result[lastPositive] + (money - allocated));
+        }
+
+        return result;
+    }
 }
