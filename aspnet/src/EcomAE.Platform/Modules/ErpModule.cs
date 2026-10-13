@@ -23560,6 +23560,7 @@ public sealed class ErpModule : ISurfaceModule
             ProjectId: form is null ? 0 : LiveWriteFormBinder.Long(form, "projectId", "project_id"),
             ContractId: form is null ? 0 : LiveWriteFormBinder.Long(form, "contractId", "contract_id"),
             OpportunityId: form is null ? 0 : LiveWriteFormBinder.Long(form, "opportunityId", "opportunity_id"),
+            SaleId: form is null ? 0 : LiveWriteFormBinder.Long(form, "saleId", "sale_id"),
             Code: form is null ? null : LiveWriteFormBinder.Text(form, "code"),
             Name: form is null ? null : LiveWriteFormBinder.Text(form, "name"),
             Status: form is null ? null : LiveWriteFormBinder.Text(form, "status"),

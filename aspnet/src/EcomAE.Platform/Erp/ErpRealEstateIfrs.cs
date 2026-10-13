@@ -10,10 +10,12 @@ public static class ErpRealEstateIfrs
     public const string Bank = "1010";
     public const string ChequesUnderCollection = "1120";
     public const string RentReceivable = "1130";
+    public const string EscrowCash = "1140";
     public const string InvestmentProperty = "1510";
     public const string PropertyUnderConstruction = "1520";
     public const string TenantDeposits = "2200";
     public const string ContractorPayable = "2210";
+    public const string BuyerAdvances = "2220";
     public const string RentalIncome = "4100";
     public const string DevelopmentRevenue = "4110";
     public const string FairValueGain = "4200";
@@ -27,10 +29,12 @@ public static class ErpRealEstateIfrs
         (Bank, "Bank", "asset", "debit", "Bank current accounts — cash after clearance", "balance_sheet"),
         (ChequesUnderCollection, "Cheques under collection", "asset", "debit", "PDC / cheques not yet cleared — not cash", "balance_sheet"),
         (RentReceivable, "Rent receivable", "asset", "debit", "Earned rent not yet collected", "balance_sheet"),
+        (EscrowCash, "Project escrow cash", "asset", "debit", "Restricted RERA / project escrow — not free cash", "balance_sheet"),
         (InvestmentProperty, "Investment property", "asset", "debit", "IAS 40 investment property at cost then fair value", "balance_sheet"),
         (PropertyUnderConstruction, "Investment property under construction", "asset", "debit", "IAS 40 / construction certificates until handover", "balance_sheet"),
         (TenantDeposits, "Tenant security deposits", "liability", "credit", "Refundable deposits — not rental income", "balance_sheet"),
         (ContractorPayable, "Contractor certificates payable", "liability", "credit", "Net certified amounts due to contractors", "balance_sheet"),
+        (BuyerAdvances, "Off-plan buyer advances", "liability", "credit", "IFRS 15 contract liability until performance obligations are met", "balance_sheet"),
         (RentalIncome, "Rental income", "revenue", "credit", "IAS 40 / IFRS 16 lessor operating income", "income_statement"),
         (DevelopmentRevenue, "Development revenue", "revenue", "credit", "IFRS 15 unit sales when performance obligations are met", "income_statement"),
         (FairValueGain, "Fair-value gain on investment property", "revenue", "credit", "IAS 40.35 revaluation through profit or loss", "income_statement"),
@@ -205,6 +209,63 @@ public static class ErpRealEstateIfrs
         [
             new(PropertyUnderConstruction, value, 0, "Construction / CIP asset"),
             new(ContractorPayable, 0, value, "Certificate payable"),
+        ];
+    }
+
+    public static IReadOnlyList<JournalLine> EscrowReceipt(decimal amount)
+    {
+        var value = ErpRealEstateCalc.Money(amount);
+        if (value <= 0)
+        {
+            return [];
+        }
+
+        return
+        [
+            new(EscrowCash, value, 0, "Restricted escrow cash — not free bank"),
+            new(BuyerAdvances, 0, value, "IFRS 15 contract liability — not revenue"),
+        ];
+    }
+
+    public static IReadOnlyList<JournalLine> EscrowDisbursement(decimal amount, bool againstCertificate)
+    {
+        var value = ErpRealEstateCalc.Money(amount);
+        if (value <= 0)
+        {
+            return [];
+        }
+
+        return againstCertificate
+            ?
+            [
+                new(ContractorPayable, value, 0, "Settle certified contractor payable from escrow"),
+                new(EscrowCash, 0, value, "Permitted escrow disbursement"),
+            ]
+            :
+            [
+                new(PropertyUnderConstruction, value, 0, "Construction / CIP from escrow"),
+                new(EscrowCash, 0, value, "Permitted escrow disbursement"),
+            ];
+    }
+
+    public static IReadOnlyList<JournalLine> OffPlanCollection(decimal amount, bool intoEscrow, bool revenueAlreadyRecognized)
+    {
+        var value = ErpRealEstateCalc.Money(amount);
+        if (value <= 0)
+        {
+            return [];
+        }
+
+        var debit = intoEscrow ? EscrowCash : Bank;
+        var credit = revenueAlreadyRecognized ? RentReceivable : BuyerAdvances;
+        var debitNote = intoEscrow ? "Off-plan receipt into project escrow" : "Off-plan receipt into bank";
+        var creditNote = revenueAlreadyRecognized
+            ? "Collect IFRS 15 contract receivable"
+            : "IFRS 15 contract liability — not revenue";
+        return
+        [
+            new(debit, value, 0, debitNote),
+            new(credit, 0, value, creditNote),
         ];
     }
 

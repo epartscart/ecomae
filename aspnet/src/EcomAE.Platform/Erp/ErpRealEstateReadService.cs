@@ -86,6 +86,26 @@ public sealed class ErpRealEstateReadService : IErpRealEstateReadService
             connection,
             "SELECT `id`,'certificate',`code`,CONCAT('contract ',`contract_id`),`status`,`net_payable`,`current_measured`,'advance/retention applied',0 FROM `epc_erp_re_certificates` ORDER BY `id` DESC LIMIT 40",
             cancellationToken).ConfigureAwait(false);
+        var boq = await RowsAsync(
+            connection,
+            "SELECT `id`,'boq',`code`,`description`,`status`,`amount`,`qty`,CONCAT('contract ',`contract_id`,' ',`trade`,' @ ',`rate`),0 FROM `epc_erp_re_boq_lines` ORDER BY `id` DESC LIMIT 80",
+            cancellationToken).ConfigureAwait(false);
+        var escrow = await RowsAsync(
+            connection,
+            "SELECT `id`,'escrow',CONCAT(UPPER(`kind`),'-',`id`),IFNULL(`reference`,''),`status`,`amount`,0,CONCAT('project ',`project_id`,' ',IFNULL(`txn_date`,'')),0 FROM `epc_erp_re_escrow` ORDER BY `id` DESC LIMIT 80",
+            cancellationToken).ConfigureAwait(false);
+        var milestones = await RowsAsync(
+            connection,
+            "SELECT `id`,'milestone',`code`,`name`,`status`,`percent`,0,CONCAT('project ',`project_id`,' due ',IFNULL(`due_date`,'')),0 FROM `epc_erp_re_milestones` ORDER BY `id` DESC LIMIT 80",
+            cancellationToken).ConfigureAwait(false);
+        var instalments = await RowsAsync(
+            connection,
+            "SELECT `id`,'instalment',CONCAT('INST-',`id`),CONCAT('sale ',`sale_id`),`status`,`amount`,`collected`,CONCAT('due ',IFNULL(`due_date`,''),' ',`percent`,'%'),0 FROM `epc_erp_re_instalments` ORDER BY `id` DESC LIMIT 80",
+            cancellationToken).ConfigureAwait(false);
+        var allocations = await RowsAsync(
+            connection,
+            "SELECT `id`,'allocation',CONCAT('ALLOC-',`id`),CONCAT('unit ',`unit_id`),`status`,`amount`,`weight`,CONCAT('project ',`project_id`,' ',`basis`),0 FROM `epc_erp_re_cost_allocs` ORDER BY `id` DESC LIMIT 80",
+            cancellationToken).ConfigureAwait(false);
         var documents = await RowsAsync(
             connection,
             "SELECT `id`,'document',`code`,`title`,`status`,0,0,CONCAT(`doc_type`,' ',IFNULL(`expiry_date`,'')),0 FROM `epc_erp_re_documents` ORDER BY `id` DESC LIMIT 40",
@@ -116,6 +136,8 @@ public sealed class ErpRealEstateReadService : IErpRealEstateReadService
         var invoiced = await ErpDb.DecimalAsync(connection, null, "SELECT IFNULL(SUM(`amount`),0) FROM `epc_erp_re_rent_invoices`", cancellationToken).ConfigureAwait(false);
         var collected = await ErpDb.DecimalAsync(connection, null, "SELECT IFNULL(SUM(`amount`),0) FROM `epc_erp_re_cheques` WHERE `status`='cleared'", cancellationToken).ConfigureAwait(false);
         var costToComplete = projects.Sum(p => ErpRealEstateCalc.CostToComplete(p.Amount, p.Amount2));
+        var escrowIn = escrow.Where(e => e.Code.StartsWith("RECEIPT", StringComparison.OrdinalIgnoreCase) && e.Status is not ("voided" or "reversed")).Sum(e => e.Amount);
+        var escrowOut = escrow.Where(e => e.Code.StartsWith("DISBURSEMENT", StringComparison.OrdinalIgnoreCase) && e.Status is not ("voided" or "reversed")).Sum(e => e.Amount);
         var kpis = new ErpRealEstateKpis(
             opportunities.Count(o => o.Status is "open" or "screening"),
             owned.Length,
@@ -130,7 +152,8 @@ public sealed class ErpRealEstateReadService : IErpRealEstateReadService
             ErpRealEstateCalc.GrossYield(annualRent, cost),
             ErpRealEstateCalc.Occupancy(occupied, units.Count),
             ErpRealEstateCalc.CollectionEfficiency(collected, invoiced),
-            costToComplete);
+            costToComplete,
+            ErpRealEstateCalc.EscrowBalance(escrowIn, escrowOut));
 
         return new(
             kpis,
@@ -150,6 +173,11 @@ public sealed class ErpRealEstateReadService : IErpRealEstateReadService
             contractors,
             contracts,
             certificates,
+            boq,
+            escrow,
+            milestones,
+            instalments,
+            allocations,
             documents,
             alerts,
             ErpRealEstateCalc.Definitions,
@@ -158,8 +186,8 @@ public sealed class ErpRealEstateReadService : IErpRealEstateReadService
 
     private static ErpRealEstateSnapshot Empty(string message)
         => new(
-            new ErpRealEstateKpis(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-            [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
+            new ErpRealEstateKpis(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+            [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
             ErpRealEstateCalc.Definitions,
             message);
 

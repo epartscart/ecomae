@@ -138,7 +138,15 @@ public sealed class ErpRealEstateTests
         Assert.Contains("PostIfrsAsync", src, StringComparison.Ordinal);
         Assert.Contains("IAS 40 investment property", src, StringComparison.Ordinal);
         Assert.DoesNotContain("Fair-value changes stay off the ledger", src, StringComparison.Ordinal);
-        Assert.Contains("income statement", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("Prior cleared allocation and cash journal were left intact", src, StringComparison.Ordinal);
+        Assert.Contains("save_boq_line", src, StringComparison.Ordinal);
+        Assert.Contains("save_escrow_receipt", src, StringComparison.Ordinal);
+        Assert.Contains("generate_instalments", src, StringComparison.Ordinal);
+        Assert.Contains("allocate_shared_cost", src, StringComparison.Ordinal);
+        Assert.Contains("income statement", razor, StringComparison.Ordinal);
+        Assert.Contains("save_boq_line", razor, StringComparison.Ordinal);
+        Assert.Contains("Cheque maturity calendar", razor, StringComparison.Ordinal);
+        Assert.Contains("\"calendar\", \"Calendars\"", razor, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -197,6 +205,49 @@ public sealed class ErpRealEstateTests
         Assert.All(ErpRealEstateIfrs.Accounts, a => Assert.Contains(a.Type, new[] { "asset", "liability", "revenue", "expense" }));
         Assert.Contains(ErpRealEstateIfrs.Accounts, a => a.Type is "asset" or "liability" && a.Statement == "balance_sheet");
         Assert.Contains(ErpRealEstateIfrs.Accounts, a => a.Type is "revenue" or "expense" && a.Statement == "income_statement");
+
+        Assert.Equal("balance_sheet", ErpRealEstateIfrs.StatementFor(ErpRealEstateIfrs.EscrowCash));
+        Assert.Equal("balance_sheet", ErpRealEstateIfrs.StatementFor(ErpRealEstateIfrs.BuyerAdvances));
+        var escrowIn = ErpRealEstateIfrs.EscrowReceipt(250_000m);
+        Assert.Contains(escrowIn, l => l.Code == ErpRealEstateIfrs.EscrowCash && l.Debit == 250_000m);
+        Assert.Contains(escrowIn, l => l.Code == ErpRealEstateIfrs.BuyerAdvances && l.Credit == 250_000m);
+        var escrowOut = ErpRealEstateIfrs.EscrowDisbursement(80_000m, againstCertificate: true);
+        Assert.Contains(escrowOut, l => l.Code == ErpRealEstateIfrs.ContractorPayable && l.Debit == 80_000m);
+        Assert.Contains(escrowOut, l => l.Code == ErpRealEstateIfrs.EscrowCash && l.Credit == 80_000m);
+        var advance = ErpRealEstateIfrs.OffPlanCollection(40_000m, intoEscrow: true, revenueAlreadyRecognized: false);
+        Assert.Contains(advance, l => l.Code == ErpRealEstateIfrs.BuyerAdvances && l.Credit == 40_000m);
+        Assert.DoesNotContain(advance, l => l.Code == ErpRealEstateIfrs.DevelopmentRevenue);
+    }
+
+    [Fact]
+    public void ConstructionSliceFormulasAndGuards()
+    {
+        Assert.Equal(12_500.00m, ErpRealEstateCalc.BoqAmount(25m, 500m));
+        Assert.Equal(150_000.00m, ErpRealEstateCalc.EscrowBalance(200_000m, 50_000m));
+        Assert.True(ErpRealEstateCalc.EscrowDisbursementPermitted(200_000m, 50_000m, 50_000m));
+        Assert.False(ErpRealEstateCalc.EscrowDisbursementPermitted(200_000m, 50_000m, 160_000m));
+        Assert.Equal(200_000.00m, ErpRealEstateCalc.OffPlanInstalment(500_000m, 40m));
+        Assert.Equal(80_000.00m, ErpRealEstateCalc.UnitCostOfSale(80_000m, 100_000m));
+        Assert.Equal(100_000.00m, ErpRealEstateCalc.UnitCostOfSale(0m, 100_000m));
+
+        var byArea = ErpRealEstateCalc.AllocateSharedCost(1_000_000m, [60m, 40m]);
+        Assert.Equal(2, byArea.Count);
+        Assert.Equal(600_000.00m, byArea[0]);
+        Assert.Equal(400_000.00m, byArea[1]);
+        Assert.Equal(1_000_000.00m, byArea.Sum());
+
+        var equal = ErpRealEstateCalc.AllocateSharedCost(100_000m, [0m, 0m, 0m]);
+        Assert.Equal(3, equal.Count);
+        Assert.Equal(100_000.00m, equal.Sum());
+        Assert.Equal(33_333.33m, equal[0]);
+        Assert.Equal(33_333.34m, equal[2]);
+
+        Assert.Contains(ErpRealEstateCalc.Definitions, d => d.Key == "escrow_balance");
+        Assert.Contains(ErpRealEstateCalc.Definitions, d => d.Key == "boq_amount");
+        Assert.True(ErpPostedTransactionPolicy.IsDraft("instalment", "due"));
+        Assert.True(ErpPostedTransactionPolicy.IsPosted("escrow", "received"));
+        Assert.True(ErpPostedTransactionPolicy.CanReverse("instalment", "collected"));
+        Assert.False(ErpPostedTransactionPolicy.CanModify("allocation", "allocated"));
     }
 
     [Fact]
@@ -297,20 +348,166 @@ public sealed class ErpRealEstateTests
                 ConfirmWrites: true));
             Assert.True(opex.Succeeded, opex.Message);
 
-            var reserved = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+            var project = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_project",
+                Code: "PRJ-IFRS",
+                Name: "Escrow tower",
+                Amount: 400_000m,
+                Amount2: 900_000m,
+                Amount3: 1_200_000m,
+                Count: 1,
+                LegalEntityId: 1,
+                ConfirmWrites: true));
+            Assert.True(project.Succeeded, project.Message);
+
+            var unitA = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_project_unit",
+                ProjectId: project.Id,
+                Code: "A-01",
+                Amount: 600_000m,
+                Area: 60m,
+                ConfirmWrites: true));
+            var unitB = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_project_unit",
+                ProjectId: project.Id,
+                Code: "B-01",
+                Amount: 400_000m,
+                Area: 40m,
+                ConfirmWrites: true));
+            Assert.True(unitA.Succeeded && unitB.Succeeded, unitA.Message + " " + unitB.Message);
+
+            var contractor = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_contractor", Code: "CTR-1", Name: "Main contractor", ConfirmWrites: true));
+            var contract = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_contract",
+                Code: "CON-1",
+                ProjectId: project.Id,
+                RelatedId: contractor.Id,
+                Amount: 500_000m,
+                Percent: 10m,
+                ConfirmWrites: true));
+            Assert.True(contract.Succeeded, contract.Message);
+
+            var boq = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_boq_line",
+                ContractId: contract.Id,
+                Code: "BOQ-01",
+                Name: "Blockwork",
+                Category: "masonry",
+                Amount: 100m,
+                Amount2: 250m,
+                ConfirmWrites: true));
+            Assert.True(boq.Succeeded, boq.Message);
+            Assert.Equal(25_000m, await ScalarDec(cs, "SELECT `amount` FROM `epc_erp_re_boq_lines` WHERE `id`=" + boq.Id));
+
+            var blockedEscrow = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_escrow_disbursement",
+                ProjectId: project.Id,
+                Amount: 10_000m,
+                ConfirmWrites: true));
+            Assert.False(blockedEscrow.Succeeded);
+
+            var receipt = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_escrow_receipt",
+                ProjectId: project.Id,
+                Amount: 200_000m,
+                Code: "ESC-1",
+                Date1: "2026-10-13",
+                LegalEntityId: 1,
+                ActorId: 1,
+                ConfirmWrites: true));
+            Assert.True(receipt.Succeeded, receipt.Message);
+
+            var over = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_escrow_disbursement",
+                ProjectId: project.Id,
+                Amount: 250_000m,
+                ConfirmWrites: true));
+            Assert.False(over.Succeeded);
+
+            var paid = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_escrow_disbursement",
+                ProjectId: project.Id,
+                Amount: 80_000m,
+                Date1: "2026-10-13",
+                LegalEntityId: 1,
+                ActorId: 1,
+                ConfirmWrites: true));
+            Assert.True(paid.Succeeded, paid.Message);
+
+            var ms1 = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_milestone", ProjectId: project.Id, Code: "MS-1", Name: "Booking", Percent: 40m, Date1: "2026-11-01", ConfirmWrites: true));
+            var ms2 = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "save_milestone", ProjectId: project.Id, Code: "MS-2", Name: "Structure", Percent: 60m, Date1: "2027-03-01", ConfirmWrites: true));
+            Assert.True(ms1.Succeeded && ms2.Succeeded, ms1.Message);
+
+            var offplan = await writes.SaveAsync(new ErpRealEstateWriteRequest(
                 "save_sale",
-                UnitId: 1,
-                Name: "Buyer A",
-                Amount: 800_000m,
+                UnitId: unitA.Id,
+                ProjectId: project.Id,
+                Name: "Buyer B",
+                Amount: 500_000m,
                 Status: "reserved",
                 LegalEntityId: 1,
                 ActorId: 1,
                 ConfirmWrites: true));
-            Assert.True(reserved.Succeeded, reserved.Message);
-            Assert.Contains("off the statements", reserved.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.True(offplan.Succeeded, offplan.Message);
+            Assert.Contains("off the statements", offplan.Message, StringComparison.OrdinalIgnoreCase);
+
+            var calendar = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "generate_instalments",
+                SaleId: offplan.Id,
+                ConfirmWrites: true));
+            Assert.True(calendar.Succeeded, calendar.Message);
+            Assert.Equal(2L, await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_re_instalments` WHERE `sale_id`=" + offplan.Id));
+            Assert.Equal(200_000m, await ScalarDec(cs, "SELECT `amount` FROM `epc_erp_re_instalments` WHERE `sale_id`=" + offplan.Id + " ORDER BY `id` LIMIT 1"));
+
+            var instId = await Scalar(cs, "SELECT `id` FROM `epc_erp_re_instalments` WHERE `sale_id`=" + offplan.Id + " ORDER BY `id` LIMIT 1");
+            var collected = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "collect_instalment",
+                Id: instId,
+                LegalEntityId: 1,
+                ActorId: 1,
+                ConfirmWrites: true));
+            Assert.True(collected.Succeeded, collected.Message);
+            Assert.Contains("contract liability", collected.Message, StringComparison.OrdinalIgnoreCase);
+
+            var alloc = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "allocate_shared_cost",
+                ProjectId: project.Id,
+                Amount: 1_000_000m,
+                Category: "area",
+                ConfirmWrites: true));
+            Assert.True(alloc.Succeeded, alloc.Message);
+            Assert.Equal(600_000m, await ScalarDec(cs, "SELECT `allocated_cost` FROM `epc_erp_re_units` WHERE `id`=" + unitA.Id));
+            Assert.Equal(400_000m, await ScalarDec(cs, "SELECT `allocated_cost` FROM `epc_erp_re_units` WHERE `id`=" + unitB.Id));
+
+            var cleared = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "cheque_status",
+                Id: cheque.Id,
+                Status: "deposited",
+                ConfirmWrites: true));
+            Assert.True(cleared.Succeeded, cleared.Message);
+            var banked = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "cheque_status",
+                Id: cheque.Id,
+                Status: "cleared",
+                LegalEntityId: 1,
+                ActorId: 1,
+                ConfirmWrites: true));
+            Assert.True(banked.Succeeded, banked.Message);
+            var bounce = await writes.SaveAsync(new ErpRealEstateWriteRequest(
+                "cheque_status",
+                Id: cheque.Id,
+                Status: "bounced",
+                ConfirmWrites: true));
+            Assert.True(bounce.Succeeded, bounce.Message);
+            Assert.Contains("Prior cleared allocation", bounce.Message, StringComparison.Ordinal);
+            Assert.True(await Scalar(cs, "SELECT `gl_clear_journal_id` FROM `epc_erp_re_cheques` WHERE `id`=" + cheque.Id) > 0);
+            Assert.Equal("bounced", await ScalarText(cs, "SELECT `status` FROM `epc_erp_re_cheques` WHERE `id`=" + cheque.Id));
 
             var journals = await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_journals` WHERE `uae_tax_legislation_ref`='IAS40/IFRS15/IFRS18' AND `active`=1");
-            Assert.True(journals >= 4, "expected IAS 40 / IFRS journals, got " + journals);
+            Assert.True(journals >= 7, "expected IAS 40 / IFRS journals, got " + journals);
 
             Assert.Equal(1L, await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_re_acquisitions` WHERE `gl_journal_id`>0"));
             Assert.Equal(1L, await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_re_valuations` WHERE `gl_journal_id`>0"));
@@ -323,6 +520,9 @@ public sealed class ErpRealEstateTests
             Assert.True(await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.code='4200' AND a.account_type='revenue' AND l.credit>0") > 0);
             Assert.True(await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.code='4100' AND a.account_type='revenue' AND l.credit>0") > 0);
             Assert.True(await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.code='6210' AND a.account_type='expense' AND l.debit>0") > 0);
+            Assert.True(await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.code='1140' AND a.account_type='asset' AND l.debit>0") > 0);
+            Assert.True(await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.code='2220' AND a.account_type='liability' AND l.credit>0") > 0);
+            Assert.True(await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.code='1520' AND a.account_type='asset' AND l.debit>0") > 0);
             Assert.Equal(0L, await Scalar(cs, "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.code='4110'"));
 
             var bs = await Scalar(
@@ -331,7 +531,7 @@ public sealed class ErpRealEstateTests
             var pl = await Scalar(
                 cs,
                 "SELECT COUNT(*) FROM `epc_erp_gl_lines` l JOIN `epc_erp_coa_accounts` a ON a.id=l.coa_id WHERE a.account_type IN ('revenue','income','expense')");
-            Assert.True(bs >= 6, "balance-sheet lines " + bs);
+            Assert.True(bs >= 10, "balance-sheet lines " + bs);
             Assert.True(pl >= 3, "income-statement lines " + pl);
         }
         finally
@@ -370,6 +570,22 @@ public sealed class ErpRealEstateTests
         await connection.OpenAsync();
         await using var command = new MySqlCommand(sql, connection);
         return Convert.ToInt64(await command.ExecuteScalarAsync(), CultureInfo.InvariantCulture);
+    }
+
+    private static async Task<decimal> ScalarDec(string connectionString, string sql)
+    {
+        await using var connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync();
+        await using var command = new MySqlCommand(sql, connection);
+        return Convert.ToDecimal(await command.ExecuteScalarAsync(), CultureInfo.InvariantCulture);
+    }
+
+    private static async Task<string> ScalarText(string connectionString, string sql)
+    {
+        await using var connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync();
+        await using var command = new MySqlCommand(sql, connection);
+        return Convert.ToString(await command.ExecuteScalarAsync(), CultureInfo.InvariantCulture) ?? "";
     }
 
     private sealed class ThrowawayConnections : IErpWriteConnectionFactory

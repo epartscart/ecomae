@@ -12,6 +12,7 @@ public sealed record ErpRealEstateWriteRequest(
     long ProjectId = 0,
     long ContractId = 0,
     long OpportunityId = 0,
+    long SaleId = 0,
     string? Code = null,
     string? Name = null,
     string? Status = null,
@@ -71,7 +72,8 @@ public sealed record ErpRealEstateKpis(
     decimal GrossYield,
     decimal Occupancy,
     decimal Collection,
-    decimal CostToComplete);
+    decimal CostToComplete,
+    decimal EscrowBalance);
 
 public sealed record ErpRealEstateSnapshot(
     ErpRealEstateKpis Kpis,
@@ -91,6 +93,11 @@ public sealed record ErpRealEstateSnapshot(
     IReadOnlyList<ErpRealEstateRow> Contractors,
     IReadOnlyList<ErpRealEstateRow> Contracts,
     IReadOnlyList<ErpRealEstateRow> Certificates,
+    IReadOnlyList<ErpRealEstateRow> BoqLines,
+    IReadOnlyList<ErpRealEstateRow> Escrow,
+    IReadOnlyList<ErpRealEstateRow> Milestones,
+    IReadOnlyList<ErpRealEstateRow> Instalments,
+    IReadOnlyList<ErpRealEstateRow> Allocations,
     IReadOnlyList<ErpRealEstateRow> Documents,
     IReadOnlyList<ErpRealEstateAlert> Alerts,
     IReadOnlyList<ErpRealEstateCalc.KpiDefinition> Definitions,
