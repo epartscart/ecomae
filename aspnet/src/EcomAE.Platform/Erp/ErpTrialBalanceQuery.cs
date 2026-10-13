@@ -4,8 +4,8 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Dynamics LedgerTrialBalanceListPage parameters and signed-balance math.
-/// Official fields: from/to date, posting layer, opening display, closing
-/// transaction types, dimension set, separate dimension columns, voucher drill.
+/// Official fields: from/to date, date interval, posting layer, opening display,
+/// closing transaction types, dimension set, Amount, posting-layer column, voucher drill.
 /// </summary>
 public enum ErpTrialBalanceOpeningDisplay
 {
@@ -37,7 +37,9 @@ public sealed record ErpTrialBalanceParameters(
     ErpTrialBalanceDimensionSet DimensionSet,
     bool SeparateDimensionColumns,
     string? AccountCode = null,
-    int Limit = 500)
+    int Limit = 500,
+    string Interval = "",
+    string? Filter = null)
 {
     public const string AppPath = "/erp/trial-balance-app";
     public const string SnapshotPath = "/erp/trial-balance/snapshot";
@@ -54,14 +56,28 @@ public sealed record ErpTrialBalanceParameters(
         string? dimensionSet,
         string? separateDims,
         string? account,
-        string? limit)
+        string? limit,
+        string? interval = null,
+        string? filter = null)
     {
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var fromDate = ParseDate(from) ?? new DateOnly(today.Year, 1, 1);
-        var toDate = ParseDate(to) ?? today;
-        if (toDate < fromDate)
+        var intervalKey = IntervalKey(interval);
+        DateOnly fromDate;
+        DateOnly toDate;
+        if (intervalKey.Length > 0)
         {
-            (fromDate, toDate) = (toDate, fromDate);
+            var ranged = ForInterval(intervalKey);
+            fromDate = ranged.FromDate;
+            toDate = ranged.ToDate;
+        }
+        else
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            fromDate = ParseDate(from) ?? new DateOnly(today.Year, 1, 1);
+            toDate = ParseDate(to) ?? today;
+            if (toDate < fromDate)
+            {
+                (fromDate, toDate) = (toDate, fromDate);
+            }
         }
 
         var parsedLimit = 500;
@@ -80,7 +96,9 @@ public sealed record ErpTrialBalanceParameters(
             ParseDimensionSet(dimensionSet),
             ParseFlag(separateDims, false),
             string.IsNullOrWhiteSpace(account) ? null : account.Trim(),
-            parsedLimit);
+            parsedLimit,
+            intervalKey,
+            string.IsNullOrWhiteSpace(filter) ? null : filter.Trim());
     }
 
     public long FromUnix => new DateTimeOffset(FromDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero).ToUnixTimeSeconds();
@@ -101,6 +119,16 @@ public sealed record ErpTrialBalanceParameters(
             "dimension_set=" + DimensionKey(DimensionSet),
             "separate_dims=" + (SeparateDimensionColumns ? "1" : "0"),
         };
+        if (!string.IsNullOrWhiteSpace(Interval))
+        {
+            parts.Add("interval=" + Uri.EscapeDataString(Interval));
+        }
+
+        if (!string.IsNullOrWhiteSpace(Filter))
+        {
+            parts.Add("q=" + Uri.EscapeDataString(Filter));
+        }
+
         if (!string.IsNullOrWhiteSpace(account))
         {
             parts.Add("account=" + Uri.EscapeDataString(account));
@@ -203,7 +231,7 @@ public sealed record ErpTrialBalanceParameters(
         }
 
         var closing = opening + debit - credit;
-        return new ErpTrialBalanceLine(code, name, accountType, normalSide, company, opening, debit, credit, closing);
+        return new ErpTrialBalanceLine(code, name, accountType, normalSide, company, opening, debit, credit, debit - credit, closing);
     }
 
     public static DateOnly? ParseDate(string? raw)
@@ -292,6 +320,62 @@ public sealed record ErpTrialBalanceParameters(
         => set == ErpTrialBalanceDimensionSet.MainAccountCompany
             ? "Main account + company"
             : "Main account";
+
+    public static string IntervalKey(string? interval)
+        => (interval ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "this_month" => "this_month",
+            "this_quarter" => "this_quarter",
+            "this_year" => "this_year",
+            "last_year" => "last_year",
+            _ => "",
+        };
+
+    public static string IntervalLabel(string? interval)
+        => IntervalKey(interval) switch
+        {
+            "this_month" => "This month",
+            "this_quarter" => "This quarter",
+            "this_year" => "This year",
+            "last_year" => "Last year",
+            _ => "",
+        };
+
+    public bool MatchesFilter(string code, string name)
+    {
+        if (string.IsNullOrWhiteSpace(Filter))
+        {
+            return true;
+        }
+
+        return code.Contains(Filter, StringComparison.OrdinalIgnoreCase)
+            || name.Contains(Filter, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static ErpTrialBalanceParameters ForInterval(string? interval, DateOnly? today = null)
+    {
+        var day = today ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        var key = IntervalKey(interval);
+        var (from, to) = key switch
+        {
+            "this_month" => (new DateOnly(day.Year, day.Month, 1), day),
+            "this_quarter" => (new DateOnly(day.Year, (((day.Month - 1) / 3) * 3) + 1, 1), day),
+            "last_year" => (new DateOnly(day.Year - 1, 1, 1), new DateOnly(day.Year - 1, 12, 31)),
+            _ => (new DateOnly(day.Year, 1, 1), day),
+        };
+        return new(
+            from,
+            to,
+            ErpTrialBalancePostingLayer.Current,
+            ErpTrialBalanceOpeningDisplay.Column,
+            true,
+            true,
+            ErpTrialBalanceDimensionSet.MainAccount,
+            false,
+            null,
+            500,
+            key.Length > 0 ? key : "this_year");
+    }
 }
 
 public sealed record ErpTrialBalanceLine(
@@ -303,6 +387,7 @@ public sealed record ErpTrialBalanceLine(
     decimal Opening,
     decimal Debit,
     decimal Credit,
+    decimal Amount,
     decimal Closing);
 
 public sealed record ErpTrialBalanceVoucher(

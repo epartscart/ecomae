@@ -24,13 +24,18 @@
                 <div class="epc-d365-actionpane" role="toolbar">
                     <div class="epc-d365-ap-group">
                         <div class="epc-d365-ap-buttons">
-                            <a class="epc-d365-ap-btn is-primary" href="#tb-parameters"><i class="fa fa-sliders" aria-hidden="true"></i><span>Parameters</span></a>
-                            <a class="epc-d365-ap-btn" href="@(_parameters.AppHref())"><i class="fa fa-refresh" aria-hidden="true"></i><span>Update balances</span></a>
+                            <a class="epc-d365-ap-btn is-primary" href="@(_parameters.AccountCode is { Length: > 0 } ? _parameters.AppHref() : "/erp/gl-journals-app")"><i class="fa fa-sitemap" aria-hidden="true"></i><span>Accounting source explorer</span></a>
+                            <a class="epc-d365-ap-btn" href="/erp/gl-journals-app"><i class="fa fa-list" aria-hidden="true"></i><span>All transactions</span></a>
+                            <a class="epc-d365-ap-btn" href="/erp/period-close-app"><i class="fa fa-calendar" aria-hidden="true"></i><span>Fiscal year transactions</span></a>
+                            <a class="epc-d365-ap-btn" href="/erp/multi-currency-gl-app"><i class="fa fa-money" aria-hidden="true"></i><span>By currency</span></a>
+                            <a class="epc-d365-ap-btn" href="/erp/period-close-app"><i class="fa fa-clock-o" aria-hidden="true"></i><span>Period</span></a>
+                            <a class="epc-d365-ap-btn" href="/erp/cash-accounts-app?tab=cash_forecast"><i class="fa fa-line-chart" aria-hidden="true"></i><span>Cash flow forecasts</span></a>
                         </div>
                         <div class="epc-d365-ap-label">Inquiry</div>
                     </div>
                     <div class="epc-d365-ap-group">
                         <div class="epc-d365-ap-buttons">
+                            <a class="epc-d365-ap-btn" href="#tb-parameters"><i class="fa fa-columns" aria-hidden="true"></i><span>Columns to display</span></a>
                             <a class="epc-d365-ap-btn" href="#tb-snapshots"><i class="fa fa-camera" aria-hidden="true"></i><span>Trial balance snapshots</span></a>
                             <a class="epc-d365-ap-btn" href="@_parameters.ExportHref()"><i class="fa fa-file-excel-o" aria-hidden="true"></i><span>Open in Excel</span></a>
                         </div>
@@ -44,11 +49,28 @@
     <section id="tb-parameters" class="epc-erp-form-panel" style="margin:0 0 1rem">
         <div class="epc-erp-form-panel__head">
             <strong>Parameters</strong>
-            <span class="text-muted">Changing dates, posting layer, opening display, or closing types refreshes the balances.</span>
+            <span class="text-muted">Date range, date interval, financial dimension set, and posting layer refresh the balances.</span>
         </div>
         <form method="get" action="@ErpTrialBalanceParameters.AppPath">
+            <p class="text-muted" style="margin:0 0 .4rem"><strong>Date range</strong></p>
             <label>From date <input type="date" name="from" value="@_parameters.FromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" required /></label>
             <label>To date <input type="date" name="to" value="@_parameters.ToDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" required /></label>
+            <label>Date interval
+                <select name="interval">
+                    <option value="" selected="@string.IsNullOrWhiteSpace(_parameters.Interval)">Custom</option>
+                    <option value="this_month" selected="@(_parameters.Interval == "this_month")">This month</option>
+                    <option value="this_quarter" selected="@(_parameters.Interval == "this_quarter")">This quarter</option>
+                    <option value="this_year" selected="@(_parameters.Interval == "this_year")">This year</option>
+                    <option value="last_year" selected="@(_parameters.Interval == "last_year")">Last year</option>
+                </select>
+            </label>
+            <p class="text-muted" style="margin:.6rem 0 .4rem"><strong>Data to include</strong></p>
+            <label>Financial dimension set
+                <select name="dimension_set">
+                    <option value="main_account" selected="@(_parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccount)">Main account</option>
+                    <option value="company" selected="@(_parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany)">Main account + company</option>
+                </select>
+            </label>
             <label>Posting layer
                 <select name="layer">
                     <option value="current" selected="@(_parameters.PostingLayer == ErpTrialBalancePostingLayer.Current)">Current</option>
@@ -63,24 +85,20 @@
                     <option value="exclude" selected="@(_parameters.OpeningDisplay == ErpTrialBalanceOpeningDisplay.Exclude)">Do not show opening</option>
                 </select>
             </label>
-            <label>Dimension set
-                <select name="dimension_set">
-                    <option value="main_account" selected="@(_parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccount)">Main account</option>
-                    <option value="company" selected="@(_parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany)">Main account + company</option>
-                </select>
-            </label>
             <label><input type="hidden" name="include_closing" value="0" /><input type="checkbox" name="include_closing" value="1" checked="@_parameters.IncludeClosingTransactions" /> Include closing transactions</label>
             <label><input type="hidden" name="include_closing_adj" value="0" /><input type="checkbox" name="include_closing_adj" value="1" checked="@_parameters.IncludeClosingAdjustments" /> Include closing adjustments</label>
             <label><input type="hidden" name="separate_dims" value="0" /><input type="checkbox" name="separate_dims" value="1" checked="@_parameters.SeparateDimensionColumns" /> Separate dimension columns</label>
-            <div class="form-actions"><button type="submit" class="btn btn-primary">Calculate</button></div>
+            <label>Filter <input type="search" name="q" value="@(_parameters.Filter ?? "")" placeholder="Main account or name" /></label>
+            <div class="form-actions"><button type="submit" class="btn btn-primary">Calculate balances</button></div>
         </form>
     </section>
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Trial balance totals">
         <div class="kpi"><div class="lbl">Accounts</div><div class="val">@_result.Lines.Count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Opening</div><div class="val">@_result.OpeningTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Period debit</div><div class="val">@_result.DebitTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Period credit</div><div class="val">@_result.CreditTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Debit</div><div class="val">@_result.DebitTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Credit</div><div class="val">@_result.CreditTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Amount</div><div class="val">@(_result.DebitTotal - _result.CreditTotal).ToString("N2", CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Closing</div><div class="val">@_result.ClosingTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
@@ -131,17 +149,19 @@
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
-                    <th>Account</th>
+                    <th>Main account</th>
                     <th>Name</th>
                     <th>Type</th>
                     @if (_parameters.SeparateDimensionColumns || _parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany)
                     {
                         <th>Company</th>
                     }
-                    <th>Opening</th>
+                    <th>Opening balance</th>
                     <th>Debit</th>
                     <th>Credit</th>
-                    <th>Closing</th>
+                    <th>Amount</th>
+                    <th>Closing balance</th>
+                    <th>Posting layer</th>
                 </tr>
             </thead>
             <tbody>
@@ -164,7 +184,9 @@
                             <td><a href="@_parameters.AppHref(line.Code)">@line.Opening.ToString("N2", CultureInfo.InvariantCulture)</a></td>
                             <td><a href="@_parameters.AppHref(line.Code)">@line.Debit.ToString("N2", CultureInfo.InvariantCulture)</a></td>
                             <td><a href="@_parameters.AppHref(line.Code)">@line.Credit.ToString("N2", CultureInfo.InvariantCulture)</a></td>
+                            <td><a href="@_parameters.AppHref(line.Code)">@line.Amount.ToString("N2", CultureInfo.InvariantCulture)</a></td>
                             <td><a href="@_parameters.AppHref(line.Code)">@line.Closing.ToString("N2", CultureInfo.InvariantCulture)</a></td>
+                            <td>@ErpTrialBalanceParameters.LayerLabel(_parameters.PostingLayer)</td>
                         </tr>
                     }
                     <tr>
@@ -172,7 +194,9 @@
                         <td><strong>@_result.OpeningTotal.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
                         <td><strong>@_result.DebitTotal.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
                         <td><strong>@_result.CreditTotal.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
+                        <td><strong>@(_result.DebitTotal - _result.CreditTotal).ToString("N2", CultureInfo.InvariantCulture)</strong></td>
                         <td><strong>@_result.ClosingTotal.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
+                        <td></td>
                     </tr>
                 }
             </tbody>
@@ -242,9 +266,13 @@
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         @_parameters.FromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
         to @_parameters.ToDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+        @if (!string.IsNullOrWhiteSpace(_parameters.Interval)) { <span> · @ErpTrialBalanceParameters.IntervalLabel(_parameters.Interval)</span> }
         · @ErpTrialBalanceParameters.LayerLabel(_parameters.PostingLayer)
         · @ErpTrialBalanceParameters.OpeningLabel(_parameters.OpeningDisplay)
         · @ErpTrialBalanceParameters.DimensionLabel(_parameters.DimensionSet)
+        · Debit total @_result.DebitTotal.ToString("N2", CultureInfo.InvariantCulture)
+        · Credit total @_result.CreditTotal.ToString("N2", CultureInfo.InvariantCulture)
+        · Balance @_result.ClosingTotal.ToString("N2", CultureInfo.InvariantCulture)
         · Click a balance to open voucher transactions.
         @if (!string.IsNullOrWhiteSpace(_result.Message)) { <span> @_result.Message</span> }
     </div>
@@ -256,7 +284,7 @@
     private ErpTrialBalanceParameters _parameters = ErpTrialBalanceParameters.FromQuery(null, null, null, null, null, null, null, null, null, null);
     private ErpTrialBalanceResult _result = new(ErpTrialBalanceParameters.FromQuery(null, null, null, null, null, null, null, null, null, null), [], [], [], 0, 0, 0, 0, "migration", "");
 
-    private int Colspan => _parameters.SeparateDimensionColumns || _parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany ? 8 : 7;
+    private int Colspan => _parameters.SeparateDimensionColumns || _parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany ? 10 : 9;
 
     protected override async Task OnInitializedAsync()
     {
@@ -270,7 +298,8 @@
         _parameters = ErpTrialBalanceParameters.FromQuery(
             q["from"], q["to"], q["layer"], q["opening"],
             q["include_closing"], q["include_closing_adj"],
-            q["dimension_set"], q["separate_dims"], q["account"], q["limit"]);
+            q["dimension_set"], q["separate_dims"], q["account"], q["limit"],
+            q["interval"], string.IsNullOrWhiteSpace(q["q"]) ? q["filter"] : q["q"]);
 
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

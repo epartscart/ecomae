@@ -134,6 +134,7 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
         }
 
         return buckets.Values
+            .Where(a => parameters.MatchesFilter(a.Code, a.Name))
             .Select(a => ErpTrialBalanceParameters.BuildLine(
                 a.Code, a.Name, a.AccountType, a.NormalSide,
                 a.OpeningBalance, a.OpeningDebits, a.OpeningCredits,

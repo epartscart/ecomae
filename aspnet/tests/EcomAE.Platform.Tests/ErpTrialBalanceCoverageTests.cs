@@ -26,6 +26,7 @@ public sealed class ErpTrialBalanceCoverageTests
         Assert.True(parameters.SeparateDimensionColumns);
         Assert.Equal("1000", parameters.AccountCode);
         Assert.Equal(50, parameters.Limit);
+        Assert.True(string.IsNullOrEmpty(parameters.Interval));
         Assert.True(parameters.FromUnix < parameters.ToUnix);
         Assert.Contains("layer=operations", parameters.QueryString(), StringComparison.Ordinal);
         Assert.StartsWith("/erp/trial-balance-app?", parameters.AppHref(), StringComparison.Ordinal);
@@ -53,6 +54,7 @@ public sealed class ErpTrialBalanceCoverageTests
         Assert.Equal(115m, debit.Opening);
         Assert.Equal(40m, debit.Debit);
         Assert.Equal(10m, debit.Credit);
+        Assert.Equal(30m, debit.Amount);
         Assert.Equal(145m, debit.Closing);
 
         var folded = ErpTrialBalanceParameters.BuildLine(
@@ -98,6 +100,32 @@ public sealed class ErpTrialBalanceCoverageTests
     }
 
     [Fact]
+    public void Parameters_DateIntervalAndFilterMatchLedgerPage()
+    {
+        var month = ErpTrialBalanceParameters.FromQuery(
+            "2020-01-01", "2020-12-31", null, null, null, null, null, null, null, null,
+            "this_month", null);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        Assert.Equal(new DateOnly(today.Year, today.Month, 1), month.FromDate);
+        Assert.Equal(today, month.ToDate);
+        Assert.Equal("this_month", month.Interval);
+        Assert.Contains("interval=this_month", month.QueryString(), StringComparison.Ordinal);
+
+        var lastYear = ErpTrialBalanceParameters.ForInterval("last_year", new DateOnly(2026, 10, 13));
+        Assert.Equal(new DateOnly(2025, 1, 1), lastYear.FromDate);
+        Assert.Equal(new DateOnly(2025, 12, 31), lastYear.ToDate);
+        Assert.Equal("Last year", ErpTrialBalanceParameters.IntervalLabel("last_year"));
+
+        var filtered = ErpTrialBalanceParameters.FromQuery(
+            "2026-01-01", "2026-12-31", "current", "column", "1", "1", null, null, null, null,
+            null, "cash");
+        Assert.Equal("cash", filtered.Filter);
+        Assert.True(filtered.MatchesFilter("1000", "Cash"));
+        Assert.False(filtered.MatchesFilter("2000", "Accounts payable"));
+        Assert.Contains("q=cash", filtered.QueryString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Snapshot_ValidatesDatesAndDryRun()
     {
         Assert.Equal("invalid", ErpTrialBalanceWriteService.Validate(new ErpTrialBalanceSnapshotRequest())!.Code);
@@ -133,7 +161,13 @@ public sealed class ErpTrialBalanceCoverageTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpTrialBalanceApp.razor"));
         Assert.Contains("@page \"/erp/trial-balance-app\"", text, StringComparison.Ordinal);
         Assert.Contains("Parameters", text, StringComparison.Ordinal);
+        Assert.Contains("Date interval", text, StringComparison.Ordinal);
+        Assert.Contains("Calculate balances", text, StringComparison.Ordinal);
+        Assert.Contains("Financial dimension set", text, StringComparison.Ordinal);
         Assert.Contains("Posting layer", text, StringComparison.Ordinal);
+        Assert.Contains(">Amount<", text, StringComparison.Ordinal);
+        Assert.Contains("Accounting source explorer", text, StringComparison.Ordinal);
+        Assert.Contains("Cash flow forecasts", text, StringComparison.Ordinal);
         Assert.Contains("Include closing transactions", text, StringComparison.Ordinal);
         Assert.Contains("Trial balance snapshots", text, StringComparison.Ordinal);
         Assert.Contains("Open in Excel", text, StringComparison.Ordinal);

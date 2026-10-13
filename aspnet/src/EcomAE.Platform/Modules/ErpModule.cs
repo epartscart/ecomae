@@ -24226,7 +24226,9 @@ public sealed class ErpModule : ISurfaceModule
             Get("dimension_set"),
             Get("separate_dims"),
             Get("account"),
-            Get("limit"));
+            Get("limit"),
+            Get("interval"),
+            string.IsNullOrWhiteSpace(Get("q")) ? Get("filter") : Get("q"));
     }
 
     private static async Task<IResult> HandleTrialBalanceDigestAsync(
@@ -24249,18 +24251,21 @@ public sealed class ErpModule : ISurfaceModule
             surface = "erp",
             from = parameters.FromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
             to = parameters.ToDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            interval = parameters.Interval,
             postingLayer = ErpTrialBalanceParameters.LayerKey(parameters.PostingLayer),
             openingDisplay = ErpTrialBalanceParameters.OpeningKey(parameters.OpeningDisplay),
             includeClosingTransactions = parameters.IncludeClosingTransactions,
             includeClosingAdjustments = parameters.IncludeClosingAdjustments,
             dimensionSet = ErpTrialBalanceParameters.DimensionKey(parameters.DimensionSet),
             separateDimensionColumns = parameters.SeparateDimensionColumns,
+            filter = parameters.Filter,
             lines = result.Lines,
             vouchers = result.Vouchers,
             snapshots = result.Snapshots,
             openingTotal = result.OpeningTotal,
             debitTotal = result.DebitTotal,
             creditTotal = result.CreditTotal,
+            amountTotal = result.DebitTotal - result.CreditTotal,
             closingTotal = result.ClosingTotal,
             count = result.Lines.Count,
             source = result.Source,
@@ -24285,7 +24290,7 @@ public sealed class ErpModule : ISurfaceModule
         var parameters = TrialBalanceParametersFrom(context.Request);
         var result = await read.ReadAsync(parameters, cancellationToken);
         var csv = new System.Text.StringBuilder();
-        csv.AppendLine("Account,Name,Type,Company,Opening,Debit,Credit,Closing");
+        csv.AppendLine("MainAccount,Name,Type,Company,Opening,Debit,Credit,Amount,Closing,Posting layer");
         foreach (var line in result.Lines)
         {
             csv.Append(Csv(line.Code)).Append(',')
@@ -24295,13 +24300,17 @@ public sealed class ErpModule : ISurfaceModule
                 .Append(line.Opening.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
                 .Append(line.Debit.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
                 .Append(line.Credit.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
-                .Append(line.Closing.ToString("0.00", CultureInfo.InvariantCulture)).AppendLine();
+                .Append(line.Amount.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+                .Append(line.Closing.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+                .Append(Csv(ErpTrialBalanceParameters.LayerLabel(parameters.PostingLayer))).AppendLine();
         }
 
         csv.Append("Total,,,,").Append(result.OpeningTotal.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
             .Append(result.DebitTotal.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
             .Append(result.CreditTotal.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
-            .Append(result.ClosingTotal.ToString("0.00", CultureInfo.InvariantCulture)).AppendLine();
+            .Append((result.DebitTotal - result.CreditTotal).ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+            .Append(result.ClosingTotal.ToString("0.00", CultureInfo.InvariantCulture)).Append(',')
+            .AppendLine();
         return Results.File(
             System.Text.Encoding.UTF8.GetBytes(csv.ToString()),
             "text/csv",
