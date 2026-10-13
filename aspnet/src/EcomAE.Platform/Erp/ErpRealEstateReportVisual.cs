@@ -180,10 +180,10 @@ internal static class ErpRealEstateReportVisual
         Text(c, "Investment, development", 48, 820, 44, SKColors.White, true);
         Text(c, "& construction board pack", 48, 876, 44, Gold, true);
         Text(c, title, 48, 940, 22, Cream, false);
-        Text(c, "Prepared " + asOf + "  ·  Currency AED  ·  Download anytime from any workspace tab", 48, 980, 16, new SKColor(203, 213, 225), false);
+        Wrap(c, "Prepared " + asOf + "  ·  Currency AED  ·  Download anytime from any workspace tab", 48, 980, PageWidth - 96, 16, new SKColor(203, 213, 225));
 
         DrawKpiStrip(c, snap, 48, 1080);
-        Text(c, "Photographs on this pack are corporate visualisations of the UAE skyline and construction floor — the figures are live tenant data.", 48, 1560, 13, new SKColor(148, 163, 184), false);
+        Wrap(c, "Photographs on this pack are corporate visualisations of the UAE skyline and construction floor — the figures are live tenant data.", 48, 1548, PageWidth - 96, 13, new SKColor(148, 163, 184));
         Footer(c, asOf, 1, 5);
         return bmp;
     }
@@ -198,8 +198,8 @@ internal static class ErpRealEstateReportVisual
             c.DrawBitmap(lobby, 48, 160);
         }
 
-        Text(c, "The register splits pipeline from owned assets. Opportunities stay off both statements. Completed acquisitions, escrow and certificates sit on the balance sheet; rent, IAS 40 fair-value moves and recognised IFRS 15 unit sales sit on the income statement.", 48, 420, 15, Ink, false);
-        DrawKpiStrip(c, snap, 48, 460);
+        Wrap(c, "The register splits pipeline from owned assets. Opportunities stay off both statements. Completed acquisitions, escrow and certificates sit on the balance sheet; rent, IAS 40 fair-value moves and recognised IFRS 15 unit sales sit on the income statement.", 48, 404, PageWidth - 96, 15, Ink);
+        DrawKpiStrip(c, snap, 48, 500);
 
         var bars = new (string Label, decimal Value, SKColor Color)[]
         {
@@ -210,11 +210,11 @@ internal static class ErpRealEstateReportVisual
             ("Escrow held", snap.Kpis.EscrowBalance, Navy),
             ("Cost to complete", snap.Kpis.CostToComplete, Rust),
         };
-        DrawBars(c, bars, 48, 780, PageWidth - 96, 420);
-        Text(c, "Gross yield " + Pct(snap.Kpis.GrossYield) + "   ·   Occupancy " + Pct(snap.Kpis.Occupancy)
+        DrawBars(c, bars, 48, 680, PageWidth - 96, 420);
+        Wrap(c, "Gross yield " + Pct(snap.Kpis.GrossYield) + "   ·   Occupancy " + Pct(snap.Kpis.Occupancy)
             + "   ·   Collection " + Pct(snap.Kpis.Collection)
             + "   ·   Open opportunities " + snap.Kpis.Opportunities.ToString(CultureInfo.InvariantCulture),
-            48, 1240, 16, Ink, true);
+            48, 1130, PageWidth - 96, 16, Ink);
 
         var narrative = "Owned properties " + snap.Kpis.OwnedProperties.ToString(CultureInfo.InvariantCulture)
             + ", units " + snap.Kpis.Units.ToString(CultureInfo.InvariantCulture)
@@ -222,7 +222,7 @@ internal static class ErpRealEstateReportVisual
             + ", open cheques " + snap.Kpis.OpenCheques.ToString(CultureInfo.InvariantCulture)
             + ", development projects " + snap.Kpis.Projects.ToString(CultureInfo.InvariantCulture)
             + ". Escrow cash is restricted (account 1140) and off-plan collections remain a contract liability (2220) until sold.";
-        Wrap(c, narrative, 48, 1290, PageWidth - 96, 16, Muted);
+        Wrap(c, narrative, 48, 1180, PageWidth - 96, 16, Muted);
         Footer(c, asOf, 2, 5);
         return bmp;
     }
@@ -290,11 +290,11 @@ internal static class ErpRealEstateReportVisual
             snap.Cheques.Take(5).Select(r => new[] { r.Id.ToString(CultureInfo.InvariantCulture), r.Code, r.Status, Money(r.Amount), Clip(r.Detail, 28) }));
 
         using var card = new SKPaint { Color = Navy, IsAntialias = true };
-        c.DrawRoundRect(new SKRect(48, 1500, PageWidth - 48, 1668), 10, 10, card);
-        Text(c, "Balance sheet", 72, 1540, 16, Gold, true);
-        Text(c, "1510 investment property · 1520 CIP · 1140 escrow cash · 1120 PDC · 2200 deposits · 2210 contractor payable · 2220 buyer advances", 72, 1568, 13, Cream, false);
-        Text(c, "Income statement", 72, 1604, 16, Gold, true);
-        Text(c, "4100 rent · 4110 development revenue (sold only) · 4200 / 6200 IAS 40 fair value · 6210 opex · 4300 / 6220 disposal", 72, 1632, 13, Cream, false);
+        c.DrawRoundRect(new SKRect(48, 1488, PageWidth - 48, 1688), 10, 10, card);
+        Text(c, "Balance sheet", 72, 1528, 16, Gold, true);
+        Wrap(c, "1510 investment property · 1520 CIP · 1140 escrow cash · 1120 PDC · 2200 deposits · 2210 contractor payable · 2220 buyer advances", 72, 1556, PageWidth - 160, 13, Cream);
+        Text(c, "Income statement", 72, 1610, 16, Gold, true);
+        Wrap(c, "4100 rent · 4110 development revenue (sold only) · 4200 / 6200 IAS 40 fair value · 6210 opex · 4300 / 6220 disposal", 72, 1638, PageWidth - 160, 13, Cream);
         Footer(c, DateTime.UtcNow.ToString("dd MMM yyyy", CultureInfo.InvariantCulture), 5, 5);
         return bmp;
     }
