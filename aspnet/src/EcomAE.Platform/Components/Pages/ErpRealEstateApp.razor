@@ -65,6 +65,20 @@
         <p class="text-muted">@_snap.Message</p>
     }
 
+    @if (_isAdmin && (_tab == "dashboard" || _tab.Length == 0))
+    {
+        <ErpPhpCreateWell Title="Start with an empty portfolio">
+            <p class="text-muted">Removes properties, units, leases, projects, construction rows and their journals so this company can enter live data. Users, chart of accounts and tax settings stay.</p>
+            <form method="post" action="@SaveAction">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@OrgHref("dashboard")" />
+                <input type="hidden" name="action" value="reset_portfolio" />
+                <input type="hidden" name="note" value="FRESH" />
+                <button type="submit" class="btn btn-warning btn-sm">Empty portfolio for new entry</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+
     @if (_isAdmin)
     {
         @if (_tab == "opportunities")

@@ -39,6 +39,11 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await new ErpVoucherNumberService().EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpRealEstateGl.EnsureCoaAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (action is "reset_portfolio")
+        {
+            return await ResetPortfolioAsync(connection, request, cancellationToken).ConfigureAwait(false);
+        }
+
         await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -112,6 +117,34 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
+    }
+
+    private async Task<ErpSimpleWriteResult> ResetPortfolioAsync(
+        DbConnection connection,
+        ErpRealEstateWriteRequest request,
+        CancellationToken cancellationToken)
+    {
+        var token = (request.Note ?? request.Code ?? string.Empty).Trim();
+        if (!string.Equals(token, "FRESH", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpSimpleWriteResult.Fail("confirm", "Type FRESH to empty the portfolio for new entry.");
+        }
+
+        var writes = await ErpRealEstatePortfolioReset.ClearAsync(connection, cancellationToken).ConfigureAwait(false);
+        await _audit.LogAsync(
+            connection,
+            null,
+            request.ActorId,
+            "reset_portfolio",
+            "real_estate",
+            0,
+            "Portfolio emptied for fresh entry.",
+            new Dictionary<string, string?>
+            {
+                ["writes"] = writes.ToString(CultureInfo.InvariantCulture),
+            },
+            cancellationToken).ConfigureAwait(false);
+        return new ErpSimpleWriteResult(true, "ok", "Portfolio is empty. Enter live properties, leases and projects.", 0, writes);
     }
 
     public static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
