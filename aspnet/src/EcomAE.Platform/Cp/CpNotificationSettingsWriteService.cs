@@ -73,7 +73,7 @@ public sealed class CpNotificationSettingsWriteService : ICpNotificationSettings
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             if (!await TableExistsAsync(connection, "notifications_settings", cancellationToken).ConfigureAwait(false))
             {
-                return ErpSimpleWriteResult.Fail("invalid", "notifications_settings table is not provisioned. Schema ensure stays on the Classic twin.");
+                return ErpSimpleWriteResult.Fail("invalid", "notifications_settings table is not provisioned. Schema ensure is not available on this page.");
             }
 
             var exists = await ErpDb.LongAsync(

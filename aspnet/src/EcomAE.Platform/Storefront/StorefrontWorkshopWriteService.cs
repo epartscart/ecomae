@@ -6,7 +6,7 @@ namespace EcomAE.Platform.Storefront;
 
 /// <summary>
 /// Live PHP <c>ajax_workshop_public.php</c> book + public track.
-/// Job INSERT reuses <see cref="ICpWorkshopWriteService"/>. Schema-ensure stays Classic.
+/// Job INSERT reuses <see cref="ICpWorkshopWriteService"/>. Schema-ensure is not available on this page.
 /// Does not invent a send.
 /// </summary>
 public interface IStorefrontWorkshopWriteService
@@ -137,7 +137,7 @@ public sealed class StorefrontWorkshopWriteService : IStorefrontWorkshopWriteSer
             if (!created.Succeeded || created.Id <= 0)
             {
                 return Fail(created.Code, string.IsNullOrWhiteSpace(created.Message)
-                    ? "Workshop tables are not provisioned. Schema ensure stays on the Classic twin."
+                    ? "Workshop tables are not provisioned. Schema ensure is not available on this page."
                     : created.Message);
             }
 
@@ -194,7 +194,7 @@ public sealed class StorefrontWorkshopWriteService : IStorefrontWorkshopWriteSer
             if (!created.Succeeded || created.Id <= 0)
             {
                 return Fail(created.Code, string.IsNullOrWhiteSpace(created.Message)
-                    ? "Workshop tables are not provisioned. Schema ensure stays on the Classic twin."
+                    ? "Workshop tables are not provisioned. Schema ensure is not available on this page."
                     : created.Message);
             }
 
@@ -306,7 +306,7 @@ public sealed class StorefrontWorkshopWriteService : IStorefrontWorkshopWriteSer
         }
         catch
         {
-            // Appointment table is optional when schema-ensure stays Classic.
+            // Appointment table is optional when schema-ensure is not available on this page.
         }
 
         return new(null, "empty", "No job found for that reference.");

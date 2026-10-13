@@ -247,7 +247,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("/cp/currencies/set-rate", currencies, StringComparison.Ordinal);
         Assert.Contains("/cp/currencies/set-available", currencies, StringComparison.Ordinal);
         Assert.Contains("/cp/currencies/schedule-save", currencies, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", currencies, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", currencies, StringComparison.Ordinal);
         Assert.DoesNotContain("PHP twin", currencies, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-cu-hero", currencies, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-cu-kpis", currencies, StringComparison.Ordinal);
@@ -319,7 +319,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("class=\"hpanel\"", prices, StringComparison.Ordinal);
         Assert.Contains("/cp/prices/storage-rules", prices, StringComparison.Ordinal);
         Assert.Contains("save_storage_rule", prices, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", prices, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", prices, StringComparison.Ordinal);
         Assert.DoesNotContain("stays PHP", prices, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-pl-hero", prices, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-pl-kpis", prices, StringComparison.Ordinal);
@@ -354,7 +354,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         var auto = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpAutoPriceApp.razor"));
         Assert.Contains("class=\"hpanel\"", auto, StringComparison.Ordinal);
         Assert.Contains("HasStaffAccess", auto, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", auto, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", auto, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref", auto, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-ap-hero", auto, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-ap-kpis", auto, StringComparison.Ordinal);
@@ -362,7 +362,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
 
         var blocks = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpInfoBlocksApp.razor"));
         Assert.Contains("epc-scp-panel", blocks, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", blocks, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", blocks, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref", blocks, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w19-hero", blocks, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w19-kpis", blocks, StringComparison.Ordinal);
@@ -377,7 +377,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
     {
         var board = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCrmBoardApp.razor"));
         Assert.Contains("class=\"hpanel\"", board, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", board, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", board, StringComparison.Ordinal);
         Assert.Contains("epc-crm-shell epc-crm-enterprise", board, StringComparison.Ordinal);
         Assert.Contains("epc-crm-hero", board, StringComparison.Ordinal);
         Assert.Contains("epc-crm-kpi", board, StringComparison.Ordinal);

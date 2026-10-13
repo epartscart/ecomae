@@ -177,7 +177,7 @@
                     <dt>Runs</dt><dd>@_opened.RunCount.ToString(CultureInfo.InvariantCulture)</dd>
                     <dt>Last status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.LastRunStatus) ? "—" : _opened.LastRunStatus)</dd>
                 </dl>
-                <p class="text-muted" style="margin:.85rem 0 0">trigger_config omitted. Tick / execute stay Classic. This page does not invent a send.</p>
+                <p class="text-muted" style="margin:.85rem 0 0">trigger_config omitted. Tick / execute are not available on this page. This page does not invent a send.</p>
                 @if (_isAdmin)
                 {
                     <form method="post" action="/cp/workflows/write" class="well" style="margin:.85rem 0 0">
@@ -196,7 +196,7 @@
                             <button type="submit" class="btn btn-default">Enable workflow</button>
                         }
                     </form>
-                    <p class="help-block" style="margin:.75rem 0 0">Schema-ensure stays Classic.</p>
+                    <p class="help-block" style="margin:.75rem 0 0">Schema-ensure is not available on this page.</p>
                 }
                 @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
                 {

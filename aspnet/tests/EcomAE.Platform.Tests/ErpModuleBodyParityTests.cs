@@ -111,7 +111,7 @@ public sealed class ErpModuleBodyParityTests
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpModulePageHeader.razor"));
         Assert.Contains("btn-primary", header, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.OpenModuleHref", header, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", header, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", header, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref", header, StringComparison.Ordinal);
         Assert.Contains("epc-erp-page-context", header, StringComparison.Ordinal);
         Assert.Contains("ContextItems", header, StringComparison.Ordinal);
@@ -125,7 +125,7 @@ public sealed class ErpModuleBodyParityTests
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpD365ActionPane.razor"));
         Assert.Contains("is-primary", pane, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.NewHref", pane, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", pane, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", pane, StringComparison.Ordinal);
     }
 
     [Theory]

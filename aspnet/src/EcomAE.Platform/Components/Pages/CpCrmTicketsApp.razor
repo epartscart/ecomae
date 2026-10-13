@@ -18,10 +18,9 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 CRM tickets
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Create or save a CRM ticket here. Set status on Open. Leftover ERP SLA/create/reply stay on their routes. File attachments stay Classic. This page does not invent a send.</p>
+                <p>Create or save a CRM ticket here. Set status on Open. Leftover ERP SLA/create/reply stay on their routes. File attachments are not available on this page. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -276,7 +275,7 @@
                         <label>Note <input type="text" name="message" /></label>
                         <button type="submit" class="btn btn-primary btn-sm">Create ticket</button>
                     </form>
-                    <p class="help-block" style="margin:.75rem 0 0">This saves a CRM ticket. Leftover ERP create stays on its route. File attachments stay Classic.</p>
+                    <p class="help-block" style="margin:.75rem 0 0">This saves a CRM ticket. Leftover ERP create stays on its route. File attachments are not available on this page.</p>
                 </div>
             </div>
         </div>
@@ -335,7 +334,7 @@
     @if (_leftoverWrite)
     {
         <div class="col-lg-12">
-            <p class="help-block">SLA, leftover ERP ticket create, and text replies are live when confirmed. CRM save/status writes here. File attachments stay Classic.</p>
+            <p class="help-block">SLA, leftover ERP ticket create, and text replies are live when confirmed. CRM save/status writes here. File attachments are not available on this page.</p>
         </div>
     }
 

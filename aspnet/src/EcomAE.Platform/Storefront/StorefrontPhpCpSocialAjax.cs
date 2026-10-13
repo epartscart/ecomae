@@ -7,8 +7,8 @@ namespace EcomAE.Platform.Storefront;
 
 public static partial class StorefrontPhpAjax
 {
-    public const string SocialCaptionStaysClassic = "Caption generation stays on the classic helper.";
-    public const string SocialPublishStaysClassic = "Publishing to Meta/TikTok stays Classic.";
+    public const string SocialCaptionStaysClassic = "Caption generation is not available on this page.";
+    public const string SocialPublishStaysClassic = "Publishing to Meta/TikTok is not available on this page.";
 
     public sealed record SocialBody(
         [property: JsonPropertyName("ok")] bool Ok,

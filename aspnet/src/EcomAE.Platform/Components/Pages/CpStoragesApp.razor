@@ -38,7 +38,6 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 @(_editor.Id > 0 ? "Edit warehouse" : "New warehouse")
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_editor.Id > 0 ? _phpTab + "/storage?id=" + _editor.Id.ToString(CultureInfo.InvariantCulture) : _phpTab + "/storage")">Classic twin</a>
             </div>
             <div class="panel-body epc-st-actions">
                 <a class="panel_a" href="#" onclick="document.getElementById('storage_form').submit();return false;">
@@ -199,7 +198,6 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Warehouse groups
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "/groups")">Classic twin</a>
             </div>
             <div class="panel-body epc-st-actions">
                 <a class="panel_a" href="@_listHref">
@@ -325,7 +323,6 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Actions
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body epc-st-actions">
                 <a class="panel_a" href="@(_listHref)?storage_id=new">
@@ -448,7 +445,6 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Office membership
-                <a class="btn btn-default btn-xs pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/logistics/offices/office/storages_link")">Classic twin</a>
             </div>
             <div class="panel-body">
                 <form method="post" action="/cp/storages/membership" class="form-inline">

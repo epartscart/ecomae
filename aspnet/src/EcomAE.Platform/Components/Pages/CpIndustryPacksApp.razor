@@ -27,12 +27,11 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt epc-pack-hero">
                 Industry Packs
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
                 <a class="btn btn-xs btn-primary pull-right" style="margin-right:6px" href="/cp/packs-app">Packs manager (setup / delete)</a>
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/industry-packs-app")</p>
-                <p>Open a pack for a short modules excerpt and tenant assignments. GL, tax, theme JSON, and apply writes stay on the Classic twin.</p>
+                <p>Open a pack for a short modules excerpt and tenant assignments. GL, tax, theme JSON, and apply writes are not available on this page.</p>
             </div>
         </div>
     </div>
@@ -71,7 +70,7 @@
                         <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedPack.ModulesExcerpt</pre>
                         @if (_openedPack.ModulesLen > _openedPack.ModulesExcerpt.Length)
                         {
-                            <p class="text-muted">Excerpt only (@_openedPack.ModulesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedPack.ModulesLen.ToString(CultureInfo.InvariantCulture) chars). Full modules, GL, tax, and theme stay on the Classic twin.</p>
+                            <p class="text-muted">Excerpt only (@_openedPack.ModulesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedPack.ModulesLen.ToString(CultureInfo.InvariantCulture) chars). Full modules, GL, tax, and theme are not available on this page.</p>
                         }
                     }
                     else

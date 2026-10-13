@@ -236,7 +236,7 @@
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
             </dl>
             <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
-            <p class="text-muted" style="margin:.85rem 0 0">Email, phone, and bank details stay omitted. Writes stay Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Email, phone, and bank details stay omitted. Writes are not available on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.TrnExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">TRN excerpt</p>
@@ -367,7 +367,7 @@
         {
             "supplier_portal" => "Delivery, responsiveness, spend and payables scorecards.",
             "ap_setup" => "Supplier master used for payable posting.",
-            _ => "Open a supplier for the TRN excerpt and currency. Email, phone, and bank details stay omitted. Writes stay Classic."
+            _ => "Open a supplier for the TRN excerpt and currency. Email, phone, and bank details stay omitted. Writes are not available on this page."
         };
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);

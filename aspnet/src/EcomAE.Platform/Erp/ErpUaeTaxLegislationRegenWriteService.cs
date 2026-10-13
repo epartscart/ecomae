@@ -119,7 +119,7 @@ public sealed class ErpUaeTaxLegislationRegenWriteService : IErpUaeTaxLegislatio
             ["compliance_actions"] = (s.ComplianceActions ?? []).Take(3).ToList(),
         }).ToList();
         var writes = synced + 3;
-        var message = "Regenerated summaries for " + enriched.Count + " legislation item(s). PDF excerpts stay on the Classic twin.";
+        var message = "Regenerated summaries for " + enriched.Count + " legislation item(s). PDF excerpts are not available on this page.";
         _ = request.FetchPdf;
         return ErpUaeTaxLegislationRegenWriteResult.Ok(message, writes, enriched.Count, synced, samples);
     }

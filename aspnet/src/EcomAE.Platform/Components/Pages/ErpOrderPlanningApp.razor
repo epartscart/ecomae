@@ -32,7 +32,7 @@
     @if (_isMasterPlanning)
     {
         <div class="epc-erp-empty" style="display:block;margin:0 0 12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-            Persisted MRP planned orders are shown below. Regeneration accepts submitted demand/on-hand inputs; PHP remains authoritative for schema creation and the Classic fallback.
+            Persisted MRP planned orders are shown below. Regeneration accepts submitted demand/on-hand inputs.
         </div>
         <form method="post" action="@EcomAeRoutes.ErpAjaxMfgrMrpRun" style="margin:0 0 12px;padding:10px;border:1px solid #dbe4ea;background:#fff">
             <input type="hidden" name="confirmWrites" value="true" />
@@ -214,7 +214,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Live: <code>opl_set_status</code>. Confirm, draft POs, and autoplan stay Classic.
+        Source: @_source. Live: <code>opl_set_status</code>. Confirm, draft POs, and autoplan are not available on this page.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

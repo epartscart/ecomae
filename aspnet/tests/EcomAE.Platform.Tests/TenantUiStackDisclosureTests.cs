@@ -38,6 +38,11 @@ public sealed class TenantUiStackDisclosureTests
                          "ASP.NET BOS", "ASP.NET ERP", "ASP.NET Core",
                          "ecomae-php-chrome", "aspnet-php-assets",
                          "epc-moddir-aspnet", "epc-asp-login",
+                         "Classic twin", "Classic CP", "Classic ERP",
+                         "classic helper", "classic importer", "classic lookup",
+                         "classic reader", "classic folder", "classic form",
+                         "stays on the Classic", "stay Classic", "stays Classic",
+                         "Open PHP",
                      })
             {
                 if (visible.Contains(phrase, StringComparison.OrdinalIgnoreCase))

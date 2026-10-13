@@ -42,7 +42,7 @@ public sealed class CpPartsAgentConfigWriteTests
         Assert.Contains("name=\"placeholder\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"logo_url\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"domain\"", razor, StringComparison.Ordinal);
-        Assert.Contains("stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("stays on the Classic twin", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", razor, StringComparison.Ordinal);

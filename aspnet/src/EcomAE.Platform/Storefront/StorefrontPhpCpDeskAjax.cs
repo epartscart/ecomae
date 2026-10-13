@@ -322,7 +322,7 @@ public static partial class StorefrontPhpAjax
                 return new FlagBody(false, "No logo file");
             case "upload_attachment":
             case "delete_attachment":
-                return new FlagBody(false, "Document attachments stay on the classic folder.");
+                return new FlagBody(false, "Document attachments are not available on this page.");
             case "sync_einvoice_seller":
                 return new FlagBody(false, "Seller import stays on the e-invoice profile.");
             default:

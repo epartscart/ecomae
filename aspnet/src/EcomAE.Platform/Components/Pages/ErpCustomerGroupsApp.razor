@@ -83,7 +83,7 @@
                 <dt>Status</dt><dd>@(_opened.IsActive ? "active" : "inactive")</dd>
                 <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Create and assign stay on this page. Schema-ensure stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Create and assign stay on this page. Schema-ensure is not available on this page.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">description excerpt</p>
@@ -162,7 +162,7 @@
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_source.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
-        Customer group create and assign are live when confirmed. Schema-ensure stays Classic.
+        Customer group create and assign are live when confirmed. Schema-ensure is not available on this page.
     </div>
 </PhpErpDesktopChrome>
 

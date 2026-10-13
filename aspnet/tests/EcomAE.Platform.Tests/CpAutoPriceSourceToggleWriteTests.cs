@@ -56,7 +56,7 @@ public sealed class CpAutoPriceSourceToggleWriteTests
         Assert.Contains("name=\"hours\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"id\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("name=\"auth_password\"", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("name=\"login_url\"", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);

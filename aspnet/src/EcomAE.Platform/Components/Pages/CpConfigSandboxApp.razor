@@ -16,11 +16,10 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Config sandbox
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/config-sandbox-app")</p>
-                <p>Open a snapshot for a short config excerpt and change keys. Promote or discard an active snapshot here. Create, apply-change, rollback, and full config stay on the Classic twin. This page does not invent a send.</p>
+                <p>Open a snapshot for a short config excerpt and change keys. Promote or discard an active snapshot here. Create, apply-change, rollback, and full config are not available on this page. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -62,7 +61,7 @@
                         <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedSnap.ConfigExcerpt</pre>
                         @if (_openedSnap.ConfigLen > _openedSnap.ConfigExcerpt.Length)
                         {
-                            <p class="text-muted">Excerpt only (@_openedSnap.ConfigExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedSnap.ConfigLen.ToString(CultureInfo.InvariantCulture) chars). Full config and values stay on the Classic twin.</p>
+                            <p class="text-muted">Excerpt only (@_openedSnap.ConfigExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedSnap.ConfigLen.ToString(CultureInfo.InvariantCulture) chars). Full config and values are not available on this page.</p>
                         }
                     }
                     else
@@ -85,11 +84,11 @@
                             <input type="hidden" name="id" value="@_openedSnap.Id.ToString(CultureInfo.InvariantCulture)" />
                             <button type="submit" class="btn btn-default">Discard</button>
                         </form>
-                        <p class="help-block" style="margin:.75rem 0 0">Create, apply-change, and rollback stay Classic.</p>
+                        <p class="help-block" style="margin:.75rem 0 0">Create, apply-change, and rollback are not available on this page.</p>
                     }
                     else if (_isAdmin)
                     {
-                        <p class="help-block" style="margin:.75rem 0 0">Create, apply-change, and rollback stay Classic.</p>
+                        <p class="help-block" style="margin:.75rem 0 0">Create, apply-change, and rollback are not available on this page.</p>
                     }
                 </div>
             </div>

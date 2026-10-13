@@ -44,7 +44,7 @@
 <link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260904-purchase" />
 <link rel="stylesheet" href="/platform-assets/epc_sku_media.css?v=20260812-fitment-sku" />
 <style>
-        /* Keep Classic professional-shell look; hide extra search chrome on CHPU/picker. */
+        /* Keep the professional-shell look; hide extra search chrome on CHPU/picker. */
         .epc-chpu-direct-part-search .epc-sf-search-form,
         .epc-chpu-direct-part-search .epc-sf-page-actions .btn-default,
         .epc-brand-picker-mode .epc-sf-search-kpis,
@@ -1451,7 +1451,7 @@
         if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
       });
   }
-  // Parity with Classic epcRunChpuPriceSearch model: ONE protocol-3 products-of-bunch + parallel cross.
+  // Parity with epcRunChpuPriceSearch model: ONE protocol-3 products-of-bunch + parallel cross.
   // Live URLs stay on /storefront/* — no product .php links.
   // First warehouse paint must NOT wait on search-bunches (extra RTT) — fire protocol-3 immediately.
   // When SSR already seeded offers (data-ssr-offers=1), enrich quietly — rows are already visible.
@@ -1878,7 +1878,7 @@
             return;
         }
 
-        // Beat Classic display speed: SSR-seed local warehouse rows (≤350ms) so HTML already has offers.
+        // Beat display speed: SSR-seed local warehouse rows (≤350ms) so HTML already has offers.
         // Client still enriches via protocol-3 products-of-bunch (PHP ajax_getProductsOfBunch) + progressive /storefront/cross-search.
         // Genuine OE map: best-effort SSR in parallel with the seed (own CTS). Browser
         // /storefront/genuine-brands reclassifies if this map is empty.

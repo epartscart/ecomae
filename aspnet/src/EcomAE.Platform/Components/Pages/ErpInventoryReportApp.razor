@@ -17,7 +17,7 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Inventory report" Subtitle="Open a category or snapshot for company id. Snapshot generate stays Classic." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Inventory report" Subtitle="Open a category or snapshot for company id. Snapshot generate is not available on this page." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Inventory report KPIs">
@@ -48,7 +48,7 @@
                 Fields="@CategoryWorkspaceFields"
                 Lines="@CategoryWorkspaceLines"
                 Tabs="@InventoryWorkspaceTabs" />
-            <p class="text-muted" style="margin:.85rem 0 0">Snapshot generate stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Snapshot generate is not available on this page.</p>
             @if (_openedCategorySiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-level siblings</p>
@@ -96,7 +96,7 @@
                 Fields="@SnapshotWorkspaceFields"
                 Lines="@SnapshotWorkspaceLines"
                 Tabs="@InventoryWorkspaceTabs" />
-            <p class="text-muted" style="margin:.85rem 0 0">Snapshot generate stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Snapshot generate is not available on this page.</p>
             @if (_openedSnapshotSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-category siblings</p>
@@ -184,7 +184,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Snapshot generate stays Classic.
+        Source: @_source. Snapshot generate is not available on this page.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

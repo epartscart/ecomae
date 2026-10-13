@@ -50,7 +50,7 @@ public sealed class CpTaxToolkitInstallPhpParityTests
         Assert.Contains("name=\"country_code\"", text, StringComparison.Ordinal);
         Assert.Contains("Install kit", text, StringComparison.Ordinal);
         Assert.Contains("Save platform tenant kit", text, StringComparison.Ordinal);
-        Assert.Contains("worldwide seed stay on the Classic twin", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("worldwide seed stay on the Classic twin", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Install stays on the Classic twin", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
@@ -91,7 +91,7 @@ public sealed class CpTaxToolkitInstallPhpParityTests
         var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Cp/CpTaxToolkitWriteService.cs"));
         Assert.Contains("epc_tax_toolkit_installs", service, StringComparison.Ordinal);
         Assert.Contains("epc_tax_toolkit_tenant_profile", service, StringComparison.Ordinal);
-        Assert.Contains("worldwide seed stays on the Classic twin", service, StringComparison.Ordinal);
+        Assert.Contains("worldwide seed is not available on this page", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("epc_tax_toolkit_ensure_schema", service, StringComparison.Ordinal);
         Assert.DoesNotContain("epc_tax_toolkit_seed_kits", service, StringComparison.Ordinal);

@@ -16,11 +16,10 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 AI service
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/ai-service-app")</p>
-                <p>Open a query for a short input excerpt and other queries on the same service. Full output stays on the Classic twin.</p>
+                <p>Open a query for a short input excerpt and other queries on the same service. Full output is not available on this page.</p>
             </div>
         </div>
     </div>
@@ -57,7 +56,7 @@
                         <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedQuery.InputExcerpt</pre>
                         @if (_openedQuery.InputLen > _openedQuery.InputExcerpt.Length)
                         {
-                            <p class="text-muted">Excerpt only (@_openedQuery.InputExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedQuery.InputLen.ToString(CultureInfo.InvariantCulture) chars). Full output stays on the Classic twin.</p>
+                            <p class="text-muted">Excerpt only (@_openedQuery.InputExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedQuery.InputLen.ToString(CultureInfo.InvariantCulture) chars). Full output is not available on this page.</p>
                         }
                     }
                     else

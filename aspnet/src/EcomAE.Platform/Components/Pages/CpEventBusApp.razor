@@ -19,11 +19,10 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Event bus
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/event-bus-app")</p>
-                <p>Open a row for type, tenant, actor, and a short payload excerpt. Webhook dispatch stays on the Classic twin.</p>
+                <p>Open a row for type, tenant, actor, and a short payload excerpt. Webhook dispatch is not available on this page.</p>
             </div>
         </div>
     </div>
@@ -59,7 +58,7 @@
                         <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedEvent.PayloadExcerpt</pre>
                         @if (_openedEvent.PayloadLen > _openedEvent.PayloadExcerpt.Length)
                         {
-                            <p class="text-muted">Excerpt only (@_openedEvent.PayloadExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedEvent.PayloadLen.ToString(CultureInfo.InvariantCulture) chars). Full payload stays on the Classic twin.</p>
+                            <p class="text-muted">Excerpt only (@_openedEvent.PayloadExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedEvent.PayloadLen.ToString(CultureInfo.InvariantCulture) chars). Full payload is not available on this page.</p>
                         }
                     }
                     else
@@ -115,7 +114,7 @@
         </div>
     </div>
 
-    <div class="epc-nw-note">Super CP host only. MySQL epc_events peek — no Kafka/Rabbit brokers. Webhook dispatch stays on the Classic twin.</div>
+    <div class="epc-nw-note">Super CP host only. MySQL epc_events peek — no Kafka/Rabbit brokers. Webhook dispatch is not available on this page.</div>
 
 </PhpCpDesktopChrome>
 }

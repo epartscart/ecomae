@@ -170,7 +170,7 @@ public sealed class ErpGuideParityTests
         Assert.Contains("QualityOrderWorkspaceLines", quality, StringComparison.Ordinal);
         Assert.Contains("ListErpQualityResultsAsync", quality, StringComparison.Ordinal);
         Assert.Contains("No persisted results yet", quality, StringComparison.Ordinal);
-        Assert.Contains("Inspection-result recording remains on the Classic/ERP ajax ownership path.", quality, StringComparison.Ordinal);
+        Assert.Contains("Inspection-result recording stays on the quality register.", quality, StringComparison.Ordinal);
     }
 
     [Fact]
