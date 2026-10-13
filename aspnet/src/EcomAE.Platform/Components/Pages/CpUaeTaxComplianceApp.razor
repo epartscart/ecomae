@@ -99,14 +99,14 @@
         </section>
     }
 
-    <div class="epc-tax-kpis" aria-label="UAE tax KPIs">
-        <div class="epc-tax-kpi"><div class="lbl">Legislation</div><div class="val">@_summary.LegislationCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="epc-tax-kpi"><div class="lbl">VAT</div><div class="val">@CountCat("vat").ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="epc-tax-kpi"><div class="lbl">Corporate Tax</div><div class="val">@CountCat("corporate_tax").ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="epc-tax-kpi"><div class="lbl">E-invoicing</div><div class="val">@CountCat("einvoicing").ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="epc-tax-kpi"><div class="lbl">Excise</div><div class="val">@CountCat("excise").ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="epc-tax-kpi"><div class="lbl">VAT advance</div><div class="val">@_summary.VatAdvanceRows.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="epc-tax-kpi"><div class="lbl">VAT refunds</div><div class="val">@_summary.VatRefundRows.ToString(CultureInfo.InvariantCulture)</div></div>
+    <div class="epc-tax-kpis epc-erp-stat-row" aria-label="UAE tax KPIs">
+        <div class="epc-tax-kpi epc-erp-kpi"><div class="lbl">Legislation</div><div class="val">@_summary.LegislationCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="epc-tax-kpi epc-erp-kpi"><div class="lbl">VAT</div><div class="val">@CountCat("vat").ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="epc-tax-kpi epc-erp-kpi"><div class="lbl">Corporate Tax</div><div class="val">@CountCat("corporate_tax").ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="epc-tax-kpi epc-erp-kpi"><div class="lbl">E-invoicing</div><div class="val">@CountCat("einvoicing").ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="epc-tax-kpi epc-erp-kpi"><div class="lbl">Excise</div><div class="val">@CountCat("excise").ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="epc-tax-kpi epc-erp-kpi"><div class="lbl">VAT advance</div><div class="val">@_summary.VatAdvanceRows.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="epc-tax-kpi epc-erp-kpi"><div class="lbl">VAT refunds</div><div class="val">@_summary.VatRefundRows.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
     <div class="epc-tax-links" aria-label="Tax operations">
