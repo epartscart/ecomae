@@ -9693,6 +9693,7 @@ public sealed class ErpModule : ISurfaceModule
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwMetalStockSaveBody>(context, cancellationToken)
                        ?? new();
             var companyId = body.CompanyId;
+            var itemId = body.ItemId;
             var metal = body.Metal;
             var itemCode = body.ItemCode;
             var description = body.Description;
@@ -9749,6 +9750,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                itemId = LiveWriteFormBinder.Long(form, "item_id", "itemId");
                 metal = LiveWriteFormBinder.Text(form, "metal");
                 itemCode = LiveWriteFormBinder.Text(form, "item_code", "itemCode", "code");
                 description = LiveWriteFormBinder.Text(form, "description", "name");
@@ -9820,6 +9822,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.SaveAsync(
                 new ErpJwMetalStockSaveRequest(
                     CompanyId: companyId,
+                    ItemId: itemId,
                     Metal: metal,
                     ItemCode: itemCode,
                     Description: description,
@@ -29460,6 +29463,7 @@ public sealed class ErpModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record ErpJwMetalStockSaveBody(
         int CompanyId = 0,
+        long ItemId = 0,
         string? Metal = null,
         string? ItemCode = null,
         string? Description = null,

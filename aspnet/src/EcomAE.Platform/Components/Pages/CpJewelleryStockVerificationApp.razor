@@ -220,6 +220,10 @@
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
+                @if (_openedStock is not null)
+                {
+                    <input type="hidden" name="item_id" value="@_openedStock.Id.ToString(CultureInfo.InvariantCulture)" />
+                }
                 <div class="epc-erp-doc-header">
                     <p class="epc-erp-doc-header__title">Identity</p>
                     <label>Metal
@@ -229,23 +233,23 @@
                             <option value="T" selected="@(StockMetal == "T")">T Platinum</option>
                         </select>
                     </label>
-                    <ErpMasterPicker Kind="jw-metal-stock" FieldName="item_code" Label="Item Code" ValueMode="code" SelectedCode="@StockCode" Required="true" InputId="jw-item-code" />
+                    <ErpMasterPicker Kind="jw-metal-stock" FieldName="item_code" Label="Item Code" ValueMode="code" SelectedCode="@StockCode" Required="true" AllowNew="true" MaxLength="20" InputId="jw-item-code" Placeholder="Type new item code or pick existing" />
                     <label>Description <input class="form-control input-sm" name="description" value="@StockDesc" maxlength="120" /></label>
                 </div>
                 <div class="epc-erp-doc-header">
                     <p class="epc-erp-doc-header__title">Classification · pick from listings</p>
-                    <ErpMasterPicker Kind="jw-cc" FieldName="cc_making" Label="CC Making" ValueMode="code" SelectedCode="@(_openedStock?.CcMaking)" InputId="jw-cc-making" />
-                    <ErpMasterPicker Kind="jw-cc" FieldName="cc_metal" Label="CC Metal" ValueMode="code" SelectedCode="@(_openedStock?.CcMetal)" InputId="jw-cc-metal" />
-                    <ErpMasterPicker Kind="jw-karat" FieldName="karat" Label="Karat" ValueMode="code" SelectedCode="@StockKarat" ExtraFieldName="purity" InputId="jw-karat" />
+                    <ErpMasterPicker Kind="jw-cc" FieldName="cc_making" Label="CC Making" ValueMode="code" SelectedCode="@(_openedStock?.CcMaking)" AllowNew="true" MaxLength="20" InputId="jw-cc-making" />
+                    <ErpMasterPicker Kind="jw-cc" FieldName="cc_metal" Label="CC Metal" ValueMode="code" SelectedCode="@(_openedStock?.CcMetal)" AllowNew="true" MaxLength="20" InputId="jw-cc-metal" />
+                    <ErpMasterPicker Kind="jw-karat" FieldName="karat" Label="Karat" ValueMode="code" SelectedCode="@StockKarat" ExtraFieldName="purity" AllowNew="true" MaxLength="10" InputId="jw-karat" />
                     <label>Purity <input class="form-control input-sm" name="purity" type="number" step="0.000001" value="@StockPurity.ToString("0.000000", CultureInfo.InvariantCulture)" /></label>
-                    <ErpMasterPicker Kind="jw-type" FieldName="type" Label="Type" ValueMode="code" SelectedCode="@(_openedStock?.Type)" InputId="jw-type" />
-                    <ErpMasterPicker Kind="jw-brand" FieldName="brand" Label="Brand" ValueMode="code" SelectedCode="@(_openedStock?.Brand)" InputId="jw-brand" />
-                    <ErpMasterPicker Kind="jw-category" FieldName="category" Label="Category" ValueMode="code" SelectedCode="@(_openedStock?.Category)" InputId="jw-cat" />
-                    <ErpMasterPicker Kind="jw-sub-category" FieldName="sub_category" Label="SubCategory" ValueMode="code" InputId="jw-subcat" />
-                    <ErpMasterPicker Kind="supplier" FieldName="vendor" Label="Vendor" ValueMode="code" SelectedCode="@(_openedStock?.Vendor)" CodeFieldName="vendor_ref" NameFieldName="vendor_name" InputId="jw-vendor" />
+                    <ErpMasterPicker Kind="jw-type" FieldName="type" Label="Type" ValueMode="code" SelectedCode="@(_openedStock?.Type)" AllowNew="true" MaxLength="30" InputId="jw-type" />
+                    <ErpMasterPicker Kind="jw-brand" FieldName="brand" Label="Brand" ValueMode="code" SelectedCode="@(_openedStock?.Brand)" AllowNew="true" MaxLength="60" InputId="jw-brand" />
+                    <ErpMasterPicker Kind="jw-category" FieldName="category" Label="Category" ValueMode="code" SelectedCode="@(_openedStock?.Category)" AllowNew="true" MaxLength="30" InputId="jw-cat" />
+                    <ErpMasterPicker Kind="jw-sub-category" FieldName="sub_category" Label="SubCategory" ValueMode="code" AllowNew="true" MaxLength="30" InputId="jw-subcat" />
+                    <ErpMasterPicker Kind="supplier" FieldName="vendor" Label="Vendor" ValueMode="code" SelectedCode="@(_openedStock?.Vendor)" CodeFieldName="vendor_ref" NameFieldName="vendor_name" AllowNew="true" MaxLength="20" InputId="jw-vendor" />
                     <label>Vendor Ref <input class="form-control input-sm" name="vendor_ref" value="@(_openedStock?.Vendor ?? "")" maxlength="20" /></label>
-                    <ErpMasterPicker Kind="jw-country" FieldName="country" Label="Country" ValueMode="code" SelectedCode="@(_openedStock?.Country)" InputId="jw-country" />
-                    <ErpMasterPicker Kind="jw-hs" FieldName="hs_code" Label="HS Code" ValueMode="code" SelectedCode="@(_openedStock?.HsCode)" InputId="jw-hs" />
+                    <ErpMasterPicker Kind="jw-country" FieldName="country" Label="Country" ValueMode="code" SelectedCode="@(_openedStock?.Country)" AllowNew="true" MaxLength="30" InputId="jw-country" />
+                    <ErpMasterPicker Kind="jw-hs" FieldName="hs_code" Label="HS Code" ValueMode="code" SelectedCode="@(_openedStock?.HsCode)" AllowNew="true" MaxLength="20" InputId="jw-hs" />
                     <label>MC Unit
                         <select class="form-control input-sm" name="mc_unit">
                             <option value="GMS" selected="@(StockUnit == "GMS")">GMS</option>
@@ -275,13 +279,13 @@
                 </div>
                 <div class="epc-erp-doc-header">
                     <p class="epc-erp-doc-header__title">Prices · costs · reorder</p>
-                    <ErpMasterPicker Kind="jw-currency" FieldName="price1_code" Label="Price 1" ValueMode="code" SelectedCode="@StockPrice1" InputId="jw-price1" />
+                    <ErpMasterPicker Kind="jw-currency" FieldName="price1_code" Label="Price 1" ValueMode="code" SelectedCode="@StockPrice1" AllowNew="true" MaxLength="5" InputId="jw-price1" />
                     <label>Price 1 label <input class="form-control input-sm" name="price1_label" value="@StockPrice1Label" maxlength="20" /></label>
-                    <ErpMasterPicker Kind="jw-currency" FieldName="price2_code" Label="Price 2" ValueMode="code" InputId="jw-price2" />
+                    <ErpMasterPicker Kind="jw-currency" FieldName="price2_code" Label="Price 2" ValueMode="code" AllowNew="true" MaxLength="5" InputId="jw-price2" />
                     <label>Price 2 label <input class="form-control input-sm" name="price2_label" maxlength="20" /></label>
-                    <ErpMasterPicker Kind="jw-currency" FieldName="price3_code" Label="Price 3" ValueMode="code" InputId="jw-price3" />
-                    <ErpMasterPicker Kind="jw-currency" FieldName="price4_code" Label="Price 4" ValueMode="code" InputId="jw-price4" />
-                    <ErpMasterPicker Kind="jw-currency" FieldName="price5_code" Label="Price 5" ValueMode="code" InputId="jw-price5" />
+                    <ErpMasterPicker Kind="jw-currency" FieldName="price3_code" Label="Price 3" ValueMode="code" AllowNew="true" MaxLength="5" InputId="jw-price3" />
+                    <ErpMasterPicker Kind="jw-currency" FieldName="price4_code" Label="Price 4" ValueMode="code" AllowNew="true" MaxLength="5" InputId="jw-price4" />
+                    <ErpMasterPicker Kind="jw-currency" FieldName="price5_code" Label="Price 5" ValueMode="code" AllowNew="true" MaxLength="5" InputId="jw-price5" />
                     <label>Pur Cost / GMS <input class="form-control input-sm" name="pur_cost_gms" type="number" step="0.01" value="@StockPur.ToString(CultureInfo.InvariantCulture)" /></label>
                     <label>Sale Price / GMS <input class="form-control input-sm" name="sale_price_gms" type="number" step="0.01" value="@StockSale.ToString(CultureInfo.InvariantCulture)" /></label>
                     <label>Std Cost <input class="form-control input-sm" name="std_cost" type="number" step="0.01" value="@StockStd.ToString(CultureInfo.InvariantCulture)" /></label>

@@ -62,6 +62,49 @@
         });
     }
 
+    function findComboOption(input) {
+        if (!input || !input.list) {
+            return null;
+        }
+        var value = (input.value || '').trim().toLowerCase();
+        if (!value) {
+            return null;
+        }
+        var options = input.list.options;
+        for (var i = 0; i < options.length; i++) {
+            var option = options[i];
+            if ((option.value || '').trim().toLowerCase() === value) {
+                return option;
+            }
+        }
+        return null;
+    }
+
+    function upsertDatalist(list, row, useCode) {
+        if (!list || !row || !row.id) {
+            return;
+        }
+        var value = useCode ? String(row.code || row.id) : String(row.id);
+        var existing = list.querySelector('option[value="' + value.replace(/"/g, '') + '"]');
+        var label = [row.code || value, row.name || '', row.extra || ''].filter(Boolean).join(' · ');
+        if (existing) {
+            existing.textContent = label;
+            existing.setAttribute('data-id', String(row.id));
+            existing.setAttribute('data-code', row.code || '');
+            existing.setAttribute('data-name', row.name || '');
+            existing.setAttribute('data-extra', row.extra || '');
+            return;
+        }
+        var option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        option.setAttribute('data-id', String(row.id));
+        option.setAttribute('data-code', row.code || '');
+        option.setAttribute('data-name', row.name || '');
+        option.setAttribute('data-extra', row.extra || '');
+        list.appendChild(option);
+    }
+
     function upsertOption(select, row, useCode) {
         if (!select || !row || !row.id) {
             return;
@@ -91,7 +134,9 @@
     function searchRemote(root, query) {
         var kind = root.getAttribute('data-erp-kind') || '';
         var select = root.querySelector('[data-erp-picker-select]');
-        if (!kind || !select || !query || query.length < 1) {
+        var combo = root.querySelector('[data-erp-picker-combo]');
+        var list = combo && combo.list ? combo.list : null;
+        if (!kind || (!select && !list) || !query || query.length < 1) {
             return;
         }
         fetch('/erp/lookups?kind=' + encodeURIComponent(kind) + '&q=' + encodeURIComponent(query) + '&limit=40', {
@@ -103,8 +148,13 @@
                 return;
             }
             var useCode = root.getAttribute('data-erp-value-mode') === 'code';
-            data.options.forEach(function (row) { upsertOption(select, row, useCode); });
-            filterSelect(select, query);
+            if (list) {
+                data.options.forEach(function (row) { upsertDatalist(list, row, useCode); });
+            }
+            if (select) {
+                data.options.forEach(function (row) { upsertOption(select, row, useCode); });
+                filterSelect(select, query);
+            }
         }).catch(function () { /* keep the SSR list */ });
     }
 
@@ -115,6 +165,26 @@
         root.setAttribute('data-erp-bound', '1');
         var select = root.querySelector('[data-erp-picker-select]');
         var query = root.querySelector('[data-erp-picker-q]');
+        var combo = root.querySelector('[data-erp-picker-combo]');
+        if (combo) {
+            var comboTimer = null;
+            combo.addEventListener('input', function () {
+                var option = findComboOption(combo);
+                if (option) {
+                    fillSiblings(root, option);
+                }
+                if (comboTimer) {
+                    clearTimeout(comboTimer);
+                }
+                comboTimer = setTimeout(function () {
+                    searchRemote(root, combo.value);
+                }, 180);
+            });
+            var selected = findComboOption(combo);
+            if (selected) {
+                fillSiblings(root, selected);
+            }
+        }
         if (select) {
             select.addEventListener('change', function () {
                 var option = select.options[select.selectedIndex];

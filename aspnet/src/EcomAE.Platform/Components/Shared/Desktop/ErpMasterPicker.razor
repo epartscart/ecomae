@@ -9,9 +9,23 @@
   are filled on pick.
 *@
 
-<div class="epc-erp-master-picker" data-erp-kind="@ResolvedKind" data-erp-value-mode="@ValueMode" data-erp-fill-code="@CodeFieldName" data-erp-fill-name="@NameFieldName" data-erp-fill-extra="@ExtraFieldName" data-erp-jw-stock="@(ResolvedKind == "jw-metal-stock" ? "1" : "")">
+<div class="epc-erp-master-picker" data-erp-kind="@ResolvedKind" data-erp-value-mode="@ValueMode" data-erp-fill-code="@CodeFieldName" data-erp-fill-name="@NameFieldName" data-erp-fill-extra="@ExtraFieldName" data-erp-jw-stock="@(ResolvedKind == "jw-metal-stock" ? "1" : "")" data-erp-allow-new="@(AllowNew ? "1" : "")">
     <label class="epc-erp-master-picker__label" for="@ResolvedInputId">@ResolvedLabel</label>
-    @if (_rows.Count == 0)
+    @if (AllowNew)
+    {
+        <input class="form-control input-sm" type="text" name="@FieldName" id="@ResolvedInputId" list="@ListId" value="@ValueText" required="@Required" placeholder="@(Placeholder ?? ("Type new or pick " + ResolvedLabel.ToLowerInvariant()))" autocomplete="off" maxlength="@MaxLength" data-erp-picker-combo />
+        <datalist id="@ListId">
+            @foreach (var row in _rows)
+            {
+                var optionValue = UseCodeValue
+                    ? (string.IsNullOrWhiteSpace(row.Code) ? row.Id.ToString(CultureInfo.InvariantCulture) : row.Code)
+                    : row.Id.ToString(CultureInfo.InvariantCulture);
+                <option value="@optionValue" data-id="@row.Id.ToString(CultureInfo.InvariantCulture)" data-code="@row.Code" data-name="@row.Name" data-extra="@row.Extra">@FormatOption(row)</option>
+            }
+        </datalist>
+        <p class="help-block small epc-erp-master-picker__hint">One box: type a new @ResolvedLabel.ToLowerInvariant() or pick an existing one. Duplicates are not saved.</p>
+    }
+    else if (_rows.Count == 0)
     {
         <input class="form-control input-sm" type="@(UseCodeValue ? "text" : "number")" name="@FieldName" id="@ResolvedInputId" min="@(UseCodeValue ? null : Min)" value="@ValueText" required="@Required" placeholder="@Placeholder" />
         <p class="help-block small epc-erp-master-picker__hint">No @ResolvedLabel.ToLowerInvariant() masters yet — type the id, or <a href="@MasterHref">add one</a>.</p>
@@ -61,11 +75,15 @@
     [Parameter] public string? SelectedCode { get; set; }
     /// <summary>Optional sibling field filled from the option extra (karat purity, metal-stock metal · purity · karat).</summary>
     [Parameter] public string? ExtraFieldName { get; set; }
+    /// <summary>One input: type a new code or pick an existing master. No search box above a dropdown.</summary>
+    [Parameter] public bool AllowNew { get; set; }
+    [Parameter] public int MaxLength { get; set; } = 80;
 
     private IReadOnlyList<ErpMasterOption> _rows = [];
     private string ResolvedKind => ErpMasterLookupReadService.ResolveKind(Kind) is { Length: > 0 } kind ? kind : Kind;
     private string ResolvedLabel => string.IsNullOrWhiteSpace(Label) ? ErpMasterLookupReadService.KindLabel(ResolvedKind) : Label;
     private string ResolvedInputId => string.IsNullOrWhiteSpace(InputId) ? FieldName : InputId!;
+    private string ListId => ResolvedInputId + "-list";
     private string MasterHref => ErpMasterLookupReadService.MasterHref(ResolvedKind);
     private bool UseCodeValue => string.Equals(ValueMode, "code", StringComparison.OrdinalIgnoreCase);
     private bool HasSelected => Value > 0 || !string.IsNullOrWhiteSpace(SelectedCode);
