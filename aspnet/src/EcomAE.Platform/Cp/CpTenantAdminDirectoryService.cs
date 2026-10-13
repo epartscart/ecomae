@@ -413,7 +413,7 @@ public sealed class CpTenantAdminDirectoryService : ICpTenantAdminDirectoryServi
         var sessionMap = await LoadOpenSessionCountsAsync(connection, cancellationToken).ConfigureAwait(false);
         var adminGroupIds = groupMap.Values
             .SelectMany(pairs => pairs)
-            .Where(pair => IsAdministratorGroup(pair.Value))
+            .Where(pair => ErpUserAccess.IsAdministratorGroup(pair.Value))
             .Select(pair => pair.Id)
             .ToHashSet();
 
@@ -435,7 +435,7 @@ public sealed class CpTenantAdminDirectoryService : ICpTenantAdminDirectoryServi
             var userId = Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture);
             var email = Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? string.Empty;
             var groups = groupMap.TryGetValue(userId, out var bound) ? bound : [];
-            var administrator = groups.Any(g => adminGroupIds.Contains(g.Id) || IsAdministratorGroup(g.Value));
+            var administrator = groups.Any(g => adminGroupIds.Contains(g.Id) || ErpUserAccess.IsAdministratorGroup(g.Value));
             var erpTeam = groups.Any(g =>
                 string.Equals(g.Value, ErpUserAccess.TeamGroupValue, StringComparison.Ordinal));
             var registryOperator = tenant.OperatorEmails.Any(op =>
@@ -696,10 +696,6 @@ public sealed class CpTenantAdminDirectoryService : ICpTenantAdminDirectoryServi
 
         return registryOperator ? "registry operator" : "unlocked";
     }
-
-    private static bool IsAdministratorGroup(string value)
-        => value.Contains("Administrator", StringComparison.OrdinalIgnoreCase)
-           || value.Contains("Администратор", StringComparison.Ordinal);
 
     private static bool Contains(string haystack, string needle)
         => haystack.Contains(needle, StringComparison.OrdinalIgnoreCase);

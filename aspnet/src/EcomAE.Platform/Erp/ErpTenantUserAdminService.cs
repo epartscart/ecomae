@@ -864,7 +864,7 @@ public sealed class ErpTenantUserAdminService : IErpTenantUserAdminService
         var sessionMap = await LoadOpenSessionCountsAsync(connection, cancellationToken).ConfigureAwait(false);
         var adminGroupIds = groupMap.Values
             .SelectMany(pairs => pairs)
-            .Where(pair => IsAdministratorGroup(pair.Value))
+            .Where(pair => ErpUserAccess.IsAdministratorGroup(pair.Value))
             .Select(pair => pair.Id)
             .ToHashSet();
         var teamId = groupMap.Values
@@ -921,7 +921,7 @@ public sealed class ErpTenantUserAdminService : IErpTenantUserAdminService
                 ErpStaffDepartmentCatalog.NameFor(department),
                 Convert.ToInt32(reader.GetValue(3), CultureInfo.InvariantCulture) == 1,
                 erpTeam,
-                groups.Any(g => adminGroupIds.Contains(g.Id) || IsAdministratorGroup(g.Value)),
+                groups.Any(g => adminGroupIds.Contains(g.Id) || ErpUserAccess.IsAdministratorGroup(g.Value)),
                 sessionMap.TryGetValue(userId, out var open) ? open : 0,
                 Convert.ToInt64(reader.GetValue(5), CultureInfo.InvariantCulture),
                 Convert.ToInt64(reader.GetValue(4), CultureInfo.InvariantCulture)));
@@ -1219,10 +1219,6 @@ public sealed class ErpTenantUserAdminService : IErpTenantUserAdminService
 
         return NormalizeDepartment(value["EPC_ERP_DEPT_".Length..]);
     }
-
-    private static bool IsAdministratorGroup(string value)
-        => value.Contains("Administrator", StringComparison.OrdinalIgnoreCase)
-           || value.Contains("Администратор", StringComparison.Ordinal);
 
     private static bool Contains(string haystack, string needle)
         => haystack.Contains(needle, StringComparison.OrdinalIgnoreCase);

@@ -42,6 +42,22 @@ public sealed class CpTenantAdminDirectoryTests
     }
 
     [Fact]
+    public void AdministratorGroup_MatchesLiveAdminsLabel_NotDepartmentAdmin()
+    {
+        Assert.True(ErpUserAccess.IsAdministratorGroup("Admins"));
+        Assert.True(ErpUserAccess.IsAdministratorGroup("admins"));
+        Assert.True(ErpUserAccess.IsAdministratorGroup("Admin"));
+        Assert.True(ErpUserAccess.IsAdministratorGroup("Administrators"));
+        Assert.True(ErpUserAccess.IsAdministratorGroup("Administrator"));
+        Assert.True(ErpUserAccess.IsAdministratorGroup("Администратор"));
+        Assert.False(ErpUserAccess.IsAdministratorGroup("EPC_ERP_DEPT_ADMIN"));
+        Assert.False(ErpUserAccess.IsAdministratorGroup("EPC_ERP_TEAM"));
+        Assert.False(ErpUserAccess.IsAdministratorGroup("808"));
+        Assert.False(ErpUserAccess.IsAdministratorGroup(""));
+        Assert.False(ErpUserAccess.IsAdministratorGroup(null));
+    }
+
+    [Fact]
     public void LoginHow_NamesEmailPasswordAndCompanyUrl_NeverStoresSecret()
     {
         var erp = CpTenantAdminDirectoryService.HowTheyLogin("erp_only", "indj", null, "indj@ecomae.com");

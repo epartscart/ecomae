@@ -14,6 +14,28 @@ public static class ErpUserAccess
     public const string TeamGroupValue = "EPC_ERP_TEAM";
     public const string CpErpContentUrl = "shop/finance/erp";
 
+    /// <summary>
+    /// Backend administrator groups: PHP "Administrator(s)", ERP-only dedicated DBs use
+    /// <c>Admins</c>, and the Russian admin label. Does not match department codes such as
+    /// <c>EPC_ERP_DEPT_ADMIN</c>.
+    /// </summary>
+    public static bool IsAdministratorGroup(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        if (value.Contains("Администратор", StringComparison.Ordinal)
+            || value.Contains("Administrator", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return value.Equals("Admins", StringComparison.OrdinalIgnoreCase)
+               || value.Equals("Admin", StringComparison.OrdinalIgnoreCase);
+    }
+
     public sealed record Cookies(string? Session, string? UserId, string? AdminSession, string? AdminUserId);
 
     /// <summary>
