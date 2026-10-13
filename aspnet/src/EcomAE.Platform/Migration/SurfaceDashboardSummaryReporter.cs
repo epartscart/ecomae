@@ -11282,6 +11282,13 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            if (!await TenantTableExistsAsync(connection, "epc_proc_req", cancellationToken).ConfigureAwait(false)
+                || !await TenantTableExistsAsync(connection, "epc_proc_req_line", cancellationToken).ConfigureAwait(false)
+                || !await TenantTableExistsAsync(connection, "epc_proc_category", cancellationToken).ConfigureAwait(false))
+            {
+                return new(new CpPurchaseRequestsSummary(0, 0, 0, 0, 0, "database", string.Empty), [], 0, "database", string.Empty);
+            }
+
             var reqs = 0; var draft = 0; var pending = 0; var lines = 0; var cats = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -23195,6 +23202,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            if (!await TenantTableExistsAsync(connection, "epc_erp_rfq", cancellationToken).ConfigureAwait(false))
+            {
+                return new([], 0, "database", string.Empty);
+            }
+
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpRfqs;
             AddParameter(command, "@limit", safeLimit);

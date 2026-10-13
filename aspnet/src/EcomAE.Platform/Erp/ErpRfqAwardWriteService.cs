@@ -64,11 +64,12 @@ public sealed class ErpRfqAwardWriteService : IErpRfqAwardWriteService
         decimal totalExVat;
         await using (var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false))
         {
+            await ErpRfqSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             if (!await TableExistsAsync(connection, "epc_scm_rfq", cancellationToken).ConfigureAwait(false)
                 || !await TableExistsAsync(connection, "epc_scm_rfq_lines", cancellationToken).ConfigureAwait(false)
                 || !await TableExistsAsync(connection, "epc_scm_rfq_responses", cancellationToken).ConfigureAwait(false))
             {
-                return ErpRfqAwardWriteResult.Fail("schema", "PHP SCM RFQ tables are not provisioned.");
+                return ErpRfqAwardWriteResult.Fail("schema", "RFQ tables are not provisioned.");
             }
 
             var header = await LoadHeaderAsync(connection, request.RfqId, cancellationToken).ConfigureAwait(false);

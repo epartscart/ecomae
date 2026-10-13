@@ -5,7 +5,7 @@ using Xunit;
 
 namespace EcomAE.Platform.Tests;
 
-/// <summary>Guards /erp/procurement/requisitions/save live writes without inventing schema ensure.</summary>
+/// <summary>Guards /erp/procurement/requisitions/save live writes with native schema ensure.</summary>
 public sealed class ErpProcurementReqSavePhpParityTests
 {
     [Fact]

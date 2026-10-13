@@ -5,7 +5,8 @@ namespace EcomAE.Platform.Erp;
 //   content/shop/finance/epc_erp_procurement.php
 /// <summary>
 /// Live PHP <c>epc_proc_req_submit</c> / <c>epc_proc_req_decision</c> / <c>epc_proc_req_convert</c> twins.
-/// Schema ensure stays PHP. Header save is <c>IErpProcurementReqSaveWriteService</c>.
+/// Native <c>ErpProcurementSchema</c> on confirmed writes. Header save is
+/// <c>IErpProcurementReqSaveWriteService</c>.
 /// </summary>
 public interface IErpProcurementReqWriteService
 {
@@ -43,6 +44,7 @@ public sealed class ErpProcurementReqWriteService : IErpProcurementReqWriteServi
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpProcurementSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var status = await ErpDb.StringAsync(
             connection,
             null,
@@ -105,6 +107,7 @@ public sealed class ErpProcurementReqWriteService : IErpProcurementReqWriteServi
         var decisionNote = Clip(note, 255);
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpProcurementSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var status = await ErpDb.StringAsync(
             connection,
             null,
@@ -146,6 +149,7 @@ public sealed class ErpProcurementReqWriteService : IErpProcurementReqWriteServi
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpProcurementSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var status = await ErpDb.StringAsync(
             connection,
             null,

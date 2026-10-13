@@ -57,6 +57,7 @@ public sealed class ErpRfqWriteService : IErpRfqWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpRfqSchema.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var amount = Math.Round(request.AmountEstimate, 2, MidpointRounding.AwayFromZero);
         if (request.Id > 0)
