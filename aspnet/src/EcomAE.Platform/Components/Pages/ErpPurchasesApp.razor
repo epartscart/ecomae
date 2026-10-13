@@ -87,7 +87,7 @@
                     <a class="btn btn-xs btn-default" href="/erp/lpo-print?id=@_openedDetail.OrderId.ToString(CultureInfo.InvariantCulture)" target="_blank" rel="noopener">Print LPO</a>
                 }
             </p>
-            <div class="epc-erp-opened">
+            <div class="epc-erp-fact-row">
             <dl class="epc-erp-facts">
                 <dt>Purchase id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Invoice #</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.InvoiceNumber) ? "—" : _openedDetail.InvoiceNumber)</dd>

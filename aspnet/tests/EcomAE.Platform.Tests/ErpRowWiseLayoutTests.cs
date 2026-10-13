@@ -16,7 +16,7 @@ public sealed class ErpRowWiseLayoutTests
         Assert.Contains(".epc-erp-facts", css, StringComparison.Ordinal);
         Assert.Contains("flex-wrap: wrap", css, StringComparison.Ordinal);
         Assert.Contains("--epc-field-min: 10.5rem", css, StringComparison.Ordinal);
-        Assert.Contains(".epc-erp-opened", css, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-fact-row", css, StringComparison.Ordinal);
         Assert.Contains(".epc-erp-doc-header .epc-erp-doc-header", css, StringComparison.Ordinal);
         Assert.Contains("display: contents", css, StringComparison.Ordinal);
         Assert.Contains(".epc-jw-panel[hidden]", css, StringComparison.Ordinal);
@@ -58,7 +58,7 @@ public sealed class ErpRowWiseLayoutTests
     {
         var text = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Components/Pages/ErpPurchasesApp.razor"));
-        Assert.Contains("class=\"epc-erp-opened\"", text, StringComparison.Ordinal);
+        Assert.Contains("class=\"epc-erp-fact-row\"", text, StringComparison.Ordinal);
         Assert.Contains("class=\"epc-erp-facts\"", text, StringComparison.Ordinal);
         Assert.Contains("class=\"epc-erp-action-pane\"", text, StringComparison.Ordinal);
     }

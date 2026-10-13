@@ -414,7 +414,7 @@
     word-break: break-word;
 }
 
-.epc-erp-opened {
+.epc-erp-fact-row {
     display: grid;
     grid-template-columns: 1fr;
     gap: .75rem 1rem;
@@ -422,11 +422,11 @@
     margin: 0 0 .75rem;
 }
 
-.epc-erp-opened:has(.epc-erp-action-pane) {
+.epc-erp-fact-row:has(.epc-erp-action-pane) {
     grid-template-columns: minmax(0, 1fr) minmax(16.5rem, 22rem);
 }
 
-.epc-erp-opened .epc-erp-facts {
+.epc-erp-fact-row .epc-erp-facts {
     margin-bottom: 0;
 }
 
@@ -1217,7 +1217,7 @@ a.epc-d365-ws .epc-moddir-link:hover {
 }
 
 @media (max-width: 900px) {
-    .epc-erp-opened {
+    .epc-erp-fact-row {
         grid-template-columns: 1fr;
     }
 }
