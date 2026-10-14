@@ -83,6 +83,8 @@
                 <div class="kpi"><div class="lbl">Links</div><div class="val">@_links.Count.ToString(CultureInfo.InvariantCulture)</div></div>
             </div>
 
+            <ErpManualProcessStrip Area="@_area" />
+
             @foreach (var lane in _lanes)
             {
                 <section class="epc-d365-process" aria-label="@lane.Label process flow">

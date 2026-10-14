@@ -1,0 +1,38 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+
+@if (_guides.Count > 0)
+{
+    <section class="epc-manual-process" aria-label="Operating process">
+        @foreach (var guide in _guides)
+        {
+            <div class="epc-manual-process__guide">
+                <h3>@guide.Title</h3>
+                <ol>
+                    @foreach (var step in guide.Steps)
+                    {
+                        <li><a href="@step.Href">@step.Label</a></li>
+                    }
+                </ol>
+            </div>
+        }
+    </section>
+}
+
+<style>
+    .epc-manual-process { margin:0 0 14px; padding:10px 12px; border:1px solid #dbe4ea; background:#fff; }
+    .epc-manual-process__guide + .epc-manual-process__guide { margin-top:10px; padding-top:8px; border-top:1px solid #e2e8f0; }
+    .epc-manual-process h3 { margin:0 0 6px; font-size:15px; }
+    .epc-manual-process ol { margin:0 0 0 18px; }
+    .epc-manual-process a { color:#1d4f91; font-weight:600; }
+</style>
+
+@code {
+    [Parameter] public string? Area { get; set; }
+    [Parameter] public string? Keys { get; set; }
+
+    private IReadOnlyList<ErpManualProcessCatalog.Guide> _guides = [];
+
+    protected override void OnParametersSet()
+        => _guides = ErpManualProcessCatalog.For(Area, Keys);
+}

@@ -34,7 +34,7 @@
         font-family: @(LegacyPhpFontAssets.StackFor("erp")); font-size: @(LegacyPhpFontAssets.BaseFontSize);
     }
     .epc-erp-cp-shell a { color:inherit; text-decoration:none; }
-    .epc-erp-topbar { background:rgba(255,255,255,.98); border-bottom:1px solid var(--line); }
+    .epc-erp-topbar { background:rgba(255,255,255,.98); border-bottom:1px solid var(--line); position:relative; z-index:80; overflow:visible; }
     .epc-erp-topbar__inner { display:flex; flex-wrap:wrap; gap:.45rem; align-items:center; justify-content:flex-start; padding:.4rem .7rem .4rem .2rem; }
     .epc-erp-topbar__brand { display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; gap:.35rem; font-weight:800; font-size:15px; margin:0 .1rem 0 0; white-space:nowrap; }
     .epc-erp-topbar__brand img { height:30px; }
@@ -75,7 +75,7 @@
         font-family: @(LegacyPhpFontAssets.StackFor("erp")); font-size: @(LegacyPhpFontAssets.BaseFontSize);
     }
     .epc-erp-cp-shell a { color:inherit; text-decoration:none; }
-    .epc-erp-topbar { background:rgba(255,255,255,.98); border-bottom:1px solid var(--line); }
+    .epc-erp-topbar { background:rgba(255,255,255,.98); border-bottom:1px solid var(--line); position:relative; z-index:80; overflow:visible; }
     .epc-erp-topbar__inner { display:flex; flex-wrap:wrap; gap:.45rem; align-items:center; justify-content:flex-start; padding:.4rem .7rem .4rem .2rem; }
     .epc-erp-topbar__brand { display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; gap:.35rem; font-weight:800; font-size:15px; margin:0 .1rem 0 0; white-space:nowrap; }
     .epc-erp-topbar__brand img { height:30px; }
@@ -91,7 +91,7 @@
     .epc-erp-host-sub { margin:0 0 .85rem; color:var(--muted); font-size:13px; font-weight:600; }
     .epc-erp-content-body { min-width:0; max-width:100%; overflow-x:auto; box-sizing:border-box; font-size:14px; }
     .epc-erp-foot { padding:.85rem 1rem; border-top:1px solid var(--line); background:#fff; color:var(--muted); font-size:13px; }
-    .epc-erp-global-search { position:relative; flex:1 1 16rem; max-width:28rem; min-width:12rem; }
+    .epc-erp-global-search { position:relative; z-index:90; flex:1 1 16rem; max-width:28rem; min-width:12rem; overflow:visible; }
     .epc-erp-global-search__label { position:absolute; left:.7rem; top:50%; transform:translateY(-50%); color:#64748b !important; pointer-events:none; }
     .epc-erp-global-search__input { width:100%; height:2.15rem; padding:.35rem .7rem .35rem 2rem; border:1px solid #cbd5e1; border-radius:.4rem; background:#fff !important; color:#0f172a !important; caret-color:#0f172a; font:inherit; -webkit-text-fill-color:#0f172a; }
     .epc-erp-global-search__input::placeholder { color:#64748b !important; opacity:1; -webkit-text-fill-color:#64748b; }
@@ -105,7 +105,7 @@
     .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-host-sub { margin:0; }
     .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-title { margin-bottom:.2rem; }
     .epc-erp-cp-shell[data-epc-dash-home="1"] .epc-erp-content-body { padding-top:.15rem; }
-    .epc-erp-global-search__results { position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:5000; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 12px 28px rgba(15,23,42,.14); max-height:22rem; overflow:auto; color:#0f172a; }
+    .epc-erp-global-search__results { position:fixed; z-index:9000; width:min(36rem, calc(100vw - 16px)); background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 12px 28px rgba(15,23,42,.14); max-height:min(70vh, 28rem); overflow:auto; color:#0f172a; }
     .epc-erp-global-search__hit { display:flex; gap:.55rem; align-items:center; padding:.55rem .7rem; color:#0f172a !important; text-decoration:none; }
     a.epc-erp-global-search__hit, a.epc-erp-global-search__hit span, a.epc-erp-global-search__hit i { color:#0f172a !important; }
     .epc-erp-global-search__hit:hover, .epc-erp-global-search__hit.is-active { background:#eff6ff; }
@@ -566,16 +566,44 @@
     if (!tag) return [];
     try { return JSON.parse(tag.textContent || '[]'); } catch (e) { return []; }
   }
+  function place(input, box) {
+    var rect = input.getBoundingClientRect();
+    var width = Math.min(576, Math.max(280, window.innerWidth - 16));
+    var left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+    box.style.left = left + 'px';
+    box.style.top = (rect.bottom + 4) + 'px';
+    box.style.width = width + 'px';
+  }
+  function hay(r) {
+    return (String(r.label || '') + ' ' + String(r.group || '') + ' ' + String(r.keywords || '')).toLowerCase();
+  }
+  function hitToken(text, token) {
+    if (text.indexOf(token) >= 0) return true;
+    return token === 'exempt' && text.indexOf('exemption') >= 0;
+  }
   function render(root, q) {
     var box = root.querySelector('[data-epc-global-search-results]');
+    var input = root.querySelector('[data-epc-global-search-input]');
     if (!box) return;
     var rows = catalog(root);
     var needle = (q || '').trim().toLowerCase();
-    var hits = rows.filter(function (r) {
-      if (!needle) return true;
-      return String(r.label || '').toLowerCase().indexOf(needle) >= 0
-        || String(r.group || '').toLowerCase().indexOf(needle) >= 0;
-    }).slice(0, 12);
+    var parts = needle ? needle.split(/\s+/).filter(Boolean) : [];
+    var hits = rows.map(function (r) {
+      if (!needle) return { row: r, score: 0 };
+      var text = hay(r);
+      var label = String(r.label || '').toLowerCase();
+      for (var i = 0; i < parts.length; i++) {
+        if (!hitToken(text, parts[i])) return null;
+      }
+      var score = label.indexOf(needle) >= 0 ? 100 : 0;
+      parts.forEach(function (part) {
+        score += label.indexOf(part) >= 0 ? 10 : 1;
+      });
+      return { row: r, score: score };
+    }).filter(Boolean).sort(function (a, b) {
+      return b.score - a.score || String(a.row.label || '').localeCompare(String(b.row.label || ''));
+    }).slice(0, 24).map(function (x) { return x.row; });
+    if (input) place(input, box);
     if (!hits.length) {
       box.hidden = needle.length === 0;
       box.innerHTML = needle ? '<div class="epc-erp-global-search__hit">No matching pages</div>' : '';

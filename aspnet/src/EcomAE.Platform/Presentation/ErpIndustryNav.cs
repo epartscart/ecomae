@@ -200,11 +200,28 @@ public static class ErpIndustryNav
         => DirectoryTabs(jewelleryCompany, fitOutCompany, realEstateCompany: true);
 
     public static IReadOnlyList<PhpModuleCatalog.ModuleLink> DirectoryTabs(bool jewelleryCompany, bool fitOutCompany, bool realEstateCompany)
-        => PhpModuleCatalog.ErpTabs
-            .Where(t => (jewelleryCompany || !IsJewelleryTab(t))
-                && (fitOutCompany || !IsFitOutTab(t))
-                && (realEstateCompany || !IsRealEstateTab(t)))
-            .ToList();
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var rows = new List<PhpModuleCatalog.ModuleLink>(PhpModuleCatalog.ErpTabs.Count + PhpModuleCatalog.AspNetErpTabs.Count);
+        foreach (var tab in PhpModuleCatalog.ErpTabs.Concat(PhpModuleCatalog.AspNetErpTabs))
+        {
+            if (string.IsNullOrWhiteSpace(tab.Id) || !seen.Add(tab.Id))
+            {
+                continue;
+            }
+
+            if ((!jewelleryCompany && IsJewelleryTab(tab))
+                || (!fitOutCompany && IsFitOutTab(tab))
+                || (!realEstateCompany && IsRealEstateTab(tab)))
+            {
+                continue;
+            }
+
+            rows.Add(tab);
+        }
+
+        return rows;
+    }
 
     /// <summary>
     /// Filter ERP topnav like PHP: strip jewellery-only tabs unless the active company is jewellery.

@@ -138,6 +138,23 @@
         max-width: 1600px;
     }
 
+    .epc-erp-cp-shell .epc-erp-topbar,
+    .epc-erp-cp-shell .epc-erp-topbar__inner,
+    .epc-erp-cp-shell .epc-erp-global-search {
+        overflow: visible !important;
+    }
+
+    .epc-erp-cp-shell .epc-erp-topbar {
+        position: relative;
+        z-index: 80 !important;
+    }
+
+    .epc-erp-cp-shell .epc-erp-global-search__results {
+        z-index: 9000 !important;
+        width: min(36rem, calc(100vw - 16px)) !important;
+        max-height: min(70vh, 28rem) !important;
+    }
+
     .epc-erp-cp-shell .epc-erp-topbar__inner,
     .epc-erp-cp-shell .epc-erp-topnav-inner {
         width: 100% !important;
