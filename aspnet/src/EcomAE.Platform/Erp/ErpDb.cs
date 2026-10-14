@@ -77,14 +77,39 @@ internal static class ErpDb
     /// <summary>Runs DDL / statements whose failure must not break the caller (PHP ensure-schema semantics).</summary>
     public static async Task TryExecuteAsync(DbConnection connection, string sql, CancellationToken cancellationToken)
     {
+        var createKey = string.Empty;
+        if (IsRepeatableCreate(sql))
+        {
+            createKey = ErpSchemaMemo.Key(connection, sql);
+            if (ErpSchemaMemo.IsReady(createKey))
+            {
+                return;
+            }
+        }
+
         try
         {
             await ExecuteAsync(connection, null, sql, cancellationToken).ConfigureAwait(false);
+            if (createKey.Length > 0)
+            {
+                ErpSchemaMemo.Remember(createKey);
+            }
         }
         catch (DbException)
         {
             // PHP ensure-schema helpers ignore DDL failures on locked-down grants.
         }
+    }
+
+    private static bool IsRepeatableCreate(string sql)
+    {
+        var start = 0;
+        while (start < sql.Length && char.IsWhiteSpace(sql[start]))
+        {
+            start++;
+        }
+
+        return sql.AsSpan(start).StartsWith("CREATE TABLE IF NOT EXISTS", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>Binds positional values onto a command the caller builds itself (readers).</summary>

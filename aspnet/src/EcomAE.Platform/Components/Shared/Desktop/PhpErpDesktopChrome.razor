@@ -300,27 +300,14 @@
                                                             </a>
                                                             @if (_signedIn && !pinned)
                                                             {
-                                                                <form class="epc-erp-fav-pin" method="post" action="/erp/ajax/shortcut-add" title="Add to favourites">
-                                                                    <input type="hidden" name="confirmWrites" value="true" />
-                                                                    <input type="hidden" name="returnUrl" value="@FavoriteReturnHref" />
-                                                                    <input type="hidden" name="label" value="@link.Label" />
-                                                                    <input type="hidden" name="targetUrl" value="@href" />
-                                                                    <input type="hidden" name="surface" value="erp" />
-                                                                    <input type="hidden" name="iconClass" value="@(string.IsNullOrWhiteSpace(link.Icon) ? "fa fa-star" : (link.Icon.StartsWith("fa ", StringComparison.Ordinal) ? link.Icon : "fa " + link.Icon))" />
-                                                                    <button type="submit" aria-label="Add @link.Label to favourites"><i class="fa fa-star-o" aria-hidden="true"></i></button>
-                                                                </form>
+                                                                <button type="button" class="epc-erp-fav-pin" title="Add to favourites" data-epc-fav-add="1" data-label="@link.Label" data-url="@href" data-icon="@FavIcon(link.Icon)" aria-label="Add @link.Label to favourites"><i class="fa fa-star-o" aria-hidden="true"></i></button>
                                                             }
                                                             else if (_signedIn)
                                                             {
                                                                 var pinnedId = FavoriteIdForHref(href);
                                                                 if (pinnedId > 0)
                                                                 {
-                                                                    <form class="epc-erp-fav-pin is-on" method="post" action="/erp/ajax/shortcut-delete" title="Remove from favourites">
-                                                                        <input type="hidden" name="confirmWrites" value="true" />
-                                                                        <input type="hidden" name="returnUrl" value="@FavoriteReturnHref" />
-                                                                        <input type="hidden" name="id" value="@pinnedId" />
-                                                                        <button type="submit" aria-label="Remove @link.Label from favourites"><i class="fa fa-star" aria-hidden="true"></i></button>
-                                                                    </form>
+                                                                    <button type="button" class="epc-erp-fav-pin is-on" title="Remove from favourites" data-epc-fav-remove="@pinnedId" aria-label="Remove @link.Label from favourites"><i class="fa fa-star" aria-hidden="true"></i></button>
                                                                 }
                                                                 else
                                                                 {
@@ -611,7 +598,12 @@
     }
     box.hidden = false;
     box.innerHTML = hits.map(function (r) {
-      return '<a class="epc-erp-global-search__hit" href="' + String(r.href || '#').replace(/"/g, '') + '">'
+      var href = String(r.href || '#');
+      var company = root.getAttribute('data-company') || '';
+      if (company && href.indexOf('company=') < 0 && href.charAt(0) !== '#') {
+        href += (href.indexOf('?') >= 0 ? '&' : '?') + 'company=' + encodeURIComponent(company);
+      }
+      return '<a class="epc-erp-global-search__hit" href="' + href.replace(/"/g, '') + '">'
         + '<i class="fa ' + String(r.icon || 'fa-th-large').replace(/"/g, '') + '"></i>'
         + '<span>' + String(r.label || '').replace(/</g, '&lt;') + '</span>'
         + '<small>' + String(r.group || '').replace(/</g, '&lt;') + '</small></a>';
@@ -639,10 +631,47 @@
   });
 })();
 </script>
+@if (_signedIn)
+{
+    <form id="epc-fav-add" method="post" action="/erp/ajax/shortcut-add" hidden>
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="@FavoriteReturnHref" />
+        <input type="hidden" name="label" value="" />
+        <input type="hidden" name="targetUrl" value="" />
+        <input type="hidden" name="surface" value="erp" />
+        <input type="hidden" name="iconClass" value="fa fa-star" />
+    </form>
+    <form id="epc-fav-remove" method="post" action="/erp/ajax/shortcut-delete" hidden>
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="@FavoriteReturnHref" />
+        <input type="hidden" name="id" value="" />
+    </form>
+}
 <script>
 (function () {
   if (window.__epcErpFavBound) return;
   window.__epcErpFavBound = true;
+  document.addEventListener('click', function (e) {
+    var add = e.target && e.target.closest ? e.target.closest('[data-epc-fav-add]') : null;
+    if (add) {
+      e.preventDefault();
+      var addForm = document.getElementById('epc-fav-add');
+      if (!addForm) return;
+      addForm.querySelector('[name=label]').value = add.getAttribute('data-label') || '';
+      addForm.querySelector('[name=targetUrl]').value = add.getAttribute('data-url') || '';
+      addForm.querySelector('[name=iconClass]').value = add.getAttribute('data-icon') || 'fa fa-star';
+      addForm.submit();
+      return;
+    }
+    var remove = e.target && e.target.closest ? e.target.closest('[data-epc-fav-remove]') : null;
+    if (remove) {
+      e.preventDefault();
+      var removeForm = document.getElementById('epc-fav-remove');
+      if (!removeForm) return;
+      removeForm.querySelector('[name=id]').value = remove.getAttribute('data-epc-fav-remove') || '';
+      removeForm.submit();
+    }
+  });
   function closeFav(except) {
     document.querySelectorAll('[data-epc-fav]').forEach(function (root) {
       if (except && root === except) return;
@@ -723,6 +752,7 @@
     private ErpHostContext.Context _ctx = ErpHostContext.Resolve(null);
     private IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> _nav = LegacyDesktopChromeCatalog.ErpTopnav();
     private List<FavChip> _favs = [];
+    private readonly Dictionary<string, long> _favIds = new(StringComparer.OrdinalIgnoreCase);
 
     private sealed record FavChip(long Id, string Label, string Href, string Icon);
 
@@ -746,28 +776,13 @@
     private bool CurrentPageIsFavorite => IsFavoriteHref(FavoriteReturnHref);
 
     private long FavoriteIdForHref(string? href)
-        => FavoriteForHref(href)?.Id ?? 0;
+        => !string.IsNullOrWhiteSpace(href) && _favIds.TryGetValue(NormalizeFavHref(href), out var id) ? id : 0;
 
-    private FavChip? FavoriteForHref(string? href)
-    {
-        if (string.IsNullOrWhiteSpace(href))
-        {
-            return null;
-        }
+    private bool IsFavoriteHref(string? href)
+        => !string.IsNullOrWhiteSpace(href) && _favIds.ContainsKey(NormalizeFavHref(href));
 
-        var needle = NormalizeFavHref(href);
-        foreach (var fav in _favs)
-        {
-            if (string.Equals(NormalizeFavHref(fav.Href), needle, StringComparison.OrdinalIgnoreCase))
-            {
-                return fav;
-            }
-        }
-
-        return null;
-    }
-
-    private bool IsFavoriteHref(string? href) => FavoriteForHref(href) is not null;
+    private static string FavIcon(string? icon)
+        => string.IsNullOrWhiteSpace(icon) ? "fa fa-star" : (icon.StartsWith("fa ", StringComparison.Ordinal) ? icon : "fa " + icon);
 
     private static string NormalizeFavHref(string href)
     {
@@ -816,10 +831,21 @@
             }
 
             _favs = chips;
+            IndexFavourites();
         }
         catch (Exception)
         {
             _favs = [];
+            _favIds.Clear();
+        }
+    }
+
+    private void IndexFavourites()
+    {
+        _favIds.Clear();
+        foreach (var fav in _favs)
+        {
+            _favIds.TryAdd(NormalizeFavHref(fav.Href), fav.Id);
         }
     }
 

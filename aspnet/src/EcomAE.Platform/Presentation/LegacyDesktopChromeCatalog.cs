@@ -810,9 +810,25 @@ public static class LegacyDesktopChromeCatalog
     /// ERP topnav: categories → area columns → tabs (mirrors <c>epc_erp_render_top_nav</c>).
     /// No artificial tab caps — every catalogued tab appears under its area column.
     /// </summary>
-    public static IReadOnlyList<MegaGroup> ErpTopnav()
+    private static readonly Lazy<IReadOnlyList<MegaGroup>> ErpTopnavCache = new(BuildErpTopnav);
+
+    public static IReadOnlyList<MegaGroup> ErpTopnav() => ErpTopnavCache.Value;
+
+    private static IReadOnlyList<MegaGroup> BuildErpTopnav()
     {
         var areasById = PhpModuleCatalog.ErpAreas.ToDictionary(a => a.Id, StringComparer.OrdinalIgnoreCase);
+        var tabsByGroup = new Dictionary<string, List<PhpModuleCatalog.ModuleLink>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var tab in PhpModuleCatalog.ErpTabs.Concat(PhpModuleCatalog.AspNetErpTabs))
+        {
+            var group = tab.Group ?? string.Empty;
+            if (!tabsByGroup.TryGetValue(group, out var bucket))
+            {
+                bucket = [];
+                tabsByGroup[group] = bucket;
+            }
+
+            bucket.Add(tab);
+        }
 
         return PhpModuleCatalog.ErpCategories.Select(cat =>
         {
@@ -825,12 +841,7 @@ public static class LegacyDesktopChromeCatalog
 
             foreach (var areaId in areaIds)
             {
-                var tabs = PhpModuleCatalog.ErpTabs
-                    .Concat(PhpModuleCatalog.AspNetErpTabs)
-                    .Where(t => string.Equals(t.Group, areaId, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
-                if (tabs.Count == 0)
+                if (!tabsByGroup.TryGetValue(areaId, out var tabs) || tabs.Count == 0)
                 {
                     continue;
                 }

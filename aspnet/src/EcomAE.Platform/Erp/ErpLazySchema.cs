@@ -791,6 +791,12 @@ internal static class ErpLazySchema
     /// </summary>
     public static async Task EnsureCompanyContextAsync(DbConnection c, CancellationToken ct)
     {
+        var readyKey = ErpSchemaMemo.Key(c, "company-context");
+        if (ErpSchemaMemo.IsReady(readyKey))
+        {
+            return;
+        }
+
         try
         {
         await ErpDb.TryExecuteAsync(c,
@@ -947,6 +953,25 @@ internal static class ErpLazySchema
         finally
         {
             await EnsureTenantOrganizationAsync(c, ct).ConfigureAwait(false);
+            if (readyKey.Length > 0)
+            {
+                try
+                {
+                    var active = await ErpDb.LongAsync(
+                        c,
+                        null,
+                        "SELECT COUNT(*) FROM `epc_erp_pm_legal_entities` WHERE `active` = 1",
+                        ct).ConfigureAwait(false);
+                    if (active > 0)
+                    {
+                        ErpSchemaMemo.Remember(readyKey);
+                    }
+                }
+                catch (DbException)
+                {
+                    // Leave the database unmarked so the next page retries the ensure.
+                }
+            }
         }
     }
 
