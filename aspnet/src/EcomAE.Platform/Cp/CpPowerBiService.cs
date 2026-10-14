@@ -83,6 +83,12 @@ public sealed class CpPowerBiService : ICpPowerBiService
             return CpPowerBiView.Empty(requested, "unconfigured");
         }
 
+        var hotKey = "pbi:" + (host ?? string.Empty).Trim() + "|" + requested;
+        if (ErpHotReadCache.TryGet(hotKey, out CpPowerBiView? cached) && cached is not null)
+        {
+            return cached;
+        }
+
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -94,7 +100,9 @@ public sealed class CpPowerBiService : ICpPowerBiService
             var reports = await LoadReportsAsync(connection, key, cancellationToken).ConfigureAwait(false);
             var embed = PowerBiCatalog.ResolveEmbed(config.Active, config.EmbedMode, config.EmbedUrl);
 
-            return new CpPowerBiView(key, config, reports, tenants, embed, "db");
+            var view = new CpPowerBiView(key, config, reports, tenants, embed, "db");
+            ErpHotReadCache.Set(hotKey, view, TimeSpan.FromSeconds(20));
+            return view;
         }
         catch (DbException)
         {

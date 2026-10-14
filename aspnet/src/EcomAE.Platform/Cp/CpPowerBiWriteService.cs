@@ -71,8 +71,8 @@ public sealed class CpPowerBiWriteService : ICpPowerBiWriteService
         DbConnection connection,
         CancellationToken cancellationToken = default)
     {
-        await ErpDb.ExecuteAsync(
-            connection, null,
+        await ErpDb.TryExecuteAsync(
+            connection,
             "CREATE TABLE IF NOT EXISTS `epc_power_bi_config` ("
             + "`id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,"
             + "`site_key` VARCHAR(64) NOT NULL DEFAULT '__platform__',"
@@ -90,8 +90,8 @@ public sealed class CpPowerBiWriteService : ICpPowerBiWriteService
             + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
             cancellationToken).ConfigureAwait(false);
 
-        await ErpDb.ExecuteAsync(
-            connection, null,
+        await ErpDb.TryExecuteAsync(
+            connection,
             "CREATE TABLE IF NOT EXISTS `epc_power_bi_reports` ("
             + "`id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,"
             + "`site_key` VARCHAR(64) NOT NULL,"

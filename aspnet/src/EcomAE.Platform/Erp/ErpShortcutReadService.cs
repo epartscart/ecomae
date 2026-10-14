@@ -41,14 +41,23 @@ public sealed partial class ErpShortcutReadService : IErpShortcutReadService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-        await ErpLazySchema.EnsureUserShortcutsAsync(connection, cancellationToken).ConfigureAwait(false);
-        var exists = await ErpDb.LongAsync(
-            connection, null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_user_shortcuts'"),
-            cancellationToken).ConfigureAwait(false) > 0;
-        if (!exists)
+        var tableKey = ErpSchemaMemo.Key(connection, "table:epc_user_shortcuts");
+        if (!ErpSchemaMemo.IsReady(tableKey))
         {
-            return new(ErpSimpleWriteResult.Fail("invalid", NotProvisioned), []);
+            await ErpLazySchema.EnsureUserShortcutsAsync(connection, cancellationToken).ConfigureAwait(false);
+            var names = await ErpTableCatalog.LoadAsync(connection, cancellationToken).ConfigureAwait(false);
+            if (!names.Contains("epc_user_shortcuts"))
+            {
+                ErpTableCatalog.Forget(connection);
+                names = await ErpTableCatalog.LoadAsync(connection, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (!names.Contains("epc_user_shortcuts"))
+            {
+                return new(ErpSimpleWriteResult.Fail("invalid", NotProvisioned), []);
+            }
+
+            ErpSchemaMemo.Remember(tableKey);
         }
 
         var s = (surface ?? "both").Trim();

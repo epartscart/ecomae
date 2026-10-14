@@ -149,6 +149,14 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return empty;
         }
 
+        var homeHotKey = WorkspaceHomeHotKey(periodFromStr);
+        if (homeHotKey.Length > 0
+            && ErpHotReadCache.TryGet(homeHotKey, out ErpWorkspaceHomeDigest? cachedHome)
+            && cachedHome is not null)
+        {
+            return cachedHome;
+        }
+
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
@@ -165,9 +173,23 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var prevSummary = await ReadErpDashboardForPeriodAsync(
                 connection, prevFrom, prevTo, periodKey, overdueBefore, cancellationToken).ConfigureAwait(false);
 
-            var glScope = await ResolveWorkspaceGlScopeAsync(connection, cancellationToken).ConfigureAwait(false);
-            var curExtras = await ReadWorkspaceExtrasAsync(connection, monthStart, now, glScope, cancellationToken).ConfigureAwait(false);
-            var prevExtras = await ReadWorkspaceExtrasAsync(connection, prevFrom, prevTo, glScope, cancellationToken).ConfigureAwait(false);
+            // First paint: chrome already used part of the 3s budget. The extra
+            // purchase/revenue/commerce fan-out is ~30 sequential statements.
+            // Reuse the batch figures so the home paints inside 1–3s.
+            var paintFast = ErpFirstPaint.IsActive;
+            (decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int CompletedOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit) curExtras;
+            (decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int CompletedOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit) prevExtras;
+            if (paintFast)
+            {
+                curExtras = ExtrasFromSummary(currentSummary);
+                prevExtras = ExtrasFromSummary(prevSummary);
+            }
+            else
+            {
+                var glScope = await ResolveWorkspaceGlScopeAsync(connection, cancellationToken).ConfigureAwait(false);
+                curExtras = await ReadWorkspaceExtrasAsync(connection, monthStart, now, glScope, cancellationToken).ConfigureAwait(false);
+                prevExtras = await ReadWorkspaceExtrasAsync(connection, prevFrom, prevTo, glScope, cancellationToken).ConfigureAwait(false);
+            }
 
             var current = ToWorkspacePeriod(currentSummary, curExtras);
             var previous = ToWorkspacePeriod(prevSummary, prevExtras);
@@ -192,7 +214,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
+            var roomForPanels = !paintFast || ErpFirstPaint.RemainingMilliseconds >= 1600;
             var depts = new List<ErpWorkspaceDeptLoad>();
+            if (roomForPanels)
             try
             {
                 await using var cmd = connection.CreateCommand();
@@ -212,6 +236,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
 
             var performers = new List<ErpWorkspacePerformer>();
+            if (roomForPanels)
             try
             {
                 await using var cmd = connection.CreateCommand();
@@ -242,15 +267,19 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var arLabels = new[] { "Not due", "1-30", "31-60", "61-90", "90+" };
             var arTotals = new decimal[] { 0, 0, 0, 0, 0 };
             var arGrand = current.ArBalance != 0 ? current.ArBalance : current.Receivables;
-            var topSuppliers = await ReadWorkspaceTopSuppliersAsync(connection, cancellationToken).ConfigureAwait(false);
+            var topSuppliers = roomForPanels
+                ? await ReadWorkspaceTopSuppliersAsync(connection, cancellationToken).ConfigureAwait(false)
+                : [];
             var danger = current.LowStockItems;
             var warning = current.OpenPurchaseOrders;
             var info = 0;
             var dead = 0;
 
             var alerts = new ErpWorkspacePlanningAlerts(danger, warning, info, dead, danger + warning + info + dead);
-            var commerce = await ReadInsightsCommerceAsync(connection, cancellationToken).ConfigureAwait(false);
-            return new(
+            var commerce = roomForPanels
+                ? await ReadInsightsCommerceAsync(connection, cancellationToken).ConfigureAwait(false)
+                : new ErpInsightsCommerceStats(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            var home = new ErpWorkspaceHomeDigest(
                 current,
                 previous,
                 trend,
@@ -267,6 +296,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 currentSummary.Message,
                 commerce,
                 companyScope);
+            if (homeHotKey.Length > 0 && string.Equals(home.Source, "database", StringComparison.Ordinal))
+            {
+                ErpHotReadCache.Set(homeHotKey, home, TimeSpan.FromSeconds(25));
+            }
+
+            return home;
         }
         catch (Exception ex)
         {
@@ -454,6 +489,22 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         return rows;
     }
 
+    private static (decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int CompletedOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit)
+        ExtrasFromSummary(ErpDashboardSummary summary)
+        => (
+            0m,
+            summary.RevenueExVat,
+            0m,
+            summary.ArBalance,
+            summary.OrdersCount,
+            0,
+            summary.PendingPurchaseOrders,
+            summary.OverdueInvoices,
+            0,
+            0,
+            summary.ProcessDone,
+            0m);
+
     private static ErpWorkspacePeriodKpis ToWorkspacePeriod(
         ErpDashboardSummary s,
         (decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int CompletedOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit) x)
@@ -502,9 +553,52 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         long overdueBefore,
         CancellationToken cancellationToken)
     {
+        if (!ErpFirstPaint.IsActive)
+        {
+            return await ReadErpDashboardBatchCoreAsync(
+                connection, monthStart, now, periodKey, overdueBefore,
+                LegacySurfaceDashboardSql.SelectErpDashboardSummaryBatch, cancellationToken).ConfigureAwait(false);
+        }
+
+        IReadOnlySet<string> tables;
+        try
+        {
+            tables = await ErpTableCatalog.LoadAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            return EmptyErpSummary("database", string.Empty);
+        }
+
+        try
+        {
+            return await ReadErpDashboardBatchCoreAsync(
+                connection, monthStart, now, periodKey, overdueBefore,
+                ErpDashboardPaintSql.Batch(tables, includeShop: true, includePeriod: true),
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            // Unknown shop column or period key — keep the ERP tables that are present.
+            return await ReadErpDashboardBatchCoreAsync(
+                connection, monthStart, now, periodKey, overdueBefore,
+                ErpDashboardPaintSql.Batch(tables, includeShop: false, includePeriod: false),
+                cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task<ErpDashboardSummary> ReadErpDashboardBatchCoreAsync(
+        DbConnection connection,
+        long monthStart,
+        long now,
+        string periodKey,
+        long overdueBefore,
+        string sql,
+        CancellationToken cancellationToken)
+    {
         await using var command = connection.CreateCommand();
         ErpFirstPaint.ApplyIfErp(command);
-        command.CommandText = LegacySurfaceDashboardSql.SelectErpDashboardSummaryBatch;
+        command.CommandText = sql;
         AddParameter(command, "@dateFrom", monthStart);
         AddParameter(command, "@dateTo", now);
         AddParameter(command, "@periodKey", periodKey);
@@ -9776,6 +9870,15 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return cached;
         }
 
+        var companiesHotKey = CompaniesHotKey(limit);
+        if (companiesHotKey.Length > 0
+            && ErpHotReadCache.TryGet(companiesHotKey, out ErpCompaniesDigestResult? hotCompanies)
+            && hotCompanies is not null)
+        {
+            ErpFirstPaint.SetRequestCache(http, cacheKey, hotCompanies);
+            return hotCompanies;
+        }
+
         var safeLimit = Math.Clamp(limit, 1, 200);
         if (!_connections.IsConfigured)
         {
@@ -9841,6 +9944,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             var result = new ErpCompaniesDigestResult(rows, rows.Count, "database", string.Empty);
             ErpFirstPaint.SetRequestCache(http, cacheKey, result);
+            if (companiesHotKey.Length > 0)
+            {
+                ErpHotReadCache.Set(companiesHotKey, result, TimeSpan.FromSeconds(45));
+            }
+
             return result;
         }
         catch (Exception ex)
@@ -18013,6 +18121,40 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             message,
             null,
             GetRequestedCompanyScope());
+    }
+
+    private string WorkspaceHomeHotKey(string periodFrom)
+    {
+        var database = TenantDatabaseName();
+        if (database.Length == 0 || _httpContextAccessor?.HttpContext is null)
+        {
+            return string.Empty;
+        }
+
+        var company = ErpHostContext.ActiveCompanyIdFromQuery(_httpContextAccessor.HttpContext.Request) ?? 0;
+        return "home:" + database + ":" + company.ToString(CultureInfo.InvariantCulture) + ":" + periodFrom;
+    }
+
+    private string CompaniesHotKey(int limit)
+    {
+        var database = TenantDatabaseName();
+        if (database.Length == 0 || _httpContextAccessor?.HttpContext is null)
+        {
+            return string.Empty;
+        }
+
+        return "companies:" + database + ":" + Math.Clamp(limit, 1, 200).ToString(CultureInfo.InvariantCulture);
+    }
+
+    private string TenantDatabaseName()
+    {
+        if (_httpContextAccessor?.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant
+            && !string.IsNullOrWhiteSpace(tenant.DatabaseName))
+        {
+            return tenant.DatabaseName.Trim();
+        }
+
+        return string.Empty;
     }
 
     private string GetRequestedCompanyScope()
