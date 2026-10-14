@@ -4,7 +4,9 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
+@using EcomAE.Platform.Erp
 @inject IHttpContextAccessor Http
+@inject IErpShortcutReadService Shortcuts
 @inject ILegacySessionValidator Sessions
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IErpNavTenantRules NavTenantRules
@@ -33,15 +35,15 @@
     }
     .epc-erp-cp-shell a { color:inherit; text-decoration:none; }
     .epc-erp-topbar { background:rgba(255,255,255,.98); border-bottom:1px solid var(--line); }
-    .epc-erp-topbar__inner { display:flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content:space-between; padding:.65rem 1rem; }
-    .epc-erp-topbar__brand { display:flex; align-items:center; gap:.55rem; font-weight:800; font-size:15px; }
+    .epc-erp-topbar__inner { display:flex; flex-wrap:wrap; gap:.45rem; align-items:center; justify-content:flex-start; padding:.4rem .7rem .4rem .2rem; }
+    .epc-erp-topbar__brand { display:flex; align-items:center; gap:.35rem; font-weight:800; font-size:15px; margin:0 .1rem 0 0; }
     .epc-erp-topbar__brand img { height:30px; }
-    .epc-erp-topbar__nav, .epc-erp-topbar__user { display:flex; gap:.85rem; font-size:13px; font-weight:600; color:#334155; }
+    .epc-erp-topbar__nav, .epc-erp-topbar__user { display:flex; gap:.7rem; font-size:13px; font-weight:600; color:#334155; margin-left:auto; }
     /* epc-erp-right-clip: stay inside the viewport — do not size to 100vw then shift. */
     .epc-erp-main { max-width:none; width:100%; min-width:0; padding:0; box-sizing:border-box; }
     .epc-erp-layout { min-width:0; max-width:100%; }
     .epc-erp-content { width:auto; max-width:100%; min-width:0; margin:0; padding:0; font-size:14px; box-sizing:border-box; }
-    .epc-erp-topbar__inner, .epc-erp-topnav-inner { width:min(1480px, 100%); max-width:100%; margin:0 auto; box-sizing:border-box; }
+    .epc-erp-topbar__inner, .epc-erp-topnav-inner { width:100%; max-width:none; margin:0; padding-left:.2rem; box-sizing:border-box; }
     .epc-erp-breadcrumb { color:var(--muted); font-size:13px; margin-bottom:.35rem; }
     .epc-erp-breadcrumb .sep { margin:0 .25rem; }
     .epc-erp-content-title { margin:0 0 .35rem; font-size:22px; font-weight:700; }
@@ -74,15 +76,15 @@
     }
     .epc-erp-cp-shell a { color:inherit; text-decoration:none; }
     .epc-erp-topbar { background:rgba(255,255,255,.98); border-bottom:1px solid var(--line); }
-    .epc-erp-topbar__inner { display:flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content:space-between; padding:.65rem 1rem; }
-    .epc-erp-topbar__brand { display:flex; align-items:center; gap:.55rem; font-weight:800; font-size:15px; }
+    .epc-erp-topbar__inner { display:flex; flex-wrap:wrap; gap:.45rem; align-items:center; justify-content:flex-start; padding:.4rem .7rem .4rem .2rem; }
+    .epc-erp-topbar__brand { display:flex; align-items:center; gap:.35rem; font-weight:800; font-size:15px; margin:0 .1rem 0 0; }
     .epc-erp-topbar__brand img { height:30px; }
-    .epc-erp-topbar__nav, .epc-erp-topbar__user { display:flex; gap:.85rem; font-size:13px; font-weight:600; color:#334155; }
+    .epc-erp-topbar__nav, .epc-erp-topbar__user { display:flex; gap:.7rem; font-size:13px; font-weight:600; color:#334155; margin-left:auto; }
     /* epc-erp-right-clip: stay inside the viewport — do not size to 100vw then shift. */
     .epc-erp-main { max-width:none; width:100%; min-width:0; padding:0; box-sizing:border-box; }
     .epc-erp-layout { min-width:0; max-width:100%; }
     .epc-erp-content { width:auto; max-width:100%; min-width:0; margin:0; padding:0; font-size:14px; box-sizing:border-box; }
-    .epc-erp-topbar__inner, .epc-erp-topnav-inner { width:min(1480px, 100%); max-width:100%; margin:0 auto; box-sizing:border-box; }
+    .epc-erp-topbar__inner, .epc-erp-topnav-inner { width:100%; max-width:none; margin:0; padding-left:.2rem; box-sizing:border-box; }
     .epc-erp-breadcrumb { color:var(--muted); font-size:13px; margin-bottom:.35rem; }
     .epc-erp-breadcrumb .sep { margin:0 .25rem; }
     .epc-erp-content-title { margin:0 0 .35rem; font-size:22px; font-weight:700; }
@@ -108,6 +110,22 @@
     a.epc-erp-global-search__hit, a.epc-erp-global-search__hit span, a.epc-erp-global-search__hit i { color:#0f172a !important; }
     .epc-erp-global-search__hit:hover, .epc-erp-global-search__hit.is-active { background:#eff6ff; }
     .epc-erp-global-search__hit small { color:#64748b !important; margin-left:auto; }
+    .epc-erp-fav { position:relative; flex:0 0 auto; }
+    .epc-erp-fav__btn { display:inline-flex; align-items:center; gap:.35rem; height:2.15rem; padding:0 .7rem; border:1px solid rgba(255,255,255,.28); border-radius:.4rem; background:rgba(255,255,255,.1); color:#fff; font:inherit; font-weight:700; font-size:13px; cursor:pointer; }
+    .epc-erp-fav__btn:hover, .epc-erp-fav__btn[aria-expanded="true"] { background:rgba(255,255,255,.2); }
+    .epc-erp-fav__chips { display:flex; flex-wrap:nowrap; gap:.3rem; max-width:min(36rem, 40vw); overflow-x:auto; }
+    .epc-erp-fav__chip { display:inline-flex; align-items:center; gap:.25rem; height:1.85rem; padding:0 .5rem; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; font-size:12px; font-weight:700; white-space:nowrap; }
+    .epc-erp-fav__chip:hover { background:rgba(255,255,255,.24); color:#fff; }
+    .epc-erp-fav__panel { position:absolute; left:0; top:calc(100% + 6px); z-index:5200; min-width:16rem; max-width:22rem; max-height:22rem; overflow:auto; background:#fff; color:#0f172a; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 12px 28px rgba(15,23,42,.16); padding:.45rem; }
+    .epc-erp-fav__panel a, .epc-erp-fav__panel button { display:flex; width:100%; align-items:center; gap:.45rem; padding:.45rem .55rem; border:0; background:transparent; color:#0f172a; text-align:left; font:inherit; text-decoration:none; border-radius:6px; cursor:pointer; }
+    .epc-erp-fav__panel a:hover, .epc-erp-fav__panel button:hover { background:#eff6ff; }
+    .epc-erp-fav__empty { margin:0; padding:.45rem .55rem; color:#64748b; font-size:12px; }
+    .epc-erp-fav-pin { display:inline-flex; margin-left:.15rem; }
+    .epc-erp-fav-pin button { border:0; background:transparent; color:#94a3b8; padding:0 .15rem; cursor:pointer; }
+    .epc-erp-fav-pin button:hover, .epc-erp-fav-pin.is-on button, .epc-erp-fav-pin.is-on { color:#d97706; }
+    .epc-erp-content-title .epc-erp-fav-pin { vertical-align:middle; }
+    .epc-erp-topnav-links li { display:flex; align-items:center; }
+    .epc-erp-topnav-links li > a { flex:1 1 auto; min-width:0; }
 </style>
 
 <div class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern epc-php-font-root"
@@ -124,6 +142,47 @@
                 </span>
                 <span>@_ctx.BrandLabel ERP</span>
             </a>
+            @if (_signedIn)
+            {
+                <div class="epc-erp-fav" data-epc-fav>
+                    <button type="button" class="epc-erp-fav__btn" data-epc-fav-toggle aria-expanded="false" aria-haspopup="true">
+                        <i class="fa fa-star" aria-hidden="true"></i> Favourites
+                    </button>
+                    @if (_favs.Count > 0)
+                    {
+                        <div class="epc-erp-fav__chips" aria-label="Favourite modules">
+                            @foreach (var fav in _favs.Take(8))
+                            {
+                                <a class="epc-erp-fav__chip" href="@fav.Href" title="@fav.Label">
+                                    <i class="fa @fav.Icon" aria-hidden="true"></i> @fav.Label
+                                </a>
+                            }
+                        </div>
+                    }
+                    <div class="epc-erp-fav__panel" hidden data-epc-fav-panel>
+                        @if (_favs.Count == 0)
+                        {
+                            <p class="epc-erp-fav__empty">Star a module in the menu, or add this page. Open it from here next time.</p>
+                        }
+                        @foreach (var fav in _favs)
+                        {
+                            <a href="@fav.Href"><i class="fa @fav.Icon" aria-hidden="true"></i> @fav.Label</a>
+                        }
+                        @if (!CurrentPageIsFavorite)
+                        {
+                            <form method="post" action="/erp/ajax/shortcut-add">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="@FavoriteReturnHref" />
+                                <input type="hidden" name="label" value="@Title" />
+                                <input type="hidden" name="targetUrl" value="@FavoriteReturnHref" />
+                                <input type="hidden" name="surface" value="erp" />
+                                <input type="hidden" name="iconClass" value="fa fa-star" />
+                                <button type="submit"><i class="fa fa-star-o" aria-hidden="true"></i> Add this page</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
             <ErpGlobalSearch Jewellery="_jewellery" FitOut="_fitOut" RealEstate="_realEstate" CompanyId="_activeCompanyId" />
             <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact" aria-label="ERP topbar">
                 <a href="@ErpHomeHref">Dashboard</a>
@@ -218,11 +277,29 @@
                                                 <ul class="epc-erp-topnav-links">
                                                     @foreach (var link in col.Tabs)
                                                     {
+                                                        var href = ModuleHref(link.Href);
+                                                        var pinned = IsFavoriteHref(href);
                                                         <li class="@(PathIsActive(link.Href) ? "is-active" : null)">
-                                                            <a href="@ModuleHref(link.Href)">
+                                                            <a href="@href">
                                                                 <i class="fa @(string.IsNullOrWhiteSpace(link.Icon) ? "fa-circle-o" : link.Icon)"></i>
                                                                 @link.Label
                                                             </a>
+                                                            @if (_signedIn && !pinned)
+                                                            {
+                                                                <form class="epc-erp-fav-pin" method="post" action="/erp/ajax/shortcut-add" title="Add to favourites">
+                                                                    <input type="hidden" name="confirmWrites" value="true" />
+                                                                    <input type="hidden" name="returnUrl" value="@FavoriteReturnHref" />
+                                                                    <input type="hidden" name="label" value="@link.Label" />
+                                                                    <input type="hidden" name="targetUrl" value="@href" />
+                                                                    <input type="hidden" name="surface" value="erp" />
+                                                                    <input type="hidden" name="iconClass" value="@(string.IsNullOrWhiteSpace(link.Icon) ? "fa fa-star" : (link.Icon.StartsWith("fa ", StringComparison.Ordinal) ? link.Icon : "fa " + link.Icon))" />
+                                                                    <button type="submit" aria-label="Add @link.Label to favourites"><i class="fa fa-star-o" aria-hidden="true"></i></button>
+                                                                </form>
+                                                            }
+                                                            else if (_signedIn)
+                                                            {
+                                                                <span class="epc-erp-fav-pin is-on" title="In favourites"><i class="fa fa-star" aria-hidden="true"></i></span>
+                                                            }
                                                         </li>
                                                     }
                                                 </ul>
@@ -248,7 +325,25 @@
                                     <span class="sep">/</span>
                                     <span class="epc-erp-breadcrumb-current">@BreadcrumbTab</span>
                                 </nav>
-                                <h1 class="epc-erp-content-title">@Title</h1>
+                                <h1 class="epc-erp-content-title">
+                                    @Title
+                                    @if (_signedIn && !CurrentPageIsFavorite)
+                                    {
+                                        <form class="epc-erp-fav-pin" method="post" action="/erp/ajax/shortcut-add" title="Add this page to favourites">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="returnUrl" value="@FavoriteReturnHref" />
+                                            <input type="hidden" name="label" value="@Title" />
+                                            <input type="hidden" name="targetUrl" value="@FavoriteReturnHref" />
+                                            <input type="hidden" name="surface" value="erp" />
+                                            <input type="hidden" name="iconClass" value="fa fa-star" />
+                                            <button type="submit" aria-label="Add @Title to favourites"><i class="fa fa-star-o" aria-hidden="true"></i></button>
+                                        </form>
+                                    }
+                                    else if (_signedIn)
+                                    {
+                                        <span class="epc-erp-fav-pin is-on" title="In favourites"><i class="fa fa-star" aria-hidden="true"></i></span>
+                                    }
+                                </h1>
                                 <p class="epc-erp-host-sub">@(IsDashboardHome ? _companyLabel : $"{_companyLabel} · {_industryLabel}{(_jewellery ? " · jewellery modules on" : " · core modules")}")</p>
                             </div>
                         </div>
@@ -476,6 +571,41 @@
   });
 })();
 </script>
+<script>
+(function () {
+  if (window.__epcErpFavBound) return;
+  window.__epcErpFavBound = true;
+  function closeFav(except) {
+    document.querySelectorAll('[data-epc-fav]').forEach(function (root) {
+      if (except && root === except) return;
+      var btn = root.querySelector('[data-epc-fav-toggle]');
+      var panel = root.querySelector('[data-epc-fav-panel]');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+      if (panel) panel.hidden = true;
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var toggle = e.target && e.target.closest ? e.target.closest('[data-epc-fav-toggle]') : null;
+    if (toggle) {
+      e.preventDefault();
+      e.stopPropagation();
+      var root = toggle.closest('[data-epc-fav]');
+      var panel = root && root.querySelector('[data-epc-fav-panel]');
+      var open = toggle.getAttribute('aria-expanded') === 'true';
+      closeFav();
+      if (!open && panel) {
+        toggle.setAttribute('aria-expanded', 'true');
+        panel.hidden = false;
+      }
+      return;
+    }
+    if (!e.target.closest || !e.target.closest('[data-epc-fav]')) closeFav();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeFav();
+  });
+})();
+</script>
 <script src="/erp/erp-master-picker.js" defer></script>
 <script src="/erp/erp-jewellery-purchase.js" defer></script>
 
@@ -513,8 +643,93 @@
     private string _currentPath = "/erp";
     private ErpHostContext.Context _ctx = ErpHostContext.Resolve(null);
     private IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> _nav = LegacyDesktopChromeCatalog.ErpTopnav();
+    private List<FavChip> _favs = [];
+
+    private sealed record FavChip(string Label, string Href, string Icon);
 
     private string ErpHomeHref => _activeCompanyId > 0 ? $"/erp?company={_activeCompanyId}" : "/erp";
+
+    private string FavoriteReturnHref
+    {
+        get
+        {
+            var path = Http.HttpContext?.Request.Path.Value;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                path = "/erp";
+            }
+
+            var query = Http.HttpContext?.Request.QueryString.Value;
+            return string.IsNullOrEmpty(query) ? path : path + query;
+        }
+    }
+
+    private bool CurrentPageIsFavorite => IsFavoriteHref(FavoriteReturnHref);
+
+    private bool IsFavoriteHref(string? href)
+    {
+        if (string.IsNullOrWhiteSpace(href))
+        {
+            return false;
+        }
+
+        var needle = NormalizeFavHref(href);
+        foreach (var fav in _favs)
+        {
+            if (string.Equals(NormalizeFavHref(fav.Href), needle, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string NormalizeFavHref(string href)
+    {
+        var path = href.Split('?', 2)[0].TrimEnd('/');
+        return path.Length == 0 ? "/" : path;
+    }
+
+    private async Task LoadFavouritesAsync(int userId, CancellationToken cancellationToken)
+    {
+        if (userId <= 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var listed = await Shortcuts.ListAsync(userId, "erp", cancellationToken);
+            if (listed.Rows.Count == 0)
+            {
+                return;
+            }
+
+            var chips = new List<FavChip>(listed.Rows.Count);
+            foreach (var row in listed.Rows)
+            {
+                var label = Convert.ToString(row.GetValueOrDefault("label"));
+                var url = Convert.ToString(row.GetValueOrDefault("url"));
+                var icon = Convert.ToString(row.GetValueOrDefault("icon"));
+                if (string.IsNullOrWhiteSpace(url) || !url.StartsWith('/'))
+                {
+                    continue;
+                }
+
+                chips.Add(new FavChip(
+                    string.IsNullOrWhiteSpace(label) ? "Favourite" : label.Trim(),
+                    url.Trim(),
+                    string.IsNullOrWhiteSpace(icon) ? "fa-star" : icon.Trim()));
+            }
+
+            _favs = chips;
+        }
+        catch (Exception)
+        {
+            _favs = [];
+        }
+    }
 
     private string LogoutHref
     {
@@ -653,6 +868,7 @@
         if (_signedIn)
         {
             _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
+            await LoadFavouritesAsync(session.UserId, ctx.RequestAborted);
         }
     }
 }

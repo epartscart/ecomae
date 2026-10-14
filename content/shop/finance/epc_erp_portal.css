@@ -18,13 +18,13 @@ body.epc-erp-standalone {
 }
 
 .epc-erp-topbar__inner {
-	max-width: 1400px;
-	margin: 0 auto;
-	padding: 12px 20px;
+	max-width: none;
+	margin: 0;
+	padding: 12px 12px 12px 4px;
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	gap: 16px;
+	justify-content: flex-start;
+	gap: 12px;
 	flex-wrap: wrap;
 }
 

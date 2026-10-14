@@ -793,7 +793,7 @@ body.epc-erp-cp-shell {
 }
 
 .epc-erp-topbar--cp .epc-erp-topbar__inner {
-	padding: 10px 20px;
+	padding: 8px 12px 8px 4px;
 }
 
 .epc-erp-topbar--cp {
@@ -2035,8 +2035,10 @@ table.table-epc tbody tr,
 	align-items: stretch;
 	gap: 4px;
 	min-height: 44px;
-	padding: 0 10px 0 12px;
-	max-width: 100%;
+	padding: 0 10px 0 4px;
+	max-width: none;
+	width: 100%;
+	margin: 0;
 }
 
 .epc-erp-topnav-brand {
