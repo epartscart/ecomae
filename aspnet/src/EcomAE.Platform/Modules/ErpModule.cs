@@ -5473,6 +5473,7 @@ public sealed class ErpModule : ISurfaceModule
             var reorderLevel = body.ReorderLevel;
             IReadOnlyDictionary<string, string>? customFields = body.CustomFields;
             IReadOnlyDictionary<string, long>? dim = body.Dim;
+            ErpItemPartProfile? part = null;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -5511,6 +5512,7 @@ public sealed class ErpModule : ISurfaceModule
 
                 dim = ErpDimensionWriteService.ParseDimMap(form);
                 pimPost = ErpPimWriteService.PostFrom(form);
+                part = ErpItemPartProfile.FromForm(form);
             }
 
             if (!confirm)
@@ -5541,6 +5543,20 @@ public sealed class ErpModule : ISurfaceModule
             if (written.Succeeded && written.Id > 0)
             {
                 await pim.SaveItemPostAsync(written.Id, pimPost, "inventory", cancellationToken);
+            }
+
+            if (written.Succeeded && written.Id > 0 && part is not null)
+            {
+                var partSaved = await writes.SavePartProfileAsync(written.Id, part, cancellationToken);
+                if (!partSaved.Succeeded)
+                {
+                    return LiveWriteFormBinder.Complete(
+                        context,
+                        "/erp/product-info-app",
+                        false,
+                        partSaved.Message,
+                        new { ok = false, writes = written.Writes, id = written.Id, validation_code = partSaved.Code, message = partSaved.Message, session = SessionPayload(session) });
+                }
             }
 
             return LiveWriteFormBinder.Complete(

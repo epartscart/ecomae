@@ -153,6 +153,25 @@
             </div>
         </div>
 
+        <ErpHomeProcessMap CompanyId="@_activeCompanyId" />
+        <ErpHomeInsights
+            CompanyId="@_activeCompanyId"
+            Revenue="@_cur.RevenueExVat"
+            PreviousRevenue="@_home.Previous.RevenueExVat"
+            Expense="@_cur.PurchaseExVat"
+            PreviousExpense="@_home.Previous.PurchaseExVat"
+            Profit="@_cur.ProfitExVat"
+            Receivables="@_cur.Receivables"
+            Payables="@_cur.Payables"
+            Cash="@_cur.CashPosition"
+            Stock="@_cur.StockValue"
+            Vat="@_cur.VatNetPayable"
+            InvoicesDue="@_cur.InvoicesDue"
+            OverdueInvoices="@_cur.OverdueInvoices"
+            TrendLabels="@_trendLabels"
+            TrendRevenue="@_trendRev"
+            TrendProfit="@_trendProf" />
+
         <section class="epc-infographic epc-dash-repeat" aria-label="ERP operating pulse">
             <div class="epc-infographic__head">
                 <div>
