@@ -17,7 +17,7 @@ public static partial class PhpModuleCatalog
     private static readonly IReadOnlyList<ModuleLink> CoreAspNetErpTabs =
     [
         new("inventory_mgmt/syncron", "Inventory policy (Syncron)", "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=syncron", "fa-sliders", "inventory_mgmt",
-            "Safety stock, reorder points, demand forecast and service levels", false, false, "Periodic"),
+            "Recommended orders to confirm, reject or draft, plus safety stock, reorder points, demand forecast and service levels", false, false, "Periodic"),
 
         // Ported ERP pages that the PHP catalog leaves out of the top menu; each sits in the area that owns its data.
         new("overview/favorites", "Workspace favorites", "/ERP/?epc_erp_shell=1&area=overview&tab=favorites", "fa-star", "overview",
