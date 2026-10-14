@@ -33,6 +33,10 @@ public sealed class ErpChromeFlushFavouritesTests
 
         Assert.Contains("padding: 0 10px 0 4px;", professional, StringComparison.Ordinal);
         Assert.Contains("max-width: none;", professional, StringComparison.Ordinal);
+        Assert.Contains("z-index:500", chrome, StringComparison.Ordinal);
+        Assert.Contains("z-index: 500 !important", styles, StringComparison.Ordinal);
+        Assert.DoesNotContain("z-index: 80 !important", styles, StringComparison.Ordinal);
+        Assert.Contains("z-index: 220", professional, StringComparison.Ordinal);
     }
 
     [Fact]
