@@ -1673,6 +1673,24 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Official document interlinks'",
             ct);
 
+    /// <summary>Administrator study notes per module topic.</summary>
+    public static Task EnsureD365StudyAsync(DbConnection c, CancellationToken ct) =>
+        ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_d365_study` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 1," +
+            "`area` varchar(40) NOT NULL DEFAULT ''," +
+            "`topic` varchar(24) NOT NULL DEFAULT ''," +
+            "`note` varchar(2000) NOT NULL DEFAULT ''," +
+            "`created_by` int(11) NOT NULL DEFAULT 0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "UNIQUE KEY `uk_area_topic` (`company_id`,`area`,`topic`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Administrator process study notes'",
+            ct);
+
     public static Task EnsureTrialBalanceSnapshotsAsync(DbConnection c, CancellationToken ct) =>
         ErpDb.TryExecuteAsync(
             c,

@@ -36,7 +36,17 @@ public interface IErpD365ProcessReadService
         string tab,
         int limit = 40,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ErpD365StudyNoteRow>> ListStudyNotesAsync(
+        string area,
+        CancellationToken cancellationToken = default);
 }
+
+public sealed record ErpD365StudyNoteRow(
+    string Area,
+    string Topic,
+    string Note,
+    long TimeUpdated);
 
 public sealed class ErpD365ProcessReadService : IErpD365ProcessReadService
 {
@@ -135,6 +145,36 @@ public sealed class ErpD365ProcessReadService : IErpD365ProcessReadService
                 Convert.ToString(reader.GetValue(9), CultureInfo.InvariantCulture) ?? string.Empty,
                 Convert.ToString(reader.GetValue(10), CultureInfo.InvariantCulture) ?? string.Empty,
                 Convert.ToInt64(reader.GetValue(11), CultureInfo.InvariantCulture)));
+        }
+
+        return rows;
+    }
+
+    public async Task<IReadOnlyList<ErpD365StudyNoteRow>> ListStudyNotesAsync(
+        string area,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return [];
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureD365StudyAsync(connection, cancellationToken).ConfigureAwait(false);
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional(
+            "SELECT IFNULL(`area`,''),IFNULL(`topic`,''),IFNULL(`note`,''),IFNULL(`time_updated`,0) " +
+            "FROM `epc_erp_d365_study` WHERE `area` = ? ORDER BY `topic`");
+        ErpDb.AddParameters(command, area);
+        var rows = new List<ErpD365StudyNoteRow>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new(
+                Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader.GetValue(2), CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToInt64(reader.GetValue(3), CultureInfo.InvariantCulture)));
         }
 
         return rows;

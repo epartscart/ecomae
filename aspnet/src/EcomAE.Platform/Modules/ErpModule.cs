@@ -426,6 +426,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpD365WorkspaceSave, HandleD365WorkspaceSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365ParameterSave, HandleD365ParameterSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365LinkSave, HandleD365LinkSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365StudySave, HandleD365StudySaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpTrialBalance, HandleTrialBalanceDigestAsync);
         endpoints.MapGet(EcomAeRoutes.ErpTrialBalanceExport, HandleTrialBalanceExportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpTrialBalanceSnapshot, HandleTrialBalanceSnapshotAsync).DisableAntiforgery();
@@ -24624,6 +24625,63 @@ public sealed class ErpModule : ISurfaceModule
         var fallback = ErpD365WorkspaceCatalog.TryGet(toTab, out var page)
             ? page.AppPath + "?tab=" + page.Tab
             : "/erp/procurement-workspace-app";
+        return LiveWriteFormBinder.Complete(
+            context,
+            string.IsNullOrWhiteSpace(returnUrl) ? fallback : returnUrl,
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                status = written.Succeeded,
+                id = written.Id,
+                session = SessionPayload(session),
+            });
+    }
+
+    private static async Task<IResult> HandleD365StudySaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpD365StudyDryRun dryRun,
+        IErpD365StudyWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/organization-admin-app",
+                "Admin ERP capability required for process study save.");
+        }
+
+        var area = "";
+        var topic = "";
+        var note = "";
+        var confirm = false;
+        var returnUrl = "/erp/organization-admin-app";
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            area = LiveWriteFormBinder.Text(form, "area");
+            topic = LiveWriteFormBinder.Text(form, "topic");
+            note = LiveWriteFormBinder.Text(form, "note");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+        }
+
+        var request = new ErpD365StudyWriteRequest(area, topic, note, session.UserId);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(request, false).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(request, cancellationToken);
+        var fallback = ErpD365WorkspaceCatalog.AppPathForArea(area);
         return LiveWriteFormBinder.Complete(
             context,
             string.IsNullOrWhiteSpace(returnUrl) ? fallback : returnUrl,

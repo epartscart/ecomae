@@ -10,6 +10,7 @@ public static class ErpD365ProcessCatalog
 {
     public const string ParameterSavePath = "/erp/d365-parameters/save";
     public const string LinkSavePath = "/erp/d365-link/save";
+    public const string StudySavePath = ErpD365ModuleStudyCatalog.StudySavePath;
 
     public static readonly HashSet<string> OfficialFields = new(StringComparer.OrdinalIgnoreCase)
     {

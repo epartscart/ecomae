@@ -143,6 +143,10 @@ public sealed class ErpD365ProcessCoverageTests
         Assert.Contains("Official parameters", text, StringComparison.Ordinal);
         Assert.Contains("Related documents", text, StringComparison.Ordinal);
         Assert.Contains("Process study for administrators", text, StringComparison.Ordinal);
+        Assert.Contains("StudySavePath", text, StringComparison.Ordinal);
+        Assert.Contains("Functionality.", text, StringComparison.Ordinal);
+        Assert.Contains("Setup style", text, StringComparison.Ordinal);
+        Assert.Contains("Save study note", text, StringComparison.Ordinal);
         Assert.Contains("Create next", text, StringComparison.Ordinal);
         Assert.Contains("csrf_guard_key", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PHP", text, StringComparison.Ordinal);
@@ -162,14 +166,18 @@ public sealed class ErpD365ProcessCoverageTests
         var schema = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpLazySchema.cs"));
         Assert.Contains("epc_erp_d365_parameters", schema, StringComparison.Ordinal);
         Assert.Contains("epc_erp_d365_link", schema, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_d365_study", schema, StringComparison.Ordinal);
         Assert.Equal("/erp/d365-parameters/save", EcomAeRoutes.ErpD365ParameterSave);
         Assert.Equal("/erp/d365-link/save", EcomAeRoutes.ErpD365LinkSave);
+        Assert.Equal("/erp/d365-study/save", EcomAeRoutes.ErpD365StudySave);
         var program = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs"));
         Assert.Contains("IErpD365ParameterWriteService", program, StringComparison.Ordinal);
         Assert.Contains("IErpD365LinkWriteService", program, StringComparison.Ordinal);
+        Assert.Contains("IErpD365StudyWriteService", program, StringComparison.Ordinal);
         var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
         Assert.Contains("HandleD365ParameterSaveAsync", module, StringComparison.Ordinal);
         Assert.Contains("HandleD365LinkSaveAsync", module, StringComparison.Ordinal);
+        Assert.Contains("HandleD365StudySaveAsync", module, StringComparison.Ordinal);
         Assert.Contains(
             SurfacePayloadContractCatalog.Functions,
             item => item.AspNetRouteOrCapability.Contains("/erp/d365-parameters/save", StringComparison.Ordinal)
@@ -178,6 +186,50 @@ public sealed class ErpD365ProcessCoverageTests
             SurfacePayloadContractCatalog.Functions,
             item => item.AspNetRouteOrCapability.Contains("/erp/d365-link/save", StringComparison.Ordinal)
                 && item.Status == "write-live-gated");
+        Assert.Contains(
+            SurfacePayloadContractCatalog.Functions,
+            item => item.AspNetRouteOrCapability.Contains("/erp/d365-study/save", StringComparison.Ordinal)
+                && item.Status == "write-live-gated");
+    }
+
+    [Fact]
+    public void ModuleStudy_CoversFunctionalitySetupConfigAndProcess()
+    {
+        Assert.True(ErpD365ModuleStudyCatalog.All.Count >= 22);
+        Assert.True(ErpD365ModuleStudyCatalog.TryGet("purchasing", out var purchase));
+        Assert.Contains("RFQ", purchase.Functionality, StringComparison.Ordinal);
+        Assert.Contains(purchase.SetupChecklist, item => item.Contains("parameters", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(purchase.ConfigLayers, item => item.Contains("Company", StringComparison.Ordinal));
+        Assert.Contains("procure_to_pay", purchase.ProcessCodes);
+        Assert.True(ErpD365ModuleStudyCatalog.TryGet("enterprise", out var org));
+        Assert.Equal("organization", org.Audience);
+        Assert.True(ErpD365ModuleStudyCatalog.TryGet("setup", out var system));
+        Assert.Equal("system", system.Audience);
+        Assert.Contains(ErpD365ModuleStudyCatalog.ForAudience("setup"), s => s.Area == "purchasing");
+        Assert.Contains(ErpD365ModuleStudyCatalog.ForAudience("enterprise"), s => s.Area == "leave_abs");
+        Assert.DoesNotContain(ErpD365ModuleStudyCatalog.ForAudience("enterprise"), s => s.Audience == "system");
+
+        var laneCodes = ErpD365ProcessCatalog.Lanes.Select(l => l.Code).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var study in ErpD365ModuleStudyCatalog.All)
+        {
+            Assert.NotEmpty(study.SetupChecklist);
+            Assert.NotEmpty(study.ConfigLayers);
+            Assert.NotEmpty(study.CustomizationAspects);
+            Assert.All(study.ProcessCodes, code => Assert.Contains(code, laneCodes));
+            Assert.All(study.DedicatedHrefs, href => Assert.StartsWith("/erp/", href, StringComparison.Ordinal));
+        }
+
+        var catalog = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Presentation/ErpD365ModuleStudyCatalog.cs"));
+        Assert.DoesNotContain("PHP", catalog, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic", catalog, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", catalog, StringComparison.Ordinal);
+
+        var dry = new ErpD365StudyDryRun();
+        var ok = dry.Evaluate(new ErpD365StudyWriteRequest("purchasing", "setup", "RFQ reply days = 7"), false);
+        Assert.Equal("dry-run-validated", ok.Status);
+        Assert.Equal(0, ok.Writes);
+        var badTopic = dry.Evaluate(new ErpD365StudyWriteRequest("purchasing", "invented", "x"), false);
+        Assert.Equal("invalid", badTopic.ValidationCode);
     }
 
     [Fact]

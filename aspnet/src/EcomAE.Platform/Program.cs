@@ -765,6 +765,8 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365ParameterWriteService, Ec
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365LinkWriteService, EcomAE.Platform.Erp.ErpD365LinkWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Migration.IErpD365ParameterDryRun, EcomAE.Platform.Migration.ErpD365ParameterDryRun>();
 builder.Services.AddScoped<EcomAE.Platform.Migration.IErpD365LinkDryRun, EcomAE.Platform.Migration.ErpD365LinkDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365StudyWriteService, EcomAE.Platform.Erp.ErpD365StudyWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Migration.IErpD365StudyDryRun, EcomAE.Platform.Migration.ErpD365StudyDryRun>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTrialBalanceReadService, EcomAE.Platform.Erp.ErpTrialBalanceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTrialBalanceWriteService, EcomAE.Platform.Erp.ErpTrialBalanceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Migration.IErpTrialBalanceDryRun, EcomAE.Platform.Migration.ErpTrialBalanceDryRun>();

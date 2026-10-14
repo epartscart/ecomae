@@ -78,3 +78,41 @@ public sealed class ErpD365LinkDryRun : IErpD365LinkDryRun
             edge.ToTab);
     }
 }
+
+public interface IErpD365StudyDryRun
+{
+    ErpD365WorkspaceDryRunResult Evaluate(ErpD365StudyWriteRequest request, bool confirmWrites);
+}
+
+public sealed class ErpD365StudyDryRun : IErpD365StudyDryRun
+{
+    public ErpD365WorkspaceDryRunResult Evaluate(ErpD365StudyWriteRequest request, bool confirmWrites)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (confirmWrites)
+        {
+            return new(
+                "dry-run-confirm-refused",
+                "confirm_writes_refused",
+                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write.",
+                0,
+                false);
+        }
+
+        var check = ErpD365StudyWriteService.Validate(request);
+        if (check is not null)
+        {
+            return new("dry-run-invalid", check.Code, check.Message, 0, false);
+        }
+
+        ErpD365ModuleStudyCatalog.TryGet(request.Area, out var study);
+        return new(
+            "dry-run-validated",
+            "ok",
+            "Study note validated; write blocked until confirmWrites=true.",
+            0,
+            true,
+            study.Area,
+            (request.Topic ?? string.Empty).Trim().ToLowerInvariant());
+    }
+}
