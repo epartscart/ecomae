@@ -15,6 +15,7 @@
     <PhpErpModulePageHeader Title="Recommended orders" Subtitle="Review the suggested order quantity for each item and warehouse, change it, then confirm, reject or draft a purchase order. Demand type is Fast, Slow, Erratic, Lumpy or New from the daily movement history. Policies, the 30-day forecast and monthly service levels stay on the other tabs." />
     <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
+    <ErpManualProcessStrip Keys="syncron" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Inventory policy KPIs">
         <div class="kpi"><div class="lbl">Pending</div><div class="val">@CountStatus("pending")</div></div>

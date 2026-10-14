@@ -34,7 +34,18 @@ public sealed class ErpHomeSearchAndRelatedMapTests
         Assert.Contains(ErpManualProcessCatalog.For("time_att", null)[0].Steps, step => step.Href == "/erp/time-attendance-app");
         Assert.Contains(ErpManualProcessCatalog.For("payroll_area", null)[0].Steps, step => step.Href == "/erp/payroll-app");
         Assert.Contains(ErpManualProcessCatalog.For("people", null)[0].Steps, step => step.Href == "/erp/staff-app");
-        Assert.Empty(ErpManualProcessCatalog.For("sales", null));
+        var sales = ErpManualProcessCatalog.For("sales", null);
+        Assert.Contains(sales[0].Steps, step => step.Href == "/erp/sales-orders-app");
+        var syncron = ErpManualProcessCatalog.For(null, "syncron");
+        Assert.Contains(syncron[0].Steps, step => step.Detail.Contains("purchase order", StringComparison.OrdinalIgnoreCase));
+        var profit = ErpManualProcessCatalog.For("cost_mgmt", null);
+        Assert.Contains(profit[0].Steps, step => step.Label.Contains("Power BI", StringComparison.OrdinalIgnoreCase));
+        var ar = ErpManualProcessCatalog.For("ar", null);
+        Assert.Contains(ar[0].Steps, step => step.Href.Contains("ar=open", StringComparison.Ordinal));
+        Assert.Contains(ar[0].Steps, step => step.Href.Contains("ar=statement", StringComparison.Ordinal));
+        Assert.Contains(ErpManualProcessCatalog.For("purchasing", null)[0].Steps, step => step.Href == "/erp/rfq-app");
+        Assert.Contains(ErpManualProcessCatalog.For("inventory_mgmt", null)[0].Steps, step => step.Href.Contains("/erp/syncron-app", StringComparison.Ordinal));
+        Assert.Contains(ErpManualProcessCatalog.For(null, "jewellery")[0].Steps, step => step.Href == "/erp/jewellery-retail-app?tab=jw_retail_sales");
     }
 
     [Fact]

@@ -9,6 +9,7 @@
 @inject IErpWriteConnectionFactory TenantDb
 
 <section class="epc-ar" aria-label="Customer receivables">
+    <ErpManualProcessStrip Keys="ar" />
     <nav class="epc-ar-nav" aria-label="Receivables inquiries">
         @foreach (var link in Links)
         {
