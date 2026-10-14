@@ -6553,6 +6553,31 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             var action = LiveWriteFormBinder.Text(form, "syncron_action");
+            static string SyncronLineGrid(IFormCollection posted)
+            {
+                var items = posted["line_item"];
+                var warehouses = posted["line_wh"];
+                var quantities = posted["line_qty"];
+                var count = Math.Min(items.Count, Math.Min(warehouses.Count, quantities.Count));
+                if (count == 0)
+                {
+                    return string.Empty;
+                }
+
+                var grid = new System.Text.StringBuilder();
+                for (var i = 0; i < count; i++)
+                {
+                    if (i > 0)
+                    {
+                        grid.Append('\n');
+                    }
+
+                    grid.Append(items[i]).Append(':').Append(warehouses[i]).Append(':').Append(quantities[i]);
+                }
+
+                return grid.ToString();
+            }
+
             ErpSyncronPolicy.Policy? policy = null;
             if (action == "policy_save")
             {
@@ -6584,7 +6609,12 @@ public sealed class ErpModule : ISurfaceModule
                     LiveWriteFormBinder.Text(form, "period_month"),
                     LiveWriteFormBinder.Dec(form, "demand_qty"),
                     LiveWriteFormBinder.Dec(form, "fulfilled_qty"),
-                    LiveWriteFormBinder.Int(form, "stockout_events")),
+                    LiveWriteFormBinder.Int(form, "stockout_events"),
+                    SyncronLineGrid(form),
+                    string.Join(",", form["line_key"].Where(value => !string.IsNullOrWhiteSpace(value))),
+                    LiveWriteFormBinder.Long(form, "supplier_id"),
+                    LiveWriteFormBinder.Text(form, "sku"),
+                    LiveWriteFormBinder.Dec(form, "order_qty")),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
