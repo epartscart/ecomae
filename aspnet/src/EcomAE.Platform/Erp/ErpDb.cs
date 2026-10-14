@@ -49,6 +49,39 @@ internal static class ErpDb
         return value is null ? null : Convert.ToString(value, CultureInfo.InvariantCulture);
     }
 
+    /// <summary>
+    /// True when the column is already known, or information_schema says it is there.
+    /// A present column is remembered for this process so later pages skip the scan.
+    /// A missing column is not remembered — the next ensure can still add it.
+    /// </summary>
+    public static async Task<bool> ColumnKnownAsync(
+        DbConnection connection,
+        string table,
+        string column,
+        CancellationToken cancellationToken)
+    {
+        var key = ErpSchemaMemo.Key(connection, "col:" + table + "." + column);
+        if (ErpSchemaMemo.IsReady(key))
+        {
+            return true;
+        }
+
+        var count = await LongAsync(
+            connection,
+            null,
+            Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"),
+            cancellationToken,
+            table,
+            column).ConfigureAwait(false);
+        if (count > 0)
+        {
+            ErpSchemaMemo.Remember(key);
+            return true;
+        }
+
+        return false;
+    }
+
     public static async Task<long> LongAsync(
         DbConnection connection,
         DbTransaction? transaction,

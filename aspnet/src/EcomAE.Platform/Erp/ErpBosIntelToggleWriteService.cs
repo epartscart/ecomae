@@ -285,15 +285,6 @@ public sealed class ErpBosIntelToggleWriteService : IErpBosIntelToggleWriteServi
         };
     }
 
-    private static async Task<bool> ColumnExistsAsync(DbConnection connection, string table, string column, CancellationToken cancellationToken)
-    {
-        var n = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"),
-            cancellationToken,
-            table,
-            column).ConfigureAwait(false);
-        return n > 0;
-    }
+    private static Task<bool> ColumnExistsAsync(DbConnection connection, string table, string column, CancellationToken cancellationToken)
+        => ErpDb.ColumnKnownAsync(connection, table, column, cancellationToken);
 }
