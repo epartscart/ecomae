@@ -1,0 +1,109 @@
+@* Company home — clickable operating flow. Each step opens the workspace that owns it. *@
+
+<section class="epc-qb-home" aria-label="Business process">
+    <div class="epc-qb-home__flow">
+        <article class="epc-qb-lane">
+            <h3>Vendors</h3>
+            <div class="epc-qb-row">
+                <a href="@Href("/erp/purchase-orders-app")"><i class="fa fa-file-text-o"></i><span>Purchase orders</span></a>
+                <i class="fa fa-long-arrow-right epc-qb-arrow" aria-hidden="true"></i>
+                <a href="@Href("/erp/inventory-stock-app")"><i class="fa fa-cube"></i><span>Receive inventory</span></a>
+                <i class="fa fa-long-arrow-right epc-qb-arrow" aria-hidden="true"></i>
+                <a href="@Href("/erp/purchases-app")"><i class="fa fa-file-text"></i><span>Enter bills against inventory</span></a>
+                <i class="fa fa-long-arrow-right epc-qb-arrow" aria-hidden="true"></i>
+                <a href="@Href("/erp/payables-app")"><i class="fa fa-money"></i><span>Pay bills</span></a>
+            </div>
+            <div class="epc-qb-row epc-qb-row--mid">
+                <a href="@Href("/erp/purchases-app")"><i class="fa fa-files-o"></i><span>Enter bills and vendor credits</span></a>
+            </div>
+        </article>
+
+        <article class="epc-qb-lane">
+            <h3>Customers</h3>
+            <div class="epc-qb-row">
+                <a href="@Href("/erp/sales-quotations-app")"><i class="fa fa-file-o"></i><span>Estimates</span></a>
+                <i class="fa fa-long-arrow-right epc-qb-arrow" aria-hidden="true"></i>
+                <a href="@Href("/erp/invoices-app")"><i class="fa fa-file-text"></i><span>Create invoices</span></a>
+                <i class="fa fa-long-arrow-right epc-qb-arrow" aria-hidden="true"></i>
+                <a href="@Href("/erp/receivables-app")"><i class="fa fa-credit-card"></i><span>Receive payments</span></a>
+            </div>
+            <div class="epc-qb-row">
+                <a href="@Href("/erp/sales-orders-app")"><i class="fa fa-shopping-cart"></i><span>Sales orders</span></a>
+                <a href="@Href("/erp/payment-batches-app")"><i class="fa fa-credit-card"></i><span>Accept card payments</span></a>
+                <a href="@Href("/erp/cash-entries-app")"><i class="fa fa-calendar"></i><span>Enter daily sales</span></a>
+            </div>
+            <div class="epc-qb-row">
+                <a href="@Href("/erp/receivables-app")"><i class="fa fa-list-alt"></i><span>Statement charges</span></a>
+                <a href="@Href("/erp/receivables-app")"><i class="fa fa-percent"></i><span>Finance charges</span></a>
+                <a href="@Href("/erp/aging-app")"><i class="fa fa-files-o"></i><span>Statements</span></a>
+                <a href="@Href("/erp/invoices-app")"><i class="fa fa-undo"></i><span>Refunds and credits</span></a>
+            </div>
+        </article>
+
+        <article class="epc-qb-lane">
+            <h3>Employees</h3>
+            <div class="epc-qb-row">
+                <a href="@Href("/erp/payroll-app")"><i class="fa fa-users"></i><span>Payroll centre</span></a>
+                <i class="fa fa-long-arrow-right epc-qb-arrow" aria-hidden="true"></i>
+                <a href="@Href("/erp/payroll-app")"><i class="fa fa-money"></i><span>Pay employees</span></a>
+                <i class="fa fa-long-arrow-right epc-qb-arrow" aria-hidden="true"></i>
+                <a href="@Href("/erp/payroll-app")"><i class="fa fa-bank"></i><span>Pay liabilities</span></a>
+                <i class="fa fa-long-arrow-right epc-qb-arrow" aria-hidden="true"></i>
+                <a href="@Href("/erp/payroll-app")"><i class="fa fa-print"></i><span>Process payroll forms</span></a>
+                <a href="@Href("/erp/staff-app")"><i class="fa fa-id-card"></i><span>HR and insurance</span></a>
+            </div>
+        </article>
+    </div>
+
+    <aside class="epc-qb-side">
+        <article class="epc-qb-lane">
+            <h3>Company</h3>
+            <div class="epc-qb-grid">
+                <a href="@Href("/erp/coa-accounts-app")"><i class="fa fa-table"></i><span>Chart of accounts</span></a>
+                <a href="@Href("/erp/inventory-stock-app")"><i class="fa fa-cubes"></i><span>Inventory activities</span></a>
+                <a href="@Href("/erp/product-info-app")"><i class="fa fa-barcode"></i><span>Items and services</span></a>
+                <a href="@Href("/erp/payment-batches-app")"><i class="fa fa-check"></i><span>Order checks</span></a>
+                <a href="@Href("/erp/agenda-app")"><i class="fa fa-calendar"></i><span>Calendar</span></a>
+            </div>
+        </article>
+        <article class="epc-qb-lane">
+            <h3>Banking</h3>
+            <div class="epc-qb-grid">
+                <a href="@Href("/erp/cash-entries-app")"><i class="fa fa-plus-square"></i><span>Record deposits</span></a>
+                <a href="@Href("/erp/bank-reconciliation-app")"><i class="fa fa-balance-scale"></i><span>Reconcile</span></a>
+                <a href="@Href("/erp/payment-batches-app")"><i class="fa fa-pencil-square-o"></i><span>Write checks</span></a>
+                <a href="@Href("/erp/cash-accounts-app")"><i class="fa fa-book"></i><span>Check register</span></a>
+                <a href="@Href("/erp/payment-batches-app")"><i class="fa fa-print"></i><span>Print checks</span></a>
+                <a href="@Href("/erp/cash-entries-app")"><i class="fa fa-credit-card"></i><span>Enter credit card charges</span></a>
+            </div>
+        </article>
+    </aside>
+</section>
+
+<style>
+    .epc-qb-home { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:12px; margin:0 0 16px; }
+    .epc-qb-lane { background:#f4f7fb; border:1px solid #d5deea; border-radius:8px; padding:10px 12px 12px; margin:0 0 10px; }
+    .epc-qb-lane h3 { margin:0 0 8px; text-align:center; font-size:13px; letter-spacing:.08em; color:#5b6b82; font-weight:700; }
+    .epc-qb-row, .epc-qb-grid { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; margin:6px 0; }
+    .epc-qb-grid { display:grid; grid-template-columns:1fr 1fr; }
+    .epc-qb-home a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-width:92px; max-width:140px; min-height:72px; padding:8px; text-align:center; text-decoration:none; color:#1e3a5f; background:#fff; border:1px solid #e2e8f0; border-radius:6px; font-size:12px; line-height:1.25; }
+    .epc-qb-home a:hover { border-color:#2563eb; color:#1d4ed8; }
+    .epc-qb-home a i { font-size:18px; color:#3b82f6; }
+    .epc-qb-arrow { color:#94a3b8; }
+    .epc-qb-side .epc-qb-lane:last-child { margin-bottom:0; }
+    @@media (max-width: 1100px) { .epc-qb-home { grid-template-columns:1fr; } }
+</style>
+
+@code {
+    [Parameter] public long CompanyId { get; set; }
+
+    private string Href(string path)
+    {
+        if (CompanyId <= 0)
+        {
+            return path;
+        }
+
+        return path + "?company=" + CompanyId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    }
+}

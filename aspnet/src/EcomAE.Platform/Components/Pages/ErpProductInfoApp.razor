@@ -13,6 +13,7 @@
 @inject NavigationManager Nav
 @inject IErpWriteConnectionFactory TenantDb
 @inject IErpJwMetalStockListReadService MetalStock
+@inject IErpInventoryMovementWriteService Inventory
 
 <PageTitle>Product information · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -56,22 +57,107 @@
 
     @if (_isAdmin && _view is "all" or "devkit" or "released")
     {
-        <ErpPhpCreateWell Title="New item">
-            <form method="post" action="/erp/ajax/inv-create-item" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
+        <ErpPhpCreateWell Title="New inventory part or assembly">
+            <form method="post" action="/erp/ajax/inv-create-item" class="epc-item-part" data-epc-item-part="1">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/erp/product-info-app?pm_view=@_view" />
-                <label>SKU <input class="form-control input-sm" name="sku" placeholder="SKU" required /></label>
-                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" required /></label>
+                <div class="epc-item-part__type">
+                    <label>Type
+                        <select class="form-control input-sm" name="part_kind" id="epc-part-kind">
+                            <option value="inventory_part">Inventory part — goods you buy, stock, and resell</option>
+                            <option value="inventory_assembly">Inventory assembly — built from other items, then sold</option>
+                        </select>
+                    </label>
+                    <label>SKU <input class="form-control input-sm" name="sku" required /></label>
+                    <label>Item name <input class="form-control input-sm" name="name" required /></label>
+                    <label>Manufacturer part <input class="form-control input-sm" name="manufacturer_part" /></label>
+                    <label>Unit <input class="form-control input-sm" name="unit" value="pcs" /></label>
+                    <label class="epc-item-part__check"><input type="checkbox" name="inactive" value="1" /> Item is inactive</label>
+                </div>
+                <div class="epc-item-part__cols">
+                    <fieldset>
+                        <legend>Purchase information</legend>
+                        <label>Description on purchase transactions
+                            <textarea class="form-control input-sm" name="purchase_description" rows="2"></textarea>
+                        </label>
+                        <label>Cost <input class="form-control input-sm" name="cost" id="epc-part-cost" value="0.00" /></label>
+                        <label>COGS account <input class="form-control input-sm" name="cogs_account" value="Cost of goods sold" /></label>
+                        <label>Preferred vendor <input class="form-control input-sm" name="preferred_vendor" /></label>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Sales information</legend>
+                        <label>Description on sales transactions
+                            <textarea class="form-control input-sm" name="sales_description" rows="2"></textarea>
+                        </label>
+                        <label>Sales price <input class="form-control input-sm" name="sales_price" id="epc-part-price" value="0.00" /></label>
+                        <p class="text-muted" id="epc-part-margin">Markup 0% · Margin 0%</p>
+                        <label>Income account <input class="form-control input-sm" name="income_account" /></label>
+                    </fieldset>
+                </div>
+                <fieldset class="epc-item-part__bom" id="epc-part-bom">
+                    <legend>Bill of materials — assembly only</legend>
+                    <table class="table table-condensed table-bordered">
+                        <thead><tr><th>Item</th><th>Description</th><th>Qty</th><th>Cost</th><th>U/M</th></tr></thead>
+                        <tbody>
+                            @for (var i = 0; i < 4; i++)
+                            {
+                                <tr>
+                                    <td><input class="form-control input-sm" name="bom_sku" /></td>
+                                    <td><input class="form-control input-sm" name="bom_desc" /></td>
+                                    <td><input class="form-control input-sm" name="bom_qty" /></td>
+                                    <td><input class="form-control input-sm" name="bom_cost" /></td>
+                                    <td><input class="form-control input-sm" name="bom_unit" value="pcs" /></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </fieldset>
+                <div class="epc-item-part__stock">
+                    <label>Asset account <input class="form-control input-sm" name="asset_account" value="Inventory" /></label>
+                    <label>Reorder min <input class="form-control input-sm" name="reorder_min" value="0" /></label>
+                    <label>Max <input class="form-control input-sm" name="reorder_max" value="0" /></label>
+                    <label>On hand <input class="form-control input-sm" name="on_hand" value="0" /></label>
+                </div>
                 @if (_pimFormHtml.Length > 0)
                 {
-                    <div style="flex-basis:100%;max-width:640px;">
+                    <div>
                         <h5 style="margin:6px 0;"><i class="fa fa-tags"></i> PIM custom attributes</h5>
                         @((MarkupString)_pimFormHtml)
                     </div>
                 }
-                <button type="submit" class="btn btn-primary btn-sm">Create item</button>
+                <button type="submit" class="btn btn-primary btn-sm">Save item</button>
                 <button type="submit" class="btn btn-default btn-sm" formaction="@EcomAeRoutes.ErpProductInfoCreateItemForm" formnovalidate>Check SKU (dry run)</button>
             </form>
+            <style>
+                .epc-item-part { display:flex; flex-direction:column; gap:10px; }
+                .epc-item-part__type, .epc-item-part__stock { display:flex; flex-wrap:wrap; gap:8px; align-items:end; }
+                .epc-item-part label { display:flex; flex-direction:column; gap:2px; font-size:12px; min-width:140px; }
+                .epc-item-part__cols { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+                .epc-item-part fieldset { border:1px solid #d5deea; border-radius:6px; padding:8px; }
+                .epc-item-part legend { font-size:12px; font-weight:700; }
+                @@media (max-width: 900px) { .epc-item-part__cols { grid-template-columns:1fr; } }
+            </style>
+            <script>
+                (function () {
+                    var kind = document.getElementById('epc-part-kind');
+                    var bom = document.getElementById('epc-part-bom');
+                    var cost = document.getElementById('epc-part-cost');
+                    var price = document.getElementById('epc-part-price');
+                    var margin = document.getElementById('epc-part-margin');
+                    function sync() {
+                        if (kind && bom) bom.style.display = kind.value === 'inventory_assembly' ? '' : 'none';
+                        var c = parseFloat(cost && cost.value) || 0;
+                        var p = parseFloat(price && price.value) || 0;
+                        var mk = c > 0 ? ((p - c) / c * 100) : 0;
+                        var mg = p > 0 ? ((p - c) / p * 100) : 0;
+                        if (margin) margin.textContent = 'Markup ' + mk.toFixed(2) + '% · Margin ' + mg.toFixed(2) + '%';
+                    }
+                    if (kind) kind.addEventListener('change', sync);
+                    if (cost) cost.addEventListener('input', sync);
+                    if (price) price.addEventListener('input', sync);
+                    sync();
+                })();
+            </script>
         </ErpPhpCreateWell>
     }
 
@@ -94,7 +180,47 @@
                 <dt>Status</dt><dd>@(_openedItem.Active ? "active" : "inactive")</dd>
                 <dt>Created</dt><dd>@FormatTime(_openedItem.TimeCreated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Create item writes here. Dimension-link save is not available on this page.</p>
+            @if (_openedPart is not null)
+            {
+                <div class="epc-item-part-card" data-epc-item-kind="@_openedPart.Kind">
+                    <h3 style="margin:.8rem 0 .4rem">@_openedPart.KindLabel</h3>
+                    <dl class="epc-erp-facts">
+                        <dt>Manufacturer part</dt><dd>@Show(_openedPart.ManufacturerPart)</dd>
+                        <dt>Cost</dt><dd>@_openedPart.Cost.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                        <dt>Sales price</dt><dd>@_openedPart.SalesPrice.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                        <dt>Markup</dt><dd>@_openedPart.MarkupPercent.ToString("N2", CultureInfo.InvariantCulture)%</dd>
+                        <dt>Margin</dt><dd>@_openedPart.MarginPercent.ToString("N2", CultureInfo.InvariantCulture)%</dd>
+                        <dt>COGS account</dt><dd>@Show(_openedPart.CogsAccount)</dd>
+                        <dt>Income account</dt><dd>@Show(_openedPart.IncomeAccount)</dd>
+                        <dt>Asset account</dt><dd>@Show(_openedPart.AssetAccount)</dd>
+                        <dt>Preferred vendor</dt><dd>@Show(_openedPart.PreferredVendor)</dd>
+                        <dt>Reorder</dt><dd>@_openedPart.ReorderMin.ToString("N2", CultureInfo.InvariantCulture) – @_openedPart.ReorderMax.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                        <dt>On hand</dt><dd>@_openedPart.OnHand.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                        <dt>Inactive</dt><dd>@(_openedPart.Inactive ? "yes" : "no")</dd>
+                    </dl>
+                    @if (_openedPart.IsAssembly)
+                    {
+                        <p style="margin:.6rem 0 .3rem"><strong>Bill of materials</strong> · total cost @_openedPart.BomCost.ToString("N2", CultureInfo.InvariantCulture)</p>
+                        <table class="table table-bordered table-condensed">
+                            <thead><tr><th>Item</th><th>Description</th><th>Qty</th><th>Cost</th><th>U/M</th><th>Total</th></tr></thead>
+                            <tbody>
+                                @foreach (var line in _openedPart.Bom)
+                                {
+                                    <tr>
+                                        <td>@Show(line.Sku)</td>
+                                        <td>@Show(line.Description)</td>
+                                        <td>@line.Qty.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                        <td>@line.Cost.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                        <td>@line.Unit</td>
+                                        <td>@((line.Qty * line.Cost).ToString("N2", CultureInfo.InvariantCulture))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            }
+            <p class="text-muted" style="margin:.85rem 0 0">Inventory part and assembly cards save on this page. Dimension-link save is not available on this page.</p>
             @if (_openedItemPim.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">PIM attributes</p>
@@ -583,6 +709,7 @@
     private long _openedFieldId;
     private long _openedVariantId;
     private ErpProductInfoItemDetail? _openedItem;
+    private ErpItemPartProfile? _openedPart;
     private ErpProductInfoFieldDetail? _openedField;
     private ErpProductInfoVariantDetail? _openedVariant;
     private IReadOnlyList<ErpProductInfoItemDigest> _openedItemSiblings = [];
@@ -618,6 +745,8 @@
     private string OpenedVariantReturnHref => _openedVariantId > 0
         ? _listHref + "?pm_variant_id=" + _openedVariantId.ToString(CultureInfo.InvariantCulture)
         : _listHref;
+
+    private static string Show(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
 
     private string OpenedItemCaption => _openedItem is null
         ? ""
@@ -706,6 +835,7 @@
         {
             var detail = await Dashboards.BuildErpProductInfoItemDetailAsync(_openedItemId, ctx.RequestAborted);
             _openedItem = detail.Item;
+            _openedPart = await Inventory.LoadPartProfileAsync(_openedItemId, ctx.RequestAborted);
             _openedItemSiblings = detail.Siblings;
             if (_openedItem is not null)
             {
