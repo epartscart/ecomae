@@ -19,13 +19,12 @@ public sealed class EcomaeMarketingHomeParityTests
         Assert.DoesNotContain("epc-moddir", text, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("php-reference/home", text, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("PhpEcomaeMarketingHub", text, StringComparison.Ordinal);
-        Assert.Contains("PhpEcomaeLifeOsFilmBand", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpEcomaeLifeOsFilmBand", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("LifeOS", text, StringComparison.Ordinal);
         Assert.Contains("PhpEcomaeHomeSections", text, StringComparison.Ordinal);
         Assert.Contains("PhpEcomaeLaylaWidget", text, StringComparison.Ordinal);
         Assert.Contains("Unified ERP", text, StringComparison.Ordinal);
         Assert.True(text.IndexOf("PhpEcomaeMarketingHub", StringComparison.Ordinal)
-            < text.IndexOf("PhpEcomaeLifeOsFilmBand", StringComparison.Ordinal));
-        Assert.True(text.IndexOf("PhpEcomaeLifeOsFilmBand", StringComparison.Ordinal)
             < text.IndexOf("PhpEcomaeHomeSections", StringComparison.Ordinal));
         Assert.True(text.IndexOf("PhpEcomaeHomeSections", StringComparison.Ordinal)
             < text.IndexOf("PhpEcomaeLaylaWidget", StringComparison.Ordinal));
@@ -34,16 +33,13 @@ public sealed class EcomaeMarketingHomeParityTests
     }
 
     [Fact]
-    public void LifeOsFilmBand_IsVideoForwardPlatformExplainer()
+    public void MarketingChrome_DoesNotLinkLifeOs()
     {
-        var path = FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeLifeOsFilmBand.razor");
-        var text = File.ReadAllText(path);
-        Assert.Contains("epm-lofilm", text, StringComparison.Ordinal);
-        Assert.Contains("epm-lofilm-video", text, StringComparison.Ordinal);
-        Assert.Contains("Understand the LifeOS platform", text, StringComparison.Ordinal);
-        Assert.Contains("Film.VideoUrl", text, StringComparison.Ordinal);
-        Assert.Contains("Explore LifeOS", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("class=\"epm-hub", text, StringComparison.Ordinal); // must not emit hero markup
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeMarketingChrome.razor"));
+        Assert.DoesNotContain("LifeOS", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("lifeos", text, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("#lifeos-film", text, StringComparison.Ordinal);
     }
 
     [Fact]
