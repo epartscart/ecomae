@@ -81,6 +81,8 @@ public sealed class ErpSalesProfitabilityTests
         var panel = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/ErpSalesProfitabilityPanel.razor"));
         var catalogJson = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Presentation/EpcPublicApiEndpoint.cs"));
         Assert.Contains("ErpSalesProfitabilityPanel", workspace, StringComparison.Ordinal);
+        Assert.Contains("name=\"country\"", panel, StringComparison.Ordinal);
+        Assert.Contains("name=\"detail\"", panel, StringComparison.Ordinal);
         Assert.Contains("Sales profitability performance", panel, StringComparison.Ordinal);
         Assert.Contains("/sales-profitability?format=csv", panel, StringComparison.Ordinal);
         Assert.DoesNotContain("PHP", panel, StringComparison.Ordinal);
@@ -108,6 +110,7 @@ public sealed class ErpSalesProfitabilityTests
             var outside = new DateTimeOffset(new DateTime(2026, 4, 2, 10, 0, 0, DateTimeKind.Utc)).ToUnixTimeSeconds();
             await ExecAsync(cs, $"""
                 CREATE TABLE `users` (`user_id` INT PRIMARY KEY, `email` VARCHAR(255));
+                CREATE TABLE `users_profiles` (`user_id` INT, `data_key` VARCHAR(64), `data_value` VARCHAR(64));
                 CREATE TABLE `epc_erp_inv_items` (`id` INT PRIMARY KEY, `sku` VARCHAR(64));
                 CREATE TABLE `epc_erp_inv_stock` (`id` INT PRIMARY KEY, `item_id` INT, `avg_unit_cost` DECIMAL(14,4));
                 CREATE TABLE `epc_erp_sales_orders` (
@@ -116,6 +119,7 @@ public sealed class ErpSalesProfitabilityTests
                   `id` INT AUTO_INCREMENT PRIMARY KEY, `sales_order_id` INT, `line_no` INT, `item_code` VARCHAR(32),
                   `description` VARCHAR(255), `qty` DECIMAL(14,3), `line_ex_vat` DECIMAL(14,2));
                 INSERT INTO `users` (`user_id`, `email`) VALUES (7, 'alpha@example.com');
+                INSERT INTO `users_profiles` (`user_id`, `data_key`, `data_value`) VALUES (7, 'epc_reg_country', 'UAE');
                 INSERT INTO `epc_erp_inv_items` (`id`, `sku`) VALUES (1, 'SKU-1');
                 INSERT INTO `epc_erp_inv_stock` (`id`, `item_id`, `avg_unit_cost`) VALUES (1, 1, 30), (2, 1, 10);
                 INSERT INTO `epc_erp_sales_orders` (`id`, `so_no`, `customer_user_id`, `status`, `time_created`) VALUES
@@ -145,6 +149,15 @@ public sealed class ErpSalesProfitabilityTests
             var filtered = await ErpSalesProfitability.LoadAsync(
                 db, new DateOnly(2026, 3, 1), new DateOnly(2026, 3, 31), "nope", "sku-1", CancellationToken.None);
             Assert.Equal(0, filtered.LineCount);
+
+            var uae = await ErpSalesProfitability.LoadAsync(
+                db, new DateOnly(2026, 3, 1), new DateOnly(2026, 3, 31), null, null, CancellationToken.None, "AE");
+            Assert.Equal(1, uae.LineCount);
+            Assert.Contains("United Arab Emirates", uae.Note, StringComparison.Ordinal);
+
+            var saudi = await ErpSalesProfitability.LoadAsync(
+                db, new DateOnly(2026, 3, 1), new DateOnly(2026, 3, 31), null, null, CancellationToken.None, "SA");
+            Assert.Equal(0, saudi.LineCount);
         }
         finally
         {

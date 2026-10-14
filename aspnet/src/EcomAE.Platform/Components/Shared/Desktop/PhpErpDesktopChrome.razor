@@ -198,6 +198,10 @@
                 </div>
             }
             <ErpGlobalSearch Jewellery="_jewellery" FitOut="_fitOut" RealEstate="_realEstate" CompanyId="_activeCompanyId" />
+            @if (_signedIn)
+            {
+                <ErpVoiceBar AjaxHref="@VoiceAjaxHref" />
+            }
             <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact" aria-label="ERP topbar">
                 <a href="@ErpHomeHref">Dashboard</a>
                 <a href="/attention">Attention</a>
@@ -846,6 +850,17 @@
         foreach (var fav in _favs)
         {
             _favIds.TryAdd(NormalizeFavHref(fav.Href), fav.Id);
+        }
+    }
+
+    private string VoiceAjaxHref
+    {
+        get
+        {
+            var key = ClientErpPath.BoundSiteKey(Http.HttpContext);
+            return string.IsNullOrWhiteSpace(key)
+                ? "/erp/ajax/voice-command"
+                : ClientErpPath.PrefixErpPath(key, "/erp/ajax/voice-command");
         }
     }
 
