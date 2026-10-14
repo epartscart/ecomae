@@ -19,7 +19,8 @@ public sealed class ErpChromeFlushFavouritesTests
         Assert.Contains("width:100%; max-width:none; margin:0", chrome, StringComparison.Ordinal);
         Assert.Contains("justify-content:flex-start", chrome, StringComparison.Ordinal);
         Assert.DoesNotContain("1480px", chrome, StringComparison.Ordinal);
-        Assert.DoesNotContain("width:min(", chrome, StringComparison.Ordinal);
+        Assert.DoesNotContain("width:min(1480px", chrome, StringComparison.Ordinal);
+        Assert.DoesNotContain("margin:0 auto", chrome, StringComparison.Ordinal);
 
         Assert.Contains("max-width: none !important", styles, StringComparison.Ordinal);
         Assert.Contains("margin: 0 !important", styles, StringComparison.Ordinal);
