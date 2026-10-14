@@ -137,6 +137,33 @@ public static class EpcPowerBiRead
         return EpcPowerBiDatasets.ReportReady("sales", fromUnix, toUnix, EpcPowerBiDatasets.SalesHeaders, rows);
     }
 
+    public static async Task<EpcPowerBiDatasets.Dataset> SalesProfitabilityAsync(
+        DbConnection connection,
+        long fromUnix,
+        long toUnix,
+        string? customer,
+        string? item,
+        CancellationToken cancellationToken)
+    {
+        var from = DateOnly.FromDateTime(DateTimeOffset.FromUnixTimeSeconds(Math.Max(fromUnix, 0)).UtcDateTime);
+        var to = DateOnly.FromDateTime(DateTimeOffset.FromUnixTimeSeconds(Math.Max(toUnix, fromUnix)).UtcDateTime);
+        var report = await ErpSalesProfitability.LoadAsync(connection, from, to, customer, item, cancellationToken).ConfigureAwait(false);
+        var rows = report.Lines.Select(line => (IReadOnlyList<object?>)
+        [
+            line.Date,
+            line.Customer,
+            line.ItemCode,
+            line.Description,
+            line.Qty,
+            EpcPowerBiDatasets.Money(line.Revenue),
+            line.UnitCost,
+            EpcPowerBiDatasets.Money(line.Cost),
+            EpcPowerBiDatasets.Money(line.Margin),
+            line.MarginPct,
+        ]).ToList();
+        return EpcPowerBiDatasets.ReportReady(ErpSalesProfitability.DatasetId, fromUnix, toUnix, ErpSalesProfitability.Headers, rows);
+    }
+
     public static async Task<EpcPowerBiDatasets.Dataset> StockAsync(
         DbConnection connection,
         long fromUnix,

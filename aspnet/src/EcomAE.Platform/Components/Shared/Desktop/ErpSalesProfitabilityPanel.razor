@@ -1,0 +1,203 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpWriteConnectionFactory TenantDb
+@inject ICpPowerBiService PowerBi
+
+<section class="epc-profit" aria-label="Sales profitability performance">
+    <form method="get" action="@_action" class="form-inline" style="margin:0 0 12px;">
+        <input type="hidden" name="tab" value="@_tab" />
+        <label>From <input class="form-control input-sm" type="date" name="from" value="@_from" /></label>
+        <label style="margin-left:8px;">To <input class="form-control input-sm" type="date" name="to" value="@_to" /></label>
+        <label style="margin-left:8px;">Customer <input class="form-control input-sm" name="customer" value="@_customer" placeholder="Name" /></label>
+        <label style="margin-left:8px;">Item <input class="form-control input-sm" name="item" value="@_item" placeholder="SKU or description" /></label>
+        <button type="submit" class="btn btn-default btn-sm" style="margin-left:8px;">Filter</button>
+    </form>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Sales profitability">
+        <div class="kpi"><div class="lbl">Revenue</div><div class="val">@Money(_report.Revenue)</div></div>
+        <div class="kpi"><div class="lbl">Cost</div><div class="val">@Money(_report.Cost)</div></div>
+        <div class="kpi"><div class="lbl">Gross margin</div><div class="val">@Money(_report.Margin)</div></div>
+        <div class="kpi"><div class="lbl">Margin %</div><div class="val">@Num(_report.MarginPct)</div></div>
+    </div>
+
+    @if (!_isAdmin)
+    {
+        <p class="text-muted">Sign in with ERP capability for live figures.</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_message))
+    {
+        <p class="text-muted">@_message</p>
+    }
+    else if (_report.LineCount == 0)
+    {
+        <p class="text-muted">No posted sales in this period. Widen the dates, or confirm and invoice a sales order.</p>
+    }
+    else
+    {
+        <div class="epc-profit-cols">
+            @GroupCard("By customer", _report.ByCustomer)
+            @GroupCard("By item", _report.ByItem)
+            @GroupCard("By month", _report.ByMonth)
+        </div>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        <th>Date</th><th>Customer</th><th>Item</th><th>Description</th>
+                        <th class="text-right">Qty</th><th class="text-right">Revenue</th><th class="text-right">Unit cost</th>
+                        <th class="text-right">Cost</th><th class="text-right">Margin</th><th class="text-right">Margin %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in _report.Lines.Take(100))
+                    {
+                        <tr>
+                            <td>@line.Date</td>
+                            <td>@line.Customer</td>
+                            <td>@line.ItemCode</td>
+                            <td>@line.Description</td>
+                            <td class="text-right">@Qty(line.Qty)</td>
+                            <td class="text-right">@Money(line.Revenue)</td>
+                            <td class="text-right">@Money(line.UnitCost)</td>
+                            <td class="text-right">@Money(line.Cost)</td>
+                            <td class="text-right">@Money(line.Margin)</td>
+                            <td class="text-right">@Num(line.MarginPct)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (_report.LineCount > 100)
+        {
+            <p class="text-muted">Showing 100 of @_report.LineCount.ToString(CultureInfo.InvariantCulture) lines. The totals include every line in the filter.</p>
+        }
+    }
+
+    @if (_embed.Ok)
+    {
+        <h3 style="margin:16px 0 8px;font-size:15px;">Power BI</h3>
+        <iframe src="@_embed.Url" title="Sales profitability performance" loading="lazy" allowfullscreen
+                style="width:100%;min-height:520px;border:1px solid #dbe4ee;border-radius:10px;"></iframe>
+    }
+    else
+    {
+        <p class="text-muted" style="margin-top:12px;">
+            @_embed.Error
+            Connect Power BI Desktop to
+            <code>@PowerBiCatalog.ApiRoot/sales-profitability?format=csv</code>
+            with the header <code>X-API-Key</code>.
+            <a href="/cp/power-bi-app">Save a Power BI link</a>
+            to show that report in this page.
+        </p>
+    }
+    @if (_report.Note.Length > 0)
+    {
+        <p class="text-muted">@_report.Note</p>
+    }
+</section>
+
+<style>
+    .epc-profit-cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; margin:0 0 12px; }
+    .epc-profit-card { border:1px solid #dbe4ea; background:#fff; padding:10px 12px; }
+    .epc-profit-card h3 { margin:0 0 8px; font-size:14px; }
+    .epc-profit-row { margin:0 0 8px; }
+    .epc-profit-row span { display:block; font-size:12px; color:#334155; }
+    .epc-profit-bar { height:8px; background:#e2e8f0; border-radius:4px; margin-top:3px; }
+    .epc-profit-bar i { display:block; height:8px; background:#1d4ed8; border-radius:4px; }
+</style>
+
+@code {
+    private bool _isAdmin;
+    private string _tab = ErpSalesProfitability.Tab;
+    private string _action = "/erp/sales-workspace-app";
+    private string _from = "";
+    private string _to = "";
+    private string _customer = "";
+    private string _item = "";
+    private string _message = "";
+    private ErpSalesProfitability.Report _report = ErpSalesProfitability.Summarize([]);
+    private PowerBiEmbedResolution _embed = PowerBiCatalog.ResolveEmbed(false, "none", "");
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        _from = DateOr(ctx.Request.Query["from"].ToString(), today.AddYears(-1));
+        _to = DateOr(ctx.Request.Query["to"].ToString(), today);
+        _customer = ctx.Request.Query["customer"].ToString().Trim();
+        _item = ctx.Request.Query["item"].ToString().Trim();
+        var tab = ctx.Request.Query["tab"].ToString();
+        _tab = ErpSalesProfitability.IsProfitabilityTab(tab) ? tab : ErpSalesProfitability.Tab;
+        _action = ctx.Request.Path.Value ?? _action;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        var host = ctx.Request.Host.Value;
+        _embed = (await PowerBi.LoadAsync(null, host, ctx.RequestAborted)).Embed;
+        if (!_isAdmin || !TenantDb.IsConfigured)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var db = await TenantDb.OpenAsync(ctx.RequestAborted);
+            _report = await ErpSalesProfitability.LoadAsync(
+                db,
+                DateOnly.Parse(_from, CultureInfo.InvariantCulture),
+                DateOnly.Parse(_to, CultureInfo.InvariantCulture),
+                _customer,
+                _item,
+                ctx.RequestAborted);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            _message = "Sales orders are not set up yet.";
+        }
+    }
+
+    private RenderFragment GroupCard(string title, IReadOnlyList<ErpSalesProfitability.Group> groups) => __builder =>
+    {
+        var max = groups.Count == 0 ? 0m : groups.Max(group => group.Revenue);
+        <article class="epc-profit-card">
+            <h3>@title</h3>
+            @if (groups.Count == 0)
+            {
+                <p class="text-muted">No rows.</p>
+            }
+            @foreach (var group in groups)
+            {
+                <div class="epc-profit-row">
+                    <span>@group.Label · @Money(group.Revenue) · @Num(group.MarginPct)%</span>
+                    <div class="epc-profit-bar"><i style="width:@Bar(group.Revenue, max)"></i></div>
+                </div>
+            }
+        </article>
+    };
+
+    private static string DateOr(string raw, DateOnly fallback)
+        => DateOnly.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
+            ? parsed.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+            : fallback.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private static string Bar(decimal value, decimal max)
+        => max <= 0m ? "0%" : Math.Clamp(decimal.ToDouble(value / max * 100m), 0d, 100d).ToString("0", CultureInfo.InvariantCulture) + "%";
+
+    private static string Money(decimal value) => value.ToString("#,0.00", CultureInfo.InvariantCulture);
+
+    private static string Num(decimal value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private static string Qty(decimal value) => value.ToString("#,0.####", CultureInfo.InvariantCulture);
+}

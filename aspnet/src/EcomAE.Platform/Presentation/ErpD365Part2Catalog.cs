@@ -576,7 +576,7 @@ public static class ErpD365Part2Catalog
         yield return P(a, "sm_turnover", "Customer turnover report", "Inquiries and reports", "Customer sales turnover.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-bar-chart");
         yield return P(a, "sm_sales_stats", "Sales statistics", "Inquiries and reports", "Sales totals by item, customer, or period.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-line-chart");
         yield return P(a, "sm_sales_analysis", "Sales analysis by invoice", "Inquiries and reports", "Invoiced sales analysis.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-pie-chart");
-        yield return P(a, "sm_performance", "Sales and profitability performance", "Inquiries and reports", "Margin and profitability by sales unit.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-tachometer");
+        yield return P(a, "sm_performance", "Sales profitability performance", "Inquiries and reports", "Power BI view of posted sales: revenue, cost, gross margin and margin percent by customer, item and month.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-bar-chart");
         yield return P(a, "sm_ic_orders", "Intercompany order report", "Inquiries and reports", "Intercompany sales orders.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-exchange");
         yield return P(a, "sm_daily_cash", "Daily cash book report", "Inquiries and reports", "Daily cash from invoiced sales.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-money");
         yield return P(a, "sm_cleanup_orders", "Delete sales orders", "Cleanup", "Delete sales orders that were never confirmed.", ErpD365Part3Catalog.FormKind.Action, app, icon: "fa-trash");

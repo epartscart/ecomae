@@ -75,6 +75,12 @@
         </nav>
 
         <section class="epc-d365-main">
+            @if (ErpSalesProfitability.IsProfitabilityTab(_page.Tab))
+            {
+                <ErpSalesProfitabilityPanel />
+            }
+            else
+            {
             <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Workspace KPIs">
                 <div class="kpi"><div class="lbl">Pages</div><div class="val">@_pages.Count.ToString(CultureInfo.InvariantCulture)</div></div>
                 <div class="kpi"><div class="lbl">Rows</div><div class="val">@_rows.Count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -501,6 +507,7 @@
                     </tbody>
                 </table>
             </div>
+            }
         </section>
     </div>
 </PhpErpDesktopChrome>
