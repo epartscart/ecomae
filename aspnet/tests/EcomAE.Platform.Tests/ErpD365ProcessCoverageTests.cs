@@ -214,6 +214,7 @@ public sealed class ErpD365ProcessCoverageTests
         Assert.Contains("HandleD365LinkSaveAsync", module, StringComparison.Ordinal);
         Assert.Contains("HandleD365StudySaveAsync", module, StringComparison.Ordinal);
         Assert.Contains("AppendFollowQuery", module, StringComparison.Ordinal);
+        Assert.Contains("Results.Redirect", module, StringComparison.Ordinal);
 
         Assert.Contains("RecordOfficialAsync", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpRfqAwardWriteService.cs")), StringComparison.Ordinal);
         Assert.Contains("RecordOfficialAsync", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpPurchaseInvoiceWriteService.cs")), StringComparison.Ordinal);

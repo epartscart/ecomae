@@ -24641,10 +24641,14 @@ public sealed class ErpModule : ISurfaceModule
                 qty,
                 amount,
                 note);
-            if (string.IsNullOrWhiteSpace(returnUrl) || returnUrl.Contains("/erp/", StringComparison.Ordinal))
+            if (LiveWriteFormBinder.WantsHtml(context))
             {
-                returnUrl = fallback;
+                var dest = ClientErpPath.PrefixIfBound(context, fallback);
+                var sep = dest.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+                return Results.Redirect(dest + sep + "ok=" + Uri.EscapeDataString(written.Message ?? string.Empty));
             }
+
+            returnUrl = fallback;
         }
 
         return LiveWriteFormBinder.Complete(
