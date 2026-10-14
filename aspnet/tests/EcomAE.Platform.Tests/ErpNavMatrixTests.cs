@@ -301,7 +301,9 @@ public sealed class ErpNavMatrixTests
         var all = ErpIndustryNav.DirectoryTabs(jewelleryCompany: true);
         var core = ErpIndustryNav.DirectoryTabs(jewelleryCompany: false);
 
-        Assert.Equal(PhpModuleCatalog.ErpTabs.Count, all.Count);
+        Assert.True(all.Count > PhpModuleCatalog.ErpTabs.Count);
+        Assert.Contains(all, t => t.Id.Contains("tax_exempt_codes", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(all, t => t.Label.Contains("Tax exempt numbers", StringComparison.OrdinalIgnoreCase));
         Assert.True(core.Count < all.Count);
         Assert.DoesNotContain(core, ErpIndustryNav.IsJewelleryTab);
         Assert.Contains(all, ErpIndustryNav.IsJewelleryTab);
@@ -316,7 +318,9 @@ public sealed class ErpNavMatrixTests
 
         Assert.Contains(fitOut, ErpIndustryNav.IsFitOutTab);
         Assert.DoesNotContain(core, ErpIndustryNav.IsFitOutTab);
-        Assert.Equal(fitOut.Count - 1, core.Count);
+        var hiddenFitOut = fitOut.Count(ErpIndustryNav.IsFitOutTab);
+        Assert.True(hiddenFitOut >= 1);
+        Assert.Equal(fitOut.Count - hiddenFitOut, core.Count);
         Assert.Contains(core, t => t.Id == "finance/coa");
     }
 }

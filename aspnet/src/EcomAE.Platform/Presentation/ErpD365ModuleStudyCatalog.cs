@@ -151,6 +151,8 @@ public static class ErpD365ModuleStudyCatalog
                 "Confirm the chart of accounts and financial dimensions before journals.",
                 "Create journal names, then enter the first general journal.",
                 "Post only when debit equals credit if must be balanced is yes.",
+                "Use the same journal for periodic lines, allocation rules, and a reversing provision.",
+                "Reverse a posted journal from the correction entry, then read the trial balance by account and dimension.",
             ],
             [
                 "Company: ledger parameters and fiscal calendar.",
@@ -163,7 +165,7 @@ public static class ErpD365ModuleStudyCatalog
                 "General journal and trial balance stay on dedicated forms.",
                 "Posted journals update trial-balance opening, debit, credit, and closing.",
             ],
-            ["/erp/gl-journals-app", "/erp/trial-balance-app"]),
+            ["/erp/coa-accounts-app", "/erp/gl-journals-app", "/erp/gl-journals/reverse", "/erp/trial-balance-app", "/erp/period-close-app"]),
         M("inventory_mgmt", "Inventory management", "both",
             "Track on-hand by item, warehouse, and batch. Reserve demand, transfer between warehouses, and count. Reservation hierarchy decides how on-hand is reserved. Warehouse mandatory and negative inventory are company switches.",
             [
@@ -269,6 +271,9 @@ public static class ErpD365ModuleStudyCatalog
                 "Create grades, calendars, and earning codes.",
                 "Enroll workers, then import attendance or time sheets.",
                 "Generate, validate, pay, then file WPS.",
+                "Enter pay transactions for airfare, leave encashment, bonus, loans, and advances.",
+                "Review salary, transfer the new scale, then process gratuity and end of service.",
+                "Send the payslip after the calendar and public holidays are on the cycle.",
             ],
             [
                 "Company: pay cycle and payment method.",
@@ -288,6 +293,8 @@ public static class ErpD365ModuleStudyCatalog
                 "Decide who approves registrations.",
                 "Approve, then transfer to pay.",
                 "Confirm the earning map on payroll before the first transfer.",
+                "Load attendance, process the timesheet, and check missed login or logout.",
+                "Approve overtime, post the overtime and short-time journals, and read the comp-off balance.",
             ],
             [
                 "Company: approval required.",
@@ -298,7 +305,7 @@ public static class ErpD365ModuleStudyCatalog
             [
                 "Approve on this hub; transfer opens the dedicated payroll form.",
             ],
-            ["/erp/payroll-app"]),
+            ["/erp/time-attendance-app", "/erp/payroll-app", "/erp/gl-journals-app"]),
         M("projects", "Project management and accounting", "both",
             "Quote a project, create the project and contract, assign resources, capture timesheets, propose an invoice, and invoice the customer. Item needs raise project purchase orders and sales orders. Posted transactions support profit and loss.",
             [
@@ -363,6 +370,7 @@ public static class ErpD365ModuleStudyCatalog
                 "Create budget models, cycles, and allocation terms.",
                 "Configure budget control and the source documents it checks.",
                 "Generate a register entry from the adopted plan.",
+                "Enter a recurring budget, allocate it to dimensions and to periods, then update the budget balance.",
             ],
             [
                 "Company: model, cycle, and over-budget permission.",
@@ -382,6 +390,7 @@ public static class ErpD365ModuleStudyCatalog
                 "Create leave types and plans (grant, carry-forward).",
                 "Enroll employees, then open the company leave calendar.",
                 "Approve requests before running accrue.",
+                "Leave encashment is a pay transaction on payroll, using the same balance.",
             ],
             [
                 "Company: accrual frequency and approval.",
@@ -394,7 +403,7 @@ public static class ErpD365ModuleStudyCatalog
                 "Employees open the dedicated staff form.",
                 "Approved requests accrue and feed payroll leave.",
             ],
-            ["/erp/staff-app"]),
+            ["/erp/leave-absence-app", "/erp/staff-app", "/erp/payroll-app"]),
         M("expense", "Expense management", "organization",
             "Workers enter expense reports and cash advances. Report approval is a company parameter. An approved report is reimbursed through the vendor payment journal.",
             [
@@ -440,6 +449,8 @@ public static class ErpD365ModuleStudyCatalog
                 "Create positions and the position hierarchy.",
                 "Create workers from the address book.",
                 "Enroll workers on leave plans and payroll.",
+                "Raise a manpower requisition, recruit, then open the employee master and contract.",
+                "Set the reports-to position and record performance before payroll enrollment.",
             ],
             [
                 "Company: position required.",
@@ -451,7 +462,7 @@ public static class ErpD365ModuleStudyCatalog
                 "HR parameters on this hub.",
                 "Workers stay on the dedicated staff form.",
             ],
-            ["/erp/staff-app"]),
+            ["/erp/hr-workspace-app", "/erp/hr-overview-app", "/erp/staff-app", "/erp/contracts-app", "/erp/performance-app", "/erp/leave-absence-app"]),
         M("credit_coll", "Credit and collections", "both",
             "Set credit limit type, block risky customers, open collection cases, and print collection letters. Aging drives the letter sequence. Credit limit check on sales uses the same type.",
             [

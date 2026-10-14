@@ -13,12 +13,12 @@ public static class CrossbaseReferenceLoader
     private static readonly Regex CrossLinkRegex = new(
         @"<a\s+[^>]*href=[""']/cross/\?q=([^""']+)[""'][^>]*>(.*?)</a>",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled,
-        TimeSpan.FromMilliseconds(250));
+        TimeSpan.FromSeconds(8));
 
     private static readonly Regex TotalRegex = new(
         @"существует.*?([0-9]+).*?замен",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled,
-        TimeSpan.FromMilliseconds(100));
+        TimeSpan.FromSeconds(8));
 
     private static readonly HttpClient Http = CreateClient();
 
@@ -81,7 +81,17 @@ public static class CrossbaseReferenceLoader
     {
         var rows = new List<StorefrontCrossRefDigest>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (Match match in CrossLinkRegex.Matches(html))
+        MatchCollection matches;
+        try
+        {
+            matches = CrossLinkRegex.Matches(html);
+        }
+        catch (RegexMatchTimeoutException)
+        {
+            return rows;
+        }
+
+        foreach (Match match in matches)
         {
             if (rows.Count >= maxRefs)
             {

@@ -3,7 +3,7 @@ namespace EcomAE.Platform.Presentation;
 /// <summary>D365 F&amp;O-style page search over ERP workspaces and industry modules.</summary>
 public static class ErpGlobalSearchCatalog
 {
-    public sealed record Entry(string Label, string Href, string Group, string Icon);
+    public sealed record Entry(string Label, string Href, string Group, string Icon, string Keywords = "");
 
     public static IReadOnlyList<Entry> Build(bool jewellery, bool fitOut, bool realEstate = false)
     {
@@ -20,7 +20,8 @@ public static class ErpGlobalSearchCatalog
                 tab.Label,
                 href,
                 string.IsNullOrWhiteSpace(tab.Group) ? "ERP" : tab.Group,
-                string.IsNullOrWhiteSpace(tab.Icon) ? "fa-th-large" : tab.Icon));
+                string.IsNullOrWhiteSpace(tab.Icon) ? "fa-th-large" : tab.Icon,
+                tab.Description ?? string.Empty));
         }
 
         if (jewellery)
@@ -70,7 +71,7 @@ public static class ErpGlobalSearchCatalog
             .ToArray();
     }
 
-    public static IReadOnlyList<Entry> Filter(IReadOnlyList<Entry> catalog, string? query, int take = 12)
+    public static IReadOnlyList<Entry> Filter(IReadOnlyList<Entry> catalog, string? query, int take = 24)
     {
         var needle = (query ?? string.Empty).Trim();
         if (needle.Length == 0)
@@ -78,10 +79,58 @@ public static class ErpGlobalSearchCatalog
             return catalog.Take(take).ToArray();
         }
 
+        var tokens = needle.Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         return catalog
-            .Where(e => e.Label.Contains(needle, StringComparison.OrdinalIgnoreCase)
-                || e.Group.Contains(needle, StringComparison.OrdinalIgnoreCase))
+            .Select(e => (Entry: e, Score: Score(e, needle, tokens)))
+            .Where(row => row.Score >= 0)
+            .OrderByDescending(row => row.Score)
+            .ThenBy(row => row.Entry.Label, StringComparer.OrdinalIgnoreCase)
             .Take(take)
+            .Select(row => row.Entry)
             .ToArray();
+    }
+
+    private static int Score(Entry entry, string needle, string[] tokens)
+    {
+        var label = entry.Label ?? string.Empty;
+        var group = entry.Group ?? string.Empty;
+        var keywords = entry.Keywords ?? string.Empty;
+        foreach (var token in tokens)
+        {
+            if (!Hits(label, token) && !Hits(group, token) && !Hits(keywords, token))
+            {
+                return -1;
+            }
+        }
+
+        var score = Hits(label, needle) ? 100 : 0;
+        foreach (var token in tokens)
+        {
+            if (Hits(label, token))
+            {
+                score += 10;
+            }
+            else if (Hits(keywords, token))
+            {
+                score += 4;
+            }
+            else
+            {
+                score += 1;
+            }
+        }
+
+        return score;
+    }
+
+    private static bool Hits(string haystack, string token)
+    {
+        if (haystack.Contains(token, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return token.Equals("exempt", StringComparison.OrdinalIgnoreCase)
+            && haystack.Contains("exemption", StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -16,6 +16,28 @@ public sealed class ErpHomeSearchAndRelatedMapTests
     }
 
     [Fact]
+    public void GlobalSearchFindsTaxExemptPages()
+    {
+        var hits = ErpGlobalSearchCatalog.Filter(ErpGlobalSearchCatalog.Build(false, false), "tax exempt");
+        Assert.Contains(hits, e => e.Label.Contains("Sales tax exempt codes", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(hits, e => e.Label.Contains("Tax exempt numbers", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(hits, e => e.Href.Contains("tax_exempt_codes", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void ManualProcessesLinkExistingForms()
+    {
+        var close = ErpManualProcessCatalog.For(null, "monthly_close,year_end");
+        Assert.Equal(2, close.Count);
+        Assert.Contains(close[0].Steps, step => step.Href == "/erp/vat-app");
+        Assert.Contains(close[1].Steps, step => step.Href == "/erp/period-close-app");
+        Assert.Contains(ErpManualProcessCatalog.For("time_att", null)[0].Steps, step => step.Href == "/erp/time-attendance-app");
+        Assert.Contains(ErpManualProcessCatalog.For("payroll_area", null)[0].Steps, step => step.Href == "/erp/payroll-app");
+        Assert.Contains(ErpManualProcessCatalog.For("people", null)[0].Steps, step => step.Href == "/erp/staff-app");
+        Assert.Empty(ErpManualProcessCatalog.For("sales", null));
+    }
+
+    [Fact]
     public void RelatedMapBuildsPurchaseOrderToApInvoice()
     {
         var nodes = ErpRelatedDocumentMapFactory.ForPurchase(
