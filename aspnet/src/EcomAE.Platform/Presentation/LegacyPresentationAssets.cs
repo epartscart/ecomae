@@ -148,8 +148,6 @@ public static class LegacyPresentationAssets
         "/platform-assets/epc_ecomae_platform_marketing.css?v=20260807a",
         "/platform-assets/epc_ecomae_home_sections.css?v=20260811footer",
         "/platform-assets/epc_ecomae_home_3d.css?v=20260807a",
-        // LifeOS film band on home (after epm-hub only)
-        "/platform-assets/epc_ecomae_marketing_lifeos_film.css?v=20260807b",
         // Layla splash/footer + demo portal — must not rely on HeadContent alone
         "/platform-assets/epc_ecomae_layla_widget.css?v=20260811footer",
         "/platform-assets/epc_ecomae_demo_portal.css?v=20260811footer",
@@ -195,7 +193,6 @@ public static class LegacyPresentationAssets
             "marketing" =>
             [
                 ".epm-hub", ".epm-hub__orbit-spin", ".epm-hub__matrix", ".epm-hub-section",
-                ".epm-lofilm", "#lifeos-film", ".epm-lofilm__video",
                 ".epc-demo-portal", ".epc-layla-splash", ".epc-layla-footer-widget"
             ],
             _ => []
