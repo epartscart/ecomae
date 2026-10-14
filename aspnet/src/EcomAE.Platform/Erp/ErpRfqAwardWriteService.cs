@@ -162,7 +162,27 @@ public sealed class ErpRfqAwardWriteService : IErpRfqAwardWriteService
         {
             return ErpRfqAwardWriteResult.Fail(
                 "link",
-                "Draft PO " + purchaseOrder.PoNo + " was created but the Classic RFQ link was not recorded: " + ex.Message);
+                "Draft PO " + purchaseOrder.PoNo + " was created but the RFQ link was not recorded: " + ex.Message);
+        }
+
+        try
+        {
+            await using var linkConnection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpD365LinkWriteService.RecordOfficialAsync(
+                linkConnection,
+                "rfq",
+                request.RfqId,
+                "RFQ-" + request.RfqId.ToString(CultureInfo.InvariantCulture),
+                "purchase_orders",
+                purchaseOrder.Id,
+                purchaseOrder.PoNo,
+                request.AdminId,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is DbException or InvalidOperationException)
+        {
+            // Award already committed; the official process link is best-effort.
+            _ = ex;
         }
 
         return new ErpRfqAwardWriteResult(

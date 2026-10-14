@@ -1,3 +1,5 @@
+using System.Data.Common;
+
 namespace EcomAE.Platform.Erp;
 
 
@@ -179,6 +181,24 @@ public sealed class ErpProcurementReqWriteService : IErpProcurementReqWriteServi
             ErpDb.Positional("UPDATE `epc_proc_req` SET `status` = 'converted', `po_ref` = ?, `time_updated` = ? WHERE `id` = ?"),
             cancellationToken,
             poRef, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), id);
+        try
+        {
+            await ErpD365LinkWriteService.RecordOfficialAsync(
+                connection,
+                "purchase_requisitions",
+                id,
+                reqNumber,
+                "purchase_orders",
+                0,
+                poRef,
+                0,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is DbException or InvalidOperationException)
+        {
+            _ = ex;
+        }
+
         return ErpSimpleWriteResult.Ok("Converted to " + poRef, id);
     }
 

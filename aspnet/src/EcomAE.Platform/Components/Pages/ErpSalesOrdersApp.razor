@@ -23,6 +23,10 @@
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/sales-orders-app" />
+    @if (_follow.HasValues)
+    {
+        <div class="alert alert-info" role="status" style="margin:0 0 12px;padding:.7rem .9rem">Process follow: @_follow.Banner. Matching fields are filled on the form.</div>
+    }
 
     <p class="text-muted" style="margin:8px 0 12px;">
         <a href="/erp/sales-orders-app">Sales orders</a>
@@ -369,9 +373,9 @@
                 </div>
                 <div class="row">
                     <div class="col-sm-3"><ErpMasterPicker Kind="customer" FieldName="customer_user_id" InputId="so-customer" Label="Customer" Required="true" /></div>
-                    <div class="col-sm-4"><label for="so-title">Title</label><input id="so-title" class="form-control" type="text" maxlength="255" /></div>
+                    <div class="col-sm-4"><label for="so-title">Title</label><input id="so-title" class="form-control" type="text" maxlength="255" value="@_follow.Name" /></div>
                     <div class="col-sm-2"><label for="so-amount">Amount (ex VAT)</label><input id="so-amount" class="form-control" type="number" min="0" step="0.01" readonly aria-describedby="so-amount-help" /><span id="so-amount-help" class="help-block small">Sum of lines</span></div>
-                    <div class="col-sm-3"><label for="so-notes">Notes</label><input id="so-notes" class="form-control" type="text" /></div>
+                    <div class="col-sm-3"><label for="so-notes">Notes</label><input id="so-notes" class="form-control" type="text" value="@_follow.Note" /></div>
                     <div class="col-sm-1"><label for="so-save">&nbsp;</label><button id="so-save" type="button" class="btn btn-primary btn-block">Save</button></div>
                 </div>
 
@@ -575,6 +579,7 @@
     private string _subtitle = "Sales orders with line totals.";
     private string _view = "sales_orders";
     private bool _isAdmin;
+    private ErpD365FollowPrefill _follow = new("", 0, "", "", "", "", "", 0, 0, "");
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private IReadOnlyList<ErpSalesOrderDigest> _orders = [];
     private IReadOnlyList<ErpInventoryItemPickerDigest> _items = [];
@@ -678,6 +683,7 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _follow = ErpD365FollowPrefill.Read(ctx.Request);
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 

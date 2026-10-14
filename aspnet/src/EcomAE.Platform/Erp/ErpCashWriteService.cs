@@ -473,6 +473,27 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         }
 
         await LogAsync(connection, adminId, "receipt_voucher", cashEntryId, "Customer receipt posted", voucherNo, amount, cancellationToken).ConfigureAwait(false);
+        if (input.SalesInvoiceId > 0)
+        {
+            try
+            {
+                await ErpD365LinkWriteService.RecordOfficialAsync(
+                    connection,
+                    "sm_invoice",
+                    input.SalesInvoiceId,
+                    voucherNo,
+                    "ar_payment_journal",
+                    cashEntryId,
+                    voucherNo,
+                    adminId,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is DbException or InvalidOperationException)
+            {
+                _ = ex;
+            }
+        }
+
         return new ErpCashEntryResult(
             cashEntryId,
             voucherNo,
@@ -660,6 +681,27 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         }
 
         await LogAsync(connection, adminId, "payment_voucher", cashEntryId, "Supplier payment posted", voucherNo, amount, cancellationToken).ConfigureAwait(false);
+        if (input.PurchaseId > 0)
+        {
+            try
+            {
+                await ErpD365LinkWriteService.RecordOfficialAsync(
+                    connection,
+                    "purchases",
+                    input.PurchaseId,
+                    voucherNo,
+                    "ap_payment_journal",
+                    cashEntryId,
+                    voucherNo,
+                    adminId,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is DbException or InvalidOperationException)
+            {
+                _ = ex;
+            }
+        }
+
         return new ErpCashEntryResult(
             cashEntryId,
             voucherNo,

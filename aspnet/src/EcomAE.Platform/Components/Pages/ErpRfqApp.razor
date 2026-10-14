@@ -38,6 +38,10 @@
 
     <PhpErpModulePageHeader Title="RFQs" Subtitle="Create and edit supplier requests for quotation. Unsupported workflow actions are not available on this page." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    @if (_follow.HasValues)
+    {
+        <div class="alert alert-info" role="status" style="margin:0 0 12px;padding:.7rem .9rem">Process follow: @_follow.Banner. Matching fields are filled on the form.</div>
+    }
     @if (_companyId > 0)
     {
         <p style="margin:0 0 12px"><span class="epc-rfq-chip">Company @_companyId.ToString(CultureInfo.InvariantCulture)</span></p>
@@ -53,8 +57,8 @@
                 <input type="hidden" name="id" value="0" />
                 <input type="hidden" name="csrf_guard_key" value="@_csrf" />
                 <ErpMasterPicker Kind="supplier" FieldName="supplier_id" Label="Supplier" />
-                <label>Title <input type="text" name="title" required maxlength="255" /></label>
-                <label>Estimate <input type="text" name="amount_est" value="0.00" /></label>
+                <label>Title <input type="text" name="title" required maxlength="255" value="@_follow.Name" /></label>
+                <label>Estimate <input type="text" name="amount_est" value="@(_follow.Amount != 0 ? _follow.Amount.ToString("0.00", CultureInfo.InvariantCulture) : "0.00")" /></label>
                 <label>Status
                     <select name="status">
                         @foreach (var status in RfqStatuses)
@@ -65,7 +69,7 @@
                 </label>
                 <label>Due <input type="date" name="due_date" /></label>
                 <label>Order <input type="number" name="order_id" min="0" value="0" /></label>
-                <label>Description <input type="text" name="description" maxlength="4000" /></label>
+                <label>Description <input type="text" name="description" maxlength="4000" value="@_follow.Note" /></label>
                 <button type="submit" name="confirmWrites" value="true" class="btn btn-primary btn-sm">Save RFQ</button>
             </form>
         </section>
@@ -365,6 +369,7 @@
     private bool _isAdmin;
     private long _companyId;
     private string _csrf = "";
+    private ErpD365FollowPrefill _follow = new("", 0, "", "", "", "", "", 0, 0, "");
     private IReadOnlyList<ErpRfqDigest> _rfqs = [];
     private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
@@ -505,6 +510,7 @@
                 + "company=" + _companyId.ToString(CultureInfo.InvariantCulture);
         }
 
+        _follow = ErpD365FollowPrefill.Read(ctx.Request);
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "rfq_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

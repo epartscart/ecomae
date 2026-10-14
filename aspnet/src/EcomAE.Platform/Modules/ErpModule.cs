@@ -424,6 +424,9 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationRegen, HandleUaeTaxLegislationRegenAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationChecklistSet, HandleUaeTaxLegislationChecklistSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365WorkspaceSave, HandleD365WorkspaceSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365ParameterSave, HandleD365ParameterSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365LinkSave, HandleD365LinkSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpD365StudySave, HandleD365StudySaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpTrialBalance, HandleTrialBalanceDigestAsync);
         endpoints.MapGet(EcomAeRoutes.ErpTrialBalanceExport, HandleTrialBalanceExportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpTrialBalanceSnapshot, HandleTrialBalanceSnapshotAsync).DisableAntiforgery();
@@ -24426,6 +24429,10 @@ public sealed class ErpModule : ISurfaceModule
         var note = "";
         var qty = 0m;
         var amount = 0m;
+        var sourceTab = "";
+        var sourceCode = "";
+        var relation = "";
+        var sourceId = 0L;
         var confirm = false;
         var returnUrl = "/erp/leave-absence-app";
         if (context.Request.HasFormContentType)
@@ -24446,12 +24453,17 @@ public sealed class ErpModule : ISurfaceModule
             note = LiveWriteFormBinder.Text(form, "note");
             qty = LiveWriteFormBinder.Dec(form, "qty");
             amount = LiveWriteFormBinder.Dec(form, "amount");
+            sourceTab = LiveWriteFormBinder.Text(form, "source_tab", "sourceTab");
+            sourceId = LiveWriteFormBinder.Long(form, "source_id", "sourceId");
+            sourceCode = LiveWriteFormBinder.Text(form, "source_code", "sourceCode");
+            relation = LiveWriteFormBinder.Text(form, "relation");
             confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
         }
 
         var request = new ErpD365WorkspaceWriteRequest(
-            area, tab, code, name, worker, party, kind, status, period, dateFrom, dateTo, qty, amount, extra, note, session.UserId);
+            area, tab, code, name, worker, party, kind, status, period, dateFrom, dateTo, qty, amount, extra, note, session.UserId,
+            sourceTab, sourceId, sourceCode, relation);
         if (!confirm)
         {
             return Results.Ok(dryRun.Evaluate(request, false).ToPayload(SessionPayload(session)));
@@ -24461,6 +24473,241 @@ public sealed class ErpModule : ISurfaceModule
         var fallback = ErpD365WorkspaceCatalog.TryGet(tab, out var page)
             ? page.AppPath + "?tab=" + page.Tab
             : "/erp/leave-absence-app";
+        return LiveWriteFormBinder.Complete(
+            context,
+            string.IsNullOrWhiteSpace(returnUrl) ? fallback : returnUrl,
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                status = written.Succeeded,
+                id = written.Id,
+                session = SessionPayload(session),
+            });
+    }
+
+    private static async Task<IResult> HandleD365ParameterSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpD365ParameterDryRun dryRun,
+        IErpD365ParameterWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/organization-admin-app",
+                "Admin ERP capability required for process parameter save.");
+        }
+
+        var area = "";
+        var key = "";
+        var value = "";
+        var confirm = false;
+        var returnUrl = "/erp/organization-admin-app";
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            area = LiveWriteFormBinder.Text(form, "area");
+            key = LiveWriteFormBinder.Text(form, "key", "param_key", "paramKey");
+            value = LiveWriteFormBinder.Text(form, "value", "param_value", "paramValue");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+        }
+
+        var request = new ErpD365ParameterWriteRequest(area, key, value, session.UserId);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(request, false).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(request, cancellationToken);
+        var fallback = "/erp/" + (ErpD365WorkspaceCatalog.AppPathForArea(area).TrimStart('/'));
+        return LiveWriteFormBinder.Complete(
+            context,
+            string.IsNullOrWhiteSpace(returnUrl) ? fallback : returnUrl,
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                status = written.Succeeded,
+                id = written.Id,
+                session = SessionPayload(session),
+            });
+    }
+
+    private static async Task<IResult> HandleD365LinkSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpD365LinkDryRun dryRun,
+        IErpD365LinkWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/procurement-workspace-app",
+                "Admin ERP capability required for process interlink save.");
+        }
+
+        var action = "link";
+        var fromTab = "";
+        var fromCode = "";
+        var toTab = "";
+        var toCode = "";
+        var relation = "";
+        var note = "";
+        var name = "";
+        var worker = "";
+        var party = "";
+        var kind = "";
+        var status = "";
+        var period = "";
+        var dateFrom = "";
+        var dateTo = "";
+        var extra = "";
+        var fromId = 0L;
+        var toId = 0L;
+        var qty = 0m;
+        var amount = 0m;
+        var confirm = false;
+        var returnUrl = "/erp/procurement-workspace-app";
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            action = LiveWriteFormBinder.Text(form, "action");
+            fromTab = LiveWriteFormBinder.Text(form, "from_tab", "fromTab");
+            fromId = LiveWriteFormBinder.Long(form, "from_id", "fromId");
+            fromCode = LiveWriteFormBinder.Text(form, "from_code", "fromCode");
+            toTab = LiveWriteFormBinder.Text(form, "to_tab", "toTab");
+            toId = LiveWriteFormBinder.Long(form, "to_id", "toId");
+            toCode = LiveWriteFormBinder.Text(form, "to_code", "toCode");
+            relation = LiveWriteFormBinder.Text(form, "relation");
+            note = LiveWriteFormBinder.Text(form, "note");
+            name = LiveWriteFormBinder.Text(form, "name");
+            worker = LiveWriteFormBinder.Text(form, "worker");
+            party = LiveWriteFormBinder.Text(form, "party");
+            kind = LiveWriteFormBinder.Text(form, "kind");
+            status = LiveWriteFormBinder.Text(form, "status");
+            period = LiveWriteFormBinder.Text(form, "period");
+            dateFrom = LiveWriteFormBinder.Text(form, "date_from", "dateFrom");
+            dateTo = LiveWriteFormBinder.Text(form, "date_to", "dateTo");
+            extra = LiveWriteFormBinder.Text(form, "extra");
+            qty = LiveWriteFormBinder.Dec(form, "qty");
+            amount = LiveWriteFormBinder.Dec(form, "amount");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+        }
+
+        var request = new ErpD365LinkWriteRequest(
+            action, fromTab, fromId, fromCode, toTab, toId, toCode, relation, note,
+            name, worker, party, kind, status, period, dateFrom, dateTo, qty, amount, extra, session.UserId);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(request, false).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(request, cancellationToken);
+        var fallback = ErpD365WorkspaceCatalog.TryGet(toTab, out var page)
+            ? page.ExistingHref ?? (page.AppPath + "?tab=" + page.Tab)
+            : "/erp/procurement-workspace-app";
+        if (written.Succeeded && string.Equals(action, "follow", StringComparison.OrdinalIgnoreCase))
+        {
+            fallback = ErpD365ProcessCatalog.AppendFollowQuery(
+                fallback,
+                fromTab,
+                fromId,
+                fromCode,
+                string.IsNullOrWhiteSpace(relation) && ErpD365ProcessCatalog.TryGetEdge(fromTab, toTab, out var edge)
+                    ? edge.Relation
+                    : relation,
+                party,
+                name,
+                worker,
+                qty,
+                amount,
+                note);
+            if (LiveWriteFormBinder.WantsHtml(context))
+            {
+                var dest = ClientErpPath.PrefixIfBound(context, fallback);
+                var sep = dest.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+                return Results.Redirect(dest + sep + "ok=" + Uri.EscapeDataString(written.Message ?? string.Empty));
+            }
+
+            returnUrl = fallback;
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            string.IsNullOrWhiteSpace(returnUrl) ? fallback : returnUrl,
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                status = written.Succeeded,
+                id = written.Id,
+                session = SessionPayload(session),
+            });
+    }
+
+    private static async Task<IResult> HandleD365StudySaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpD365StudyDryRun dryRun,
+        IErpD365StudyWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/organization-admin-app",
+                "Admin ERP capability required for process study save.");
+        }
+
+        var area = "";
+        var topic = "";
+        var note = "";
+        var confirm = false;
+        var returnUrl = "/erp/organization-admin-app";
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            area = LiveWriteFormBinder.Text(form, "area");
+            topic = LiveWriteFormBinder.Text(form, "topic");
+            note = LiveWriteFormBinder.Text(form, "note");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+        }
+
+        var request = new ErpD365StudyWriteRequest(area, topic, note, session.UserId);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(request, false).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(request, cancellationToken);
+        var fallback = ErpD365WorkspaceCatalog.AppPathForArea(area);
         return LiveWriteFormBinder.Complete(
             context,
             string.IsNullOrWhiteSpace(returnUrl) ? fallback : returnUrl,

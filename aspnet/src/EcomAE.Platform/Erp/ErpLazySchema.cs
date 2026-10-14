@@ -1626,6 +1626,71 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Dynamics-style workspace rows'",
             ct);
 
+    /// <summary>Company-level official process parameters for workspace areas.</summary>
+    public static Task EnsureD365ParametersAsync(DbConnection c, CancellationToken ct) =>
+        ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_d365_parameters` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 1," +
+            "`area` varchar(40) NOT NULL DEFAULT ''," +
+            "`param_key` varchar(64) NOT NULL DEFAULT ''," +
+            "`caption` varchar(120) NOT NULL DEFAULT ''," +
+            "`param_value` varchar(120) NOT NULL DEFAULT ''," +
+            "`value_kind` varchar(16) NOT NULL DEFAULT 'text'," +
+            "`param_group` varchar(40) NOT NULL DEFAULT ''," +
+            "`created_by` int(11) NOT NULL DEFAULT 0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "UNIQUE KEY `uk_area_key` (`company_id`,`area`,`param_key`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Official process parameter values'",
+            ct);
+
+    /// <summary>Document interlinks that follow official process edges.</summary>
+    public static Task EnsureD365LinkAsync(DbConnection c, CancellationToken ct) =>
+        ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_d365_link` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 1," +
+            "`process_code` varchar(40) NOT NULL DEFAULT ''," +
+            "`from_tab` varchar(64) NOT NULL DEFAULT ''," +
+            "`from_id` int(11) NOT NULL DEFAULT 0," +
+            "`from_code` varchar(40) NOT NULL DEFAULT ''," +
+            "`to_tab` varchar(64) NOT NULL DEFAULT ''," +
+            "`to_id` int(11) NOT NULL DEFAULT 0," +
+            "`to_code` varchar(40) NOT NULL DEFAULT ''," +
+            "`relation` varchar(24) NOT NULL DEFAULT ''," +
+            "`field_map` varchar(255) NOT NULL DEFAULT ''," +
+            "`note` varchar(255) NOT NULL DEFAULT ''," +
+            "`created_by` int(11) NOT NULL DEFAULT 0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_from` (`from_tab`,`from_id`)," +
+            "KEY `x_to` (`to_tab`,`to_id`)," +
+            "KEY `x_process` (`process_code`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Official document interlinks'",
+            ct);
+
+    /// <summary>Administrator study notes per module topic.</summary>
+    public static Task EnsureD365StudyAsync(DbConnection c, CancellationToken ct) =>
+        ErpDb.TryExecuteAsync(
+            c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_d365_study` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 1," +
+            "`area` varchar(40) NOT NULL DEFAULT ''," +
+            "`topic` varchar(24) NOT NULL DEFAULT ''," +
+            "`note` varchar(2000) NOT NULL DEFAULT ''," +
+            "`created_by` int(11) NOT NULL DEFAULT 0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "UNIQUE KEY `uk_area_topic` (`company_id`,`area`,`topic`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Administrator process study notes'",
+            ct);
+
     public static Task EnsureTrialBalanceSnapshotsAsync(DbConnection c, CancellationToken ct) =>
         ErpDb.TryExecuteAsync(
             c,

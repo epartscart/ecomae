@@ -38,12 +38,15 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject IErpD365WorkspaceReadService WorkspaceRows
+@inject IErpD365ProcessReadService ProcessRows
+@inject ICpCsrfGuard Csrf
 
 <PageTitle>@_title · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -76,7 +79,312 @@
                 <div class="kpi"><div class="lbl">Pages</div><div class="val">@_pages.Count.ToString(CultureInfo.InvariantCulture)</div></div>
                 <div class="kpi"><div class="lbl">Rows</div><div class="val">@_rows.Count.ToString(CultureInfo.InvariantCulture)</div></div>
                 <div class="kpi"><div class="lbl">Group</div><div class="val">@_page.Group</div></div>
+                <div class="kpi"><div class="lbl">Process</div><div class="val">@_lanes.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+                <div class="kpi"><div class="lbl">Links</div><div class="val">@_links.Count.ToString(CultureInfo.InvariantCulture)</div></div>
             </div>
+
+            @foreach (var lane in _lanes)
+            {
+                <section class="epc-d365-process" aria-label="@lane.Label process flow">
+                    <h3>@lane.Label</h3>
+                    <p>@lane.Purpose</p>
+                    <ol class="epc-d365-strip">
+                        @foreach (var step in lane.Steps)
+                        {
+                            <li class="@StepClass(step.Tab)">
+                                <a href="@StepHref(step.Tab)">@StepLabel(step.Tab)</a>
+                                <span>@step.Stage · @step.Role</span>
+                            </li>
+                        }
+                    </ol>
+                    <p class="help-block"><strong>Setup.</strong> @lane.SetupStyle</p>
+                    <p class="help-block"><strong>Configuration.</strong> @lane.ConfigWay</p>
+                </section>
+            }
+
+            @foreach (var study in _moduleStudies)
+            {
+                <section class="epc-d365-study-card" aria-label="@study.Label study">
+                    <h3>@study.Label — study</h3>
+                    <p><strong>Functionality.</strong> @study.Functionality</p>
+                    <p><strong>Setup style</strong></p>
+                    <ol>
+                        @foreach (var item in study.SetupChecklist)
+                        {
+                            <li>@item</li>
+                        }
+                    </ol>
+                    <p><strong>Configuration</strong></p>
+                    <ul>
+                        @foreach (var layer in study.ConfigLayers)
+                        {
+                            <li>@layer</li>
+                        }
+                    </ul>
+                    <p><strong>Process flow.</strong>
+                        @foreach (var code in study.ProcessCodes)
+                        {
+                            var lane = ErpD365ProcessCatalog.Lanes.FirstOrDefault(l => l.Code == code);
+                            if (lane is not null)
+                            {
+                                <a class="btn btn-sm btn-default" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365WorkspaceCatalog.AppPathForArea(lane.Area))">@lane.Label</a>
+                            }
+                        }
+                    </p>
+                    <p><strong>Customization</strong></p>
+                    <ul>
+                        @foreach (var aspect in study.CustomizationAspects)
+                        {
+                            <li>@aspect</li>
+                        }
+                    </ul>
+                    @if (study.DedicatedHrefs.Count > 0)
+                    {
+                        <p><strong>Dedicated forms</strong>
+                            @foreach (var href in study.DedicatedHrefs)
+                            {
+                                <a class="btn btn-sm btn-primary" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, href)">@href</a>
+                            }
+                        </p>
+                    }
+                    @if (_isAdmin)
+                    {
+                        <form method="post" action="@StudySaveAction" class="epc-d365-follow">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@PageHref(_page)" />
+                            <input type="hidden" name="area" value="@study.Area" />
+                            <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                            <label>Topic
+                                <select class="form-control input-sm" name="topic">
+                                    @foreach (var topic in ErpD365ModuleStudyCatalog.Topics)
+                                    {
+                                        <option value="@topic">@topic</option>
+                                    }
+                                </select>
+                            </label>
+                            <label>How we built this <input class="form-control input-sm" name="note" maxlength="2000" placeholder="Write the customization so the next administrator can rebuild it." /></label>
+                            <button type="submit" class="btn btn-default btn-sm">Save study note</button>
+                        </form>
+                        @foreach (var note in _studyNotes.Where(n => n.Area == study.Area))
+                        {
+                            <p class="help-block"><strong>@note.Topic.</strong> @note.Note</p>
+                        }
+                    }
+                </section>
+            }
+
+            @if (_parameters.Count > 0 && _isAdmin)
+            {
+                <section class="epc-d365-params" aria-label="Official parameters">
+                    <h3>Official parameters</h3>
+                    <p class="help-block">Company defaults that documents in this area inherit. Group defaults and document headers can still override them.</p>
+                    @foreach (var parameter in _parameters)
+                    {
+                        <form method="post" action="@ParameterSaveAction" class="epc-d365-param-row">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@PageHref(_page)" />
+                            <input type="hidden" name="area" value="@parameter.Area" />
+                            <input type="hidden" name="key" value="@parameter.Key" />
+                            <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                            <label>@parameter.Caption
+                                @if (parameter.ValueKind == "yesno")
+                                {
+                                    <select class="form-control input-sm" name="value">
+                                        <option value="yes" selected="@(parameter.Value == "yes")">yes</option>
+                                        <option value="no" selected="@(parameter.Value == "no")">no</option>
+                                    </select>
+                                }
+                                else if (parameter.ValueKind == "list" && ParameterOptions(parameter.Key) is { Count: > 0 } options)
+                                {
+                                    <select class="form-control input-sm" name="value">
+                                        @foreach (var option in options)
+                                        {
+                                            <option value="@option" selected="@(string.Equals(option, parameter.Value, StringComparison.OrdinalIgnoreCase))">@option</option>
+                                        }
+                                    </select>
+                                }
+                                else
+                                {
+                                    <input class="form-control input-sm" name="value" value="@parameter.Value" maxlength="120" />
+                                }
+                            </label>
+                            <span class="text-muted">@parameter.Group@(parameter.Customized ? " · customized" : " · default")</span>
+                            <button type="submit" class="btn btn-default btn-sm">Save</button>
+                        </form>
+                    }
+                </section>
+            }
+
+            @if (_edgesFrom.Count > 0 || _edgesTo.Count > 0 || _links.Count > 0)
+            {
+                <section class="epc-d365-links" aria-label="Related documents">
+                    <h3>Related documents</h3>
+                    <p class="help-block">Official next and previous documents. Fields that travel: code, name, worker, party, kind, status, period, dates, qty, amount, extra, note.</p>
+                    @if (_edgesTo.Count > 0)
+                    {
+                        <p><strong>Previous</strong>
+                            @foreach (var edge in _edgesTo)
+                            {
+                                <a class="btn btn-sm btn-default" href="@StepHref(edge.FromTab)">@edge.Relation from @StepLabel(edge.FromTab)</a>
+                            }
+                        </p>
+                    }
+                    @if (_edgesFrom.Count > 0 && _isAdmin)
+                    {
+                        @foreach (var edge in _edgesFrom)
+                        {
+                            var target = PageFor(edge.ToTab);
+                            if (target?.ExistingHref is string dedicated)
+                            {
+                                <form method="post" action="@LinkSaveAction" class="epc-d365-follow">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="action" value="follow" />
+                                    <input type="hidden" name="from_tab" value="@_page.Tab" />
+                                    <input type="hidden" name="to_tab" value="@edge.ToTab" />
+                                    <input type="hidden" name="relation" value="@edge.Relation" />
+                                    <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                                    <strong>@edge.Relation → @StepLabel(edge.ToTab)</strong>
+                                    <span class="help-block">@edge.Purpose Fields: @edge.FieldMap. Opens the dedicated form with those fields.</span>
+                                    <label>Source ref <input class="form-control input-sm" name="from_code" maxlength="40" placeholder="code" /></label>
+                                    <label>Source id <input class="form-control input-sm" name="from_id" type="number" /></label>
+                                    @if (edge.FieldMap.Contains("party", StringComparison.Ordinal))
+                                    {
+                                        <label>Vendor / party <input class="form-control input-sm" name="party" maxlength="160" /></label>
+                                    }
+                                    @if (edge.FieldMap.Contains("name", StringComparison.Ordinal))
+                                    {
+                                        <label>Item / name <input class="form-control input-sm" name="name" maxlength="190" /></label>
+                                    }
+                                    @if (edge.FieldMap.Contains("qty", StringComparison.Ordinal))
+                                    {
+                                        <label>Qty <input class="form-control input-sm" name="qty" type="number" step="0.0001" /></label>
+                                    }
+                                    @if (edge.FieldMap.Contains("amount", StringComparison.Ordinal))
+                                    {
+                                        <label>Amount <input class="form-control input-sm" name="amount" type="number" step="0.01" /></label>
+                                    }
+                                    <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                                    <button type="submit" class="btn btn-primary btn-sm">Follow to form</button>
+                                    <a class="btn btn-sm btn-default" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, dedicated)">Open @StepLabel(edge.ToTab)</a>
+                                </form>
+                            }
+                            else
+                            {
+                                <form method="post" action="@LinkSaveAction" class="epc-d365-follow">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="@StepHref(edge.ToTab)" />
+                                    <input type="hidden" name="action" value="follow" />
+                                    <input type="hidden" name="from_tab" value="@_page.Tab" />
+                                    <input type="hidden" name="to_tab" value="@edge.ToTab" />
+                                    <input type="hidden" name="relation" value="@edge.Relation" />
+                                    <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                                    <strong>@edge.Relation → @StepLabel(edge.ToTab)</strong>
+                                    <span class="help-block">@edge.Purpose Fields: @edge.FieldMap</span>
+                                    <label>Source ref <input class="form-control input-sm" name="from_code" maxlength="40" placeholder="code" /></label>
+                                    <label>Source id <input class="form-control input-sm" name="from_id" type="number" /></label>
+                                    @if (edge.FieldMap.Contains("party", StringComparison.Ordinal))
+                                    {
+                                        <label>Vendor / party <input class="form-control input-sm" name="party" maxlength="160" /></label>
+                                    }
+                                    @if (edge.FieldMap.Contains("name", StringComparison.Ordinal))
+                                    {
+                                        <label>Item / name <input class="form-control input-sm" name="name" maxlength="190" /></label>
+                                    }
+                                    @if (edge.FieldMap.Contains("worker", StringComparison.Ordinal))
+                                    {
+                                        <label>Worker <input class="form-control input-sm" name="worker" maxlength="120" /></label>
+                                    }
+                                    @if (edge.FieldMap.Contains("qty", StringComparison.Ordinal))
+                                    {
+                                        <label>Qty <input class="form-control input-sm" name="qty" type="number" step="0.0001" /></label>
+                                    }
+                                    @if (edge.FieldMap.Contains("amount", StringComparison.Ordinal))
+                                    {
+                                        <label>Amount <input class="form-control input-sm" name="amount" type="number" step="0.01" /></label>
+                                    }
+                                    @if (edge.FieldMap.Contains("period", StringComparison.Ordinal))
+                                    {
+                                        <label>Period <input class="form-control input-sm" name="period" maxlength="24" /></label>
+                                    }
+                                    <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                                    <button type="submit" class="btn btn-primary btn-sm">Create next</button>
+                                </form>
+                            }
+                        }
+                    }
+                    @if (_links.Count > 0)
+                    {
+                        <table class="table table-condensed table-epc">
+                            <thead><tr><th>From</th><th>To</th><th>Relation</th><th>Fields</th></tr></thead>
+                            <tbody>
+                                @foreach (var link in _links)
+                                {
+                                    <tr>
+                                        <td><a href="@StepHref(link.FromTab)">@StepLabel(link.FromTab)</a> @(string.IsNullOrWhiteSpace(link.FromCode) ? "#" + link.FromId.ToString(CultureInfo.InvariantCulture) : link.FromCode)</td>
+                                        <td><a href="@StepHref(link.ToTab)">@StepLabel(link.ToTab)</a> @(string.IsNullOrWhiteSpace(link.ToCode) ? "#" + link.ToId.ToString(CultureInfo.InvariantCulture) : link.ToCode)</td>
+                                        <td>@link.Relation</td>
+                                        <td>@link.FieldMap</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </section>
+            }
+
+            @if (_studyLanes.Count > 0 && _isAdmin)
+            {
+                <section class="epc-d365-study" aria-label="Process study">
+                    <h3>Process study for administrators</h3>
+                    <p class="help-block">Organization and system administrators study each module here: functionality, setup style, configuration layers, process flow, and customization. Save a note on each topic so the next administrator can build the same way. Dedicated forms stay the real documents; parameters and follow-next stay official.</p>
+                    @foreach (var study in _adminStudies)
+                    {
+                        <details>
+                            <summary>@study.Label — @study.Audience</summary>
+                            <p><strong>Functionality.</strong> @study.Functionality</p>
+                            <p><strong>Setup style</strong></p>
+                            <ol>
+                                @foreach (var item in study.SetupChecklist)
+                                {
+                                    <li>@item</li>
+                                }
+                            </ol>
+                            <p><strong>Configuration</strong></p>
+                            <ul>
+                                @foreach (var layer in study.ConfigLayers)
+                                {
+                                    <li>@layer</li>
+                                }
+                            </ul>
+                            <p><strong>Customization</strong></p>
+                            <ul>
+                                @foreach (var aspect in study.CustomizationAspects)
+                                {
+                                    <li>@aspect</li>
+                                }
+                            </ul>
+                            <p>
+                                <a class="btn btn-sm btn-default" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365WorkspaceCatalog.AppPathForArea(study.Area))">Open @study.Label</a>
+                            </p>
+                        </details>
+                    }
+                    @foreach (var lane in _studyLanes)
+                    {
+                        <details>
+                            <summary>@lane.Label — process flow</summary>
+                            <p>@lane.Purpose</p>
+                            <p><strong>Setup.</strong> @lane.SetupStyle</p>
+                            <p><strong>Configuration.</strong> @lane.ConfigWay</p>
+                            <ol>
+                                @foreach (var step in lane.Steps)
+                                {
+                                    <li><a href="@StepHref(step.Tab)">@StepLabel(step.Tab)</a> — @step.Stage · @step.Role</li>
+                                }
+                            </ol>
+                        </details>
+                    }
+                </section>
+            }
 
             @if (!string.IsNullOrWhiteSpace(_page.ExistingHref))
             {
@@ -92,6 +400,7 @@
                         <input type="hidden" name="returnUrl" value="@PageHref(_page)" />
                         <input type="hidden" name="area" value="@_page.Area" />
                         <input type="hidden" name="tab" value="@_page.Tab" />
+                        <input type="hidden" name="csrf_guard_key" value="@_csrf" />
                         @if (Show("code"))
                         {
                             <label>Code <input class="form-control input-sm" name="code" maxlength="40" /></label>
@@ -203,6 +512,14 @@
     .epc-d365-group li { margin:0 0 3px; }
     .epc-d365-group a.active { font-weight:700; }
     .epc-d365-main { flex:1 1 auto; min-width:0; }
+    .epc-d365-process, .epc-d365-params, .epc-d365-links, .epc-d365-study, .epc-d365-study-card { margin:0 0 14px; padding:10px 12px; border:1px solid #dbe4ea; background:#fff; }
+    .epc-d365-process h3, .epc-d365-params h3, .epc-d365-links h3, .epc-d365-study h3, .epc-d365-study-card h3 { margin:0 0 6px; font-size:15px; }
+    .epc-d365-study-card ol, .epc-d365-study-card ul, .epc-d365-study ol, .epc-d365-study ul { margin:0 0 8px 18px; }
+    .epc-d365-strip { display:flex; flex-wrap:wrap; gap:6px; list-style:none; margin:0 0 8px; padding:0; }
+    .epc-d365-strip li { padding:6px 8px; border:1px solid #dbe4ea; background:#f8fafc; min-width:8rem; }
+    .epc-d365-strip li.current { border-color:#1d4ed8; background:#eff6ff; }
+    .epc-d365-strip li span { display:block; font-size:11px; color:#64748b; }
+    .epc-d365-param-row, .epc-d365-follow { display:flex; flex-wrap:wrap; gap:8px; align-items:end; margin:0 0 8px; }
     @@media (max-width: 900px) {
         .epc-d365-workspace { display:block; }
         .epc-d365-groups { max-height:none; margin-bottom:12px; }
@@ -222,8 +539,21 @@
     private IReadOnlyList<ErpD365Part3Catalog.Page> _pages = [];
     private IReadOnlyList<IGrouping<string, ErpD365Part3Catalog.Page>> _groups = [];
     private IReadOnlyList<ErpD365WorkspaceRow> _rows = [];
+    private IReadOnlyList<ErpD365ProcessCatalog.ProcessLane> _lanes = [];
+    private IReadOnlyList<ErpD365ProcessCatalog.ProcessLane> _studyLanes = [];
+    private IReadOnlyList<ErpD365ProcessCatalog.InterlinkEdge> _edgesFrom = [];
+    private IReadOnlyList<ErpD365ProcessCatalog.InterlinkEdge> _edgesTo = [];
+    private IReadOnlyList<ErpD365ParameterRow> _parameters = [];
+    private IReadOnlyList<ErpD365LinkRow> _links = [];
+    private IReadOnlyList<ErpD365ModuleStudyCatalog.ModuleStudy> _moduleStudies = [];
+    private IReadOnlyList<ErpD365ModuleStudyCatalog.ModuleStudy> _adminStudies = [];
+    private IReadOnlyList<ErpD365StudyNoteRow> _studyNotes = [];
+    private string _csrf = "";
 
     private string SaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365WorkspaceCatalog.SavePath);
+    private string ParameterSaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365ProcessCatalog.ParameterSavePath);
+    private string LinkSaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365ProcessCatalog.LinkSavePath);
+    private string StudySaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365ProcessCatalog.StudySavePath);
 
     private string NameLabel => _page.Kind switch
     {
@@ -320,6 +650,31 @@
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _csrf = _isAdmin ? await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted) : "";
+        _lanes = ErpD365ProcessCatalog.LanesForTab(_page.Tab);
+        if (_lanes.Count == 0)
+        {
+            _lanes = ErpD365ProcessCatalog.LanesForArea(_area)
+                .Where(l => !ErpD365ProcessCatalog.IsAdminStudyArea(_area) || l.Area.Equals(_area, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        _studyLanes = ErpD365ProcessCatalog.IsAdminStudyArea(_area) ? ErpD365ProcessCatalog.Lanes : [];
+        _moduleStudies = ErpD365ModuleStudyCatalog.TryGet(_area, out var currentStudy) ? [currentStudy] : [];
+        _adminStudies = ErpD365ProcessCatalog.IsAdminStudyArea(_area)
+            ? ErpD365ModuleStudyCatalog.ForAudience(_area)
+            : [];
+        _edgesFrom = ErpD365ProcessCatalog.EdgesFrom(_page.Tab);
+        _edgesTo = ErpD365ProcessCatalog.EdgesTo(_page.Tab);
+        if (_isAdmin)
+        {
+            _parameters = await ProcessRows.ListParametersAsync(
+                _parametersArea,
+                ctx.RequestAborted);
+            _links = await ProcessRows.ListLinksAsync(_page.Tab, 40, ctx.RequestAborted);
+            _studyNotes = await ProcessRows.ListStudyNotesAsync(_area, ctx.RequestAborted);
+        }
+
         if (!_isAdmin || _page.ExistingHref is not null)
         {
             return;
@@ -327,6 +682,28 @@
 
         _rows = await WorkspaceRows.ListAsync(_page.Area, _page.Tab, 80, ctx.RequestAborted);
     }
+
+    private string _parametersArea =>
+        ErpD365ProcessCatalog.ParametersForTab(_page.Tab).FirstOrDefault()?.Area
+        ?? ErpD365ProcessCatalog.ParametersForArea(_area).FirstOrDefault()?.Area
+        ?? _area;
+
+    private string StepHref(string tab)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365ProcessCatalog.HrefForTab(tab));
+
+    private static string StepLabel(string tab)
+        => ErpD365WorkspaceCatalog.TryGet(tab, out var page) ? page.Label : tab;
+
+    private ErpD365Part3Catalog.Page? PageFor(string tab)
+        => ErpD365WorkspaceCatalog.TryGet(tab, out var page) ? page : null;
+
+    private string StepClass(string tab)
+        => string.Equals(_page.Tab, tab, StringComparison.OrdinalIgnoreCase) ? "current" : "";
+
+    private IReadOnlyList<string> ParameterOptions(string key)
+        => ErpD365ProcessCatalog.TryGetParameter(_parametersArea, key, out var parameter)
+            ? parameter.Options ?? []
+            : [];
 
     private static string ResolveArea(string? path, string? queryArea)
     {

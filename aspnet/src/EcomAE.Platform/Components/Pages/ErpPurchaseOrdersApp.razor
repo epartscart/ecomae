@@ -23,6 +23,10 @@
 
     <PhpErpModulePageHeader Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" Subtitle="@(_barcodePurchase ? "In jewellery, the barcode is the purchase — cost, margin, and salesman at barcode level." : "LPO → PO → PI. Approve the PO, then invoice it. Official print preview opens after the document is posted.")" PhpTabHref="@_phpTab" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/purchase-orders-app" />
+    @if (_follow.HasValues)
+    {
+        <div class="alert alert-info" role="status" style="margin:0 0 12px;padding:.7rem .9rem">Process follow: @_follow.Banner. Matching fields are filled on the form.</div>
+    }
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     @if (!_barcodePurchase)
     {
@@ -153,9 +157,9 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-sm-3"><ErpMasterPicker Kind="supplier" FieldName="supplier_id" InputId="po-supplier" Label="Supplier" Required="true" /></div>
-                    <div class="col-sm-4"><label for="po-title">Title</label><input id="po-title" class="form-control" type="text" maxlength="255" /></div>
+                    <div class="col-sm-4"><label for="po-title">Title</label><input id="po-title" class="form-control" type="text" maxlength="255" value="@_follow.Name" /></div>
                     <div class="col-sm-2"><label for="po-amount">Amount (ex VAT)</label><input id="po-amount" class="form-control" type="number" min="0" step="0.01" readonly aria-describedby="po-amount-help" /><span id="po-amount-help" class="help-block small">Sum of lines</span></div>
-                    <div class="col-sm-3"><label for="po-notes">Notes</label><input id="po-notes" class="form-control" type="text" /></div>
+                    <div class="col-sm-3"><label for="po-notes">Notes</label><input id="po-notes" class="form-control" type="text" value="@_follow.Note" /></div>
                     <div class="col-sm-1"><label for="po-save">&nbsp;</label><button id="po-save" type="button" class="btn btn-primary btn-block">Save</button></div>
                 </div>
 
@@ -329,6 +333,7 @@
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders";
     private bool _isAdmin;
+    private ErpD365FollowPrefill _follow = new("", 0, "", "", "", "", "", 0, 0, "");
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private bool _barcodePurchase;
     private string _ok = "";
@@ -439,6 +444,7 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _follow = ErpD365FollowPrefill.Read(ctx.Request);
         _barcodePurchase = string.Equals(ctx.Request.Query["tab"].ToString(), "barcode_purchase", StringComparison.OrdinalIgnoreCase);
         _ok = ctx.Request.Query["ok"].ToString();
         _err = ctx.Request.Query["err"].ToString();

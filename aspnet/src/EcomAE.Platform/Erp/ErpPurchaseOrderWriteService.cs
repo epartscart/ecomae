@@ -520,6 +520,27 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
             },
             cancellationToken).ConfigureAwait(false);
 
+        if (totals.QtyReceived > 0m)
+        {
+            try
+            {
+                await ErpD365LinkWriteService.RecordOfficialAsync(
+                    connection,
+                    "purchase_orders",
+                    purchaseOrderId,
+                    "PO-" + purchaseOrderId.ToString(CultureInfo.InvariantCulture),
+                    "proc_receipts",
+                    0,
+                    "GRN-" + purchaseOrderId.ToString(CultureInfo.InvariantCulture),
+                    adminId,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is DbException or InvalidOperationException)
+            {
+                _ = ex;
+            }
+        }
+
         return new ErpPoReceiveResult(purchaseOrderId, status, totals.QtyReceived, totals.QtyOpen);
     }
 
