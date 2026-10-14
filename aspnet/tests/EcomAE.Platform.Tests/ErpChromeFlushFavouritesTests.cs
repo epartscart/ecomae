@@ -25,6 +25,7 @@ public sealed class ErpChromeFlushFavouritesTests
         Assert.Contains("max-width: none !important", styles, StringComparison.Ordinal);
         Assert.Contains("margin: 0 !important", styles, StringComparison.Ordinal);
         Assert.Contains("padding-left: 4px !important", styles, StringComparison.Ordinal);
+        Assert.Contains("flex-direction: row !important", styles, StringComparison.Ordinal);
 
         Assert.Contains(".epc-erp-topbar__inner {\n\tmax-width: none;", portal.Replace("\r\n", "\n"), StringComparison.Ordinal);
         Assert.Contains("justify-content: flex-start;", portal, StringComparison.Ordinal);
