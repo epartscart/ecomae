@@ -1,10 +1,11 @@
 @namespace EcomAE.Platform.Components.Shared
+@using System.Collections.Concurrent
 @using System.Text.Json
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @inject IHttpContextAccessor Http
 
-<div class="epc-erp-global-search" data-epc-global-search="1">
+<div class="epc-erp-global-search" data-epc-global-search="1" data-company="@(_company)">
     <label class="epc-erp-global-search__label" for="@_inputId"><i class="fa fa-search" aria-hidden="true"></i></label>
     <input id="@_inputId"
            class="epc-erp-global-search__input"
@@ -23,35 +24,25 @@
     [Parameter] public bool RealEstate { get; set; }
     [Parameter] public long CompanyId { get; set; }
 
+    private static readonly ConcurrentDictionary<string, string> JsonCache = new(StringComparer.Ordinal);
+
     private readonly string _inputId = "epc-erp-global-search-" + Guid.NewGuid().ToString("N")[..8];
     private string _catalogJson = "[]";
+    private string _company = "";
 
     protected override void OnParametersSet()
     {
-        var key = ClientErpPath.BoundSiteKey(Http.HttpContext);
-        var entries = ErpGlobalSearchCatalog.Build(Jewellery, FitOut, RealEstate)
-            .Select(e => new
+        var key = ClientErpPath.BoundSiteKey(Http.HttpContext) ?? "";
+        var cacheKey = (Jewellery ? "1" : "0") + (FitOut ? "1" : "0") + (RealEstate ? "1" : "0") + "|" + key;
+        _catalogJson = JsonCache.GetOrAdd(cacheKey, _ => JsonSerializer.Serialize(
+            ErpGlobalSearchCatalog.Build(Jewellery, FitOut, RealEstate).Select(entry => new
             {
-                label = e.Label,
-                href = WithCompany(Prefix(key, e.Href)),
-                group = e.Group,
-                icon = e.Icon,
-                keywords = e.Keywords,
-            });
-        _catalogJson = JsonSerializer.Serialize(entries);
-    }
-
-    private string Prefix(string? key, string href)
-        => string.IsNullOrWhiteSpace(key) ? href : ClientErpPath.PrefixErpPath(key, href);
-
-    private string WithCompany(string href)
-    {
-        if (CompanyId <= 0 || href.Contains("company=", StringComparison.OrdinalIgnoreCase))
-        {
-            return href;
-        }
-
-        var sep = href.Contains('?', StringComparison.Ordinal) ? "&" : "?";
-        return href + sep + "company=" + CompanyId;
+                label = entry.Label,
+                href = key.Length == 0 ? entry.Href : ClientErpPath.PrefixErpPath(key, entry.Href),
+                group = entry.Group,
+                icon = entry.Icon,
+                keywords = entry.Keywords,
+            })));
+        _company = CompanyId > 0 ? CompanyId.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
     }
 }
