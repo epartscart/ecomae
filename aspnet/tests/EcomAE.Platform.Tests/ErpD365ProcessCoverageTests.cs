@@ -3,6 +3,7 @@ using EcomAE.Platform.Erp;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Routing;
+using Microsoft.AspNetCore.Http;
 using MySqlConnector;
 using Xunit;
 
@@ -96,16 +97,24 @@ public sealed class ErpD365ProcessCoverageTests
     [Fact]
     public void Interlink_FollowsOfficialProcureAndSalesChains()
     {
+        Assert.True(ErpD365ProcessCatalog.TryGetEdge("purchase_requisitions", "rfq", out var reqRfq));
+        Assert.Equal("creates", reqRfq.Relation);
+        Assert.True(ErpD365ProcessCatalog.TryGetEdge("purchase_requisitions", "purchase_orders", out var reqPo));
+        Assert.Equal("creates", reqPo.Relation);
         Assert.True(ErpD365ProcessCatalog.TryGetEdge("rfq", "purchase_orders", out var award));
         Assert.Equal("awards", award.Relation);
         Assert.True(ErpD365ProcessCatalog.TryGetEdge("purchase_orders", "proc_receipts", out var receipt));
         Assert.Equal("receives", receipt.Relation);
         Assert.True(ErpD365ProcessCatalog.TryGetEdge("purchase_orders", "purchases", out var invoice));
         Assert.Equal("invoices", invoice.Relation);
+        Assert.True(ErpD365ProcessCatalog.TryGetEdge("purchases", "ap_payment_journal", out var pay));
+        Assert.Equal("pays", pay.Relation);
         Assert.True(ErpD365ProcessCatalog.TryGetEdge("sm_quotations", "sm_all_orders", out var so));
         Assert.Equal("creates", so.Relation);
         Assert.True(ErpD365ProcessCatalog.TryGetEdge("sm_all_orders", "sm_invoice", out var salesInvoice));
         Assert.Equal("invoices", salesInvoice.Relation);
+        Assert.True(ErpD365ProcessCatalog.TryGetEdge("sm_invoice", "ar_payment_journal", out var collect));
+        Assert.Equal("pays", collect.Relation);
         Assert.False(ErpD365ProcessCatalog.TryGetEdge("rfq", "sm_all_orders", out _));
     }
 
@@ -131,6 +140,31 @@ public sealed class ErpD365ProcessCoverageTests
             new ErpD365LinkWriteRequest("follow", "rfq", 0, "RFQ-1", "sm_all_orders"),
             false);
         Assert.Equal("invalid", invented.ValidationCode);
+
+        var href = ErpD365ProcessCatalog.AppendFollowQuery(
+            "/erp/purchase-orders-app",
+            "rfq",
+            12,
+            "RFQ-1",
+            "awards",
+            "VEND-1",
+            "Bolt",
+            null,
+            10,
+            50,
+            "Awarded");
+        Assert.Contains("source_tab=rfq", href, StringComparison.Ordinal);
+        Assert.Contains("party=VEND-1", href, StringComparison.Ordinal);
+        Assert.Contains("name=Bolt", href, StringComparison.Ordinal);
+        var prefill = ErpD365FollowPrefill.Read(new DefaultHttpContext
+        {
+            Request = { QueryString = new QueryString("?party=VEND-1&name=Bolt&amount=50") }
+        }.Request);
+        Assert.Equal("VEND-1", prefill.Party);
+        Assert.Equal("Bolt", prefill.Name);
+        Assert.Equal(50m, prefill.Amount);
+        Assert.Contains("VEND-1", prefill.Banner, StringComparison.Ordinal);
+        Assert.Contains("Bolt", prefill.Banner, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -148,6 +182,7 @@ public sealed class ErpD365ProcessCoverageTests
         Assert.Contains("Setup style", text, StringComparison.Ordinal);
         Assert.Contains("Save study note", text, StringComparison.Ordinal);
         Assert.Contains("Create next", text, StringComparison.Ordinal);
+        Assert.Contains("Follow to form", text, StringComparison.Ordinal);
         Assert.Contains("csrf_guard_key", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PHP", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Classic", text, StringComparison.Ordinal);
@@ -178,6 +213,24 @@ public sealed class ErpD365ProcessCoverageTests
         Assert.Contains("HandleD365ParameterSaveAsync", module, StringComparison.Ordinal);
         Assert.Contains("HandleD365LinkSaveAsync", module, StringComparison.Ordinal);
         Assert.Contains("HandleD365StudySaveAsync", module, StringComparison.Ordinal);
+        Assert.Contains("AppendFollowQuery", module, StringComparison.Ordinal);
+
+        Assert.Contains("RecordOfficialAsync", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpRfqAwardWriteService.cs")), StringComparison.Ordinal);
+        Assert.Contains("RecordOfficialAsync", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpPurchaseInvoiceWriteService.cs")), StringComparison.Ordinal);
+        Assert.Contains("RecordOfficialAsync", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpSalesInvoiceWriteService.cs")), StringComparison.Ordinal);
+        Assert.Contains("RecordOfficialAsync", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpProcurementReqWriteService.cs")), StringComparison.Ordinal);
+        Assert.Contains("RecordOfficialAsync", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpPurchaseOrderWriteService.cs")), StringComparison.Ordinal);
+        Assert.Contains("RecordOfficialAsync", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpCashWriteService.cs")), StringComparison.Ordinal);
+
+        var rfqApp = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpRfqApp.razor"));
+        Assert.Contains("ErpD365FollowPrefill", rfqApp, StringComparison.Ordinal);
+        Assert.Contains("Process follow:", rfqApp, StringComparison.Ordinal);
+        var poApp = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpPurchaseOrdersApp.razor"));
+        Assert.Contains("ErpD365FollowPrefill", poApp, StringComparison.Ordinal);
+        var soApp = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpSalesOrdersApp.razor"));
+        Assert.Contains("ErpD365FollowPrefill", soApp, StringComparison.Ordinal);
+        var quoteApp = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpSalesQuotationsApp.razor"));
+        Assert.Contains("ErpD365FollowPrefill", quoteApp, StringComparison.Ordinal);
         Assert.Contains(
             SurfacePayloadContractCatalog.Functions,
             item => item.AspNetRouteOrCapability.Contains("/erp/d365-parameters/save", StringComparison.Ordinal)
@@ -276,7 +329,8 @@ public sealed class ErpD365ProcessCoverageTests
                 Name: "Bolt",
                 Qty: 10,
                 Amount: 50));
-            Assert.False(dedicated.Succeeded, "Dedicated purchase-order form must refuse the generic writer.");
+            Assert.True(dedicated.Succeeded, dedicated.Message);
+            Assert.Contains("Purchase orders", dedicated.Message, StringComparison.OrdinalIgnoreCase);
 
             var started = await workspace.SaveAsync(new ErpD365WorkspaceWriteRequest(
                 Area: "production",

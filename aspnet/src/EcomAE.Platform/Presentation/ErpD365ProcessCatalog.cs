@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
@@ -138,6 +140,60 @@ public static class ErpD365ProcessCatalog
         }
 
         return "/erp/d365-workspace-app?tab=" + Uri.EscapeDataString((tab ?? string.Empty).Trim());
+    }
+
+    public static string AppendFollowQuery(
+        string href,
+        string? sourceTab,
+        long sourceId,
+        string? sourceCode,
+        string? relation,
+        string? party,
+        string? name,
+        string? worker,
+        decimal qty,
+        decimal amount,
+        string? note)
+    {
+        var path = string.IsNullOrWhiteSpace(href) ? HrefForTab(null) : href.Trim();
+        var parts = new List<string>
+        {
+            "source_tab=" + Uri.EscapeDataString((sourceTab ?? string.Empty).Trim()),
+            "source_id=" + sourceId.ToString(CultureInfo.InvariantCulture),
+            "source_code=" + Uri.EscapeDataString((sourceCode ?? string.Empty).Trim()),
+            "relation=" + Uri.EscapeDataString((relation ?? string.Empty).Trim()),
+        };
+        if (!string.IsNullOrWhiteSpace(party))
+        {
+            parts.Add("party=" + Uri.EscapeDataString(party.Trim()));
+        }
+
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            parts.Add("name=" + Uri.EscapeDataString(name.Trim()));
+        }
+
+        if (!string.IsNullOrWhiteSpace(worker))
+        {
+            parts.Add("worker=" + Uri.EscapeDataString(worker.Trim()));
+        }
+
+        if (qty != 0)
+        {
+            parts.Add("qty=" + qty.ToString(CultureInfo.InvariantCulture));
+        }
+
+        if (amount != 0)
+        {
+            parts.Add("amount=" + amount.ToString(CultureInfo.InvariantCulture));
+        }
+
+        if (!string.IsNullOrWhiteSpace(note))
+        {
+            parts.Add("note=" + Uri.EscapeDataString(note.Trim()));
+        }
+
+        return path + (path.Contains('?', StringComparison.Ordinal) ? "&" : "?") + string.Join("&", parts);
     }
 
     private static IReadOnlyList<ProcessLane> BuildLanes() =>
@@ -453,6 +509,7 @@ public static class ErpD365ProcessCatalog
     private static IReadOnlyList<InterlinkEdge> BuildEdges() =>
     [
         E("purchase_requisitions", "rfq", "creates", "party,name,qty,amount,note", "Requisition becomes an RFQ."),
+        E("purchase_requisitions", "purchase_orders", "creates", "party,name,qty,amount,note", "Approved requisition converts to a purchase order."),
         E("rfq", "purchase_orders", "awards", "party,name,qty,amount,note", "Awarded RFQ creates a purchase order."),
         E("ps_rfq_journals", "purchase_orders", "awards", "party,name,qty,amount,note", "RFQ journal awards a purchase order."),
         E("proc_rfq_followup", "purchase_orders", "awards", "party,name,qty,amount,note", "RFQ follow-up awards a purchase order."),

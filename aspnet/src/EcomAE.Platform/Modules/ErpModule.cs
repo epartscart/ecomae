@@ -24623,8 +24623,30 @@ public sealed class ErpModule : ISurfaceModule
 
         var written = await writes.SaveAsync(request, cancellationToken);
         var fallback = ErpD365WorkspaceCatalog.TryGet(toTab, out var page)
-            ? page.AppPath + "?tab=" + page.Tab
+            ? page.ExistingHref ?? (page.AppPath + "?tab=" + page.Tab)
             : "/erp/procurement-workspace-app";
+        if (written.Succeeded && string.Equals(action, "follow", StringComparison.OrdinalIgnoreCase))
+        {
+            fallback = ErpD365ProcessCatalog.AppendFollowQuery(
+                fallback,
+                fromTab,
+                fromId,
+                fromCode,
+                string.IsNullOrWhiteSpace(relation) && ErpD365ProcessCatalog.TryGetEdge(fromTab, toTab, out var edge)
+                    ? edge.Relation
+                    : relation,
+                party,
+                name,
+                worker,
+                qty,
+                amount,
+                note);
+            if (string.IsNullOrWhiteSpace(returnUrl) || returnUrl.Contains("/erp/", StringComparison.Ordinal))
+            {
+                returnUrl = fallback;
+            }
+        }
+
         return LiveWriteFormBinder.Complete(
             context,
             string.IsNullOrWhiteSpace(returnUrl) ? fallback : returnUrl,

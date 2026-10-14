@@ -236,9 +236,38 @@
                             var target = PageFor(edge.ToTab);
                             if (target?.ExistingHref is string dedicated)
                             {
-                                <p>@edge.Relation → @StepLabel(edge.ToTab). @edge.Purpose
-                                    <a class="btn btn-sm btn-primary" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, dedicated)">Open @StepLabel(edge.ToTab)</a>
-                                </p>
+                                <form method="post" action="@LinkSaveAction" class="epc-d365-follow">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="@ClientErpPath.PrefixIfBound(Http.HttpContext, dedicated)" />
+                                    <input type="hidden" name="action" value="follow" />
+                                    <input type="hidden" name="from_tab" value="@_page.Tab" />
+                                    <input type="hidden" name="to_tab" value="@edge.ToTab" />
+                                    <input type="hidden" name="relation" value="@edge.Relation" />
+                                    <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                                    <strong>@edge.Relation → @StepLabel(edge.ToTab)</strong>
+                                    <span class="help-block">@edge.Purpose Fields: @edge.FieldMap. Opens the dedicated form with those fields.</span>
+                                    <label>Source ref <input class="form-control input-sm" name="from_code" maxlength="40" placeholder="code" /></label>
+                                    <label>Source id <input class="form-control input-sm" name="from_id" type="number" /></label>
+                                    @if (edge.FieldMap.Contains("party", StringComparison.Ordinal))
+                                    {
+                                        <label>Vendor / party <input class="form-control input-sm" name="party" maxlength="160" /></label>
+                                    }
+                                    @if (edge.FieldMap.Contains("name", StringComparison.Ordinal))
+                                    {
+                                        <label>Item / name <input class="form-control input-sm" name="name" maxlength="190" /></label>
+                                    }
+                                    @if (edge.FieldMap.Contains("qty", StringComparison.Ordinal))
+                                    {
+                                        <label>Qty <input class="form-control input-sm" name="qty" type="number" step="0.0001" /></label>
+                                    }
+                                    @if (edge.FieldMap.Contains("amount", StringComparison.Ordinal))
+                                    {
+                                        <label>Amount <input class="form-control input-sm" name="amount" type="number" step="0.01" /></label>
+                                    }
+                                    <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                                    <button type="submit" class="btn btn-primary btn-sm">Follow to form</button>
+                                    <a class="btn btn-sm btn-default" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, dedicated)">Open @StepLabel(edge.ToTab)</a>
+                                </form>
                             }
                             else
                             {

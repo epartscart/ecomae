@@ -333,6 +333,24 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
 
         await ErpSaleDemand.RecordForSavedInvoiceAsync(connection, invoiceId, adminId, cancellationToken).ConfigureAwait(false);
         await SyncOrderCaseAsync(order.ShopOrderId, adminId, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await ErpD365LinkWriteService.RecordOfficialAsync(
+                connection,
+                "sm_all_orders",
+                salesOrderId,
+                order.SoNo,
+                "sm_invoice",
+                invoiceId,
+                invoiceNumber,
+                adminId,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is DbException or InvalidOperationException)
+        {
+            _ = ex;
+        }
+
         return new ErpSoToInvoiceResult(salesOrderId, invoiceId, invoiceNumber, subtotal, totalVat, totalIncl, ledgerId, glJournalId);
     }
 

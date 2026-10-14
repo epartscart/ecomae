@@ -66,9 +66,31 @@ public sealed class ErpD365LinkWriteService : IErpD365LinkWriteService
         var action = (request.Action ?? "link").Trim().ToLowerInvariant();
         var toId = request.ToId;
         var toCode = Clip(request.ToCode, 40);
+        ErpD365WorkspaceCatalog.TryGet(request.ToTab, out var page);
+        if (action == "follow" && page?.ExistingHref is not null)
+        {
+            await using var dedicated = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var linkId = await InsertLinkAsync(
+                dedicated,
+                ProcessCodeFor(request.FromTab, request.ToTab),
+                request.FromTab!,
+                request.FromId,
+                request.FromCode,
+                request.ToTab!,
+                0,
+                request.FromCode,
+                edge.Relation,
+                edge.FieldMap,
+                request.Note,
+                request.CreatedBy,
+                cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok(
+                "Followed " + edge.Relation + " to " + page.Label,
+                linkId);
+        }
+
         if (action == "follow")
         {
-            ErpD365WorkspaceCatalog.TryGet(request.ToTab, out var page);
             var copied = CopyMappedFields(request, edge.FieldMap);
             var created = await _workspace.SaveAsync(
                 new ErpD365WorkspaceWriteRequest(
@@ -162,6 +184,43 @@ public sealed class ErpD365LinkWriteService : IErpD365LinkWriteService
 
         _ = edge;
         return null;
+    }
+
+    public static async Task RecordOfficialAsync(
+        System.Data.Common.DbConnection connection,
+        string fromTab,
+        long fromId,
+        string? fromCode,
+        string toTab,
+        long toId,
+        string? toCode,
+        long createdBy,
+        CancellationToken cancellationToken)
+    {
+        if (!ErpD365ProcessCatalog.TryGetEdge(fromTab, toTab, out var edge))
+        {
+            return;
+        }
+
+        if (fromId <= 0 && string.IsNullOrWhiteSpace(fromCode))
+        {
+            return;
+        }
+
+        await InsertLinkAsync(
+            connection,
+            ProcessCodeFor(fromTab, toTab),
+            fromTab,
+            fromId,
+            fromCode,
+            toTab,
+            toId,
+            toCode,
+            edge.Relation,
+            edge.FieldMap,
+            null,
+            createdBy,
+            cancellationToken).ConfigureAwait(false);
     }
 
     internal static async Task TryLinkAfterSaveAsync(

@@ -19,6 +19,10 @@
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+    @if (_follow.HasValues)
+    {
+        <div class="alert alert-info" role="status" style="margin:0 0 12px;padding:.7rem .9rem">Process follow: @_follow.Banner. Matching fields are filled on the form.</div>
+    }
 
     <PhpErpModulePageHeader Title="Sales quotations" Subtitle="Save a CRM quote here with persisted line bodies, CRM context, notes excerpt, and financial totals. Accept, quote email, Convert and expiry are not available on this page. This page does not invent a send." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
@@ -127,7 +131,7 @@
                         <option value="rejected">rejected</option>
                     </select>
                 </label>
-                <label>Notes <input type="text" name="notes" /></label>
+                <label>Notes <input type="text" name="notes" value="@_follow.Note" /></label>
                 <label>Item
                     <select name="item_id" id="quote-item-picker">
                         <option value="0">— pick to reserve —</option>
@@ -143,9 +147,9 @@
                     </select>
                 </label>
                 <input type="hidden" name="sku" id="quote-item-sku" />
-                <label>Line <input type="text" name="line_description" id="quote-line-description" maxlength="512" /></label>
-                <label>Qty <input type="text" name="line_qty" inputmode="decimal" value="1" /></label>
-                <label>Price <input type="text" name="line_unit_price" id="quote-line-price" inputmode="decimal" value="0" /></label>
+                <label>Line <input type="text" name="line_description" id="quote-line-description" maxlength="512" value="@_follow.Name" /></label>
+                <label>Qty <input type="text" name="line_qty" inputmode="decimal" value="@(_follow.Qty != 0 ? _follow.Qty.ToString(CultureInfo.InvariantCulture) : "1")" /></label>
+                <label>Price <input type="text" name="line_unit_price" id="quote-line-price" inputmode="decimal" value="@(_follow.Amount != 0 ? _follow.Amount.ToString("0.00", CultureInfo.InvariantCulture) : "0")" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Create quote</button>
             </form>
             <p class="help-block" style="margin:.75rem 0 0">Picking an item reserves it for 30 minutes. First click wins. Accept and quote email are not available on this page.</p>
@@ -252,6 +256,7 @@
     private IReadOnlyList<ErpSalesQuotationDigest> _openedSiblings = [];
     private IReadOnlyList<ErpInventoryItemPickerDigest> _items = [];
     private IReadOnlyList<ErpItemAtp> _atp = [];
+    private ErpD365FollowPrefill _follow = new("", 0, "", "", "", "", "", 0, 0, "");
     private static readonly string[] _statuses = ["draft", "sent", "accepted", "rejected"];
 
     private IReadOnlyList<string> QuotationWorkspaceTabs =>
@@ -349,6 +354,7 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _follow = ErpD365FollowPrefill.Read(ctx.Request);
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "quote_id");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";

@@ -167,6 +167,24 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
             },
             cancellationToken).ConfigureAwait(false);
 
+        try
+        {
+            await ErpD365LinkWriteService.RecordOfficialAsync(
+                connection,
+                "purchase_orders",
+                purchaseOrderId,
+                po.PoNo,
+                "purchases",
+                purchase.PurchaseId,
+                purchase.InvoiceNumber,
+                adminId,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is DbException or InvalidOperationException)
+        {
+            _ = ex;
+        }
+
         return new ErpPoToPurchaseResult(
             purchaseOrderId,
             purchase.PurchaseId,
