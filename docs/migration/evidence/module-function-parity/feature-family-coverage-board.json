@@ -3,10 +3,10 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "totalTracked": 726,
+  "totalTracked": 734,
   "familyCount": 26,
   "coverageCounts": {
-    "digest-contract": 726
+    "digest-contract": 734
   },
   "families": [
     {
@@ -42,8 +42,8 @@
     },
     {
       "family": "auth-sessions-users",
-      "total": 13,
-      "digestContract": 13,
+      "total": 14,
+      "digestContract": 14,
       "phpOnlyDeeplink": 0,
       "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
@@ -60,6 +60,7 @@
         "cp-users-groups-roles",
         "erp-tab-setup-security_roles",
         "storefront-account",
+        "storefront-garage",
         "storefront-profile"
       ]
     },
@@ -432,8 +433,8 @@
     },
     {
       "family": "other-unclassified",
-      "total": 58,
-      "digestContract": 58,
+      "total": 66,
+      "digestContract": 66,
       "phpOnlyDeeplink": 0,
       "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
@@ -487,6 +488,10 @@
         "erp-area-asset_mgmt",
         "erp-area-cost_mgmt",
         "erp-area-credit_coll",
+        "erp-area-questionnaire",
+        "erp-area-rebate_mgmt",
+        "erp-area-time_att",
+        "erp-area-transportation",
         "erp-category-record_to_report",
         "erp-tab-ar-receivables",
         "erp-tab-cost_mgmt-cost_models",
@@ -495,7 +500,11 @@
         "erp-tab-finance-pl",
         "erp-tab-finance-reports",
         "erp-tab-finance-year_end",
-        "erp-tab-risk-insurance"
+        "erp-tab-questionnaire-questionnaire",
+        "erp-tab-rebate_mgmt-rebate_deals",
+        "erp-tab-risk-insurance",
+        "erp-tab-time_att-time_attendance",
+        "erp-tab-transportation-transportation"
       ]
     },
     {
@@ -676,8 +685,8 @@
     },
     {
       "family": "pricing-catalog-cp",
-      "total": 42,
-      "digestContract": 42,
+      "total": 41,
+      "digestContract": 41,
       "phpOnlyDeeplink": 0,
       "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
@@ -721,7 +730,6 @@
         "cp-vin-oem-number-search",
         "erp-tab-sales-gold_scheme",
         "storefront-catalog",
-        "storefront-garage",
         "storefront-part_search",
         "storefront-vin_search"
       ]
@@ -814,8 +822,8 @@
     },
     {
       "family": "sales-oms",
-      "total": 32,
-      "digestContract": 32,
+      "total": 34,
+      "digestContract": 34,
       "phpOnlyDeeplink": 0,
       "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
@@ -851,7 +859,9 @@
         "erp-tab-sales-revenue",
         "erp-tab-sales-sales_orders",
         "erp-tab-sales-subscriptions",
-        "storefront-orders"
+        "storefront-orders",
+        "storefront-returns",
+        "storefront-support"
       ]
     },
     {
@@ -899,8 +909,8 @@
     },
     {
       "family": "storefront-checkout",
-      "total": 16,
-      "digestContract": 16,
+      "total": 14,
+      "digestContract": 14,
       "phpOnlyDeeplink": 0,
       "digestPercent": 100.0,
       "aspnetCompleteCount": 0,
@@ -918,9 +928,7 @@
         "storefront-cart",
         "storefront-checkout",
         "storefront-home",
-        "storefront-payments",
-        "storefront-returns",
-        "storefront-support"
+        "storefront-payments"
       ]
     },
     {

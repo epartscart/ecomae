@@ -32,7 +32,7 @@
     "functionalLiveSmokeCaptured": 0
   },
   "whatThePercentsMean": {
-    "100_scaffold": "Menus 726/726, field floors, ajax dry-run catalogs/goldens (CP 254 + ERP 321 + BOS 231), write-dryrun contract pairs 183/183, tenant/industry gates, security headers + compression are built. This is NOT UX cutover.",
+    "100_scaffold": "Menus 734/734, field floors, ajax dry-run catalogs/goldens (CP 254 + ERP 321 + BOS 231), write-dryrun contract pairs 183/183, tenant/industry gates, security headers + compression are built. This is NOT UX cutover.",
     "95_weighted": "Legacy weighted area board \u2014 residual is ASP.NET live traffic promotion + approval. PHP project keep-as-reference is confirmed separately (not automatic deletion).",
     "0_interactive": "Live product writes/menus still PHP. aspNetInteractiveComplete stays 0 until CloudPanel dual-sample + human approval. User-facing look must stay same-to-same."
   },
@@ -94,7 +94,7 @@
   ],
   "builtAlready": [
     "Write-dryrun dual-sample contract floor 183/183 (writes=0; cutoverAllowed=false)",
-    "Menus 726/726 digest-contract (cp-debug-console surface-field contract locked; metadata-only, no LFI; hybrid-directory-only=0)",
+    "Menus 734/734 digest-contract (cp-debug-console surface-field contract locked; metadata-only, no LFI; hybrid-directory-only=0)",
     "Field floors + digest dual-sample contracts 141/141",
     "CP ajax goldens 254; ERP 321; BOS 231 (all writes=0)",
     "Module-ajax contract floor 254/254 aspnet\u2194php seeded baselines (migration-contract-golden)",

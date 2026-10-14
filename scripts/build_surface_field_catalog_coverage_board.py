@@ -22,8 +22,8 @@ from urllib.parse import urlparse
 ROOT = Path(__file__).resolve().parents[1]
 
 FLOORS = {
-    "erpAreas": 35,
-    "erpTabs": 154,
+    "erpAreas": 39,
+    "erpTabs": 158,
     "erpCategories": 9,
     "bosSections": 11,
     "bosModules": 99,
@@ -290,7 +290,7 @@ def main() -> int:
         "errors": errors,
         "items": items,
         "note": (
-            "Full PHP catalog (726) coverage board. digest-contract means a locked "
+            "Full PHP catalog (734) coverage board. digest-contract means a locked "
             "surface-field digest route exists for a hybrid TARGET match. "
             "Interactive aspNetInteractiveComplete stays 0 until human "
             "MODULE_FUNCTION_TEST_PASS.md. Never invents RELEASE_OWNER_APPROVAL.md."

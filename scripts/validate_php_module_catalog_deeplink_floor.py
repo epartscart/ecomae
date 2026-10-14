@@ -12,8 +12,8 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 FLOORS = {
-    "erpAreas": 35,
-    "erpTabs": 154,
+    "erpAreas": 39,
+    "erpTabs": 158,
     "erpCategories": 9,
     "bosSections": 11,
     "bosModules": 99,

@@ -171,8 +171,8 @@
     ]
   },
   "cp": {
-    "menusTracked": 726,
-    "menusDigestContract": 726,
+    "menusTracked": 734,
+    "menusDigestContract": 734,
     "phpOnlyHoldout": 0,
     "holdoutId": null,
     "fieldFloorsCovered": 137,
@@ -186,7 +186,7 @@
   "moduleInventoryStorefrontCount": 19,
   "built": [
     "Storefront digest surfaces 7/7 contract-complete",
-    "CP menus 726/726 digest-contract",
+    "CP menus 734/734 digest-contract",
     "Field floors 137/137",
     "CP hybrid stubs 108",
     "PHP chrome locks declared for 11 epartscart pages"

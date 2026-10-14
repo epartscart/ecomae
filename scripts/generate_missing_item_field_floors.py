@@ -195,8 +195,8 @@ def main() -> int:
         "readyForPhpRemoval": False,
         "aspNetInteractiveComplete": 0,
         "menus": {
-            "totalTracked": 726,
-            "digestContract": 726,
+            "totalTracked": 734,
+            "digestContract": 734,
             "phpOnlyHoldout": 0,
             "holdoutId": None,
             "holdoutNote": "cp-debug-console ported as safe metadata-only digest (no LFI)",

@@ -3,18 +3,18 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspnetCompleteCount": 0,
-  "inventoryCatalogRows": 726,
-  "coverageBoardRows": 726,
-  "matchedIds": 726,
+  "inventoryCatalogRows": 734,
+  "coverageBoardRows": 734,
+  "matchedIds": 734,
   "coverageCounts": {
-    "digest-contract": 726
+    "digest-contract": 734
   },
   "inventoryStatusCounts": {
     "php-only": 0,
-    "digest-only+hybrid-deeplink": 726,
+    "digest-only+hybrid-deeplink": 734,
     "hybrid-deeplink": 0
   },
   "ok": true,
   "errors": [],
-  "note": "Inventory and coverage board must enumerate the same 726 PHP catalog ids. Interactive aspnet-complete stays 0 until human MODULE_FUNCTION_TEST_PASS.md. Never invents RELEASE_OWNER_APPROVAL.md."
+  "note": "Inventory and coverage board must enumerate the same 734 PHP catalog ids. Interactive aspnet-complete stays 0 until human MODULE_FUNCTION_TEST_PASS.md. Never invents RELEASE_OWNER_APPROVAL.md."
 }
