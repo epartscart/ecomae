@@ -19,7 +19,11 @@ public sealed record ErpD365WorkspaceWriteRequest(
     decimal Amount = 0,
     string? Extra = null,
     string? Note = null,
-    long CreatedBy = 0);
+    long CreatedBy = 0,
+    string? SourceTab = null,
+    long SourceId = 0,
+    string? SourceCode = null,
+    string? Relation = null);
 
 public interface IErpD365WorkspaceWriteService
 {
@@ -83,6 +87,21 @@ public sealed class ErpD365WorkspaceWriteService : IErpD365WorkspaceWriteService
             area, tab, code, name, worker, party, kind, status, period,
             dateFrom, dateTo, request.Qty, request.Amount, extra, note, request.CreatedBy, now, now);
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+        if (id > 0 && !string.IsNullOrWhiteSpace(request.SourceTab))
+        {
+            await ErpD365LinkWriteService.TryLinkAfterSaveAsync(
+                connection,
+                request.SourceTab,
+                request.SourceId,
+                request.SourceCode,
+                tab,
+                id,
+                code,
+                request.Relation,
+                request.CreatedBy,
+                cancellationToken).ConfigureAwait(false);
+        }
+
         return ErpSimpleWriteResult.Ok("Saved " + (page?.Label ?? tab), id);
     }
 
