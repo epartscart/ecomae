@@ -198,7 +198,7 @@ public sealed class ErpRecordOpenPhpParityTests
     public void AreaHubWithoutRecordId_StillMapsToModule()
     {
         Assert.Equal(
-            "/erp/sales-orders-app",
+            "/erp/sales-workspace-app",
             PhpSurfaceLinkMap.AspNetPrimaryHref("/ERP/?epc_erp_shell=1&area=sales"));
     }
 

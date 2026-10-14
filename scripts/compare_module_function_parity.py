@@ -26,8 +26,8 @@ ALLOWED_STATUS = frozenset(
 # Full PHP catalog floors (from generate_php_module_catalog.py / php_module_catalog_counts.json).
 PHP_CATALOG_FLOORS = {
     "cpBrochureFeatures": 405,
-    "erpAreas": 35,
-    "erpTabs": 154,
+    "erpAreas": 39,
+    "erpTabs": 158,
     "erpCategories": 9,
     "bosSections": 11,
     "bosModules": 99,

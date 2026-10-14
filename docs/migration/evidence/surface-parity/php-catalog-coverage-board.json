@@ -3,10 +3,10 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "totalTracked": 726,
+  "totalTracked": 734,
   "floors": {
-    "erpAreas": 35,
-    "erpTabs": 154,
+    "erpAreas": 39,
+    "erpTabs": 158,
     "erpCategories": 9,
     "bosSections": 11,
     "bosModules": 99,
@@ -14,8 +14,8 @@
     "storefrontSurfaces": 13
   },
   "catalogCounts": {
-    "erpAreas": 35,
-    "erpTabs": 154,
+    "erpAreas": 39,
+    "erpTabs": 158,
     "erpCategories": 9,
     "bosModules": 99,
     "bosSections": 11,
@@ -23,8 +23,8 @@
     "storefrontSurfaces": 13
   },
   "kindCounts": {
-    "erp-area": 35,
-    "erp-tab": 154,
+    "erp-area": 39,
+    "erp-tab": 158,
     "erp-category": 9,
     "bos-section": 11,
     "bos-module": 99,
@@ -32,7 +32,7 @@
     "storefront-surface": 13
   },
   "coverageCounts": {
-    "digest-contract": 726
+    "digest-contract": 734
   },
   "coverageByKind": {
     "bos-module": {
@@ -45,13 +45,13 @@
       "digest-contract": 405
     },
     "erp-area": {
-      "digest-contract": 35
+      "digest-contract": 39
     },
     "erp-category": {
       "digest-contract": 9
     },
     "erp-tab": {
-      "digest-contract": 154
+      "digest-contract": 158
     },
     "storefront-surface": {
       "digest-contract": 13
@@ -1482,6 +1482,50 @@
       "aspnetComplete": false
     },
     {
+      "id": "erp-area-questionnaire",
+      "kind": "erp-area",
+      "label": "Questionnaire",
+      "phpPath": "/ERP/?epc_erp_shell=1&area=questionnaire",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/workspace-favorites",
+      "aspnetRoute": "/erp/workspace-favorites-app",
+      "aspnetComplete": false
+    },
+    {
+      "id": "erp-tab-questionnaire-questionnaire",
+      "kind": "erp-tab",
+      "label": "Questionnaires",
+      "phpPath": "/ERP/?epc_erp_shell=1&area=questionnaire&tab=questionnaire",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/erp/workspace-favorites",
+      "aspnetRoute": "/erp/workspace-favorites-app",
+      "aspnetComplete": false
+    },
+    {
+      "id": "erp-area-rebate_mgmt",
+      "kind": "erp-area",
+      "label": "Rebate management",
+      "phpPath": "/ERP/?epc_erp_shell=1&area=rebate_mgmt",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/promotions",
+      "aspnetRoute": "/cp/promotions-app",
+      "aspnetComplete": false
+    },
+    {
+      "id": "erp-tab-rebate_mgmt-rebate_deals",
+      "kind": "erp-tab",
+      "label": "Rebate deals",
+      "phpPath": "/ERP/?epc_erp_shell=1&area=rebate_mgmt&tab=rebate_deals",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/promotions",
+      "aspnetRoute": "/cp/promotions-app",
+      "aspnetComplete": false
+    },
+    {
       "id": "erp-area-retail",
       "kind": "erp-area",
       "label": "Retail and commerce",
@@ -2117,6 +2161,50 @@
       "moduleStatus": "digest-only+hybrid-deeplink",
       "digestRoute": "/cp/aml-compliance",
       "aspnetRoute": "/cp/aml-compliance-app",
+      "aspnetComplete": false
+    },
+    {
+      "id": "erp-area-time_att",
+      "kind": "erp-area",
+      "label": "Time and attendance",
+      "phpPath": "/ERP/?epc_erp_shell=1&area=time_att",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
+      "aspnetComplete": false
+    },
+    {
+      "id": "erp-tab-time_att-time_attendance",
+      "kind": "erp-tab",
+      "label": "Time and attendance",
+      "phpPath": "/ERP/?epc_erp_shell=1&area=time_att&tab=time_attendance",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/hr-overview",
+      "aspnetRoute": "/cp/hr-overview-app",
+      "aspnetComplete": false
+    },
+    {
+      "id": "erp-area-transportation",
+      "kind": "erp-area",
+      "label": "Transportation management",
+      "phpPath": "/ERP/?epc_erp_shell=1&area=transportation",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
+      "aspnetComplete": false
+    },
+    {
+      "id": "erp-tab-transportation-transportation",
+      "kind": "erp-tab",
+      "label": "Transportation",
+      "phpPath": "/ERP/?epc_erp_shell=1&area=transportation&tab=transportation",
+      "coverage": "digest-contract",
+      "moduleStatus": "digest-only+hybrid-deeplink",
+      "digestRoute": "/cp/carriers",
+      "aspnetRoute": "/cp/carriers-app",
       "aspnetComplete": false
     },
     {
@@ -8049,5 +8137,5 @@
       "aspnetComplete": false
     }
   ],
-  "note": "Full PHP catalog (726) coverage board. digest-contract means a locked surface-field digest route exists for a hybrid TARGET match. Interactive aspNetInteractiveComplete stays 0 until human MODULE_FUNCTION_TEST_PASS.md. Never invents RELEASE_OWNER_APPROVAL.md."
+  "note": "Full PHP catalog (734) coverage board. digest-contract means a locked surface-field digest route exists for a hybrid TARGET match. Interactive aspNetInteractiveComplete stays 0 until human MODULE_FUNCTION_TEST_PASS.md. Never invents RELEASE_OWNER_APPROVAL.md."
 }

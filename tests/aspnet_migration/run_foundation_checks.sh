@@ -463,7 +463,7 @@ check 'catalog allowlist sync mirrors live surface probe' contains "$ROOT/script
 check 'catalog allowlist sync mirrors decommission area tests' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'run_php_decommission_area_tests.sh'
 check 'catalog allowlist sync mirrors pre-php-removal parity' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'verify_pre_php_removal_parity.sh'
 check 'presentation exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json"
-check 'presentation exact-route inventory routeCount is 420' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 420'
+check 'presentation exact-route inventory routeCount is 421' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 421'
 check 'presentation exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"cutoverAllowed": false'
 check 'presentation allowlist sync mirrors inventory' contains "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py" 'presentation-exact-routes.json'
 check 'live surface probe references presentation inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'presentation/presentation-exact-routes.json'
@@ -497,14 +497,14 @@ check 'php module catalog deeplink floor validator is executable' test -x "$ROOT
 check 'php module catalog deeplink floor passes' python3 "$ROOT/scripts/validate_php_module_catalog_deeplink_floor.py"
 check 'php full catalog deeplink floor evidence exists' test -f "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json"
 check 'php full catalog deeplink floor blocks cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"cutoverAllowed": false'
-check 'php full catalog deeplink floor tracks 726' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"totalTracked": 726'
+check 'php full catalog deeplink floor tracks 734' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/php-full-catalog-deeplink-floor.json" '"totalTracked": 734'
 check 'php catalog coverage board builder exists' test -f "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"
 check 'php catalog coverage board builder is executable' test -x "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"
 check 'php catalog coverage board passes' python3 "$ROOT/scripts/build_surface_field_catalog_coverage_board.py"
 check 'php catalog coverage board evidence exists' test -f "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json"
 check 'php catalog coverage board blocks cutover' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"cutoverAllowed": false'
 check 'php catalog coverage board blocks PHP removal' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"readyForPhpRemoval": false'
-check 'php catalog coverage board tracks 726' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"totalTracked": 726'
+check 'php catalog coverage board tracks 734' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"totalTracked": 734'
 check 'php catalog coverage board missingCount is zero' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"missingCount": 0'
 check 'php catalog coverage board keeps interactive complete at zero' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"aspNetInteractiveComplete": 0'
 check 'php catalog coverage board uses digest-contract status' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"digest-contract"'
@@ -514,7 +514,7 @@ check 'hybrid directory full catalog floor validator is executable' test -x "$RO
 check 'hybrid directory full catalog floor passes' python3 "$ROOT/scripts/validate_hybrid_directory_full_catalog_floor.py"
 check 'hybrid directory full catalog floor evidence exists' test -f "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json"
 check 'hybrid directory full catalog floor blocks cutover' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"cutoverAllowed": false'
-check 'hybrid directory full catalog floor tracks 726' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"totalTracked": 726'
+check 'hybrid directory full catalog floor tracks 734' contains "$ROOT/docs/migration/evidence/hybrid-ui-dual-samples/hybrid-directory-full-catalog-floor.json" '"totalTracked": 734'
 check 'ERP dashboard lists ErpCategories directory' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor" 'PhpModuleCatalog.ErpCategories'
 check 'BOS fleet lists BosSections directory' contains "$ROOT/aspnet/src/EcomAE.Platform/Components/Pages/BosFleetApp.razor" 'PhpModuleCatalog.BosSections'
 check 'PhpModuleCatalog summary exposes directoryCoverage' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PhpModuleCatalog.cs" 'directoryCoverage'
@@ -524,15 +524,15 @@ check 'module-function coverage consistency validator exists' test -f "$ROOT/scr
 check 'module-function coverage consistency validator is executable' test -x "$ROOT/scripts/validate_module_function_coverage_consistency.py"
 check 'module-function coverage consistency passes' python3 "$ROOT/scripts/validate_module_function_coverage_consistency.py"
 check 'module-function coverage consistency evidence exists' test -f "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json"
-check 'module-function coverage consistency matches 726' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"matchedIds": 726'
+check 'module-function coverage consistency matches 734' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"matchedIds": 734'
 check 'module-function coverage consistency blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/coverage-consistency.json" '"cutoverAllowed": false'
 check 'surface-field operator rebuilds php catalog coverage board' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'build_surface_field_catalog_coverage_board.py'
 check 'surface-field operator floors contracts at 54' contains "$ROOT/scripts/cloudpanel_run_surface_field_parity_operator.sh" 'expected >=54'
 check 'surface-field board contractCount is 155' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"contractCount": 155'
 check 'surface-field board includes erp process-flow-tasks' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"aspNetRoute": "/erp/process-flow-tasks"'
 check 'surface-field board includes cp-debug-console digest' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"aspNetRoute": "/cp/debug-console"'
-check 'php catalog coverage digest-contract is 726' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"digest-contract": 726'
-check 'php catalog coverage has zero hybrid-directory-only' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); c=d.get("coverageCounts") or {}; assert int(c.get("digest-contract") or 0)==726 and int(c.get("hybrid-directory-only") or 0)==0 and int(d.get("missingCount") or 0)==0 and d.get("cutoverAllowed") is False' "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json"
+check 'php catalog coverage digest-contract is 734' contains "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json" '"digest-contract": 734'
+check 'php catalog coverage has zero hybrid-directory-only' python3 -c 'import json,sys; from pathlib import Path; d=json.loads(Path(sys.argv[1]).read_text()); c=d.get("coverageCounts") or {}; assert int(c.get("digest-contract") or 0)==734 and int(c.get("hybrid-directory-only") or 0)==0 and int(d.get("missingCount") or 0)==0 and d.get("cutoverAllowed") is False' "$ROOT/docs/migration/evidence/surface-parity/php-catalog-coverage-board.json"
 check 'surface-field board includes orders-digest' contains "$ROOT/docs/migration/evidence/surface-parity/www-surface-field-parity.json" '"/cp/orders-digest"'
 check 'PhpModuleCatalog rejects aspnet preview deeplinks' contains "$ROOT/aspnet/src/EcomAE.Platform/Presentation/PhpModuleCatalog.cs" 'IsAllowedPhpDeeplink'
 check 'surface-digest exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/surface-parity/surface-digest-exact-routes.json"
@@ -640,7 +640,7 @@ check 'surface-field board blocks PHP removal' contains "$ROOT/docs/migration/ev
 check 'platform.env.example documents dual-sample operator helper' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_hybrid_ui_dual_sample_operator.sh'
 check 'platform.env.example documents offline migration gate' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_offline_migration_gate.sh'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
-check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 420'
+check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 421'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"
 check 'YARP exact-routes design example exists' test -f "$ROOT/deploy/aspnet/yarp-exact-routes-example.json"
 check 'YARP design example blocks cutover' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"cutoverAllowed": false'
@@ -772,14 +772,14 @@ check 'module function parity evidence dir exists' test -d "$ROOT/docs/migration
 check 'module function parity inventory JSON exists' test -f "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json"
 check 'module function parity inventory blocks cutover' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"cutoverAllowed": false'
 check 'module function parity inventory keeps aspnet-complete at zero' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"aspnetCompleteCount": 0'
-check 'module function parity inventory hybridPreviewCount is 829' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"hybridPreviewCount": 829'
+check 'module function parity inventory hybridPreviewCount is 837' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"hybridPreviewCount": 837'
 check 'module function parity inventory phpOnlyCount is 0' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"phpOnlyCount": 0'
-check 'module function parity compare reports 829 hybrid previews' contains "$ROOT/docs/migration/evidence/module-function-parity/compare-result.json" '"hybridPreviewCount": 829'
+check 'module function parity compare reports 837 hybrid previews' contains "$ROOT/docs/migration/evidence/module-function-parity/compare-result.json" '"hybridPreviewCount": 837'
 check 'module function parity compare phpOnlyCount is 0' contains "$ROOT/docs/migration/evidence/module-function-parity/compare-result.json" '"phpOnlyCount": 0'
 check 'module function parity compare stays ok' contains "$ROOT/docs/migration/evidence/module-function-parity/compare-result.json" '"ok": true'
 check 'module function parity inventory tracks php catalog counts' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"phpCatalogCounts"'
 check 'module function parity inventory floors CP brochure features' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"cpBrochureFeatures": 405'
-check 'module function parity inventory floors ERP tabs' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"erpTabs": 154'
+check 'module function parity inventory floors ERP tabs' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"erpTabs": 158'
 check 'module function parity inventory floors BOS modules' contains "$ROOT/docs/migration/evidence/module-function-parity/module-function-inventory.json" '"bosModules": 99'
 check 'module function compare enforces php catalog floors' contains "$ROOT/scripts/compare_module_function_parity.py" 'PHP_CATALOG_FLOORS'
 check 'module function compare enforces full catalog module floor' contains "$ROOT/scripts/compare_module_function_parity.py" 'MIN_FULL_MODULE_COUNT'
@@ -1165,7 +1165,7 @@ check 'storefront digest smoke covers checkout' contains "$ROOT/tests/live_smoke
 check 'digest compare locks storefront-checkout php_steps' contains "$ROOT/scripts/compare_digest_dual_samples.py" '"storefront-checkout":'
 check 'digest live-sample gap reporter exists' test -f "$ROOT/scripts/report_digest_live_sample_gaps.py"
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
-check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+sf+bos fleet family routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 420'
+check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+sf+bos fleet family routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 421'
 check 'tenant chrome probe rejects erp cash-entries-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'ErpCashEntriesApp'
 check 'presentation nginx includes /erp/cash-entries-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /erp/cash-entries-app'
 check 'erp cash-entries-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpCashEntriesApp'

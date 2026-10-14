@@ -150,7 +150,7 @@ public sealed class ErpPhpTabRouteMapTests
     [InlineData("/ERP/?epc_erp_shell=1&area=mhei", "/erp/mhei-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=payroll_area", "/erp/payroll-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=enterprise", "/erp/organization-admin-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=sales", "/erp/sales-orders-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=sales", "/erp/sales-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll", "/erp/credit-collections-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=banking", "/erp/cash-bank-workspace-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/general-ledger-workspace-app")]
@@ -202,7 +202,7 @@ public sealed class ErpPhpTabRouteMapTests
     }
 
     [Fact]
-    public void CatalogErpTabs_AllMapped_154Of154()
+    public void CatalogErpTabs_AllMapped_158Of158()
     {
         var root = FindRepoRoot();
         var catalogPath = Path.Combine(root, "aspnet/src/EcomAE.Platform/Presentation/Generated/php_module_catalog.json");
@@ -223,7 +223,7 @@ public sealed class ErpPhpTabRouteMapTests
             }
         }
 
-        Assert.Equal(154, total);
+        Assert.Equal(158, total);
         Assert.True(missing.Count == 0, "Unmapped catalog ERP tabs: " + string.Join(", ", missing));
     }
 

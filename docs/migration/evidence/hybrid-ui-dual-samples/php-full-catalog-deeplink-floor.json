@@ -3,10 +3,10 @@
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "aspNetInteractiveComplete": 0,
-  "totalTracked": 726,
+  "totalTracked": 734,
   "counts": {
-    "erpAreas": 35,
-    "erpTabs": 154,
+    "erpAreas": 39,
+    "erpTabs": 158,
     "erpCategories": 9,
     "bosModules": 99,
     "bosSections": 11,
@@ -14,8 +14,8 @@
     "storefrontSurfaces": 13
   },
   "floors": {
-    "erpAreas": 35,
-    "erpTabs": 154,
+    "erpAreas": 39,
+    "erpTabs": 158,
     "erpCategories": 9,
     "bosSections": 11,
     "bosModules": 99,

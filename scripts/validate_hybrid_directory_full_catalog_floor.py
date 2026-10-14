@@ -14,8 +14,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 FLOORS = {
     "erpCategories": 9,
-    "erpAreas": 35,
-    "erpTabs": 154,
+    "erpAreas": 39,
+    "erpTabs": 158,
     "bosSections": 11,
     "bosModules": 99,
     "cpBrochureFeatures": 405,

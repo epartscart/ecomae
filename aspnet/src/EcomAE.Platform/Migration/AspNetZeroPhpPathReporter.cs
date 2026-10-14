@@ -11,7 +11,7 @@ public sealed class AspNetZeroPhpPathReporter : IAspNetZeroPhpPathReporter
     {
         AspNetZeroPhpPhase[] phases =
         [
-            new("1-inventory", "Route/job inventory", "complete", "Inventory + digest contracts tracked; 726/726 menu catalog including safe cp-debug-console metadata digest."),
+            new("1-inventory", "Route/job inventory", "complete", "Inventory + digest contracts tracked; 734/734 menu catalog including safe cp-debug-console metadata digest."),
             new("2-scaffold", "ASP.NET digests + hybrid shells", "complete", "133 surface digests + 7 storefront digests wired + presentation apps on www (incl. ERP on-premises + legal aliases)."),
             new("3-presentation-parity", "Same-to-same chrome (fonts/CSS/heroes/menus)", "in-progress", "Look/color floors green; marketing /marketing/* 37-route install+probe ready; ALL site classes ASP.NET-primary intent (Super CP + 5 tenants + 28 industry + LifeOS) via classic-entry --all-hosts / FORCE_LIVE_ALL_SITES; board GET /migration/all-sites-aspnet-primary."),
             new("4-function-parity", "Interactive module writes/menus/flows", "in-progress", "aspNetInteractiveComplete=0; full ajax_erp.php catalog (321) dedicated goldens; BOS ajax catalog (231) goldens; CP/storefront module ajax goldens; functional 7-flow suite static-green with live-smoke stubs blocked; live writes still PHP — dual-sample + RELEASE_OWNER_APPROVAL required."),

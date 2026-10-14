@@ -202,13 +202,16 @@ public sealed class ErpD365Part1CoverageTests
     [Fact]
     public void UnionCatalog_ServesPart1AndPart3()
     {
-        Assert.True(ErpD365WorkspaceCatalog.All.Count >= 680);
+        Assert.True(ErpD365WorkspaceCatalog.All.Count >= 1400);
         Assert.True(ErpD365WorkspaceCatalog.TryGet("ap_invoice_register", out var ap));
         Assert.Equal("ap", ap.Area);
         Assert.True(ErpD365WorkspaceCatalog.TryGet("time_off_requests", out var leave));
         Assert.Equal("leave_abs", leave.Area);
+        Assert.True(ErpD365WorkspaceCatalog.TryGet("pim_released", out var pim));
+        Assert.Equal("pim", pim.Area);
         Assert.Equal("/erp/payables-workspace-app", ErpD365WorkspaceCatalog.AppPathForArea("ap"));
         Assert.Equal("/erp/leave-absence-app", ErpD365WorkspaceCatalog.AppPathForArea("leave_abs"));
+        Assert.Equal("/erp/pim-workspace-app", ErpD365WorkspaceCatalog.AppPathForArea("pim"));
     }
 
     private static string FindRepoFile(string relative)

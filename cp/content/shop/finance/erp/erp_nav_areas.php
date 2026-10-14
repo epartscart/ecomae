@@ -426,6 +426,28 @@ function epc_erp_nav_areas_config()
 				'Periodic' => array('project_accounting'),
 			),
 		),
+		'questionnaire' => array(
+			'label' => 'Questionnaire',
+			'icon' => 'fa-question-circle',
+			'desc' => 'Design, distribute and analyze questionnaires',
+			'tabs' => array(
+				'questionnaire' => array('label' => 'Questionnaires', 'icon' => 'fa-question-circle'),
+			),
+			'groups' => array(
+				'Common' => array('questionnaire'),
+			),
+		),
+		'rebate_mgmt' => array(
+			'label' => 'Rebate management',
+			'icon' => 'fa-percent',
+			'desc' => 'Customer, royalty and vendor rebate deals',
+			'tabs' => array(
+				'rebate_deals' => array('label' => 'Rebate deals', 'icon' => 'fa-percent'),
+			),
+			'groups' => array(
+				'Common' => array('rebate_deals'),
+			),
+		),
 		'retail' => array(
 			'label' => 'Retail and commerce',
 			'icon' => 'fa-shopping-cart',
@@ -541,6 +563,28 @@ function epc_erp_nav_areas_config()
 				'Reports' => array('ext_reports', 'elec_reporting'),
 				'Jewellery' => array('jw_tourist_vat', 'aml_compliance'),
 				'Setup' => array('document_control'),
+			),
+		),
+		'time_att' => array(
+			'label' => 'Time and attendance',
+			'icon' => 'fa-clock-o',
+			'desc' => 'Registrations, approval, flex time and transfer to payroll',
+			'tabs' => array(
+				'time_attendance' => array('label' => 'Time and attendance', 'icon' => 'fa-clock-o'),
+			),
+			'groups' => array(
+				'Common' => array('time_attendance'),
+			),
+		),
+		'transportation' => array(
+			'label' => 'Transportation management',
+			'icon' => 'fa-truck',
+			'desc' => 'Loads, shipments, rating, routing and freight bills',
+			'tabs' => array(
+				'transportation' => array('label' => 'Transportation', 'icon' => 'fa-truck'),
+			),
+			'groups' => array(
+				'Common' => array('transportation'),
 			),
 		),
 		'warehouse' => array(
@@ -682,6 +726,7 @@ function epc_erp_nav_categories_config(): array
 				'ap',                 // Accounts payable
 				'landed_cost_area',   // Landed cost
 				'expense',            // Expense management
+				'rebate_mgmt',        // Rebate management
 			),
 		),
 		'order_to_cash' => array(
@@ -718,6 +763,7 @@ function epc_erp_nav_categories_config(): array
 				'logistics',           // Logistics
 				'master_planning_area',// Master planning
 				'asset_mgmt',          // Asset management
+				'transportation',      // Transportation management
 			),
 		),
 		'hr_payroll' => array(
@@ -729,6 +775,7 @@ function epc_erp_nav_categories_config(): array
 				'payroll_area',// Payroll
 				'leave_abs',   // Leave & absence
 				'projects',    // Project management & accounting
+				'time_att',    // Time and attendance
 			),
 		),
 		'compliance_tax' => array(
@@ -748,6 +795,7 @@ function epc_erp_nav_categories_config(): array
 				'setup',      // System administration
 				'enterprise', // Organisation administration
 				'common',     // Common (agenda, contacts, docs, AI advisor)
+				'questionnaire', // Questionnaire
 			),
 		),
 	);
