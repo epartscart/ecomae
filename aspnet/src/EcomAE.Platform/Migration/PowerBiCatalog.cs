@@ -88,6 +88,9 @@ public static class PowerBiCatalog
             ApiRoot + "/gl", ["json", "csv"], "read:bi", "scheduled", "to = YYYY-MM-DD optional as-of date"),
         new("metrics", "BI metric snapshots", "Latest materialized KPI snapshots from the BI metrics engine (when computed).",
             ApiRoot + "/metrics", ["json", "csv"], "read:bi", "scheduled", ""),
+        new("sales-profitability", "Sales profitability performance",
+            "Posted sales lines with revenue, average inventory cost, gross margin and margin percent. Filter with from, to, customer and item.",
+            ApiRoot + "/sales-profitability", ["json", "csv"], "read:bi", "scheduled", "from, to = YYYY-MM-DD; customer; item"),
     ];
 
     public static bool EmbedUrlAllowed(string? url)

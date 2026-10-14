@@ -12,7 +12,7 @@ public sealed class CpPowerBiParityTests
         Assert.Equal("1.0.0", PowerBiCatalog.Version);
         Assert.Equal("https://www.ecomae.com/epc-api/v1/powerbi", PowerBiCatalog.ApiRoot);
         Assert.Equal(
-            new[] { "catalog", "kpis", "orders", "sales", "stock", "gl", "metrics" },
+            new[] { "catalog", "kpis", "orders", "sales", "stock", "gl", "metrics", "sales-profitability" },
             PowerBiCatalog.Datasets.Select(dataset => dataset.Id).ToArray());
         Assert.All(
             PowerBiCatalog.Datasets,
