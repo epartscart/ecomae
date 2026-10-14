@@ -113,12 +113,18 @@
     .epc-erp-fav { position:relative; flex:0 0 auto; }
     .epc-erp-fav__btn { display:inline-flex; align-items:center; gap:.35rem; height:2.15rem; padding:0 .7rem; border:1px solid rgba(255,255,255,.28); border-radius:.4rem; background:rgba(255,255,255,.1); color:#fff; font:inherit; font-weight:700; font-size:13px; cursor:pointer; }
     .epc-erp-fav__btn:hover, .epc-erp-fav__btn[aria-expanded="true"] { background:rgba(255,255,255,.2); }
-    .epc-erp-fav__chips { display:flex; flex-wrap:nowrap; gap:.3rem; max-width:min(36rem, 40vw); overflow-x:auto; }
-    .epc-erp-fav__chip { display:inline-flex; align-items:center; gap:.25rem; height:1.85rem; padding:0 .5rem; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; font-size:12px; font-weight:700; white-space:nowrap; }
-    .epc-erp-fav__chip:hover { background:rgba(255,255,255,.24); color:#fff; }
-    .epc-erp-fav__panel { position:absolute; left:0; top:calc(100% + 6px); z-index:5200; min-width:16rem; max-width:22rem; max-height:22rem; overflow:auto; background:#fff; color:#0f172a; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 12px 28px rgba(15,23,42,.16); padding:.45rem; }
-    .epc-erp-fav__panel a, .epc-erp-fav__panel button { display:flex; width:100%; align-items:center; gap:.45rem; padding:.45rem .55rem; border:0; background:transparent; color:#0f172a; text-align:left; font:inherit; text-decoration:none; border-radius:6px; cursor:pointer; }
-    .epc-erp-fav__panel a:hover, .epc-erp-fav__panel button:hover { background:#eff6ff; }
+    .epc-erp-fav__count { display:inline-flex; min-width:1.15rem; justify-content:center; padding:0 .3rem; border-radius:999px; background:rgba(255,255,255,.2); font-size:11px; }
+    .epc-erp-fav__panel { position:absolute; left:0; top:calc(100% + 6px); z-index:5200; width:22rem; max-width:min(22rem, calc(100vw - 16px)); max-height:min(70vh, 28rem); overflow:auto; background:#fff; color:#0f172a; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 12px 28px rgba(15,23,42,.16); padding:.45rem; }
+    .epc-erp-fav__filter { width:100%; height:2rem; margin:0 0 .35rem; padding:.3rem .55rem; border:1px solid #cbd5e1; border-radius:6px; font:inherit; color:#0f172a; background:#fff; box-sizing:border-box; }
+    .epc-erp-fav__row { display:flex; align-items:center; gap:.2rem; }
+    .epc-erp-fav__row a { display:flex; flex:1 1 auto; min-width:0; align-items:center; gap:.45rem; padding:.4rem .5rem; color:#0f172a; text-decoration:none; border-radius:6px; }
+    .epc-erp-fav__row a:hover { background:#eff6ff; }
+    .epc-erp-fav__row a span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .epc-erp-fav__remove { flex:0 0 auto; margin:0; }
+    .epc-erp-fav__remove button { display:inline-flex; width:auto; padding:.35rem .5rem; border:0; background:transparent; color:#94a3b8; border-radius:6px; cursor:pointer; }
+    .epc-erp-fav__remove button:hover { background:#fef2f2; color:#b91c1c; }
+    .epc-erp-fav__panel > form button { display:flex; width:100%; align-items:center; gap:.45rem; padding:.45rem .55rem; border:0; background:transparent; color:#0f172a; text-align:left; font:inherit; border-radius:6px; cursor:pointer; }
+    .epc-erp-fav__panel > form button:hover { background:#eff6ff; }
     .epc-erp-fav__empty { margin:0; padding:.45rem .55rem; color:#64748b; font-size:12px; }
     .epc-erp-fav-pin { display:inline-flex; margin-left:.15rem; }
     .epc-erp-fav-pin button { border:0; background:transparent; color:#94a3b8; padding:0 .15rem; cursor:pointer; }
@@ -147,26 +153,34 @@
                 <div class="epc-erp-fav" data-epc-fav>
                     <button type="button" class="epc-erp-fav__btn" data-epc-fav-toggle aria-expanded="false" aria-haspopup="true">
                         <i class="fa fa-star" aria-hidden="true"></i> Favourites
+                        @if (_favs.Count > 0)
+                        {
+                            <span class="epc-erp-fav__count">@_favs.Count</span>
+                        }
                     </button>
-                    @if (_favs.Count > 0)
-                    {
-                        <div class="epc-erp-fav__chips" aria-label="Favourite modules">
-                            @foreach (var fav in _favs.Take(8))
-                            {
-                                <a class="epc-erp-fav__chip" href="@fav.Href" title="@fav.Label">
-                                    <i class="fa @fav.Icon" aria-hidden="true"></i> @fav.Label
-                                </a>
-                            }
-                        </div>
-                    }
                     <div class="epc-erp-fav__panel" hidden data-epc-fav-panel>
+                        @if (_favs.Count > 4)
+                        {
+                            <input type="search" class="epc-erp-fav__filter" data-epc-fav-filter placeholder="Find a favourite" aria-label="Find a favourite" />
+                        }
                         @if (_favs.Count == 0)
                         {
-                            <p class="epc-erp-fav__empty">Star a module in the menu, or add this page. Open it from here next time.</p>
+                            <p class="epc-erp-fav__empty">Star a module in the menu, or add this page. Open it from this list next time — nothing is added as a tab.</p>
                         }
                         @foreach (var fav in _favs)
                         {
-                            <a href="@fav.Href"><i class="fa @fav.Icon" aria-hidden="true"></i> @fav.Label</a>
+                            <div class="epc-erp-fav__row" data-epc-fav-row="@fav.Label">
+                                <a href="@fav.Href" title="@fav.Label"><i class="fa @fav.Icon" aria-hidden="true"></i> <span>@fav.Label</span></a>
+                                @if (fav.Id > 0)
+                                {
+                                    <form class="epc-erp-fav__remove" method="post" action="/erp/ajax/shortcut-delete">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@FavoriteReturnHref" />
+                                        <input type="hidden" name="id" value="@fav.Id" />
+                                        <button type="submit" aria-label="Remove @fav.Label from favourites" title="Remove"><i class="fa fa-times" aria-hidden="true"></i></button>
+                                    </form>
+                                }
+                            </div>
                         }
                         @if (!CurrentPageIsFavorite)
                         {
@@ -298,7 +312,20 @@
                                                             }
                                                             else if (_signedIn)
                                                             {
-                                                                <span class="epc-erp-fav-pin is-on" title="In favourites"><i class="fa fa-star" aria-hidden="true"></i></span>
+                                                                var pinnedId = FavoriteIdForHref(href);
+                                                                if (pinnedId > 0)
+                                                                {
+                                                                    <form class="epc-erp-fav-pin is-on" method="post" action="/erp/ajax/shortcut-delete" title="Remove from favourites">
+                                                                        <input type="hidden" name="confirmWrites" value="true" />
+                                                                        <input type="hidden" name="returnUrl" value="@FavoriteReturnHref" />
+                                                                        <input type="hidden" name="id" value="@pinnedId" />
+                                                                        <button type="submit" aria-label="Remove @link.Label from favourites"><i class="fa fa-star" aria-hidden="true"></i></button>
+                                                                    </form>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="epc-erp-fav-pin is-on" title="In favourites"><i class="fa fa-star" aria-hidden="true"></i></span>
+                                                                }
                                                             }
                                                         </li>
                                                     }
@@ -341,7 +368,20 @@
                                     }
                                     else if (_signedIn)
                                     {
-                                        <span class="epc-erp-fav-pin is-on" title="In favourites"><i class="fa fa-star" aria-hidden="true"></i></span>
+                                        var pageFavId = FavoriteIdForHref(FavoriteReturnHref);
+                                        if (pageFavId > 0)
+                                        {
+                                            <form class="epc-erp-fav-pin is-on" method="post" action="/erp/ajax/shortcut-delete" title="Remove this page from favourites">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="returnUrl" value="@FavoriteReturnHref" />
+                                                <input type="hidden" name="id" value="@pageFavId" />
+                                                <button type="submit" aria-label="Remove @Title from favourites"><i class="fa fa-star" aria-hidden="true"></i></button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="epc-erp-fav-pin is-on" title="In favourites"><i class="fa fa-star" aria-hidden="true"></i></span>
+                                        }
                                     }
                                 </h1>
                                 <p class="epc-erp-host-sub">@(IsDashboardHome ? _companyLabel : $"{_companyLabel} · {_industryLabel}{(_jewellery ? " · jewellery modules on" : " · core modules")}")</p>
@@ -604,6 +644,17 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeFav();
   });
+  document.addEventListener('input', function (e) {
+    var filter = e.target && e.target.closest ? e.target.closest('[data-epc-fav-filter]') : null;
+    if (!filter) return;
+    var root = filter.closest('[data-epc-fav]');
+    if (!root) return;
+    var needle = String(filter.value || '').trim().toLowerCase();
+    root.querySelectorAll('[data-epc-fav-row]').forEach(function (row) {
+      var label = String(row.getAttribute('data-epc-fav-row') || '').toLowerCase();
+      row.hidden = needle.length > 0 && label.indexOf(needle) < 0;
+    });
+  });
 })();
 </script>
 <script src="/erp/erp-master-picker.js" defer></script>
@@ -645,7 +696,7 @@
     private IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> _nav = LegacyDesktopChromeCatalog.ErpTopnav();
     private List<FavChip> _favs = [];
 
-    private sealed record FavChip(string Label, string Href, string Icon);
+    private sealed record FavChip(long Id, string Label, string Href, string Icon);
 
     private string ErpHomeHref => _activeCompanyId > 0 ? $"/erp?company={_activeCompanyId}" : "/erp";
 
@@ -666,11 +717,14 @@
 
     private bool CurrentPageIsFavorite => IsFavoriteHref(FavoriteReturnHref);
 
-    private bool IsFavoriteHref(string? href)
+    private long FavoriteIdForHref(string? href)
+        => FavoriteForHref(href)?.Id ?? 0;
+
+    private FavChip? FavoriteForHref(string? href)
     {
         if (string.IsNullOrWhiteSpace(href))
         {
-            return false;
+            return null;
         }
 
         var needle = NormalizeFavHref(href);
@@ -678,12 +732,14 @@
         {
             if (string.Equals(NormalizeFavHref(fav.Href), needle, StringComparison.OrdinalIgnoreCase))
             {
-                return true;
+                return fav;
             }
         }
 
-        return false;
+        return null;
     }
+
+    private bool IsFavoriteHref(string? href) => FavoriteForHref(href) is not null;
 
     private static string NormalizeFavHref(string href)
     {
@@ -710,14 +766,22 @@
             foreach (var row in listed.Rows)
             {
                 var label = Convert.ToString(row.GetValueOrDefault("label"));
-                var url = Convert.ToString(row.GetValueOrDefault("url"));
+                var url = System.Net.WebUtility.HtmlDecode(Convert.ToString(row.GetValueOrDefault("url")) ?? string.Empty)
+                    .Replace("&amp;", "&", StringComparison.Ordinal);
                 var icon = Convert.ToString(row.GetValueOrDefault("icon"));
+                var id = 0L;
+                if (row.TryGetValue("id", out var rawId) && rawId is not null)
+                {
+                    id = Convert.ToInt64(rawId, System.Globalization.CultureInfo.InvariantCulture);
+                }
+
                 if (string.IsNullOrWhiteSpace(url) || !url.StartsWith('/'))
                 {
                     continue;
                 }
 
                 chips.Add(new FavChip(
+                    id,
                     string.IsNullOrWhiteSpace(label) ? "Favourite" : label.Trim(),
                     url.Trim(),
                     string.IsNullOrWhiteSpace(icon) ? "fa-star" : icon.Trim()));
