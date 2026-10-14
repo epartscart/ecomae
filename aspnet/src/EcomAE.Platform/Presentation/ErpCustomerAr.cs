@@ -363,14 +363,13 @@ public static class ErpCustomerAr
             return true;
         }
 
-        if (long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id == customerId)
+        if (long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id))
         {
-            return true;
+            return id == customerId || string.Equals(number, text, StringComparison.OrdinalIgnoreCase);
         }
 
         names.TryGetValue(customerId, out var name);
         return (name ?? string.Empty).Contains(text, StringComparison.OrdinalIgnoreCase)
-            || customerId.ToString(CultureInfo.InvariantCulture).Contains(text, StringComparison.Ordinal)
             || number.Contains(text, StringComparison.OrdinalIgnoreCase);
     }
 

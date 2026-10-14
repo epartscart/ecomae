@@ -32,6 +32,9 @@ public sealed class ErpCustomerArTests
         Assert.Equal(10m, report.Statement[^1].Balance);
         Assert.Single(report.OpenInvoices);
         Assert.Empty(report.SettledInvoices);
+        var byId = ErpCustomerAr.Build(invoices, receipts, names, "7", new DateOnly(2026, 6, 1), new DateOnly(2026, 6, 30));
+        Assert.DoesNotContain(byId.Statement, line => line.CustomerId == 8);
+        Assert.Contains(byId.Statement, line => line.Number == "INV-1");
         Assert.Equal(0m, ErpCustomerAr.OutstandingOf(10m, 10m));
     }
 

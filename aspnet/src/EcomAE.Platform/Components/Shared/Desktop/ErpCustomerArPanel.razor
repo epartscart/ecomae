@@ -105,7 +105,7 @@
                                 <td class="text-right">@Money(invoice.Total)</td>
                                 <td class="text-right">@Money(invoice.Paid)</td>
                                 <td class="text-right">@Money(invoice.Outstanding)</td>
-                                <td><a href="@Href(ErpCustomerAr.ViewOpen, invoice.CustomerId)">Settle</a></td>
+                                <td>@if (invoice.CustomerId > 0) { <a href="@Href(ErpCustomerAr.ViewOpen, invoice.CustomerId)">Settle</a> }</td>
                             </tr>
                         }
                     </tbody>
