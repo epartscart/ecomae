@@ -56,20 +56,24 @@
             <div class="epc-fno-entry-body">
                 <h4 style="margin:0 0 .25rem;color:#1d2740;"><i class="fa fa-arrow-down" style="color:#16803c;"></i> Receipt journal / receipt voucher</h4>
                 <p class="text-muted" style="font-size:12px;margin:0 0 .8rem;">Customer receipt, advance receipt, or invoice settlement. Posted vouchers receive an RV sequence and remain auditable.</p>
+                @if (_voice == "receipt")
+                {
+                    <div class="alert alert-info" role="status" style="margin:0 0 .8rem;">Voice filled this receipt. Check the customer, account, and amount, then press Validate and post. The voucher stays a draft until you do.</div>
+                }
                 <form method="post" action="@EcomAeRoutes.ErpCashEntriesReceiptVoucher" class="epc-fno-form">
                     <input type="hidden" name="confirmWrites" value="true" />
-                    <ErpVoucherHeaderFields DateLabel="Receipt date" NumberLabel="Receipt no" NumberPreview="Auto" />
-                    <div class="field"><ErpMasterPicker Kind="customer" FieldName="user_id" InputId="rv_user_id" Label="Customer *" Required="true" Min="1" /></div>
-                    <div class="field"><ErpMasterPicker Kind="account" FieldName="account_id" InputId="rv_account_id" Label="Receipt bank/cash account *" Required="true" Min="1" /></div>
-                    <div class="field"><label for="rv_amount">Amount *</label><input id="rv_amount" type="number" name="amount" min="0.01" step="0.01" required /></div>
-                    <div class="field"><label for="rv_sales_order_id">Sales order id</label><input id="rv_sales_order_id" type="number" name="sales_order_id" min="1" /></div>
-                    <div class="field"><label for="rv_sales_invoice_id">Sales invoice id</label><input id="rv_sales_invoice_id" type="number" name="sales_invoice_id" min="1" /></div>
+                    <ErpVoucherHeaderFields DateLabel="Receipt date" NumberLabel="Receipt no" NumberPreview="Auto" DateValue="@_rvDate" />
+                    <div class="field"><ErpMasterPicker Kind="customer" FieldName="user_id" InputId="rv_user_id" Label="Customer *" Required="true" Min="1" Value="_rvUser" /></div>
+                    <div class="field"><ErpMasterPicker Kind="account" FieldName="account_id" InputId="rv_account_id" Label="Receipt bank/cash account *" Required="true" Min="1" Value="_rvAccount" /></div>
+                    <div class="field"><label for="rv_amount">Amount *</label><input id="rv_amount" type="number" name="amount" min="0.01" step="0.01" required value="@_rvAmount" /></div>
+                    <div class="field"><label for="rv_sales_order_id">Sales order id</label><input id="rv_sales_order_id" type="number" name="sales_order_id" min="1" value="@_rvOrder" /></div>
+                    <div class="field"><label for="rv_sales_invoice_id">Sales invoice id</label><input id="rv_sales_invoice_id" type="number" name="sales_invoice_id" min="1" value="@_rvInvoice" /></div>
                     <div class="field wide"><label>Invoice balance</label><div id="rv_invoice_balance_hint" style="font-size:12px;color:#475569;padding-top:6px;"></div></div>
                     <div class="field"><label for="rv_order_id">Order id</label><input id="rv_order_id" type="number" name="order_id" min="1" /></div>
-                    <div class="field wide"><label for="rv_note">Narration / note</label><input id="rv_note" type="text" name="note" maxlength="255" /></div>
+                    <div class="field wide"><label for="rv_note">Narration / note</label><input id="rv_note" type="text" name="note" maxlength="255" value="@_rvNote" /></div>
                     <div class="form-actions">
-                        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="is_advance" value="true" /> Advance receipt</label>
-                        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="auto_allocate" value="true" /> Auto-allocate open invoices</label>
+                        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="is_advance" value="true" checked="@_rvAdvance" /> Advance receipt</label>
+                        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="auto_allocate" value="true" checked="@_rvAllocate" /> Auto-allocate open invoices</label>
                         <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="post_gl" value="true" checked /> Post to GL</label>
                         <span style="flex:1;"></span>
                         <button type="reset" class="btn btn-sm btn-default">Clear</button>
@@ -83,20 +87,24 @@
             <div class="epc-fno-entry-body">
                 <h4 style="margin:0 0 .25rem;color:#1d2740;"><i class="fa fa-arrow-up" style="color:#b45309;"></i> Payment journal / payment voucher</h4>
                 <p class="text-muted" style="font-size:12px;margin:0 0 .8rem;">Supplier payment, advance payment, or bill settlement. Posted vouchers receive a PV sequence and remain auditable.</p>
+                @if (_voice == "payment")
+                {
+                    <div class="alert alert-info" role="status" style="margin:0 0 .8rem;">Voice filled this payment. Check the supplier, account, and amount, then press Validate and post. The voucher stays a draft until you do.</div>
+                }
                 <form method="post" action="@EcomAeRoutes.ErpCashEntriesPaymentVoucher" class="epc-fno-form">
                     <input type="hidden" name="confirmWrites" value="true" />
-                    <ErpVoucherHeaderFields DateLabel="Payment date" NumberLabel="Payment no" NumberPreview="Auto" />
-                    <div class="field"><ErpMasterPicker Kind="supplier" FieldName="supplier_id" InputId="pv_supplier_id" Label="Supplier *" Required="true" Min="1" /></div>
-                    <div class="field"><ErpMasterPicker Kind="account" FieldName="account_id" InputId="pv_account_id" Label="Payment bank/cash account *" Required="true" Min="1" /></div>
-                    <div class="field"><label for="pv_amount">Amount *</label><input id="pv_amount" type="number" name="amount" min="0.01" step="0.01" required /></div>
-                    <div class="field"><label for="pv_purchase_id">Purchase bill id</label><input id="pv_purchase_id" type="number" name="purchase_id" min="1" /></div>
-                    <div class="field"><label for="pv_purchase_order_id">Purchase order id</label><input id="pv_purchase_order_id" type="number" name="purchase_order_id" min="1" /></div>
+                    <ErpVoucherHeaderFields DateLabel="Payment date" NumberLabel="Payment no" NumberPreview="Auto" DateValue="@_pvDate" />
+                    <div class="field"><ErpMasterPicker Kind="supplier" FieldName="supplier_id" InputId="pv_supplier_id" Label="Supplier *" Required="true" Min="1" Value="_pvSupplier" /></div>
+                    <div class="field"><ErpMasterPicker Kind="account" FieldName="account_id" InputId="pv_account_id" Label="Payment bank/cash account *" Required="true" Min="1" Value="_pvAccount" /></div>
+                    <div class="field"><label for="pv_amount">Amount *</label><input id="pv_amount" type="number" name="amount" min="0.01" step="0.01" required value="@_pvAmount" /></div>
+                    <div class="field"><label for="pv_purchase_id">Purchase bill id</label><input id="pv_purchase_id" type="number" name="purchase_id" min="1" value="@_pvBill" /></div>
+                    <div class="field"><label for="pv_purchase_order_id">Purchase order id</label><input id="pv_purchase_order_id" type="number" name="purchase_order_id" min="1" value="@_pvPurchase" /></div>
                     <div class="field wide"><label>Bill balance</label><div id="pv_bill_balance_hint" style="font-size:12px;color:#475569;padding-top:6px;"></div></div>
                     <div class="field"><label for="pv_reference">Reference</label><input id="pv_reference" type="text" name="reference" maxlength="120" /></div>
-                    <div class="field wide"><label for="pv_note">Narration / note</label><input id="pv_note" type="text" name="note" maxlength="255" /></div>
+                    <div class="field wide"><label for="pv_note">Narration / note</label><input id="pv_note" type="text" name="note" maxlength="255" value="@_pvNote" /></div>
                     <div class="form-actions">
-                        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="is_advance" value="true" /> Advance payment</label>
-                        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="auto_allocate" value="true" /> Auto-allocate open bills</label>
+                        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="is_advance" value="true" checked="@_pvAdvance" /> Advance payment</label>
+                        <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="auto_allocate" value="true" checked="@_pvAllocate" /> Auto-allocate open bills</label>
                         <span style="flex:1;"></span>
                         <button type="reset" class="btn btn-sm btn-default">Clear</button>
                         <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-check"></i> Validate &amp; post PV</button>
@@ -295,6 +303,25 @@
     private string _source = "n/a";
     private string _message = "";
     private long _openedId;
+    private string _voice = "";
+    private long _rvUser;
+    private long _rvAccount;
+    private string _rvAmount = "";
+    private string _rvInvoice = "";
+    private string _rvOrder = "";
+    private string _rvNote = "";
+    private string _rvDate = "";
+    private bool _rvAdvance;
+    private bool _rvAllocate;
+    private long _pvSupplier;
+    private long _pvAccount;
+    private string _pvAmount = "";
+    private string _pvBill = "";
+    private string _pvPurchase = "";
+    private string _pvNote = "";
+    private string _pvDate = "";
+    private bool _pvAdvance;
+    private bool _pvAllocate;
     private ErpCashEntryDigest? _openedEntry;
     private ErpCashEntryDetail? _openedDetail;
     private IReadOnlyList<ErpCashEntryDigest> _openedSiblings = [];
@@ -415,6 +442,7 @@
         }
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "entry_id");
+        ReadVoicePrefill(ctx.Request);
 
         _isAdmin = true;
         var result = await Dashboards.ListErpCashEntriesAsync(_accountId, _limit, ctx.RequestAborted);
@@ -444,6 +472,45 @@
         _source = result.Source;
         _message = result.Message;
     }
+
+    private void ReadVoicePrefill(HttpRequest request)
+    {
+        _voice = QueryText(request, "voice").ToLowerInvariant();
+        if (_voice == "receipt")
+        {
+            _rvUser = QueryLong(request, "rv_user");
+            _rvAccount = QueryLong(request, "rv_account");
+            _rvAmount = QueryText(request, "rv_amount");
+            _rvInvoice = QueryText(request, "rv_invoice");
+            _rvOrder = QueryText(request, "rv_order");
+            _rvNote = QueryText(request, "rv_note");
+            _rvDate = QueryText(request, "rv_date");
+            _rvAdvance = QueryText(request, "rv_advance") == "1";
+            _rvAllocate = QueryText(request, "rv_allocate") == "1";
+            return;
+        }
+
+        if (_voice == "payment")
+        {
+            _pvSupplier = QueryLong(request, "pv_supplier");
+            _pvAccount = QueryLong(request, "pv_account");
+            _pvAmount = QueryText(request, "pv_amount");
+            _pvBill = QueryText(request, "pv_bill");
+            _pvPurchase = QueryText(request, "pv_purchase");
+            _pvNote = QueryText(request, "pv_note");
+            _pvDate = QueryText(request, "pv_date");
+            _pvAdvance = QueryText(request, "pv_advance") == "1";
+            _pvAllocate = QueryText(request, "pv_allocate") == "1";
+        }
+    }
+
+    private static string QueryText(HttpRequest request, string key)
+        => request.Query.TryGetValue(key, out var raw) ? raw.ToString().Trim() : "";
+
+    private static long QueryLong(HttpRequest request, string key)
+        => long.TryParse(QueryText(request, key), NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) && value > 0
+            ? value
+            : 0;
 
     private static string FormatTime(long unix)
     {

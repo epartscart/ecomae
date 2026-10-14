@@ -1516,6 +1516,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpCustomShippingReportsExport, HandleCsReportsExportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsImportDeclarationPdf, HandleCsImportDeclarationPdfAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutList, HandleShortcutListAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxVoiceCommand, HandleVoiceCommandAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutAdd, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -22996,6 +22997,48 @@ public sealed class ErpModule : ISurfaceModule
         var r = await reads.BosAiAnswerAsync(AmlText(fields, "q", "question"), from, to, cancellationToken);
         return Results.Ok(new { ok = r.Ok, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = r.Ok ? "ok" : "failed", message = "ok", answer = r.Message, kind = r.Kind, data = r.Data, session = SessionPayload(session) });
     }
+
+    private static async Task<IResult> HandleVoiceCommandAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpMasterLookupReadService lookups,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Json(new { ok = false, say = "Sign in to use voice.", href = "" }, statusCode: StatusCodes.Status401Unauthorized);
+        }
+
+        string transcript;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            transcript = LiveWriteFormBinder.Text(form, "transcript", "question", "q");
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpVoiceCommandBody>(context, cancellationToken);
+            transcript = body?.Transcript ?? body?.Question ?? body?.Q ?? string.Empty;
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var plan = await new ErpVoicePrepareService(lookups).PrepareAsync(transcript, today, cancellationToken).ConfigureAwait(false);
+        var href = ClientErpPath.PrefixIfBound(context, plan.Href);
+        return Results.Json(new
+        {
+            ok = true,
+            intent = plan.Intent,
+            document = plan.Document,
+            say = plan.Say,
+            href,
+            ready = plan.Ready,
+            missing = plan.Missing,
+            slots = plan.Slots,
+        });
+    }
+
+    private sealed record ErpVoiceCommandBody(string? Transcript = null, string? Question = null, string? Q = null);
 
     private static async Task<IResult> HandleAiAssistantQueryAsync(
         HttpContext context,

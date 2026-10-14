@@ -1,0 +1,133 @@
+@namespace EcomAE.Platform.Components.Shared
+
+<div class="epc-voice" data-erp-voice data-erp-voice-ajax="@AjaxHref">
+    <button type="button" class="epc-voice__btn" data-erp-voice-mic aria-pressed="false">
+        <i class="fa fa-microphone" aria-hidden="true"></i> Voice
+    </button>
+    <div class="epc-voice__panel" hidden data-erp-voice-panel>
+        <label class="epc-voice__label" for="epc-voice-text">Speak, or type the same command</label>
+        <div class="epc-voice__row">
+            <input id="epc-voice-text" type="text" data-erp-voice-text maxlength="400" placeholder="Create a receipt voucher for customer Ahmed for 1500 from the main cash account" />
+            <button type="button" class="epc-voice__go" data-erp-voice-go>Prepare</button>
+        </div>
+        <p class="epc-voice__say" data-erp-voice-say>Try a receipt, a payment, a country sales report, or open any page by name. Voice fills the form. You press Validate and post.</p>
+        <a class="epc-voice__open" data-erp-voice-open hidden>Open the prepared page</a>
+    </div>
+</div>
+
+<style>
+    .epc-voice { position: relative; }
+    .epc-voice__btn { border: 1px solid #cbd5e1; background: #fff; border-radius: 999px; padding: .28rem .7rem; font-weight: 700; font-size: 13px; color: #1e3a8a; cursor: pointer; }
+    .epc-voice__btn[aria-pressed="true"] { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+    .epc-voice__panel { position: absolute; top: calc(100% + 6px); left: 0; width: min(420px, 78vw); background: #fff; border: 1px solid #dbe4ee; border-radius: 12px; box-shadow: 0 16px 40px rgba(15, 23, 42, .18); padding: .75rem; z-index: 10060; }
+    .epc-voice__label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: .35rem; }
+    .epc-voice__row { display: flex; gap: .4rem; }
+    .epc-voice__row input { flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; padding: .4rem .55rem; font-size: 13px; }
+    .epc-voice__go { border: 0; background: #1d4ed8; color: #fff; border-radius: 8px; padding: .4rem .7rem; font-weight: 700; cursor: pointer; }
+    .epc-voice__say { margin: .55rem 0 0; font-size: 13px; color: #1e293b; line-height: 1.4; }
+    .epc-voice__open { display: inline-block; margin-top: .45rem; font-weight: 700; }
+</style>
+
+<script>
+    (function () {
+        var root = document.querySelector("[data-erp-voice]");
+        if (!root || root.getAttribute("data-erp-voice-bound") === "1") return;
+        root.setAttribute("data-erp-voice-bound", "1");
+        var mic = root.querySelector("[data-erp-voice-mic]");
+        var panel = root.querySelector("[data-erp-voice-panel]");
+        var input = root.querySelector("[data-erp-voice-text]");
+        var go = root.querySelector("[data-erp-voice-go]");
+        var say = root.querySelector("[data-erp-voice-say]");
+        var open = root.querySelector("[data-erp-voice-open]");
+        var ajax = root.getAttribute("data-erp-voice-ajax") || "/erp/ajax/voice-command";
+        var Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        var hearing = null;
+
+        function show() { panel.hidden = false; }
+        mic.addEventListener("click", function () {
+            show();
+            if (!Rec) {
+                say.textContent = "This browser has no speech recognition. Type the command and press Prepare.";
+                input.focus();
+                return;
+            }
+            if (hearing) {
+                hearing.stop();
+                return;
+            }
+            hearing = new Rec();
+            hearing.lang = (navigator.language || "en-GB");
+            hearing.interimResults = false;
+            hearing.onresult = function (event) {
+                var text = "";
+                for (var i = 0; i < event.results.length; i++) text += event.results[i][0].transcript + " ";
+                input.value = text.trim();
+                prepare(input.value);
+            };
+            hearing.onerror = function () {
+                say.textContent = "The microphone did not catch that. Type the command and press Prepare.";
+            };
+            hearing.onend = function () {
+                hearing = null;
+                mic.setAttribute("aria-pressed", "false");
+            };
+            mic.setAttribute("aria-pressed", "true");
+            say.textContent = "Listening…";
+            hearing.start();
+        });
+        go.addEventListener("click", function () { prepare(input.value); });
+        input.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") { event.preventDefault(); prepare(input.value); }
+        });
+        document.addEventListener("click", function (event) {
+            if (!root.contains(event.target)) panel.hidden = true;
+        });
+
+        function safeHref(href) {
+            if (typeof href !== "string") return "";
+            if (href.indexOf("/erp") === 0 || href.indexOf("/cp/client-erp/") === 0) return href;
+            return "";
+        }
+
+        function prepare(text) {
+            var spoken = (text || "").trim();
+            if (!spoken) {
+                say.textContent = "Say or type a command first.";
+                show();
+                return;
+            }
+            say.textContent = "Preparing…";
+            show();
+            fetch(ajax, {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                body: JSON.stringify({ transcript: spoken })
+            }).then(function (response) {
+                return response.json().then(function (body) { return { ok: response.ok, body: body }; });
+            }).then(function (result) {
+                var body = result.body || {};
+                say.textContent = body.say || body.message || "I could not prepare that.";
+                var href = safeHref(body.href);
+                if (href) {
+                    open.hidden = false;
+                    open.href = href;
+                    open.textContent = body.ready ? "Open the filled form" : "Open the page";
+                    if (window.speechSynthesis && body.say) {
+                        window.speechSynthesis.cancel();
+                        window.speechSynthesis.speak(new SpeechSynthesisUtterance(body.say));
+                    }
+                    if (body.ready) window.location.assign(href);
+                } else {
+                    open.hidden = true;
+                }
+            }).catch(function () {
+                say.textContent = "The command did not reach the server. Try again.";
+            });
+        }
+    })();
+</script>
+
+@code {
+    [Parameter] public string AjaxHref { get; set; } = "/erp/ajax/voice-command";
+}

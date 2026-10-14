@@ -18,6 +18,17 @@
         <label style="margin-left:8px;">To <input class="form-control input-sm" type="date" name="to" value="@_to" /></label>
         <label style="margin-left:8px;">Customer <input class="form-control input-sm" name="customer" value="@_customer" placeholder="Name" /></label>
         <label style="margin-left:8px;">Item <input class="form-control input-sm" name="item" value="@_item" placeholder="SKU or description" /></label>
+        <label style="margin-left:8px;">Country <input class="form-control input-sm" name="country" value="@_country" placeholder="UAE or AE" /></label>
+        <label style="margin-left:8px;">Detail
+            <select class="form-control input-sm" name="detail">
+                <option value="all" selected="@(_detail == "all")">Summary, customer, item, and lines</option>
+                <option value="summary" selected="@(_detail == "summary")">Summary totals</option>
+                <option value="customer" selected="@(_detail == "customer")">By customer</option>
+                <option value="item" selected="@(_detail == "item")">By item</option>
+                <option value="month" selected="@(_detail == "month")">By month</option>
+                <option value="lines" selected="@(_detail == "lines")">Line by line</option>
+            </select>
+        </label>
         <button type="submit" class="btn btn-default btn-sm" style="margin-left:8px;">Filter</button>
     </form>
 
@@ -42,11 +53,25 @@
     }
     else
     {
-        <div class="epc-profit-cols">
-            @GroupCard("By customer", _report.ByCustomer)
-            @GroupCard("By item", _report.ByItem)
-            @GroupCard("By month", _report.ByMonth)
-        </div>
+        @if (_detail is "all" or "customer" or "item" or "month")
+        {
+            <div class="epc-profit-cols">
+                @if (_detail is "all" or "customer")
+                {
+                    @GroupCard("By customer", _report.ByCustomer)
+                }
+                @if (_detail is "all" or "item")
+                {
+                    @GroupCard("By item", _report.ByItem)
+                }
+                @if (_detail is "all" or "month")
+                {
+                    @GroupCard("By month", _report.ByMonth)
+                }
+            </div>
+        }
+        @if (_detail is "all" or "lines")
+        {
         <div class="epc-erp-table-wrap">
             <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
                 <thead>
@@ -78,6 +103,7 @@
         @if (_report.LineCount > 100)
         {
             <p class="text-muted">Showing 100 of @_report.LineCount.ToString(CultureInfo.InvariantCulture) lines. The totals include every line in the filter.</p>
+        }
         }
     }
 
@@ -122,6 +148,8 @@
     private string _to = "";
     private string _customer = "";
     private string _item = "";
+    private string _country = "";
+    private string _detail = "all";
     private string _message = "";
     private ErpSalesProfitability.Report _report = ErpSalesProfitability.Summarize([]);
     private PowerBiEmbedResolution _embed = PowerBiCatalog.ResolveEmbed(false, "none", "");
@@ -139,6 +167,8 @@
         _to = DateOr(ctx.Request.Query["to"].ToString(), today);
         _customer = ctx.Request.Query["customer"].ToString().Trim();
         _item = ctx.Request.Query["item"].ToString().Trim();
+        _country = ctx.Request.Query["country"].ToString().Trim();
+        _detail = NormalizeDetail(ctx.Request.Query["detail"].ToString());
         var tab = ctx.Request.Query["tab"].ToString();
         _tab = ErpSalesProfitability.IsProfitabilityTab(tab) ? tab : ErpSalesProfitability.Tab;
         _action = ctx.Request.Path.Value ?? _action;
@@ -161,7 +191,8 @@
                 DateOnly.Parse(_to, CultureInfo.InvariantCulture),
                 _customer,
                 _item,
-                ctx.RequestAborted);
+                ctx.RequestAborted,
+                string.IsNullOrWhiteSpace(_country) ? null : _country);
         }
         catch (System.Data.Common.DbException)
         {
@@ -187,6 +218,12 @@
             }
         </article>
     };
+
+    private static string NormalizeDetail(string raw)
+    {
+        var value = raw.Trim().ToLowerInvariant();
+        return value is "summary" or "customer" or "item" or "month" or "lines" ? value : "all";
+    }
 
     private static string DateOr(string raw, DateOnly fallback)
         => DateOnly.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)

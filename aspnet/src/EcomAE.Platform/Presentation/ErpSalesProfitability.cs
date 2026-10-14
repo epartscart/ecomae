@@ -103,7 +103,8 @@ public static class ErpSalesProfitability
         DateOnly to,
         string? customer,
         string? item,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? country = null)
     {
         var start = new DateTimeOffset(from.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero).ToUnixTimeSeconds();
         var end = new DateTimeOffset(to.AddDays(1).ToDateTime(TimeOnly.MinValue), TimeSpan.Zero).ToUnixTimeSeconds();
@@ -135,6 +136,31 @@ public static class ErpSalesProfitability
             }
         }
 
+        var note = "Posted sales that are confirmed or invoiced. Cost is quantity times the item's average on-hand unit cost. Draft and cancelled orders are left out.";
+        if (!string.IsNullOrWhiteSpace(country))
+        {
+            var allowed = await CustomerIdsForCountryAsync(
+                connection,
+                raw.Select(row => row.CustomerId).Distinct().Where(id => id > 0).ToList(),
+                country,
+                cancellationToken).ConfigureAwait(false);
+            var label = ErpVoiceInterpreter.CountryLabel(ErpVoiceInterpreter.CountryCode(country));
+            if (label.Length == 0)
+            {
+                label = country.Trim();
+            }
+
+            if (allowed is null)
+            {
+                note += " Customer country is not on file yet, so this report includes every country in the period.";
+            }
+            else
+            {
+                raw = raw.Where(row => allowed.Contains(row.CustomerId)).ToList();
+                note += " Limited to customers in " + label + ".";
+            }
+        }
+
         var names = await CustomerNamesAsync(connection, raw.Select(row => row.CustomerId).Distinct().Where(id => id > 0).ToList(), cancellationToken).ConfigureAwait(false);
         var costs = await UnitCostsAsync(connection, cancellationToken).ConfigureAwait(false);
         var lines = new List<Line>(raw.Count);
@@ -153,9 +179,48 @@ public static class ErpSalesProfitability
             lines.Add(Make(when, name, row.Item, row.Description, row.Qty, row.Revenue, unitCost));
         }
 
-        return Summarize(
-            Filter(lines, customer, item),
-            "Posted sales that are confirmed or invoiced. Cost is quantity times the item's average on-hand unit cost. Draft and cancelled orders are left out.");
+        return Summarize(Filter(lines, customer, item), note);
+    }
+
+    private static async Task<HashSet<long>?> CustomerIdsForCountryAsync(
+        DbConnection connection,
+        IReadOnlyList<long> ids,
+        string country,
+        CancellationToken cancellationToken)
+    {
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        if (!await TableExistsAsync(connection, "users_profiles", cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        var allowed = new HashSet<long>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT `user_id`, `data_value` FROM `users_profiles` WHERE `data_key` = 'epc_reg_country' AND `user_id` IN ("
+            + string.Join(",", ids.Select(id => id.ToString(CultureInfo.InvariantCulture))) + ")";
+        try
+        {
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var id = Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture);
+                var stored = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                if (ErpVoiceInterpreter.CountryMatches(stored, country))
+                {
+                    allowed.Add(id);
+                }
+            }
+        }
+        catch (DbException)
+        {
+            return null;
+        }
+
+        return allowed;
     }
 
     private static List<Group> GroupBy(IReadOnlyList<Line> lines, Func<Line, string> key, Func<Line, string> label)

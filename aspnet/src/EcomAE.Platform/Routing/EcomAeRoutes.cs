@@ -1969,6 +1969,8 @@ public static class EcomAeRoutes
     public const string ErpAjaxShortcutList = "/erp/ajax/shortcut-list";
     /// <summary>PHP shortcut_add. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutAdd = "/erp/ajax/shortcut-add";
+    /// <summary>Spoken or typed ERP command. Prepares a form or opens a page. Does not post vouchers.</summary>
+    public const string ErpAjaxVoiceCommand = "/erp/ajax/voice-command";
     /// <summary>PHP shortcut_delete. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutDelete = "/erp/ajax/shortcut-delete";
     /// <summary>PHP shortcut_delete_key. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
