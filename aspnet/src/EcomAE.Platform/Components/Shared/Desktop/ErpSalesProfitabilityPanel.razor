@@ -11,6 +11,7 @@
 @inject ICpPowerBiService PowerBi
 
 <section class="epc-profit" aria-label="Sales profitability performance">
+    <ErpManualProcessStrip Keys="profitability" />
     <form method="get" action="@_action" class="form-inline" style="margin:0 0 12px;">
         <input type="hidden" name="tab" value="@_tab" />
         <label>From <input class="form-control input-sm" type="date" name="from" value="@_from" /></label>

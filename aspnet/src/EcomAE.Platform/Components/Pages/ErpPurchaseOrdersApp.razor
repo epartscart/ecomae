@@ -22,6 +22,7 @@
     }
 
     <PhpErpModulePageHeader Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" Subtitle="@(_barcodePurchase ? "In jewellery, the barcode is the purchase — cost, margin, and salesman at barcode level." : "LPO → PO → PI. Approve the PO, then invoice it. Official print preview opens after the document is posted.")" PhpTabHref="@_phpTab" />
+    <ErpManualProcessStrip Keys="purchase" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/purchase-orders-app" />
     @if (_follow.HasValues)
     {
