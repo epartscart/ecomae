@@ -79,6 +79,10 @@
             {
                 <ErpSalesProfitabilityPanel />
             }
+            else if (ErpCustomerAr.IsInquiryTab(_page.Tab))
+            {
+                <ErpCustomerArPanel />
+            }
             else
             {
             <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Workspace KPIs">

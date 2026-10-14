@@ -20,7 +20,11 @@
                             PhpTabHref="@_phpTab">
         <a class="btn btn-sm btn-default" href="/erp/invoices-app">Invoices</a>
         <a class="btn btn-sm btn-default" href="/erp/aging-app">Aging</a>
+        <a class="btn btn-sm btn-default" href="/erp/receivables-app?view=balance">Balance list</a>
+        <a class="btn btn-sm btn-default" href="/erp/receivables-app?view=statement">Statement</a>
+        <a class="btn btn-sm btn-default" href="/erp/receivables-app?view=open">Settle invoices</a>
     </PhpErpModulePageHeader>
+    <ErpCustomerArPanel />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedRow is not null)" Caption="@OpenedCaption" ListHref="/erp/receivables-app" />
 

@@ -210,7 +210,7 @@ public static class ErpD365Part1Catalog
         yield return P(a, "ar_customers_underage", "Customer underage", "Customers", "Customers whose credit used is below the limit warning.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-info-circle");
         yield return P(a, "ar_free_text_invoices", "Free text invoices", "Invoices", "Invoices that are not created from a sales order.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/invoices-app", "fa-file-text-o");
         yield return P(a, "ar_free_text_assigned", "Free text invoices assigned to me", "Invoices", "Free text invoices waiting on this worker.", ErpD365Part3Catalog.FormKind.Queue, app, icon: "fa-user");
-        yield return P(a, "ar_open_invoices", "Open customer invoices", "Invoices", "Unsettled customer invoices still on the receivables ledger.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/receivables-app", "fa-folder-open-o");
+        yield return P(a, "ar_open_invoices", "Open customer invoices", "Invoices", "Unsettled customer invoices still on the receivables ledger.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/receivables-app?view=open", "fa-folder-open-o");
         yield return P(a, "ar_invoices_past_due", "Customer invoices past due", "Invoices", "Open customer invoices whose due date has passed.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/aging-app?tab=ar", "fa-exclamation-triangle");
         yield return P(a, "ar_invoices_due_today", "Customer invoices due today", "Invoices", "Open customer invoices due on the session date.", ErpD365Part3Catalog.FormKind.Order, app, icon: "fa-calendar");
         yield return P(a, "ar_recurring_invoices", "Recurring invoices", "Invoices", "Recurring free-text invoice schedules.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-repeat");
@@ -223,7 +223,7 @@ public static class ErpD365Part1Catalog
         yield return P(a, "ar_ic_sales_orders", "Intercompany sales orders", "Orders", "Sales orders between legal entities.", ErpD365Part3Catalog.FormKind.Order, app, icon: "fa-exchange");
         yield return P(a, "ar_orders_not_invoiced", "Sales orders not invoiced", "Orders", "Delivered orders still waiting for an invoice.", ErpD365Part3Catalog.FormKind.Order, app, icon: "fa-file-o");
         yield return P(a, "ar_delivery_note_asap", "Delivery note ASAP", "Orders", "Delivery notes ready to invoice.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/delivery-notes-app", "fa-truck");
-        yield return P(a, "ar_payment_journal", "Customer payment journal", "Payments", "Register and settle customer payments.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/receivables-app", "fa-money");
+        yield return P(a, "ar_payment_journal", "Customer payment journal", "Payments", "Register and settle customer payments.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/receivables-app?view=open", "fa-money");
         yield return P(a, "ar_payments_assigned", "Payment journal assigned to me", "Payments", "Payment journals waiting on this worker.", ErpD365Part3Catalog.FormKind.Queue, app, icon: "fa-user");
         yield return P(a, "ar_payment_proposal", "Customer payment proposal", "Payments", "Propose settlements from open invoices and remittances.", ErpD365Part3Catalog.FormKind.Action, app, icon: "fa-list");
         yield return P(a, "ar_settled_invoices", "Settled invoices", "Payments", "Customer invoices already settled by a payment.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-check-circle");
