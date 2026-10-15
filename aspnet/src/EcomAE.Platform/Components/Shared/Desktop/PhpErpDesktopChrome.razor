@@ -99,6 +99,8 @@
     .epc-erp-global-search__label { position:absolute; left:.7rem; top:50%; transform:translateY(-50%); color:#64748b !important; pointer-events:none; }
     .epc-erp-global-search__input { width:100%; height:2.15rem; padding:.35rem .7rem .35rem 2rem; border:1px solid #cbd5e1; border-radius:.4rem; background:#fff !important; color:#0f172a !important; caret-color:#0f172a; font:inherit; -webkit-text-fill-color:#0f172a; }
     .epc-erp-global-search__input::placeholder { color:#64748b !important; opacity:1; -webkit-text-fill-color:#64748b; }
+    @@keyframes epc-search-autofill { from { opacity:1; } to { opacity:1; } }
+    .epc-erp-global-search__input:-webkit-autofill { animation-name:epc-search-autofill; animation-duration:.01s; -webkit-box-shadow:0 0 0 1000px #fff inset !important; box-shadow:0 0 0 1000px #fff inset !important; -webkit-text-fill-color:#0f172a !important; }
     .epc-erp-cp-shell:has(.ns-dash) .epc-module-visual-frame,
     .epc-erp-cp-shell:has(.ns-dash) .epc-op-context,
     .epc-erp-cp-shell:has(.ns-dash) .epc-dash-repeat,
@@ -195,7 +197,7 @@
                     <div class="epc-erp-fav__panel" hidden data-epc-fav-panel>
                         @if (_favs.Count > 4)
                         {
-                            <input type="search" class="epc-erp-fav__filter" data-epc-fav-filter placeholder="Find a favourite" aria-label="Find a favourite" />
+                            <input type="search" class="epc-erp-fav__filter" name="erp_favourite_filter" value="" placeholder="Find a favourite" aria-label="Find a favourite" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" readonly="readonly" data-epc-fav-filter data-epc-anti-autofill="1" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" />
                         }
                         @if (_favs.Count == 0)
                         {
