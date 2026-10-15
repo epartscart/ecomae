@@ -144,6 +144,46 @@ public static class ClientErpPath
             || bare.Equals("/erp/super-mail-app", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// Platform ERP home. Nginx serves <c>/erp</c> as <c>/erp/app</c>.
+    /// Opening that address stays the platform workspace.
+    /// </summary>
+    public static bool IsPlatformErpEntry(string? path)
+    {
+        var bare = NormalizeRequestPath(path);
+        return bare.Equals("/erp", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/erp/app", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// True when the browser came from the same company ERP page.
+    /// A typed address, bookmark, or Control Panel link is not that.
+    /// </summary>
+    public static bool RefererKeepsCompany(HttpRequest? request, string siteKey)
+    {
+        var key = NormalizeSiteKey(siteKey);
+        if (request is null || key.Length == 0)
+        {
+            return false;
+        }
+
+        var raw = request.Headers.Referer.ToString();
+        if (!Uri.TryCreate(raw, UriKind.Absolute, out var uri))
+        {
+            return false;
+        }
+
+        var host = request.Host.Host;
+        if (!host.Equals(uri.Host, StringComparison.OrdinalIgnoreCase)
+            && !(PlatformHostPolicy.IsSuperCpHost(host) && PlatformHostPolicy.IsSuperCpHost(uri.Host)))
+        {
+            return false;
+        }
+
+        return TryParse(uri.AbsolutePath, out var parsed)
+            && string.Equals(parsed.SiteKey, key, StringComparison.Ordinal);
+    }
+
     /// <summary>Logout must run on the first hop — never cookie-redirect it away.</summary>
     public static bool IsLogoutPath(string? path)
     {
