@@ -1200,6 +1200,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutBoqReadService, EcomAE.
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutFinanceOperationsReportReadService, EcomAE.Platform.Erp.ErpFitOutFinanceOperationsReportReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRealEstateWriteService, EcomAE.Platform.Erp.ErpRealEstateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpLandlordBook, EcomAE.Platform.Erp.ErpLandlordBookService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTenancyExpiryMail, EcomAE.Platform.Erp.ErpTenancyExpiryMailService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRealEstateReadService, EcomAE.Platform.Erp.ErpRealEstateReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsDocDeleteWriteService, EcomAE.Platform.Erp.ErpInsDocDeleteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFyWriteService, EcomAE.Platform.Erp.ErpFyWriteService>();
