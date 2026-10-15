@@ -24,7 +24,8 @@ public sealed record ErpTenancyLeaseFact(
     string TenantEmail,
     string NoticeEmails,
     string PropertyName,
-    string UnitCode);
+    string UnitCode,
+    long TenantId = 0);
 
 public sealed record ErpTenancyExpiryDraft(
     long LeaseId,
@@ -55,7 +56,8 @@ public sealed record ErpTenancyExpiryNotice(
     string PropertyName,
     string UnitCode,
     bool Customized,
-    IReadOnlyList<ErpTenancyExpiryReply> Replies);
+    IReadOnlyList<ErpTenancyExpiryReply> Replies,
+    long TenantId = 0);
 
 public sealed record ErpTenancyExpiryWatch(
     long LeaseId,
@@ -65,14 +67,17 @@ public sealed record ErpTenancyExpiryWatch(
     string UnitCode,
     DateOnly EndDate,
     DateOnly DueOn,
-    ErpTenancyExpiryWindow Window);
+    ErpTenancyExpiryWindow Window,
+    long TenantId = 0);
 
 public sealed record ErpTenancyExpiryBook(
     ErpTenancyExpiryTemplate Template,
     IReadOnlyList<ErpTenancyExpiryNotice> Notices,
     IReadOnlyList<ErpTenancyExpiryWatch> Waiting,
     IReadOnlyList<ErpTenancyExpiryWatch> Ended,
-    string Message)
+    string Message,
+    IReadOnlyList<ErpTenancyExpiryDocument>? Documents = null,
+    IReadOnlyList<ErpTenancyExpiryFileLink>? Links = null)
 {
     public static ErpTenancyExpiryBook Empty(string message)
         => new(ErpTenancyExpiryMail.DefaultTemplate, [], [], [], message);

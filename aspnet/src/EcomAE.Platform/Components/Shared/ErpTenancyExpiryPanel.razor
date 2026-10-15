@@ -1,9 +1,10 @@
 @using System.Globalization
+@using System.Linq
 @using EcomAE.Platform.Erp
 
 <section id="expiry-mail">
     <h3>Tenancy expiry email</h3>
-    <p class="text-muted">Three months before a tenancy ends, this page prepares an email from the draft. A tenant can have more than one address. List every landlord address that should receive the reply. Each reply is filed on the notice, one sender at a time. Automatic send stays off until you turn it on, and nothing is mailed while the company mail server is off. Tenancies that are not on file are not invented.</p>
+    <p class="text-muted">Three months before a tenancy ends, this page prepares an email from the draft. A tenant can have more than one address. List every landlord address that should receive the reply. Attach that tenant's documents one at a time. Each file stays on the tenant, and an open notice carries the files you add to it. Each reply is filed on the notice, one sender at a time. Automatic send stays off until you turn it on, and nothing is mailed while the company mail server is off. Tenancies that are not on file are not invented.</p>
     @if (!string.IsNullOrWhiteSpace(Note))
     {
         <p>@Note</p>
@@ -87,6 +88,38 @@
                 <p>Reply goes to: @(string.IsNullOrWhiteSpace(notice.ReplyEmails) ? "The sending mailbox" : notice.ReplyEmails)</p>
                 <p><strong>@notice.Subject</strong></p>
                 <pre style="white-space:pre-wrap">@notice.Body</pre>
+                <p><strong>Documents on this notice</strong></p>
+                @foreach (var document in TenantDocuments(notice.TenantId))
+                {
+                    var onNotice = OnNotice(notice.Id, document.Id);
+                    <div class="re-filter">
+                        <span>@ErpTenancyDocumentFiles.TypeLabel(document.DocType) @document.Title <a href="@DocumentHref(document.Id)">@document.FileName</a>@(onNotice ? " · on this email" : "")</span>
+                        @if (!onNotice && ErpTenancyExpiryMail.CanSend(notice.Status))
+                        {
+                            <form method="post" action="@SaveAction" class="re-filter">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+                                <input type="hidden" name="action" value="include_expiry_document" />
+                                <input type="hidden" name="id" value="@notice.Id.ToString(CultureInfo.InvariantCulture)" />
+                                <input type="hidden" name="documentId" value="@document.Id.ToString(CultureInfo.InvariantCulture)" />
+                                @Filter
+                                <button type="submit" class="btn btn-default btn-sm">Add to this email</button>
+                            </form>
+                        }
+                        <form method="post" action="@SaveAction" class="re-filter">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+                            <input type="hidden" name="action" value="remove_tenant_document" />
+                            <input type="hidden" name="documentId" value="@document.Id.ToString(CultureInfo.InvariantCulture)" />
+                            @Filter
+                            <button type="submit" class="btn btn-default btn-sm">Remove</button>
+                        </form>
+                    </div>
+                }
+                @if (notice.TenantId > 0)
+                {
+                    @AttachForm(notice.TenantId, notice.Id)
+                }
                 @if (notice.Replies.Count > 0)
                 {
                     <p><strong>Replies</strong></p>
@@ -173,6 +206,12 @@
                 </tbody>
             </table>
         </div>
+        @foreach (var row in Book.Waiting.Where(row => row.TenantId > 0).GroupBy(row => row.TenantId).Select(group => group.First()))
+        {
+            <p><strong>@row.TenantName documents</strong></p>
+            @DocumentList(row.TenantId)
+            @AttachForm(row.TenantId, 0)
+        }
     }
 
     @if (Book.Ended.Count > 0)
@@ -202,6 +241,65 @@
     [Parameter] public int Year { get; set; }
     [Parameter] public long PropertyId { get; set; }
     [Parameter] public long UnitId { get; set; }
+
+    private IEnumerable<ErpTenancyExpiryDocument> TenantDocuments(long tenantId)
+        => (Book.Documents ?? []).Where(document => document.TenantId == tenantId);
+
+    private bool OnNotice(long noticeId, long documentId)
+        => (Book.Links ?? []).Any(link => link.NoticeId == noticeId && link.DocumentId == documentId);
+
+    private string DocumentHref(long id)
+    {
+        var action = SaveAction ?? "";
+        const string marker = "/erp/landlord/save";
+        var index = action.IndexOf(marker, StringComparison.Ordinal);
+        var href = index < 0 ? "/erp/landlord/document" : action[..index] + "/erp/landlord/document";
+        return href + "?id=" + id.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private RenderFragment DocumentList(long tenantId) => @<text>
+        @foreach (var document in TenantDocuments(tenantId))
+        {
+            <div class="re-filter">
+                <span>@ErpTenancyDocumentFiles.TypeLabel(document.DocType) @document.Title <a href="@DocumentHref(document.Id)">@document.FileName</a></span>
+                <form method="post" action="@SaveAction" class="re-filter">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+                    <input type="hidden" name="action" value="remove_tenant_document" />
+                    <input type="hidden" name="documentId" value="@document.Id.ToString(CultureInfo.InvariantCulture)" />
+                    @Filter
+                    <button type="submit" class="btn btn-default btn-sm">Remove</button>
+                </form>
+            </div>
+        }
+    </text>;
+
+    private RenderFragment AttachForm(long tenantId, long noticeId) => @<text>
+        <form method="post" action="@SaveAction" enctype="multipart/form-data">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+            <input type="hidden" name="action" value="@(noticeId > 0 ? "attach_expiry_document" : "attach_tenant_document")" />
+            @if (noticeId > 0)
+            {
+                <input type="hidden" name="id" value="@noticeId.ToString(CultureInfo.InvariantCulture)" />
+            }
+            <input type="hidden" name="tenantId" value="@tenantId.ToString(CultureInfo.InvariantCulture)" />
+            @Filter
+            <label>Document name <input class="form-control input-sm" type="text" name="title" maxlength="190" /></label>
+            <label>Kind
+                <select class="form-control input-sm" name="docType">
+                    <option value="emirates_id">Emirates ID</option>
+                    <option value="passport">Passport</option>
+                    <option value="visa">Visa</option>
+                    <option value="ejari">Ejari</option>
+                    <option value="contract">Tenancy contract</option>
+                    <option value="other">Other</option>
+                </select>
+            </label>
+            <label>One file <input class="form-control input-sm" type="file" name="document" accept=".pdf,.jpg,.jpeg,.png,.webp" required /></label>
+            <button type="submit" class="btn btn-default btn-sm">Attach this document</button>
+        </form>
+    </text>;
 
     private RenderFragment Filter => @<text>
         <input type="hidden" name="filterYear" value="@Year.ToString(CultureInfo.InvariantCulture)" />

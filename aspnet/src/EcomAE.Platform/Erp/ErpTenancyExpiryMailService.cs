@@ -22,6 +22,16 @@ public interface IErpTenancyExpiryMail
     Task<ErpSimpleWriteResult> SkipAsync(long noticeId, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> FileReplyAsync(long noticeId, string fromEmail, string body, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> AttachToNoticeAsync(long noticeId, string title, string docType, Microsoft.AspNetCore.Http.IFormFile? file, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> AttachToTenantAsync(long tenantId, string title, string docType, Microsoft.AspNetCore.Http.IFormFile? file, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> IncludeOnNoticeAsync(long noticeId, long documentId, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> RemoveDocumentAsync(long documentId, CancellationToken cancellationToken = default);
+
+    Task<ErpTenancyDocumentOpen?> OpenAsync(long documentId, CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
@@ -69,7 +79,15 @@ public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
 
         waiting.Sort((left, right) => left.EndDate.CompareTo(right.EndDate));
         ended.Sort((left, right) => right.EndDate.CompareTo(left.EndDate));
-        return new ErpTenancyExpiryBook(template, notices, waiting, ended, "");
+        var tenantIds = notices.Select(notice => notice.TenantId)
+            .Concat(waiting.Select(row => row.TenantId))
+            .Concat(ended.Select(row => row.TenantId))
+            .Where(id => id > 0)
+            .Distinct()
+            .ToArray();
+        var documents = await DocumentsAsync(connection, tenantIds, cancellationToken).ConfigureAwait(false);
+        var links = await LinksAsync(connection, notices.Select(notice => notice.Id).ToArray(), cancellationToken).ConfigureAwait(false);
+        return new ErpTenancyExpiryBook(template, notices, waiting, ended, "", documents, links);
     }
 
     public async Task<ErpSimpleWriteResult> SaveTemplateAsync(ErpTenancyExpiryTemplate template, CancellationToken cancellationToken = default)
@@ -237,6 +255,19 @@ public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
         }
 
         var reply = ErpTenancyExpiryMail.Join(ErpTenancyExpiryMail.Addresses(notice.ReplyEmails));
+        var files = await DocumentFilesAsync(connection, noticeId, cancellationToken).ConfigureAwait(false);
+        foreach (var file in files)
+        {
+            if (!File.Exists(file.Path))
+            {
+                var missing = "The document " + file.Name + " is not in storage, so the notice was not sent.";
+                await ErpDb.ExecuteAsync(connection, null, ErpDb.Positional(
+                    "UPDATE `epc_erp_re_expiry_notices` SET `status`='failed', `send_error`=? WHERE `id`=? AND `status` IN ('ready','failed')"),
+                    cancellationToken, missing, noticeId).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("attachment_missing", missing);
+            }
+        }
+
         var sent = await _mail.SendAsync(new Cp.CpTenantEmailMessage(
             ErpTenancyExpiryMail.Join(to),
             notice.Subject,
@@ -244,7 +275,8 @@ public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
             null,
             null,
             reply,
-            reply), cancellationToken).ConfigureAwait(false);
+            reply,
+            files.Count == 0 ? null : files.Select(file => new Cp.CpTenantEmailAttachment(file.Path, file.Name)).ToArray()), cancellationToken).ConfigureAwait(false);
         if (!sent.Succeeded)
         {
             var error = ErpTenancyExpiryMail.SendFailure(sent.Code, sent.Message);
@@ -258,7 +290,8 @@ public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
             "UPDATE `epc_erp_re_expiry_notices` SET `status`='sent', `sent_at`=?, `send_error`='' WHERE `id`=?"),
             cancellationToken, ErpTenancyExpiryMail.GulfStamp(DateTime.UtcNow), noticeId).ConfigureAwait(false);
         var where = reply.Length == 0 ? "the sending mailbox" : reply;
-        return ErpSimpleWriteResult.Ok("Notice sent to " + ErpTenancyExpiryMail.Join(to) + ". A reply goes to " + where + ".", noticeId);
+        var attached = files.Count == 0 ? "" : " " + files.Count.ToString(CultureInfo.InvariantCulture) + (files.Count == 1 ? " document is attached." : " documents are attached.");
+        return ErpSimpleWriteResult.Ok("Notice sent to " + ErpTenancyExpiryMail.Join(to) + ". A reply goes to " + where + "." + attached, noticeId);
     }
 
     public async Task<ErpSimpleWriteResult> UpdateNoticeAsync(
@@ -387,6 +420,205 @@ public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
         }, cancellationToken).ConfigureAwait(false);
     }
 
+    public Task<ErpSimpleWriteResult> AttachToNoticeAsync(
+        long noticeId, string title, string docType, Microsoft.AspNetCore.Http.IFormFile? file, CancellationToken cancellationToken = default)
+    {
+        string? written = null;
+        return FinishAttachAsync(WriteAsync(async (connection, tx, ct) =>
+        {
+            if (noticeId <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Choose the notice.");
+            }
+
+            var tenantId = await ErpDb.LongAsync(connection, tx, ErpDb.Positional(
+                "SELECT IFNULL(l.`tenant_id`,0) FROM `epc_erp_re_expiry_notices` n JOIN `epc_erp_re_leases` l ON l.`id`=n.`lease_id` WHERE n.`id`=? LIMIT 1"),
+                ct, noticeId).ConfigureAwait(false);
+            if (tenantId <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "That notice has no tenant.");
+            }
+
+            var saved = await StoreDocumentAsync(connection, tx, tenantId, title, docType, file, ct).ConfigureAwait(false);
+            written = saved.Path;
+            if (!saved.Result.Succeeded)
+            {
+                return saved.Result;
+            }
+
+            var status = await ErpDb.StringAsync(connection, tx, ErpDb.Positional(
+                "SELECT `status` FROM `epc_erp_re_expiry_notices` WHERE `id`=? LIMIT 1"),
+                ct, noticeId).ConfigureAwait(false);
+            if (status is "ready" or "failed" or "needs_email")
+            {
+                await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                    "INSERT IGNORE INTO `epc_erp_re_expiry_files` (`notice_id`,`document_id`,`created_at`) VALUES (?,?,?)"),
+                    ct, noticeId, saved.Result.Id, ErpTenancyExpiryMail.GulfStamp(DateTime.UtcNow)).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Ok("Attached " + saved.Result.Message + " to this tenant and this notice.", saved.Result.Id);
+            }
+
+            return ErpSimpleWriteResult.Ok("Saved " + saved.Result.Message + " on this tenant. This notice was already sent, so the file stays with the tenant.", saved.Result.Id);
+        }, cancellationToken), () => written);
+    }
+
+    public Task<ErpSimpleWriteResult> AttachToTenantAsync(
+        long tenantId, string title, string docType, Microsoft.AspNetCore.Http.IFormFile? file, CancellationToken cancellationToken = default)
+    {
+        string? written = null;
+        return FinishAttachAsync(WriteAsync(async (connection, tx, ct) =>
+        {
+            if (tenantId <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Choose the tenant.");
+            }
+
+            var exists = await ErpDb.LongAsync(connection, tx, ErpDb.Positional(
+                "SELECT IFNULL(`id`,0) FROM `epc_erp_re_tenants` WHERE `id`=? LIMIT 1"),
+                ct, tenantId).ConfigureAwait(false);
+            if (exists <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "That tenant is not on file.");
+            }
+
+            var saved = await StoreDocumentAsync(connection, tx, tenantId, title, docType, file, ct).ConfigureAwait(false);
+            written = saved.Path;
+            return saved.Result.Succeeded
+                ? ErpSimpleWriteResult.Ok("Attached " + saved.Result.Message + " to this tenant.", saved.Result.Id)
+                : saved.Result;
+        }, cancellationToken), () => written);
+    }
+
+    private static async Task<ErpSimpleWriteResult> FinishAttachAsync(Task<ErpSimpleWriteResult> write, Func<string?> path)
+    {
+        try
+        {
+            var result = await write.ConfigureAwait(false);
+            if (!result.Succeeded)
+            {
+                TryDelete(path());
+            }
+
+            return result;
+        }
+        catch
+        {
+            TryDelete(path());
+            throw;
+        }
+    }
+
+    public Task<ErpSimpleWriteResult> IncludeOnNoticeAsync(long noticeId, long documentId, CancellationToken cancellationToken = default)
+        => WriteAsync(async (connection, tx, ct) =>
+        {
+            if (noticeId <= 0 || documentId <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Choose the notice and the document.");
+            }
+
+            var tenantId = await ErpDb.LongAsync(connection, tx, ErpDb.Positional(
+                "SELECT IFNULL(l.`tenant_id`,0) FROM `epc_erp_re_expiry_notices` n JOIN `epc_erp_re_leases` l ON l.`id`=n.`lease_id` WHERE n.`id`=? LIMIT 1"),
+                ct, noticeId).ConfigureAwait(false);
+            var owner = await ErpDb.LongAsync(connection, tx, ErpDb.Positional(
+                "SELECT IFNULL(`related_id`,0) FROM `epc_erp_re_documents` WHERE `id`=? AND `related_kind`='tenant' LIMIT 1"),
+                ct, documentId).ConfigureAwait(false);
+            if (tenantId <= 0 || owner != tenantId)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "That document belongs to a different tenant.");
+            }
+
+            var status = await ErpDb.StringAsync(connection, tx, ErpDb.Positional(
+                "SELECT `status` FROM `epc_erp_re_expiry_notices` WHERE `id`=? LIMIT 1"),
+                ct, noticeId).ConfigureAwait(false);
+            if (status is not ("ready" or "failed" or "needs_email"))
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "This notice was already sent, so another document is not added to it.");
+            }
+
+            await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                "INSERT IGNORE INTO `epc_erp_re_expiry_files` (`notice_id`,`document_id`,`created_at`) VALUES (?,?,?)"),
+                ct, noticeId, documentId, ErpTenancyExpiryMail.GulfStamp(DateTime.UtcNow)).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("That document will go with this notice.", documentId);
+        }, cancellationToken);
+
+    public async Task<ErpSimpleWriteResult> RemoveDocumentAsync(long documentId, CancellationToken cancellationToken = default)
+    {
+        if (documentId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Choose the document to remove.");
+        }
+
+        string? path = null;
+        var result = await WriteAsync(async (connection, tx, ct) =>
+        {
+            var key = await ErpDb.StringAsync(connection, tx, ErpDb.Positional(
+                "SELECT `storage_key` FROM `epc_erp_re_documents` WHERE `id`=? AND `related_kind`='tenant' LIMIT 1"),
+                ct, documentId).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "That tenant document is not on file.");
+            }
+
+            path = ErpTenancyDocumentFiles.Resolve(ErpTenancyDocumentFiles.Root(), key);
+            await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                "DELETE FROM `epc_erp_re_expiry_files` WHERE `document_id`=?"),
+                ct, documentId).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                "DELETE FROM `epc_erp_re_documents` WHERE `id`=? AND `related_kind`='tenant'"),
+                ct, documentId).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("The document is removed from this tenant.", documentId);
+        }, cancellationToken).ConfigureAwait(false);
+        if (result.Succeeded && path is not null && File.Exists(path))
+        {
+            try
+            {
+                File.Delete(path);
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+        }
+
+        return result;
+    }
+
+    public async Task<ErpTenancyDocumentOpen?> OpenAsync(long documentId, CancellationToken cancellationToken = default)
+    {
+        if (documentId <= 0 || !_connections.IsConfigured)
+        {
+            return null;
+        }
+
+        await using var connection = await OpenAsync(cancellationToken).ConfigureAwait(false);
+        string key;
+        string name;
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = ErpDb.Positional(
+                "SELECT `storage_key`, `file_name` FROM `epc_erp_re_documents` WHERE `id`=? AND `related_kind`='tenant' LIMIT 1");
+            ErpDb.AddParameters(command, documentId);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            key = ReadText(reader, 0);
+            name = ReadText(reader, 1);
+        }
+
+        var path = ErpTenancyDocumentFiles.Resolve(ErpTenancyDocumentFiles.Root(), key);
+        if (path is null || !File.Exists(path))
+        {
+            return null;
+        }
+
+        var download = ErpTenancyDocumentFiles.DisplayName(name);
+        return new ErpTenancyDocumentOpen(path, download, ErpTenancyDocumentFiles.ContentType(download));
+    }
+
     private async Task<PrepareCounts> PrepareCoreAsync(
         DbConnection connection, DbTransaction tx, DateOnly today, long? onlyLeaseId, bool manualEnded, CancellationToken cancellationToken)
     {
@@ -512,7 +744,7 @@ public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
         command.CommandText = """
             SELECT l.`id`, l.`code`, l.`status`, l.`start_date`, l.`end_date`, l.`annual_rent`,
                    IFNULL(t.`name`,''), IFNULL(t.`email`,''), IFNULL(t.`notice_emails`,''),
-                   IFNULL(p.`name`,''), IFNULL(u.`code`,'')
+                   IFNULL(p.`name`,''), IFNULL(u.`code`,''), IFNULL(t.`id`,0)
             FROM `epc_erp_re_leases` l
             LEFT JOIN `epc_erp_re_tenants` t ON t.`id`=l.`tenant_id`
             LEFT JOIN `epc_erp_properties` p ON p.`id`=l.`property_id`
@@ -534,7 +766,8 @@ public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
                 ReadText(reader, 7),
                 ReadText(reader, 8),
                 ReadText(reader, 9),
-                ReadText(reader, 10)));
+                ReadText(reader, 10),
+                ReadLong(reader, 11)));
         }
 
         return rows;
@@ -564,7 +797,7 @@ public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
             command.CommandText = """
                 SELECT n.`id`, n.`lease_id`, n.`due_on`, n.`end_date`, n.`to_emails`, n.`reply_emails`, n.`subject`, n.`body`, n.`status`,
                        IFNULL(DATE_FORMAT(n.`sent_at`,'%Y-%m-%d %H:%i'),''), n.`send_error`,
-                       IFNULL(l.`code`,''), IFNULL(t.`name`,''), IFNULL(p.`name`,''), IFNULL(u.`code`,''), n.`customized`
+                       IFNULL(l.`code`,''), IFNULL(t.`name`,''), IFNULL(p.`name`,''), IFNULL(u.`code`,''), n.`customized`, IFNULL(l.`tenant_id`,0)
                 FROM `epc_erp_re_expiry_notices` n
                 LEFT JOIN `epc_erp_re_leases` l ON l.`id`=n.`lease_id`
                 LEFT JOIN `epc_erp_re_tenants` t ON t.`id`=l.`tenant_id`
@@ -593,7 +826,8 @@ public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
                     ReadText(reader, 13),
                     ReadText(reader, 14),
                     ReadLong(reader, 15) != 0,
-                    []));
+                    [],
+                    ReadLong(reader, 16)));
             }
         }
 
@@ -676,6 +910,164 @@ public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
         }
     }
 
+    private async Task<StoredDocument> StoreDocumentAsync(
+        DbConnection connection,
+        DbTransaction tx,
+        long tenantId,
+        string title,
+        string docType,
+        Microsoft.AspNetCore.Http.IFormFile? file,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length <= 0)
+        {
+            return StoredDocument.Fail(ErpSimpleWriteResult.Fail("invalid", "Choose one document to attach."));
+        }
+
+        if (file.Length > ErpTenancyDocumentFiles.MaxBytes)
+        {
+            return StoredDocument.Fail(ErpSimpleWriteResult.Fail("invalid", "Each document must be 8 MB or smaller."));
+        }
+
+        var display = ErpTenancyDocumentFiles.DisplayName(file.FileName);
+        var extension = ErpTenancyDocumentFiles.ExtensionOf(display);
+        if (!ErpTenancyDocumentFiles.AllowedExtension(extension))
+        {
+            return StoredDocument.Fail(ErpSimpleWriteResult.Fail("invalid", "Attach a PDF, JPG, PNG or WEBP."));
+        }
+
+        var type = ErpTenancyDocumentFiles.DocumentType(docType);
+        var storedName = ErpTenancyDocumentFiles.StoredName(extension);
+        var key = ErpTenancyDocumentFiles.StorageKey(tenantId, storedName);
+        var path = ErpTenancyDocumentFiles.Resolve(ErpTenancyDocumentFiles.Root(), key);
+        if (path is null)
+        {
+            return StoredDocument.Fail(ErpSimpleWriteResult.Fail("invalid", "The document could not be stored."));
+        }
+
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            await using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                await file.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return StoredDocument.Fail(ErpSimpleWriteResult.Fail("io", "The document folder is not writable."));
+        }
+
+        try
+        {
+            var rawCode = "TD" + tenantId.ToString(CultureInfo.InvariantCulture) + storedName;
+            var code = rawCode.Length <= 40 ? rawCode : rawCode[..40];
+            await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                "INSERT INTO `epc_erp_re_documents` (`code`,`doc_type`,`related_kind`,`related_id`,`title`,`status`,`storage_key`,`file_name`,`version_no`,`sensitive`) VALUES (?,?,'tenant',?,?,'uploaded',?,?,1,?)"),
+                cancellationToken,
+                code,
+                type,
+                tenantId,
+                ErpTenancyDocumentFiles.TitleOrName(title, display),
+                key,
+                display,
+                ErpTenancyDocumentFiles.Sensitive(type)).ConfigureAwait(false);
+            var id = await ErpDb.LastInsertIdAsync(connection, tx, cancellationToken).ConfigureAwait(false);
+            return new StoredDocument(ErpSimpleWriteResult.Ok(display, id), path);
+        }
+        catch (Exception)
+        {
+            TryDelete(path);
+            throw;
+        }
+    }
+
+    private static async Task<IReadOnlyList<ErpTenancyExpiryDocument>> DocumentsAsync(DbConnection connection, long[] tenantIds, CancellationToken cancellationToken)
+    {
+        if (tenantIds.Length == 0)
+        {
+            return [];
+        }
+
+        var marks = string.Join(",", tenantIds.Select((_, index) => "@p" + index.ToString(CultureInfo.InvariantCulture)));
+        var rows = new List<ErpTenancyExpiryDocument>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT `id`, `related_id`, `title`, `doc_type`, `file_name` FROM `epc_erp_re_documents` WHERE `related_kind`='tenant' AND `related_id` IN (" + marks + ") ORDER BY `id`";
+        ErpDb.AddParameters(command, tenantIds.Cast<object>().ToArray());
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new ErpTenancyExpiryDocument(ReadLong(reader, 0), ReadLong(reader, 1), ReadText(reader, 2), ReadText(reader, 3), ReadText(reader, 4)));
+        }
+
+        return rows;
+    }
+
+    private static async Task<IReadOnlyList<ErpTenancyExpiryFileLink>> LinksAsync(DbConnection connection, long[] noticeIds, CancellationToken cancellationToken)
+    {
+        if (noticeIds.Length == 0)
+        {
+            return [];
+        }
+
+        var marks = string.Join(",", noticeIds.Select((_, index) => "@p" + index.ToString(CultureInfo.InvariantCulture)));
+        var rows = new List<ErpTenancyExpiryFileLink>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT `notice_id`, `document_id` FROM `epc_erp_re_expiry_files` WHERE `notice_id` IN (" + marks + ")";
+        ErpDb.AddParameters(command, noticeIds.Cast<object>().ToArray());
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new ErpTenancyExpiryFileLink(ReadLong(reader, 0), ReadLong(reader, 1)));
+        }
+
+        return rows;
+    }
+
+    private static async Task<IReadOnlyList<Cp.CpTenantEmailAttachment>> DocumentFilesAsync(DbConnection connection, long noticeId, CancellationToken cancellationToken)
+    {
+        var rows = new List<Cp.CpTenantEmailAttachment>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional(
+            "SELECT d.`storage_key`, d.`file_name` FROM `epc_erp_re_expiry_files` f JOIN `epc_erp_re_documents` d ON d.`id`=f.`document_id` WHERE f.`notice_id`=? AND d.`related_kind`='tenant' ORDER BY f.`id`");
+        ErpDb.AddParameters(command, noticeId);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var path = ErpTenancyDocumentFiles.Resolve(ErpTenancyDocumentFiles.Root(), ReadText(reader, 0));
+            if (path is not null)
+            {
+                rows.Add(new Cp.CpTenantEmailAttachment(path, ErpTenancyDocumentFiles.DisplayName(ReadText(reader, 1))));
+            }
+        }
+
+        return rows;
+    }
+
+    private static void TryDelete(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        {
+            return;
+        }
+
+        try
+        {
+            File.Delete(path);
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+    }
+
+    private sealed record StoredDocument(ErpSimpleWriteResult Result, string? Path)
+    {
+        public static StoredDocument Fail(ErpSimpleWriteResult result) => new(result, null);
+    }
+
     private static async Task EnsureAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await ErpDb.ExecuteAsync(connection, null, """
@@ -707,6 +1099,35 @@ public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
               PRIMARY KEY (`id`),
               UNIQUE KEY `uk_expiry_notice_lease` (`lease_id`),
               KEY `idx_expiry_notice_status` (`status`,`end_date`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """, cancellationToken).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(connection, null, """
+            CREATE TABLE IF NOT EXISTS `epc_erp_re_documents` (
+              `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+              `code` VARCHAR(40) NOT NULL,
+              `doc_type` VARCHAR(40) NOT NULL DEFAULT 'other',
+              `related_kind` VARCHAR(40) NOT NULL DEFAULT 'property',
+              `related_id` BIGINT NOT NULL DEFAULT 0,
+              `title` VARCHAR(190) NOT NULL,
+              `expiry_date` DATE DEFAULT NULL,
+              `status` VARCHAR(40) NOT NULL DEFAULT 'uploaded',
+              `storage_key` VARCHAR(255) NOT NULL DEFAULT '',
+              `file_name` VARCHAR(190) NOT NULL DEFAULT '',
+              `version_no` INT NOT NULL DEFAULT 1,
+              `sensitive` TINYINT NOT NULL DEFAULT 0,
+              `import_id` BIGINT NOT NULL DEFAULT 0,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """, cancellationToken).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(connection, null, """
+            CREATE TABLE IF NOT EXISTS `epc_erp_re_expiry_files` (
+              `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+              `notice_id` BIGINT NOT NULL,
+              `document_id` BIGINT NOT NULL,
+              `created_at` DATETIME NOT NULL,
+              PRIMARY KEY (`id`),
+              UNIQUE KEY `uk_expiry_file` (`notice_id`,`document_id`),
+              KEY `idx_expiry_file_doc` (`document_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             """, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(connection, null, """
@@ -784,7 +1205,8 @@ public sealed class ErpTenancyExpiryMailService : IErpTenancyExpiryMail
             lease.UnitCode,
             lease.End,
             ErpTenancyExpiryMail.NoticeDueOn(lease.End),
-            ErpTenancyExpiryMail.Window(lease.End, today));
+            ErpTenancyExpiryMail.Window(lease.End, today),
+            lease.TenantId);
 
     private readonly record struct PrepareCounts(int Due, int Inserted);
 

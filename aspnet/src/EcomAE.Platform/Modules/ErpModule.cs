@@ -438,6 +438,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpRealEstateWorkbook, HandleRealEstateWorkbookAsync);
         endpoints.MapPost(EcomAeRoutes.ErpLandlordSave, HandleLandlordSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpLandlordReport, HandleLandlordReportAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpLandlordDocument, HandleLandlordDocumentAsync);
         endpoints.MapPost(EcomAeRoutes.ErpIndustryApply, HandleIndustryApplyAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpIndustryCurrent, HandleIndustryCurrentAsync);
         endpoints.MapPost(EcomAeRoutes.ErpPmBudgetSave, HandlePmBudgetSaveAsync).DisableAntiforgery();
@@ -25311,6 +25312,29 @@ public sealed class ErpModule : ISurfaceModule
         return Results.File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", name);
     }
 
+    private static async Task<IResult> HandleLandlordDocumentAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTenancyExpiryMail expiry,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/landlord-app?year=2025", "Admin ERP capability required for tenant documents.");
+        }
+
+        long.TryParse(context.Request.Query["id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id);
+        var opened = await expiry.OpenAsync(id, cancellationToken);
+        if (opened is null)
+        {
+            return Results.NotFound();
+        }
+
+        context.Response.Headers.XContentTypeOptions = "nosniff";
+        return Results.File(opened.Path, opened.ContentType, opened.Name);
+    }
+
     private static string CategoryFrom(IFormCollection? form)
     {
         if (form is null)
@@ -25400,6 +25424,25 @@ public sealed class ErpModule : ISurfaceModule
                 form is null ? 0 : LiveWriteFormBinder.Long(form, "id"),
                 form is null ? "" : LiveWriteFormBinder.Text(form, "fromEmail"),
                 form is null ? "" : LiveWriteFormBinder.Text(form, "replyBody"),
+                cancellationToken),
+            "attach_expiry_document" => await expiry.AttachToNoticeAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "id"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "title"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "docType"),
+                form?.Files.GetFile("document"),
+                cancellationToken),
+            "attach_tenant_document" => await expiry.AttachToTenantAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "tenantId"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "title"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "docType"),
+                form?.Files.GetFile("document"),
+                cancellationToken),
+            "include_expiry_document" => await expiry.IncludeOnNoticeAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "id"),
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "documentId"),
+                cancellationToken),
+            "remove_tenant_document" => await expiry.RemoveDocumentAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "documentId"),
                 cancellationToken),
             "save_line" => await book.SaveLineAsync(new ErpLandlordEntry(
                 propertyId,

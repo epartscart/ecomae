@@ -134,6 +134,62 @@ public sealed class ErpTenancyExpiryMailTests
     }
 
     [Fact]
+    public void OneFileAtATimeStaysInsideTheTenantFolder()
+    {
+        Assert.True(ErpTenancyDocumentFiles.AllowedExtension("pdf"));
+        Assert.True(ErpTenancyDocumentFiles.AllowedExtension("webp"));
+        Assert.False(ErpTenancyDocumentFiles.AllowedExtension("exe"));
+        Assert.Equal("passport.pdf", ErpTenancyDocumentFiles.DisplayName("../../passport.pdf"));
+        Assert.Equal("Passport", ErpTenancyDocumentFiles.TypeLabel("passport"));
+        Assert.Equal(1, ErpTenancyDocumentFiles.Sensitive("emirates_id"));
+        Assert.Equal(0, ErpTenancyDocumentFiles.Sensitive("ejari"));
+        Assert.Equal("Emirates ID", ErpTenancyDocumentFiles.TitleOrName("  ", "Emirates ID.pdf"));
+        var root = Path.Combine(Path.GetTempPath(), "re-docs-" + Guid.NewGuid().ToString("N"));
+        var path = ErpTenancyDocumentFiles.Resolve(root, ErpTenancyDocumentFiles.StorageKey(12, "abc.pdf"));
+        Assert.NotNull(path);
+        Assert.StartsWith(Path.GetFullPath(root) + Path.DirectorySeparatorChar, path, StringComparison.Ordinal);
+        Assert.Null(ErpTenancyDocumentFiles.Resolve(root, "../secret.pdf"));
+        Assert.Null(ErpTenancyDocumentFiles.Resolve(root, "/etc/passwd"));
+    }
+
+    [Fact]
+    public void SeveralDocumentsAttachTogetherOrNone()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "re-mail-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        var one = Path.Combine(dir, "a.pdf");
+        var two = Path.Combine(dir, "b.pdf");
+        File.WriteAllText(one, "a");
+        File.WriteAllText(two, "b");
+        try
+        {
+            using var mail = new MailMessage();
+            var error = CpTenantEmailWriteService.BindAttachments(mail, new CpTenantEmailMessage(
+                "a@x.test",
+                "s",
+                "b",
+                Attachments: [new CpTenantEmailAttachment(one, "Passport.pdf"), new CpTenantEmailAttachment(two, "Visa.pdf")]));
+            Assert.Null(error);
+            Assert.Equal(2, mail.Attachments.Count);
+            Assert.Equal("Passport.pdf", mail.Attachments[0].Name);
+            Assert.Equal("Visa.pdf", mail.Attachments[1].Name);
+
+            using var missing = new MailMessage();
+            var blocked = CpTenantEmailWriteService.BindAttachments(missing, new CpTenantEmailMessage(
+                "a@x.test",
+                "s",
+                "b",
+                Attachments: [new CpTenantEmailAttachment(one, "Passport.pdf"), new CpTenantEmailAttachment(Path.Combine(dir, "gone.pdf"), "Gone.pdf")]));
+            Assert.Equal("Attachment file not found.", blocked);
+            Assert.Empty(missing.Attachments);
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
+
+    [Fact]
     public void PageKeepsTheDraftAndPostsTheNoticeActions()
     {
         var root = FindRepoRoot();
@@ -147,7 +203,13 @@ public sealed class ErpTenancyExpiryMailTests
         Assert.Contains("name=\"autoSend\"", panel, StringComparison.Ordinal);
         Assert.Contains("name=\"csrf_guard_key\"", panel, StringComparison.Ordinal);
         Assert.Contains("{{tenant_name}}", panel, StringComparison.Ordinal);
+        Assert.Contains("attach_expiry_document", panel, StringComparison.Ordinal);
+        Assert.Contains("attach_tenant_document", panel, StringComparison.Ordinal);
+        Assert.Contains("type=\"file\" name=\"document\"", panel, StringComparison.Ordinal);
+        Assert.DoesNotContain("multiple", panel, StringComparison.Ordinal);
+        Assert.Equal("real_estate", EcomAE.Platform.Middleware.IndustrySpecificRoutePolicy.RequiredIndustry("/erp/landlord/document"));
         var module = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+        Assert.Contains("ErpLandlordDocument", module, StringComparison.Ordinal);
         Assert.Contains("IErpTenancyExpiryMail expiry", module, StringComparison.Ordinal);
         Assert.Contains("save_expiry_template", module, StringComparison.Ordinal);
     }
