@@ -1,5 +1,8 @@
 @namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Middleware
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject IHttpContextAccessor Http
 @*
   Host-only chrome brand. Super CP / Super ERP / Super BOS → ECOM AE.
@@ -20,6 +23,14 @@
             <span class="epc-surface-host-logo__name">@Brand.Label</span>
         }
     }
+    else if (Brand.LogoKind == LoginHostBrand.Kind.CompanyMark)
+    {
+        <i class="fa @MarkIcon epc-surface-host-logo__mark" aria-hidden="true"></i>
+        @if (ShowLabel)
+        {
+            <span class="epc-surface-host-logo__name">@Brand.Label</span>
+        }
+    }
     else
     {
         <PhpEcomaeAnimatedLogo Variant="@Variant" ShowWordmark="ShowLabel" />
@@ -29,6 +40,7 @@
 <style>
     .epc-surface-host-logo { display:inline-flex; align-items:center; gap:.45rem; min-height:30px; }
     .epc-surface-host-logo__img { height:30px; max-width:148px; width:auto; object-fit:contain; display:block; }
+    .epc-surface-host-logo__mark { font-size:22px; width:30px; text-align:center; }
     .epc-surface-host-logo__name { font-weight:800; font-size:14px; color:#0f172a; letter-spacing:.01em; }
 </style>
 
@@ -39,8 +51,40 @@
 
     private LoginHostBrand.Brand Brand { get; set; } = LoginHostBrand.Resolve(null, "cp");
 
+    private string MarkIcon
+    {
+        get
+        {
+            var key = ClientErpPath.BoundSiteKey(Http.HttpContext);
+            var tenant = Http.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            var launch = ErpOnlyLaunchClients.All.FirstOrDefault(c =>
+                string.Equals(c.SiteKey, key, StringComparison.OrdinalIgnoreCase));
+            var industry = !string.IsNullOrWhiteSpace(tenant?.IndustryCode) ? tenant!.IndustryCode : launch?.IndustryCode;
+            return LoginHostBrand.CompanyMarkIcon(industry);
+        }
+    }
+
     protected override void OnParametersSet()
     {
-        Brand = LoginHostBrand.Resolve(Http.HttpContext?.Request.Host.Host, Surface);
+        var http = Http.HttpContext;
+        var key = ClientErpPath.BoundSiteKey(http);
+        if (!string.IsNullOrEmpty(key))
+        {
+            var tenant = http?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            var trade = tenant?.DisplayName;
+            var industry = tenant?.IndustryCode;
+            if (string.IsNullOrWhiteSpace(trade))
+            {
+                var launch = ErpOnlyLaunchClients.All.FirstOrDefault(c =>
+                    string.Equals(c.SiteKey, key, StringComparison.OrdinalIgnoreCase));
+                trade = launch?.TradeName;
+                industry ??= launch?.IndustryCode;
+            }
+
+            Brand = LoginHostBrand.ForErpOnly(key, trade, industry);
+            return;
+        }
+
+        Brand = LoginHostBrand.Resolve(http?.Request.Host.Host, Surface);
     }
 }
