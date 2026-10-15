@@ -82,6 +82,16 @@ internal static class ErpDb
         return false;
     }
 
+    /// <summary>
+    /// True when <c>SHOW TABLES</c> for this database already listed the table.
+    /// The list is reused for a short time so later pages skip information_schema.
+    /// </summary>
+    public static Task<bool> TableKnownAsync(
+        DbConnection connection,
+        string table,
+        CancellationToken cancellationToken)
+        => ErpTableCatalog.ContainsAsync(connection, table, cancellationToken);
+
     public static async Task<long> LongAsync(
         DbConnection connection,
         DbTransaction? transaction,

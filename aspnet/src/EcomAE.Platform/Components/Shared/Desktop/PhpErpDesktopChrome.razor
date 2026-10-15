@@ -50,6 +50,8 @@
     .epc-erp-host-sub { margin:0 0 .85rem; color:var(--muted); font-size:13px; font-weight:600; }
     .epc-erp-content-body { min-width:0; max-width:100%; overflow-x:auto; box-sizing:border-box; font-size:14px; }
     .epc-erp-foot { padding:.85rem 1rem; border-top:1px solid var(--line); background:#fff; color:var(--muted); font-size:13px; }
+    #epc-erp-nav-progress { position:fixed; top:0; left:0; height:3px; width:0; z-index:20000; background:#38bdf8; pointer-events:none; }
+    #epc-erp-nav-progress.is-on { width:78%; transition:width .4s ease; }
     .epc-erp-global-search__label { color:#64748b !important; }
     .epc-erp-global-search__input { background:#fff !important; color:#0f172a !important; caret-color:#0f172a; -webkit-text-fill-color:#0f172a; }
     .epc-erp-global-search__input::placeholder { color:#64748b !important; opacity:1; -webkit-text-fill-color:#64748b; }
@@ -91,6 +93,8 @@
     .epc-erp-host-sub { margin:0 0 .85rem; color:var(--muted); font-size:13px; font-weight:600; }
     .epc-erp-content-body { min-width:0; max-width:100%; overflow-x:auto; box-sizing:border-box; font-size:14px; }
     .epc-erp-foot { padding:.85rem 1rem; border-top:1px solid var(--line); background:#fff; color:var(--muted); font-size:13px; }
+    #epc-erp-nav-progress { position:fixed; top:0; left:0; height:3px; width:0; z-index:20000; background:#38bdf8; pointer-events:none; }
+    #epc-erp-nav-progress.is-on { width:78%; transition:width .4s ease; }
     .epc-erp-global-search { position:relative; z-index:90; flex:1 1 16rem; max-width:28rem; min-width:12rem; overflow:visible; }
     .epc-erp-global-search__label { position:absolute; left:.7rem; top:50%; transform:translateY(-50%); color:#64748b !important; pointer-events:none; }
     .epc-erp-global-search__input { width:100%; height:2.15rem; padding:.35rem .7rem .35rem 2rem; border:1px solid #cbd5e1; border-radius:.4rem; background:#fff !important; color:#0f172a !important; caret-color:#0f172a; font:inherit; -webkit-text-fill-color:#0f172a; }
@@ -748,6 +752,37 @@
   });
 })();
 </script>
+<script type="speculationrules">
+{"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/*logout*"}},{"not":{"selector_matches":"[data-enhance-nav=false]"}},{"not":{"selector_matches":"[target=_blank]"}}]},"eagerness":"conservative"}]}
+</script>
+<script>
+(function () {
+  if (window.__epcErpNavPace) return;
+  window.__epcErpNavPace = true;
+  var bar = document.createElement("div");
+  bar.id = "epc-erp-nav-progress";
+  document.body.appendChild(bar);
+  function samePageLink(anchor) {
+    if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) return false;
+    if (anchor.getAttribute("data-enhance-nav") === "false") return false;
+    var href = anchor.getAttribute("href") || "";
+    if (!href || href.charAt(0) === "#" || href.indexOf("javascript:") === 0) return false;
+    try {
+      var url = new URL(href, location.href);
+      if (url.origin !== location.origin) return false;
+      if (/logout/i.test(url.pathname)) return false;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  document.addEventListener("pointerdown", function (event) {
+    var anchor = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+    if (samePageLink(anchor)) bar.classList.add("is-on");
+  }, true);
+  document.addEventListener("submit", function () { bar.classList.add("is-on"); }, true);
+})();
+</script>
 <script src="/erp/erp-master-picker.js" defer></script>
 <script src="/erp/erp-jewellery-purchase.js" defer></script>
 
@@ -993,8 +1028,15 @@
             }
         }
 
+        var tenantSiteKey = ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenantContext
+            ? tenantContext.SiteKey
+            : ctx.Request.Host.Host;
+        var companiesTask = Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted);
+        var rulesTask = NavTenantRules.ResolveAsync(tenantSiteKey, ctx.RequestAborted);
+        var sessionTask = Sessions.ValidateAsync(ctx, ctx.RequestAborted).AsTask();
+        await Task.WhenAll(companiesTask, rulesTask, sessionTask);
         var companies = ErpIndustryNav.EnsureSwitchableCompanies(
-            (await Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted)).Companies,
+            (await companiesTask).Companies,
             _showBos,
             _ctx.BrandLabel);
 
@@ -1002,10 +1044,7 @@
         var active = companies.FirstOrDefault(c => activeQ is > 0 && c.Id == activeQ)
             ?? companies.FirstOrDefault();
         var countryCode = active?.CountryCode;
-        var tenantSiteKey = ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenantContext
-            ? tenantContext.SiteKey
-            : ctx.Request.Host.Host;
-        var tenantRules = await NavTenantRules.ResolveAsync(tenantSiteKey, ctx.RequestAborted);
+        var tenantRules = await rulesTask;
         if (active is not null)
         {
             _activeCompanyId = active.Id;
@@ -1037,7 +1076,7 @@
                 EnabledModuleIds: tenantRules.EnabledModuleIds,
                 Company: active));
 
-        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        var session = await sessionTask;
         _signedIn = session.Kind == LegacySessionKind.Admin || IsAdmin;
         if (_signedIn)
         {

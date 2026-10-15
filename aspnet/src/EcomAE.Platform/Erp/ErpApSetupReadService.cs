@@ -99,12 +99,6 @@ public sealed class ErpApSetupReadService : IErpApSetupReadService
         string table,
         CancellationToken cancellationToken)
     {
-        var n = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
-            cancellationToken,
-            table).ConfigureAwait(false);
-        return n > 0;
+        return await ErpDb.TableKnownAsync(connection, table, cancellationToken).ConfigureAwait(false);
     }
 }

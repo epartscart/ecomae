@@ -100,12 +100,6 @@ public sealed class ErpOrganizationMasterReadService : IErpOrganizationMasterRea
         string table,
         CancellationToken cancellationToken)
     {
-        var value = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
-            cancellationToken,
-            table).ConfigureAwait(false);
-        return value > 0;
+        return await ErpDb.TableKnownAsync(connection, table, cancellationToken).ConfigureAwait(false);
     }
 }

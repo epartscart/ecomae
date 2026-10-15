@@ -300,13 +300,8 @@ public static class ErpSalesProfitability
         return map;
     }
 
-    private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
-        => await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
-            cancellationToken,
-            table).ConfigureAwait(false) > 0;
+    private static Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+        => ErpDb.TableKnownAsync(connection, table, cancellationToken);
 
     private static decimal Round2(decimal value) => decimal.Round(value, 2, MidpointRounding.AwayFromZero);
 

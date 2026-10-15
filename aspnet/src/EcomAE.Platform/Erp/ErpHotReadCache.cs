@@ -27,6 +27,14 @@ public static class ErpHotReadCache
         return false;
     }
 
+    public static void Forget(string key)
+    {
+        if (key.Length > 0)
+        {
+            Entries.TryRemove(key, out _);
+        }
+    }
+
     public static void Set<T>(string key, T value, TimeSpan ttl)
     {
         if (key.Length == 0)

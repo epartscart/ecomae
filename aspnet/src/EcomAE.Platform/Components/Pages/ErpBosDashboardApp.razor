@@ -1022,15 +1022,15 @@
         _hasFullErpAccess = _isSuperHost
             || session.Permissions.Contains(EcomAePermissions.SuperErpAccess);
         ApplyProfile(_hasFullErpAccess, ctx.Request.Query["dash_profile"].ToString(), session);
-        _powerBi = await PowerBi.LoadAsync(
-            null,
-            ctx.Request.Host.Host,
-            ctx.RequestAborted);
-
+        var powerTask = PowerBi.LoadAsync(null, ctx.Request.Host.Host, ctx.RequestAborted);
         if (_isAdmin)
         {
-            _controlState = await BosIntel.LoadStateAsync(ctx.RequestAborted);
-            _home = await Dashboards.BuildErpWorkspaceHomeAsync(ctx.RequestAborted);
+            var intelTask = BosIntel.LoadStateAsync(ctx.RequestAborted);
+            var homeTask = Dashboards.BuildErpWorkspaceHomeAsync(ctx.RequestAborted);
+            await Task.WhenAll(powerTask, intelTask, homeTask);
+            _powerBi = await powerTask;
+            _controlState = await intelTask;
+            _home = await homeTask;
             _cur = _home.Current;
             _periodFrom = _home.PeriodFrom;
             _periodTo = _home.PeriodTo;
@@ -1045,6 +1045,7 @@
         }
         else
         {
+            _powerBi = await powerTask;
             _home = EmptyHome();
             _cur = _home.Current;
             _trendLabels = _home.Trend.Select(t => t.Label).ToArray();
