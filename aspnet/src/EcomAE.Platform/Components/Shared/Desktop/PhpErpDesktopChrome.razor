@@ -1,5 +1,6 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Middleware
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
@@ -172,7 +173,7 @@
 
 <div class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern epc-php-font-root"
      data-epc-industry="@_industryCode"
-     data-epc-erp-tenant="@_ctx.BrandLabel"
+     data-epc-erp-tenant="@_homeBrand"
      data-epc-erp-company="@_activeCompanyId"
      data-epc-erp-jewellery="@(_jewellery ? "1" : "0")"
      data-epc-dash-home="@(IsDashboardHome ? "1" : "0")">
@@ -182,7 +183,7 @@
                 <span class="epc-erp-topbar__brand-mark--animated">
                     <PhpSurfaceHostLogo Surface="erp" Variant="header" ShowLabel="false" />
                 </span>
-                <span>@_ctx.BrandLabel ERP</span>
+                <span>@HomeBrandText</span>
             </a>
             @if (_signedIn)
             {
@@ -281,7 +282,7 @@
             <nav class="epc-erp-topnav" id="epc_erp_topnav" aria-label="ERP process areas">
                 <div class="epc-erp-topnav-inner">
                     <a class="epc-erp-topnav-brand" href="@ErpHomeHref">
-                        <i class="fa fa-cubes" aria-hidden="true"></i><span>@_ctx.BrandLabel</span>
+                        <i class="fa @HomeMarkIcon" aria-hidden="true"></i><span>@(_homeIsCompany ? _homeBrand : _ctx.BrandLabel)</span>
                     </a>
                     <ul class="epc-erp-topnav-list" role="menubar">
                         @foreach (var group in _nav)
@@ -817,6 +818,8 @@
     private long _activeCompanyId;
     private string _userLabel = "Admin session";
     private string _companyLabel = "MAIN";
+    private string _homeBrand = "ECOM AE";
+    private bool _homeIsCompany;
     private string _industryCode = "core";
     private string _industryLabel = "Core / multi-industry";
     private string _currentPath = "/erp";
@@ -992,6 +995,28 @@
                || _currentPath.StartsWith(mapped + "/", StringComparison.OrdinalIgnoreCase);
     }
 
+    private string HomeBrandText => _homeIsCompany ? _homeBrand : _ctx.BrandLabel + " ERP";
+
+    private string HomeMarkIcon
+    {
+        get
+        {
+            if (!_homeIsCompany)
+            {
+                return "fa-cubes";
+            }
+
+            var key = ClientErpPath.BoundSiteKey(Http.HttpContext);
+            var launch = ErpOnlyLaunchClients.All.FirstOrDefault(c =>
+                string.Equals(c.SiteKey, key, StringComparison.OrdinalIgnoreCase));
+            var industry = Http.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant
+                && !string.IsNullOrWhiteSpace(tenant.IndustryCode)
+                ? tenant.IndustryCode
+                : launch?.IndustryCode;
+            return LoginHostBrand.CompanyMarkIcon(industry);
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var host = Http.HttpContext?.Request.Host.Host;
@@ -999,6 +1024,8 @@
         _showBos = SuperCpHostGate.IsAllowed(Http.HttpContext);
         _clientErp = ClientErpPath.IsBound(Http.HttpContext);
         _ctx = ErpHostContext.Resolve(host);
+        _homeBrand = ErpDocumentTitle.Brand(Http.HttpContext) ?? _ctx.BrandLabel;
+        _homeIsCompany = ClientErpPath.IsBound(Http.HttpContext) && ErpDocumentTitle.Brand(Http.HttpContext) is not null;
         _industryCode = _ctx.IndustryCode;
         _industryLabel = _ctx.IndustryLabel;
 

@@ -88,7 +88,8 @@ public sealed class RouteTenantResolver : ITenantResolver
                         dedicatedUser,
                         dedicatedPassword,
                         erpOnly.DedicatedDb,
-                        ResolveIndustryCode(erpOnly.SiteKey, erpOnly.IndustryCode, host));
+                        ResolveIndustryCode(erpOnly.SiteKey, erpOnly.IndustryCode, host),
+                        DisplayName: TradeNameFor(erpOnly));
                 }
 
                 // Unknown / unusable key: stay on the platform DB so Super CP isolation
@@ -186,6 +187,17 @@ public sealed class RouteTenantResolver : ITenantResolver
             dbPassword,
             dedicated,
             ResolveIndustryCode(siteKey, null, host));
+    }
+
+    private static string? TradeNameFor(ClientErpTenantRecord row)
+    {
+        if (!string.IsNullOrWhiteSpace(row.TradeName))
+        {
+            return row.TradeName.Trim();
+        }
+
+        return ErpOnlyLaunchClients.All.FirstOrDefault(c =>
+            string.Equals(c.SiteKey, row.SiteKey, StringComparison.OrdinalIgnoreCase))?.TradeName;
     }
 
     /// <summary>

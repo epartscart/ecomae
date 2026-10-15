@@ -1370,6 +1370,7 @@ app.UseMiddleware<ClientErpCookieRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
 // /cp/client-erp/{key}/erp… → /erp… after the company DB is bound.
 app.UseMiddleware<ClientErpPathRewriteMiddleware>();
+app.UseMiddleware<TenantDocumentTitleMiddleware>();
 app.UseMiddleware<ClientErpSuperSurfaceGateMiddleware>();
 app.UseMiddleware<EcomAE.Platform.Storefront.StorefrontCheckoutConfirmSessionlessMiddleware>();
 // Shared ERP remains available to every tenant; industry-specific workspaces are gated
