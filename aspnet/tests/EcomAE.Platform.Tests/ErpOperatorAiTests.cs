@@ -327,6 +327,9 @@ public sealed class ErpOperatorAiTests
         Assert.Contains("cursor.com", bar, StringComparison.Ordinal);
         Assert.Contains("app.devin.ai", bar, StringComparison.Ordinal);
         Assert.Contains("ToolsAjaxHref", chrome, StringComparison.Ordinal);
+        Assert.Contains("color: #0f172a !important", bar, StringComparison.Ordinal);
+        Assert.Contains("-webkit-text-fill-color: #0f172a", bar, StringComparison.Ordinal);
+        Assert.Contains("-webkit-text-fill-color: #64748b", bar, StringComparison.Ordinal);
         AssertClean(bar);
         var service = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Presentation/ErpOperatorAi.cs"));
         Assert.Contains("https://api.openai.com/v1/chat/completions", service, StringComparison.Ordinal);

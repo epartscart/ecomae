@@ -44,20 +44,21 @@
     .epc-voice { position: relative; }
     .epc-voice__btn { border: 1px solid #cbd5e1; background: #fff; border-radius: 999px; padding: .28rem .7rem; font-weight: 700; font-size: 13px; color: #1e3a8a; cursor: pointer; }
     .epc-voice__btn[aria-pressed="true"] { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
-    .epc-voice__panel { position: absolute; top: calc(100% + 6px); left: 0; width: min(480px, 86vw); max-height: 70vh; overflow: auto; background: #fff; border: 1px solid #dbe4ee; border-radius: 12px; box-shadow: 0 16px 40px rgba(15, 23, 42, .18); padding: .75rem; z-index: 10060; }
+    .epc-voice__panel { position: absolute; top: calc(100% + 6px); left: 0; width: min(480px, 86vw); max-height: 70vh; overflow: auto; background: #fff; color: #0f172a; border: 1px solid #dbe4ee; border-radius: 12px; box-shadow: 0 16px 40px rgba(15, 23, 42, .18); padding: .75rem; z-index: 10060; }
     .epc-voice__label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: .35rem; }
     .epc-voice__row { display: flex; gap: .4rem; }
-    .epc-voice__row input { flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; padding: .4rem .55rem; font-size: 13px; }
+    .epc-voice__row input { flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; padding: .4rem .55rem; font-size: 13px; background: #fff !important; color: #0f172a !important; caret-color: #0f172a; -webkit-text-fill-color: #0f172a; }
     .epc-voice__go, .epc-voice__tool button { border: 0; background: #1d4ed8; color: #fff; border-radius: 8px; padding: .4rem .7rem; font-weight: 700; cursor: pointer; }
     .epc-voice__tool button[data-erp-ai-remove] { background: #e2e8f0; color: #1e293b; }
     .epc-voice__say { margin: .55rem 0 0; font-size: 13px; color: #1e293b; line-height: 1.4; }
-    .epc-voice__open { display: inline-block; margin-top: .45rem; margin-right: .7rem; font-weight: 700; }
+    .epc-voice__open { display: inline-block; margin-top: .45rem; margin-right: .7rem; font-weight: 700; color: #1d4ed8 !important; }
     .epc-voice__tools { margin-top: .7rem; border-top: 1px solid #e2e8f0; padding-top: .55rem; }
     .epc-voice__hint { margin: 0 0 .4rem; font-size: 12px; color: #475569; line-height: 1.4; }
     .epc-voice__tool { margin-top: .35rem; }
     .epc-voice__tool summary { cursor: pointer; font-size: 13px; font-weight: 700; color: #1e3a8a; }
     .epc-voice__tool span { font-weight: 600; color: #64748b; }
-    .epc-voice__tool input { display: block; width: 100%; margin-top: .35rem; border: 1px solid #cbd5e1; border-radius: 8px; padding: .35rem .5rem; font-size: 13px; }
+    .epc-voice__tool input { display: block; width: 100%; margin-top: .35rem; border: 1px solid #cbd5e1; border-radius: 8px; padding: .35rem .5rem; font-size: 13px; background: #fff !important; color: #0f172a !important; caret-color: #0f172a; -webkit-text-fill-color: #0f172a; }
+    .epc-voice__row input::placeholder, .epc-voice__tool input::placeholder { color: #64748b !important; opacity: 1; -webkit-text-fill-color: #64748b; }
     .epc-voice__tool button { margin-top: .4rem; margin-right: .35rem; }
 </style>
 
