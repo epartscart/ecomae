@@ -130,12 +130,6 @@ public sealed class ErpDimensionCatalogReadService : IErpDimensionCatalogReadSer
         string table,
         CancellationToken cancellationToken)
     {
-        var count = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
-            cancellationToken,
-            table).ConfigureAwait(false);
-        return count > 0;
+        return await ErpDb.TableKnownAsync(connection, table, cancellationToken).ConfigureAwait(false);
     }
 }

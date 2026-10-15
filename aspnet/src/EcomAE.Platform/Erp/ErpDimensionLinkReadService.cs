@@ -68,13 +68,8 @@ public sealed class ErpDimensionLinkReadService : IErpDimensionLinkReadService
         return links;
     }
 
-    private static async Task<bool> TableExistsAsync(
+    private static Task<bool> TableExistsAsync(
         DbConnection connection,
         CancellationToken cancellationToken)
-        => await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
-            cancellationToken,
-            "epc_erp_dim_links").ConfigureAwait(false) > 0;
+        => ErpDb.TableKnownAsync(connection, "epc_erp_dim_links", cancellationToken);
 }

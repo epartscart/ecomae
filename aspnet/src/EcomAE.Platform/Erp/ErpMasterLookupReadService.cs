@@ -572,33 +572,16 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             ? column
             : "name";
 
-    private static async Task<bool> TableExistsAsync(
+    private static Task<bool> TableExistsAsync(
         DbConnection connection,
         string table,
         CancellationToken cancellationToken)
-    {
-        var value = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
-            cancellationToken,
-            table).ConfigureAwait(false);
-        return value > 0;
-    }
+        => ErpDb.TableKnownAsync(connection, table, cancellationToken);
 
-    private static async Task<bool> ColumnExistsAsync(
+    private static Task<bool> ColumnExistsAsync(
         DbConnection connection,
         string table,
         string column,
         CancellationToken cancellationToken)
-    {
-        var value = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"),
-            cancellationToken,
-            table,
-            column).ConfigureAwait(false);
-        return value > 0;
-    }
+        => ErpDb.ColumnKnownAsync(connection, table, column, cancellationToken);
 }

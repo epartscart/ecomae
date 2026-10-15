@@ -245,13 +245,8 @@ public sealed class ErpBosWfRequestReadService : IErpBosWfRequestReadService
         return labels;
     }
 
-    private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
-        => await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
-            cancellationToken,
-            table).ConfigureAwait(false) > 0;
+    private static Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+        => ErpDb.TableKnownAsync(connection, table, cancellationToken);
 
     private static string Text(DbDataReader reader, int ordinal)
         => reader.IsDBNull(ordinal) ? string.Empty : reader.GetValue(ordinal).ToString() ?? string.Empty;

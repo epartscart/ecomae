@@ -100,6 +100,33 @@ public sealed class ErpPageSpeedTests
         Assert.Contains("ErpHotReadCache", reporter[reporter.IndexOf("BuildErpCompaniesDigestAsync", StringComparison.Ordinal)..], StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Clicks_StartTogether_And_SkipRepeatedTableScans()
+    {
+        var chrome = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor"));
+        Assert.Contains("Task.WhenAll(companiesTask, rulesTask, sessionTask)", chrome, StringComparison.Ordinal);
+        Assert.Contains("speculationrules", chrome, StringComparison.Ordinal);
+        Assert.Contains("eagerness\":\"conservative", chrome, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-nav-progress", chrome, StringComparison.Ordinal);
+        Assert.Contains("href_matches\":\"/*logout*", chrome.Replace(" ", string.Empty), StringComparison.Ordinal);
+
+        var home = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
+        Assert.Contains("Task.WhenAll(powerTask, intelTask, homeTask)", home, StringComparison.Ordinal);
+
+        var lookup = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Erp/ErpMasterLookupReadService.cs"));
+        Assert.Contains("ErpDb.TableKnownAsync", lookup, StringComparison.Ordinal);
+        Assert.Contains("ErpDb.ColumnKnownAsync", lookup, StringComparison.Ordinal);
+        Assert.DoesNotContain("information_schema", lookup, StringComparison.Ordinal);
+
+        var finance = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Erp/ErpFinanceAjaxReadService.cs"));
+        Assert.Contains("ErpDb.TableKnownAsync", finance, StringComparison.Ordinal);
+        Assert.DoesNotContain("information_schema", finance, StringComparison.Ordinal);
+
+        var catalog = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Erp/ErpTableCatalog.cs"));
+        Assert.Contains("SHOW TABLES", catalog, StringComparison.Ordinal);
+        Assert.Contains("CountPresentAsync", catalog, StringComparison.Ordinal);
+    }
+
     private static string Find(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

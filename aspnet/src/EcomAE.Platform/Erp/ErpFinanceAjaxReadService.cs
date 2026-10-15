@@ -190,11 +190,8 @@ public sealed class ErpFinanceAjaxReadService : IErpFinanceAjaxReadService
     private static ErpAjaxRowsResult Fail(string code, string message)
         => new(ErpSimpleWriteResult.Fail(code, message), []);
 
-    private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken ct)
-        => await ErpDb.LongAsync(
-            connection, null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
-            ct, table).ConfigureAwait(false) > 0;
+    private static Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken ct)
+        => ErpDb.TableKnownAsync(connection, table, ct);
 
     private static async Task<IReadOnlyList<IReadOnlyDictionary<string, object?>>> RowsAsync(DbConnection connection, string sql, CancellationToken ct, params object?[] parameters)
     {

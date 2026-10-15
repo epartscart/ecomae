@@ -60,14 +60,6 @@ public sealed class ErpMultiEntityPreferenceReadService : IErpMultiEntityPrefere
         string column,
         CancellationToken cancellationToken)
     {
-        var count = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional(
-                "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"),
-            cancellationToken,
-            table,
-            column).ConfigureAwait(false);
-        return count > 0;
+        return await ErpDb.ColumnKnownAsync(connection, table, column, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -45,6 +45,35 @@ public static class ErpTableCatalog
         return names;
     }
 
+    public static async Task<bool> ContainsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(table))
+        {
+            return false;
+        }
+
+        var names = await LoadAsync(connection, cancellationToken).ConfigureAwait(false);
+        return names.Contains(table);
+    }
+
+    public static async Task<int> CountPresentAsync(
+        DbConnection connection,
+        IEnumerable<string> tables,
+        CancellationToken cancellationToken)
+    {
+        var names = await LoadAsync(connection, cancellationToken).ConfigureAwait(false);
+        var present = 0;
+        foreach (var table in tables)
+        {
+            if (!string.IsNullOrWhiteSpace(table) && names.Contains(table))
+            {
+                present++;
+            }
+        }
+
+        return present;
+    }
+
     public static void Forget(DbConnection connection)
     {
         var key = ErpSchemaMemo.Key(connection, "tables");

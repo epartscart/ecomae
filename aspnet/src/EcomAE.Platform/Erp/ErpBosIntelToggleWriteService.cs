@@ -42,13 +42,27 @@ public sealed class ErpBosIntelToggleWriteService : IErpBosIntelToggleWriteServi
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var hotKey = HotKey(connection);
+        if (hotKey.Length > 0
+            && ErpHotReadCache.TryGet(hotKey, out IReadOnlyDictionary<string, int>? cached)
+            && cached is not null)
+        {
+            return cached;
+        }
+
         if (!await ColumnExistsAsync(connection, "epc_price_settings", "setting_key", cancellationToken).ConfigureAwait(false))
         {
             return new Dictionary<string, int>(StringComparer.Ordinal);
         }
 
         var raw = await ReadRawAsync(connection, cancellationToken).ConfigureAwait(false);
-        return ParseState(raw);
+        var state = ParseState(raw);
+        if (hotKey.Length > 0)
+        {
+            ErpHotReadCache.Set(hotKey, state, TimeSpan.FromSeconds(20));
+        }
+
+        return state;
     }
 
     public async Task<ErpSimpleWriteResult> ToggleAsync(
@@ -87,6 +101,7 @@ public sealed class ErpBosIntelToggleWriteService : IErpBosIntelToggleWriteServi
             cancellationToken,
             SettingKey,
             EncodeState(state)).ConfigureAwait(false);
+        ErpHotReadCache.Forget(HotKey(connection));
         return ErpSimpleWriteResult.Ok("Control updated", 0);
     }
 
@@ -287,4 +302,10 @@ public sealed class ErpBosIntelToggleWriteService : IErpBosIntelToggleWriteServi
 
     private static Task<bool> ColumnExistsAsync(DbConnection connection, string table, string column, CancellationToken cancellationToken)
         => ErpDb.ColumnKnownAsync(connection, table, column, cancellationToken);
+
+    private static string HotKey(DbConnection connection)
+    {
+        var database = connection.Database;
+        return string.IsNullOrWhiteSpace(database) ? string.Empty : "bos-intel:" + database;
+    }
 }

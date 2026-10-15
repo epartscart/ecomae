@@ -62,13 +62,6 @@ public sealed class ErpMultiEntityMemberReadService : IErpMultiEntityMemberReadS
         DbConnection connection,
         CancellationToken cancellationToken)
     {
-        var count = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional(
-                "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
-            cancellationToken,
-            "epc_entity_members").ConfigureAwait(false);
-        return count > 0;
+        return await ErpDb.TableKnownAsync(connection, "epc_entity_members", cancellationToken).ConfigureAwait(false);
     }
 }

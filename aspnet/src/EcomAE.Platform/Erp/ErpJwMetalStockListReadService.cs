@@ -146,12 +146,6 @@ public sealed class ErpJwMetalStockListReadService : IErpJwMetalStockListReadSer
 
     private static async Task<bool> TableExistsAsync(DbConnection connection, CancellationToken cancellationToken)
     {
-        var n = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
-            cancellationToken,
-            "epc_jewel_metal_stock").ConfigureAwait(false);
-        return n > 0;
+        return await ErpDb.TableKnownAsync(connection, "epc_jewel_metal_stock", cancellationToken).ConfigureAwait(false);
     }
 }
