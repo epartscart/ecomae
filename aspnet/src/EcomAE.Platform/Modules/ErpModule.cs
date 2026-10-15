@@ -25332,6 +25332,7 @@ public sealed class ErpModule : ISurfaceModule
         HttpContext context,
         ILegacySessionValidator validator,
         IErpLandlordBook book,
+        IErpTenancyExpiryMail expiry,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -25375,8 +25376,31 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         await book.EnsureOpeningAsync(ClientErpPath.BoundSiteKey(context), cancellationToken);
+        var today = ErpTenancyExpiryMail.GulfToday(DateTime.UtcNow);
         var written = action switch
         {
+            "save_expiry_template" => await expiry.SaveTemplateAsync(new ErpTenancyExpiryTemplate(
+                form is null ? "" : LiveWriteFormBinder.Text(form, "subject"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "body"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "replyEmails"),
+                form is not null && LiveWriteFormBinder.Flag(form, "autoSend")), cancellationToken),
+            "prepare_expiry" => await expiry.PrepareAsync(today, cancellationToken),
+            "prepare_expiry_one" => await expiry.PrepareOneAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "leaseId"), today, cancellationToken),
+            "send_expiry_due" => await expiry.SendDueAsync(today, cancellationToken),
+            "send_expiry" => await expiry.SendOneAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id"), cancellationToken),
+            "edit_expiry" => await expiry.UpdateNoticeAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "id"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "toEmails"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "replyEmails"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "subject"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "body"),
+                cancellationToken),
+            "skip_expiry" => await expiry.SkipAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id"), cancellationToken),
+            "file_expiry_reply" => await expiry.FileReplyAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "id"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "fromEmail"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "replyBody"),
+                cancellationToken),
             "save_line" => await book.SaveLineAsync(new ErpLandlordEntry(
                 propertyId,
                 unitId,
@@ -25409,7 +25433,7 @@ public sealed class ErpModule : ISurfaceModule
             "delete" => await book.DeleteAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id", "lineId"), cancellationToken),
             "void" => await book.VoidAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id", "lineId"), cancellationToken),
             "reverse" => await book.ReverseAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id", "lineId"), cancellationToken),
-            _ => ErpSimpleWriteResult.Fail("invalid", "Choose add, edit, delete, void, or reverse."),
+            _ => ErpSimpleWriteResult.Fail("invalid", "Choose add, edit, delete, void, reverse, or a tenancy notice action."),
         };
         return LiveWriteFormBinder.Complete(
             context,

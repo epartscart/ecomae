@@ -1,0 +1,211 @@
+@using System.Globalization
+@using EcomAE.Platform.Erp
+
+<section id="expiry-mail">
+    <h3>Tenancy expiry email</h3>
+    <p class="text-muted">Three months before a tenancy ends, this page prepares an email from the draft. A tenant can have more than one address. List every landlord address that should receive the reply. Each reply is filed on the notice, one sender at a time. Automatic send stays off until you turn it on, and nothing is mailed while the company mail server is off. Tenancies that are not on file are not invented.</p>
+    @if (!string.IsNullOrWhiteSpace(Note))
+    {
+        <p>@Note</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(Book.Message))
+    {
+        <p class="text-muted">@Book.Message</p>
+    }
+
+    <ErpPhpCreateWell Title="Draft email">
+        <form method="post" action="@SaveAction">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+            <input type="hidden" name="action" value="save_expiry_template" />
+            @Filter
+            <label>Subject <input class="form-control input-sm" type="text" name="subject" maxlength="200" value="@Book.Template.Subject" required /></label>
+            <label>Message
+                <textarea class="form-control" name="body" rows="10" required>@Book.Template.Body</textarea>
+            </label>
+            <p class="text-muted">Placeholders: {{tenant_name}} {{property}} {{unit}} {{lease_code}} {{start_date}} {{end_date}} {{notice_date}} {{annual_rent}} {{reply_emails}}</p>
+            <label>Landlord addresses that receive the reply
+                <textarea class="form-control" name="replyEmails" rows="3" placeholder="one address on each line, or separated by commas">@Book.Template.ReplyEmails</textarea>
+            </label>
+            <label>
+                @if (Book.Template.AutoSend)
+                {
+                    <input type="checkbox" name="autoSend" value="true" checked />
+                }
+                else
+                {
+                    <input type="checkbox" name="autoSend" value="true" />
+                }
+                Send ready notices automatically each time this page is opened
+            </label>
+            <button type="submit" class="btn btn-primary btn-sm">Save draft</button>
+        </form>
+    </ErpPhpCreateWell>
+
+    <form method="post" action="@SaveAction" class="re-filter">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+        <input type="hidden" name="action" value="prepare_expiry" />
+        @Filter
+        <button type="submit" class="btn btn-default btn-sm">Check tenancies due now</button>
+    </form>
+    <form method="post" action="@SaveAction" class="re-filter">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+        <input type="hidden" name="action" value="send_expiry_due" />
+        @Filter
+        <button type="submit" class="btn btn-primary btn-sm">Send every ready notice</button>
+    </form>
+
+    @if (Book.Notices.Count == 0)
+    {
+        <p class="text-muted">No notice is prepared yet. When an active tenancy reaches three months before its end date, the letter appears here.</p>
+    }
+    else
+    {
+        @foreach (var notice in Book.Notices)
+        {
+            <div class="epc-erp-table-wrap">
+                <p>
+                    <strong>@(string.IsNullOrWhiteSpace(notice.LeaseCode) ? "Tenancy " + notice.LeaseId.ToString(CultureInfo.InvariantCulture) : notice.LeaseCode)</strong>
+                    @notice.TenantName
+                    @notice.PropertyName
+                    @notice.UnitCode
+                    · ends @notice.EndDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+                    · prepare from @notice.DueOn.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+                    · @ErpTenancyExpiryMail.StatusLabel(notice.Status)
+                    @if (!string.IsNullOrWhiteSpace(notice.SentAt))
+                    {
+                        <span> · sent @notice.SentAt</span>
+                    }
+                </p>
+                @if (!string.IsNullOrWhiteSpace(notice.SendError))
+                {
+                    <p>@notice.SendError</p>
+                }
+                <p>To: @(string.IsNullOrWhiteSpace(notice.ToEmails) ? "No tenant email yet" : notice.ToEmails)</p>
+                <p>Reply goes to: @(string.IsNullOrWhiteSpace(notice.ReplyEmails) ? "The sending mailbox" : notice.ReplyEmails)</p>
+                <p><strong>@notice.Subject</strong></p>
+                <pre style="white-space:pre-wrap">@notice.Body</pre>
+                @if (notice.Replies.Count > 0)
+                {
+                    <p><strong>Replies</strong></p>
+                    @foreach (var reply in notice.Replies)
+                    {
+                        <p>@reply.FiledAt @reply.FromEmail</p>
+                        <pre style="white-space:pre-wrap">@reply.Body</pre>
+                    }
+                }
+                @if (ErpTenancyExpiryMail.CanEdit(notice.Status))
+                {
+                    <form method="post" action="@SaveAction">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+                        <input type="hidden" name="action" value="edit_expiry" />
+                        <input type="hidden" name="id" value="@notice.Id.ToString(CultureInfo.InvariantCulture)" />
+                        @Filter
+                        <label>Tenant emails <textarea class="form-control" name="toEmails" rows="2">@notice.ToEmails</textarea></label>
+                        <label>Reply goes to <textarea class="form-control" name="replyEmails" rows="2">@notice.ReplyEmails</textarea></label>
+                        <label>Subject <input class="form-control input-sm" type="text" name="subject" maxlength="200" value="@notice.Subject" /></label>
+                        <label>Message <textarea class="form-control" name="body" rows="6">@notice.Body</textarea></label>
+                        <button type="submit" class="btn btn-default btn-sm">Save this notice</button>
+                    </form>
+                }
+                @if (ErpTenancyExpiryMail.CanSend(notice.Status))
+                {
+                    <form method="post" action="@SaveAction">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+                        <input type="hidden" name="action" value="send_expiry" />
+                        <input type="hidden" name="id" value="@notice.Id.ToString(CultureInfo.InvariantCulture)" />
+                        @Filter
+                        <button type="submit" class="btn btn-primary btn-sm">@(notice.Status == "failed" ? "Try again" : "Send this notice")</button>
+                    </form>
+                }
+                @if (ErpTenancyExpiryMail.CanSkip(notice.Status))
+                {
+                    <form method="post" action="@SaveAction">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+                        <input type="hidden" name="action" value="skip_expiry" />
+                        <input type="hidden" name="id" value="@notice.Id.ToString(CultureInfo.InvariantCulture)" />
+                        @Filter
+                        <button type="submit" class="btn btn-default btn-sm">Do not send</button>
+                    </form>
+                }
+                @if (notice.Status != "skipped")
+                {
+                    <form method="post" action="@SaveAction">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+                        <input type="hidden" name="action" value="file_expiry_reply" />
+                        <input type="hidden" name="id" value="@notice.Id.ToString(CultureInfo.InvariantCulture)" />
+                        @Filter
+                        <label>Reply came from <input class="form-control input-sm" type="email" name="fromEmail" /></label>
+                        <label>Reply <textarea class="form-control" name="replyBody" rows="3"></textarea></label>
+                        <button type="submit" class="btn btn-default btn-sm">File this reply</button>
+                    </form>
+                }
+            </div>
+        }
+    }
+
+    @if (Book.Waiting.Count > 0)
+    {
+        <h4>Not due yet</h4>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-condensed table-bordered table-epc">
+                <thead>
+                    <tr><th>Tenancy</th><th>Tenant</th><th>Property</th><th>Flat</th><th>Ends</th><th>Notice prepares on</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Book.Waiting)
+                    {
+                        <tr>
+                            <td>@row.LeaseCode</td>
+                            <td>@row.TenantName</td>
+                            <td>@row.PropertyName</td>
+                            <td>@row.UnitCode</td>
+                            <td>@row.EndDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</td>
+                            <td>@row.DueOn.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (Book.Ended.Count > 0)
+    {
+        <h4>Ended before a notice was sent</h4>
+        <p class="text-muted">These tenancies are still active and the end date has passed. No automatic email is sent after the end date. Prepare the letter only when you still want to send it.</p>
+        @foreach (var row in Book.Ended)
+        {
+            <form method="post" action="@SaveAction" class="re-filter">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="csrf_guard_key" value="@Csrf" />
+                <input type="hidden" name="action" value="prepare_expiry_one" />
+                <input type="hidden" name="leaseId" value="@row.LeaseId.ToString(CultureInfo.InvariantCulture)" />
+                @Filter
+                <span>@row.LeaseCode @row.TenantName @row.PropertyName @row.UnitCode ended @row.EndDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</span>
+                <button type="submit" class="btn btn-default btn-sm">Prepare this letter</button>
+            </form>
+        }
+    }
+</section>
+
+@code {
+    [Parameter] public ErpTenancyExpiryBook Book { get; set; } = ErpTenancyExpiryBook.Empty("");
+    [Parameter] public string Note { get; set; } = "";
+    [Parameter] public string SaveAction { get; set; } = "";
+    [Parameter] public string Csrf { get; set; } = "";
+    [Parameter] public int Year { get; set; }
+    [Parameter] public long PropertyId { get; set; }
+    [Parameter] public long UnitId { get; set; }
+
+    private RenderFragment Filter => @<text>
+        <input type="hidden" name="filterYear" value="@Year.ToString(CultureInfo.InvariantCulture)" />
+        <input type="hidden" name="filterPropertyId" value="@PropertyId.ToString(CultureInfo.InvariantCulture)" />
+        <input type="hidden" name="filterUnitId" value="@UnitId.ToString(CultureInfo.InvariantCulture)" />
+    </text>;
+}
