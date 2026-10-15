@@ -30,6 +30,7 @@
             <a class="btn btn-sm re-board-btn" href="@ReportHref("html")" target="_blank" rel="noopener">Open presentation</a>
             <a class="btn btn-sm re-board-btn" href="@ReportHref("pdf")">Download PDF</a>
             <a class="btn btn-sm re-board-btn" href="@ReportHref("docx")">Download Word</a>
+            <a class="btn btn-sm re-board-btn" href="@LandlordHref">Year book</a>
         </div>
     </div>
     <style>
@@ -761,7 +762,7 @@
         else if (_tab == "import")
         {
             <ErpPhpCreateWell Title="Real estate workbook">
-                <p class="text-muted">One workbook covers owners, buildings, units, tenants, agreements, cheques, expenses and document keys. Download the template, fill a sheet, then import that sheet. Cleared cheques and rent schedules are not imported as cash or as a second billing run. Agreements generate the schedule. A received cheque is not cash.</p>
+                <p class="text-muted">One workbook covers owners, buildings, units, tenants, agreements, cheques, expenses, document keys and the year book. Download the template, fill a sheet, then import that sheet. Year lines measure income, expense, investment and recovery. They are not posted vouchers. An expense row with a year also lands on the year book. Cleared cheques and rent schedules are not imported as cash or as a second billing run. Agreements generate the schedule. A received cheque is not cash. Open the <a href="@LandlordHref">year book</a> to record the next year.</p>
                 <p>
                     <a class="btn btn-primary btn-sm" href="@WorkbookHref("template")">Download import template</a>
                     <a class="btn btn-default btn-sm" href="@WorkbookHref("export")">Export registers</a>
@@ -783,6 +784,7 @@
                             <option>Expenses</option>
                             <option>Maintenance</option>
                             <option>Documents</option>
+                            <option>Year_Lines</option>
                         </select>
                     </label>
                     <label>Excel file <input class="form-control input-sm" type="file" name="upload" accept=".xlsx,.xls" /></label>
@@ -901,6 +903,7 @@
             <a class="btn btn-sm re-board-btn" href="@ReportHref("html")" target="_blank" rel="noopener">Open presentation</a>
             <a class="btn btn-sm re-board-btn" href="@ReportHref("pdf")">Download PDF</a>
             <a class="btn btn-sm re-board-btn" href="@ReportHref("docx")">Download Word</a>
+            <a class="btn btn-sm re-board-btn" href="@LandlordHref">Year book</a>
         </div>
     </div>
 </PhpErpDesktopChrome>
@@ -955,6 +958,9 @@
 
     private string WorkbookHref(string kind)
         => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/real-estate/workbook?kind=" + kind);
+
+    private string LandlordHref
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/landlord-app?year=2025");
 
     private static int Meter(decimal part, decimal whole)
         => whole <= 0 ? 0 : (int)Math.Min(100m, decimal.Round(part / whole * 100m, 0, MidpointRounding.AwayFromZero));

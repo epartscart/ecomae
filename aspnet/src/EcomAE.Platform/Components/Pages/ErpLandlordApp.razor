@@ -1,0 +1,350 @@
+@page "/erp/landlord-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpLandlordBook Book
+
+<PageTitle>Landlord year book · ERP</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Landlord year book" BreadcrumbArea="Industry" BreadcrumbTab="Year book">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/landlord-app" IsAdmin="_isAdmin" />
+    <PhpErpModulePageHeader
+        Title="Year, return and recovery"
+        Subtitle="One page for the year. Income and expenses stay on the property until a flat list exists. An expense can then sit on one flat or be split equally across every listed flat. Investment value and combined costs through 2024 stay blank until those figures arrive."
+        PhpTabHref="/erp/landlord-app" />
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+
+    <form method="get" class="re-filter" action="@AppHref">
+        <label>Year
+            <select class="form-control input-sm" name="year">
+                <option value="0" selected="@(_year <= 0)">All years</option>
+                @foreach (var year in _board.Years)
+                {
+                    <option value="@year" selected="@(_year == year)">@year</option>
+                }
+            </select>
+        </label>
+        <label>Property
+            <select class="form-control input-sm" name="propertyId">
+                <option value="0" selected="@(_propertyId <= 0)">Overall</option>
+                @foreach (var property in _board.Properties)
+                {
+                    <option value="@property.Id" selected="@(_propertyId == property.Id)">@property.Name</option>
+                }
+            </select>
+        </label>
+        <label>Flat
+            <select class="form-control input-sm" name="unitId">
+                <option value="0" selected="@(_unitId <= 0)">All flats</option>
+                @foreach (var unit in FlatChoices)
+                {
+                    <option value="@unit.Id" selected="@(_unitId == unit.Id)">@FlatLabel(unit)</option>
+                }
+            </select>
+        </label>
+        <button type="submit" class="btn btn-primary btn-sm">Show this view</button>
+        <a class="btn btn-default btn-sm" href="@ReportHref">Download this view</a>
+        <a class="btn btn-default btn-sm" href="@RegisterHref">Property register</a>
+    </form>
+
+    <p class="text-muted">@_viewLabel. These lines measure the year. They are not posted vouchers. A supplier bill still goes through the expense register and the ledger when it is approved. December 2025 rental lines add to 8,076,457. The sheet total row prints 8,076,455. A few expense columns differ by 1 dirham. The lines are stored as printed.</p>
+    @if (!string.IsNullOrWhiteSpace(_board.Message))
+    {
+        <p class="text-muted">@_board.Message</p>
+    }
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Year return">
+        <div class="kpi"><div class="lbl">Income</div><div class="val">@Money(_board.Totals.Income)</div></div>
+        <div class="kpi"><div class="lbl">Expenses</div><div class="val">@Money(_board.Totals.Expense)</div></div>
+        <div class="kpi"><div class="lbl">Return</div><div class="val">@Money(_board.Totals.ReturnAmount)</div></div>
+        <div class="kpi"><div class="lbl">Recovery</div><div class="val">@RecoveryText(_board.Totals)</div></div>
+        <div class="kpi"><div class="lbl">Investment</div><div class="val">@InvestmentText(_board.Totals)</div></div>
+        <div class="kpi"><div class="lbl">Costs through 2024</div><div class="val">@ThroughText(_board.Totals)</div></div>
+    </div>
+    <p class="text-muted">Return is income minus expenses for this view. Combined costs through 2024 stay outside that return. Recovery percent appears when both the recovered amount and the expenses are known. Return on investment appears when the investment value is known. A zero recovery means the sheet said recovered and did not give an amount.</p>
+
+    @if (_unitId <= 0)
+    {
+        <div class="epc-erp-table-wrap">
+            <table class="table table-condensed table-bordered table-epc">
+                <thead>
+                    <tr>
+                        <th>Property</th><th>Holder</th><th>From</th><th>Planned</th><th>Listed</th><th>Income</th><th>Expenses</th><th>Return</th><th>Recovery</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in RollupRows)
+                    {
+                        <tr>
+                            <td><a href="@ViewHref(_year, row.PropertyId, 0)">@row.Name</a></td>
+                            <td>@row.Holder</td>
+                            <td>@(row.StartYear > 0 ? row.StartYear.ToString(CultureInfo.InvariantCulture) : "")</td>
+                            <td>@row.PlannedUnits.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.ListedUnits.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@Money(row.Income)</td>
+                            <td>@Money(row.Expense)</td>
+                            <td>@Money(row.Income - row.Expense)</td>
+                            <td>@(row.Recovery > 0 ? Money(row.Recovery) : "")</td>
+                        </tr>
+                    }
+                    <tr>
+                        <td colspan="5"><strong>@_viewLabel</strong></td>
+                        <td><strong>@Money(_board.Totals.Income)</strong></td>
+                        <td><strong>@Money(_board.Totals.Expense)</strong></td>
+                        <td><strong>@Money(_board.Totals.ReturnAmount)</strong></td>
+                        <td><strong>@RecoveryText(_board.Totals)</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted">Planned is the room or flat count from the sheet. Listed is the number of flat codes on file. Labour Camp is 126 rooms, DIC 531-135 is 38 flats, and DIC 531-178 is 99 flats. Those lists arrive later, so nothing is split across placeholder flats.</p>
+    }
+
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="Record income, expense, recovery, investment, or costs through 2024">
+            <form method="post" action="@SaveAction">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="action" value="save_line" />
+                <input type="hidden" name="filterYear" value="@_year.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="filterPropertyId" value="@_propertyId.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="filterUnitId" value="@_unitId.ToString(CultureInfo.InvariantCulture)" />
+                <label>Kind
+                    <select class="form-control input-sm" name="kind">
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                        <option value="recovery">Recovery</option>
+                        <option value="investment">Investment</option>
+                        <option value="through_2024">Combined costs through 2024</option>
+                    </select>
+                </label>
+                <label>Year <input class="form-control input-sm" type="number" name="year" min="1990" max="2100" value="@EntryYear" required /></label>
+                <label>Property
+                    <select class="form-control input-sm" name="propertyId" required>
+                        @foreach (var property in _board.Properties)
+                        {
+                            <option value="@property.Id" selected="@(_propertyId == property.Id)">@property.Name</option>
+                        }
+                    </select>
+                </label>
+                <label>Category <input class="form-control input-sm" name="category" maxlength="40" placeholder="rental, repairs, recovered" /></label>
+                <label>Amount <input class="form-control input-sm" type="number" name="amount" min="0" step="0.01" placeholder="0.00" /></label>
+                <label>Where it sits
+                    <select class="form-control input-sm" name="spread">
+                        <option value="building">On the building</option>
+                        <option value="flat">On one flat</option>
+                        <option value="all_flats">Split equally across listed flats</option>
+                    </select>
+                </label>
+                <label>Flat, when it sits on one flat
+                    <select class="form-control input-sm" name="unitId">
+                        <option value="0">Building</option>
+                        @foreach (var unit in FlatChoices)
+                        {
+                            <option value="@unit.Id">@FlatLabel(unit)</option>
+                        }
+                    </select>
+                </label>
+                <label>Date <input class="form-control input-sm" type="date" name="date1" /></label>
+                <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Record on the year</button></div>
+            </form>
+            <p class="text-muted">Leave recovery at zero when the amount is not known yet. Investment and combined costs through 2024 need an amount when you have it. A split with no flats listed stays on the building.</p>
+        </ErpPhpCreateWell>
+    }
+
+    <div class="epc-erp-table-wrap">
+        <table class="table table-condensed table-bordered table-epc">
+            <thead>
+                <tr>
+                    <th>Year</th><th>Property</th><th>Flat</th><th>Kind</th><th>Category</th><th>Amount</th><th>Spread</th><th>Note</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var line in _board.Lines)
+                {
+                    var onBuilding = _unitId > 0 && line.UnitId == 0;
+                    var property = _board.Properties.FirstOrDefault(item => item.Id == line.PropertyId);
+                    <tr>
+                        <td>@line.Year.ToString(CultureInfo.InvariantCulture)</td>
+                        <td>@line.PropertyName</td>
+                        <td>@(string.IsNullOrWhiteSpace(line.UnitCode) ? (onBuilding ? "Building" : "") : line.UnitCode)</td>
+                        <td>@line.Kind</td>
+                        <td>@line.Category</td>
+                        <td>@Money(line.Amount)</td>
+                        <td>@line.Spread</td>
+                        <td>@(onBuilding ? "On the building. Not in this flat total. " : "")@line.Note</td>
+                        <td>
+                            @if (_isAdmin && line.ParentId == 0)
+                            {
+                                @if (line.Kind == "expense" && line.Spread == "building" && line.UnitId == 0)
+                                {
+                                    if ((property?.ListedUnits ?? 0) == 0)
+                                    {
+                                        <span class="text-muted">Stays on the building until flats are listed.</span>
+                                    }
+                                    else
+                                    {
+                                        <form method="post" action="@SaveAction">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="action" value="distribute" />
+                                            <input type="hidden" name="id" value="@line.Id" />
+                                            <input type="hidden" name="filterYear" value="@_year.ToString(CultureInfo.InvariantCulture)" />
+                                            <input type="hidden" name="filterPropertyId" value="@_propertyId.ToString(CultureInfo.InvariantCulture)" />
+                                            <input type="hidden" name="filterUnitId" value="@_unitId.ToString(CultureInfo.InvariantCulture)" />
+                                            <select class="form-control input-sm" name="targetUnitId">
+                                                <option value="0">Split across all listed flats</option>
+                                                @foreach (var unit in _board.Units.Where(item => item.PropertyId == line.PropertyId))
+                                                {
+                                                    <option value="@unit.Id">@unit.Code</option>
+                                                }
+                                            </select>
+                                            <button type="submit" class="btn btn-default btn-xs">Distribute</button>
+                                        </form>
+                                    }
+                                }
+                                <form method="post" action="@SaveAction" style="display:inline">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="action" value="void" />
+                                    <input type="hidden" name="id" value="@line.Id" />
+                                    <input type="hidden" name="filterYear" value="@_year.ToString(CultureInfo.InvariantCulture)" />
+                                    <input type="hidden" name="filterPropertyId" value="@_propertyId.ToString(CultureInfo.InvariantCulture)" />
+                                    <input type="hidden" name="filterUnitId" value="@_unitId.ToString(CultureInfo.InvariantCulture)" />
+                                    <button type="submit" class="btn btn-default btn-xs">Void</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private int _year = ErpLandlordOpening.SheetYear;
+    private long _propertyId;
+    private long _unitId;
+    private ErpLandlordBoard _board = new(
+        ErpLandlordOpening.SheetYear,
+        0,
+        0,
+        new ErpLandlordTotals(0, 0, 0, 0, 0, 0, false),
+        new ErpLandlordTotals(0, 0, 0, 0, 0, 0, false),
+        [ErpLandlordOpening.SheetYear],
+        [],
+        [],
+        [],
+        [],
+        "");
+
+    private string AppHref => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/landlord-app");
+
+    private string SaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/landlord/save");
+
+    private string RegisterHref => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/real-estate-app?tab=properties");
+
+    private string ReportHref
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/landlord/report?year=" + _year.ToString(CultureInfo.InvariantCulture)
+            + "&propertyId=" + _propertyId.ToString(CultureInfo.InvariantCulture)
+            + "&unitId=" + _unitId.ToString(CultureInfo.InvariantCulture));
+
+    private string EntryYear => (_year > 0 ? _year : ErpLandlordOpening.SheetYear).ToString(CultureInfo.InvariantCulture);
+
+    private string _viewLabel => _unitId > 0 ? "This flat" : _propertyId > 0 ? "This property" : "Overall";
+
+    private IEnumerable<ErpLandlordUnit> FlatChoices
+        => _propertyId <= 0 ? _board.Units : _board.Units.Where(unit => unit.PropertyId == _propertyId);
+
+    private IEnumerable<ErpLandlordRollup> RollupRows
+        => _propertyId <= 0 ? _board.Rollup : _board.Rollup.Where(row => row.PropertyId == _propertyId);
+
+    private string ViewHref(int year, long propertyId, long unitId)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/landlord-app?year=" + year.ToString(CultureInfo.InvariantCulture)
+            + "&propertyId=" + propertyId.ToString(CultureInfo.InvariantCulture)
+            + "&unitId=" + unitId.ToString(CultureInfo.InvariantCulture));
+
+    private static string Money(decimal amount)
+        => amount.ToString("N2", CultureInfo.InvariantCulture);
+
+    private static string RecoveryText(ErpLandlordTotals totals)
+    {
+        if (totals.Recovery > 0)
+        {
+            return Money(totals.Recovery) + (totals.RecoveryPercent is null ? "" : " (" + totals.RecoveryPercent.Value.ToString("0.00", CultureInfo.InvariantCulture) + "%)");
+        }
+
+        return totals.RecoveryMarked ? "Marked. Amount later." : "Not recorded";
+    }
+
+    private static string InvestmentText(ErpLandlordTotals totals)
+    {
+        if (totals.Investment <= 0)
+        {
+            return "Not provided yet";
+        }
+
+        var roi = totals.ReturnOnInvestment is null ? "" : " (" + totals.ReturnOnInvestment.Value.ToString("0.00", CultureInfo.InvariantCulture) + "%)";
+        return Money(totals.Investment) + roi;
+    }
+
+    private static string ThroughText(ErpLandlordTotals totals)
+        => totals.Through2024 > 0 ? Money(totals.Through2024) : "Not provided yet";
+
+    private string FlatLabel(ErpLandlordUnit unit)
+    {
+        if (_propertyId > 0)
+        {
+            return string.IsNullOrWhiteSpace(unit.Name) ? unit.Code : unit.Code + " " + unit.Name;
+        }
+
+        var property = _board.Properties.FirstOrDefault(item => item.Id == unit.PropertyId);
+        return (property?.Code ?? "") + " " + unit.Code;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        var yearRaw = ctx.Request.Query["year"].ToString();
+        if (!int.TryParse(yearRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out _year))
+        {
+            _year = ErpLandlordOpening.SheetYear;
+        }
+
+        long.TryParse(ctx.Request.Query["propertyId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _propertyId);
+        long.TryParse(ctx.Request.Query["unitId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _unitId);
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        try
+        {
+            await Book.EnsureOpeningAsync(ClientErpPath.BoundSiteKey(ctx), ctx.RequestAborted);
+            _board = await Book.LoadAsync(_year, _propertyId, _unitId, ctx.RequestAborted);
+        }
+        catch (Exception ex)
+        {
+            _board = _board with { Message = ex.Message.Length > 300 ? ex.Message[..300] : ex.Message };
+        }
+    }
+}

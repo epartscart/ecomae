@@ -3056,6 +3056,9 @@ public static class EcomAeRoutes
     public const string ErpRealEstateSave = "/erp/real-estate/save";
     public const string ErpRealEstateReport = "/erp/real-estate/report";
     public const string ErpRealEstateWorkbook = "/erp/real-estate/workbook";
+    public const string ErpLandlordApp = "/erp/landlord-app";
+    public const string ErpLandlordSave = "/erp/landlord/save";
+    public const string ErpLandlordReport = "/erp/landlord/report";
 
     /// <summary>PHP epc-erp-advanced-setup.php?industry=… → epc_erp_industry_apply(). confirmWrites=true applies the blueprint to the tenant DB.</summary>
     public const string ErpIndustryApply = "/erp/industry/apply";

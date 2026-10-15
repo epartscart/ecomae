@@ -39,6 +39,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await new ErpVoucherNumberService().EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpRealEstateGl.EnsureCoaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpLandlordSql.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (action is "reset_portfolio")
         {
             return await ResetPortfolioAsync(connection, request, cancellationToken).ConfigureAwait(false);
@@ -2179,11 +2180,22 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
                 "Expenses" => await ImportExpenseRowAsync(c, tx, r, row, importId, ct).ConfigureAwait(false),
                 "Maintenance" => await ImportMaintenanceRowAsync(c, tx, r, row, importId, ct).ConfigureAwait(false),
                 "Documents" => await ImportDocumentRowAsync(c, tx, row, importId, ct).ConfigureAwait(false),
+                "Year_Lines" => await ErpLandlordSql.ImportYearRowAsync(c, tx, row, importId, ct).ConfigureAwait(false),
                 _ => ErpSimpleWriteResult.Fail("use_screen", preview.HoldReason),
             };
             if (!one.Succeeded)
             {
                 return one;
+            }
+
+            if (preview.Name is "Properties" or "Buildings")
+            {
+                await ErpLandlordSql.StampPropertyAsync(c, tx, one.Id, row, ct).ConfigureAwait(false);
+            }
+
+            if (preview.Name == "Expenses")
+            {
+                await ErpLandlordSql.RecordExpenseMeasurementAsync(c, tx, row, importId, ct).ConfigureAwait(false);
             }
 
             applied++;
@@ -2213,6 +2225,12 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             return ErpSimpleWriteResult.Fail("posted", "This batch has posted journals. Reverse those documents. Rollback removes only draft rows with no journal.");
         }
 
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "DELETE c FROM `epc_erp_re_year_lines` c INNER JOIN `epc_erp_re_year_lines` p ON c.`parent_id`=p.`id` WHERE p.`import_id`=?"),
+            ct, r.Id).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "DELETE FROM `epc_erp_re_year_lines` WHERE `import_id`=?"),
+            ct, r.Id).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "DELETE FROM `epc_erp_re_expenses` WHERE `import_id`=? AND `status`='draft' AND `gl_journal_id`=0"),
             ct, r.Id).ConfigureAwait(false);
