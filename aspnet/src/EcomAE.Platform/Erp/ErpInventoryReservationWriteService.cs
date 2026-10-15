@@ -77,6 +77,23 @@ public sealed record ErpReserveInput
     public string SourceLineKey { get; init; } = string.Empty;
 
     public int AdminId { get; init; }
+
+    /// <summary>Order confirmation. The row stays until fulfilment, cancel, or an authorized release.</summary>
+    public bool Durable { get; init; }
+
+    public int WarehouseId { get; init; }
+
+    public int OwnerCompanyId { get; init; }
+
+    public bool AllowPartial { get; init; }
+
+    public string SellingCompanyId { get; init; } = string.Empty;
+
+    public string OwnerCompanyKey { get; init; } = string.Empty;
+
+    public string Fulfilment { get; init; } = string.Empty;
+
+    public string StockKind { get; init; } = ErpAsapStock.StockOwned;
 }
 
 public sealed record ErpReservationLineNeed(string ItemCode, decimal Qty);
@@ -95,6 +112,8 @@ public sealed record ErpReservationResult(
     string Status,
     long ExpiresAt)
 {
+    public decimal BackorderQty { get; init; }
+
     public static ErpReservationResult Fail(string code, string message, ErpItemAtp? atp = null)
         => new(
             false,
@@ -262,6 +281,12 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
         {
             await ExpireDueAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
 
+            if (!string.IsNullOrEmpty(input.Fulfilment)
+                && !ErpAsapStock.MayReserve(input.SellingCompanyId, input.OwnerCompanyKey, input.Fulfilment, input.StockKind))
+            {
+                return ErpReservationResult.Fail("ownership", "This company cannot reserve that owner's stock.");
+            }
+
             var existing = await FindOpenHoldAsync(
                 connection,
                 transaction,
@@ -271,9 +296,17 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
                 lineKey,
                 input.AdminId,
                 cancellationToken).ConfigureAwait(false);
-            if (existing is not null && existing.Value.Qty >= qty)
+            var already = existing?.Qty ?? 0m;
+            var atp = await LoadAtpAsync(connection, transaction, item.Value.Id, input.WarehouseId, input.OwnerCompanyId, cancellationToken).ConfigureAwait(false);
+            var others = decimal.Max(0m, atp.Reserved - already);
+            var decision = ErpAsapStock.Decide(atp.OnHand, others, qty, already, input.AllowPartial);
+            if (!decision.Accepted)
             {
-                var atpKeep = await LoadAtpAsync(connection, transaction, item.Value.Id, cancellationToken).ConfigureAwait(false);
+                return ErpReservationResult.Fail("unavailable", FirstClickLostMessage(item.Value.Sku, decision.AvailableAfter), atp);
+            }
+
+            if (decision.AddedQty == 0m && existing is not null)
+            {
                 return new ErpReservationResult(
                     true,
                     "ok",
@@ -282,79 +315,87 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
                     item.Value.Id,
                     item.Value.Sku,
                     existing.Value.Qty,
-                    atpKeep.OnHand,
-                    atpKeep.Reserved,
-                    atpKeep.Available,
+                    atp.OnHand,
+                    atp.Reserved,
+                    atp.Available,
                     existing.Value.Status,
                     existing.Value.ExpiresAt);
             }
 
-            var already = existing?.Qty ?? 0m;
-            var need = qty - already;
-            var atp = await LoadAtpAsync(connection, transaction, item.Value.Id, cancellationToken).ConfigureAwait(false);
-            if (need > atp.Available + 0.0005m)
-            {
-                return ErpReservationResult.Fail("unavailable", FirstClickLostMessage(item.Value.Sku, atp.Available), atp);
-            }
-
+            var storeQty = decision.ReservedQty;
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var expires = now + HoldSeconds;
+            var durable = input.Durable || string.Equals(existing?.Status, StatusConfirmed, StringComparison.Ordinal);
+            var expires = durable ? 0L : now + HoldSeconds;
             long reservationId;
             string status;
             if (existing is not null)
             {
+                status = durable ? StatusConfirmed : existing.Value.Status;
                 await ErpDb.ExecuteAsync(
                     connection,
                     transaction,
                     ErpDb.Positional(
-                        "UPDATE `epc_erp_inv_reservations` SET `qty`=?, `time_updated`=?, `expires_at`=CASE WHEN `status`='confirmed' THEN 0 ELSE ? END WHERE `id`=?"),
+                        "UPDATE `epc_erp_inv_reservations` SET `qty`=?, `backorder_qty`=?, `warehouse_id`=?, `owner_company_id`=?, `status`=?, `time_updated`=?, `expires_at`=? WHERE `id`=?"),
                     cancellationToken,
-                    qty,
+                    storeQty,
+                    decision.BackorderQty,
+                    input.WarehouseId,
+                    input.OwnerCompanyId,
+                    status,
                     now,
                     expires,
                     existing.Value.Id).ConfigureAwait(false);
                 reservationId = existing.Value.Id;
-                status = existing.Value.Status;
-                expires = string.Equals(existing.Value.Status, StatusConfirmed, StringComparison.Ordinal) ? 0 : expires;
             }
             else
             {
+                status = durable ? StatusConfirmed : StatusHeld;
                 await ErpDb.ExecuteAsync(
                     connection,
                     transaction,
                     ErpDb.Positional(
-                        "INSERT INTO `epc_erp_inv_reservations` (`item_id`,`sku`,`warehouse_id`,`qty`,`source_type`,`source_id`,`source_line_key`,`status`,`reserved_by`,`reserved_at`,`expires_at`,`time_updated`)"
-                        + " VALUES (?,?,0,?,?,?,?,?,?,?,?,?)"),
+                        "INSERT INTO `epc_erp_inv_reservations` (`item_id`,`sku`,`warehouse_id`,`owner_company_id`,`qty`,`backorder_qty`,`source_type`,`source_id`,`source_line_key`,`status`,`reserved_by`,`reserved_at`,`expires_at`,`time_updated`)"
+                        + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
                     cancellationToken,
                     item.Value.Id,
                     Clip(item.Value.Sku, 100),
-                    qty,
+                    input.WarehouseId,
+                    input.OwnerCompanyId,
+                    storeQty,
+                    decision.BackorderQty,
                     sourceType,
                     input.SourceId,
                     lineKey,
-                    StatusHeld,
+                    status,
                     input.AdminId,
                     now,
                     expires,
                     now).ConfigureAwait(false);
                 reservationId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
-                status = StatusHeld;
             }
 
-            var after = await LoadAtpAsync(connection, transaction, item.Value.Id, cancellationToken).ConfigureAwait(false);
+            var after = await LoadAtpAsync(connection, transaction, item.Value.Id, input.WarehouseId, input.OwnerCompanyId, cancellationToken).ConfigureAwait(false);
+            var message = durable
+                ? "Reserved. This stays until the order is picked, dispatched, cancelled, or released."
+                : decision.Code == "partial"
+                    ? "Reserved " + storeQty.ToString("0.###", CultureInfo.InvariantCulture) + ". Backorder " + decision.BackorderQty.ToString("0.###", CultureInfo.InvariantCulture) + "."
+                    : "Reserved for you. Confirm the quote or order to keep it, or it releases in 30 minutes.";
             return new ErpReservationResult(
                 true,
-                "ok",
-                "Reserved for you. Confirm the quote or order to keep it, or it releases in 30 minutes.",
+                decision.Code == "partial" ? "partial" : "ok",
+                message,
                 reservationId,
                 item.Value.Id,
                 item.Value.Sku,
-                qty,
+                storeQty,
                 after.OnHand,
                 after.Reserved,
                 after.Available,
                 status,
-                expires);
+                expires)
+            {
+                BackorderQty = decision.BackorderQty,
+            };
         }
         finally
         {
@@ -543,6 +584,7 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
                     SourceId = sourceId,
                     SourceLineKey = "doc",
                     AdminId = adminId,
+                    Durable = confirm,
                 },
                 cancellationToken).ConfigureAwait(false);
             if (!result.Succeeded)
@@ -675,7 +717,9 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
             + " `item_id` int(11) NOT NULL DEFAULT 0,"
             + " `sku` varchar(100) NOT NULL DEFAULT '',"
             + " `warehouse_id` int(11) NOT NULL DEFAULT 0,"
+            + " `owner_company_id` int(11) NOT NULL DEFAULT 0,"
             + " `qty` decimal(14,3) NOT NULL DEFAULT 0.000,"
+            + " `backorder_qty` decimal(14,3) NOT NULL DEFAULT 0.000,"
             + " `source_type` varchar(24) NOT NULL DEFAULT '',"
             + " `source_id` int(11) NOT NULL DEFAULT 0,"
             + " `source_line_key` varchar(64) NOT NULL DEFAULT '',"
@@ -691,6 +735,18 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
             + " KEY `x_source` (`source_type`,`source_id`),"
             + " KEY `x_expires` (`status`,`expires_at`)"
             + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='First-click ATP holds for quotes and sales orders'",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_inv_reservations` ADD COLUMN `owner_company_id` int(11) NOT NULL DEFAULT 0",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_inv_reservations` ADD COLUMN `backorder_qty` decimal(14,3) NOT NULL DEFAULT 0.000",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_inv_stock` ADD COLUMN `owner_company_id` int(11) NOT NULL DEFAULT 0",
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -746,10 +802,19 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
         return (reader.GetInt64(0), reader.GetString(1), reader.GetString(2));
     }
 
+    private static Task<ErpItemAtp> LoadAtpAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        long itemId,
+        CancellationToken cancellationToken)
+        => LoadAtpAsync(connection, transaction, itemId, 0, 0, cancellationToken);
+
     private static async Task<ErpItemAtp> LoadAtpAsync(
         DbConnection connection,
         DbTransaction? transaction,
         long itemId,
+        int warehouseId,
+        int ownerCompanyId,
         CancellationToken cancellationToken)
     {
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -768,17 +833,27 @@ public sealed class ErpInventoryReservationWriteService : IErpInventoryReservati
         var onHand = await ErpDb.DecimalAsync(
             connection,
             transaction,
-            ErpDb.Positional("SELECT COALESCE(SUM(`qty_on_hand`),0) FROM `epc_erp_inv_stock` WHERE `item_id`=?"),
+            ErpDb.Positional(
+                "SELECT COALESCE(SUM(`qty_on_hand`),0) FROM `epc_erp_inv_stock` WHERE `item_id`=? AND (?=0 OR `warehouse_id`=?) AND (?=0 OR `owner_company_id`=? OR `owner_company_id`=0)"),
             cancellationToken,
-            itemId).ConfigureAwait(false);
+            itemId,
+            warehouseId,
+            warehouseId,
+            ownerCompanyId,
+            ownerCompanyId).ConfigureAwait(false);
         var reserved = await ErpDb.DecimalAsync(
             connection,
             transaction,
             ErpDb.Positional(
-                "SELECT COALESCE(SUM(`qty`),0) FROM `epc_erp_inv_reservations` WHERE `item_id`=? AND `status` IN ('held','confirmed') AND (`expires_at`=0 OR `expires_at`>?)"),
+                "SELECT COALESCE(SUM(`qty`),0) FROM `epc_erp_inv_reservations` WHERE `item_id`=? AND `status` IN ('held','confirmed') AND (`expires_at`=0 OR `expires_at`>?)"
+                + " AND (?=0 OR `warehouse_id`=? OR `warehouse_id`=0) AND (?=0 OR `owner_company_id`=? OR `owner_company_id`=0)"),
             cancellationToken,
             itemId,
-            now).ConfigureAwait(false);
+            now,
+            warehouseId,
+            warehouseId,
+            ownerCompanyId,
+            ownerCompanyId).ConfigureAwait(false);
         return new ErpItemAtp(itemId, sku, name, onHand, reserved, Available(onHand, reserved));
     }
 

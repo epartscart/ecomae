@@ -374,6 +374,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateCsv, HandleFitOutEstimateCsvAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutWorkbook, HandleFitOutWorkbookAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpAsapWorkbook, HandleAsapWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutDeliveryDashboard, HandleFitOutDeliveryDashboardAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProgress, HandleFitOutProgressAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectProgress, HandleFitOutProjectProgressAsync);
@@ -25093,6 +25094,29 @@ public sealed class ErpModule : ISurfaceModule
             ErpJewelWorkbook.Template(),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "INDJ_JEWELLERY_MASTER_IMPORT_TEMPLATE.xlsx");
+    }
+
+    private static async Task<IResult> HandleAsapWorkbookAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/inventory-stock-app", "Admin ERP capability required for the ASAP workbook.");
+        }
+
+        var kind = (context.Request.Query["kind"].ToString() ?? "").Trim().ToLowerInvariant();
+        if (kind == "package")
+        {
+            return Results.File(ErpAsapWorkbook.ExportPackage(), "application/zip", "ASAP_Registers.zip");
+        }
+
+        return Results.File(
+            ErpAsapWorkbook.Template(),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "ASAP_AUTO_PARTS_MASTER_IMPORT_TEMPLATE.xlsx");
     }
 
     private static async Task<IResult> HandleFitOutWorkbookAsync(
