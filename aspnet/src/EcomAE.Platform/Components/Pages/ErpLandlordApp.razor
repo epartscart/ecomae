@@ -60,14 +60,32 @@
         <p class="text-muted">@_board.Message</p>
     }
 
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Year return">
-        <div class="kpi"><div class="lbl">Income</div><div class="val">@Money(_board.Totals.Income)</div></div>
-        <div class="kpi"><div class="lbl">Expenses</div><div class="val">@Money(_board.Totals.Expense)</div></div>
-        <div class="kpi"><div class="lbl">Return</div><div class="val">@Money(_board.Totals.ReturnAmount)</div></div>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Selected year">
+        <div class="kpi"><div class="lbl">@YearMeasureLabel income</div><div class="val">@Money(_board.Totals.Income)</div></div>
+        <div class="kpi"><div class="lbl">@YearMeasureLabel expenses</div><div class="val">@Money(_board.Totals.Expense)</div></div>
+        <div class="kpi"><div class="lbl">@YearMeasureLabel return</div><div class="val">@Money(_board.Totals.ReturnAmount)</div></div>
         <div class="kpi"><div class="lbl">Recovery</div><div class="val">@RecoveryText(_board.Totals)</div></div>
         <div class="kpi"><div class="lbl">Investment</div><div class="val">@InvestmentText(_board.Totals)</div></div>
         <div class="kpi"><div class="lbl">Costs through 2024</div><div class="val">@ThroughText(_board.Totals)</div></div>
     </div>
+    @if (_year > 0)
+    {
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="All years">
+            <div class="kpi"><div class="lbl">All years income</div><div class="val">@Money(_board.Life.Income)</div></div>
+            <div class="kpi"><div class="lbl">All years expenses</div><div class="val">@Money(_board.Life.Expense)</div></div>
+            <div class="kpi"><div class="lbl">All years return</div><div class="val">@Money(_board.Life.ReturnAmount)</div></div>
+            <div class="kpi"><div class="lbl">All years recovery</div><div class="val">@RecoveryText(_board.Life)</div></div>
+            <div class="kpi"><div class="lbl">Investment</div><div class="val">@InvestmentText(_board.Life)</div></div>
+            <div class="kpi"><div class="lbl">Costs through 2024</div><div class="val">@ThroughText(_board.Life)</div></div>
+        </div>
+    }
+    <p class="text-muted">
+        <a href="@CoaHref(ErpLandlordCoa.Asset)">Assets @ErpLandlordCoa.Asset Investment property</a>
+        · <a href="@RegisterHref">Properties</a>
+        · <a href="@CoaHref(ErpLandlordCoa.Income)">Income @ErpLandlordCoa.Income Rental income</a>
+        · <a href="@CoaHref(ErpLandlordCoa.ExpenseParent)">Expenses @ErpLandlordCoa.ExpenseParent Property operating expenses</a>
+        · <a href="@CoaListHref">Chart of accounts</a>
+    </p>
     <p class="text-muted">Return is income minus expenses for this view. Combined costs through 2024 stay outside that return. Recovery percent appears when both the recovered amount and the expenses are known. Return on investment appears when the investment value is known. A zero recovery means the sheet said recovered and did not give an amount.</p>
 
     @if (_unitId <= 0)
@@ -109,7 +127,65 @@
 
     @if (_isAdmin)
     {
-        <ErpPhpCreateWell Title="Record income, expense, recovery, investment, or costs through 2024">
+        <ErpPhpCreateWell Title="Add an expense">
+            <form method="post" action="@SaveAction">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="action" value="save_line" />
+                <input type="hidden" name="kind" value="expense" />
+                <input type="hidden" name="spread" value="building" />
+                <input type="hidden" name="filterYear" value="@_year.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="filterPropertyId" value="@_propertyId.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="filterUnitId" value="@_unitId.ToString(CultureInfo.InvariantCulture)" />
+                <label>Year <input class="form-control input-sm" type="number" name="year" min="1990" max="2100" value="@EntryYear" required /></label>
+                <label>Property
+                    <select class="form-control input-sm" name="propertyId" required>
+                        @foreach (var property in _board.Properties)
+                        {
+                            <option value="@property.Id" selected="@(_propertyId == property.Id)">@property.Name</option>
+                        }
+                    </select>
+                </label>
+                <label>Expense
+                    <select class="form-control input-sm" name="category">
+                        @foreach (var expense in ErpLandlordCoa.Expenses)
+                        {
+                            <option value="@expense.Category">@expense.Name</option>
+                        }
+                        <option value="other">Other — type it below</option>
+                    </select>
+                </label>
+                <label>Other expense <input class="form-control input-sm" name="categoryCustom" maxlength="40" placeholder="Only when the list does not have it" /></label>
+                <label>Amount <input class="form-control input-sm" type="number" name="amount" min="0.01" step="0.01" required placeholder="0.00" /></label>
+                <label>Note <input class="form-control input-sm" name="note" maxlength="255" placeholder="What this expense was for" /></label>
+                <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Add this expense</button></div>
+            </form>
+            <p class="text-muted">Each expense is one line on the property and the year. Add the next one the same way. A name that is not in the list uses the other property expense account.</p>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Add income">
+            <form method="post" action="@SaveAction">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="action" value="save_line" />
+                <input type="hidden" name="kind" value="income" />
+                <input type="hidden" name="category" value="rental" />
+                <input type="hidden" name="spread" value="building" />
+                <input type="hidden" name="filterYear" value="@_year.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="filterPropertyId" value="@_propertyId.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="filterUnitId" value="@_unitId.ToString(CultureInfo.InvariantCulture)" />
+                <label>Year <input class="form-control input-sm" type="number" name="year" min="1990" max="2100" value="@EntryYear" required /></label>
+                <label>Property
+                    <select class="form-control input-sm" name="propertyId" required>
+                        @foreach (var property in _board.Properties)
+                        {
+                            <option value="@property.Id" selected="@(_propertyId == property.Id)">@property.Name</option>
+                        }
+                    </select>
+                </label>
+                <label>Amount <input class="form-control input-sm" type="number" name="amount" min="0.01" step="0.01" required placeholder="0.00" /></label>
+                <label>Note <input class="form-control input-sm" name="note" maxlength="255" placeholder="Rent for this year" /></label>
+                <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Add this income</button></div>
+            </form>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Recovery, investment, costs through 2024, or a split across flats">
             <form method="post" action="@SaveAction">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="action" value="save_line" />
@@ -160,31 +236,30 @@
         </ErpPhpCreateWell>
     }
 
+    <h3>Expenses, one by one</h3>
     <div class="epc-erp-table-wrap">
         <table class="table table-condensed table-bordered table-epc">
             <thead>
                 <tr>
-                    <th>Year</th><th>Property</th><th>Flat</th><th>Kind</th><th>Category</th><th>Amount</th><th>Spread</th><th>Note</th><th></th>
+                    <th>Year</th><th>Property</th><th>Expense</th><th>Amount</th><th>Account</th><th>Note</th><th></th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var line in _board.Lines)
+                @foreach (var line in KindLines("expense"))
                 {
                     var onBuilding = _unitId > 0 && line.UnitId == 0;
                     var property = _board.Properties.FirstOrDefault(item => item.Id == line.PropertyId);
                     <tr>
                         <td>@line.Year.ToString(CultureInfo.InvariantCulture)</td>
-                        <td>@line.PropertyName</td>
-                        <td>@(string.IsNullOrWhiteSpace(line.UnitCode) ? (onBuilding ? "Building" : "") : line.UnitCode)</td>
-                        <td>@line.Kind</td>
-                        <td>@line.Category</td>
+                        <td><a href="@ViewHref(line.Year, line.PropertyId, 0)">@line.PropertyName</a></td>
+                        <td>@ErpLandlordCoa.Label(line.Category)</td>
                         <td>@Money(line.Amount)</td>
-                        <td>@line.Spread</td>
+                        <td><a href="@CoaHref(AccountCode(line))">@AccountText(line)</a></td>
                         <td>@(onBuilding ? "On the building. Not in this flat total. " : "")@line.Note</td>
                         <td>
                             @if (_isAdmin && line.ParentId == 0)
                             {
-                                @if (line.Kind == "expense" && line.Spread == "building" && line.UnitId == 0)
+                                @if (line.Spread == "building" && line.UnitId == 0)
                                 {
                                     if ((property?.ListedUnits ?? 0) == 0)
                                     {
@@ -223,6 +298,54 @@
                         </td>
                     </tr>
                 }
+                <tr>
+                    <td colspan="3"><strong>Expenses in this view</strong></td>
+                    <td><strong>@Money(_board.Totals.Expense)</strong></td>
+                    <td colspan="3"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>Income, one by one</h3>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-condensed table-bordered table-epc">
+            <thead>
+                <tr>
+                    <th>Year</th><th>Property</th><th>Income</th><th>Amount</th><th>Account</th><th>Note</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var line in KindLines("income"))
+                {
+                    <tr>
+                        <td>@line.Year.ToString(CultureInfo.InvariantCulture)</td>
+                        <td><a href="@ViewHref(line.Year, line.PropertyId, 0)">@line.PropertyName</a></td>
+                        <td>@ErpLandlordCoa.Label(line.Category)</td>
+                        <td>@Money(line.Amount)</td>
+                        <td><a href="@CoaHref(AccountCode(line))">@AccountText(line)</a></td>
+                        <td>@line.Note</td>
+                        <td>
+                            @if (_isAdmin && line.ParentId == 0)
+                            {
+                                <form method="post" action="@SaveAction" style="display:inline">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="action" value="void" />
+                                    <input type="hidden" name="id" value="@line.Id" />
+                                    <input type="hidden" name="filterYear" value="@_year.ToString(CultureInfo.InvariantCulture)" />
+                                    <input type="hidden" name="filterPropertyId" value="@_propertyId.ToString(CultureInfo.InvariantCulture)" />
+                                    <input type="hidden" name="filterUnitId" value="@_unitId.ToString(CultureInfo.InvariantCulture)" />
+                                    <button type="submit" class="btn btn-default btn-xs">Void</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                <tr>
+                    <td colspan="3"><strong>Income in this view</strong></td>
+                    <td><strong>@Money(_board.Totals.Income)</strong></td>
+                    <td colspan="3"></td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -260,6 +383,39 @@
             + "&unitId=" + _unitId.ToString(CultureInfo.InvariantCulture));
 
     private string EntryYear => (_year > 0 ? _year : ErpLandlordOpening.SheetYear).ToString(CultureInfo.InvariantCulture);
+
+    private string YearMeasureLabel => _year > 0 ? _year.ToString(CultureInfo.InvariantCulture) : "All years";
+
+    private string CoaListHref => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/coa-accounts-app");
+
+    private IEnumerable<ErpLandlordLine> KindLines(string kind)
+        => _board.Lines.Where(line => string.Equals(line.Kind, kind, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(line => line.PropertyName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(line => line.Category, StringComparer.OrdinalIgnoreCase);
+
+    private string CoaHref(string code)
+    {
+        var account = (_board.Accounts ?? []).FirstOrDefault(item => string.Equals(item.Code, code, StringComparison.Ordinal));
+        var href = account is null || account.Id <= 0
+            ? "/erp/coa-accounts-app?code=" + Uri.EscapeDataString(code)
+            : "/erp/coa-accounts-app?account_id=" + account.Id.ToString(CultureInfo.InvariantCulture);
+        return ClientErpPath.PrefixIfBound(Http.HttpContext, href);
+    }
+
+    private string AccountCode(ErpLandlordLine line)
+        => string.IsNullOrWhiteSpace(line.CoaCode) ? ErpLandlordCoa.CodeFor(line.Kind, line.Category) : line.CoaCode;
+
+    private string AccountText(ErpLandlordLine line)
+    {
+        var code = AccountCode(line);
+        if (code.Length == 0)
+        {
+            return "";
+        }
+
+        var account = (_board.Accounts ?? []).FirstOrDefault(item => string.Equals(item.Code, code, StringComparison.Ordinal));
+        return account is null || string.IsNullOrWhiteSpace(account.Name) ? code : code + " " + account.Name;
+    }
 
     private string _viewLabel => _unitId > 0 ? "This flat" : _propertyId > 0 ? "This property" : "Overall";
 

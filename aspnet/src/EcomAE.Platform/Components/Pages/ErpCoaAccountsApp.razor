@@ -203,6 +203,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "account_id");
+        var openCode = ctx.Request.Query["code"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -216,6 +217,14 @@
         _types = _accounts.Select(a => a.AccountType).Where(t => !string.IsNullOrWhiteSpace(t)).Distinct(StringComparer.OrdinalIgnoreCase).Count();
         _source = result.Source;
         _message = result.Message;
+        if (_openedId <= 0 && !string.IsNullOrWhiteSpace(openCode))
+        {
+            var match = _accounts.FirstOrDefault(account => string.Equals(account.Code, openCode, StringComparison.OrdinalIgnoreCase));
+            if (match is not null)
+            {
+                _openedId = match.Id;
+            }
+        }
 
         if (_openedId > 0)
         {

@@ -77,6 +77,18 @@
         <div class="re-meter"><strong>Occupancy @((_snap.Kpis.Occupancy * 100).ToString("0.0", CultureInfo.InvariantCulture))%</strong><i><b style="width:@Meter(_snap.Kpis.Occupancy, 1m)%"></b></i></div>
         <div class="re-meter"><strong>Collected vs recognized</strong><i><b style="width:@Meter(_snap.Kpis.RentCollected, _snap.Kpis.RecognizedRent)%"></b></i></div>
         <div class="re-meter"><strong>Collection efficiency @((_snap.Kpis.Collection * 100).ToString("0.0", CultureInfo.InvariantCulture))%</strong><i><b style="width:@Meter(_snap.Kpis.Collection, 1m)%"></b></i></div>
+        @if (_snap.YearBook is { Year: > 0 } book)
+        {
+            <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Year book on the dashboard">
+                <div class="kpi"><div class="lbl">@book.Year income</div><div class="val">@book.YearIncome.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                <div class="kpi"><div class="lbl">@book.Year expenses</div><div class="val">@book.YearExpense.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                <div class="kpi"><div class="lbl">@book.Year return</div><div class="val">@book.YearReturn.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                <div class="kpi"><div class="lbl">All years income</div><div class="val">@book.AllIncome.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                <div class="kpi"><div class="lbl">All years expenses</div><div class="val">@book.AllExpense.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                <div class="kpi"><div class="lbl">All years return</div><div class="val">@book.AllReturn.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            </div>
+            <p class="text-muted">These figures are the year book. Rent and expense cards above use them until a lease or a posted supplier bill exists. Assets, income and expenses link to the chart of accounts. <a href="@LandlordHref">Open the year book</a> · <a href="@CoaHref">Chart of accounts</a></p>
+        }
     </div>
 
     <p class="text-muted">Finance links: legal entity, invoices, cash/bank, ageing, GL and VAT stay on the existing ERP modules. Cheques in hand are not cash until bank clearance. Recognized rent is spread over the lease; receiving a cheque does not book the whole year as income. NOI is recognized rent minus posted operating expenses. Capital improvements, financing, depreciation and tax stay out of NOI. Landlord cards follow the emirate and property filter. Investment cards stay on the whole portfolio. Posted documents cannot be edited. Use Void to keep the original row, or Delete to remove it. Reverse is also available on posted rows.</p>
@@ -961,6 +973,9 @@
 
     private string LandlordHref
         => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/landlord-app?year=2025");
+
+    private string CoaHref
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/coa-accounts-app");
 
     private static int Meter(decimal part, decimal whole)
         => whole <= 0 ? 0 : (int)Math.Min(100m, decimal.Round(part / whole * 100m, 0, MidpointRounding.AwayFromZero));

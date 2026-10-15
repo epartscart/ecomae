@@ -25311,6 +25311,23 @@ public sealed class ErpModule : ISurfaceModule
         return Results.File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", name);
     }
 
+    private static string CategoryFrom(IFormCollection? form)
+    {
+        if (form is null)
+        {
+            return "";
+        }
+
+        var category = LiveWriteFormBinder.Text(form, "category");
+        var custom = LiveWriteFormBinder.Text(form, "categoryCustom");
+        if (string.IsNullOrWhiteSpace(category) || string.Equals(category, "other", StringComparison.OrdinalIgnoreCase))
+        {
+            return string.IsNullOrWhiteSpace(custom) ? category : custom;
+        }
+
+        return category;
+    }
+
     private static async Task<IResult> HandleLandlordSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -25365,7 +25382,7 @@ public sealed class ErpModule : ISurfaceModule
                 unitId,
                 year,
                 form is null ? "" : LiveWriteFormBinder.Text(form, "kind"),
-                form is null ? "" : LiveWriteFormBinder.Text(form, "category"),
+                CategoryFrom(form),
                 form is null ? 0 : LiveWriteFormBinder.Dec(form, "amount"),
                 form is null ? "building" : LiveWriteFormBinder.Text(form, "spread"),
                 form is null ? "" : LiveWriteFormBinder.Text(form, "note"),
