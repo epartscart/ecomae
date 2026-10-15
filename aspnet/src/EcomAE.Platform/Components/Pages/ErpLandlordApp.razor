@@ -5,8 +5,10 @@
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Services
 @inject ILegacySessionValidator Sessions
+@inject ICpCsrfGuard Csrf
 @inject IHttpContextAccessor Http
 @inject IErpLandlordBook Book
 
@@ -130,6 +132,7 @@
         <ErpPhpCreateWell Title="Add an expense">
             <form method="post" action="@SaveAction">
                 <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
                 <input type="hidden" name="action" value="save_line" />
                 <input type="hidden" name="kind" value="expense" />
                 <input type="hidden" name="spread" value="building" />
@@ -164,6 +167,7 @@
         <ErpPhpCreateWell Title="Add income">
             <form method="post" action="@SaveAction">
                 <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
                 <input type="hidden" name="action" value="save_line" />
                 <input type="hidden" name="kind" value="income" />
                 <input type="hidden" name="category" value="rental" />
@@ -185,38 +189,47 @@
                 <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Add this income</button></div>
             </form>
         </ErpPhpCreateWell>
-        <ErpPhpCreateWell Title="Recovery, investment, costs through 2024, or a split across flats">
-            <form method="post" action="@SaveAction">
+        <ErpPhpCreateWell Title="Add, edit, delete, void or reverse an entry">
+            <form id="line-form" method="post" action="@SaveAction">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="action" value="save_line" />
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
                 <input type="hidden" name="filterYear" value="@_year.ToString(CultureInfo.InvariantCulture)" />
                 <input type="hidden" name="filterPropertyId" value="@_propertyId.ToString(CultureInfo.InvariantCulture)" />
                 <input type="hidden" name="filterUnitId" value="@_unitId.ToString(CultureInfo.InvariantCulture)" />
-                <label>Kind
-                    <select class="form-control input-sm" name="kind">
-                        <option value="income">Income</option>
-                        <option value="expense">Expense</option>
-                        <option value="recovery">Recovery</option>
-                        <option value="investment">Investment</option>
-                        <option value="through_2024">Combined costs through 2024</option>
+                <label>Entry
+                    <select class="form-control input-sm" name="id">
+                        <option value="0">New line</option>
+                        @foreach (var line in _board.Lines.Where(item => item.ParentId == 0))
+                        {
+                            <option value="@line.Id" selected="@(_lineId == line.Id)">@LineChoice(line)</option>
+                        }
                     </select>
                 </label>
-                <label>Year <input class="form-control input-sm" type="number" name="year" min="1990" max="2100" value="@EntryYear" required /></label>
+                <label>Kind
+                    <select class="form-control input-sm" name="kind">
+                        <option value="income" selected="@OpenIs("income")">Income</option>
+                        <option value="expense" selected="@OpenIs("expense")">Expense</option>
+                        <option value="recovery" selected="@OpenIs("recovery")">Recovery</option>
+                        <option value="investment" selected="@OpenIs("investment")">Investment</option>
+                        <option value="through_2024" selected="@OpenIs("through_2024")">Combined costs through 2024</option>
+                    </select>
+                </label>
+                <label>Year <input class="form-control input-sm" type="number" name="year" min="1990" max="2100" value="@OpenYear" required /></label>
                 <label>Property
                     <select class="form-control input-sm" name="propertyId" required>
                         @foreach (var property in _board.Properties)
                         {
-                            <option value="@property.Id" selected="@(_propertyId == property.Id)">@property.Name</option>
+                            <option value="@property.Id" selected="@((_open?.PropertyId ?? _propertyId) == property.Id)">@property.Name</option>
                         }
                     </select>
                 </label>
-                <label>Category <input class="form-control input-sm" name="category" maxlength="40" placeholder="rental, repairs, recovered" /></label>
-                <label>Amount <input class="form-control input-sm" type="number" name="amount" min="0" step="0.01" placeholder="0.00" /></label>
+                <label>Category <input class="form-control input-sm" name="category" maxlength="40" value="@(_open?.Category ?? "")" placeholder="rental, repairs, recovered" /></label>
+                <label>Amount <input class="form-control input-sm" type="number" name="amount" step="0.01" value="@OpenAmount" placeholder="0.00" /></label>
                 <label>Where it sits
                     <select class="form-control input-sm" name="spread">
-                        <option value="building">On the building</option>
-                        <option value="flat">On one flat</option>
-                        <option value="all_flats">Split equally across listed flats</option>
+                        <option value="building" selected="@OpenSpread("building")">On the building</option>
+                        <option value="flat" selected="@OpenSpread("flat")">On one flat</option>
+                        <option value="all_flats" selected="@OpenSpread("all_flats")">Split equally across listed flats</option>
                     </select>
                 </label>
                 <label>Flat, when it sits on one flat
@@ -224,15 +237,21 @@
                         <option value="0">Building</option>
                         @foreach (var unit in FlatChoices)
                         {
-                            <option value="@unit.Id">@FlatLabel(unit)</option>
+                            <option value="@unit.Id" selected="@(_open?.UnitId == unit.Id)">@FlatLabel(unit)</option>
                         }
                     </select>
                 </label>
-                <label>Date <input class="form-control input-sm" type="date" name="date1" /></label>
-                <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
-                <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Record on the year</button></div>
+                <label>Date <input class="form-control input-sm" type="date" name="date1" value="@(_open?.MovementDate ?? "")" /></label>
+                <label>Note <input class="form-control input-sm" name="note" maxlength="255" value="@(_open?.Note ?? "")" /></label>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-sm" name="action" value="save_line">Add</button>
+                    <button type="submit" class="btn btn-primary btn-sm" name="action" value="edit">Save changes</button>
+                    <button type="submit" class="btn btn-default btn-sm" name="action" value="delete">Delete</button>
+                    <button type="submit" class="btn btn-default btn-sm" name="action" value="void">Void</button>
+                    <button type="submit" class="btn btn-default btn-sm" name="action" value="reverse">Reverse</button>
+                </div>
             </form>
-            <p class="text-muted">Leave recovery at zero when the amount is not known yet. Investment and combined costs through 2024 need an amount when you have it. A split with no flats listed stays on the building.</p>
+            <p class="text-muted">Choose New line and Add to record one. Choose an existing line to save a change, delete it, void it, or reverse it. Void keeps the line on file and takes it off the return. Reverse keeps the line and records the opposite amount, so the return goes back by that line. Delete removes it.</p>
         </ErpPhpCreateWell>
     }
 
@@ -241,7 +260,7 @@
         <table class="table table-condensed table-bordered table-epc">
             <thead>
                 <tr>
-                    <th>Year</th><th>Property</th><th>Expense</th><th>Amount</th><th>Account</th><th>Note</th><th></th>
+                    <th>Year</th><th>Property</th><th>Expense</th><th>Amount</th><th>Account</th><th>Status</th><th>Note</th><th></th>
                 </tr>
             </thead>
             <tbody>
@@ -255,53 +274,44 @@
                         <td>@ErpLandlordCoa.Label(line.Category)</td>
                         <td>@Money(line.Amount)</td>
                         <td><a href="@CoaHref(AccountCode(line))">@AccountText(line)</a></td>
+                        <td>@line.Status</td>
                         <td>@(onBuilding ? "On the building. Not in this flat total. " : "")@line.Note</td>
                         <td>
-                            @if (_isAdmin && line.ParentId == 0)
+                            @if (_isAdmin && line.ParentId == 0 && line.Spread == "building" && line.UnitId == 0 && string.Equals(line.Status, "recorded", StringComparison.OrdinalIgnoreCase))
                             {
-                                @if (line.Spread == "building" && line.UnitId == 0)
+                                if ((property?.ListedUnits ?? 0) == 0)
                                 {
-                                    if ((property?.ListedUnits ?? 0) == 0)
-                                    {
-                                        <span class="text-muted">Stays on the building until flats are listed.</span>
-                                    }
-                                    else
-                                    {
-                                        <form method="post" action="@SaveAction">
-                                            <input type="hidden" name="confirmWrites" value="true" />
-                                            <input type="hidden" name="action" value="distribute" />
-                                            <input type="hidden" name="id" value="@line.Id" />
-                                            <input type="hidden" name="filterYear" value="@_year.ToString(CultureInfo.InvariantCulture)" />
-                                            <input type="hidden" name="filterPropertyId" value="@_propertyId.ToString(CultureInfo.InvariantCulture)" />
-                                            <input type="hidden" name="filterUnitId" value="@_unitId.ToString(CultureInfo.InvariantCulture)" />
-                                            <select class="form-control input-sm" name="targetUnitId">
-                                                <option value="0">Split across all listed flats</option>
-                                                @foreach (var unit in _board.Units.Where(item => item.PropertyId == line.PropertyId))
-                                                {
-                                                    <option value="@unit.Id">@unit.Code</option>
-                                                }
-                                            </select>
-                                            <button type="submit" class="btn btn-default btn-xs">Distribute</button>
-                                        </form>
-                                    }
+                                    <span class="text-muted">Stays on the building until flats are listed.</span>
                                 }
-                                <form method="post" action="@SaveAction" style="display:inline">
-                                    <input type="hidden" name="confirmWrites" value="true" />
-                                    <input type="hidden" name="action" value="void" />
-                                    <input type="hidden" name="id" value="@line.Id" />
-                                    <input type="hidden" name="filterYear" value="@_year.ToString(CultureInfo.InvariantCulture)" />
-                                    <input type="hidden" name="filterPropertyId" value="@_propertyId.ToString(CultureInfo.InvariantCulture)" />
-                                    <input type="hidden" name="filterUnitId" value="@_unitId.ToString(CultureInfo.InvariantCulture)" />
-                                    <button type="submit" class="btn btn-default btn-xs">Void</button>
-                                </form>
+                                else
+                                {
+                                    <form method="post" action="@SaveAction">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                                        <input type="hidden" name="action" value="distribute" />
+                                        <input type="hidden" name="id" value="@line.Id" />
+                                        <input type="hidden" name="filterYear" value="@_year.ToString(CultureInfo.InvariantCulture)" />
+                                        <input type="hidden" name="filterPropertyId" value="@_propertyId.ToString(CultureInfo.InvariantCulture)" />
+                                        <input type="hidden" name="filterUnitId" value="@_unitId.ToString(CultureInfo.InvariantCulture)" />
+                                        <select class="form-control input-sm" name="targetUnitId">
+                                            <option value="0">Split across all listed flats</option>
+                                            @foreach (var unit in _board.Units.Where(item => item.PropertyId == line.PropertyId))
+                                            {
+                                                <option value="@unit.Id">@unit.Code</option>
+                                            }
+                                        </select>
+                                        <button type="submit" class="btn btn-default btn-xs">Distribute</button>
+                                    </form>
+                                }
                             }
+                            <ErpLandlordLineActions Line="line" Admin="_isAdmin" SaveAction="@SaveAction" EditHref="@EditHref(line.Id)" FilterYear="_year" FilterPropertyId="_propertyId" FilterUnitId="_unitId" Csrf="@_csrf" />
                         </td>
                     </tr>
                 }
                 <tr>
-                    <td colspan="3"><strong>Expenses in this view</strong></td>
+                    <td colspan="3"><strong>Expenses counted</strong></td>
                     <td><strong>@Money(_board.Totals.Expense)</strong></td>
-                    <td colspan="3"></td>
+                    <td colspan="4"></td>
                 </tr>
             </tbody>
         </table>
@@ -312,7 +322,7 @@
         <table class="table table-condensed table-bordered table-epc">
             <thead>
                 <tr>
-                    <th>Year</th><th>Property</th><th>Income</th><th>Amount</th><th>Account</th><th>Note</th><th></th>
+                    <th>Year</th><th>Property</th><th>Income</th><th>Amount</th><th>Account</th><th>Status</th><th>Note</th><th></th>
                 </tr>
             </thead>
             <tbody>
@@ -324,40 +334,63 @@
                         <td>@ErpLandlordCoa.Label(line.Category)</td>
                         <td>@Money(line.Amount)</td>
                         <td><a href="@CoaHref(AccountCode(line))">@AccountText(line)</a></td>
+                        <td>@line.Status</td>
                         <td>@line.Note</td>
                         <td>
-                            @if (_isAdmin && line.ParentId == 0)
-                            {
-                                <form method="post" action="@SaveAction" style="display:inline">
-                                    <input type="hidden" name="confirmWrites" value="true" />
-                                    <input type="hidden" name="action" value="void" />
-                                    <input type="hidden" name="id" value="@line.Id" />
-                                    <input type="hidden" name="filterYear" value="@_year.ToString(CultureInfo.InvariantCulture)" />
-                                    <input type="hidden" name="filterPropertyId" value="@_propertyId.ToString(CultureInfo.InvariantCulture)" />
-                                    <input type="hidden" name="filterUnitId" value="@_unitId.ToString(CultureInfo.InvariantCulture)" />
-                                    <button type="submit" class="btn btn-default btn-xs">Void</button>
-                                </form>
-                            }
+                            <ErpLandlordLineActions Line="line" Admin="_isAdmin" SaveAction="@SaveAction" EditHref="@EditHref(line.Id)" FilterYear="_year" FilterPropertyId="_propertyId" FilterUnitId="_unitId" Csrf="@_csrf" />
                         </td>
                     </tr>
                 }
                 <tr>
-                    <td colspan="3"><strong>Income in this view</strong></td>
+                    <td colspan="3"><strong>Income counted</strong></td>
                     <td><strong>@Money(_board.Totals.Income)</strong></td>
-                    <td colspan="3"></td>
+                    <td colspan="4"></td>
                 </tr>
             </tbody>
         </table>
     </div>
+
+    @if (OtherLines.Any())
+    {
+        <h3>Recovery, investment and costs through 2024</h3>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-condensed table-bordered table-epc">
+                <thead>
+                    <tr>
+                        <th>Year</th><th>Property</th><th>Kind</th><th>Amount</th><th>Status</th><th>Note</th><th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in OtherLines)
+                    {
+                        <tr>
+                            <td>@line.Year.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@line.PropertyName</td>
+                            <td>@line.Kind</td>
+                            <td>@Money(line.Amount)</td>
+                            <td>@line.Status</td>
+                            <td>@line.Note</td>
+                            <td>
+                                <ErpLandlordLineActions Line="line" Admin="_isAdmin" SaveAction="@SaveAction" EditHref="@EditHref(line.Id)" FilterYear="_year" FilterPropertyId="_propertyId" FilterUnitId="_unitId" Csrf="@_csrf" />
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {
     private bool _isAdmin;
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _csrf = "";
     private int _year = ErpLandlordOpening.SheetYear;
     private long _propertyId;
     private long _unitId;
+    private long _lineId;
+    private ErpLandlordLine? _open;
     private ErpLandlordBoard _board = new(
         ErpLandlordOpening.SheetYear,
         0,
@@ -392,6 +425,26 @@
         => _board.Lines.Where(line => string.Equals(line.Kind, kind, StringComparison.OrdinalIgnoreCase))
             .OrderBy(line => line.PropertyName, StringComparer.OrdinalIgnoreCase)
             .ThenBy(line => line.Category, StringComparer.OrdinalIgnoreCase);
+
+    private IEnumerable<ErpLandlordLine> OtherLines
+        => _board.Lines.Where(line => line.Kind is not ("income" or "expense"))
+            .OrderBy(line => line.PropertyName, StringComparer.OrdinalIgnoreCase);
+
+    private string OpenYear => (_open?.Year ?? (_year > 0 ? _year : ErpLandlordOpening.SheetYear)).ToString(CultureInfo.InvariantCulture);
+
+    private string OpenAmount => _open is null ? "" : _open.Amount.ToString("0.00", CultureInfo.InvariantCulture);
+
+    private bool OpenIs(string kind)
+        => string.Equals(_open?.Kind ?? "expense", kind, StringComparison.OrdinalIgnoreCase);
+
+    private bool OpenSpread(string spread)
+        => string.Equals(_open?.Spread ?? "building", spread, StringComparison.OrdinalIgnoreCase);
+
+    private string EditHref(long lineId)
+        => ViewHref(_year, _propertyId, _unitId) + "&line=" + lineId.ToString(CultureInfo.InvariantCulture) + "#line-form";
+
+    private string LineChoice(ErpLandlordLine line)
+        => line.Year.ToString(CultureInfo.InvariantCulture) + " " + line.PropertyName + " " + ErpLandlordCoa.Label(line.Category) + " " + Money(line.Amount) + " " + line.Status;
 
     private string CoaHref(string code)
     {
@@ -486,8 +539,10 @@
 
         long.TryParse(ctx.Request.Query["propertyId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _propertyId);
         long.TryParse(ctx.Request.Query["unitId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _unitId);
+        long.TryParse(ctx.Request.Query["line"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _lineId);
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _csrf = _isAdmin ? await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted) : "";
         if (!_isAdmin)
         {
             return;
@@ -497,6 +552,7 @@
         {
             await Book.EnsureOpeningAsync(ClientErpPath.BoundSiteKey(ctx), ctx.RequestAborted);
             _board = await Book.LoadAsync(_year, _propertyId, _unitId, ctx.RequestAborted);
+            _open = _lineId > 0 ? _board.Lines.FirstOrDefault(line => line.Id == _lineId) : null;
         }
         catch (Exception ex)
         {

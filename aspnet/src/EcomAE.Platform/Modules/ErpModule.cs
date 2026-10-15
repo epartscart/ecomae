@@ -25392,8 +25392,24 @@ public sealed class ErpModule : ISurfaceModule
                 form is null ? 0 : LiveWriteFormBinder.Long(form, "id"),
                 form is null ? 0 : LiveWriteFormBinder.Long(form, "targetUnitId"),
                 cancellationToken),
-            "void" => await book.VoidAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id"), cancellationToken),
-            _ => ErpSimpleWriteResult.Fail("invalid", "Choose record, distribute or void."),
+            "edit" => await book.UpdateLineAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "id", "lineId"),
+                new ErpLandlordEntry(
+                    propertyId,
+                    unitId,
+                    year,
+                    form is null ? "" : LiveWriteFormBinder.Text(form, "kind"),
+                    CategoryFrom(form),
+                    form is null ? 0 : LiveWriteFormBinder.Dec(form, "amount"),
+                    form is null ? "building" : LiveWriteFormBinder.Text(form, "spread"),
+                    form is null ? "" : LiveWriteFormBinder.Text(form, "note"),
+                    form is null ? null : LiveWriteFormBinder.Text(form, "date1"),
+                    form is null ? null : LiveWriteFormBinder.Text(form, "code")),
+                cancellationToken),
+            "delete" => await book.DeleteAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id", "lineId"), cancellationToken),
+            "void" => await book.VoidAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id", "lineId"), cancellationToken),
+            "reverse" => await book.ReverseAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id", "lineId"), cancellationToken),
+            _ => ErpSimpleWriteResult.Fail("invalid", "Choose add, edit, delete, void, or reverse."),
         };
         return LiveWriteFormBinder.Complete(
             context,
