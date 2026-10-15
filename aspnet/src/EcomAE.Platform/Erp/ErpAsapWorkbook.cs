@@ -13,10 +13,14 @@ public static class ErpAsapWorkbook
 {
     public static readonly string[] TemplateSheets =
     [
-        "START_HERE", "Companies", "Business_Centres", "Cost_Centres", "Branches", "Brands",
-        "Bins", "Customers", "Customer_Price_List", "Cross_References", "Alternates_Kits",
-        "Deliveries", "Cycle_Counts", "Bank_Cheques", "Budgets", "Forecast_Demand",
-        "AR_Opening", "AP_Opening", "Expenses", "Alerts", "Documents",
+        "START_HERE", "Companies", "Business_Centres", "Profit_Centres", "Cost_Centres", "Branches",
+        "Brands", "GL_Accounts", "Product_Master", "Product_Attributes", "OEM_References",
+        "Cross_References", "Alternates_Kits", "Customers", "Customer_Price_List", "Purchase_Orders",
+        "PO_Lines", "Import_Shipments", "Import_Costs", "Goods_Receipts", "GRN_Lines",
+        "Inventory_Opening", "Inventory_Movements", "Bins", "Pick_Waves", "Pick_Lines", "Deliveries",
+        "Cycle_Counts", "Intercompany_Rules", "Intercompany_Transactions", "Bank_Cheques",
+        "Payments_Receipts", "Journal_Entries", "Budgets", "Forecast_Demand", "AR_Opening",
+        "AP_Opening", "Expenses", "Alerts", "Documents", "Import_Audit",
     ];
 
     public sealed record Sheet(
@@ -44,7 +48,7 @@ public static class ErpAsapWorkbook
 
             var readme = zip.CreateEntry("README.txt");
             using var writer = new StreamWriter(readme.Open(), new UTF8Encoding(false));
-            writer.Write("ASAP workbook for the 20 reference sheets supplied with this build, plus START_HERE. Stock is reserved only when an order confirms. This package does not post reservations, invoices, or journals.");
+            writer.Write("ASAP workbook for the 40 reference sheets supplied so far, plus START_HERE. Stock is reserved only when an order confirms. Opening inventory, goods receipts, and pick lines do not create a second reservation. This package does not post reservations, invoices, or journals.");
         }
 
         return ms.ToArray();
@@ -131,6 +135,70 @@ public static class ErpAsapWorkbook
                         Need(errors, sheet.Name, rowNo, row, "document_id");
                         Need(errors, sheet.Name, rowNo, row, "file_name");
                         break;
+                    case "Product_Master":
+                        Need(errors, sheet.Name, rowNo, row, "sku");
+                        break;
+                    case "OEM_References":
+                        Need(errors, sheet.Name, rowNo, row, "sku");
+                        Need(errors, sheet.Name, rowNo, row, "oem_part_number");
+                        var verification = Cell(row, "verification_status");
+                        if (verification.Length > 0 && verification is not ("verified" or "unverified" or "conditional"))
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": verification_status must be verified, unverified, or conditional.");
+                        }
+
+                        break;
+                    case "PO_Lines":
+                        if (Num(row, "ordered_qty") <= 0m)
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": ordered_qty must be greater than zero.");
+                        }
+
+                        break;
+                    case "GRN_Lines":
+                        if (Num(row, "accepted_qty") + Num(row, "rejected_qty") > Num(row, "received_qty"))
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": accepted and rejected quantities cannot exceed the received quantity.");
+                        }
+
+                        break;
+                    case "Pick_Lines":
+                        if (Num(row, "qty_picked") > Num(row, "qty_to_pick"))
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": qty_picked cannot exceed qty_to_pick.");
+                        }
+
+                        break;
+                    case "Import_Costs":
+                        if (Cell(row, "cost_type").Equals("vat", StringComparison.OrdinalIgnoreCase)
+                            && Cell(row, "capitalizable") is "yes" or "true" or "1")
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": recoverable VAT is not inventory cost.");
+                        }
+
+                        break;
+                    case "Intercompany_Rules":
+                        if (Cell(row, "selling_company").Length > 0
+                            && Cell(row, "selling_company").Equals(Cell(row, "buying_company"), StringComparison.OrdinalIgnoreCase))
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": selling and buying companies must differ.");
+                        }
+
+                        break;
+                    case "Journal_Entries":
+                        if (Num(row, "debit") > 0m && Num(row, "credit") > 0m)
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": a journal line is either a debit or a credit.");
+                        }
+
+                        break;
+                    case "Inventory_Opening":
+                        if (Num(row, "opening_qty") < 0m)
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": opening_qty cannot be negative.");
+                        }
+
+                        break;
                 }
             }
         }
@@ -150,6 +218,25 @@ public static class ErpAsapWorkbook
                 if (!seen.Add(key))
                 {
                     errors.Add("Cross_References duplicate normalized reference " + key + ".");
+                }
+            }
+        }
+
+        var oem = sheets.FirstOrDefault(sheet => sheet.Name == "OEM_References");
+        if (oem is not null)
+        {
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var row in oem.Records)
+            {
+                if (IsBlank(row) || IsSample(row))
+                {
+                    continue;
+                }
+
+                var key = Cell(row, "sku") + "|" + ErpAsapStock.NormalizeReference(Cell(row, "oem_part_number"));
+                if (!seen.Add(key))
+                {
+                    errors.Add("OEM_References duplicate normalized part " + key + ".");
                 }
             }
         }
@@ -228,6 +315,26 @@ public static class ErpAsapWorkbook
         "Expenses" => ["expense_id", "company_id", "cost_centre_id", "profit_centre_id", "warehouse_id", "supplier_id", "expense_date", "category", "net_amount", "vat_amount"],
         "Alerts" => ["alert_id", "company_id", "alert_type", "source_entity", "source_id", "due_date", "severity", "owner", "status"],
         "Documents" => ["document_id", "entity_type", "entity_id", "document_category", "file_name", "relative_zip_path", "expiry_date", "version", "access_class"],
+        "Profit_Centres" => ["profit_centre_id", "company_id", "business_centre_id", "name", "manager"],
+        "Purchase_Orders" => ["po_id", "company_id", "supplier_id", "currency", "order_date", "expected_date", "incoterm", "status"],
+        "GL_Accounts" => ["gl_code", "company_id", "account_name", "account_type", "parent_gl", "is_active"],
+        "Goods_Receipts" => ["grn_id", "po_id", "warehouse_id", "receipt_date", "supplier_invoice", "received_by", "status"],
+        "GRN_Lines" => ["grn_id", "line_no", "sku", "received_qty", "accepted_qty", "rejected_qty", "lot_no", "unit_cost"],
+        "Import_Audit" => ["batch_id", "template_version", "imported_by", "imported_at", "sheet_name", "rows_accepted", "rows_rejected", "status"],
+        "Import_Costs" => ["shipment_id", "cost_id", "cost_type", "supplier_id", "currency", "amount", "allocation_method", "capitalizable"],
+        "Import_Shipments" => ["shipment_id", "company_id", "po_id", "supplier_id", "origin_country", "port_of_loading", "port_of_arrival", "incoterm", "bl_awb", "eta", "customs_declaration"],
+        "Intercompany_Rules" => ["rule_id", "selling_company", "buying_company", "sku_category", "method", "markup_pct", "effective_from", "effective_to", "approval_id"],
+        "Intercompany_Transactions" => ["ic_id", "seller_company", "buyer_company", "source_order", "source_invoice", "mirror_po", "mirror_invoice", "sku", "qty", "transfer_price", "elimination_group"],
+        "Inventory_Movements" => ["movement_id", "company_id", "warehouse_id", "bin_id", "sku", "movement_type", "qty", "unit_cost", "source_doc", "posted_at"],
+        "Inventory_Opening" => ["company_id", "warehouse_id", "bin_id", "sku", "lot_no", "opening_qty", "unit_cost", "as_of_date"],
+        "Journal_Entries" => ["journal_id", "company_id", "posting_date", "document_ref", "gl_code", "debit", "credit", "cost_centre_id", "profit_centre_id"],
+        "OEM_References" => ["reference_id", "sku", "oem_make", "oem_part_number", "reference_type", "verification_status", "source"],
+        "Payments_Receipts" => ["payment_id", "company_id", "party_id", "document_id", "payment_date", "method", "currency", "amount", "bank_account"],
+        "Pick_Lines" => ["wave_id", "pick_line_id", "reservation_id", "sku", "bin_id", "qty_to_pick", "qty_picked", "confirmed_at"],
+        "Pick_Waves" => ["wave_id", "warehouse_id", "created_at", "priority", "status", "assigned_picker"],
+        "PO_Lines" => ["po_id", "line_no", "sku", "ordered_qty", "unit_price", "discount_pct", "warehouse_id", "expected_date"],
+        "Product_Attributes" => ["sku", "attribute_name", "attribute_value"],
+        "Product_Master" => ["sku", "brand_id", "part_number", "description", "category_id", "origin_country", "hs_code", "uom", "pack_qty", "weight_kg", "dimensions", "active"],
         _ => throw new ArgumentOutOfRangeException(nameof(sheet), sheet, "Unknown ASAP sheet."),
     };
 
@@ -238,8 +345,10 @@ public static class ErpAsapWorkbook
             return
             [
                 ["Purpose", "Automotive aftermarket ERP for multi-company wholesale, retail, import and central warehousing"],
-                ["Sheets", "20 reference sheets from the supplied CSVs, plus this instruction sheet"],
-                ["Reservation", "Excel does not reserve stock. A confirmed order is the only event that keeps a quantity"],
+                ["Sheets", "40 reference sheets from the supplied CSVs, plus this instruction sheet"],
+                ["Reservation", "Excel does not reserve stock. A confirmed order is the only event that keeps a quantity. A pick line uses that reservation and does not reserve again"],
+                ["Landed cost", "Freight and duty can be capitalized. Recoverable VAT stays out of inventory cost"],
+                ["Intercompany", "The selling company and the buying company are different legal entities"],
                 ["Ownership", "Warehouse location and the owning company are separate. Another company's stock needs an intercompany fulfilment"],
                 ["Cross reference", "verified means interchangeable for the stated fitment. unverified and conditional stay as search hits only"],
                 ["Normalize", "Search ignores spaces and hyphens. The original part number is kept"],
@@ -257,6 +366,31 @@ public static class ErpAsapWorkbook
             ];
         }
 
+        if (sheet == "Product_Master")
+        {
+            return [["FILTER-001", "BR-OEM", "A100", "Oil filter", "filters", "JP", "842123", "pcs", "1", "0.200", "8x8x8 cm", "yes"]];
+        }
+
+        if (sheet == "OEM_References")
+        {
+            return [["OEM-1", "FILTER-001", "Toyota", "OEM-12345", "oem", "verified", "catalogue"]];
+        }
+
+        if (sheet == "Intercompany_Rules")
+        {
+            return [["IC-1", "CO-A", "CO-B", "filters", "comparable_uncontrolled_price", "0", "2026-01-01", "2026-12-31", "APR-1"]];
+        }
+
+        if (sheet == "Import_Costs")
+        {
+            return [["SH-1", "COST-1", "freight", "SUP-1", "USD", "100", "value", "yes"]];
+        }
+
+        if (sheet == "Pick_Lines")
+        {
+            return [["WAVE-1", "PICK-1", "RSV-1", "FILTER-001", "BIN-1", "4", "4", "2026-10-15"]];
+        }
+
         if (sheet == "Companies")
         {
             return
@@ -272,9 +406,9 @@ public static class ErpAsapWorkbook
     private static string[] Sample(string sheet)
     {
         var headers = Headers(sheet);
-        return headers.Select(header => header.EndsWith("_qty", StringComparison.Ordinal) || header is "quantity" or "credit_limit" or "credit_days" or "unit_price" or "discount_pct" or "amount" or "net_amount" or "vat_amount" or "budget_amount" or "outstanding_amount" or "system_qty" or "counted_qty" or "priority" or "version"
+        return headers.Select(header => header.EndsWith("_qty", StringComparison.Ordinal) || header is "quantity" or "qty" or "credit_limit" or "credit_days" or "unit_price" or "discount_pct" or "amount" or "net_amount" or "vat_amount" or "budget_amount" or "outstanding_amount" or "system_qty" or "counted_qty" or "priority" or "version" or "debit" or "credit" or "pack_qty" or "weight_kg" or "markup_pct" or "transfer_price" or "unit_cost" or "rows_accepted" or "rows_rejected" or "line_no"
             ? "0"
-            : header.EndsWith("_date", StringComparison.Ordinal) || header is "forecast_month" || header is "valid_from" || header is "valid_to" || header is "month"
+            : header.EndsWith("_date", StringComparison.Ordinal) || header.EndsWith("_at", StringComparison.Ordinal) || header is "forecast_month" or "valid_from" or "valid_to" or "month" or "eta" or "effective_from" or "effective_to"
                 ? "2026-10-15"
                 : header.EndsWith("_id", StringComparison.Ordinal) || header is "sku" || header is "parent_sku" || header is "component_sku"
                     ? "SAMPLE-001"

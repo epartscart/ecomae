@@ -105,7 +105,13 @@ public sealed class ErpAsapStockTests
     public void WorkbookMatchesTheSuppliedSheetsAndDoesNotReserve()
     {
         Assert.Equal("/erp/asap/workbook", EcomAeRoutes.ErpAsapWorkbook);
-        Assert.Equal(21, ErpAsapWorkbook.TemplateSheets.Length);
+        Assert.Equal(41, ErpAsapWorkbook.TemplateSheets.Length);
+        Assert.Equal(
+            new[] { "sku", "brand_id", "part_number", "description", "category_id", "origin_country", "hs_code", "uom", "pack_qty", "weight_kg", "dimensions", "active" },
+            ErpAsapWorkbook.Headers("Product_Master"));
+        Assert.Equal(
+            new[] { "reference_id", "sku", "oem_make", "oem_part_number", "reference_type", "verification_status", "source" },
+            ErpAsapWorkbook.Headers("OEM_References"));
         Assert.Equal(
             new[] { "cross_ref_id", "sku", "reference_brand", "reference_part_number", "relationship_type", "fitment_verified", "source", "priority" },
             ErpAsapWorkbook.Headers("Cross_References"));
@@ -130,6 +136,21 @@ public sealed class ErpAsapStockTests
             }
             : sheet).ToList();
         Assert.Contains(ErpAsapWorkbook.Validate(broken), error => error.Contains("cleared date", StringComparison.Ordinal));
+        var vat = book.Select(sheet => sheet.Name == "Import_Costs"
+            ? sheet with
+            {
+                Records =
+                [
+                    new Dictionary<string, string>(StringComparer.Ordinal)
+                    {
+                        ["shipment_id"] = "SH-9",
+                        ["cost_type"] = "vat",
+                        ["capitalizable"] = "yes",
+                    },
+                ],
+            }
+            : sheet).ToList();
+        Assert.Contains(ErpAsapWorkbook.Validate(vat), error => error.Contains("VAT", StringComparison.Ordinal));
     }
 
     [Fact]
