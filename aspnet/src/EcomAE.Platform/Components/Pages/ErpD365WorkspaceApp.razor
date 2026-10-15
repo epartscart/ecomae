@@ -261,11 +261,27 @@
                                     <label>Source id <input class="form-control input-sm" name="from_id" type="number" /></label>
                                     @if (edge.FieldMap.Contains("party", StringComparison.Ordinal))
                                     {
-                                        <label>Vendor / party <input class="form-control input-sm" name="party" maxlength="160" /></label>
+                                        var partyBinding = BindingFor(edge.ToTab);
+                                        if (partyBinding.LinksParty)
+                                        {
+                                            <ErpMasterPicker Kind="@partyBinding.PartyKind" FieldName="party" InputId="@("lnk-" + edge.ToTab + "-party")" Label="Vendor / party" ValueMode="code" AllowNew="true" MaxLength="160" />
+                                        }
+                                        else
+                                        {
+                                            <label>Vendor / party <input class="form-control input-sm" name="party" maxlength="160" /></label>
+                                        }
                                     }
                                     @if (edge.FieldMap.Contains("name", StringComparison.Ordinal))
                                     {
-                                        <label>Item / name <input class="form-control input-sm" name="name" maxlength="190" /></label>
+                                        var nameBinding = BindingFor(edge.ToTab);
+                                        if (nameBinding.LinksName)
+                                        {
+                                            <ErpMasterPicker Kind="@nameBinding.NameKind" FieldName="name" InputId="@("lnk-" + edge.ToTab + "-name")" Label="Item / name" ValueMode="code" AllowNew="true" MaxLength="190" />
+                                        }
+                                        else
+                                        {
+                                            <label>Item / name <input class="form-control input-sm" name="name" maxlength="190" /></label>
+                                        }
                                     }
                                     @if (edge.FieldMap.Contains("qty", StringComparison.Ordinal))
                                     {
@@ -296,11 +312,27 @@
                                     <label>Source id <input class="form-control input-sm" name="from_id" type="number" /></label>
                                     @if (edge.FieldMap.Contains("party", StringComparison.Ordinal))
                                     {
-                                        <label>Vendor / party <input class="form-control input-sm" name="party" maxlength="160" /></label>
+                                        var partyBinding = BindingFor(edge.ToTab);
+                                        if (partyBinding.LinksParty)
+                                        {
+                                            <ErpMasterPicker Kind="@partyBinding.PartyKind" FieldName="party" InputId="@("lnk-" + edge.ToTab + "-party")" Label="Vendor / party" ValueMode="code" AllowNew="true" MaxLength="160" />
+                                        }
+                                        else
+                                        {
+                                            <label>Vendor / party <input class="form-control input-sm" name="party" maxlength="160" /></label>
+                                        }
                                     }
                                     @if (edge.FieldMap.Contains("name", StringComparison.Ordinal))
                                     {
-                                        <label>Item / name <input class="form-control input-sm" name="name" maxlength="190" /></label>
+                                        var nameBinding = BindingFor(edge.ToTab);
+                                        if (nameBinding.LinksName)
+                                        {
+                                            <ErpMasterPicker Kind="@nameBinding.NameKind" FieldName="name" InputId="@("lnk-" + edge.ToTab + "-name")" Label="Item / name" ValueMode="code" AllowNew="true" MaxLength="190" />
+                                        }
+                                        else
+                                        {
+                                            <label>Item / name <input class="form-control input-sm" name="name" maxlength="190" /></label>
+                                        }
                                     }
                                     @if (edge.FieldMap.Contains("worker", StringComparison.Ordinal))
                                     {
@@ -419,19 +451,51 @@
                         }
                         @if (Show("name"))
                         {
-                            <label>@NameLabel <input class="form-control input-sm" name="name" maxlength="190" /></label>
+                            @if (_binding.LinksName)
+                            {
+                                <ErpMasterPicker Kind="@_binding.NameKind" FieldName="name" InputId="ws-name" Label="@NameLabel" ValueMode="code" AllowNew="true" SelectedCode="@_follow.Name" MaxLength="190" Required="@NameRequired" />
+                            }
+                            else
+                            {
+                                <label>@NameLabel <input class="form-control input-sm" name="name" maxlength="190" value="@_follow.Name" /></label>
+                            }
                         }
                         @if (Show("worker"))
                         {
-                            <label>Worker <input class="form-control input-sm" name="worker" maxlength="120" /></label>
+                            <label>Worker <input class="form-control input-sm" name="worker" maxlength="120" value="@_follow.Worker" /></label>
                         }
                         @if (Show("party"))
                         {
-                            <label>@PartyLabel <input class="form-control input-sm" name="party" maxlength="160" /></label>
+                            @if (_binding.LinksParty)
+                            {
+                                <ErpMasterPicker Kind="@_binding.PartyKind" FieldName="party" InputId="ws-party" Label="@PartyLabel" ValueMode="code" AllowNew="true" SelectedCode="@_follow.Party" MaxLength="160" />
+                            }
+                            else
+                            {
+                                <label>@PartyLabel <input class="form-control input-sm" name="party" maxlength="160" value="@_follow.Party" /></label>
+                            }
+                        }
+                        @if (_binding.LinksBranch)
+                        {
+                            <ErpMasterPicker Kind="@_binding.BranchKind" FieldName="extra" InputId="ws-branch" Label="Branch" ValueMode="code" AllowNew="true" MaxLength="80" />
                         }
                         @if (Show("kind"))
                         {
-                            <label>Type <input class="form-control input-sm" name="kind" maxlength="40" placeholder="@KindPlaceholder" /></label>
+                            @if (_binding.KindOptions.Count > 0)
+                            {
+                                <label>Type
+                                    <select class="form-control input-sm" name="kind">
+                                        @foreach (var option in _binding.KindOptions)
+                                        {
+                                            <option value="@option">@option</option>
+                                        }
+                                    </select>
+                                </label>
+                            }
+                            else
+                            {
+                                <label>Type <input class="form-control input-sm" name="kind" maxlength="40" placeholder="@KindPlaceholder" /></label>
+                            }
                         }
                         @if (Show("status"))
                         {
@@ -455,17 +519,26 @@
                         }
                         @if (Show("qty"))
                         {
-                            <label>@QtyLabel <input class="form-control input-sm" name="qty" type="number" step="0.0001" /></label>
+                            <label>@QtyLabel <input class="form-control input-sm" name="qty" type="number" step="0.0001" value="@(_follow.Qty == 0 ? "" : _follow.Qty.ToString(CultureInfo.InvariantCulture))" /></label>
                         }
                         @if (Show("amount"))
                         {
-                            <label>Amount <input class="form-control input-sm" name="amount" type="number" step="0.01" /></label>
+                            <label>Amount <input class="form-control input-sm" name="amount" type="number" step="0.01" value="@(_follow.Amount == 0 ? "" : _follow.Amount.ToString(CultureInfo.InvariantCulture))" /></label>
                         }
                         @if (Show("extra"))
                         {
                             <label>@ExtraLabel <input class="form-control input-sm" name="extra" maxlength="255" /></label>
                         }
-                        <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
+                        <label>Note <input class="form-control input-sm" name="note" maxlength="255" value="@_follow.Note" /></label>
+                        <input type="hidden" name="company_id" value="@_companyId" />
+                        <input type="hidden" name="source_tab" value="@_follow.SourceTab" />
+                        <input type="hidden" name="source_id" value="@_follow.SourceId" />
+                        <input type="hidden" name="source_code" value="@_follow.SourceCode" />
+                        <input type="hidden" name="relation" value="@_follow.Relation" />
+                        @if (_binding.LinksParty || _binding.LinksName || _binding.LinksBranch)
+                        {
+                            <p class="help-block">Vendor, customer, item, account, project, and branch are picked from this company's masters. The row is stored on the company open in this workspace.</p>
+                        }
                         <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save</button></div>
                     </form>
                 </ErpPhpCreateWell>
@@ -481,6 +554,7 @@
                             @if (Show("party")) { <th>@PartyLabel</th> }
                             <th>Type</th>
                             <th>Status</th>
+                            @if (_binding.LinksBranch) { <th>Branch</th> }
                             @if (Show("qty")) { <th class="text-right">@QtyLabel</th> }
                             @if (Show("amount")) { <th class="text-right">Amount</th> }
                             <th>Note</th>
@@ -489,7 +563,7 @@
                     <tbody>
                         @if (_rows.Count == 0)
                         {
-                            <tr><td colspan="8" class="text-muted">@(_isAdmin ? "No rows yet — create the first one above." : "Sign in with ERP capability to manage this page.")</td></tr>
+                            <tr><td colspan="12" class="text-muted">@(_isAdmin ? "No rows yet — create the first one above." : "Sign in with ERP capability to manage this page.")</td></tr>
                         }
                         else
                         {
@@ -502,6 +576,7 @@
                                     @if (Show("party")) { <td>@(string.IsNullOrWhiteSpace(row.Party) ? "—" : row.Party)</td> }
                                     <td>@(string.IsNullOrWhiteSpace(row.Kind) ? "—" : row.Kind)</td>
                                     <td>@(string.IsNullOrWhiteSpace(row.Status) ? "—" : row.Status)</td>
+                                    @if (_binding.LinksBranch) { <td>@(string.IsNullOrWhiteSpace(row.Extra) ? "—" : row.Extra)</td> }
                                     @if (Show("qty")) { <td class="text-right">@row.Qty.ToString("N3", CultureInfo.InvariantCulture)</td> }
                                     @if (Show("amount")) { <td class="text-right">@row.Amount.ToString("N2", CultureInfo.InvariantCulture)</td> }
                                     <td>@(string.IsNullOrWhiteSpace(row.Note) ? "—" : row.Note)</td>
@@ -562,6 +637,9 @@
     private IReadOnlyList<ErpD365ModuleStudyCatalog.ModuleStudy> _adminStudies = [];
     private IReadOnlyList<ErpD365StudyNoteRow> _studyNotes = [];
     private string _csrf = "";
+    private long _companyId;
+    private ErpD365FollowPrefill _follow = new("", 0, "", "", "", "", "", 0, 0, "");
+    private ErpD365FieldBinding.Binding _binding = new("", "", "", []);
 
     private string SaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365WorkspaceCatalog.SavePath);
     private string ParameterSaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365ProcessCatalog.ParameterSavePath);
@@ -597,6 +675,13 @@
         ErpD365Part3Catalog.FormKind.Action => "Parameters",
         _ => "Detail",
     };
+
+    private bool NameRequired => _page.Kind is ErpD365Part3Catalog.FormKind.Order or ErpD365Part3Catalog.FormKind.Forecast;
+
+    private static ErpD365FieldBinding.Binding BindingFor(string tab)
+        => ErpD365WorkspaceCatalog.TryGet(tab, out var page)
+            ? ErpD365FieldBinding.For(page)
+            : new ErpD365FieldBinding.Binding("", "", "", []);
 
     private string KindPlaceholder => _page.Kind switch
     {
@@ -660,6 +745,9 @@
         _page = _pages.FirstOrDefault(p => p.Tab.Equals(tab, StringComparison.OrdinalIgnoreCase))
             ?? _pages.FirstOrDefault()
             ?? ErpD365WorkspaceCatalog.All[0];
+        _binding = ErpD365FieldBinding.For(_page);
+        _follow = ErpD365FollowPrefill.Read(ctx.Request);
+        _companyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -693,7 +781,7 @@
             return;
         }
 
-        _rows = await WorkspaceRows.ListAsync(_page.Area, _page.Tab, 80, ctx.RequestAborted);
+        _rows = await WorkspaceRows.ListAsync(_page.Area, _page.Tab, 80, ctx.RequestAborted, _companyId);
     }
 
     private string _parametersArea =>

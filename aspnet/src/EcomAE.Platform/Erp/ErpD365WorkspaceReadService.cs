@@ -28,7 +28,8 @@ public interface IErpD365WorkspaceReadService
         string area,
         string tab,
         int limit = 80,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        long companyId = 0);
 }
 
 public sealed class ErpD365WorkspaceReadService : IErpD365WorkspaceReadService
@@ -44,7 +45,8 @@ public sealed class ErpD365WorkspaceReadService : IErpD365WorkspaceReadService
         string area,
         string tab,
         int limit = 80,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        long companyId = 0)
     {
         if (!_connections.IsConfigured)
         {
@@ -64,14 +66,23 @@ public sealed class ErpD365WorkspaceReadService : IErpD365WorkspaceReadService
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await ErpLazySchema.EnsureD365WorkspaceAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
+        var companyClause = companyId > 0 ? " AND `company_id` = ?" : "";
         command.CommandText = ErpDb.Positional(
             "SELECT `id`,IFNULL(`area`,''),IFNULL(`tab`,''),IFNULL(`code`,''),IFNULL(`name`,'')," +
             "IFNULL(`worker`,''),IFNULL(`party`,''),IFNULL(`kind`,''),IFNULL(`status`,''),IFNULL(`period`,'')," +
             "IFNULL(`date_from`,''),IFNULL(`date_to`,''),IFNULL(`qty`,0),IFNULL(`amount`,0)," +
             "IFNULL(`extra`,''),IFNULL(`note`,''),IFNULL(`time_created`,0) " +
-            "FROM `epc_erp_d365_workspace` WHERE `area` = ? AND `tab` = ? ORDER BY `id` DESC LIMIT " +
+            "FROM `epc_erp_d365_workspace` WHERE `area` = ? AND `tab` = ?" + companyClause +
+            " ORDER BY `id` DESC LIMIT " +
             limit.ToString(CultureInfo.InvariantCulture));
-        ErpDb.AddParameters(command, area, tab);
+        if (companyId > 0)
+        {
+            ErpDb.AddParameters(command, area, tab, companyId);
+        }
+        else
+        {
+            ErpDb.AddParameters(command, area, tab);
+        }
         var rows = new List<ErpD365WorkspaceRow>();
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
