@@ -5,8 +5,10 @@
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Services
 @inject ILegacySessionValidator Sessions
+@inject ICpCsrfGuard Csrf
 @inject IHttpContextAccessor Http
 @inject IErpLandlordBook Book
 
@@ -130,6 +132,7 @@
         <ErpPhpCreateWell Title="Add an expense">
             <form method="post" action="@SaveAction">
                 <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
                 <input type="hidden" name="action" value="save_line" />
                 <input type="hidden" name="kind" value="expense" />
                 <input type="hidden" name="spread" value="building" />
@@ -164,6 +167,7 @@
         <ErpPhpCreateWell Title="Add income">
             <form method="post" action="@SaveAction">
                 <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
                 <input type="hidden" name="action" value="save_line" />
                 <input type="hidden" name="kind" value="income" />
                 <input type="hidden" name="category" value="rental" />
@@ -188,6 +192,7 @@
         <ErpPhpCreateWell Title="Add, edit, delete, void or reverse an entry">
             <form id="line-form" method="post" action="@SaveAction">
                 <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
                 <input type="hidden" name="filterYear" value="@_year.ToString(CultureInfo.InvariantCulture)" />
                 <input type="hidden" name="filterPropertyId" value="@_propertyId.ToString(CultureInfo.InvariantCulture)" />
                 <input type="hidden" name="filterUnitId" value="@_unitId.ToString(CultureInfo.InvariantCulture)" />
@@ -282,6 +287,7 @@
                                 {
                                     <form method="post" action="@SaveAction">
                                         <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
                                         <input type="hidden" name="action" value="distribute" />
                                         <input type="hidden" name="id" value="@line.Id" />
                                         <input type="hidden" name="filterYear" value="@_year.ToString(CultureInfo.InvariantCulture)" />
@@ -298,7 +304,7 @@
                                     </form>
                                 }
                             }
-                            <ErpLandlordLineActions Line="line" Admin="_isAdmin" SaveAction="@SaveAction" EditHref="@EditHref(line.Id)" FilterYear="_year" FilterPropertyId="_propertyId" FilterUnitId="_unitId" />
+                            <ErpLandlordLineActions Line="line" Admin="_isAdmin" SaveAction="@SaveAction" EditHref="@EditHref(line.Id)" FilterYear="_year" FilterPropertyId="_propertyId" FilterUnitId="_unitId" Csrf="@_csrf" />
                         </td>
                     </tr>
                 }
@@ -331,7 +337,7 @@
                         <td>@line.Status</td>
                         <td>@line.Note</td>
                         <td>
-                            <ErpLandlordLineActions Line="line" Admin="_isAdmin" SaveAction="@SaveAction" EditHref="@EditHref(line.Id)" FilterYear="_year" FilterPropertyId="_propertyId" FilterUnitId="_unitId" />
+                            <ErpLandlordLineActions Line="line" Admin="_isAdmin" SaveAction="@SaveAction" EditHref="@EditHref(line.Id)" FilterYear="_year" FilterPropertyId="_propertyId" FilterUnitId="_unitId" Csrf="@_csrf" />
                         </td>
                     </tr>
                 }
@@ -365,7 +371,7 @@
                             <td>@line.Status</td>
                             <td>@line.Note</td>
                             <td>
-                                <ErpLandlordLineActions Line="line" Admin="_isAdmin" SaveAction="@SaveAction" EditHref="@EditHref(line.Id)" FilterYear="_year" FilterPropertyId="_propertyId" FilterUnitId="_unitId" />
+                                <ErpLandlordLineActions Line="line" Admin="_isAdmin" SaveAction="@SaveAction" EditHref="@EditHref(line.Id)" FilterYear="_year" FilterPropertyId="_propertyId" FilterUnitId="_unitId" Csrf="@_csrf" />
                             </td>
                         </tr>
                     }
@@ -379,6 +385,7 @@
     private bool _isAdmin;
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _csrf = "";
     private int _year = ErpLandlordOpening.SheetYear;
     private long _propertyId;
     private long _unitId;
@@ -535,6 +542,7 @@
         long.TryParse(ctx.Request.Query["line"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _lineId);
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _csrf = _isAdmin ? await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted) : "";
         if (!_isAdmin)
         {
             return;

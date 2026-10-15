@@ -9,6 +9,7 @@
     }
     <form method="post" action="@SaveAction" style="display:inline">
         <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
         <input type="hidden" name="action" value="delete" />
         <input type="hidden" name="id" value="@Line.Id.ToString(CultureInfo.InvariantCulture)" />
         <input type="hidden" name="filterYear" value="@FilterYear.ToString(CultureInfo.InvariantCulture)" />
@@ -20,6 +21,7 @@
     {
         <form method="post" action="@SaveAction" style="display:inline">
             <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
             <input type="hidden" name="action" value="void" />
             <input type="hidden" name="id" value="@Line.Id.ToString(CultureInfo.InvariantCulture)" />
             <input type="hidden" name="filterYear" value="@FilterYear.ToString(CultureInfo.InvariantCulture)" />
@@ -29,6 +31,7 @@
         </form>
         <form method="post" action="@SaveAction" style="display:inline">
             <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="csrf_guard_key" value="@Csrf" />
             <input type="hidden" name="action" value="reverse" />
             <input type="hidden" name="id" value="@Line.Id.ToString(CultureInfo.InvariantCulture)" />
             <input type="hidden" name="filterYear" value="@FilterYear.ToString(CultureInfo.InvariantCulture)" />
@@ -47,4 +50,5 @@
     [Parameter] public int FilterYear { get; set; }
     [Parameter] public long FilterPropertyId { get; set; }
     [Parameter] public long FilterUnitId { get; set; }
+    [Parameter] public string Csrf { get; set; } = "";
 }
