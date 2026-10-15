@@ -52,4 +52,10 @@ public static class ErpJewelCalc
     public static bool CanSell(string? status)
         => string.Equals(status?.Trim(), "in stock", StringComparison.OrdinalIgnoreCase)
             || string.Equals(status?.Trim(), "showroom", StringComparison.OrdinalIgnoreCase);
+
+    public static decimal PosLineTotal(decimal metal, decimal making, decimal stone, decimal discount, decimal vat)
+        => Money(metal + making + stone - discount + vat);
+
+    public static decimal StockVariance(decimal counted, decimal system)
+        => Grams(counted - system);
 }

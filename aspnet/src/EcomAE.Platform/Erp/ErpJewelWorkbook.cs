@@ -13,10 +13,13 @@ public static class ErpJewelWorkbook
 {
     public static readonly string[] TemplateSheets =
     [
-        "Companies", "Branches", "Customers", "Metal_Masters", "Metal_Rates", "Design_Masters",
-        "Items_Tags", "Item_Stones", "Assay_Results", "Buyback_Exchange", "Inventory_Movements",
-        "Jobwork_Making", "Melting_Refining", "Consignment", "Gold_Ledger_Opening", "AR_AP_Opening",
-        "GL_Opening", "Expenses", "Documents", "AML_KYC",
+        "START_HERE", "Companies", "Branches", "User_Roles", "Customers", "Suppliers",
+        "Metal_Masters", "Metal_Rates", "Stone_Masters", "Design_Masters", "Price_Rules",
+        "Items_Tags", "Item_Stones", "Purchase_Headers", "Purchase_Lines", "Assay_Results",
+        "Inventory_Movements", "Stock_Counts", "Buyback_Exchange", "POS_Sales", "POS_Lines",
+        "POS_Payments", "Returns", "Repairs_Orders", "Jobwork_Making", "Melting_Refining",
+        "Consignment", "Gold_Ledger_Opening", "AR_AP_Opening", "GL_Opening", "Expenses",
+        "Documents", "AML_KYC",
     ];
 
     public sealed record Sheet(
@@ -41,7 +44,7 @@ public static class ErpJewelWorkbook
 
             var readme = zip.CreateEntry("README.txt");
             using var writer = new StreamWriter(readme.Open(), new UTF8Encoding(false));
-            writer.Write("Jewellery workbook. Net metal is gross minus stone grams minus other grams. Pure metal is net times purity per thousand. One carat is 0.2 gram and is not stored in the metal columns. A melt variance does not replace the original tag weight. Photos stay as files named in Documents.Relative_ZIP_Path. This package is not a full restoration archive.");
+            writer.Write("Jewellery workbook. Open START_HERE first. Net metal is gross minus stone grams minus other grams. Pure metal is net times purity per thousand. One carat is 0.2 gram and is not stored in the metal columns. A POS line keeps metal, making, stones, discount, and VAT, and payments cannot exceed that sale. A melt variance does not replace the original tag weight. Photos stay as files named in Documents.Relative_ZIP_Path. This package is not a full restoration archive.");
         }
 
         return ms.ToArray();
@@ -135,7 +138,7 @@ public static class ErpJewelWorkbook
                     errors.Add(expected + " repeats " + id + ".");
                 }
 
-                if (id.StartsWith("SAMPLE", StringComparison.OrdinalIgnoreCase))
+                if (expected == "START_HERE" || id.StartsWith("SAMPLE", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -144,6 +147,7 @@ public static class ErpJewelWorkbook
             }
         }
 
+        CheckSales(sheets, errors);
         return errors;
     }
 
@@ -164,11 +168,81 @@ public static class ErpJewelWorkbook
                 break;
             case "Item_Stones":
                 RequireRef(errors, sheets, sheet, id, "Items_Tags", "Tag_ID", Cell(row, "Tag_ID"));
+                RequireRef(errors, sheets, sheet, id, "Stone_Masters", "Stone_ID", Cell(row, "Stone_ID"));
                 if (Num(row, "Carats") > 0 && Num(row, "Weight_Gram") > 0 && !ErpJewelCalc.WithinTolerance(Num(row, "Weight_Gram"), ErpJewelCalc.StoneGrams(Num(row, "Carats")), 0.02m))
                 {
                     errors.Add("Stone " + id + " gram weight is not carats times 0.2.");
                 }
 
+                break;
+            case "POS_Lines":
+                RequireRef(errors, sheets, sheet, id, "Items_Tags", "Tag_ID", Cell(row, "Tag_ID"));
+                var lineTotal = ErpJewelCalc.PosLineTotal(Num(row, "Metal_Value_AED"), Num(row, "Making_AED"), Num(row, "Stone_Value_AED"), Num(row, "Discount_AED"), Num(row, "VAT_AED"));
+                if (Math.Abs(lineTotal - Num(row, "Line_Total_AED")) > 0.02m)
+                {
+                    errors.Add("POS line " + id + " total is not metal, making, and stones, less discount, plus VAT.");
+                }
+
+                break;
+            case "POS_Sales":
+                RequireRef(errors, sheets, sheet, id, "Branches", "Branch_ID", Cell(row, "Branch_ID"));
+                RequireRef(errors, sheets, sheet, id, "Customers", "Customer_ID", Cell(row, "Customer_ID"));
+                break;
+            case "POS_Payments":
+                RequireRef(errors, sheets, sheet, id, "POS_Sales", "Sale_ID", Cell(row, "Sale_ID"));
+                break;
+            case "Purchase_Headers":
+                RequireRef(errors, sheets, sheet, id, "Suppliers", "Supplier_ID", Cell(row, "Supplier_ID"));
+                RequireRef(errors, sheets, sheet, id, "Branches", "Branch_ID", Cell(row, "Branch_ID"));
+                break;
+            case "Purchase_Lines":
+                RequireRef(errors, sheets, sheet, id, "Purchase_Headers", "Purchase_ID", Cell(row, "Purchase_ID"));
+                RequireRef(errors, sheets, sheet, id, "Items_Tags", "Tag_ID", Cell(row, "Tag_ID"));
+                RequireRef(errors, sheets, sheet, id, "Metal_Masters", "Metal_ID", Cell(row, "Metal_ID"));
+                var boughtPure = ErpJewelCalc.PureMetal(Num(row, "Net_Gram"), Num(row, "Purity_PPT"));
+                if (!ErpJewelCalc.WithinTolerance(Num(row, "Pure_Gram"), boughtPure, 0.0001m))
+                {
+                    errors.Add("Purchase line " + id + " pure grams are not net grams times purity.");
+                }
+
+                if (Num(row, "Total_Cost_AED") + 0.02m < Num(row, "Stone_Cost_AED") + Num(row, "Making_Cost_AED"))
+                {
+                    errors.Add("Purchase line " + id + " total cost is below stones and making.");
+                }
+
+                break;
+            case "Stock_Counts":
+                RequireRef(errors, sheets, sheet, id, "Branches", "Branch_ID", Cell(row, "Branch_ID"));
+                RequireRef(errors, sheets, sheet, id, "Items_Tags", "Tag_ID", Cell(row, "Tag_ID"));
+                var counted = ErpJewelCalc.StockVariance(Num(row, "Counted_Gross_Gram"), Num(row, "System_Gross_Gram"));
+                if (!ErpJewelCalc.WithinTolerance(Num(row, "Variance_Gram"), counted, 0.0001m))
+                {
+                    errors.Add("Count " + id + " variance is not counted gross minus system gross.");
+                }
+
+                if (ErpJewelCalc.MeltNeedsApproval(counted, ErpJewelCalc.DefaultToleranceGrams)
+                    && !Cell(row, "Status").Equals("Approved", StringComparison.OrdinalIgnoreCase)
+                    && !Cell(row, "Status").Equals("Investigated", StringComparison.OrdinalIgnoreCase))
+                {
+                    errors.Add("Count " + id + " variance needs review.");
+                }
+
+                break;
+            case "Returns":
+                RequireRef(errors, sheets, sheet, id, "POS_Sales", "Sale_ID", Cell(row, "Original_Sale_ID"));
+                RequireRef(errors, sheets, sheet, id, "Items_Tags", "Tag_ID", Cell(row, "Tag_ID"));
+                break;
+            case "Repairs_Orders":
+                RequireRef(errors, sheets, sheet, id, "Customers", "Customer_ID", Cell(row, "Customer_ID"));
+                RequireRef(errors, sheets, sheet, id, "Items_Tags", "Tag_ID", Cell(row, "Tag_ID"));
+                break;
+            case "User_Roles":
+                RequireRef(errors, sheets, sheet, id, "Companies", "Company_ID", Cell(row, "Company_ID"));
+                RequireRef(errors, sheets, sheet, id, "Branches", "Branch_ID", Cell(row, "Branch_ID"));
+                break;
+            case "Price_Rules":
+                RequireRef(errors, sheets, sheet, id, "Branches", "Branch_ID", Cell(row, "Branch_ID"));
+                RequireRef(errors, sheets, sheet, id, "Metal_Masters", "Metal_ID", Cell(row, "Metal_ID"));
                 break;
             case "Buyback_Exchange":
                 RequireRef(errors, sheets, sheet, id, "Customers", "Customer_ID", Cell(row, "Customer_ID"));
@@ -233,6 +307,104 @@ public static class ErpJewelWorkbook
             case "AML_KYC" when Cell(row, "Party_Type").Equals("Customer", StringComparison.OrdinalIgnoreCase):
                 RequireRef(errors, sheets, sheet, id, "Customers", "Customer_ID", Cell(row, "Party_ID"));
                 break;
+        }
+    }
+
+    private static void CheckSales(IReadOnlyList<Sheet> sheets, List<string> errors)
+    {
+        var lines = Find(sheets, "POS_Lines");
+        var sales = Find(sheets, "POS_Sales");
+        var payments = Find(sheets, "POS_Payments");
+        var returns = Find(sheets, "Returns");
+        if (lines is null || sales is null)
+        {
+            return;
+        }
+
+        var returned = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (returns is not null)
+        {
+            foreach (var row in returns.Records)
+            {
+                returned.Add(Cell(row, "Tag_ID"));
+            }
+        }
+
+        var salesByTag = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var row in lines.Records)
+        {
+            var tag = Cell(row, "Tag_ID");
+            var sale = Cell(row, "Sale_ID");
+            if (tag.Length == 0 || tag.StartsWith("SAMPLE", StringComparison.OrdinalIgnoreCase) || sale.StartsWith("SAMPLE", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (!salesByTag.TryGetValue(tag, out var saleIds))
+            {
+                saleIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                salesByTag[tag] = saleIds;
+            }
+
+            saleIds.Add(sale);
+        }
+
+        foreach (var pair in salesByTag)
+        {
+            if (pair.Value.Count > 1 && !returned.Contains(pair.Key))
+            {
+                errors.Add("Tag " + pair.Key + " is sold on more than one sale.");
+            }
+        }
+
+        foreach (var sale in sales.Records)
+        {
+            var id = Cell(sale, "Sale_ID");
+            if (id.Length == 0 || id.StartsWith("SAMPLE", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var lineTotal = lines.Records.Where(row => string.Equals(Cell(row, "Sale_ID"), id, StringComparison.OrdinalIgnoreCase)).Sum(row => Num(row, "Line_Total_AED"));
+            if (lines.Records.Any(row => string.Equals(Cell(row, "Sale_ID"), id, StringComparison.OrdinalIgnoreCase))
+                && Math.Abs(lineTotal - Num(sale, "Total_AED")) > 0.02m)
+            {
+                errors.Add("Sale " + id + " total does not match its lines.");
+            }
+
+            if (Math.Abs(Num(sale, "Subtotal_AED") + Num(sale, "VAT_AED") - Num(sale, "Total_AED")) > 0.02m)
+            {
+                errors.Add("Sale " + id + " total is not subtotal plus VAT.");
+            }
+
+            if (payments is not null)
+            {
+                var paid = payments.Records.Where(row => string.Equals(Cell(row, "Sale_ID"), id, StringComparison.OrdinalIgnoreCase)).Sum(row => Num(row, "Amount_AED"));
+                if (paid - Num(sale, "Total_AED") > 0.02m)
+                {
+                    errors.Add("Sale " + id + " payments exceed the sale total.");
+                }
+            }
+        }
+
+        if (returns is null)
+        {
+            return;
+        }
+
+        foreach (var row in returns.Records)
+        {
+            var id = Cell(row, "Return_ID");
+            if (id.StartsWith("SAMPLE", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var sale = sales.Records.FirstOrDefault(item => string.Equals(Cell(item, "Sale_ID"), Cell(row, "Original_Sale_ID"), StringComparison.OrdinalIgnoreCase));
+            if (sale is not null && Num(row, "Refund_AED") - Num(sale, "Total_AED") > 0.02m)
+            {
+                errors.Add("Return " + id + " refund is above the original sale.");
+            }
         }
     }
 
@@ -303,12 +475,51 @@ public static class ErpJewelWorkbook
         "Expenses" => ["Expense_ID", "Date", "Branch_ID", "Category", "Supplier_ID", "Description", "Amount_AED", "VAT_AED", "GL_Code", "Attachment_Path"],
         "Documents" => ["Document_ID", "Entity_Type", "Entity_ID", "Document_Type", "File_Name", "Relative_ZIP_Path", "Expiry_Date", "Version"],
         "AML_KYC" => ["Review_ID", "Party_Type", "Party_ID", "Review_Date", "Risk_Rating", "ID_Document_Ref", "Screening_Result", "Approved_By"],
+        "START_HERE" => ["INDJ JEWELLERY ERP — MASTER EXCEL IMPORT / EXPORT REFERENCE", ""],
+        "Suppliers" => ["Supplier_ID", "Name", "Type", "TRN", "Country", "Phone", "Payment_Terms", "AML_Risk"],
+        "User_Roles" => ["User_ID", "Company_ID", "Branch_ID", "Role", "Status"],
+        "Stone_Masters" => ["Stone_ID", "Stone_Type", "Shape", "Color", "Clarity", "Cut", "Certificate_No", "Carat"],
+        "Price_Rules" => ["Rule_ID", "Branch_ID", "Category", "Metal_ID", "Rate_Basis", "Making_Charge_Type", "Making_Charge", "Margin_Target", "Effective_From"],
+        "Purchase_Headers" => ["Purchase_ID", "Date", "Supplier_ID", "Branch_ID", "Purchase_Type", "Currency", "FX_Rate", "Invoice_No", "Tax_Treatment", "Status"],
+        "Purchase_Lines" => ["Purchase_ID", "Line_ID", "Tag_ID", "Metal_ID", "Gross_Gram", "Net_Gram", "Purity_PPT", "Pure_Gram", "Stone_Cost_AED", "Making_Cost_AED", "Total_Cost_AED"],
+        "Stock_Counts" => ["Count_ID", "Date", "Branch_ID", "Tag_ID", "System_Gross_Gram", "Counted_Gross_Gram", "System_Pure_Gram", "Counted_Pure_Gram", "Variance_Gram", "Status"],
+        "POS_Sales" => ["Sale_ID", "Date", "Branch_ID", "Customer_ID", "Salesperson", "Sale_Type", "Subtotal_AED", "VAT_AED", "Total_AED", "Status"],
+        "POS_Lines" => ["Sale_ID", "Line_ID", "Tag_ID", "Gross_Gram", "Net_Gram", "Pure_Gram", "Metal_Value_AED", "Making_AED", "Stone_Value_AED", "Discount_AED", "VAT_AED", "Line_Total_AED"],
+        "POS_Payments" => ["Payment_ID", "Sale_ID", "Date", "Method", "Amount_AED", "Bank_Ref", "Cheque_No", "Cheque_Date", "Status"],
+        "Repairs_Orders" => ["Repair_ID", "Customer_ID", "Tag_ID", "Date_In", "Expected_Date", "Work_Type", "Estimated_Cost_AED", "Status", "Date_Out"],
+        "Returns" => ["Return_ID", "Original_Sale_ID", "Tag_ID", "Date", "Reason", "Refund_AED", "Condition", "Approved_By"],
         _ => ["Id"],
     };
 
     private static string[][] SheetRows(string sheet) => sheet switch
     {
+        "START_HERE" =>
+        [
+            ["Purpose", "Retail-first jewellery ERP with wholesale, buyback, exchange, gold and stone inventory"],
+            ["Scope", "UAE multi-branch operations; 31 reference sheets"],
+            ["Important", "Illustrative schema, not a database export or confirmed existing INDJ structure"],
+            ["Import order", "Masters > designs > items > purchasing > movements > sales > finance"],
+            ["IDs", "Stable unique identifiers link worksheets; preserve IDs during export/import"],
+            ["Dates", "Use YYYY-MM-DD; real Excel dates preferred"],
+            ["Amounts", "AED monetary values; keep currency and FX fields for foreign purchases"],
+            ["Weights", "Grams for metals; carats for stones; purity in parts per thousand"],
+            ["Documents", "Relative_ZIP_Path references files in an accompanying secured ZIP archive"],
+            ["Tax", "VAT/reverse charge must be rule-driven and verified per transaction"],
+            ["Validation", "Cursor must add dropdowns, referential checks, dry-run, error workbook and audit trail"],
+        ],
         "Companies" => [["INDJ-001", "INDJ Jewellery", "100000000000003", "Dubai", "AED", "DXB01", "Active"]],
+        "Suppliers" => [["SUP-001", "Dubai Bullion", "Wholesaler", "100000000000004", "UAE", "0400000000", "30 days", "Low"]],
+        "User_Roles" => [["USER-001", "INDJ-001", "DXB01", "Cashier", "Active"]],
+        "Stone_Masters" => [["DIA-001", "Diamond", "Round", "G", "VS1", "Excellent", "GIA-001", "1.5"]],
+        "Price_Rules" => [["RULE-001", "DXB01", "Ring", "AU916", "Gold rate", "Per gram", "35", "20", "2026-10-15"]],
+        "Purchase_Headers" => [["PUR-001", "2026-10-15", "SUP-001", "DXB01", "Wholesale", "AED", "1", "INV-001", "Standard", "Received"]],
+        "Purchase_Lines" => [["PUR-001", "1", "TAG-0001", "AU916", "12.5", "11.3", "916", "10.3508", "0", "350", "4650"]],
+        "Stock_Counts" => [["CNT-001", "2026-10-15", "DXB01", "TAG-0001", "12.5", "12.5", "10.3508", "10.3508", "0", "Matched"]],
+        "POS_Sales" => [["SALE-001", "2026-10-15", "DXB01", "CUST-001", "Amina", "Retail", "4650", "232.5", "4882.5", "Posted"]],
+        "POS_Lines" => [["SALE-001", "1", "TAG-0001", "12.5", "11.3", "10.3508", "4300", "350", "0", "0", "232.5", "4882.5"]],
+        "POS_Payments" => [["PAY-001", "SALE-001", "2026-10-15", "Cash", "4882.5", "", "", "", "Cleared"]],
+        "Repairs_Orders" => [["REP-001", "CUST-001", "TAG-0001", "2026-10-15", "2026-10-20", "Resize", "150", "Received", ""]],
+        "Returns" => [["RET-001", "SALE-001", "TAG-0001", "2026-10-16", "Size", "4882.5", "Good", "Manager"]],
         "Branches" => [["DXB01", "INDJ-001", "Dubai Showroom", "Dubai", "Amina", "Vault"]],
         "Customers" => [["CUST-001", "Layla Hassan", "Individual", "0500000000", "layla@example.com", "", "KYC-001", "Low"]],
         "Metal_Masters" => [["AU916", "Gold", "916", "22K", "g", "0.01"]],
@@ -342,6 +553,8 @@ public static class ErpJewelWorkbook
     private static string Identity(string sheet, IReadOnlyDictionary<string, string> row) => sheet switch
     {
         "Item_Stones" => Cell(row, "Tag_ID") + "|" + Cell(row, "Stone_Line_ID"),
+        "POS_Lines" => Cell(row, "Sale_ID") + "|" + Cell(row, "Line_ID"),
+        "Purchase_Lines" => Cell(row, "Purchase_ID") + "|" + Cell(row, "Line_ID"),
         "GL_Opening" => Cell(row, "Account_Code") + "|" + Cell(row, "Company_ID") + "|" + Cell(row, "Branch_ID"),
         _ => Cell(row, Headers(sheet)[0]),
     };
@@ -435,7 +648,7 @@ public static class ErpJewelWorkbook
                     for (var c = 0; c < allRows[r].Length && c < 26; c++)
                     {
                         var value = allRows[r][c] ?? "";
-                        if (value.Length == 0)
+                        if (value.Length == 0 && r > 0)
                         {
                             continue;
                         }
