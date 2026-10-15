@@ -1517,6 +1517,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsImportDeclarationPdf, HandleCsImportDeclarationPdfAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutList, HandleShortcutListAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxVoiceCommand, HandleVoiceCommandAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxAiTools, HandleAiToolsAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutAdd, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -23002,6 +23003,7 @@ public sealed class ErpModule : ISurfaceModule
         HttpContext context,
         ILegacySessionValidator validator,
         IErpMasterLookupReadService lookups,
+        IErpOperatorAiDispatcher tools,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -23024,6 +23026,32 @@ public sealed class ErpModule : ISurfaceModule
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var plan = await new ErpVoicePrepareService(lookups).PrepareAsync(transcript, today, cancellationToken).ConfigureAwait(false);
+        if (string.Equals(plan.Intent, "tool", StringComparison.Ordinal)
+            && plan.Slots.TryGetValue("provider", out var provider)
+            && plan.Slots.TryGetValue("task", out var task)
+            && task.Length > 0)
+        {
+            var reply = await tools.AskAsync(session.UserId, provider, task, today, cancellationToken).ConfigureAwait(false);
+            var toolHref = ClientErpPath.PrefixIfBound(context, reply.Href);
+            if (toolHref == "/")
+            {
+                toolHref = string.Empty;
+            }
+
+            return Results.Json(new
+            {
+                ok = reply.Ok,
+                intent = "tool",
+                document = provider,
+                say = reply.Say,
+                href = toolHref,
+                ready = reply.Ready && toolHref.Length > 0,
+                missing = Array.Empty<string>(),
+                slots = new Dictionary<string, string> { ["provider"] = provider },
+                externalUrl = reply.ExternalUrl,
+            });
+        }
+
         var href = ClientErpPath.PrefixIfBound(context, plan.Href);
         return Results.Json(new
         {
@@ -23035,10 +23063,79 @@ public sealed class ErpModule : ISurfaceModule
             ready = plan.Ready,
             missing = plan.Missing,
             slots = plan.Slots,
+            externalUrl = string.Empty,
         });
     }
 
     private sealed record ErpVoiceCommandBody(string? Transcript = null, string? Question = null, string? Q = null);
+
+    private static async Task<IResult> HandleAiToolsAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpOperatorAiDispatcher tools,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Json(new { ok = false, say = "Sign in to use voice.", href = "" }, statusCode: StatusCodes.Status401Unauthorized);
+        }
+
+        string action;
+        string provider;
+        string token;
+        string org;
+        string repo;
+        string model;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            action = LiveWriteFormBinder.Text(form, "action");
+            provider = LiveWriteFormBinder.Text(form, "provider");
+            token = LiveWriteFormBinder.Text(form, "token", "key");
+            org = LiveWriteFormBinder.Text(form, "org", "organisation");
+            repo = LiveWriteFormBinder.Text(form, "repo", "repository");
+            model = LiveWriteFormBinder.Text(form, "model");
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpAiToolsBody>(context, cancellationToken);
+            action = body?.Action ?? string.Empty;
+            provider = body?.Provider ?? string.Empty;
+            token = body?.Token ?? body?.Key ?? string.Empty;
+            org = body?.Org ?? body?.Organisation ?? string.Empty;
+            repo = body?.Repo ?? body?.Repository ?? string.Empty;
+            model = body?.Model ?? string.Empty;
+        }
+
+        var reply = action.Trim().ToLowerInvariant() switch
+        {
+            "connect" or "save" => await tools.ConnectAsync(session.UserId, provider, token, org, repo, model, cancellationToken).ConfigureAwait(false),
+            "disconnect" or "remove" => await tools.DisconnectAsync(session.UserId, provider, cancellationToken).ConfigureAwait(false),
+            "status" => await tools.StatusAsync(session.UserId, cancellationToken).ConfigureAwait(false),
+            _ => new ErpOperatorAiReply(false, "Choose connect, remove, or status.", string.Empty, false, string.Empty, []),
+        };
+        return Results.Json(new
+        {
+            ok = reply.Ok,
+            say = reply.Say,
+            href = string.Empty,
+            ready = false,
+            externalUrl = string.Empty,
+            connected = reply.Connected,
+        });
+    }
+
+    private sealed record ErpAiToolsBody(
+        string? Action = null,
+        string? Provider = null,
+        string? Token = null,
+        string? Key = null,
+        string? Org = null,
+        string? Organisation = null,
+        string? Repo = null,
+        string? Repository = null,
+        string? Model = null);
 
     private static async Task<IResult> HandleAiAssistantQueryAsync(
         HttpContext context,

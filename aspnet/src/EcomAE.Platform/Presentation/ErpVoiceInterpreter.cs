@@ -32,6 +32,12 @@ public static class ErpVoiceInterpreter
             return new("help", "", HelpSay(), "", false, [], new Dictionary<string, string>());
         }
 
+        var tool = ToolRequest(text);
+        if (tool is not null)
+        {
+            return tool;
+        }
+
         if (IsRequirements(text))
         {
             var doc = DetectDocument(text);
@@ -388,12 +394,58 @@ public static class ErpVoiceInterpreter
             new Dictionary<string, string> { ["label"] = hit.Label });
     }
 
+    private static Draft? ToolRequest(string text)
+    {
+        var lead = Regex.Match(
+            text,
+            @"^(?:please\s+)?(?:ask|tell|use|send|hand)\s+(?:to\s+)?(chat\s*gpt|chatgpt|openai|cursor|devin)(?:\.ai)?(?:\s+to)?\s*(.*)$",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        string rawProvider;
+        string task;
+        if (lead.Success)
+        {
+            rawProvider = lead.Groups[1].Value;
+            task = lead.Groups[2].Value.Trim();
+        }
+        else
+        {
+            var verb = Regex.Match(
+                text,
+                @"^(?:please\s+)?(chat\s*gpt|chatgpt|openai|cursor|devin)(?:\.ai)?\s+(?:please\s+)?(?:do|handle|take|work on|complete)\s+(.+)$",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            if (!verb.Success)
+            {
+                return null;
+            }
+
+            rawProvider = verb.Groups[1].Value;
+            task = verb.Groups[2].Value.Trim();
+        }
+
+        if (!ErpOperatorAiNames.TryNormalize(rawProvider, out var provider))
+        {
+            return null;
+        }
+
+        var slots = new Dictionary<string, string>(StringComparer.Ordinal) { ["provider"] = provider };
+        var label = ErpOperatorAiNames.Label(provider);
+        if (task.Length == 0)
+        {
+            return new("tool", provider, "Say what " + label + " should do.", "", false, ["task"], slots);
+        }
+
+        slots["task"] = Regex.Replace(task, @"\s+", " ").Trim();
+        return new("tool", provider, "Sending that to " + label + ".", "", false, [], slots);
+    }
+
     private static string HelpSay()
         => "You can say: create a receipt voucher for customer Ahmed for 1500 from the main cash account. "
            + "Or: payment voucher for supplier Gulf Parts amount 800 account operating bank. "
            + "Or: United Arab Emirates sales report for last month by customer. "
            + "Or: what do I need for a receipt voucher. "
-           + "Or: open purchase orders. I prepare the form. You press the button to post.";
+           + "Or: open purchase orders. "
+           + "Or: ask ChatGPT, ask Cursor, or ask Devin to do a piece of work. "
+           + "I prepare the form. You press the button to post.";
 
     private static bool IsHelp(string text)
         => Rx(text, @"\b(help|what can i say|voice commands|how do i speak)\b");

@@ -773,6 +773,12 @@ builder.Services.AddScoped<EcomAE.Platform.Migration.IErpTrialBalanceDryRun, Eco
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpApSetupReadService, EcomAE.Platform.Erp.ErpApSetupReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSupplierOnboardReadService, EcomAE.Platform.Erp.ErpSupplierOnboardReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMasterLookupReadService, EcomAE.Platform.Erp.ErpMasterLookupReadService>();
+builder.Services.AddSingleton<EcomAE.Platform.Erp.ErpOperatorAiProtector>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOperatorAiSecretStore, EcomAE.Platform.Erp.ErpOperatorAiSecretStore>();
+builder.Services.AddHttpClient(EcomAE.Platform.Presentation.ErpOperatorAiGateway.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(40))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddScoped<EcomAE.Platform.Presentation.IErpOperatorAiGateway, EcomAE.Platform.Presentation.ErpOperatorAiGateway>();
+builder.Services.AddScoped<EcomAE.Platform.Presentation.IErpOperatorAiDispatcher, EcomAE.Platform.Presentation.ErpOperatorAiDispatcher>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMultiEntityPreferenceReadService, EcomAE.Platform.Erp.ErpMultiEntityPreferenceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMultiEntityMemberReadService, EcomAE.Platform.Erp.ErpMultiEntityMemberReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDimensionCatalogReadService, EcomAE.Platform.Erp.ErpDimensionCatalogReadService>();
