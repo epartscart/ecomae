@@ -1,5 +1,11 @@
+using EcomAE.Platform.Components.Shared;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Presentation;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Xunit;
 
@@ -14,11 +20,99 @@ public sealed class ErpHomeProcessAndItemPartTests
         Assert.Contains("ErpHomeProcessMap", home, StringComparison.Ordinal);
         Assert.Contains("ErpHomeInsights", home, StringComparison.Ordinal);
         var map = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/ErpHomeProcessMap.razor"));
-        Assert.Contains("Purchase orders", map, StringComparison.Ordinal);
-        Assert.Contains("/erp/invoices-app", map, StringComparison.Ordinal);
-        Assert.Contains("/erp/product-info-app", map, StringComparison.Ordinal);
-        Assert.Contains("/erp/bank-reconciliation-app", map, StringComparison.Ordinal);
-        Assert.Contains("/erp/payroll-app", map, StringComparison.Ordinal);
+        Assert.Contains("ErpProcessFlowCatalog", map, StringComparison.Ordinal);
+        Assert.Contains("data-erp-flow", map, StringComparison.Ordinal);
+        Assert.Contains("prefers-reduced-motion", map, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_erp_shell", map, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ProcessFlowCoversEveryModuleArea()
+    {
+        var areas = ErpProcessFlowCatalog.Areas;
+        Assert.Equal(PhpModuleCatalog.ErpAreaCount, areas.Count);
+        Assert.Equal(areas.Count, areas.Select(a => a.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Contains(ErpProcessFlowCatalog.DefaultAreaId, areas.Select(a => a.Id), StringComparer.OrdinalIgnoreCase);
+        Assert.All(areas, area =>
+        {
+            Assert.True(area.Steps.Count >= 3, area.Id);
+            Assert.All(area.Steps, step =>
+            {
+                Assert.StartsWith("/erp", step.Href, StringComparison.OrdinalIgnoreCase);
+                Assert.StartsWith("fa-", step.Icon, StringComparison.Ordinal);
+                Assert.DoesNotContain("epc_erp_shell", step.Href, StringComparison.OrdinalIgnoreCase);
+                Assert.DoesNotContain("php-reference", step.Href, StringComparison.OrdinalIgnoreCase);
+            });
+        });
+
+        Assert.Contains(areas, a => a.Steps.Any(s => s.Label == "Purchase orders" && s.Href == "/erp/purchase-orders-app"));
+        Assert.Contains(areas, a => a.Steps.Any(s => s.Href.Contains("/erp/invoices-app", StringComparison.Ordinal)));
+        Assert.Contains(areas, a => a.Steps.Any(s => s.Href.Contains("/erp/product-info-app", StringComparison.Ordinal)));
+        Assert.Contains(areas, a => a.Steps.Any(s => s.Href.Contains("/erp/bank-reconciliation-app", StringComparison.Ordinal)));
+        Assert.Contains(areas, a => a.Steps.Any(s => s.Href.Contains("/erp/payroll-app", StringComparison.Ordinal)));
+        Assert.Contains(areas, a => a.Id == "purchasing" && a.JewellerySteps.Count > 0);
+    }
+
+    [Fact]
+    public async Task ProcessFlowRendersOneAreaAndKeepsTheRestReady()
+    {
+        var html = await RenderMapAsync(companyId: 7, jewellery: false);
+        Assert.Contains("data-erp-flow", html, StringComparison.Ordinal);
+        Assert.Contains("Process area", html, StringComparison.Ordinal);
+        Assert.Contains(">Purchase orders<", html, StringComparison.Ordinal);
+        Assert.Contains("/erp/purchase-orders-app?company=7", html, StringComparison.Ordinal);
+        Assert.Contains("/erp/invoices-app", html, StringComparison.Ordinal);
+        Assert.Contains("/erp/product-info-app", html, StringComparison.Ordinal);
+        Assert.Contains("/erp/bank-reconciliation-app", html, StringComparison.Ordinal);
+        Assert.Contains("/erp/payroll-app", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_erp_shell", html, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("php-reference", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(1, Count(html, "data-flow-panel="));
+        Assert.Equal(PhpModuleCatalog.ErpAreaCount, Count(html, "<option "));
+        Assert.Contains("\"id\":\"sales\"", html, StringComparison.Ordinal);
+        Assert.Contains("\"id\":\"finance\"", html, StringComparison.Ordinal);
+        Assert.True(html.Length < 80_000, "process flow markup is " + html.Length);
+        Assert.DoesNotContain("jw_metal_purchase", html, StringComparison.Ordinal);
+
+        var jewellery = await RenderMapAsync(companyId: 0, jewellery: true);
+        Assert.Contains("jw_metal_purchase", jewellery, StringComparison.Ordinal);
+        Assert.Contains("/erp/invoices-app", jewellery, StringComparison.Ordinal);
+    }
+
+    private static async Task<string> RenderMapAsync(long companyId, bool jewellery)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        await using var renderer = new HtmlRenderer(services.BuildServiceProvider(), NullLoggerFactory.Instance);
+        return await renderer.Dispatcher.InvokeAsync(async () =>
+        {
+            var parameters = new Dictionary<string, object?>
+            {
+                [nameof(ErpHomeProcessMap.CompanyId)] = companyId,
+                [nameof(ErpHomeProcessMap.ShowJewellery)] = jewellery,
+            };
+            var view = await renderer.RenderComponentAsync<ErpHomeProcessMap>(ParameterView.FromDictionary(parameters));
+            return view.ToHtmlString();
+        });
+    }
+
+    private static int Count(string html, string token)
+    {
+        var count = 0;
+        var from = 0;
+        while (from < html.Length)
+        {
+            var at = html.IndexOf(token, from, StringComparison.Ordinal);
+            if (at < 0)
+            {
+                break;
+            }
+
+            count++;
+            from = at + token.Length;
+        }
+
+        return count;
     }
 
     [Fact]
