@@ -126,10 +126,40 @@
     .epc-erp-fav__panel > form button { display:flex; width:100%; align-items:center; gap:.45rem; padding:.45rem .55rem; border:0; background:transparent; color:#0f172a; text-align:left; font:inherit; border-radius:6px; cursor:pointer; }
     .epc-erp-fav__panel > form button:hover { background:#eff6ff; }
     .epc-erp-fav__empty { margin:0; padding:.45rem .55rem; color:#64748b; font-size:12px; }
-    .epc-erp-fav-pin { display:inline-flex; margin-left:.15rem; }
-    .epc-erp-fav-pin button { border:0; background:transparent; color:#94a3b8; padding:0 .15rem; cursor:pointer; }
-    .epc-erp-fav-pin button:hover, .epc-erp-fav-pin.is-on button, .epc-erp-fav-pin.is-on { color:#d97706; }
+    /* Menu favourite is a star. The control itself carries epc-erp-fav-pin, so the reset
+       must hit that button — a nested "button" rule leaves the browser's grey square. */
+    button.epc-erp-fav-pin,
+    .epc-erp-fav-pin button,
+    span.epc-erp-fav-pin {
+        display:inline-flex; align-items:center; justify-content:center;
+        flex:0 0 auto; box-sizing:border-box;
+        width:1.45rem; height:1.45rem; margin:0 0 0 .15rem; padding:0;
+        border:0; border-radius:999px; background:transparent; box-shadow:none;
+        color:#94a3b8; line-height:1; font-size:13px; cursor:pointer;
+        appearance:none; -webkit-appearance:none;
+    }
+    button.epc-erp-fav-pin .fa,
+    .epc-erp-fav-pin button .fa,
+    span.epc-erp-fav-pin .fa { font-size:13px; line-height:1; pointer-events:none; }
+    .epc-erp-topnav-links li:hover button.epc-erp-fav-pin,
+    .epc-erp-topnav-links li:focus-within button.epc-erp-fav-pin,
+    button.epc-erp-fav-pin:hover,
+    button.epc-erp-fav-pin:focus-visible,
+    .epc-erp-fav-pin button:hover,
+    .epc-erp-fav-pin button:focus-visible {
+        background:#fff7ed; color:#b45309; outline:none;
+    }
+    button.epc-erp-fav-pin.is-on,
+    .epc-erp-fav-pin.is-on,
+    .epc-erp-fav-pin.is-on button,
+    span.epc-erp-fav-pin.is-on { color:#d97706; }
+    form.epc-erp-fav-pin { display:inline-flex; margin:0 0 0 .35rem; vertical-align:middle; }
     .epc-erp-content-title .epc-erp-fav-pin { vertical-align:middle; }
+    @@media (hover: hover) and (pointer: fine) {
+        .epc-erp-topnav-links button.epc-erp-fav-pin:not(.is-on) { opacity:0; }
+        .epc-erp-topnav-links li:hover button.epc-erp-fav-pin,
+        .epc-erp-topnav-links li:focus-within button.epc-erp-fav-pin { opacity:1; }
+    }
     .epc-erp-topnav-links li { display:flex; align-items:center; }
     .epc-erp-topnav-links li > a { flex:1 1 auto; min-width:0; }
 </style>

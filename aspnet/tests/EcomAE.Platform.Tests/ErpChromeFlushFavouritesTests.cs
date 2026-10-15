@@ -67,6 +67,22 @@ public sealed class ErpChromeFlushFavouritesTests
         Assert.DoesNotContain(">ASP.NET<", chrome, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void MenuFavouritePinIsAStarNotACheckbox()
+    {
+        var chrome = Read("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor");
+
+        Assert.Contains("button.epc-erp-fav-pin", chrome, StringComparison.Ordinal);
+        Assert.Contains("appearance:none", chrome, StringComparison.Ordinal);
+        Assert.Contains("-webkit-appearance:none", chrome, StringComparison.Ordinal);
+        Assert.Contains("border-radius:999px", chrome, StringComparison.Ordinal);
+        Assert.Contains("button.epc-erp-fav-pin:not(.is-on) { opacity:0; }", chrome, StringComparison.Ordinal);
+        Assert.Contains("data-epc-fav-add=\"1\"", chrome, StringComparison.Ordinal);
+        Assert.Contains("fa fa-star-o", chrome, StringComparison.Ordinal);
+        Assert.Contains("fa fa-star", chrome, StringComparison.Ordinal);
+        Assert.Contains("aria-label=\"Add @link.Label to favourites\"", chrome, StringComparison.Ordinal);
+    }
+
     private static string Read(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
