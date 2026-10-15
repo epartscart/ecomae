@@ -200,7 +200,7 @@
             <ErpGlobalSearch Jewellery="_jewellery" FitOut="_fitOut" RealEstate="_realEstate" CompanyId="_activeCompanyId" />
             @if (_signedIn)
             {
-                <ErpVoiceBar AjaxHref="@VoiceAjaxHref" />
+                <ErpVoiceBar AjaxHref="@VoiceAjaxHref" ToolsAjaxHref="@ToolsAjaxHref" />
             }
             <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact" aria-label="ERP topbar">
                 <a href="@ErpHomeHref">Dashboard</a>
@@ -861,6 +861,17 @@
             return string.IsNullOrWhiteSpace(key)
                 ? "/erp/ajax/voice-command"
                 : ClientErpPath.PrefixErpPath(key, "/erp/ajax/voice-command");
+        }
+    }
+
+    private string ToolsAjaxHref
+    {
+        get
+        {
+            var key = ClientErpPath.BoundSiteKey(Http.HttpContext);
+            return string.IsNullOrWhiteSpace(key)
+                ? "/erp/ajax/ai-tools"
+                : ClientErpPath.PrefixErpPath(key, "/erp/ajax/ai-tools");
         }
     }
 

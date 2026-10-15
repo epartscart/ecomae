@@ -390,6 +390,19 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User dashboard shortcuts'",
             ct);
 
+    /// <summary>Per-operator ChatGPT, Cursor, and Devin keys. The token column stores protected ciphertext.</summary>
+    public static Task EnsureOperatorAiToolsAsync(DbConnection c, CancellationToken ct) =>
+        ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_operator_ai_tools` (" +
+            "`user_id` int(11) NOT NULL," +
+            "`provider` varchar(16) NOT NULL," +
+            "`token_protected` text NOT NULL," +
+            "`extras` varchar(800) NOT NULL DEFAULT ''," +
+            "`updated_at` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`user_id`, `provider`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Operator tool keys'",
+            ct);
+
     /// <summary>epc_as_jobs + epc_as_job_lines + epc_as_rma + epc_as_rma_lines + epc_as_warranty (epc_erp_aftersales.php ensure_schema)</summary>
     public static async Task EnsureAftersalesAsync(DbConnection c, CancellationToken ct)
     {
