@@ -1,7 +1,37 @@
 @using System.Globalization
 
-<section class="epc-qb-insights" aria-label="Company insights">
-    <article class="epc-qb-widget">
+<section class="epc-qb-insights" data-erp-insights data-board="overview" aria-label="Company insights">
+    <div class="epc-qb-switch">
+        <label for="erp-home-board">Dashboard</label>
+        <select id="erp-home-board" data-erp-board aria-label="Dashboard">
+            <optgroup label="Company">
+                <option value="overview" selected>Overview</option>
+            </optgroup>
+            <optgroup label="Customers">
+                <option value="customers">Customers</option>
+                <option value="customer-sales">Overall customer sales</option>
+            </optgroup>
+            <optgroup label="Suppliers">
+                <option value="suppliers">Suppliers</option>
+            </optgroup>
+            <optgroup label="Finance">
+                <option value="cash">Cash and bank</option>
+                <option value="profit">Profit</option>
+            </optgroup>
+            <optgroup label="Stock">
+                <option value="inventory">Inventory</option>
+            </optgroup>
+        </select>
+        <p class="epc-qb-note" data-board-note="overview">Company view: income, cash, customers, and suppliers together.</p>
+        <p class="epc-qb-note" data-board-note="customers">Customers only: who owes you, overdue invoices, and receipts.</p>
+        <p class="epc-qb-note" data-board-note="customer-sales">Overall customer sales for the company, this year against last year.</p>
+        <p class="epc-qb-note" data-board-note="suppliers">Suppliers only: what you owe, purchases, and open payables.</p>
+        <p class="epc-qb-note" data-board-note="cash">Cash and bank: money on hand, VAT, and the income and expense trend.</p>
+        <p class="epc-qb-note" data-board-note="profit">Profit: income, expense, and the result for this period.</p>
+        <p class="epc-qb-note" data-board-note="inventory">Inventory: stock on hand and the purchasing side that feeds it.</p>
+    </div>
+
+    <article class="epc-qb-widget" data-boards="overview customer-sales profit cash">
         <header>Income and expense trend <a href="@Href("/erp/report-center-app")">Open reports</a></header>
         <div class="epc-qb-bars" aria-label="Income and expense by period">
             @for (var i = 0; i < Bars; i++)
@@ -20,7 +50,7 @@
         <p class="epc-qb-legend"><i class="in"></i> Income <i class="ex"></i> Expense</p>
     </article>
 
-    <article class="epc-qb-widget">
+    <article class="epc-qb-widget" data-boards="overview customer-sales customers">
         <header>Previous year income <a href="@Href("/erp/accounts-summary-app")">View</a></header>
         <div class="epc-qb-compare">
             <div><span style="height:@Pct(PreviousRevenue, ComparePeak)%"></span><em>Prior</em><strong>@Money(PreviousRevenue)</strong></div>
@@ -28,14 +58,14 @@
         </div>
     </article>
 
-    <article class="epc-qb-widget">
+    <article class="epc-qb-widget" data-boards="overview customers">
         <header>Who owes money <a href="@Href("/erp/aging-app")">Receive payments</a></header>
         <p class="epc-qb-big">@Money(Receivables)</p>
-        <p>@InvoicesDue.ToString("N0", CultureInfo.InvariantCulture) invoices with a balance. @OverdueInvoices.ToString("N0", CultureInfo.InvariantCulture) are overdue.</p>
+        <p>@Count(InvoicesDue) invoices with a balance. @Count(OverdueInvoices) are overdue.</p>
         <a class="epc-qb-go" href="@Href("/erp/receivables-app")">Open receivables</a>
     </article>
 
-    <article class="epc-qb-widget">
+    <article class="epc-qb-widget" data-boards="overview profit cash">
         <header>Account balances <a href="@Href("/erp/coa-accounts-app")">Chart of accounts</a></header>
         <table>
             <tbody>
@@ -49,7 +79,7 @@
         </table>
     </article>
 
-    <article class="epc-qb-widget">
+    <article class="epc-qb-widget" data-boards="overview suppliers">
         <header>Expense breakdown <a href="@Href("/erp/purchases-app")">Purchases</a></header>
         <div class="epc-qb-pie" style="background:@Pie" aria-label="Expense mix"></div>
         <ul class="epc-qb-slices">
@@ -59,7 +89,7 @@
         </ul>
     </article>
 
-    <article class="epc-qb-widget">
+    <article class="epc-qb-widget" data-boards="overview suppliers">
         <header>Previous year expense <a href="@Href("/erp/payables-app")">Payables</a></header>
         <div class="epc-qb-compare">
             <div class="exp"><span style="height:@Pct(PreviousExpense, ExpensePeak)%"></span><em>Prior</em><strong>@Money(PreviousExpense)</strong></div>
@@ -67,7 +97,7 @@
         </div>
     </article>
 
-    <article class="epc-qb-widget">
+    <article class="epc-qb-widget" data-boards="overview">
         <header>Quick links</header>
         <div class="epc-qb-links">
             <a href="@Href("/erp/receivables-app")"><i class="fa fa-money"></i> Receive payment</a>
@@ -77,27 +107,142 @@
         </div>
     </article>
 
-    <article class="epc-qb-widget">
+    <article class="epc-qb-widget" data-boards="overview customers">
         <header>Invoice payment status <a href="@Href("/erp/invoices-app")">Invoices</a></header>
         <p class="epc-qb-big">@Money(Receivables)</p>
         <p>Open balance on the customer side. Paid work this period is inside income @Money(Revenue).</p>
     </article>
 
-    <article class="epc-qb-widget epc-qb-widget--wide">
+    <article class="epc-qb-widget epc-qb-widget--wide" data-boards="overview customers customer-sales">
         <header>Receivables snapshot <a href="@Href("/erp/receivables-app")">Customers</a></header>
         <dl class="epc-qb-facts">
             <div><dt>Open balance</dt><dd>@Money(Receivables)</dd></div>
-            <div><dt>Invoices due</dt><dd>@InvoicesDue.ToString("N0", CultureInfo.InvariantCulture)</dd></div>
-            <div><dt>Overdue</dt><dd>@OverdueInvoices.ToString("N0", CultureInfo.InvariantCulture)</dd></div>
+            <div><dt>Invoices due</dt><dd>@Count(InvoicesDue)</dd></div>
+            <div><dt>Overdue</dt><dd>@Count(OverdueInvoices)</dd></div>
             <div><dt>Sales this period</dt><dd>@Money(Revenue)</dd></div>
             <div><dt>Sales prior period</dt><dd>@Money(PreviousRevenue)</dd></div>
         </dl>
         <p><a href="@Href("/erp/aging-app")">Open ageing and statements</a> · <a href="@Href("/erp/receivables-app")">Settle an invoice</a></p>
     </article>
+
+    <article class="epc-qb-widget" data-boards="customers">
+        <header>Customer actions</header>
+        <div class="epc-qb-links">
+            <a href="@Href("/erp/receivables-app")"><i class="fa fa-money"></i> Receive payment</a>
+            <a href="@Href("/erp/invoices-app")"><i class="fa fa-file-text-o"></i> Create invoice</a>
+            <a href="@Href("/erp/aging-app")"><i class="fa fa-clock-o"></i> Ageing and statements</a>
+            <a href="@Href("/erp/cash-entries-app")"><i class="fa fa-bank"></i> Receipt voucher</a>
+        </div>
+    </article>
+
+    <article class="epc-qb-widget" data-boards="suppliers">
+        <header>Who we owe <a href="@Href("/erp/payables-app")">Pay a supplier</a></header>
+        <p class="epc-qb-big">@Money(Payables)</p>
+        <p>Open supplier balances. Purchases this period are @Money(Expense).</p>
+        <a class="epc-qb-go" href="@Href("/erp/purchases-app")">Open purchases</a>
+    </article>
+
+    <article class="epc-qb-widget epc-qb-widget--wide" data-boards="suppliers">
+        <header>Payables snapshot <a href="@Href("/erp/payables-app")">Suppliers</a></header>
+        <dl class="epc-qb-facts">
+            <div><dt>Open payables</dt><dd>@Money(Payables)</dd></div>
+            <div><dt>Purchases this period</dt><dd>@Money(Expense)</dd></div>
+            <div><dt>Purchases prior period</dt><dd>@Money(PreviousExpense)</dd></div>
+            <div><dt>Stock on hand</dt><dd>@Money(Stock)</dd></div>
+        </dl>
+        <p><a href="@Href("/erp/purchase-orders-app")">Purchase orders</a> · <a href="@Href("/erp/payables-app")">Settle a bill</a></p>
+    </article>
+
+    <article class="epc-qb-widget" data-boards="suppliers">
+        <header>Supplier actions</header>
+        <div class="epc-qb-links">
+            <a href="@Href("/erp/payables-app")"><i class="fa fa-credit-card"></i> Pay a supplier</a>
+            <a href="@Href("/erp/purchases-app")"><i class="fa fa-shopping-basket"></i> Purchases</a>
+            <a href="@Href("/erp/purchase-orders-app")"><i class="fa fa-file-text-o"></i> Purchase orders</a>
+            <a href="@Href("/erp/cash-entries-app")"><i class="fa fa-bank"></i> Payment voucher</a>
+        </div>
+    </article>
+
+    <article class="epc-qb-widget" data-boards="cash">
+        <header>Cash position <a href="@Href("/erp/accounts-summary-app")">Accounts</a></header>
+        <p class="epc-qb-big">@Money(Cash)</p>
+        <p>VAT net @Money(Vat). Customer balances @Money(Receivables). Supplier balances @Money(Payables).</p>
+        <a class="epc-qb-go" href="@Href("/erp/cash-entries-app")">Open cash entries</a>
+    </article>
+
+    <article class="epc-qb-widget" data-boards="profit">
+        <header>Profit this period <a href="@Href("/erp/report-center-app?tab=pl")">Profit and loss</a></header>
+        <p class="epc-qb-big">@Money(Profit)</p>
+        <p>Income @Money(Revenue). Expense @Money(Expense). Prior income @Money(PreviousRevenue).</p>
+        <a class="epc-qb-go" href="@Href("/erp/report-center-app?tab=balance_sheet")">Balance sheet</a>
+    </article>
+
+    <article class="epc-qb-widget" data-boards="inventory">
+        <header>Stock on hand <a href="@Href("/erp/inventory-stock-app")">Stock</a></header>
+        <p class="epc-qb-big">@Money(Stock)</p>
+        <p>Purchases this period @Money(Expense). Purchases last period @Money(PreviousExpense).</p>
+        <a class="epc-qb-go" href="@Href("/erp/product-info-app")">Open products</a>
+    </article>
+
+    <article class="epc-qb-widget" data-boards="inventory">
+        <header>Inventory actions</header>
+        <div class="epc-qb-links">
+            <a href="@Href("/erp/inventory-stock-app")"><i class="fa fa-cubes"></i> Stock on hand</a>
+            <a href="@Href("/erp/product-info-app")"><i class="fa fa-barcode"></i> New inventory part</a>
+            <a href="@Href("/erp/purchases-app")"><i class="fa fa-shopping-basket"></i> Purchases</a>
+            <a href="@Href("/erp/purchase-orders-app")"><i class="fa fa-file-text-o"></i> Purchase orders</a>
+        </div>
+    </article>
 </section>
+<script>
+(function () {
+    if (window.__erpHomeBoard) return;
+    window.__erpHomeBoard = true;
+    var key = "erp-home-board";
+    function bind() {
+        var root = document.querySelector("[data-erp-insights]");
+        if (!root || root.getAttribute("data-erp-board-bound")) return;
+        var select = root.querySelector("[data-erp-board]");
+        if (!select) return;
+        root.setAttribute("data-erp-board-bound", "1");
+        var allowed = {};
+        for (var i = 0; i < select.options.length; i++) allowed[select.options[i].value] = 1;
+        function apply(id) {
+            if (!allowed[id]) id = "overview";
+            root.setAttribute("data-board", id);
+            select.value = id;
+            try { sessionStorage.setItem(key, id); } catch (e) {}
+        }
+        var saved = "";
+        try { saved = sessionStorage.getItem(key) || ""; } catch (e) {}
+        apply(saved || "overview");
+        select.addEventListener("change", function () { apply(select.value); });
+    }
+    document.addEventListener("enhancedload", bind);
+    bind();
+})();
+</script>
 
 <style>
     .epc-qb-insights { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; margin:0 0 16px; }
+    .epc-qb-switch { grid-column:1 / -1; display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; background:#fff; border:1px solid #d5deea; border-radius:8px; padding:8px 12px; }
+    .epc-qb-switch label { font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#475569; }
+    .epc-qb-switch select { height:2rem; min-width:16rem; border:1px solid #cbd5e1; border-radius:6px; background:#fff; color:#0f172a; font:inherit; font-size:13px; padding:0 .55rem; }
+    .epc-qb-note { display:none; margin:0; color:#64748b; font-size:12px; }
+    .epc-qb-insights[data-board="overview"] [data-board-note="overview"],
+    .epc-qb-insights[data-board="customers"] [data-board-note="customers"],
+    .epc-qb-insights[data-board="customer-sales"] [data-board-note="customer-sales"],
+    .epc-qb-insights[data-board="suppliers"] [data-board-note="suppliers"],
+    .epc-qb-insights[data-board="cash"] [data-board-note="cash"],
+    .epc-qb-insights[data-board="profit"] [data-board-note="profit"],
+    .epc-qb-insights[data-board="inventory"] [data-board-note="inventory"] { display:block; }
+    .epc-qb-insights[data-board="overview"] .epc-qb-widget:not([data-boards~="overview"]),
+    .epc-qb-insights[data-board="customers"] .epc-qb-widget:not([data-boards~="customers"]),
+    .epc-qb-insights[data-board="customer-sales"] .epc-qb-widget:not([data-boards~="customer-sales"]),
+    .epc-qb-insights[data-board="suppliers"] .epc-qb-widget:not([data-boards~="suppliers"]),
+    .epc-qb-insights[data-board="cash"] .epc-qb-widget:not([data-boards~="cash"]),
+    .epc-qb-insights[data-board="profit"] .epc-qb-widget:not([data-boards~="profit"]),
+    .epc-qb-insights[data-board="inventory"] .epc-qb-widget:not([data-boards~="inventory"]) { display:none; }
     .epc-qb-widget { background:#fff; border:1px solid #d5deea; border-radius:8px; padding:10px 12px 12px; min-height:180px; }
     .epc-qb-widget--wide { grid-column:1 / -1; }
     .epc-qb-widget header { display:flex; justify-content:space-between; gap:8px; font-weight:700; color:#334155; margin-bottom:8px; }
@@ -131,6 +276,7 @@
     @@media (max-width: 1100px) {
         .epc-qb-insights { grid-template-columns:1fr; }
         .epc-qb-facts { grid-template-columns:1fr 1fr; }
+        .epc-qb-switch select { min-width:0; width:100%; }
     }
 </style>
 
@@ -202,8 +348,16 @@
 
     private static string Money(decimal value) => value.ToString("N2", CultureInfo.InvariantCulture);
 
+    private static string Count(int value) => value.ToString("N0", CultureInfo.InvariantCulture);
+
     private string Href(string path)
-        => CompanyId <= 0
-            ? path
-            : path + "?company=" + CompanyId.ToString(CultureInfo.InvariantCulture);
+    {
+        if (CompanyId <= 0)
+        {
+            return path;
+        }
+
+        var join = path.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return path + join + "company=" + CompanyId.ToString(CultureInfo.InvariantCulture);
+    }
 }
