@@ -16,6 +16,7 @@
 @inject IErpBosIntelToggleWriteService BosIntel
 @inject ICpPowerBiService PowerBi
 @inject IHttpContextAccessor Http
+@inject IErpLandlordBook LandlordBook
 
 <PageTitle>@_pageTitle</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -116,8 +117,20 @@
                         <a class="ns-tile orange" href="@RealEstateHref("/erp/real-estate-app?tab=construction")"><i class="fa fa-hard-hat ic"></i><span class="tl">Contracts &amp; certificates</span></a>
                         <a class="ns-tile blue" href="@RealEstateHref("/erp/real-estate-app?tab=calendar")"><i class="fa fa-calendar ic"></i><span class="tl">Cheques &amp; instalments</span></a>
                         <a class="ns-tile slate" href="@RealEstateHref("/erp/real-estate-app?tab=reports")"><i class="fa fa-bar-chart ic"></i><span class="tl">ROI &amp; reports</span></a>
+                        <a class="ns-tile green" href="@RealEstateHref("/erp/coa-accounts-app")"><i class="fa fa-book ic"></i><span class="tl">Chart of accounts</span></a>
                     </div>
-                    <p class="ns-fitout-scope-note"><i class="fa fa-lock"></i> Opportunities stay off the balance sheet until purchase. Cheques are not cash until clearance. Finance stays on GL, invoices, VAT and ageing.</p>
+                    @if (_yearBook.Year > 0)
+                    {
+                        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Landlord year on the home dashboard">
+                            <div class="kpi"><div class="lbl">@_yearBook.Year income</div><div class="val">@_yearBook.YearIncome.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                            <div class="kpi"><div class="lbl">@_yearBook.Year expenses</div><div class="val">@_yearBook.YearExpense.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                            <div class="kpi"><div class="lbl">@_yearBook.Year return</div><div class="val">@_yearBook.YearReturn.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                            <div class="kpi"><div class="lbl">All years income</div><div class="val">@_yearBook.AllIncome.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                            <div class="kpi"><div class="lbl">All years expenses</div><div class="val">@_yearBook.AllExpense.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                            <div class="kpi"><div class="lbl">All years return</div><div class="val">@_yearBook.AllReturn.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                        </div>
+                    }
+                    <p class="ns-fitout-scope-note"><i class="fa fa-lock"></i> Opportunities stay off the balance sheet until purchase. Cheques are not cash until clearance. Year-book income and expenses link to the chart of accounts. A supplier bill still posts through the expense register.</p>
                 </div>
             </div>
         }
@@ -886,6 +899,7 @@
     private IReadOnlyList<PhpModuleCatalog.ModuleLink> _directoryTabs = PhpModuleCatalog.ErpTabs;
     private bool _fitOut;
     private bool _realEstate;
+    private ErpLandlordMeasure _yearBook = ErpLandlordMeasure.Empty;
     private long _activeCompanyId;
     private string _companyLabel = "MAIN";
     private string _heroEntity = "Operations";
@@ -1052,6 +1066,11 @@
             _trendLabels = _home.Trend.Select(t => t.Label).ToArray();
             _trendRev = _home.Trend.Select(t => t.Revenue).ToArray();
             _trendProf = _home.Trend.Select(t => t.Profit).ToArray();
+        }
+
+        if (_realEstate && _isAdmin && ctx is not null)
+        {
+            _yearBook = await LandlordBook.MeasureAsync(ctx.RequestAborted);
         }
 
         BindProfileViews();

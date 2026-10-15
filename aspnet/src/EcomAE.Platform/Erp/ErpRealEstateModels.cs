@@ -113,7 +113,8 @@ public sealed record ErpRealEstateSnapshot(
     IReadOnlyList<ErpRealEstateRow> Documents,
     IReadOnlyList<ErpRealEstateAlert> Alerts,
     IReadOnlyList<ErpRealEstateCalc.KpiDefinition> Definitions,
-    string Message);
+    string Message,
+    ErpLandlordMeasure? YearBook = null);
 
 public interface IErpRealEstateWriteService
 {

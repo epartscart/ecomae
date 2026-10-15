@@ -19,7 +19,8 @@ public sealed record ErpLandlordLine(
     string PropertyCode,
     string PropertyName,
     string UnitCode,
-    string UnitName);
+    string UnitName,
+    string CoaCode = "");
 
 public sealed record ErpLandlordProperty(
     long Id,
@@ -51,6 +52,15 @@ public sealed record ErpLandlordTotals(
         => Investment > 0
             ? decimal.Round(ReturnAmount / Investment * 100m, 2, MidpointRounding.AwayFromZero)
             : null;
+}
+
+public sealed record ErpLandlordMeasure(int Year, decimal YearIncome, decimal YearExpense, decimal AllIncome, decimal AllExpense)
+{
+    public decimal YearReturn => YearIncome - YearExpense;
+
+    public decimal AllReturn => AllIncome - AllExpense;
+
+    public static ErpLandlordMeasure Empty { get; } = new(0, 0, 0, 0, 0);
 }
 
 public sealed record ErpLandlordRollup(

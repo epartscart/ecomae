@@ -160,6 +160,25 @@ public sealed class ErpRealEstateReadService : IErpRealEstateReadService
         var escrowIn = escrow.Where(e => e.Code.StartsWith("RECEIPT", StringComparison.OrdinalIgnoreCase) && e.Status is not ("voided" or "reversed")).Sum(e => e.Amount);
         var escrowOut = escrow.Where(e => e.Code.StartsWith("DISBURSEMENT", StringComparison.OrdinalIgnoreCase) && e.Status is not ("voided" or "reversed")).Sum(e => e.Amount);
         var landlord = await LandlordCardsAsync(connection, propertyId, emirate, cancellationToken).ConfigureAwait(false);
+        var yearBook = await ErpLandlordSql.MeasureLightAsync(connection, cancellationToken).ConfigureAwait(false);
+        var recognized = landlord.Recognized;
+        var collectedCard = landlord.Collected;
+        var operating = landlord.Opex;
+        if (recognized <= 0 && yearBook.YearIncome > 0)
+        {
+            recognized = yearBook.YearIncome;
+        }
+
+        if (collectedCard <= 0 && yearBook.YearIncome > 0)
+        {
+            collectedCard = yearBook.YearIncome;
+        }
+
+        if (operating <= 0 && yearBook.YearExpense > 0)
+        {
+            operating = yearBook.YearExpense;
+        }
+
         var kpis = new ErpRealEstateKpis(
             opportunities.Count(o => o.Status is "open" or "screening"),
             owned.Length,
@@ -177,17 +196,17 @@ public sealed class ErpRealEstateReadService : IErpRealEstateReadService
             costToComplete,
             ErpRealEstateCalc.EscrowBalance(escrowIn, escrowOut),
             landlord.Vacant,
-            landlord.Recognized,
-            landlord.Collected,
+            recognized,
+            collectedCard,
             landlord.Outstanding,
             landlord.Pdc,
             landlord.Due,
-            landlord.Opex,
-            ErpRealEstateCalc.LandlordNoi(landlord.Recognized, landlord.Opex),
-            ErpRealEstateCalc.NetCashFlow(landlord.Collected, landlord.Opex),
+            operating,
+            ErpRealEstateCalc.LandlordNoi(recognized, operating),
+            ErpRealEstateCalc.NetCashFlow(collectedCard, operating),
             landlord.Capex);
 
-        return new(
+        var snapshot = new ErpRealEstateSnapshot(
             kpis,
             opportunities,
             properties,
@@ -213,7 +232,9 @@ public sealed class ErpRealEstateReadService : IErpRealEstateReadService
             documents,
             alerts,
             ErpRealEstateCalc.Definitions,
-            string.Empty);
+            string.Empty,
+            yearBook.Year > 0 ? yearBook : null);
+        return snapshot;
     }
 
     private static async Task<(int Vacant, decimal Recognized, decimal Collected, decimal Outstanding, decimal Pdc, int Due, decimal Opex, decimal Capex)> LandlordCardsAsync(
