@@ -116,6 +116,63 @@ public sealed class ErpHomeProcessAndItemPartTests
     }
 
     [Fact]
+    public async Task HomeInsightsSwitchBetweenCustomerSupplierAndOtherDashboards()
+    {
+        var html = await RenderInsightsAsync(companyId: 7);
+        Assert.Contains("data-board=\"overview\"", html, StringComparison.Ordinal);
+        Assert.Contains("id=\"erp-home-board\"", html, StringComparison.Ordinal);
+        Assert.Contains("erp-home-board", html, StringComparison.Ordinal);
+        Assert.Contains(">Customers<", html, StringComparison.Ordinal);
+        Assert.Contains(">Overall customer sales<", html, StringComparison.Ordinal);
+        Assert.Contains(">Suppliers<", html, StringComparison.Ordinal);
+        Assert.Contains(">Cash and bank<", html, StringComparison.Ordinal);
+        Assert.Contains(">Profit<", html, StringComparison.Ordinal);
+        Assert.Contains(">Inventory<", html, StringComparison.Ordinal);
+        Assert.Contains("data-boards=\"overview customers\"", html, StringComparison.Ordinal);
+        Assert.Contains("Who owes money", html, StringComparison.Ordinal);
+        Assert.Contains("Who we owe", html, StringComparison.Ordinal);
+        Assert.Contains("data-boards=\"suppliers\"", html, StringComparison.Ordinal);
+        Assert.Contains("/erp/payables-app?company=7", html, StringComparison.Ordinal);
+        Assert.Contains("/erp/receivables-app?company=7", html, StringComparison.Ordinal);
+        Assert.Contains("/erp/report-center-app?tab=pl&amp;company=7", html, StringComparison.Ordinal);
+        Assert.Contains("sessionStorage", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("php-reference", html, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("epc_erp_shell", html, StringComparison.OrdinalIgnoreCase);
+        Assert.True(html.Length < 40_000, "insights markup is " + html.Length);
+    }
+
+    private static async Task<string> RenderInsightsAsync(long companyId)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        await using var renderer = new HtmlRenderer(services.BuildServiceProvider(), NullLoggerFactory.Instance);
+        return await renderer.Dispatcher.InvokeAsync(async () =>
+        {
+            var parameters = new Dictionary<string, object?>
+            {
+                [nameof(ErpHomeInsights.CompanyId)] = companyId,
+                [nameof(ErpHomeInsights.Revenue)] = 1200m,
+                [nameof(ErpHomeInsights.PreviousRevenue)] = 900m,
+                [nameof(ErpHomeInsights.Expense)] = 400m,
+                [nameof(ErpHomeInsights.PreviousExpense)] = 350m,
+                [nameof(ErpHomeInsights.Profit)] = 800m,
+                [nameof(ErpHomeInsights.Receivables)] = 250m,
+                [nameof(ErpHomeInsights.Payables)] = 180m,
+                [nameof(ErpHomeInsights.Cash)] = 60m,
+                [nameof(ErpHomeInsights.Stock)] = 40m,
+                [nameof(ErpHomeInsights.Vat)] = 15m,
+                [nameof(ErpHomeInsights.InvoicesDue)] = 3,
+                [nameof(ErpHomeInsights.OverdueInvoices)] = 1,
+                [nameof(ErpHomeInsights.TrendLabels)] = new[] { "May", "Jun" },
+                [nameof(ErpHomeInsights.TrendRevenue)] = new[] { 100m, 120m },
+                [nameof(ErpHomeInsights.TrendProfit)] = new[] { 40m, 50m },
+            };
+            var view = await renderer.RenderComponentAsync<ErpHomeInsights>(ParameterView.FromDictionary(parameters));
+            return view.ToHtmlString();
+        });
+    }
+
+    [Fact]
     public void ProductInformationHasInventoryPartAndAssembly()
     {
         var page = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpProductInfoApp.razor"));
