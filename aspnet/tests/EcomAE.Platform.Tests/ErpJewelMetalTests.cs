@@ -14,6 +14,9 @@ public sealed class ErpJewelMetalTests
         Assert.Equal(0.3000m, ErpJewelCalc.StoneGrams(1.5m));
         Assert.False(ErpJewelCalc.CanSell("Sold"));
         Assert.True(ErpJewelCalc.CanSell("In Stock"));
+        Assert.Null(ErpJewelCalc.TagNetProblem(12.5m, 1.2m, 0m, 0m));
+        Assert.Equal(11.3m, ErpJewelCalc.TagNet(12.5m, 1.2m, 0m, 0m));
+        Assert.NotNull(ErpJewelCalc.TagNetProblem(12.5m, 1.2m, 0m, 12.5m));
         Assert.False(ErpJewelCalc.CountsAsCompanyStock("On Approval"));
         Assert.True(ErpJewelCalc.CountsAsCompanyStock("In Stock"));
     }

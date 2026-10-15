@@ -9,6 +9,7 @@ public sealed class ErpJwMetalPurchasePickerTests
     public void PureWeight_MatchesFixingGoldScreenshot()
     {
         Assert.Equal(99.91m, ErpJwPurity.PureWeight(100.01m, 0.999m));
+        Assert.Equal(10.3508m, ErpJwPurity.PureWeight(11.3m, 916m));
         Assert.Equal(48950.00m, ErpJwPurity.MetalAmount(100.01m, 0.999m, 489.94095m));
     }
 

@@ -7844,6 +7844,8 @@ public sealed class ErpModule : ISurfaceModule
             var grossWeight = body.GrossWeight;
             var netWeight = body.NetWeight;
             var stoneWeight = body.StoneWeight;
+            var otherWeight = body.OtherWeight;
+            var purityPpt = body.PurityPpt;
             var stoneCount = body.StoneCount;
             var makingCharges = body.MakingCharges;
             var makingType = body.MakingType;
@@ -7870,6 +7872,8 @@ public sealed class ErpModule : ISurfaceModule
                 grossWeight = LiveWriteFormBinder.Dec(form, "grossWeight", "gross_weight", "gross_wt");
                 netWeight = LiveWriteFormBinder.Dec(form, "netWeight", "net_weight", "net_wt");
                 stoneWeight = LiveWriteFormBinder.Dec(form, "stoneWeight", "stone_weight", "stone_wt");
+                otherWeight = LiveWriteFormBinder.Dec(form, "otherWeight", "other_weight", "other_wt");
+                purityPpt = LiveWriteFormBinder.Dec(form, "purityPpt", "purity_ppt", "purity");
                 stoneCount = LiveWriteFormBinder.Int(form, "stoneCount", "stone_count");
                 makingCharges = LiveWriteFormBinder.Dec(form, "makingCharges", "making_charges");
                 makingType = LiveWriteFormBinder.Text(form, "makingType", "making_type");
@@ -7923,7 +7927,9 @@ public sealed class ErpModule : ISurfaceModule
                     purchaseDate,
                     location,
                     description,
-                    ErpJwMasterAudit.Actor(session.Email, session.UserId)),
+                    ErpJwMasterAudit.Actor(session.Email, session.UserId),
+                    otherWeight,
+                    purityPpt),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
@@ -15267,6 +15273,8 @@ public sealed class ErpModule : ISurfaceModule
         var subcontractRate = body.SubcontractRate;
         var equipmentRate = body.EquipmentRate;
         var overheadRate = body.OverheadRate;
+        var wastagePercent = body.WastagePercent;
+        var targetMargin = body.TargetMarginPercent;
         var confirm = body.ConfirmWrites;
         if (context.Request.HasFormContentType)
         {
@@ -15285,6 +15293,8 @@ public sealed class ErpModule : ISurfaceModule
             subcontractRate = LiveWriteFormBinder.Dec(form, "subcontractRate", "subcontract_rate");
             equipmentRate = LiveWriteFormBinder.Dec(form, "equipmentRate", "equipment_rate");
             overheadRate = LiveWriteFormBinder.Dec(form, "overheadRate", "overhead_rate");
+            wastagePercent = LiveWriteFormBinder.Dec(form, "wastagePercent", "wastage_percent");
+            targetMargin = LiveWriteFormBinder.Dec(form, "targetMarginPercent", "target_margin_percent");
             confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
         }
 
@@ -15294,7 +15304,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var written = await writes.SaveLineAsync(
-            new ErpFitOutBoqLineSaveRequest(id, estimateId, section, description, costType, quantity, unit, unitRate, sortOrder, materialRate, labourRate, subcontractRate, equipmentRate, overheadRate),
+            new ErpFitOutBoqLineSaveRequest(id, estimateId, section, description, costType, quantity, unit, unitRate, sortOrder, materialRate, labourRate, subcontractRate, equipmentRate, overheadRate, wastagePercent, targetMargin),
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
@@ -29401,6 +29411,8 @@ public sealed class ErpModule : ISurfaceModule
         decimal SubcontractRate = 0,
         decimal EquipmentRate = 0,
         decimal OverheadRate = 0,
+        decimal WastagePercent = 0,
+        decimal TargetMarginPercent = 0,
         bool ConfirmWrites = false);
     private sealed record ErpFitOutContractTermsSaveBody(
         long ContractId = 0,
@@ -30435,6 +30447,8 @@ public sealed class ErpModule : ISurfaceModule
         decimal GrossWeight = 0,
         decimal NetWeight = 0,
         decimal StoneWeight = 0,
+        decimal OtherWeight = 0,
+        decimal PurityPpt = 0,
         int StoneCount = 0,
         decimal MakingCharges = 0,
         string? MakingType = null,

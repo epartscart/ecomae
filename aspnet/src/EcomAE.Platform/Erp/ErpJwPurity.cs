@@ -11,6 +11,11 @@ public static class ErpJwPurity
     {
         var grams = RoundNonNeg(grossWeight, 4);
         var fine = RoundNonNeg(purity, 6);
+        if (fine > 1m)
+        {
+            fine = decimal.Round(fine / 1000m, 6, MidpointRounding.AwayFromZero);
+        }
+
         return RoundNonNeg(grams * fine, 4);
     }
 

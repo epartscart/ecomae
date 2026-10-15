@@ -86,4 +86,28 @@ public static class ErpFitOutCalc
 
     public static decimal ApprovedVariationValue(string? variationStatus, decimal sellingValue)
         => CountsTowardContract(variationStatus) ? Money(sellingValue) : 0m;
+
+    public static (decimal DirectUnit, decimal TotalCost, decimal SellingRate, decimal SellingAmount) PriceAtMargin(
+        decimal quantity,
+        decimal material,
+        decimal labour,
+        decimal equipment,
+        decimal subcontract,
+        decimal overheadPerUnit,
+        decimal wastagePercent,
+        decimal marginPercent)
+    {
+        var direct = decimal.Round(material + labour + equipment + subcontract, 4, MidpointRounding.AwayFromZero);
+        var wasted = decimal.Round(direct * (1m + (wastagePercent / 100m)), 4, MidpointRounding.AwayFromZero);
+        var totalDirect = decimal.Round(wasted * quantity, 4, MidpointRounding.AwayFromZero);
+        var estimated = decimal.Round(totalDirect + (overheadPerUnit * quantity), 4, MidpointRounding.AwayFromZero);
+        if (marginPercent >= 100m || marginPercent < 0m || quantity <= 0)
+        {
+            return (wasted, estimated, 0m, 0m);
+        }
+
+        var selling = decimal.Round(estimated / (1m - (marginPercent / 100m)), 4, MidpointRounding.AwayFromZero);
+        var rate = decimal.Round(selling / quantity, 4, MidpointRounding.AwayFromZero);
+        return (wasted, estimated, rate, selling);
+    }
 }
