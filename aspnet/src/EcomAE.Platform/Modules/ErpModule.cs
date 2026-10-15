@@ -373,6 +373,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutApprovalDecide, HandleFitOutApprovalDecideAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateCsv, HandleFitOutEstimateCsvAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutWorkbook, HandleFitOutWorkbookAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutDeliveryDashboard, HandleFitOutDeliveryDashboardAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProgress, HandleFitOutProgressAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectProgress, HandleFitOutProjectProgressAsync);
@@ -25058,6 +25059,29 @@ public sealed class ErpModule : ISurfaceModule
         return Results.Content(
             ErpRealEstateReportPack.Html(snap, title, pdfHref, docxHref, utc),
             "text/html; charset=utf-8");
+    }
+
+    private static async Task<IResult> HandleFitOutWorkbookAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/project-accounting-app", "Admin ERP capability required for the fit-out workbook.");
+        }
+
+        var kind = (context.Request.Query["kind"].ToString() ?? "").Trim().ToLowerInvariant();
+        if (kind == "package")
+        {
+            return Results.File(ErpFitOutWorkbook.ExportPackage(), "application/zip", "FITO_Registers.zip");
+        }
+
+        return Results.File(
+            ErpFitOutWorkbook.Template(),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "FITO_MASTER_IMPORT_TEMPLATE.xlsx");
     }
 
     private static async Task<IResult> HandleRealEstateWorkbookAsync(

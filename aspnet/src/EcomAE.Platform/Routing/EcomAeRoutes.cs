@@ -2954,6 +2954,7 @@ public static class EcomAeRoutes
         "/erp/fitout/project-pnl";
     public const string ErpFitOutEstimateCsv =
         "/erp/fitout/estimates/csv";
+    public const string ErpFitOutWorkbook = "/erp/fitout/workbook";
     public const string ErpFitOutDeliveryDashboard =
         "/erp/fitout/delivery-dashboard";
     /// <summary>Read-only progress-claim and weighted-progress records for a fit-out project.</summary>
