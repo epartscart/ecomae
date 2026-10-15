@@ -439,6 +439,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpLandlordSave, HandleLandlordSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpLandlordReport, HandleLandlordReportAsync);
         endpoints.MapGet(EcomAeRoutes.ErpLandlordDocument, HandleLandlordDocumentAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpLandingSave, HandleLandingSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpIndustryApply, HandleIndustryApplyAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpIndustryCurrent, HandleIndustryCurrentAsync);
         endpoints.MapPost(EcomAeRoutes.ErpPmBudgetSave, HandlePmBudgetSaveAsync).DisableAntiforgery();
@@ -25333,6 +25334,41 @@ public sealed class ErpModule : ISurfaceModule
 
         context.Response.Headers.XContentTypeOptions = "nosniff";
         return Results.File(opened.Path, opened.ContentType, opened.Name);
+    }
+
+    private static async Task<IResult> HandleLandingSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpLandingPage landing,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp", "Admin ERP capability required to choose the page that opens after login.");
+        }
+
+        var form = context.Request.HasFormContentType
+            ? await context.Request.ReadFormAsync(cancellationToken)
+            : null;
+        if (form is null || !LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+        {
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                writesBlocked = true,
+                message = "Dry run — landing page blocked without confirmWrites=true",
+            });
+        }
+
+        var written = await landing.SaveAsync(LiveWriteFormBinder.Text(form, "path"), cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, message = written.Message, validation_code = written.Code });
     }
 
     private static string CategoryFrom(IFormCollection? form)

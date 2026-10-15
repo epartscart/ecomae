@@ -9,6 +9,8 @@
 @inject IHttpContextAccessor Http
 @inject IErpShortcutReadService Shortcuts
 @inject ILegacySessionValidator Sessions
+@inject ICpCsrfGuard Csrf
+@inject IErpLandingPage Landing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IErpNavTenantRules NavTenantRules
 @inject ITenantRegistry Registry
@@ -393,6 +395,7 @@
                                             <input type="hidden" name="iconClass" value="fa fa-star" />
                                             <button type="submit" aria-label="Add @Title to favourites"><i class="fa fa-star-o" aria-hidden="true"></i></button>
                                         </form>
+                                        @HomeButton
                                     }
                                     else if (_signedIn)
                                     {
@@ -410,6 +413,7 @@
                                         {
                                             <span class="epc-erp-fav-pin is-on" title="In favourites"><i class="fa fa-star" aria-hidden="true"></i></span>
                                         }
+                                        @HomeButton
                                     }
                                 </h1>
                                 <p class="epc-erp-host-sub">@(IsDashboardHome ? _companyLabel : $"{_companyLabel} · {_industryLabel}{(_jewellery ? " · jewellery modules on" : " · core modules")}")</p>
@@ -823,6 +827,8 @@
     private string _industryCode = "core";
     private string _industryLabel = "Core / multi-industry";
     private string _currentPath = "/erp";
+    private string _csrf = "";
+    private string _landing = "";
     private ErpHostContext.Context _ctx = ErpHostContext.Resolve(null);
     private IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> _nav = LegacyDesktopChromeCatalog.ErpTopnav();
     private List<FavChip> _favs = [];
@@ -831,6 +837,27 @@
     private sealed record FavChip(long Id, string Label, string Href, string Icon);
 
     private string ErpHomeHref => _activeCompanyId > 0 ? $"/erp?company={_activeCompanyId}" : "/erp";
+
+    private string? LandingCandidate => ErpLandingPage.Normalize(FavoriteReturnHref);
+
+    private bool CurrentPageIsHome => ErpLandingPage.Same(_landing, LandingCandidate);
+
+    private RenderFragment HomeButton => @<text>
+        @if (!string.IsNullOrEmpty(LandingCandidate) && !CurrentPageIsHome)
+        {
+            <form class="epc-erp-fav-pin" method="post" action="/erp/landing/save" title="Open this page after login">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                <input type="hidden" name="returnUrl" value="@LandingCandidate" />
+                <input type="hidden" name="path" value="@LandingCandidate" />
+                <button type="submit" aria-label="Set this page as the home page"><i class="fa fa-home" aria-hidden="true"></i></button>
+            </form>
+        }
+        else if (CurrentPageIsHome && !string.IsNullOrEmpty(_landing))
+        {
+            <span class="epc-erp-fav-pin is-on" title="This page opens after login"><i class="fa fa-home" aria-hidden="true"></i></span>
+        }
+    </text>;
 
     private string FavoriteReturnHref
     {
@@ -1111,6 +1138,8 @@
         {
             _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
             await LoadFavouritesAsync(session.UserId, ctx.RequestAborted);
+            _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
+            _landing = await Landing.CurrentAsync(ctx.RequestAborted);
         }
     }
 }
