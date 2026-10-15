@@ -2956,6 +2956,9 @@ public static class EcomAeRoutes
     public const string ErpFitOutEstimateCsv =
         "/erp/fitout/estimates/csv";
     public const string ErpFitOutWorkbook = "/erp/fitout/workbook";
+
+    /// <summary>ASAP automotive master workbook. kind=package returns the ZIP.</summary>
+    public const string ErpAsapWorkbook = "/erp/asap/workbook";
     public const string ErpFitOutDeliveryDashboard =
         "/erp/fitout/delivery-dashboard";
     /// <summary>Read-only progress-claim and weighted-progress records for a fit-out project.</summary>

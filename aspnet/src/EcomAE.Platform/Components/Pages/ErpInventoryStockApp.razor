@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Erp
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -220,6 +221,13 @@
         </table>
     </div>
 
+    <section class="epc-erp-form-panel" style="margin:1rem 0">
+        <strong>Central stock.</strong>
+        Available is on hand minus open reservations for that item. Confirming an order keeps the quantity until it is picked, dispatched, cancelled, or released. A quote hold still drops after 30 minutes. Excel does not reserve stock.
+        <a href="@AsapHref("template")">Download ASAP template</a>
+        <a href="@AsapHref("package")">Download package</a>
+    </section>
+
     <h2 style="margin:1.2rem 0 .5rem;font-size:1rem;">Open sales holds</h2>
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
@@ -373,4 +381,7 @@
 
     private decimal AvailableFor(long itemId, decimal onHand)
         => Math.Max(0m, onHand - ReservedFor(itemId));
+
+    private string AsapHref(string kind)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/asap/workbook?kind=" + kind);
 }

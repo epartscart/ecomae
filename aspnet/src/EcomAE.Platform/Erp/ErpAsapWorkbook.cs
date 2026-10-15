@@ -1,0 +1,443 @@
+using System.Globalization;
+using System.IO.Compression;
+using System.Text;
+using System.Xml.Linq;
+
+namespace EcomAE.Platform.Erp;
+
+/// <summary>
+/// ASAP master workbook. Headers match the reference CSVs supplied for this build.
+/// Excel never writes a stock reservation.
+/// </summary>
+public static class ErpAsapWorkbook
+{
+    public static readonly string[] TemplateSheets =
+    [
+        "START_HERE", "Companies", "Business_Centres", "Cost_Centres", "Branches", "Brands",
+        "Bins", "Customers", "Customer_Price_List", "Cross_References", "Alternates_Kits",
+        "Deliveries", "Cycle_Counts", "Bank_Cheques", "Budgets", "Forecast_Demand",
+        "AR_Opening", "AP_Opening", "Expenses", "Alerts", "Documents",
+    ];
+
+    public sealed record Sheet(
+        string Name,
+        IReadOnlyList<string> Headers,
+        IReadOnlyList<IReadOnlyDictionary<string, string>> Records);
+
+    public static byte[] Template()
+    {
+        var sheets = TemplateSheets.Select(name => (name, Headers(name), SheetRows(name))).ToArray();
+        return Xlsx(sheets);
+    }
+
+    public static byte[] ExportPackage()
+    {
+        var book = Template();
+        using var ms = new MemoryStream();
+        using (var zip = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            var entry = zip.CreateEntry("ASAP_AUTO_PARTS_MASTER_IMPORT_TEMPLATE.xlsx");
+            using (var stream = entry.Open())
+            {
+                stream.Write(book, 0, book.Length);
+            }
+
+            var readme = zip.CreateEntry("README.txt");
+            using var writer = new StreamWriter(readme.Open(), new UTF8Encoding(false));
+            writer.Write("ASAP workbook for the 20 reference sheets supplied with this build, plus START_HERE. Stock is reserved only when an order confirms. This package does not post reservations, invoices, or journals.");
+        }
+
+        return ms.ToArray();
+    }
+
+    public static IReadOnlyList<string> Validate(IReadOnlyList<Sheet> sheets)
+    {
+        var errors = new List<string>();
+        var companies = Ids(sheets, "Companies", "company_id");
+        foreach (var sheet in sheets)
+        {
+            if (sheet.Name.Equals("START_HERE", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var rowNo = 1;
+            foreach (var row in sheet.Records)
+            {
+                rowNo++;
+                if (IsBlank(row) || IsSample(row))
+                {
+                    continue;
+                }
+
+                switch (sheet.Name)
+                {
+                    case "Companies":
+                        Need(errors, sheet.Name, rowNo, row, "company_id");
+                        break;
+                    case "Branches":
+                        Need(errors, sheet.Name, rowNo, row, "branch_id");
+                        Known(errors, sheet.Name, rowNo, row, "company_id", companies);
+                        break;
+                    case "Cross_References":
+                        Need(errors, sheet.Name, rowNo, row, "sku");
+                        Need(errors, sheet.Name, rowNo, row, "reference_part_number");
+                        var fitment = Cell(row, "fitment_verified");
+                        if (fitment.Length > 0 && fitment is not ("verified" or "unverified" or "conditional"))
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": fitment_verified must be verified, unverified, or conditional.");
+                        }
+
+                        break;
+                    case "Alternates_Kits":
+                        Need(errors, sheet.Name, rowNo, row, "parent_sku");
+                        if (Num(row, "quantity") <= 0m)
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": quantity must be greater than zero.");
+                        }
+
+                        break;
+                    case "Customers":
+                        Need(errors, sheet.Name, rowNo, row, "customer_id");
+                        if (Num(row, "credit_limit") < 0m)
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": credit_limit cannot be negative.");
+                        }
+
+                        break;
+                    case "Forecast_Demand":
+                        if (Num(row, "forecast_qty") < 0m)
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": forecast_qty cannot be negative.");
+                        }
+
+                        break;
+                    case "Cycle_Counts":
+                        if (Num(row, "counted_qty") < 0m)
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": counted_qty cannot be negative.");
+                        }
+
+                        break;
+                    case "Bank_Cheques":
+                        if (Cell(row, "status").Equals("cleared", StringComparison.OrdinalIgnoreCase)
+                            && Cell(row, "cleared_date").Length == 0)
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": a cleared cheque needs a cleared date.");
+                        }
+
+                        break;
+                    case "Documents":
+                        Need(errors, sheet.Name, rowNo, row, "document_id");
+                        Need(errors, sheet.Name, rowNo, row, "file_name");
+                        break;
+                }
+            }
+        }
+
+        var refs = sheets.FirstOrDefault(sheet => sheet.Name == "Cross_References");
+        if (refs is not null)
+        {
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var row in refs.Records)
+            {
+                if (IsBlank(row) || IsSample(row))
+                {
+                    continue;
+                }
+
+                var key = Cell(row, "sku") + "|" + Cell(row, "reference_brand") + "|" + ErpAsapStock.NormalizeReference(Cell(row, "reference_part_number"));
+                if (!seen.Add(key))
+                {
+                    errors.Add("Cross_References duplicate normalized reference " + key + ".");
+                }
+            }
+        }
+
+        return errors;
+    }
+
+    public static IReadOnlyList<Sheet> Read(byte[] xlsx)
+    {
+        using var ms = new MemoryStream(xlsx);
+        using var zip = new ZipArchive(ms, ZipArchiveMode.Read);
+        var workbook = Load(zip, "xl/workbook.xml");
+        var rels = Load(zip, "xl/_rels/workbook.xml.rels");
+        XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+        XNamespace relNs = "http://schemas.openxmlformats.org/package/2006/relationships";
+        XNamespace rNs = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+        var targets = rels.Root!.Elements(relNs + "Relationship")
+            .ToDictionary(el => (string?)el.Attribute("Id") ?? "", el => (string?)el.Attribute("Target") ?? "", StringComparer.Ordinal);
+        var sheets = new List<Sheet>();
+        foreach (var sheet in workbook.Root!.Element(ns + "sheets")!.Elements(ns + "sheet"))
+        {
+            var name = (string?)sheet.Attribute("name") ?? "";
+            var id = (string?)sheet.Attribute(rNs + "id") ?? "";
+            if (!targets.TryGetValue(id, out var target))
+            {
+                continue;
+            }
+
+            var path = target.StartsWith('/') ? target.TrimStart('/') : "xl/" + target.TrimStart('/');
+            var rows = Rows(Load(zip, path));
+            if (rows.Count == 0)
+            {
+                sheets.Add(new Sheet(name, [], []));
+                continue;
+            }
+
+            var headers = rows[0];
+            var records = new List<IReadOnlyDictionary<string, string>>();
+            for (var i = 1; i < rows.Count; i++)
+            {
+                var map = new Dictionary<string, string>(StringComparer.Ordinal);
+                for (var c = 0; c < headers.Count; c++)
+                {
+                    map[headers[c]] = c < rows[i].Count ? rows[i][c] : "";
+                }
+
+                records.Add(map);
+            }
+
+            sheets.Add(new Sheet(name, headers, records));
+        }
+
+        return sheets;
+    }
+
+    public static string[] Headers(string sheet) => sheet switch
+    {
+        "START_HERE" => ["ASAP — AUTOMOTIVE AFTERMARKET ERP IMPORT REFERENCE", ""],
+        "Companies" => ["company_id", "legal_name", "trade_license", "trn", "ct_trn", "entity_type", "country", "base_currency", "related_party_group"],
+        "Business_Centres" => ["business_centre_id", "company_id", "name", "manager", "status"],
+        "Cost_Centres" => ["cost_centre_id", "company_id", "profit_centre_id", "name", "cost_category"],
+        "Branches" => ["branch_id", "company_id", "branch_name", "emirate", "location", "profit_centre_id", "warehouse_id"],
+        "Brands" => ["brand_id", "brand_name", "brand_type", "country", "principal_supplier_id"],
+        "Bins" => ["bin_id", "warehouse_id", "zone", "aisle", "rack", "shelf", "bin_type"],
+        "Customers" => ["customer_id", "company_name", "customer_type", "trn", "country", "credit_limit", "credit_days", "price_group", "salesperson_id"],
+        "Customer_Price_List" => ["customer_id", "price_group", "sku", "currency", "unit_price", "discount_pct", "valid_from", "valid_to"],
+        "Cross_References" => ["cross_ref_id", "sku", "reference_brand", "reference_part_number", "relationship_type", "fitment_verified", "source", "priority"],
+        "Alternates_Kits" => ["parent_sku", "component_sku", "quantity", "relationship_type", "substitution_approved"],
+        "Deliveries" => ["delivery_id", "so_id", "warehouse_id", "dispatch_date", "carrier", "tracking_no", "proof_of_delivery", "status"],
+        "Cycle_Counts" => ["count_id", "warehouse_id", "bin_id", "sku", "system_qty", "counted_qty", "count_date", "approved_by"],
+        "Bank_Cheques" => ["cheque_id", "company_id", "party_id", "bank", "cheque_number", "cheque_date", "amount", "currency", "receipt_date", "deposit_date", "cleared_date", "status"],
+        "Budgets" => ["budget_id", "company_id", "financial_year", "cost_centre_id", "profit_centre_id", "gl_code", "month", "budget_amount"],
+        "Forecast_Demand" => ["sku", "warehouse_id", "forecast_month", "forecast_qty", "method", "reviewed_by"],
+        "AR_Opening" => ["company_id", "customer_id", "invoice_id", "invoice_date", "due_date", "currency", "outstanding_amount"],
+        "AP_Opening" => ["company_id", "supplier_id", "invoice_id", "invoice_date", "due_date", "currency", "outstanding_amount"],
+        "Expenses" => ["expense_id", "company_id", "cost_centre_id", "profit_centre_id", "warehouse_id", "supplier_id", "expense_date", "category", "net_amount", "vat_amount"],
+        "Alerts" => ["alert_id", "company_id", "alert_type", "source_entity", "source_id", "due_date", "severity", "owner", "status"],
+        "Documents" => ["document_id", "entity_type", "entity_id", "document_category", "file_name", "relative_zip_path", "expiry_date", "version", "access_class"],
+        _ => throw new ArgumentOutOfRangeException(nameof(sheet), sheet, "Unknown ASAP sheet."),
+    };
+
+    private static string[][] SheetRows(string sheet)
+    {
+        if (sheet == "START_HERE")
+        {
+            return
+            [
+                ["Purpose", "Automotive aftermarket ERP for multi-company wholesale, retail, import and central warehousing"],
+                ["Sheets", "20 reference sheets from the supplied CSVs, plus this instruction sheet"],
+                ["Reservation", "Excel does not reserve stock. A confirmed order is the only event that keeps a quantity"],
+                ["Ownership", "Warehouse location and the owning company are separate. Another company's stock needs an intercompany fulfilment"],
+                ["Cross reference", "verified means interchangeable for the stated fitment. unverified and conditional stay as search hits only"],
+                ["Normalize", "Search ignores spaces and hyphens. The original part number is kept"],
+                ["Cheques", "A cleared cheque needs a cleared date before it counts as cash"],
+                ["IDs", "Keep company_id, sku and cross_ref_id stable on re-import"],
+            ];
+        }
+
+        if (sheet == "Cross_References")
+        {
+            return
+            [
+                ["XR-OEM-1", "FILTER-001", "OEM", "OEM-12345", "oem", "verified", "catalogue", "1"],
+                ["XR-ALT-1", "FILTER-001", "BRAND-A", "A100", "aftermarket", "conditional", "supplier", "2"],
+            ];
+        }
+
+        if (sheet == "Companies")
+        {
+            return
+            [
+                ["CO-A", "Company A Spare Parts LLC", "TL-A", "100000000000003", "CT-A", "mainland", "AE", "AED", "ASAP"],
+                ["CO-B", "Company B Trading LLC", "TL-B", "100000000000004", "CT-B", "mainland", "AE", "AED", "ASAP"],
+            ];
+        }
+
+        return [Sample(sheet)];
+    }
+
+    private static string[] Sample(string sheet)
+    {
+        var headers = Headers(sheet);
+        return headers.Select(header => header.EndsWith("_qty", StringComparison.Ordinal) || header is "quantity" or "credit_limit" or "credit_days" or "unit_price" or "discount_pct" or "amount" or "net_amount" or "vat_amount" or "budget_amount" or "outstanding_amount" or "system_qty" or "counted_qty" or "priority" or "version"
+            ? "0"
+            : header.EndsWith("_date", StringComparison.Ordinal) || header is "forecast_month" || header is "valid_from" || header is "valid_to" || header is "month"
+                ? "2026-10-15"
+                : header.EndsWith("_id", StringComparison.Ordinal) || header is "sku" || header is "parent_sku" || header is "component_sku"
+                    ? "SAMPLE-001"
+                    : "SAMPLE").ToArray();
+    }
+
+    private static HashSet<string> Ids(IReadOnlyList<Sheet> sheets, string name, string column)
+    {
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var sheet = sheets.FirstOrDefault(item => item.Name == name);
+        if (sheet is null)
+        {
+            return set;
+        }
+
+        foreach (var row in sheet.Records)
+        {
+            var id = Cell(row, column);
+            if (id.Length > 0 && !IsSample(row))
+            {
+                set.Add(id);
+            }
+        }
+
+        return set;
+    }
+
+    private static void Need(List<string> errors, string sheet, int rowNo, IReadOnlyDictionary<string, string> row, string column)
+    {
+        if (Cell(row, column).Length == 0)
+        {
+            errors.Add(sheet + " row " + rowNo + ": " + column + " is required.");
+        }
+    }
+
+    private static void Known(List<string> errors, string sheet, int rowNo, IReadOnlyDictionary<string, string> row, string column, HashSet<string> known)
+    {
+        var value = Cell(row, column);
+        if (value.Length > 0 && known.Count > 0 && !known.Contains(value))
+        {
+            errors.Add(sheet + " row " + rowNo + ": " + column + " " + value + " is not on Companies.");
+        }
+    }
+
+    private static bool IsSample(IReadOnlyDictionary<string, string> row)
+        => row.Values.Any(value => value.Trim().StartsWith("SAMPLE", StringComparison.OrdinalIgnoreCase)
+            || value.Trim().StartsWith("EXAMPLE", StringComparison.OrdinalIgnoreCase));
+
+    private static bool IsBlank(IReadOnlyDictionary<string, string> row)
+        => row.Values.All(value => string.IsNullOrWhiteSpace(value));
+
+    private static string Cell(IReadOnlyDictionary<string, string> row, string key)
+        => row.TryGetValue(key, out var value) ? value.Trim() : "";
+
+    private static decimal Num(IReadOnlyDictionary<string, string> row, string key)
+        => decimal.TryParse(Cell(row, key), NumberStyles.Number, CultureInfo.InvariantCulture, out var value) ? value : 0m;
+
+    private static XDocument Load(ZipArchive zip, string path)
+    {
+        var entry = zip.GetEntry(path) ?? throw new InvalidDataException("Workbook is missing " + path + ".");
+        using var stream = entry.Open();
+        return XDocument.Load(stream);
+    }
+
+    private static List<List<string>> Rows(XDocument sheet)
+    {
+        XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+        var rows = new List<List<string>>();
+        foreach (var row in sheet.Descendants(ns + "row"))
+        {
+            var cells = new List<string>();
+            foreach (var cell in row.Elements(ns + "c"))
+            {
+                var reference = (string?)cell.Attribute("r") ?? "A";
+                var column = 0;
+                foreach (var ch in reference)
+                {
+                    if (!char.IsLetter(ch))
+                    {
+                        break;
+                    }
+
+                    column = (column * 26) + (char.ToUpperInvariant(ch) - 'A' + 1);
+                }
+
+                while (cells.Count < column - 1)
+                {
+                    cells.Add("");
+                }
+
+                cells.Add(cell.Descendants(ns + "t").FirstOrDefault()?.Value ?? "");
+            }
+
+            rows.Add(cells);
+        }
+
+        return rows;
+    }
+
+    private static byte[] Xlsx(IReadOnlyList<(string Name, string[] Headers, string[][] Rows)> sheets)
+    {
+        using var ms = new MemoryStream();
+        using (var archive = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            var overrides = new StringBuilder();
+            var sheetRefs = new StringBuilder();
+            var rels = new StringBuilder();
+            for (var s = 1; s <= sheets.Count; s++)
+            {
+                overrides.Append("<Override PartName=\"/xl/worksheets/sheet").Append(s)
+                    .Append(".xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>");
+                sheetRefs.Append("<sheet name=\"").Append(Xml(sheets[s - 1].Name)).Append("\" sheetId=\"").Append(s)
+                    .Append("\" r:id=\"rId").Append(s).Append("\"/>");
+                rels.Append("<Relationship Id=\"rId").Append(s)
+                    .Append("\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet")
+                    .Append(s).Append(".xml\"/>");
+            }
+
+            WriteEntry(archive, "[Content_Types].xml",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/>" + overrides + "</Types>");
+            WriteEntry(archive, "_rels/.rels",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>");
+            WriteEntry(archive, "xl/workbook.xml",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets>" + sheetRefs + "</sheets></workbook>");
+            WriteEntry(archive, "xl/_rels/workbook.xml.rels",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" + rels + "</Relationships>");
+            for (var s = 0; s < sheets.Count; s++)
+            {
+                var data = new StringBuilder();
+                var allRows = new List<string[]> { sheets[s].Headers };
+                allRows.AddRange(sheets[s].Rows);
+                for (var r = 0; r < allRows.Count; r++)
+                {
+                    data.Append("<row r=\"").Append(r + 1).Append("\">");
+                    for (var c = 0; c < allRows[r].Length && c < 26; c++)
+                    {
+                        var value = allRows[r][c] ?? "";
+                        if (value.Length == 0 && r > 0)
+                        {
+                            continue;
+                        }
+
+                        data.Append("<c r=\"").Append((char)('A' + c)).Append(r + 1).Append("\" t=\"inlineStr\"><is><t>")
+                            .Append(Xml(value)).Append("</t></is></c>");
+                    }
+
+                    data.Append("</row>");
+                }
+
+                WriteEntry(archive, "xl/worksheets/sheet" + (s + 1) + ".xml",
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>" + data + "</sheetData></worksheet>");
+            }
+        }
+
+        return ms.ToArray();
+    }
+
+    private static void WriteEntry(ZipArchive archive, string name, string content)
+    {
+        var entry = archive.CreateEntry(name);
+        using var writer = new StreamWriter(entry.Open(), new UTF8Encoding(false));
+        writer.Write(content);
+    }
+
+    private static string Xml(string value) => System.Security.SecurityElement.Escape(value) ?? "";
+}
