@@ -156,29 +156,36 @@ public sealed class ErpOperatorAiDispatcher : IErpOperatorAiDispatcher
 {
     public const string DefaultModel = "gpt-6-astra";
 
-    private const string ChatSystem =
-        "You help an ERP operator. Answer in short plain English. "
-        + "If the request can be prepared by the ERP, add one line that starts with ERP: and then a command such as: "
-        + "create a receipt voucher for customer NAME for AMOUNT from the ACCOUNT account. "
-        + "Or: payment voucher for supplier NAME amount AMOUNT account ACCOUNT. "
-        + "Or: COUNTRY sales report for last month by customer. "
-        + "Or: open purchase orders. "
-        + "Or: what do I need for a receipt voucher. "
-        + "The ERP fills the form. It does not post money. Never say a voucher was posted. "
-        + "If the request is not one of those, answer it and do not include an ERP line.";
+    private static readonly string ChatSystem =
+        "You are the operator's guide inside this ERP. You know the areas, the reports, and the book checks below. "
+        + "Answer in short plain English and, when it helps, numbered steps. "
+        + "When the ERP can open a page, prepare a form, build a report, or check the books, add one line that starts with ERP: "
+        + "ERP: create a receipt voucher for customer NAME for AMOUNT from the ACCOUNT account. "
+        + "ERP: payment voucher for supplier NAME amount AMOUNT account ACCOUNT. "
+        + "ERP: COUNTRY sales report for last month by customer. "
+        + "ERP: open purchase orders. "
+        + "ERP: what do I need for a receipt voucher. "
+        + "ERP: report Profit and loss. "
+        + "ERP: check the books. "
+        + "The ERP fills the form and opens the report. It does not post money. Never say a voucher was posted. "
+        + "If you are only explaining, you may omit the ERP line. "
+        + ErpOperatorAiBrief.Knowledge;
 
     private readonly IErpOperatorAiSecretStore _store;
     private readonly IErpOperatorAiGateway _gateway;
     private readonly IErpMasterLookupReadService _lookups;
+    private readonly IErpOperatorIssueScan? _issues;
 
     public ErpOperatorAiDispatcher(
         IErpOperatorAiSecretStore store,
         IErpOperatorAiGateway gateway,
-        IErpMasterLookupReadService lookups)
+        IErpMasterLookupReadService lookups,
+        IErpOperatorIssueScan? issues = null)
     {
         _store = store;
         _gateway = gateway;
         _lookups = lookups;
+        _issues = issues;
     }
 
     public async Task<ErpOperatorAiReply> StatusAsync(int userId, CancellationToken cancellationToken)
@@ -338,8 +345,8 @@ public sealed class ErpOperatorAiDispatcher : IErpOperatorAiDispatcher
         var (org, repo, model) = ReadExtras(secret.Extras);
         return provider switch
         {
-            "cursor" => await AskCursorAsync(secret.Token, task, repo, cancellationToken).ConfigureAwait(false),
-            "devin" => await AskDevinAsync(userId, secret.Token, task, org, cancellationToken).ConfigureAwait(false),
+            "cursor" => await AskCursorAsync(secret.Token, task, repo, today, cancellationToken).ConfigureAwait(false),
+            "devin" => await AskDevinAsync(userId, secret.Token, task, org, today, cancellationToken).ConfigureAwait(false),
             _ => await AskChatAsync(secret.Token, task, model, today, cancellationToken).ConfigureAwait(false),
         };
     }
@@ -374,6 +381,12 @@ public sealed class ErpOperatorAiDispatcher : IErpOperatorAiDispatcher
 
         if (result.Status != 200)
         {
+            var fallback = await LocalHelpAsync(task, string.Empty, today, navigate: true, cancellationToken).ConfigureAwait(false);
+            if (fallback is not null && ErpOperatorAiBrief.Kind(task) is "guide" or "report" or "issue")
+            {
+                return new ErpOperatorAiReply(true, Cap("I can still help from the ERP. " + fallback.Say), fallback.Href, fallback.Ready, string.Empty, []);
+            }
+
             return Fail("ChatGPT could not do that. " + PublicError(result.Body, token));
         }
 
@@ -384,33 +397,29 @@ public sealed class ErpOperatorAiDispatcher : IErpOperatorAiDispatcher
         }
 
         var command = TakeErpLine(content, out var rest);
-        if (command.Length == 0)
-        {
-            return new ErpOperatorAiReply(true, Cap("ChatGPT says: " + content), string.Empty, false, string.Empty, []);
-        }
-
-        var prepared = await new ErpVoicePrepareService(_lookups).PrepareAsync(command, today, cancellationToken).ConfigureAwait(false);
-        if (prepared.Intent is not ("receipt" or "payment" or "open" or "report" or "requirements" or "guide"))
+        var local = await LocalHelpAsync(task, command, today, navigate: true, cancellationToken).ConfigureAwait(false);
+        if (local is null)
         {
             return new ErpOperatorAiReply(true, Cap("ChatGPT says: " + (rest.Length > 0 ? rest : content)), string.Empty, false, string.Empty, []);
         }
 
-        var say = prepared.Say;
+        var say = local.Say;
         if (rest.Length > 0)
         {
-            say = Cap(rest, 280) + " " + prepared.Say;
+            say = Cap(rest, 280) + " " + local.Say;
         }
 
-        var href = prepared.Href.StartsWith("/erp", StringComparison.Ordinal) ? prepared.Href : string.Empty;
-        var ready = prepared.Ready && href.Length > 0;
-        return new ErpOperatorAiReply(true, Cap("ChatGPT answered. " + say), href, ready, string.Empty, []);
+        return new ErpOperatorAiReply(true, Cap("ChatGPT answered. " + say), local.Href, local.Ready, string.Empty, []);
     }
 
-    private async Task<ErpOperatorAiReply> AskCursorAsync(string token, string task, string repo, CancellationToken cancellationToken)
+    private async Task<ErpOperatorAiReply> AskCursorAsync(string token, string task, string repo, DateOnly today, CancellationToken cancellationToken)
     {
-        var prompt = "The ERP operator asked you to do this work: " + task
-            + " Use the operator's Cursor account and do the work they asked for."
-            + " Do not post vouchers, payments, or journals. The operator confirms those in the ERP.";
+        var local = await LocalHelpAsync(task, string.Empty, today, navigate: false, cancellationToken).ConfigureAwait(false);
+        var prompt = ErpOperatorAiBrief.AgentPrompt(task);
+        if (local is not null && local.Say.Length > 0)
+        {
+            prompt += " ERP already found: " + local.Say;
+        }
         var name = task.Length > 80 ? task[..80] : task;
         var pullRequest = task.Contains("pull request", StringComparison.OrdinalIgnoreCase)
             || task.Contains("merge request", StringComparison.OrdinalIgnoreCase);
@@ -455,10 +464,15 @@ public sealed class ErpOperatorAiDispatcher : IErpOperatorAiDispatcher
         var say = url.Length > 0
             ? "Cursor started that work on your account. Open the agent to watch it. Nothing is posted in the ERP until you press Validate and post."
             : "Cursor accepted the work. Open Cursor to watch the agent. Nothing is posted in the ERP until you press Validate and post.";
-        return new ErpOperatorAiReply(true, say, string.Empty, false, url, []);
+        if (local is not null)
+        {
+            say = Cap(local.Say, 500) + " " + say;
+        }
+
+        return new ErpOperatorAiReply(true, say, local?.Href ?? string.Empty, false, url, []);
     }
 
-    private async Task<ErpOperatorAiReply> AskDevinAsync(int userId, string token, string task, string org, CancellationToken cancellationToken)
+    private async Task<ErpOperatorAiReply> AskDevinAsync(int userId, string token, string task, string org, DateOnly today, CancellationToken cancellationToken)
     {
         if (!ValidOrg(org))
         {
@@ -479,9 +493,12 @@ public sealed class ErpOperatorAiDispatcher : IErpOperatorAiDispatcher
         }
 
         var title = task.Length > 80 ? task[..80] : task;
-        var prompt = "The ERP operator asked you to do this work: " + task
-            + " Do the work they asked for on this Devin account."
-            + " Do not post vouchers, payments, or journals. The operator confirms those in the ERP.";
+        var local = await LocalHelpAsync(task, string.Empty, today, navigate: false, cancellationToken).ConfigureAwait(false);
+        var prompt = ErpOperatorAiBrief.AgentPrompt(task);
+        if (local is not null && local.Say.Length > 0)
+        {
+            prompt += " ERP already found: " + local.Say;
+        }
         var payload = JsonSerializer.Serialize(new { prompt, title });
         var result = await SendAsync("POST", "https://api.devin.ai/v3/organizations/" + org + "/sessions", token, payload, cancellationToken).ConfigureAwait(false);
         if (result.Status == 0)
@@ -503,7 +520,12 @@ public sealed class ErpOperatorAiDispatcher : IErpOperatorAiDispatcher
         var say = url.Length > 0
             ? "Devin started that work on your account. Open the session to watch it. Nothing is posted in the ERP until you press Validate and post."
             : "Devin accepted the work. Open Devin to watch the session. Nothing is posted in the ERP until you press Validate and post.";
-        return new ErpOperatorAiReply(true, say, string.Empty, false, url, []);
+        if (local is not null)
+        {
+            say = Cap(local.Say, 500) + " " + say;
+        }
+
+        return new ErpOperatorAiReply(true, say, local?.Href ?? string.Empty, false, url, []);
     }
 
     private async Task<string> ResolveDevinOrgAsync(string token, string supplied, string selfBody, CancellationToken cancellationToken)
@@ -564,8 +586,70 @@ public sealed class ErpOperatorAiDispatcher : IErpOperatorAiDispatcher
             return "No tool is connected yet. Open Voice and paste the key from your own ChatGPT, Cursor, or Devin account.";
         }
 
-        return string.Join(" and ", connected.Select(ErpOperatorAiNames.Label)) + " connected. Say ask, then the tool name, then the work.";
+        return string.Join(" and ", connected.Select(ErpOperatorAiNames.Label))
+            + " connected. Say ask, then the tool name, then the work. They can guide you, build a report, or check the books.";
     }
+
+    private async Task<LocalHelp?> LocalHelpAsync(string task, string command, DateOnly today, bool navigate, CancellationToken cancellationToken)
+    {
+        var source = command.Length > 0 ? command : task;
+        if (ErpOperatorAiBrief.IsIssue(source) || (command.Length == 0 && ErpOperatorAiBrief.Kind(task) == "issue"))
+        {
+            var found = _issues is null
+                ? ErpOperatorIssueScan.Describe(null)
+                : await _issues.DescribeAsync(cancellationToken).ConfigureAwait(false);
+            return new LocalHelp(found, "/erp/command-center-app", false);
+        }
+
+        if (ErpOperatorAiBrief.IsCountrySales(source) || (command.Length == 0 && ErpOperatorAiBrief.Kind(task) == "report" && ErpOperatorAiBrief.IsCountrySales(task)))
+        {
+            var sales = ErpVoiceInterpreter.Interpret(source, today);
+            if (sales.Intent == "report")
+            {
+                var href = sales.Href.StartsWith("/erp", StringComparison.Ordinal) ? sales.Href : string.Empty;
+                return new LocalHelp(sales.Say, href, navigate && sales.Ready && href.Length > 0);
+            }
+        }
+
+        if (ErpOperatorAiBrief.TryReport(source, out var reportName, out var reportHref)
+            || (command.Length == 0 && ErpOperatorAiBrief.Kind(task) == "report" && ErpOperatorAiBrief.TryReport(task, out reportName, out reportHref)))
+        {
+            var say = reportName == "Report center"
+                ? "Opening the report center. Name one, such as profit and loss, the balance sheet, the trial balance, or customer ageing, and I will open that report."
+                : "Opening " + reportName + ". The report is ready to read. Nothing is posted.";
+            return new LocalHelp(say, reportHref, navigate && reportHref.StartsWith("/erp/", StringComparison.Ordinal));
+        }
+
+        if (command.Length > 0)
+        {
+            var prepared = await new ErpVoicePrepareService(_lookups).PrepareAsync(command, today, cancellationToken).ConfigureAwait(false);
+            if (prepared.Intent is "receipt" or "payment" or "open" or "report" or "requirements" or "guide")
+            {
+                var href = prepared.Href.StartsWith("/erp", StringComparison.Ordinal) ? prepared.Href : string.Empty;
+                var ready = navigate && prepared.Ready && href.Length > 0;
+                return new LocalHelp(prepared.Say, href, ready);
+            }
+        }
+
+        if (ErpOperatorAiBrief.Kind(source) == "guide")
+        {
+            var guided = await new ErpVoicePrepareService(_lookups).PrepareAsync(source, today, cancellationToken).ConfigureAwait(false);
+            if (guided.Intent is "receipt" or "payment" or "requirements" or "guide" or "report" or "open")
+            {
+                var href = guided.Href.StartsWith("/erp", StringComparison.Ordinal) ? guided.Href : string.Empty;
+                return new LocalHelp(guided.Say, href, false);
+            }
+
+            if (ErpOperatorAiBrief.TryGuide(source, today, out var guide, out var guideHref))
+            {
+                return new LocalHelp(guide, guideHref, false);
+            }
+        }
+
+        return null;
+    }
+
+    private sealed record LocalHelp(string Say, string Href, bool Ready);
 
     private static string CleanToken(string? raw)
     {
