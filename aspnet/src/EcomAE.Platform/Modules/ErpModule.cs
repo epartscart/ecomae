@@ -24633,6 +24633,7 @@ public sealed class ErpModule : ISurfaceModule
         var sourceCode = "";
         var relation = "";
         var sourceId = 0L;
+        var companyId = 0L;
         var confirm = false;
         var returnUrl = "/erp/leave-absence-app";
         if (context.Request.HasFormContentType)
@@ -24657,13 +24658,19 @@ public sealed class ErpModule : ISurfaceModule
             sourceId = LiveWriteFormBinder.Long(form, "source_id", "sourceId");
             sourceCode = LiveWriteFormBinder.Text(form, "source_code", "sourceCode");
             relation = LiveWriteFormBinder.Text(form, "relation");
+            companyId = LiveWriteFormBinder.Long(form, "company_id", "companyId");
             confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
         }
 
+        if (companyId <= 0)
+        {
+            companyId = ErpHostContext.ActiveCompanyIdFromQuery(context.Request) ?? 0;
+        }
+
         var request = new ErpD365WorkspaceWriteRequest(
             area, tab, code, name, worker, party, kind, status, period, dateFrom, dateTo, qty, amount, extra, note, session.UserId,
-            sourceTab, sourceId, sourceCode, relation);
+            sourceTab, sourceId, sourceCode, relation, companyId);
         if (!confirm)
         {
             return Results.Ok(dryRun.Evaluate(request, false).ToPayload(SessionPayload(session)));

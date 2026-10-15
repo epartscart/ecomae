@@ -23,7 +23,8 @@ public sealed record ErpD365WorkspaceWriteRequest(
     string? SourceTab = null,
     long SourceId = 0,
     string? SourceCode = null,
-    string? Relation = null);
+    string? Relation = null,
+    long CompanyId = 0);
 
 public interface IErpD365WorkspaceWriteService
 {
@@ -82,8 +83,9 @@ public sealed class ErpD365WorkspaceWriteService : IErpD365WorkspaceWriteService
                 "INSERT INTO `epc_erp_d365_workspace` (" +
                 "`company_id`,`area`,`tab`,`code`,`name`,`worker`,`party`,`kind`,`status`,`period`," +
                 "`date_from`,`date_to`,`qty`,`amount`,`extra`,`note`,`created_by`,`time_created`,`time_updated`" +
-                ") VALUES (1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
+                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
             cancellationToken,
+            ErpD365FieldBinding.CompanyOrDefault(request.CompanyId),
             area, tab, code, name, worker, party, kind, status, period,
             dateFrom, dateTo, request.Qty, request.Amount, extra, note, request.CreatedBy, now, now);
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
