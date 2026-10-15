@@ -72,6 +72,126 @@ public sealed class ErpRealEstateTests
     }
 
     [Fact]
+    public void LandlordScheduleChequeAndProfitStayApart()
+    {
+        var start = new DateOnly(2027, 1, 1);
+        var end = new DateOnly(2027, 12, 31);
+        var schedule = ErpRealEstateCalc.BuildSchedule(120_000m, "quarterly", start, end);
+        Assert.Equal(4, schedule.Count);
+        Assert.Equal(new DateOnly(2027, 1, 1), schedule[0].Due);
+        Assert.Equal(new DateOnly(2027, 4, 1), schedule[1].Due);
+        Assert.Equal(new DateOnly(2027, 7, 1), schedule[2].Due);
+        Assert.Equal(new DateOnly(2027, 10, 1), schedule[3].Due);
+        Assert.All(schedule, line => Assert.Equal(30_000.00m, line.Amount));
+        Assert.Equal(120_000.00m, ErpRealEstateCalc.ScheduleTotal(schedule));
+
+        var uneven = ErpRealEstateCalc.BuildSchedule(100_000m, "monthly", start, end);
+        Assert.Equal(12, uneven.Count);
+        Assert.Equal(100_000.00m, ErpRealEstateCalc.ScheduleTotal(uneven));
+
+        Assert.Equal(120_000.00m, ErpRealEstateCalc.RecognizedRent(120_000m, start, end, start, end));
+        Assert.Equal(29_589.04m, ErpRealEstateCalc.RecognizedRent(120_000m, start, end, start, new DateOnly(2027, 3, 31)));
+        Assert.Equal(0m, ErpRealEstateCalc.RecognizedRent(120_000m, start, end, new DateOnly(2028, 1, 1), new DateOnly(2028, 12, 31)));
+        Assert.False(ErpRealEstateCalc.CountsAsCash("received"));
+        Assert.False(ErpRealEstateCalc.CountsAsCash("deposited"));
+        Assert.True(ErpRealEstateCalc.CountsAsCash("cleared"));
+
+        var today = new DateOnly(2027, 1, 1);
+        Assert.Equal("due_today", ErpRealEstateCalc.ChequeBucket("received", today, today));
+        Assert.Equal("due_tomorrow", ErpRealEstateCalc.ChequeBucket("in_custody", today.AddDays(1), today));
+        Assert.Equal("due_7", ErpRealEstateCalc.ChequeBucket("received", today.AddDays(5), today));
+        Assert.Equal("due_15", ErpRealEstateCalc.ChequeBucket("received", today.AddDays(10), today));
+        Assert.Equal("due_30", ErpRealEstateCalc.ChequeBucket("received", today.AddDays(20), today));
+        Assert.Equal("overdue_not_deposited", ErpRealEstateCalc.ChequeBucket("received", today.AddDays(-3), today));
+        Assert.Equal("awaiting_clear", ErpRealEstateCalc.ChequeBucket("deposited", today, today));
+        Assert.Equal("returned", ErpRealEstateCalc.ChequeBucket("bounced", today, today));
+        Assert.Equal("cleared", ErpRealEstateCalc.ChequeBucket("cleared", today, today));
+        Assert.Equal("current", ErpRealEstateCalc.AgeingBucket(today, today));
+        Assert.Equal("1_30", ErpRealEstateCalc.AgeingBucket(today, today.AddDays(15)));
+        Assert.Equal("over_90", ErpRealEstateCalc.AgeingBucket(today, today.AddDays(120)));
+        Assert.True(ErpRealEstateCalc.TenanciesOverlap(start, end, new DateOnly(2027, 6, 1), new DateOnly(2028, 5, 31)));
+        Assert.False(ErpRealEstateCalc.TenanciesOverlap(start, end, new DateOnly(2028, 1, 1), new DateOnly(2028, 12, 31)));
+        Assert.False(ErpRealEstateCalc.ReducesOperatingProfit("painting", capital: true));
+        Assert.False(ErpRealEstateCalc.ReducesOperatingProfit("mortgage_interest", capital: false));
+        Assert.False(ErpRealEstateCalc.ReducesOperatingProfit("depreciation", capital: false));
+        Assert.True(ErpRealEstateCalc.ReducesOperatingProfit("repairs", capital: false));
+        Assert.Equal(100_000.00m, ErpRealEstateCalc.LandlordNoi(120_000m, 20_000m));
+        Assert.Equal(90_000.00m, ErpRealEstateCalc.NetCashFlow(120_000m, 30_000m));
+        Assert.Equal(20_000.00m, ErpRealEstateCalc.MissingChequeAmount(30_000m, 10_000m));
+        Assert.Equal(0m, ErpRealEstateCalc.MissingChequeAmount(30_000m, 30_000m));
+        var codes = ErpRealEstateCalc.BulkUnitCodes("A", 101, 100);
+        Assert.Equal(100, codes.Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal("A-101", codes[0]);
+        Assert.Equal("A-200", codes[99]);
+        Assert.Equal(500, ErpRealEstateCalc.BulkUnitCodes("U", 1, 800).Count);
+    }
+
+    [Fact]
+    public void WorkbookRejectsClearedChequesAndRoundTripsSheets()
+    {
+        var cleared = ErpRealEstateWorkbook.Parse(
+            "PDC_Cheques",
+            "ChequeNo*,Bank*,Amount*,ChequeDate*,Status\n000456,ENBD,30000,2027-01-01,cleared\n");
+        Assert.Contains(cleared.Errors, e => e.Contains("not mark cash", StringComparison.OrdinalIgnoreCase));
+
+        var units = ErpRealEstateWorkbook.Parse("Units", "PropertyCode*,UnitCode*\n,U1\nBLD,U1\nBLD,U1\n");
+        Assert.Contains(units.Errors, e => e.Contains("required", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(units.Errors, e => e.Contains("duplicate", StringComparison.OrdinalIgnoreCase));
+
+        var agreement = ErpRealEstateWorkbook.Parse(
+            "Agreements",
+            "Code*,PropertyCode*,TenantCode*,Start*,End*,AnnualRent*,Frequency*\nAGR-101,BLD-A,TEN-1,2027-01-01,2027-12-31,120000,quarterly\n");
+        Assert.Empty(agreement.Errors);
+        Assert.True(agreement.Applies);
+
+        var schedule = ErpRealEstateWorkbook.Parse("Rent_Schedule", "AgreementCode*,DueDate*,Amount*\nAGR-101,2027-01-01,30000\n");
+        Assert.Empty(schedule.Errors);
+        Assert.False(schedule.Applies);
+        Assert.Contains("not imported twice", schedule.HoldReason, StringComparison.OrdinalIgnoreCase);
+
+        var file = ErpRealEstateWorkbook.IsInlineFile("data:image/jpeg;base64,AAAA");
+        Assert.True(file);
+        Assert.False(ErpRealEstateWorkbook.IsInlineFile("cheques/000456/front.jpg"));
+
+        var bytes = ErpRealEstateWorkbook.Template();
+        Assert.Equal((byte)'P', bytes[0]);
+        Assert.Equal((byte)'K', bytes[1]);
+        using var stream = new MemoryStream(bytes);
+        var csv = ErpRealEstateWorkbook.SheetToCsv(stream, "PDC_Cheques");
+        Assert.Contains("000456", csv, StringComparison.Ordinal);
+        Assert.Contains("ENBD", csv, StringComparison.Ordinal);
+        foreach (var sheet in ErpRealEstateWorkbook.TemplateSheets)
+        {
+            stream.Position = 0;
+            var text = ErpRealEstateWorkbook.SheetToCsv(stream, sheet);
+            Assert.False(string.IsNullOrWhiteSpace(text), sheet);
+        }
+
+        var snap = SampleBoardSnap();
+        var package = ErpRealEstateWorkbook.ExportPackage(snap);
+        Assert.Equal((byte)'P', package[0]);
+        Assert.Equal((byte)'K', package[1]);
+        using var zip = new System.IO.Compression.ZipArchive(new MemoryStream(package), System.IO.Compression.ZipArchiveMode.Read);
+        Assert.Contains(zip.Entries, e => e.Name == "RealEstate_Registers.xlsx");
+        Assert.Contains(zip.Entries, e => e.Name == "document-manifest.csv");
+        using var readme = zip.GetEntry("README.txt")!.Open();
+        using var reader = new StreamReader(readme);
+        Assert.Contains("not a full restoration archive", reader.ReadToEnd(), StringComparison.OrdinalIgnoreCase);
+
+        var src = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Erp/ErpRealEstateWriteService.cs"));
+        Assert.Contains("bulk_units", src, StringComparison.Ordinal);
+        Assert.Contains("ALLOW_OVERLAP", src, StringComparison.Ordinal);
+        Assert.Contains("does not store the file", src, StringComparison.Ordinal);
+        Assert.Contains("import_sheet", src, StringComparison.Ordinal);
+        Assert.Contains("Rollback removes only draft rows with no journal", src, StringComparison.Ordinal);
+        var razor = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor"));
+        Assert.Contains("PDCs in hand", razor, StringComparison.Ordinal);
+        Assert.Contains("Generate units", razor, StringComparison.Ordinal);
+        Assert.Contains("Cheques in hand are not cash", razor, StringComparison.Ordinal);
+        Assert.Contains("Download import template", razor, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void OpportunityRowsAreNeverOwnedAssets()
     {
         var opportunity = new ErpRealEstateRow(1, "opportunity", "OPP-1", "Marina tower", "screening", 2_000_000m, 1_900_000m, "Dubai", false);

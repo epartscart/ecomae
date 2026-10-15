@@ -53,6 +53,15 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
                 "convert_opportunity" => await ConvertOpportunityAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
                 "save_property" => await SavePropertyAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
                 "save_unit" => await SaveUnitAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "save_portfolio" => await SavePortfolioAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "save_community" => await SaveCommunityAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "save_floor" => await SaveFloorAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "bulk_units" => await BulkUnitsAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "save_expense" => await SaveExpenseAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "allocate_expense" => await AllocateExpenseAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "approve_expense" => await ApproveExpenseAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "import_sheet" => await ImportSheetAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
+                "rollback_import" => await RollbackImportAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
                 "save_owner" => await SaveOwnerAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
                 "save_acquisition" => await SaveAcquisitionAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
                 "complete_acquisition" => await CompleteAcquisitionAsync(connection, tx, request, cancellationToken).ConfigureAwait(false),
@@ -579,6 +588,92 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """,
         """
+        CREATE TABLE IF NOT EXISTS `epc_erp_re_portfolios` (
+          `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `code` VARCHAR(40) NOT NULL,
+          `name` VARCHAR(190) NOT NULL,
+          `owner_name` VARCHAR(190) NOT NULL DEFAULT '',
+          `status` VARCHAR(40) NOT NULL DEFAULT 'active',
+          `import_id` BIGINT NOT NULL DEFAULT 0,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uk_re_portfolio` (`code`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_erp_re_communities` (
+          `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `portfolio_id` BIGINT NOT NULL DEFAULT 0,
+          `code` VARCHAR(40) NOT NULL,
+          `name` VARCHAR(190) NOT NULL,
+          `emirate` VARCHAR(40) NOT NULL DEFAULT '',
+          `city` VARCHAR(80) NOT NULL DEFAULT '',
+          `status` VARCHAR(40) NOT NULL DEFAULT 'active',
+          `import_id` BIGINT NOT NULL DEFAULT 0,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uk_re_community` (`code`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_erp_re_floors` (
+          `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `property_id` BIGINT NOT NULL,
+          `code` VARCHAR(40) NOT NULL,
+          `name` VARCHAR(190) NOT NULL DEFAULT '',
+          `floor_no` VARCHAR(20) NOT NULL DEFAULT '',
+          `status` VARCHAR(40) NOT NULL DEFAULT 'active',
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uk_re_floor` (`property_id`,`code`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_erp_re_expenses` (
+          `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `code` VARCHAR(40) NOT NULL,
+          `property_id` BIGINT NOT NULL,
+          `unit_id` BIGINT NOT NULL DEFAULT 0,
+          `category` VARCHAR(40) NOT NULL DEFAULT 'repairs',
+          `amount` DECIMAL(18,4) NOT NULL DEFAULT 0,
+          `vat_amount` DECIMAL(18,4) NOT NULL DEFAULT 0,
+          `is_capex` TINYINT NOT NULL DEFAULT 0,
+          `noi_excluded` TINYINT NOT NULL DEFAULT 0,
+          `expense_date` DATE DEFAULT NULL,
+          `supplier` VARCHAR(190) NOT NULL DEFAULT '',
+          `status` VARCHAR(40) NOT NULL DEFAULT 'draft',
+          `gl_journal_id` BIGINT NOT NULL DEFAULT 0,
+          `import_id` BIGINT NOT NULL DEFAULT 0,
+          `notes` VARCHAR(255) NOT NULL DEFAULT '',
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uk_re_exp_code` (`code`),
+          KEY `idx_re_exp_prop` (`property_id`,`status`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_erp_re_expense_splits` (
+          `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `expense_id` BIGINT NOT NULL,
+          `unit_id` BIGINT NOT NULL,
+          `method` VARCHAR(20) NOT NULL DEFAULT 'area',
+          `weight` DECIMAL(18,4) NOT NULL DEFAULT 0,
+          `amount` DECIMAL(18,4) NOT NULL DEFAULT 0,
+          `status` VARCHAR(20) NOT NULL DEFAULT 'allocated',
+          PRIMARY KEY (`id`),
+          KEY `idx_re_split` (`expense_id`,`status`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_erp_re_imports` (
+          `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `sheet` VARCHAR(40) NOT NULL,
+          `file_name` VARCHAR(190) NOT NULL DEFAULT '',
+          `rows_ok` INT NOT NULL DEFAULT 0,
+          `rows_skipped` INT NOT NULL DEFAULT 0,
+          `status` VARCHAR(20) NOT NULL DEFAULT 'applied',
+          `actor_id` INT NOT NULL DEFAULT 0,
+          `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """,
+        """
         CREATE TABLE IF NOT EXISTS `epc_erp_property_maintenance` (
           `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
           `property_id` INT UNSIGNED NOT NULL DEFAULT 0,
@@ -622,6 +717,27 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         "ALTER TABLE `epc_erp_re_sales` ADD COLUMN `gl_journal_id` BIGINT NOT NULL DEFAULT 0",
         "ALTER TABLE `epc_erp_property_maintenance` ADD COLUMN `gl_journal_id` BIGINT NOT NULL DEFAULT 0",
         "ALTER TABLE `epc_erp_re_units` ADD COLUMN `allocated_cost` DECIMAL(18,4) NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_properties` ADD COLUMN `portfolio_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_properties` ADD COLUMN `parent_property_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_properties` ADD COLUMN `import_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_re_units` ADD COLUMN `floor_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_re_units` ADD COLUMN `import_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_re_tenants` ADD COLUMN `tenant_type` VARCHAR(20) NOT NULL DEFAULT 'individual'",
+        "ALTER TABLE `epc_erp_re_tenants` ADD COLUMN `emirates_id` VARCHAR(40) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_erp_re_tenants` ADD COLUMN `passport_no` VARCHAR(40) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_erp_re_tenants` ADD COLUMN `email` VARCHAR(120) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_erp_re_tenants` ADD COLUMN `nationality` VARCHAR(40) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_erp_re_tenants` ADD COLUMN `id_expiry` DATE NULL",
+        "ALTER TABLE `epc_erp_re_tenants` ADD COLUMN `import_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_re_leases` ADD COLUMN `import_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_re_cheques` ADD COLUMN `import_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_property_maintenance` ADD COLUMN `cost_nature` VARCHAR(20) NOT NULL DEFAULT 'opex'",
+        "ALTER TABLE `epc_erp_property_maintenance` ADD COLUMN `import_id` BIGINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_re_documents` ADD COLUMN `storage_key` VARCHAR(255) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_erp_re_documents` ADD COLUMN `file_name` VARCHAR(190) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_erp_re_documents` ADD COLUMN `version_no` INT NOT NULL DEFAULT 1",
+        "ALTER TABLE `epc_erp_re_documents` ADD COLUMN `sensitive` TINYINT NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_erp_re_documents` ADD COLUMN `import_id` BIGINT NOT NULL DEFAULT 0",
     ];
 
     private static async Task<ErpSimpleWriteResult> SaveOpportunityAsync(
@@ -738,19 +854,19 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         if (r.Id > 0)
         {
             await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
-                "UPDATE `epc_erp_properties` SET `name`=?,`type`=?,`city`=?,`address`=?,`status`=?,`emirate`=?,`title_deed`=?,`tenure`=?,`legal_entity_id`=?,`area_sqm`=?,`annual_opex`=?,`mortgage_balance`=?,`notes`=? WHERE `id`=?"),
+                "UPDATE `epc_erp_properties` SET `name`=?,`type`=?,`city`=?,`address`=?,`status`=?,`emirate`=?,`community`=?,`title_deed`=?,`tenure`=?,`legal_entity_id`=?,`area_sqm`=?,`annual_opex`=?,`mortgage_balance`=?,`notes`=?,`portfolio_id`=?,`parent_property_id`=? WHERE `id`=?"),
                 ct, name, Clip(r.Category, 40, "residential"), Clip(r.City, 80), Clip(r.Address, 500), status,
-                Clip(r.Emirate, 40), Clip(r.TitleDeed, 80), Clip(r.Tenure, 40, "freehold"), r.LegalEntityId,
-                Money(r.Area), Money(r.Amount2), Money(r.Amount3), Clip(r.Note, 255), r.Id).ConfigureAwait(false);
+                Clip(r.Emirate, 40), Clip(r.Frequency, 80), Clip(r.TitleDeed, 80), Clip(r.Tenure, 40, "freehold"), r.LegalEntityId,
+                Money(r.Area), Money(r.Amount2), Money(r.Amount3), Clip(r.Note, 255), r.RelatedId, r.OpportunityId, r.Id).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok("Property saved", r.Id);
         }
 
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
-            "INSERT INTO `epc_erp_properties` (`company_id`,`code`,`name`,`type`,`ownership`,`address`,`city`,`country`,`area_sqm`,`status`,`created_at`,`emirate`,`title_deed`,`tenure`,`legal_entity_id`,`annual_opex`,`mortgage_balance`,`notes`) VALUES (0,?,?,?,?,?,?, 'AE',?,?,?,?,?,?,?,?,?,?)"),
+            "INSERT INTO `epc_erp_properties` (`company_id`,`code`,`name`,`type`,`ownership`,`address`,`city`,`country`,`area_sqm`,`status`,`created_at`,`emirate`,`community`,`title_deed`,`tenure`,`legal_entity_id`,`annual_opex`,`mortgage_balance`,`notes`,`portfolio_id`,`parent_property_id`) VALUES (0,?,?,?,?,?,?, 'AE',?,?,?,?,?,?,?,?,?,?,?,?,?)"),
             ct, code, name, Clip(r.Category, 40, "residential"), "owned", Clip(r.Address, 500), Clip(r.City, 80),
-            Money(r.Area), status, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), Clip(r.Emirate, 40),
+            Money(r.Area), status, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), Clip(r.Emirate, 40), Clip(r.Frequency, 80),
             Clip(r.TitleDeed, 80), Clip(r.Tenure, 40, "freehold"), r.LegalEntityId, Money(r.Amount2), Money(r.Amount3),
-            Clip(r.Note, 255)).ConfigureAwait(false);
+            Clip(r.Note, 255), r.RelatedId, r.OpportunityId).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Property saved", await LastId(c, tx, ct).ConfigureAwait(false));
     }
 
@@ -923,9 +1039,10 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         }
 
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
-            "INSERT INTO `epc_erp_re_tenants` (`code`,`name`,`contact`,`trade_licence`,`kyc_status`,`status`) VALUES (?,?,?,?,?,?)"),
+            "INSERT INTO `epc_erp_re_tenants` (`code`,`name`,`contact`,`trade_licence`,`kyc_status`,`status`,`tenant_type`,`emirates_id`,`passport_no`,`email`,`nationality`,`id_expiry`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"),
             ct, Clip(r.Code, 40), Clip(r.Name, 190), Clip(r.Counterparty, 190), Clip(r.TitleDeed, 80),
-            Clip(r.Category, 40, "pending"), Clip(r.Status, 40, "active")).ConfigureAwait(false);
+            Clip(r.Category, 40, "pending"), Clip(r.Status, 40, "active"), Clip(r.Frequency, 20, "individual"),
+            Clip(r.ChequeNo, 40), Clip(r.BankName, 40), Clip(r.Address, 120), Clip(r.Emirate, 40), DateOrNull(r.Date1)).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Tenant saved", await LastId(c, tx, ct).ConfigureAwait(false));
     }
 
@@ -945,6 +1062,15 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         }
 
         var freq = Clip(r.Frequency, 20, "monthly");
+        if (r.UnitId > 0 && (r.Note ?? string.Empty).IndexOf("ALLOW_OVERLAP", StringComparison.OrdinalIgnoreCase) < 0)
+        {
+            var overlap = await ActiveLeaseOverlapAsync(c, tx, r.UnitId, start, end, ct).ConfigureAwait(false);
+            if (overlap.Length > 0)
+            {
+                return ErpSimpleWriteResult.Fail("overlap", "Unit already has active lease " + overlap + " covering these dates. Send ALLOW_OVERLAP only when a second tenancy is intended.");
+            }
+        }
+
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
             "INSERT INTO `epc_erp_re_leases` (`code`,`property_id`,`unit_id`,`tenant_id`,`legal_entity_id`,`start_date`,`end_date`,`annual_rent`,`frequency`,`deposit`,`vat_code`,`ejari_ref`,`ejari_status`,`status`,`notes`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 'not_registered','active',?)"),
             ct, Clip(r.Code, 40), r.PropertyId, r.UnitId, r.TenantId, r.LegalEntityId, r.Date1, r.Date2,
@@ -981,26 +1107,11 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
     private static async Task GenerateScheduleAsync(
         DbConnection c, DbTransaction tx, long leaseId, DateOnly start, DateOnly end, decimal annual, string freq, CancellationToken ct)
     {
-        var n = ErpRealEstateCalc.PeriodCount(freq, start, end);
-        var instalment = ErpRealEstateCalc.InstalmentAmount(annual, freq);
-        var cursor = start;
-        for (var i = 0; i < n; i++)
+        foreach (var line in ErpRealEstateCalc.BuildSchedule(annual, freq, start, end))
         {
             await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
                 "INSERT INTO `epc_erp_re_rent_invoices` (`lease_id`,`period_date`,`amount`,`status`) VALUES (?,?,?,'open')"),
-                ct, leaseId, cursor.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), instalment).ConfigureAwait(false);
-            cursor = freq switch
-            {
-                "weekly" => cursor.AddDays(7),
-                "quarterly" => cursor.AddMonths(3),
-                "semi_annual" => cursor.AddMonths(6),
-                "annual" => cursor.AddYears(1),
-                _ => cursor.AddMonths(1),
-            };
-            if (cursor > end)
-            {
-                break;
-            }
+                ct, leaseId, line.Due.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), line.Amount).ConfigureAwait(false);
         }
     }
 
@@ -1109,7 +1220,7 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         var status = Clip(r.Status, 40).ToLowerInvariant();
         var allowed = new HashSet<string>(StringComparer.Ordinal)
         {
-            "received", "held", "due_for_deposit", "deposited", "cleared", "bounced", "cancelled", "replaced", "returned",
+            "received", "in_custody", "held", "on_hold", "due_for_deposit", "deposited", "cleared", "bounced", "cancelled", "replaced", "returned", "represented",
         };
         if (r.Id <= 0 || !allowed.Contains(status))
         {
@@ -1117,6 +1228,15 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         }
 
         var current = await ScalarText(c, tx, "SELECT `status` FROM `epc_erp_re_cheques` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        if ((string.Equals(current, "bounced", StringComparison.OrdinalIgnoreCase) || string.Equals(current, "returned", StringComparison.OrdinalIgnoreCase))
+            && status == "represented")
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_re_cheques` SET `status`='represented' WHERE `id`=?"),
+                ct, r.Id).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Cheque re-presented. It is still not cash until it clears.", r.Id);
+        }
+
         if (ErpPostedTransactionPolicy.IsVoided(current)
             || string.Equals(current, "bounced", StringComparison.OrdinalIgnoreCase)
             || string.Equals(current, "replaced", StringComparison.OrdinalIgnoreCase))
@@ -1245,13 +1365,18 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Property and work-order description are required.");
         }
 
-        var nature = Clip(r.VatCode, 20, "opex").ToLowerInvariant();
+        var requested = Clip(r.VatCode, 20, "opex").ToLowerInvariant();
+        var capital = requested == "capex";
+        var noi = ErpRealEstateCalc.ReducesOperatingProfit(r.Category, capital);
+        var nature = capital ? "capex" : noi ? "opex" : "excluded";
+        var post = !string.Equals(r.Status, "historical", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(r.Status, "draft", StringComparison.OrdinalIgnoreCase);
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
-            "INSERT INTO `epc_erp_property_maintenance` (`property_id`,`type`,`description`,`vendor`,`scheduled_date`,`cost`,`status`,`created_at`) VALUES (?,?,?,?,?,?,?,?)"),
+            "INSERT INTO `epc_erp_property_maintenance` (`property_id`,`type`,`description`,`vendor`,`scheduled_date`,`cost`,`status`,`created_at`,`cost_nature`) VALUES (?,?,?,?,?,?,?,?,?)"),
             ct, r.PropertyId, Clip(r.Category, 40, "corrective"), Clip(r.Name, 500), Clip(r.Counterparty, 190),
-            r.Date1, Money(r.Amount), Clip(r.Status, 40, "planned"), DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+            r.Date1, Money(r.Amount), Clip(r.Status, 40, "planned"), DateTimeOffset.UtcNow.ToUnixTimeSeconds(), nature).ConfigureAwait(false);
         var id = await LastId(c, tx, ct).ConfigureAwait(false);
-        if (r.Amount > 0)
+        if (r.Amount > 0 && post)
         {
             await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
                 "UPDATE `epc_erp_properties` SET `capex`=`capex`+? WHERE `id`=? AND ?='capex'"),
@@ -1262,15 +1387,22 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
                 : ErpRealEstateIfrs.OperatingExpense(r.Amount);
             var journalId = await PostIfrsAsync(c, tx, r.ActorId, le, id,
                 "RE-WO-" + id.ToString(CultureInfo.InvariantCulture),
-                nature == "capex" ? "Subsequent cost capitalised to investment property" : "Property operating expense",
+                nature == "capex" ? "Subsequent cost capitalised to investment property" : nature == "excluded" ? "Financing, depreciation or tax — excluded from NOI" : "Property operating expense",
                 recipe, ct).ConfigureAwait(false);
             await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_property_maintenance", id, journalId, ct).ConfigureAwait(false);
+        }
+
+        if (!post)
+        {
+            return ErpSimpleWriteResult.Ok("Maintenance row saved on the register. It stays off NOI until it is posted.", id);
         }
 
         return ErpSimpleWriteResult.Ok(
             nature == "capex"
                 ? "Maintenance work order saved. Capex posted to the balance sheet."
-                : "Maintenance work order saved. Opex posted to the income statement.",
+                : nature == "excluded"
+                    ? "Maintenance row saved. Financing, depreciation and tax stay out of NOI."
+                    : "Maintenance work order saved. Opex posted to the income statement.",
             id);
     }
 
@@ -1754,6 +1886,663 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
         return (receipts, disbursed);
     }
 
+    private static async Task<string> ActiveLeaseOverlapAsync(
+        DbConnection c, DbTransaction tx, long unitId, DateOnly start, DateOnly end, CancellationToken ct)
+    {
+        await using var command = c.CreateCommand();
+        command.Transaction = tx;
+        command.CommandText = ErpDb.Positional(
+            "SELECT `code`,`start_date`,`end_date` FROM `epc_erp_re_leases` WHERE `unit_id`=? AND `status`='active'");
+        ErpDb.AddParameters(command, unitId);
+        await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+        while (await reader.ReadAsync(ct).ConfigureAwait(false))
+        {
+            var code = reader.IsDBNull(0) ? "" : reader.GetString(0);
+            if (!TryDate(reader.GetValue(1), out var from) || !TryDate(reader.GetValue(2), out var to))
+            {
+                continue;
+            }
+
+            if (ErpRealEstateCalc.TenanciesOverlap(from, to, start, end))
+            {
+                return code;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static async Task<ErpSimpleWriteResult> SavePortfolioAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(r.Code) || string.IsNullOrWhiteSpace(r.Name))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Portfolio code and name are required.");
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "INSERT INTO `epc_erp_re_portfolios` (`code`,`name`,`owner_name`,`status`) VALUES (?,?,?,?)"),
+            ct, Clip(r.Code, 40), Clip(r.Name, 190), Clip(r.Counterparty, 190, Clip(r.Name, 190)), Clip(r.Status, 40, "active")).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Portfolio saved", await LastId(c, tx, ct).ConfigureAwait(false));
+    }
+
+    private static async Task<ErpSimpleWriteResult> SaveCommunityAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(r.Code) || string.IsNullOrWhiteSpace(r.Name))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Community code and name are required.");
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "INSERT INTO `epc_erp_re_communities` (`portfolio_id`,`code`,`name`,`emirate`,`city`,`status`) VALUES (?,?,?,?,?,?)"),
+            ct, r.RelatedId, Clip(r.Code, 40), Clip(r.Name, 190), Clip(r.Emirate, 40), Clip(r.City, 80), Clip(r.Status, 40, "active")).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Community saved", await LastId(c, tx, ct).ConfigureAwait(false));
+    }
+
+    private static async Task<ErpSimpleWriteResult> SaveFloorAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (r.PropertyId <= 0 || string.IsNullOrWhiteSpace(r.Code))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Property and floor code are required.");
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "INSERT INTO `epc_erp_re_floors` (`property_id`,`code`,`name`,`floor_no`,`status`) VALUES (?,?,?,?,?)"),
+            ct, r.PropertyId, Clip(r.Code, 40), Clip(r.Name, 190, Clip(r.Code, 40)), Clip(r.Note, 20), Clip(r.Status, 40, "active")).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Floor saved", await LastId(c, tx, ct).ConfigureAwait(false));
+    }
+
+    private static async Task<ErpSimpleWriteResult> BulkUnitsAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (r.PropertyId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Choose the building before generating units.");
+        }
+
+        if (r.Count < 1 || r.Count > 500)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Generate between 1 and 500 units in one batch.");
+        }
+
+        var start = r.RelatedId <= 0 ? 1 : (int)Math.Min(r.RelatedId, 100000);
+        var codes = ErpRealEstateCalc.BulkUnitCodes(r.Code, start, r.Count);
+        var created = 0;
+        var skipped = 0;
+        foreach (var code in codes)
+        {
+            var exists = await ScalarLong(c, tx, "SELECT COUNT(*) FROM `epc_erp_re_units` WHERE `property_id`=? AND `code`=?", ct, r.PropertyId, code).ConfigureAwait(false);
+            if (exists > 0)
+            {
+                skipped++;
+                continue;
+            }
+
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "INSERT INTO `epc_erp_re_units` (`property_id`,`project_id`,`code`,`name`,`unit_type`,`floor_no`,`area_sqm`,`bedrooms`,`status`,`asking_price`) VALUES (?,?,?,?,?,?,?,?, 'available',?)"),
+                ct, r.PropertyId, r.ProjectId, code, code, Clip(r.Category, 40, "apartment"), Clip(r.Note, 20), Money(r.Area), 0, Money(r.Amount)).ConfigureAwait(false);
+            created++;
+        }
+
+        if (created == 0)
+        {
+            return ErpSimpleWriteResult.Fail("duplicate", "Those unit codes already exist on this building.");
+        }
+
+        return ErpSimpleWriteResult.Ok("Created " + created.ToString(CultureInfo.InvariantCulture) + " units. Skipped " + skipped.ToString(CultureInfo.InvariantCulture) + " already on this building.", r.PropertyId);
+    }
+
+    private async Task<ErpSimpleWriteResult> SaveExpenseAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (r.PropertyId <= 0 || string.IsNullOrWhiteSpace(r.Code) || r.Amount <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Property, expense code and amount are required.");
+        }
+
+        var category = Clip(r.Category, 40, "repairs");
+        var capital = string.Equals(r.VatCode, "capex", StringComparison.OrdinalIgnoreCase) || string.Equals(category, "capex", StringComparison.OrdinalIgnoreCase);
+        var excluded = !ErpRealEstateCalc.ReducesOperatingProfit(category, capital);
+        var draft = string.Equals(r.Status, "draft", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(r.Status, "historical", StringComparison.OrdinalIgnoreCase);
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "INSERT INTO `epc_erp_re_expenses` (`code`,`property_id`,`unit_id`,`category`,`amount`,`vat_amount`,`is_capex`,`noi_excluded`,`expense_date`,`supplier`,`status`,`import_id`,`notes`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"),
+            ct, Clip(r.Code, 40), r.PropertyId, r.UnitId, category, Money(r.Amount), Money(r.Amount2), capital ? 1 : 0, excluded ? 1 : 0,
+            DateOrNull(r.Date1), Clip(r.Counterparty, 190), draft ? "draft" : "approved", r.RelatedId, Clip(r.Note, 255)).ConfigureAwait(false);
+        var id = await LastId(c, tx, ct).ConfigureAwait(false);
+        if (!draft)
+        {
+            var posted = await PostExpenseJournalAsync(c, tx, r, id, r.PropertyId, r.Amount, capital, ct).ConfigureAwait(false);
+            if (!posted.Succeeded)
+            {
+                return posted;
+            }
+        }
+
+        return ErpSimpleWriteResult.Ok(
+            draft
+                ? "Draft expense saved. It stays off NOI until it is approved."
+                : capital
+                    ? "Expense saved. Capital cost is on the balance sheet and is not deducted from NOI."
+                    : excluded
+                        ? "Expense saved. Financing, depreciation and tax stay out of NOI."
+                        : "Expense saved and posted to the income statement.",
+            id);
+    }
+
+    private async Task<ErpSimpleWriteResult> ApproveExpenseAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (r.Id <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Expense id is required.");
+        }
+
+        var journal = await ScalarLong(c, tx, "SELECT IFNULL(`gl_journal_id`,0) FROM `epc_erp_re_expenses` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        if (journal > 0)
+        {
+            return ErpSimpleWriteResult.Fail("posted", "This expense is already posted. Reverse the journal instead of posting it again.");
+        }
+
+        var propertyId = await ScalarLong(c, tx, "SELECT IFNULL(`property_id`,0) FROM `epc_erp_re_expenses` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        var amount = await ScalarDec(c, tx, "SELECT IFNULL(`amount`,0) FROM `epc_erp_re_expenses` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        var capital = await ScalarLong(c, tx, "SELECT IFNULL(`is_capex`,0) FROM `epc_erp_re_expenses` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        if (propertyId <= 0 || amount <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Expense was not found.");
+        }
+
+        return await PostExpenseJournalAsync(c, tx, r, r.Id, propertyId, amount, capital > 0, ct).ConfigureAwait(false);
+    }
+
+    private async Task<ErpSimpleWriteResult> PostExpenseJournalAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, long id, long propertyId, decimal amount, bool capital, CancellationToken ct)
+    {
+        if (capital)
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_properties` SET `capex`=`capex`+? WHERE `id`=?"),
+                ct, Money(amount), propertyId).ConfigureAwait(false);
+        }
+
+        var le = await CompanyForPropertyAsync(c, tx, r, propertyId, ct).ConfigureAwait(false);
+        var journalId = await PostIfrsAsync(c, tx, r.ActorId, le, id,
+            "RE-EXP-" + id.ToString(CultureInfo.InvariantCulture),
+            capital ? "Capital improvement — not operating profit" : "Property operating expense",
+            capital ? ErpRealEstateIfrs.CapitalExpenditure(amount) : ErpRealEstateIfrs.OperatingExpense(amount), ct).ConfigureAwait(false);
+        await ErpRealEstateGl.StampAsync(c, tx, "epc_erp_re_expenses", id, journalId, ct).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_re_expenses` SET `status`='approved' WHERE `id`=?"),
+            ct, id).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok(capital
+            ? "Expense posted. Capital cost was not deducted from NOI."
+            : "Expense posted to the income statement.", id);
+    }
+
+    private static async Task<ErpSimpleWriteResult> AllocateExpenseAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (r.Id <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Expense id is required.");
+        }
+
+        var propertyId = await ScalarLong(c, tx, "SELECT IFNULL(`property_id`,0) FROM `epc_erp_re_expenses` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        var amount = await ScalarDec(c, tx, "SELECT IFNULL(`amount`,0) FROM `epc_erp_re_expenses` WHERE `id`=?", ct, r.Id).ConfigureAwait(false);
+        if (propertyId <= 0 || amount <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Expense was not found.");
+        }
+
+        var method = Clip(r.Category, 20, "area").ToLowerInvariant();
+        if (method is not ("area" or "equal" or "ownership" or "custom"))
+        {
+            method = "area";
+        }
+
+        var units = new List<(long Id, decimal Weight)>();
+        await using (var command = c.CreateCommand())
+        {
+            command.Transaction = tx;
+            command.CommandText = ErpDb.Positional(
+                "SELECT `id`,`area_sqm` FROM `epc_erp_re_units` WHERE `property_id`=? ORDER BY `id`");
+            ErpDb.AddParameters(command, propertyId);
+            await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                var id = Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture);
+                var area = reader.IsDBNull(1) ? 0m : Convert.ToDecimal(reader.GetValue(1), CultureInfo.InvariantCulture);
+                units.Add((id, method == "area" ? area : 1m));
+            }
+        }
+
+        if (units.Count == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Add units before allocating a building expense.");
+        }
+
+        var parts = ErpRealEstateCalc.AllocateSharedCost(amount, units.Select(u => u.Weight).ToArray());
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_re_expense_splits` SET `status`='replaced' WHERE `expense_id`=? AND `status`='allocated'"),
+            ct, r.Id).ConfigureAwait(false);
+        for (var i = 0; i < units.Count; i++)
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "INSERT INTO `epc_erp_re_expense_splits` (`expense_id`,`unit_id`,`method`,`weight`,`amount`,`status`) VALUES (?,?,?,?,?,'allocated')"),
+                ct, r.Id, units[i].Id, method, units[i].Weight, parts[i]).ConfigureAwait(false);
+        }
+
+        return ErpSimpleWriteResult.Ok("Expense allocated across " + units.Count.ToString(CultureInfo.InvariantCulture) + " units. The parts sum to the expense.", r.Id);
+    }
+
+    private async Task<ErpSimpleWriteResult> ImportSheetAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if ((r.Payload ?? string.Empty).Length > 5_000_000)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "The sheet is too large to import in one batch.");
+        }
+
+        var preview = ErpRealEstateWorkbook.Parse(r.Sheet ?? r.Category, r.Payload);
+        if (!preview.Known)
+        {
+            return ErpSimpleWriteResult.Fail("unknown_sheet", preview.Errors.FirstOrDefault() ?? "Unknown sheet.");
+        }
+
+        if (preview.Errors.Count > 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", string.Join(" ", preview.Errors.Take(6)));
+        }
+
+        if (!preview.Applies)
+        {
+            return ErpSimpleWriteResult.Fail("use_screen", preview.HoldReason);
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "INSERT INTO `epc_erp_re_imports` (`sheet`,`file_name`,`rows_ok`,`actor_id`,`status`) VALUES (?,?,0,?,'applied')"),
+            ct, Clip(preview.Name, 40), Clip(r.Code, 190, "paste.csv"), r.ActorId).ConfigureAwait(false);
+        var importId = await LastId(c, tx, ct).ConfigureAwait(false);
+        var applied = 0;
+        foreach (var row in preview.Records)
+        {
+            var one = preview.Name switch
+            {
+                "Owners" => await ImportPortfolioRowAsync(c, tx, row, importId, ct).ConfigureAwait(false),
+                "Properties" or "Buildings" => await ImportPropertyRowAsync(c, tx, row, importId, ct).ConfigureAwait(false),
+                "Units" => await ImportUnitRowAsync(c, tx, row, importId, ct).ConfigureAwait(false),
+                "Tenants" => await ImportTenantRowAsync(c, tx, row, importId, ct).ConfigureAwait(false),
+                "Agreements" => await ImportAgreementRowAsync(c, tx, r, row, importId, ct).ConfigureAwait(false),
+                "PDC_Cheques" => await ImportChequeRowAsync(c, tx, r, row, importId, ct).ConfigureAwait(false),
+                "Expenses" => await ImportExpenseRowAsync(c, tx, r, row, importId, ct).ConfigureAwait(false),
+                "Maintenance" => await ImportMaintenanceRowAsync(c, tx, r, row, importId, ct).ConfigureAwait(false),
+                "Documents" => await ImportDocumentRowAsync(c, tx, row, importId, ct).ConfigureAwait(false),
+                _ => ErpSimpleWriteResult.Fail("use_screen", preview.HoldReason),
+            };
+            if (!one.Succeeded)
+            {
+                return one;
+            }
+
+            applied++;
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_re_imports` SET `rows_ok`=? WHERE `id`=?"),
+            ct, applied, importId).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok(
+            "Imported " + applied.ToString(CultureInfo.InvariantCulture) + " " + preview.Name + " rows in batch " + importId.ToString(CultureInfo.InvariantCulture) + ". Posted journals stay. Reverse them individually. Rollback removes only draft rows with no journal.",
+            importId);
+    }
+
+    private static async Task<ErpSimpleWriteResult> RollbackImportAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
+    {
+        if (r.Id <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Import batch id is required.");
+        }
+
+        var posted = await ScalarLong(c, tx,
+            "SELECT (SELECT COUNT(*) FROM `epc_erp_re_cheques` WHERE `import_id`=? AND `gl_journal_id`>0) + (SELECT COUNT(*) FROM `epc_erp_re_expenses` WHERE `import_id`=? AND `gl_journal_id`>0) + (SELECT COUNT(*) FROM `epc_erp_property_maintenance` WHERE `import_id`=? AND IFNULL(`gl_journal_id`,0)>0)",
+            ct, r.Id, r.Id, r.Id).ConfigureAwait(false);
+        if (posted > 0)
+        {
+            return ErpSimpleWriteResult.Fail("posted", "This batch has posted journals. Reverse those documents. Rollback removes only draft rows with no journal.");
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "DELETE FROM `epc_erp_re_expenses` WHERE `import_id`=? AND `status`='draft' AND `gl_journal_id`=0"),
+            ct, r.Id).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "DELETE FROM `epc_erp_re_documents` WHERE `import_id`=?"),
+            ct, r.Id).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "DELETE FROM `epc_erp_property_maintenance` WHERE `import_id`=? AND IFNULL(`gl_journal_id`,0)=0"),
+            ct, r.Id).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_re_imports` SET `status`='rolled_back' WHERE `id`=?"),
+            ct, r.Id).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Draft rows from batch " + r.Id.ToString(CultureInfo.InvariantCulture) + " were removed. Master properties, tenants and posted journals were left in place.", r.Id);
+    }
+
+    private static async Task<ErpSimpleWriteResult> ImportPortfolioRowAsync(
+        DbConnection c, DbTransaction tx, IReadOnlyDictionary<string, string> row, long importId, CancellationToken ct)
+    {
+        var code = Clip(Cell(row, "code"), 40);
+        var name = Clip(Cell(row, "name"), 190);
+        var existing = await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_portfolios` WHERE `code`=? LIMIT 1", ct, code).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_re_portfolios` SET `name`=?,`owner_name`=? WHERE `id`=?"),
+                ct, name, Clip(Cell(row, "owner"), 190, name), existing).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Portfolio updated", existing);
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "INSERT INTO `epc_erp_re_portfolios` (`code`,`name`,`owner_name`,`status`,`import_id`) VALUES (?,?,?,'active',?)"),
+            ct, code, name, Clip(Cell(row, "owner"), 190, name), importId).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Portfolio imported", await LastId(c, tx, ct).ConfigureAwait(false));
+    }
+
+    private static async Task<ErpSimpleWriteResult> ImportPropertyRowAsync(
+        DbConnection c, DbTransaction tx, IReadOnlyDictionary<string, string> row, long importId, CancellationToken ct)
+    {
+        var code = Clip(Cell(row, "code"), 40);
+        var portfolioCode = Cell(row, "portfoliocode");
+        var portfolioId = portfolioCode.Length == 0
+            ? 0
+            : await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_portfolios` WHERE `code`=? LIMIT 1", ct, portfolioCode).ConfigureAwait(false);
+        if (portfolioCode.Length > 0 && portfolioId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Portfolio " + portfolioCode + " was not found for property " + code + ".");
+        }
+
+        var existing = await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_properties` WHERE `code`=? LIMIT 1", ct, code).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_properties` SET `name`=?,`type`=?,`emirate`=?,`city`=?,`community`=?,`portfolio_id`=IF(?=0,`portfolio_id`,?) WHERE `id`=?"),
+                ct, Clip(Cell(row, "name"), 190), Clip(Cell(row, "category"), 40, "residential"), Clip(Cell(row, "emirate"), 40),
+                Clip(Cell(row, "city"), 80), Clip(Cell(row, "community"), 80), portfolioId, portfolioId, existing).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Property updated", existing);
+        }
+
+        var saved = await SavePropertyAsync(c, tx, new ErpRealEstateWriteRequest(
+            "save_property",
+            Code: code,
+            Name: Cell(row, "name"),
+            Category: Cell(row, "category"),
+            Emirate: Cell(row, "emirate"),
+            City: Cell(row, "city"),
+            Frequency: Cell(row, "community"),
+            RelatedId: portfolioId), ct).ConfigureAwait(false);
+        if (saved.Succeeded)
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_properties` SET `import_id`=? WHERE `id`=?"),
+                ct, importId, saved.Id).ConfigureAwait(false);
+        }
+
+        return saved;
+    }
+
+    private static async Task<ErpSimpleWriteResult> ImportUnitRowAsync(
+        DbConnection c, DbTransaction tx, IReadOnlyDictionary<string, string> row, long importId, CancellationToken ct)
+    {
+        var propertyCode = Cell(row, "propertycode");
+        var propertyId = await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_properties` WHERE `code`=? LIMIT 1", ct, propertyCode).ConfigureAwait(false);
+        if (propertyId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Property " + propertyCode + " was not found for unit " + Cell(row, "unitcode") + ".");
+        }
+
+        var code = Clip(Cell(row, "unitcode"), 40);
+        var existing = await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_units` WHERE `property_id`=? AND `code`=? LIMIT 1", ct, propertyId, code).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_re_units` SET `name`=?,`unit_type`=?,`area_sqm`=?,`floor_no`=? WHERE `id`=? AND `status`='available'"),
+                ct, Clip(Cell(row, "name"), 190, code), Clip(Cell(row, "type"), 40, "apartment"), ErpRealEstateWorkbook.Money(Cell(row, "area")), Clip(Cell(row, "floor"), 20), existing).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Unit already on file", existing);
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "INSERT INTO `epc_erp_re_units` (`property_id`,`code`,`name`,`unit_type`,`floor_no`,`area_sqm`,`status`,`import_id`) VALUES (?,?,?,?,?,?,'available',?)"),
+            ct, propertyId, code, Clip(Cell(row, "name"), 190, code), Clip(Cell(row, "type"), 40, "apartment"), Clip(Cell(row, "floor"), 20), ErpRealEstateWorkbook.Money(Cell(row, "area")), importId).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Unit imported", await LastId(c, tx, ct).ConfigureAwait(false));
+    }
+
+    private static async Task<ErpSimpleWriteResult> ImportTenantRowAsync(
+        DbConnection c, DbTransaction tx, IReadOnlyDictionary<string, string> row, long importId, CancellationToken ct)
+    {
+        var code = Clip(Cell(row, "code"), 40);
+        var existing = await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_tenants` WHERE `code`=? LIMIT 1", ct, code).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_re_tenants` SET `name`=?,`contact`=?,`tenant_type`=?,`emirates_id`=?,`passport_no`=?,`email`=?,`nationality`=? WHERE `id`=?"),
+                ct, Clip(Cell(row, "name"), 190), Clip(Cell(row, "contact"), 190), Clip(Cell(row, "type"), 20, "individual"),
+                Clip(Cell(row, "emiratesid"), 40), Clip(Cell(row, "passport"), 40), Clip(Cell(row, "email"), 120), Clip(Cell(row, "nationality"), 40), existing).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Tenant updated", existing);
+        }
+
+        var saved = await SaveTenantAsync(c, tx, new ErpRealEstateWriteRequest(
+            "save_tenant",
+            Code: code,
+            Name: Cell(row, "name"),
+            Counterparty: Cell(row, "contact"),
+            Frequency: Cell(row, "type"),
+            ChequeNo: Cell(row, "emiratesid"),
+            BankName: Cell(row, "passport"),
+            Address: Cell(row, "email"),
+            Emirate: Cell(row, "nationality"),
+            Date1: Cell(row, "idexpiry")), ct).ConfigureAwait(false);
+        if (saved.Succeeded)
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_re_tenants` SET `import_id`=? WHERE `id`=?"),
+                ct, importId, saved.Id).ConfigureAwait(false);
+        }
+
+        return saved;
+    }
+
+    private async Task<ErpSimpleWriteResult> ImportAgreementRowAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, IReadOnlyDictionary<string, string> row, long importId, CancellationToken ct)
+    {
+        var code = Clip(Cell(row, "code"), 40);
+        var existing = await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_leases` WHERE `code`=? LIMIT 1", ct, code).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            return ErpSimpleWriteResult.Fail("duplicate", "Agreement " + code + " is already on file. A second schedule was not created.");
+        }
+
+        var propertyId = await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_properties` WHERE `code`=? LIMIT 1", ct, Cell(row, "propertycode")).ConfigureAwait(false);
+        var tenantId = await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_tenants` WHERE `code`=? LIMIT 1", ct, Cell(row, "tenantcode")).ConfigureAwait(false);
+        if (propertyId <= 0 || tenantId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Property or tenant for agreement " + code + " was not found.");
+        }
+
+        long unitId = 0;
+        if (Cell(row, "unitcode").Length > 0)
+        {
+            unitId = await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_units` WHERE `property_id`=? AND `code`=? LIMIT 1", ct, propertyId, Cell(row, "unitcode")).ConfigureAwait(false);
+            if (unitId <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Unit " + Cell(row, "unitcode") + " was not found for agreement " + code + ".");
+            }
+        }
+
+        var saved = await SaveLeaseAsync(c, tx, r with
+        {
+            Code = code,
+            PropertyId = propertyId,
+            UnitId = unitId,
+            TenantId = tenantId,
+            Date1 = Cell(row, "start"),
+            Date2 = Cell(row, "end"),
+            Amount = ErpRealEstateWorkbook.Money(Cell(row, "annualrent")),
+            Amount2 = ErpRealEstateWorkbook.Money(Cell(row, "deposit")),
+            Frequency = Cell(row, "frequency"),
+            TitleDeed = Cell(row, "ejari"),
+            Note = null,
+        }, ct).ConfigureAwait(false);
+        if (saved.Succeeded)
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_re_leases` SET `import_id`=? WHERE `id`=?"),
+                ct, importId, saved.Id).ConfigureAwait(false);
+        }
+
+        return saved;
+    }
+
+    private async Task<ErpSimpleWriteResult> ImportChequeRowAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, IReadOnlyDictionary<string, string> row, long importId, CancellationToken ct)
+    {
+        var chequeNo = Clip(Cell(row, "chequeno"), 40);
+        var bank = Clip(Cell(row, "bank"), 120);
+        var existing = await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_cheques` WHERE `cheque_no`=? AND `bank_name`=? LIMIT 1", ct, chequeNo, bank).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            return ErpSimpleWriteResult.Fail("duplicate", "Cheque " + chequeNo + " at " + bank + " is already on the register.");
+        }
+
+        var propertyId = Cell(row, "propertycode").Length == 0 ? 0 : await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_properties` WHERE `code`=? LIMIT 1", ct, Cell(row, "propertycode")).ConfigureAwait(false);
+        var tenantId = Cell(row, "tenantcode").Length == 0 ? 0 : await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_tenants` WHERE `code`=? LIMIT 1", ct, Cell(row, "tenantcode")).ConfigureAwait(false);
+        var leaseId = Cell(row, "agreementcode").Length == 0 ? 0 : await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_leases` WHERE `code`=? LIMIT 1", ct, Cell(row, "agreementcode")).ConfigureAwait(false);
+        var saved = await SaveChequeAsync(c, tx, r with
+        {
+            ChequeNo = chequeNo,
+            BankName = bank,
+            Amount = ErpRealEstateWorkbook.Money(Cell(row, "amount")),
+            Date1 = Cell(row, "chequedate"),
+            PropertyId = propertyId,
+            TenantId = tenantId,
+            LeaseId = leaseId,
+            Code = "CHQ-" + chequeNo,
+        }, ct).ConfigureAwait(false);
+        if (!saved.Succeeded)
+        {
+            return saved;
+        }
+
+        await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_re_cheques` SET `import_id`=? WHERE `id`=?"),
+            ct, importId, saved.Id).ConfigureAwait(false);
+        var status = Cell(row, "status").ToLowerInvariant();
+        if (status is "in_custody" or "on_hold" or "held" or "due_for_deposit")
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_re_cheques` SET `status`=? WHERE `id`=? AND `status`='received'"),
+                ct, status == "on_hold" ? "held" : status, saved.Id).ConfigureAwait(false);
+        }
+
+        return saved;
+    }
+
+    private async Task<ErpSimpleWriteResult> ImportExpenseRowAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, IReadOnlyDictionary<string, string> row, long importId, CancellationToken ct)
+    {
+        var propertyId = await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_properties` WHERE `code`=? LIMIT 1", ct, Cell(row, "propertycode")).ConfigureAwait(false);
+        if (propertyId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Property " + Cell(row, "propertycode") + " was not found for expense " + Cell(row, "code") + ".");
+        }
+
+        var capital = Cell(row, "capital").ToLowerInvariant() is "yes" or "y" or "1" or "capex";
+        return await SaveExpenseAsync(c, tx, r with
+        {
+            Code = Cell(row, "code"),
+            PropertyId = propertyId,
+            Category = Cell(row, "category"),
+            Amount = ErpRealEstateWorkbook.Money(Cell(row, "amount")),
+            Amount2 = ErpRealEstateWorkbook.Money(Cell(row, "vat")),
+            VatCode = capital ? "capex" : "opex",
+            Date1 = Cell(row, "expensedate"),
+            Counterparty = Cell(row, "supplier"),
+            Status = "draft",
+            RelatedId = importId,
+        }, ct).ConfigureAwait(false);
+    }
+
+    private async Task<ErpSimpleWriteResult> ImportMaintenanceRowAsync(
+        DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, IReadOnlyDictionary<string, string> row, long importId, CancellationToken ct)
+    {
+        var propertyId = await ScalarLong(c, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_properties` WHERE `code`=? LIMIT 1", ct, Cell(row, "propertycode")).ConfigureAwait(false);
+        if (propertyId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Property " + Cell(row, "propertycode") + " was not found for the work order.");
+        }
+
+        var capital = Cell(row, "capital").ToLowerInvariant() is "yes" or "y" or "1" or "capex";
+        var saved = await SaveMaintenanceAsync(c, tx, r with
+        {
+            PropertyId = propertyId,
+            Name = Cell(row, "description"),
+            Category = Cell(row, "category"),
+            Amount = ErpRealEstateWorkbook.Money(Cell(row, "amount")),
+            VatCode = capital ? "capex" : "opex",
+            Counterparty = Cell(row, "vendor"),
+            Date1 = Cell(row, "scheduled"),
+            Status = "historical",
+        }, ct).ConfigureAwait(false);
+        if (saved.Succeeded)
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_property_maintenance` SET `import_id`=? WHERE `id`=?"),
+                ct, importId, saved.Id).ConfigureAwait(false);
+        }
+
+        return saved;
+    }
+
+    private static async Task<ErpSimpleWriteResult> ImportDocumentRowAsync(
+        DbConnection c, DbTransaction tx, IReadOnlyDictionary<string, string> row, long importId, CancellationToken ct)
+    {
+        if (ErpRealEstateWorkbook.IsInlineFile(Cell(row, "storagekey")))
+        {
+            return ErpSimpleWriteResult.Fail("file", "Keep the file in secure storage and save only the storage key.");
+        }
+
+        var saved = await SaveDocumentAsync(c, tx, new ErpRealEstateWriteRequest(
+            "save_document",
+            Code: Cell(row, "code"),
+            Name: Cell(row, "title"),
+            Category: Cell(row, "type"),
+            Status: string.IsNullOrWhiteSpace(Cell(row, "relatedkind")) ? "property" : Cell(row, "relatedkind"),
+            Note: Cell(row, "storagekey"),
+            Address: Cell(row, "filename"),
+            Date1: Cell(row, "expiry")), ct).ConfigureAwait(false);
+        if (saved.Succeeded)
+        {
+            await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_re_documents` SET `import_id`=? WHERE `id`=?"),
+                ct, importId, saved.Id).ConfigureAwait(false);
+        }
+
+        return saved;
+    }
+
+    private static bool TryDate(object? value, out DateOnly date)
+    {
+        if (value is DateTime dt)
+        {
+            date = DateOnly.FromDateTime(dt);
+            return true;
+        }
+
+        return DateOnly.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
+    }
+
+    private static string Cell(IReadOnlyDictionary<string, string> row, string key)
+        => row.TryGetValue(key, out var value) ? value.Trim() : "";
+
     private static async Task<ErpSimpleWriteResult> SaveDocumentAsync(
         DbConnection c, DbTransaction tx, ErpRealEstateWriteRequest r, CancellationToken ct)
     {
@@ -1762,10 +2551,20 @@ public sealed class ErpRealEstateWriteService : IErpRealEstateWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Document title is required.");
         }
 
+        if (ErpRealEstateWorkbook.IsInlineFile(r.Note) || ErpRealEstateWorkbook.IsInlineFile(r.Address))
+        {
+            return ErpSimpleWriteResult.Fail("file", "Keep the file in secure storage and save only the storage key. The database does not store the file.");
+        }
+
+        var docType = Clip(r.Category, 40, "other");
+        var sensitive = docType is "emirates_id" or "passport" or "visa" or "trade_licence" ? 1 : 0;
+        var version = await ScalarLong(c, tx,
+            "SELECT IFNULL(MAX(`version_no`),0)+1 FROM `epc_erp_re_documents` WHERE `related_kind`=? AND `related_id`=? AND `doc_type`=? AND `title`=?",
+            ct, Clip(r.Status, 40, "property"), r.RelatedId, docType, Clip(r.Name, 190)).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(c, tx, ErpDb.Positional(
-            "INSERT INTO `epc_erp_re_documents` (`code`,`doc_type`,`related_kind`,`related_id`,`title`,`expiry_date`,`status`) VALUES (?,?,?,?,?,?, 'uploaded')"),
-            ct, Clip(r.Code, 40, "DOC"), Clip(r.Category, 40, "other"), Clip(r.Status, 40, "property"),
-            r.RelatedId, Clip(r.Name, 190), r.Date1).ConfigureAwait(false);
+            "INSERT INTO `epc_erp_re_documents` (`code`,`doc_type`,`related_kind`,`related_id`,`title`,`expiry_date`,`status`,`storage_key`,`file_name`,`version_no`,`sensitive`) VALUES (?,?,?,?,?,?, 'uploaded',?,?,?,?)"),
+            ct, Clip(r.Code, 40, "DOC"), docType, Clip(r.Status, 40, "property"),
+            r.RelatedId, Clip(r.Name, 190), DateOrNull(r.Date1), Clip(r.Note, 255), Clip(r.Address, 190, Clip(r.Name, 40)), version, sensitive).ConfigureAwait(false);
         var id = await LastId(c, tx, ct).ConfigureAwait(false);
         if (!string.IsNullOrWhiteSpace(r.Date1))
         {

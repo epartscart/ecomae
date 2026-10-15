@@ -37,7 +37,9 @@ public sealed record ErpRealEstateWriteRequest(
     int ActorId = 0,
     string? Date1 = null,
     string? Date2 = null,
-    bool ConfirmWrites = false);
+    bool ConfirmWrites = false,
+    string? Sheet = null,
+    string? Payload = null);
 
 public sealed record ErpRealEstateRow(
     long Id,
@@ -73,7 +75,17 @@ public sealed record ErpRealEstateKpis(
     decimal Occupancy,
     decimal Collection,
     decimal CostToComplete,
-    decimal EscrowBalance);
+    decimal EscrowBalance,
+    int VacantUnits = 0,
+    decimal RecognizedRent = 0,
+    decimal RentCollected = 0,
+    decimal OutstandingRent = 0,
+    decimal PdcInHand = 0,
+    int ChequesDue = 0,
+    decimal OperatingExpenses = 0,
+    decimal Noi = 0,
+    decimal NetCashFlow = 0,
+    decimal CapexSpend = 0);
 
 public sealed record ErpRealEstateSnapshot(
     ErpRealEstateKpis Kpis,
@@ -111,4 +123,6 @@ public interface IErpRealEstateWriteService
 public interface IErpRealEstateReadService
 {
     Task<ErpRealEstateSnapshot> LoadAsync(CancellationToken cancellationToken = default);
+
+    Task<ErpRealEstateSnapshot> LoadScopedAsync(long propertyId, string? emirate, CancellationToken cancellationToken = default);
 }

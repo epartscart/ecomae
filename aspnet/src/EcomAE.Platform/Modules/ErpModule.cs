@@ -433,6 +433,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpPmSave, HandlePmSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRealEstateSave, HandleRealEstateSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpRealEstateReport, HandleRealEstateReportAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpRealEstateWorkbook, HandleRealEstateWorkbookAsync);
         endpoints.MapPost(EcomAeRoutes.ErpIndustryApply, HandleIndustryApplyAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpIndustryCurrent, HandleIndustryCurrentAsync);
         endpoints.MapPost(EcomAeRoutes.ErpPmBudgetSave, HandlePmBudgetSaveAsync).DisableAntiforgery();
@@ -25059,6 +25060,60 @@ public sealed class ErpModule : ISurfaceModule
             "text/html; charset=utf-8");
     }
 
+    private static async Task<IResult> HandleRealEstateWorkbookAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpRealEstateReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/real-estate-app", "Admin ERP capability required for the real-estate workbook.");
+        }
+
+        var kind = (context.Request.Query["kind"].ToString() ?? "").Trim().ToLowerInvariant();
+        if (kind == "template")
+        {
+            return Results.File(
+                ErpRealEstateWorkbook.Template(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "RealEstate_Master_Import.xlsx");
+        }
+
+        var snap = await reads.LoadAsync(cancellationToken);
+        if (kind == "package")
+        {
+            return Results.File(ErpRealEstateWorkbook.ExportPackage(snap), "application/zip", "RealEstate_Registers.zip");
+        }
+
+        return Results.File(
+            ErpRealEstateWorkbook.ExportSnapshot(snap),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "RealEstate_Registers.xlsx");
+    }
+
+    private static async Task<string> RealEstatePayloadAsync(IFormCollection form, CancellationToken cancellationToken)
+    {
+        var pasted = LiveWriteFormBinder.Text(form, "payload");
+        var file = form.Files.GetFile("upload") ?? (form.Files.Count > 0 ? form.Files[0] : null);
+        if (file is null || file.Length <= 0 || file.Length > 20_000_000)
+        {
+            return pasted;
+        }
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var csv = ErpRealEstateWorkbook.SheetToCsv(stream, LiveWriteFormBinder.Text(form, "sheet"));
+            return string.IsNullOrWhiteSpace(csv) ? pasted : csv;
+        }
+        catch (Exception ex) when (ex is InvalidDataException or IOException or FormatException or ArgumentException or ExcelDataReader.Exceptions.ExcelReaderException)
+        {
+            return pasted;
+        }
+    }
+
     private static async Task<IResult> HandleRealEstateSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -25112,7 +25167,9 @@ public sealed class ErpModule : ISurfaceModule
             ActorId: (int)session.UserId,
             Date1: form is null ? null : LiveWriteFormBinder.Text(form, "date1"),
             Date2: form is null ? null : LiveWriteFormBinder.Text(form, "date2"),
-            ConfirmWrites: confirm);
+            ConfirmWrites: confirm,
+            Sheet: form is null ? null : LiveWriteFormBinder.Text(form, "sheet"),
+            Payload: form is null ? null : await RealEstatePayloadAsync(form, cancellationToken));
         if (!confirm)
         {
             return Results.Ok(new

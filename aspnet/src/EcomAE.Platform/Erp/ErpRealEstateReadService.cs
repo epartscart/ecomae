@@ -12,7 +12,10 @@ public sealed class ErpRealEstateReadService : IErpRealEstateReadService
         _connections = connections;
     }
 
-    public async Task<ErpRealEstateSnapshot> LoadAsync(CancellationToken cancellationToken = default)
+    public Task<ErpRealEstateSnapshot> LoadAsync(CancellationToken cancellationToken = default)
+        => LoadScopedAsync(0, null, cancellationToken);
+
+    public async Task<ErpRealEstateSnapshot> LoadScopedAsync(long propertyId, string? emirate, CancellationToken cancellationToken = default)
     {
         if (!_connections.IsConfigured)
         {
@@ -108,8 +111,26 @@ public sealed class ErpRealEstateReadService : IErpRealEstateReadService
             cancellationToken).ConfigureAwait(false);
         var documents = await RowsAsync(
             connection,
-            "SELECT `id`,'document',`code`,`title`,`status`,0,0,CONCAT(`doc_type`,' ',IFNULL(`expiry_date`,'')),0 FROM `epc_erp_re_documents` ORDER BY `id` DESC LIMIT 40",
+            "SELECT `id`,'document',`code`,`title`,`status`,0,0,CONCAT(`doc_type`,' ',IFNULL(`storage_key`,''),' ',IFNULL(`expiry_date`,'')),0 FROM `epc_erp_re_documents` ORDER BY `id` DESC LIMIT 40",
             cancellationToken).ConfigureAwait(false);
+        var portfolios = await RowsAsync(
+            connection,
+            "SELECT `id`,'portfolio',`code`,`name`,`status`,0,0,CONCAT('owner ',`owner_name`),0 FROM `epc_erp_re_portfolios` ORDER BY `id` DESC LIMIT 40",
+            cancellationToken).ConfigureAwait(false);
+        var communities = await RowsAsync(
+            connection,
+            "SELECT `id`,'community',`code`,`name`,`status`,0,0,CONCAT(`emirate`,' ',`city`),0 FROM `epc_erp_re_communities` ORDER BY `id` DESC LIMIT 40",
+            cancellationToken).ConfigureAwait(false);
+        var floors = await RowsAsync(
+            connection,
+            "SELECT `id`,'floor',`code`,`name`,`status`,0,0,CONCAT('property ',`property_id`,' floor ',`floor_no`),0 FROM `epc_erp_re_floors` ORDER BY `id` DESC LIMIT 40",
+            cancellationToken).ConfigureAwait(false);
+        var expenses = await RowsAsync(
+            connection,
+            "SELECT `id`,'expense',`code`,`category`,`status`,`amount`,`vat_amount`,CONCAT('property ',`property_id`,' capex=',`is_capex`),0 FROM `epc_erp_re_expenses` ORDER BY `id` DESC LIMIT 40",
+            cancellationToken).ConfigureAwait(false);
+        properties = portfolios.Concat(communities).Concat(floors).Concat(properties).ToList();
+        maintenance = expenses.Concat(maintenance).ToList();
 
         var alerts = new List<ErpRealEstateAlert>();
         await using (var command = connection.CreateCommand())
@@ -138,6 +159,7 @@ public sealed class ErpRealEstateReadService : IErpRealEstateReadService
         var costToComplete = projects.Sum(p => ErpRealEstateCalc.CostToComplete(p.Amount, p.Amount2));
         var escrowIn = escrow.Where(e => e.Code.StartsWith("RECEIPT", StringComparison.OrdinalIgnoreCase) && e.Status is not ("voided" or "reversed")).Sum(e => e.Amount);
         var escrowOut = escrow.Where(e => e.Code.StartsWith("DISBURSEMENT", StringComparison.OrdinalIgnoreCase) && e.Status is not ("voided" or "reversed")).Sum(e => e.Amount);
+        var landlord = await LandlordCardsAsync(connection, propertyId, emirate, cancellationToken).ConfigureAwait(false);
         var kpis = new ErpRealEstateKpis(
             opportunities.Count(o => o.Status is "open" or "screening"),
             owned.Length,
@@ -153,7 +175,17 @@ public sealed class ErpRealEstateReadService : IErpRealEstateReadService
             ErpRealEstateCalc.Occupancy(occupied, units.Count),
             ErpRealEstateCalc.CollectionEfficiency(collected, invoiced),
             costToComplete,
-            ErpRealEstateCalc.EscrowBalance(escrowIn, escrowOut));
+            ErpRealEstateCalc.EscrowBalance(escrowIn, escrowOut),
+            landlord.Vacant,
+            landlord.Recognized,
+            landlord.Collected,
+            landlord.Outstanding,
+            landlord.Pdc,
+            landlord.Due,
+            landlord.Opex,
+            ErpRealEstateCalc.LandlordNoi(landlord.Recognized, landlord.Opex),
+            ErpRealEstateCalc.NetCashFlow(landlord.Collected, landlord.Opex),
+            landlord.Capex);
 
         return new(
             kpis,
@@ -182,6 +214,97 @@ public sealed class ErpRealEstateReadService : IErpRealEstateReadService
             alerts,
             ErpRealEstateCalc.Definitions,
             string.Empty);
+    }
+
+    private static async Task<(int Vacant, decimal Recognized, decimal Collected, decimal Outstanding, decimal Pdc, int Due, decimal Opex, decimal Capex)> LandlordCardsAsync(
+        DbConnection connection,
+        long propertyId,
+        string? emirate,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var place = new string((emirate ?? string.Empty).Trim().Where(ch => char.IsLetterOrDigit(ch) || ch is ' ' or '-').Take(40).ToArray());
+            var prop = propertyId > 0 ? propertyId.ToString(CultureInfo.InvariantCulture) : "";
+            string Prop(string column) => prop.Length == 0 ? "" : " AND `" + column + "`=" + prop;
+            string Place(string column)
+            {
+                if (place.Length == 0)
+                {
+                    return "";
+                }
+
+                return column == "id"
+                    ? " AND `emirate`='" + place + "'"
+                    : " AND `" + column + "` IN (SELECT `id` FROM `epc_erp_properties` WHERE `emirate`='" + place + "')";
+            }
+
+            var vacant = (int)await ErpDb.LongAsync(connection, null,
+                "SELECT COUNT(*) FROM `epc_erp_re_units` WHERE `status` IN ('available','vacant')" + Prop("property_id") + Place("property_id"),
+                cancellationToken).ConfigureAwait(false);
+            var collected = await ErpDb.DecimalAsync(connection, null,
+                "SELECT IFNULL(SUM(`amount`),0) FROM `epc_erp_re_cheques` WHERE `status`='cleared'" + Prop("property_id") + Place("property_id"),
+                cancellationToken).ConfigureAwait(false);
+            var pdc = await ErpDb.DecimalAsync(connection, null,
+                "SELECT IFNULL(SUM(`amount`),0) FROM `epc_erp_re_cheques` WHERE `status` IN ('received','in_custody','held','on_hold','due_for_deposit')" + Prop("property_id") + Place("property_id"),
+                cancellationToken).ConfigureAwait(false);
+            var due = (int)await ErpDb.LongAsync(connection, null,
+                "SELECT COUNT(*) FROM `epc_erp_re_cheques` WHERE `status` IN ('received','in_custody','held','on_hold','due_for_deposit') AND `cheque_date` IS NOT NULL AND `cheque_date`<=DATE_ADD(CURRENT_DATE, INTERVAL 30 DAY)" + Prop("property_id") + Place("property_id"),
+                cancellationToken).ConfigureAwait(false);
+            var leaseFilter = Prop("property_id") + Place("property_id");
+            var outstanding = await ErpDb.DecimalAsync(connection, null,
+                "SELECT IFNULL(SUM(`amount`-`allocated`),0) FROM `epc_erp_re_rent_invoices` WHERE `status` NOT IN ('voided','reversed','cancelled')"
+                + (leaseFilter.Length == 0 ? "" : " AND `lease_id` IN (SELECT `id` FROM `epc_erp_re_leases` WHERE 1=1" + leaseFilter + ")"),
+                cancellationToken).ConfigureAwait(false);
+            var opexMaint = await ErpDb.DecimalAsync(connection, null,
+                "SELECT IFNULL(SUM(`cost`),0) FROM `epc_erp_property_maintenance` WHERE `cost_nature`='opex' AND IFNULL(`gl_journal_id`,0)>0 AND `status` NOT IN ('voided','reversed','cancelled')" + Prop("property_id") + Place("property_id"),
+                cancellationToken).ConfigureAwait(false);
+            var opexExp = await ErpDb.DecimalAsync(connection, null,
+                "SELECT IFNULL(SUM(`amount`),0) FROM `epc_erp_re_expenses` WHERE `is_capex`=0 AND `noi_excluded`=0 AND `gl_journal_id`>0 AND `status` NOT IN ('voided','reversed','cancelled','draft')" + Prop("property_id") + Place("property_id"),
+                cancellationToken).ConfigureAwait(false);
+            var capexMaint = await ErpDb.DecimalAsync(connection, null,
+                "SELECT IFNULL(SUM(`cost`),0) FROM `epc_erp_property_maintenance` WHERE `cost_nature`='capex' AND IFNULL(`gl_journal_id`,0)>0 AND `status` NOT IN ('voided','reversed','cancelled')" + Prop("property_id") + Place("property_id"),
+                cancellationToken).ConfigureAwait(false);
+            var capexExp = await ErpDb.DecimalAsync(connection, null,
+                "SELECT IFNULL(SUM(`amount`),0) FROM `epc_erp_re_expenses` WHERE `is_capex`=1 AND `gl_journal_id`>0 AND `status` NOT IN ('voided','reversed','cancelled','draft')" + Prop("property_id") + Place("property_id"),
+                cancellationToken).ConfigureAwait(false);
+
+            decimal recognized = 0;
+            var yearStart = new DateOnly(DateTime.UtcNow.Year, 1, 1);
+            var yearEnd = new DateOnly(DateTime.UtcNow.Year, 12, 31);
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT `annual_rent`,`start_date`,`end_date` FROM `epc_erp_re_leases` WHERE `status`='active'" + leaseFilter;
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (!TryDate(reader.GetValue(1), out var start) || !TryDate(reader.GetValue(2), out var end))
+                    {
+                        continue;
+                    }
+
+                    var annual = reader.IsDBNull(0) ? 0m : Convert.ToDecimal(reader.GetValue(0), CultureInfo.InvariantCulture);
+                    recognized += ErpRealEstateCalc.RecognizedRent(annual, start, end, yearStart, yearEnd);
+                }
+            }
+
+            return (vacant, ErpRealEstateCalc.Money(recognized), collected, outstanding, pdc, due, ErpRealEstateCalc.Money(opexMaint + opexExp), ErpRealEstateCalc.Money(capexMaint + capexExp));
+        }
+        catch (DbException)
+        {
+            return (0, 0, 0, 0, 0, 0, 0, 0);
+        }
+    }
+
+    private static bool TryDate(object? value, out DateOnly date)
+    {
+        if (value is DateTime dt)
+        {
+            date = DateOnly.FromDateTime(dt);
+            return true;
+        }
+
+        return DateOnly.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
     }
 
     private static ErpRealEstateSnapshot Empty(string message)

@@ -58,6 +58,8 @@ public static class ErpGlobalSearchCatalog
                 new("Contractor certificates", "/erp/real-estate-app?tab=construction", "industry", "fa-hard-hat"),
                 new("Unit sales and instalments", "/erp/real-estate-app?tab=sales", "industry", "fa-home"),
                 new("Cheque and instalment calendars", "/erp/real-estate-app?tab=calendar", "industry", "fa-calendar"),
+                new("PDC cheque register", "/erp/real-estate-app?tab=collections", "industry", "fa-money"),
+                new("Real estate import and export", "/erp/real-estate-app?tab=import", "industry", "fa-file-excel-o"),
                 new("Investment real estate report (PDF / Word)", "/erp/real-estate/report?format=html", "industry", "fa-file-pdf-o"),
             ]);
         }
