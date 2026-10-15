@@ -444,7 +444,7 @@ public static class ErpVoiceInterpreter
            + "Or: United Arab Emirates sales report for last month by customer. "
            + "Or: what do I need for a receipt voucher. "
            + "Or: open purchase orders. "
-           + "Or: ask ChatGPT, ask Cursor, or ask Devin to do a piece of work. "
+           + "Or: ask ChatGPT, ask Cursor, or ask Devin to guide you, build a report, or check the books for an issue. "
            + "I prepare the form. You press the button to post.";
 
     private static bool IsHelp(string text)

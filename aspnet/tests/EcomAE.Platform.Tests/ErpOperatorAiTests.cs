@@ -1,5 +1,6 @@
 using System.Text.Json;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 using Microsoft.AspNetCore.DataProtection;
 using Xunit;
@@ -211,6 +212,109 @@ public sealed class ErpOperatorAiTests
     }
 
     [Fact]
+    public void Brief_names_every_area_and_report_without_stack_words()
+    {
+        var knowledge = ErpOperatorAiBrief.Knowledge;
+        Assert.Contains("Accounts payable", knowledge, StringComparison.Ordinal);
+        Assert.Contains("Profit and loss", knowledge, StringComparison.Ordinal);
+        Assert.Contains("check the books", knowledge, StringComparison.Ordinal);
+        Assert.Contains("does not post money", knowledge, StringComparison.Ordinal);
+        foreach (var area in PhpModuleCatalog.ErpAreas)
+        {
+            Assert.Contains(area.Label, knowledge, StringComparison.Ordinal);
+        }
+
+        foreach (var report in ErpReportCenterRegistry.All)
+        {
+            Assert.Contains(report.Name, knowledge, StringComparison.Ordinal);
+        }
+
+        Assert.True(ErpOperatorAiBrief.TryReport("build the profit and loss", out var name, out var href));
+        Assert.Equal("Profit and loss", name);
+        Assert.Equal("/erp/report-center-app?tab=pl&key=gl_profit_loss", href);
+        Assert.True(ErpOperatorAiBrief.TryReport("customer ageing", out _, out var ageing));
+        Assert.Contains("key=exec_ar_aging", ageing, StringComparison.Ordinal);
+        Assert.False(ErpOperatorAiBrief.TryReport("open purchase orders", out _, out _));
+        Assert.Equal("issue", ErpOperatorAiBrief.Kind("identify any issue in the books"));
+        Assert.Equal("guide", ErpOperatorAiBrief.Kind("how do I record a customer receipt"));
+        Assert.Equal("report", ErpOperatorAiBrief.Kind("United Arab Emirates sales report for last month"));
+        AssertClean(knowledge);
+        Assert.DoesNotContain("php-reference", knowledge, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Chatgpt_opens_a_named_report_and_reads_book_issues()
+    {
+        var gateway = new FakeGateway();
+        var issues = new FakeIssues();
+        var dispatcher = new ErpOperatorAiDispatcher(new MemoryStore(), gateway, new FakeLookups(), issues);
+        gateway.Reply = call => call.Url.EndsWith("/models", StringComparison.Ordinal)
+            ? new ErpAiHttpResult(200, "{\"data\":[]}")
+            : new ErpAiHttpResult(200, JsonSerializer.Serialize(new
+            {
+                choices = new[] { new { message = new { content = "The income statement is the profit and loss.\nERP: report Profit and loss" } } },
+            }));
+        Assert.True((await dispatcher.ConnectAsync(9, "chatgpt", Key, "", "", "", CancellationToken.None)).Ok);
+
+        var report = await dispatcher.AskAsync(9, "chatgpt", "build the profit and loss", Today, CancellationToken.None);
+        Assert.True(report.Ready);
+        Assert.Equal("/erp/report-center-app?tab=pl&key=gl_profit_loss", report.Href);
+        Assert.Contains("Profit and loss", report.Say, StringComparison.Ordinal);
+        Assert.Contains("Nothing is posted", report.Say, StringComparison.Ordinal);
+        Assert.Contains("Accounts payable", gateway.Calls[^1].JsonBody, StringComparison.Ordinal);
+        Assert.Contains("check the books", gateway.Calls[^1].JsonBody, StringComparison.Ordinal);
+        Assert.DoesNotContain(Key, gateway.Calls[^1].JsonBody, StringComparison.Ordinal);
+        AssertClean(report.Say);
+
+        gateway.Reply = _ => new ErpAiHttpResult(200, JsonSerializer.Serialize(new
+        {
+            choices = new[] { new { message = new { content = "I will look at the books.\nERP: check the books" } } },
+        }));
+        var found = await dispatcher.AskAsync(9, "chatgpt", "identify any issue in the books", Today, CancellationToken.None);
+        Assert.False(found.Ready);
+        Assert.Equal("/erp/command-center-app", found.Href);
+        Assert.Contains("Active journals whose lines do not balance", found.Say, StringComparison.Ordinal);
+        Assert.Contains("difference 12.50", found.Say, StringComparison.Ordinal);
+        Assert.DoesNotContain("posted", found.Say, StringComparison.OrdinalIgnoreCase);
+        AssertClean(found.Say);
+    }
+
+    [Fact]
+    public async Task Guide_still_answers_when_chatgpt_is_down_and_cursor_hears_the_issue()
+    {
+        var gateway = new FakeGateway();
+        var issues = new FakeIssues { Text = "Book check is clear. Journals balance, and the customer, supplier, and cash totals match their control accounts." };
+        var dispatcher = new ErpOperatorAiDispatcher(new MemoryStore(), gateway, new FakeLookups(), issues);
+        gateway.Reply = call => call.Method == "GET"
+            ? new ErpAiHttpResult(200, "{\"data\":[]}")
+            : new ErpAiHttpResult(503, "{\"error\":{\"message\":\"busy\"}}");
+        Assert.True((await dispatcher.ConnectAsync(9, "chatgpt", Key, "", "", "", CancellationToken.None)).Ok);
+
+        var guide = await dispatcher.AskAsync(9, "chatgpt", "how do I record a customer receipt", Today, CancellationToken.None);
+        Assert.True(guide.Ok);
+        Assert.False(guide.Ready);
+        Assert.Contains("customer", guide.Say, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("amount", guide.Say, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/erp/cash-entries-app", guide.Href, StringComparison.Ordinal);
+        AssertClean(guide.Say);
+
+        gateway.Calls.Clear();
+        gateway.Reply = call => call.Method == "GET"
+            ? new ErpAiHttpResult(200, "{}")
+            : new ErpAiHttpResult(201, "{\"agent\":{\"id\":\"bc-2\",\"url\":\"https://cursor.com/agents/bc-2\",\"status\":\"ACTIVE\"}}");
+        Assert.True((await dispatcher.ConnectAsync(4, "cursor", Key, "", "", "", CancellationToken.None)).Ok);
+        var cursor = await dispatcher.AskAsync(4, "cursor", "identify any issue in the books", Today, CancellationToken.None);
+        Assert.Equal("https://cursor.com/agents/bc-2", cursor.ExternalUrl);
+        Assert.Contains("Book check is clear", cursor.Say, StringComparison.Ordinal);
+        Assert.Contains("Nothing is posted", cursor.Say, StringComparison.Ordinal);
+        Assert.Contains("Procurement and sourcing", gateway.Calls[^1].JsonBody, StringComparison.Ordinal);
+        Assert.Contains("Book check is clear", gateway.Calls[^1].JsonBody, StringComparison.Ordinal);
+        Assert.DoesNotContain(Key, gateway.Calls[^1].JsonBody, StringComparison.Ordinal);
+        Assert.False(cursor.Ready);
+        AssertClean(cursor.Say);
+    }
+
+    [Fact]
     public void Voice_panel_offers_the_three_accounts_on_the_existing_bar()
     {
         var root = FindRepoRoot();
@@ -254,6 +358,14 @@ public sealed class ErpOperatorAiTests
         }
 
         throw new DirectoryNotFoundException("Repository root was not found.");
+    }
+
+    private sealed class FakeIssues : IErpOperatorIssueScan
+    {
+        public string Text { get; init; } = "Book check found 1 issue. Active journals whose lines do not balance, difference 12.50.";
+
+        public Task<string> DescribeAsync(CancellationToken cancellationToken)
+            => Task.FromResult(Text);
     }
 
     private sealed class MemoryStore : IErpOperatorAiSecretStore
