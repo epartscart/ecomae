@@ -45,6 +45,10 @@ public static class ErpRealEstateCalc
         new("offplan_instalment", "Off-plan instalment", "sale_price * milestone_percent / 100", "milestone", Currency, "epc_erp_re_instalments", "sale_price"),
         new("shared_cost", "Shared-cost allocation", "project_cost * unit_weight / sum(weights); last unit takes remainder", "project", Currency, "epc_erp_re_cost_allocs", "sum(weights)"),
         new("irr", "Unlevered IRR/XIRR", "XIRR of dated cash flows (acquisition outflow, NOI, sale)", "holding period", "ratio", "dated cash flows", "n/a"),
+        new("recognized_rent", "Recognized rental income", "annual_rent x overlap_days / 365", "period", Currency, "active leases", "365"),
+        new("landlord_noi", "Landlord NOI", "recognized_rent - operating_expenses; capex, financing, depreciation and tax stay out", "year", Currency, "leases + posted opex", "1"),
+        new("pdc_in_hand", "PDCs in hand", "cheques received but not deposited and not cleared", "as-of", Currency, "epc_erp_re_cheques", "1"),
+        new("net_cash_flow", "Net cash flow", "cleared bank receipts - posted cash payments", "period", Currency, "cleared cheques and payments", "1"),
     ];
 
     public static decimal Money(decimal value)
@@ -277,4 +281,220 @@ public static class ErpRealEstateCalc
 
         return result;
     }
+
+    public sealed record RentInstalment(int Sequence, DateOnly Due, decimal Amount);
+
+    /// <summary>
+    /// Instalments for one lease. The last line takes the rounding remainder so the
+    /// parts always sum to instalment x count (a year of quarterly rent is four equal lines).
+    /// </summary>
+    public static IReadOnlyList<RentInstalment> BuildSchedule(decimal annualRent, string frequency, DateOnly start, DateOnly end)
+    {
+        var count = PeriodCount(frequency, start, end);
+        if (count <= 0 || annualRent <= 0 || end < start)
+        {
+            return [];
+        }
+
+        var each = InstalmentAmount(annualRent, frequency);
+        var perYear = frequency switch
+        {
+            "weekly" => 52m,
+            "quarterly" => 4m,
+            "semi_annual" => 2m,
+            "annual" => 1m,
+            _ => 12m,
+        };
+        var expected = Money(annualRent * count / perYear);
+        var rows = new List<RentInstalment>(count);
+        var cursor = start;
+        decimal running = 0;
+        for (var i = 0; i < count; i++)
+        {
+            if (i > 0 && cursor > end)
+            {
+                break;
+            }
+
+            var amount = i == count - 1 ? Money(expected - running) : each;
+            rows.Add(new RentInstalment(i + 1, cursor, amount));
+            running = Money(running + amount);
+            cursor = Step(frequency, cursor);
+        }
+
+        return rows;
+    }
+
+    public static decimal ScheduleTotal(IReadOnlyList<RentInstalment> rows)
+        => Money(rows.Sum(r => r.Amount));
+
+    /// <summary>
+    /// Straight-line contractual rent for the overlap of the lease and the report period.
+    /// A cheque received in the period is not income.
+    /// </summary>
+    public static decimal RecognizedRent(decimal annualRent, DateOnly leaseStart, DateOnly leaseEnd, DateOnly periodStart, DateOnly periodEnd)
+    {
+        if (annualRent <= 0 || leaseEnd < leaseStart || periodEnd < periodStart)
+        {
+            return 0;
+        }
+
+        var from = leaseStart > periodStart ? leaseStart : periodStart;
+        var to = leaseEnd < periodEnd ? leaseEnd : periodEnd;
+        if (to < from)
+        {
+            return 0;
+        }
+
+        var overlapDays = to.DayNumber - from.DayNumber + 1;
+        return Money(annualRent * overlapDays / 365m);
+    }
+
+    public static decimal LandlordNoi(decimal recognizedIncome, decimal operatingExpenses)
+        => NetOperatingIncome(recognizedIncome, operatingExpenses);
+
+    public static decimal NetCashFlow(decimal clearedReceipts, decimal cashPayments)
+        => Money(clearedReceipts - cashPayments);
+
+    public static bool CountsAsCash(string? status)
+        => string.Equals((status ?? string.Empty).Trim(), "cleared", StringComparison.OrdinalIgnoreCase);
+
+    public static string ChequeBucket(string? status, DateOnly? chequeDate, DateOnly today)
+    {
+        var token = (status ?? string.Empty).Trim().ToLowerInvariant();
+        if (token is "cancelled" or "replaced" or "voided" or "reversed")
+        {
+            return "closed";
+        }
+
+        if (token is "bounced" or "returned")
+        {
+            return "returned";
+        }
+
+        if (token == "cleared")
+        {
+            return "cleared";
+        }
+
+        if (token == "deposited")
+        {
+            return "awaiting_clear";
+        }
+
+        if (chequeDate is null)
+        {
+            return "undated";
+        }
+
+        var days = chequeDate.Value.DayNumber - today.DayNumber;
+        if (days < 0)
+        {
+            return "overdue_not_deposited";
+        }
+
+        if (days == 0)
+        {
+            return "due_today";
+        }
+
+        if (days == 1)
+        {
+            return "due_tomorrow";
+        }
+
+        if (days <= 7)
+        {
+            return "due_7";
+        }
+
+        if (days <= 15)
+        {
+            return "due_15";
+        }
+
+        if (days <= 30)
+        {
+            return "due_30";
+        }
+
+        return "in_custody";
+    }
+
+    public static string AgeingBucket(DateOnly due, DateOnly asOf)
+    {
+        var days = asOf.DayNumber - due.DayNumber;
+        if (days <= 0)
+        {
+            return "current";
+        }
+
+        if (days <= 30)
+        {
+            return "1_30";
+        }
+
+        if (days <= 60)
+        {
+            return "31_60";
+        }
+
+        if (days <= 90)
+        {
+            return "61_90";
+        }
+
+        return "over_90";
+    }
+
+    public static bool TenanciesOverlap(DateOnly aStart, DateOnly aEnd, DateOnly bStart, DateOnly bEnd)
+        => aStart <= bEnd && bStart <= aEnd;
+
+    public static bool ReducesOperatingProfit(string? category, bool capital)
+    {
+        if (capital)
+        {
+            return false;
+        }
+
+        var token = (category ?? string.Empty).Trim().ToLowerInvariant().Replace(' ', '_').Replace('-', '_');
+        return token is not ("mortgage_interest" or "depreciation" or "income_tax" or "capex" or "acquisition");
+    }
+
+    public static decimal MissingChequeAmount(decimal scheduleAmount, decimal linkedChequeAmount)
+        => Money(Math.Max(0, scheduleAmount - linkedChequeAmount));
+
+    public static IReadOnlyList<string> BulkUnitCodes(string? prefix, int startNumber, int count)
+    {
+        if (count <= 0)
+        {
+            return [];
+        }
+
+        var n = Math.Min(count, 500);
+        var start = startNumber <= 0 ? 1 : startNumber;
+        var stem = string.IsNullOrWhiteSpace(prefix) ? "U" : prefix.Trim();
+        if (stem.Length > 20)
+        {
+            stem = stem[..20];
+        }
+
+        var codes = new List<string>(n);
+        for (var i = 0; i < n; i++)
+        {
+            codes.Add(stem + "-" + (start + i).ToString("000"));
+        }
+
+        return codes;
+    }
+
+    private static DateOnly Step(string frequency, DateOnly cursor)
+        => frequency switch
+        {
+            "weekly" => cursor.AddDays(7),
+            "quarterly" => cursor.AddMonths(3),
+            "semi_annual" => cursor.AddMonths(6),
+            "annual" => cursor.AddYears(1),
+            _ => cursor.AddMonths(1),
+        };
 }
