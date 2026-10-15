@@ -58,6 +58,23 @@ public sealed class ErpD365FieldBindingTests
     }
 
     [Fact]
+    public void WarehouseLoad_UsesOneBranchField()
+    {
+        Assert.True(ErpD365WorkspaceCatalog.TryGet("wh_all_loads", out var page));
+        var binding = ErpD365FieldBinding.For(page);
+        Assert.Equal(ErpD365FieldBinding.Branch, binding.PartyKind);
+        Assert.Equal(ErpD365FieldBinding.Item, binding.NameKind);
+        Assert.False(binding.LinksBranch);
+    }
+
+    [Fact]
+    public void ProjectMaster_NamesTheProject()
+    {
+        var project = ErpD365WorkspaceCatalog.All.First(p => p.Area == "projects" && p.Kind == ErpD365Part3Catalog.FormKind.Master);
+        Assert.Equal(ErpD365FieldBinding.Project, ErpD365FieldBinding.For(project).NameKind);
+    }
+
+    [Fact]
     public void Queue_DoesNotTreatEquipmentAsAVendor()
     {
         var queue = ErpD365WorkspaceCatalog.All.First(p => p.Kind == ErpD365Part3Catalog.FormKind.Queue);
@@ -81,6 +98,9 @@ public sealed class ErpD365FieldBindingTests
         Assert.Contains("FieldName=\"extra\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"company_id\"", text, StringComparison.Ordinal);
         Assert.Contains("ErpD365FollowPrefill", text, StringComparison.Ordinal);
+        Assert.Contains("NameHeading", text, StringComparison.Ordinal);
+        Assert.Contains("PartyHeading", text, StringComparison.Ordinal);
+        Assert.Contains("ShowsLinkedMaster", text, StringComparison.Ordinal);
         var writer = Read("aspnet/src/EcomAE.Platform/Erp/ErpD365WorkspaceWriteService.cs");
         Assert.Contains("ErpD365FieldBinding.CompanyOrDefault", writer, StringComparison.Ordinal);
         Assert.DoesNotContain("VALUES (1,", writer, StringComparison.Ordinal);

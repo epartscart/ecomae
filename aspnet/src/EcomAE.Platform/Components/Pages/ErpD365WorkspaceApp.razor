@@ -276,7 +276,7 @@
                                         var nameBinding = BindingFor(edge.ToTab);
                                         if (nameBinding.LinksName)
                                         {
-                                            <ErpMasterPicker Kind="@nameBinding.NameKind" FieldName="name" InputId="@("lnk-" + edge.ToTab + "-name")" Label="Item / name" ValueMode="code" AllowNew="true" MaxLength="190" />
+                                            <ErpMasterPicker Kind="@nameBinding.NameKind" FieldName="name" InputId="@("lnk-" + edge.ToTab + "-name")" Label="@MasterLabel(nameBinding.NameKind)" ValueMode="code" AllowNew="true" MaxLength="190" />
                                         }
                                         else
                                         {
@@ -327,7 +327,7 @@
                                         var nameBinding = BindingFor(edge.ToTab);
                                         if (nameBinding.LinksName)
                                         {
-                                            <ErpMasterPicker Kind="@nameBinding.NameKind" FieldName="name" InputId="@("lnk-" + edge.ToTab + "-name")" Label="Item / name" ValueMode="code" AllowNew="true" MaxLength="190" />
+                                            <ErpMasterPicker Kind="@nameBinding.NameKind" FieldName="name" InputId="@("lnk-" + edge.ToTab + "-name")" Label="@MasterLabel(nameBinding.NameKind)" ValueMode="code" AllowNew="true" MaxLength="190" />
                                         }
                                         else
                                         {
@@ -453,7 +453,7 @@
                         {
                             @if (_binding.LinksName)
                             {
-                                <ErpMasterPicker Kind="@_binding.NameKind" FieldName="name" InputId="ws-name" Label="@NameLabel" ValueMode="code" AllowNew="true" SelectedCode="@_follow.Name" MaxLength="190" Required="@NameRequired" />
+                                <ErpMasterPicker Kind="@_binding.NameKind" FieldName="name" InputId="ws-name" Label="@NameHeading" ValueMode="code" AllowNew="true" SelectedCode="@_follow.Name" MaxLength="190" Required="@NameRequired" />
                             }
                             else
                             {
@@ -535,7 +535,7 @@
                         <input type="hidden" name="source_id" value="@_follow.SourceId" />
                         <input type="hidden" name="source_code" value="@_follow.SourceCode" />
                         <input type="hidden" name="relation" value="@_follow.Relation" />
-                        @if (_binding.LinksParty || _binding.LinksName || _binding.LinksBranch)
+                        @if (ShowsLinkedMaster)
                         {
                             <p class="help-block">Vendor, customer, item, account, project, and branch are picked from this company's masters. The row is stored on the company open in this workspace.</p>
                         }
@@ -549,9 +549,9 @@
                     <thead>
                         <tr>
                             <th>Ref</th>
-                            <th>@NameLabel</th>
+                            <th>@NameHeading</th>
                             @if (Show("worker")) { <th>Worker</th> }
-                            @if (Show("party")) { <th>@PartyLabel</th> }
+                            @if (Show("party")) { <th>@PartyHeading</th> }
                             <th>Type</th>
                             <th>Status</th>
                             @if (_binding.LinksBranch) { <th>Branch</th> }
@@ -677,6 +677,15 @@
     };
 
     private bool NameRequired => _page.Kind is ErpD365Part3Catalog.FormKind.Order or ErpD365Part3Catalog.FormKind.Forecast;
+
+    private string NameHeading => _binding.LinksName ? MasterLabel(_binding.NameKind) : NameLabel;
+
+    private string PartyHeading => _binding.LinksParty ? MasterLabel(_binding.PartyKind) : PartyLabel;
+
+    private bool ShowsLinkedMaster =>
+        (Show("party") && _binding.LinksParty)
+        || (Show("name") && _binding.LinksName)
+        || _binding.LinksBranch;
 
     private static string MasterLabel(string kind) => kind switch
     {

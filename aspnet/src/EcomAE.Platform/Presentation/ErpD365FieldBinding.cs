@@ -32,7 +32,14 @@ public static class ErpD365FieldBinding
     public static Binding For(ErpD365Part3Catalog.Page page)
     {
         ArgumentNullException.ThrowIfNull(page);
-        return new(PartyKind(page), NameKind(page), BranchKind(page), KindOptions(page));
+        var party = PartyKind(page);
+        var branch = BranchKind(page);
+        if (party == Branch)
+        {
+            branch = "";
+        }
+
+        return new(party, NameKind(page), branch, KindOptions(page));
     }
 
     public static long CompanyOrDefault(long companyId) => companyId > 0 ? companyId : 1;
