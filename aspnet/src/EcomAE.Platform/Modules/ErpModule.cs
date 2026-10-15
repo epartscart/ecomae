@@ -436,6 +436,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpRealEstateSave, HandleRealEstateSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpRealEstateReport, HandleRealEstateReportAsync);
         endpoints.MapGet(EcomAeRoutes.ErpRealEstateWorkbook, HandleRealEstateWorkbookAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpLandlordSave, HandleLandlordSaveAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpLandlordReport, HandleLandlordReportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpIndustryApply, HandleIndustryApplyAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpIndustryCurrent, HandleIndustryCurrentAsync);
         endpoints.MapPost(EcomAeRoutes.ErpPmBudgetSave, HandlePmBudgetSaveAsync).DisableAntiforgery();
@@ -25278,6 +25280,107 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/real-estate-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleLandlordReportAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpLandlordBook book,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/landlord-app?year=2025", "Admin ERP capability required for the landlord year book.");
+        }
+
+        await book.EnsureOpeningAsync(ClientErpPath.BoundSiteKey(context), cancellationToken);
+        int.TryParse(context.Request.Query["year"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var year);
+        long.TryParse(context.Request.Query["propertyId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var propertyId);
+        long.TryParse(context.Request.Query["unitId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var unitId);
+        if (string.IsNullOrWhiteSpace(context.Request.Query["year"].ToString()))
+        {
+            year = ErpLandlordOpening.SheetYear;
+        }
+
+        var csv = await book.CsvAsync(year, propertyId, unitId, cancellationToken);
+        var name = "Landlord-" + (year <= 0 ? "all-years" : year.ToString(CultureInfo.InvariantCulture)) + ".csv";
+        return Results.File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", name);
+    }
+
+    private static async Task<IResult> HandleLandlordSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpLandlordBook book,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/landlord-app?year=2025", "Admin ERP capability required for the landlord year book.");
+        }
+
+        var form = context.Request.HasFormContentType
+            ? await context.Request.ReadFormAsync(cancellationToken)
+            : null;
+        var confirm = form is not null && LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        var action = form is null ? "" : LiveWriteFormBinder.Text(form, "action");
+        var year = form is null ? ErpLandlordOpening.SheetYear : (int)LiveWriteFormBinder.Long(form, "year");
+        var propertyId = form is null ? 0 : LiveWriteFormBinder.Long(form, "propertyId", "property_id");
+        var unitId = form is null ? 0 : LiveWriteFormBinder.Long(form, "unitId", "unit_id");
+        var filterYear = form is null ? year : (int)LiveWriteFormBinder.Long(form, "filterYear");
+        var filterProperty = form is null ? propertyId : LiveWriteFormBinder.Long(form, "filterPropertyId");
+        var filterUnit = form is null ? unitId : LiveWriteFormBinder.Long(form, "filterUnitId");
+        if (form is not null && string.IsNullOrWhiteSpace(LiveWriteFormBinder.Text(form, "filterYear")))
+        {
+            filterYear = year > 0 ? year : ErpLandlordOpening.SheetYear;
+        }
+
+        var back = "/erp/landlord-app?year=" + filterYear.ToString(CultureInfo.InvariantCulture)
+            + "&propertyId=" + filterProperty.ToString(CultureInfo.InvariantCulture)
+            + "&unitId=" + filterUnit.ToString(CultureInfo.InvariantCulture);
+        if (!confirm)
+        {
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                writesBlocked = true,
+                phpAuthoritative = false,
+                validation_code = "dry_run",
+                message = "Dry run — landlord year book blocked without confirmWrites=true",
+                action,
+                session = SessionPayload(session),
+            });
+        }
+
+        await book.EnsureOpeningAsync(ClientErpPath.BoundSiteKey(context), cancellationToken);
+        var written = action switch
+        {
+            "save_line" => await book.SaveLineAsync(new ErpLandlordEntry(
+                propertyId,
+                unitId,
+                year,
+                form is null ? "" : LiveWriteFormBinder.Text(form, "kind"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "category"),
+                form is null ? 0 : LiveWriteFormBinder.Dec(form, "amount"),
+                form is null ? "building" : LiveWriteFormBinder.Text(form, "spread"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "note"),
+                form is null ? null : LiveWriteFormBinder.Text(form, "date1"),
+                form is null ? null : LiveWriteFormBinder.Text(form, "code")), cancellationToken),
+            "distribute" => await book.DistributeAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "id"),
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "targetUnitId"),
+                cancellationToken),
+            "void" => await book.VoidAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id"), cancellationToken),
+            _ => ErpSimpleWriteResult.Fail("invalid", "Choose record, distribute or void."),
+        };
+        return LiveWriteFormBinder.Complete(
+            context,
+            back,
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });

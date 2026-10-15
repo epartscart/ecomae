@@ -51,6 +51,7 @@ public static class ErpGlobalSearchCatalog
             rows.InsertRange(0,
             [
                 new("Real estate workspace", "/erp/real-estate-app", "industry", "fa-building"),
+                new("Landlord year book", "/erp/landlord-app?year=2025", "industry", "fa-calendar"),
                 new("Investment opportunities", "/erp/real-estate-app?tab=opportunities", "industry", "fa-lightbulb-o"),
                 new("Property register", "/erp/real-estate-app?tab=properties", "industry", "fa-home"),
                 new("Leases and collections", "/erp/real-estate-app?tab=leases", "industry", "fa-key"),

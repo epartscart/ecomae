@@ -1,0 +1,477 @@
+using System.Data.Common;
+using System.Globalization;
+
+namespace EcomAE.Platform.Erp;
+
+public static class ErpLandlordSql
+{
+    public static async Task EnsureAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        await ErpDb.ExecuteAsync(connection, null, """
+            CREATE TABLE IF NOT EXISTS `epc_erp_re_year_lines` (
+              `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+              `code` VARCHAR(40) NOT NULL,
+              `property_id` BIGINT NOT NULL,
+              `unit_id` BIGINT NOT NULL DEFAULT 0,
+              `line_year` SMALLINT NOT NULL,
+              `kind` VARCHAR(20) NOT NULL,
+              `category` VARCHAR(40) NOT NULL DEFAULT '',
+              `amount` DECIMAL(18,4) NOT NULL DEFAULT 0,
+              `spread` VARCHAR(20) NOT NULL DEFAULT 'building',
+              `parent_id` BIGINT NOT NULL DEFAULT 0,
+              `movement_date` DATE DEFAULT NULL,
+              `note` VARCHAR(255) NOT NULL DEFAULT '',
+              `status` VARCHAR(20) NOT NULL DEFAULT 'recorded',
+              `import_id` BIGINT NOT NULL DEFAULT 0,
+              PRIMARY KEY (`id`),
+              UNIQUE KEY `uk_re_year_line` (`code`),
+              KEY `idx_re_year` (`line_year`,`property_id`,`unit_id`,`kind`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """, cancellationToken).ConfigureAwait(false);
+        foreach (var alter in new[]
+        {
+            "ALTER TABLE `epc_erp_properties` ADD COLUMN `rent_start_year` INT NOT NULL DEFAULT 0",
+            "ALTER TABLE `epc_erp_properties` ADD COLUMN `planned_units` INT NOT NULL DEFAULT 0",
+            "ALTER TABLE `epc_erp_properties` ADD COLUMN `holder_name` VARCHAR(190) NOT NULL DEFAULT ''",
+        })
+        {
+            try
+            {
+                await ErpDb.ExecuteAsync(connection, null, alter, cancellationToken).ConfigureAwait(false);
+            }
+            catch (DbException)
+            {
+            }
+        }
+    }
+
+    public static async Task ApplyOpeningAsync(DbConnection connection, DbTransaction tx, CancellationToken cancellationToken)
+    {
+        var portfolioId = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_portfolios` WHERE `code`=? LIMIT 1", cancellationToken, ErpLandlordOpening.PortfolioCode).ConfigureAwait(false);
+        if (portfolioId <= 0)
+        {
+            await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                "INSERT INTO `epc_erp_re_portfolios` (`code`,`name`,`owner_name`,`status`,`import_id`) VALUES (?,?,?,'active',0)"),
+                cancellationToken, ErpLandlordOpening.PortfolioCode, ErpLandlordOpening.PortfolioName, "Named on each property").ConfigureAwait(false);
+            portfolioId = await ErpDb.LastInsertIdAsync(connection, tx, cancellationToken).ConfigureAwait(false);
+        }
+
+        foreach (var property in ErpLandlordOpening.Properties)
+        {
+            var propertyId = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_properties` WHERE `code`=? LIMIT 1", cancellationToken, property.Code).ConfigureAwait(false);
+            if (propertyId <= 0)
+            {
+                var start = property.StartYear > 0
+                    ? property.StartYear.ToString(CultureInfo.InvariantCulture) + "-01-01"
+                    : null;
+                await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                    "INSERT INTO `epc_erp_properties` (`company_id`,`code`,`name`,`type`,`ownership`,`city`,`country`,`status`,`created_at`,`emirate`,`community`,`notes`,`portfolio_id`,`acquired_date`,`rent_start_year`,`planned_units`,`holder_name`) VALUES (0,?,?,?,'owned',?, 'AE','active',?,?,?,?,?,?,?,?,?)"),
+                    cancellationToken, property.Code, property.Name, Clip(property.Type, 40, "residential"), Clip(property.City, 80),
+                    DateTimeOffset.UtcNow.ToUnixTimeSeconds(), Clip(property.Emirate, 40), Clip(property.City, 80), Clip(property.Note, 255),
+                    portfolioId, start, property.StartYear, property.PlannedUnits, Clip(property.Holder, 190)).ConfigureAwait(false);
+                propertyId = await ErpDb.LastInsertIdAsync(connection, tx, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (property.Holder.Length > 0)
+            {
+                var ownerId = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_owners` WHERE `property_id`=? AND `owner_name`=? LIMIT 1", cancellationToken, propertyId, property.Holder).ConfigureAwait(false);
+                if (ownerId <= 0)
+                {
+                    await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                        "INSERT INTO `epc_erp_re_owners` (`property_id`,`owner_name`,`ownership_pct`,`effective_from`,`status`) VALUES (?,?,100,?, 'active')"),
+                        cancellationToken, propertyId, Clip(property.Holder, 190), property.StartYear > 0 ? property.StartYear.ToString(CultureInfo.InvariantCulture) + "-01-01" : null).ConfigureAwait(false);
+                }
+            }
+        }
+
+        foreach (var line in ErpLandlordOpening.Lines)
+        {
+            var propertyId = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_properties` WHERE `code`=? LIMIT 1", cancellationToken, line.PropertyCode).ConfigureAwait(false);
+            if (propertyId <= 0)
+            {
+                continue;
+            }
+
+            await SaveAsync(connection, tx, new ErpLandlordEntry(
+                propertyId, 0, ErpLandlordOpening.SheetYear, line.Kind, line.Category, line.Amount, "building", line.Note, "2025-12-31", line.Code), 0, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    public static async Task<ErpSimpleWriteResult> SaveAsync(
+        DbConnection connection, DbTransaction tx, ErpLandlordEntry entry, long importId, CancellationToken cancellationToken)
+    {
+        var kind = (entry.Kind ?? "").Trim().ToLowerInvariant();
+        if (kind is not ("income" or "expense" or "investment" or "recovery" or "through_2024"))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Choose income, expense, investment, recovery, or combined costs through 2024.");
+        }
+
+        if (entry.PropertyId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Choose the property.");
+        }
+
+        var year = kind == "through_2024" ? 2024 : entry.Year;
+        if (kind != "through_2024" && (year < 1990 || year > 2100))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "The year is required.");
+        }
+
+        if (entry.Amount < 0 || (entry.Amount == 0 && kind is not "recovery"))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "The amount must be greater than zero. Recovery can stay at zero until the amount is known.");
+        }
+
+        var spread = (entry.Spread ?? "building").Trim().ToLowerInvariant();
+        if (spread is not ("building" or "flat" or "all_flats"))
+        {
+            spread = "building";
+        }
+
+        if (spread == "flat" && entry.UnitId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Choose the flat for this line.");
+        }
+
+        var code = Clip(string.IsNullOrWhiteSpace(entry.Code) ? NewCode(year, kind, entry.PropertyId) : entry.Code, 40);
+        var existing = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_year_lines` WHERE `code`=? LIMIT 1", cancellationToken, code).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            return ErpSimpleWriteResult.Ok("Already on the year book.", existing);
+        }
+
+        var unitId = spread == "flat" ? entry.UnitId : 0;
+        await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+            "INSERT INTO `epc_erp_re_year_lines` (`code`,`property_id`,`unit_id`,`line_year`,`kind`,`category`,`amount`,`spread`,`parent_id`,`movement_date`,`note`,`status`,`import_id`) VALUES (?,?,?,?,?,?,?,?,0,?,?,'recorded',?)"),
+            cancellationToken, code, entry.PropertyId, unitId, year, kind, Clip(entry.Category, 40, kind), entry.Amount, spread,
+            string.IsNullOrWhiteSpace(entry.MovementDate) ? null : entry.MovementDate, Clip(entry.Note, 255), importId).ConfigureAwait(false);
+        var id = await ErpDb.LastInsertIdAsync(connection, tx, cancellationToken).ConfigureAwait(false);
+        if (kind == "expense" && spread == "all_flats")
+        {
+            var split = await DistributeAsync(connection, tx, id, 0, cancellationToken).ConfigureAwait(false);
+            return split.Succeeded
+                ? split
+                : ErpSimpleWriteResult.Ok(split.Message + " The amount stays on the building.", id);
+        }
+
+        return ErpSimpleWriteResult.Ok("Recorded on " + year.ToString(CultureInfo.InvariantCulture) + ".", id);
+    }
+
+    public static async Task<ErpSimpleWriteResult> DistributeAsync(
+        DbConnection connection, DbTransaction tx, long lineId, long unitId, CancellationToken cancellationToken)
+    {
+        var line = await ReadLineAsync(connection, tx, lineId, cancellationToken).ConfigureAwait(false);
+        if (line is null || line.ParentId != 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Choose the building expense to distribute.");
+        }
+
+        if (!string.Equals(line.Kind, "expense", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Only an expense can be distributed to flats.");
+        }
+
+        var children = await LongAsync(connection, tx, "SELECT COUNT(*) FROM `epc_erp_re_year_lines` WHERE `parent_id`=? AND `status`<>'void'", cancellationToken, lineId).ConfigureAwait(false);
+        if (children > 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "This expense is already distributed. Void it and record it again to change the split.");
+        }
+
+        if (unitId > 0)
+        {
+            var belongs = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_units` WHERE `id`=? AND `property_id`=? LIMIT 1", cancellationToken, unitId, line.PropertyId).ConfigureAwait(false);
+            if (belongs <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "That flat is not on this building.");
+            }
+
+            await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_re_year_lines` SET `spread`='flat',`unit_id`=?,`note`=? WHERE `id`=?"),
+                cancellationToken, unitId, Clip("All of this expense on one flat. " + line.Note, 255), lineId).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("The expense sits on the chosen flat.", lineId);
+        }
+
+        var units = new List<(long Id, string Code)>();
+        await using (var command = connection.CreateCommand())
+        {
+            command.Transaction = tx;
+            command.CommandText = ErpDb.Positional("SELECT `id`,`code` FROM `epc_erp_re_units` WHERE `property_id`=? ORDER BY `code`");
+            ErpDb.AddParameters(command, line.PropertyId);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                units.Add((reader.GetInt64(0), reader.GetString(1)));
+            }
+        }
+
+        if (units.Count == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "No flats are listed on this building yet. The expense stays on the building until the flat list arrives.");
+        }
+
+        var parts = ErpLandlordCalc.SplitEven(line.Amount, units.Count);
+        for (var i = 0; i < units.Count; i++)
+        {
+            await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                "INSERT INTO `epc_erp_re_year_lines` (`code`,`property_id`,`unit_id`,`line_year`,`kind`,`category`,`amount`,`spread`,`parent_id`,`movement_date`,`note`,`status`,`import_id`) VALUES (?,?,?,?,?,?,?,'flat',?,?,?,'recorded',0)"),
+                cancellationToken, ChildCode(line.Code, units[i].Id), line.PropertyId, units[i].Id, line.Year, line.Kind, line.Category, parts[i], lineId,
+                string.IsNullOrWhiteSpace(line.MovementDate) ? null : line.MovementDate, Clip("Equal share of " + line.Code, 255)).ConfigureAwait(false);
+        }
+
+        await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_re_year_lines` SET `spread`='all_flats' WHERE `id`=?"),
+            cancellationToken, lineId).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Split equally across " + units.Count.ToString(CultureInfo.InvariantCulture) + " flats.", lineId);
+    }
+
+    public static async Task<ErpSimpleWriteResult> VoidAsync(DbConnection connection, DbTransaction tx, long lineId, CancellationToken cancellationToken)
+    {
+        if (lineId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Choose the line to void.");
+        }
+
+        await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_re_year_lines` SET `status`='void' WHERE `id`=? OR `parent_id`=?"),
+            cancellationToken, lineId, lineId).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("The line is void and stays off the return.", lineId);
+    }
+
+    public static async Task<ErpSimpleWriteResult> ImportYearRowAsync(
+        DbConnection connection, DbTransaction tx, IReadOnlyDictionary<string, string> row, long importId, CancellationToken cancellationToken)
+    {
+        var propertyCode = Text(row, "propertycode");
+        var propertyId = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_properties` WHERE `code`=? LIMIT 1", cancellationToken, propertyCode).ConfigureAwait(false);
+        if (propertyId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Property " + propertyCode + " was not found.");
+        }
+
+        long unitId = 0;
+        var unitCode = Text(row, "unitcode");
+        if (unitCode.Length > 0)
+        {
+            unitId = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_units` WHERE `property_id`=? AND `code`=? LIMIT 1", cancellationToken, propertyId, unitCode).ConfigureAwait(false);
+            if (unitId <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Flat " + unitCode + " was not found on " + propertyCode + ".");
+            }
+        }
+
+        int.TryParse(Text(row, "year"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var year);
+        var saved = await SaveAsync(connection, tx, new ErpLandlordEntry(
+            propertyId,
+            unitId,
+            year,
+            Text(row, "kind"),
+            Text(row, "category"),
+            ErpRealEstateWorkbook.Money(Text(row, "amount")),
+            unitId > 0 ? "flat" : (Text(row, "spread").Length == 0 ? "building" : Text(row, "spread")),
+            Text(row, "note"),
+            Text(row, "movementdate"),
+            Text(row, "code")), importId, cancellationToken).ConfigureAwait(false);
+        return saved;
+    }
+
+    public static async Task RecordExpenseMeasurementAsync(
+        DbConnection connection, DbTransaction tx, IReadOnlyDictionary<string, string> row, long importId, CancellationToken cancellationToken)
+    {
+        if (!int.TryParse(Text(row, "year"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var year) || year <= 0)
+        {
+            return;
+        }
+
+        var propertyId = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_properties` WHERE `code`=? LIMIT 1", cancellationToken, Text(row, "propertycode")).ConfigureAwait(false);
+        if (propertyId <= 0)
+        {
+            return;
+        }
+
+        long unitId = 0;
+        var unitCode = Text(row, "unitcode");
+        if (unitCode.Length > 0)
+        {
+            unitId = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_units` WHERE `property_id`=? AND `code`=? LIMIT 1", cancellationToken, propertyId, unitCode).ConfigureAwait(false);
+        }
+
+        var spread = Text(row, "spread");
+        if (spread.Length == 0)
+        {
+            spread = unitId > 0 ? "flat" : "building";
+        }
+
+        if (unitId <= 0 && string.Equals(spread, "flat", StringComparison.OrdinalIgnoreCase))
+        {
+            spread = "building";
+        }
+
+        await SaveAsync(connection, tx, new ErpLandlordEntry(
+            propertyId,
+            unitId,
+            year,
+            "expense",
+            Text(row, "category"),
+            ErpRealEstateWorkbook.Money(Text(row, "amount")),
+            spread,
+            Text(row, "note"),
+            Text(row, "expensedate"),
+            "Y" + year.ToString(CultureInfo.InvariantCulture) + "-" + Text(row, "code")), importId, cancellationToken).ConfigureAwait(false);
+    }
+
+    public static async Task StampPropertyAsync(
+        DbConnection connection, DbTransaction tx, long propertyId, IReadOnlyDictionary<string, string> row, CancellationToken cancellationToken)
+    {
+        if (propertyId <= 0)
+        {
+            return;
+        }
+
+        if (!row.ContainsKey("holder") && !row.ContainsKey("rentstartyear") && !row.ContainsKey("plannedunits"))
+        {
+            return;
+        }
+
+        int.TryParse(Text(row, "rentstartyear"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var start);
+        int.TryParse(Text(row, "plannedunits"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var planned);
+        await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_properties` SET `holder_name`=IF(?='',`holder_name`,?), `rent_start_year`=IF(?=0,`rent_start_year`,?), `planned_units`=IF(?=0,`planned_units`,?) WHERE `id`=?"),
+            cancellationToken, Text(row, "holder"), Clip(Text(row, "holder"), 190), start, start, planned, planned, propertyId).ConfigureAwait(false);
+        var holder = Text(row, "holder");
+        if (holder.Length == 0)
+        {
+            return;
+        }
+
+        var ownerId = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_owners` WHERE `property_id`=? AND `owner_name`=? LIMIT 1", cancellationToken, propertyId, holder).ConfigureAwait(false);
+        if (ownerId <= 0)
+        {
+            await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                "INSERT INTO `epc_erp_re_owners` (`property_id`,`owner_name`,`ownership_pct`,`status`) VALUES (?,?,100,'active')"),
+                cancellationToken, propertyId, Clip(holder, 190)).ConfigureAwait(false);
+        }
+    }
+
+    public static async Task<IReadOnlyList<ErpLandlordProperty>> PropertiesAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var rows = new List<ErpLandlordProperty>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT p.`id`, p.`code`, p.`name`, IFNULL(p.`holder_name`,''), IFNULL(p.`rent_start_year`,0), IFNULL(p.`planned_units`,0), IFNULL(p.`type`,''),
+                   (SELECT COUNT(*) FROM `epc_erp_re_units` u WHERE u.`property_id`=p.`id`)
+            FROM `epc_erp_properties` p
+            ORDER BY p.`name`
+            """;
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new ErpLandlordProperty(
+                ReadLong(reader, 0), ReadText(reader, 1), ReadText(reader, 2), ReadText(reader, 3),
+                ReadInt(reader, 4), ReadInt(reader, 5), ReadInt(reader, 7), ReadText(reader, 6)));
+        }
+
+        return rows;
+    }
+
+    public static async Task<IReadOnlyList<ErpLandlordUnit>> UnitsAsync(DbConnection connection, long propertyId, CancellationToken cancellationToken)
+    {
+        var rows = new List<ErpLandlordUnit>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = propertyId > 0
+            ? ErpDb.Positional("SELECT `id`,`property_id`,`code`,`name` FROM `epc_erp_re_units` WHERE `property_id`=? ORDER BY `code`")
+            : "SELECT `id`,`property_id`,`code`,`name` FROM `epc_erp_re_units` ORDER BY `property_id`,`code`";
+        if (propertyId > 0)
+        {
+            ErpDb.AddParameters(command, propertyId);
+        }
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new ErpLandlordUnit(ReadLong(reader, 0), ReadLong(reader, 1), ReadText(reader, 2), ReadText(reader, 3)));
+        }
+
+        return rows;
+    }
+
+    public static async Task<IReadOnlyList<ErpLandlordLine>> LinesAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var rows = new List<ErpLandlordLine>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT l.`id`, l.`code`, l.`property_id`, l.`unit_id`, l.`line_year`, l.`kind`, l.`category`, l.`amount`, l.`spread`, l.`parent_id`,
+                   IFNULL(DATE_FORMAT(l.`movement_date`,'%Y-%m-%d'),''), l.`note`, l.`status`, p.`code`, p.`name`, IFNULL(u.`code`,''), IFNULL(u.`name`,'')
+            FROM `epc_erp_re_year_lines` l
+            JOIN `epc_erp_properties` p ON p.`id`=l.`property_id`
+            LEFT JOIN `epc_erp_re_units` u ON u.`id`=l.`unit_id`
+            WHERE l.`status`<>'void'
+            ORDER BY l.`line_year`, p.`name`, l.`kind`, l.`id`
+            """;
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(ReadLine(reader));
+        }
+
+        return rows;
+    }
+
+    private static async Task<ErpLandlordLine?> ReadLineAsync(DbConnection connection, DbTransaction tx, long id, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = tx;
+        command.CommandText = ErpDb.Positional(
+            "SELECT `id`,`code`,`property_id`,`unit_id`,`line_year`,`kind`,`category`,`amount`,`spread`,`parent_id`,IFNULL(DATE_FORMAT(`movement_date`,'%Y-%m-%d'),''),`note`,`status`,'','','','' FROM `epc_erp_re_year_lines` WHERE `id`=? LIMIT 1");
+        ErpDb.AddParameters(command, id);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        return ReadLine(reader);
+    }
+
+    private static ErpLandlordLine ReadLine(DbDataReader reader)
+        => new(
+            ReadLong(reader, 0), ReadText(reader, 1), ReadLong(reader, 2), ReadLong(reader, 3), ReadInt(reader, 4),
+            ReadText(reader, 5), ReadText(reader, 6), ReadMoney(reader, 7), ReadText(reader, 8), ReadLong(reader, 9),
+            ReadText(reader, 10), ReadText(reader, 11), ReadText(reader, 12), ReadText(reader, 13), ReadText(reader, 14),
+            ReadText(reader, 15), ReadText(reader, 16));
+
+    private static long ReadLong(DbDataReader reader, int ordinal)
+        => reader.IsDBNull(ordinal) ? 0 : Convert.ToInt64(reader.GetValue(ordinal), CultureInfo.InvariantCulture);
+
+    private static int ReadInt(DbDataReader reader, int ordinal)
+        => reader.IsDBNull(ordinal) ? 0 : Convert.ToInt32(reader.GetValue(ordinal), CultureInfo.InvariantCulture);
+
+    private static decimal ReadMoney(DbDataReader reader, int ordinal)
+        => reader.IsDBNull(ordinal) ? 0 : Convert.ToDecimal(reader.GetValue(ordinal), CultureInfo.InvariantCulture);
+
+    private static string ReadText(DbDataReader reader, int ordinal)
+        => reader.IsDBNull(ordinal) ? "" : Convert.ToString(reader.GetValue(ordinal), CultureInfo.InvariantCulture) ?? "";
+
+    private static async Task<long> LongAsync(DbConnection connection, DbTransaction? tx, string sql, CancellationToken cancellationToken, params object?[] args)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = tx;
+        command.CommandText = ErpDb.Positional(sql);
+        ErpDb.AddParameters(command, args);
+        var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return value is null or DBNull ? 0 : Convert.ToInt64(value, CultureInfo.InvariantCulture);
+    }
+
+    private static string NewCode(int year, string kind, long propertyId)
+        => Clip("M" + year.ToString(CultureInfo.InvariantCulture) + "-" + kind[..Math.Min(3, kind.Length)] + "-" + propertyId.ToString(CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N")[..6], 40);
+
+    private static string ChildCode(string parent, long unitId)
+        => Clip(parent + "-U" + unitId.ToString(CultureInfo.InvariantCulture), 40);
+
+    private static string Text(IReadOnlyDictionary<string, string> row, string key)
+        => row.TryGetValue(key, out var value) ? value.Trim() : "";
+
+    private static string Clip(string? value, int max, string fallback = "")
+    {
+        var text = string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+        return text.Length <= max ? text : text[..max];
+    }
+}
