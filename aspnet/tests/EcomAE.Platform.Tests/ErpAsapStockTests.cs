@@ -105,7 +105,13 @@ public sealed class ErpAsapStockTests
     public void WorkbookMatchesTheSuppliedSheetsAndDoesNotReserve()
     {
         Assert.Equal("/erp/asap/workbook", EcomAeRoutes.ErpAsapWorkbook);
-        Assert.Equal(41, ErpAsapWorkbook.TemplateSheets.Length);
+        Assert.Equal(58, ErpAsapWorkbook.TemplateSheets.Length);
+        Assert.Equal(
+            new[] { "reservation_id", "so_id", "line_no", "sku", "warehouse_id", "qty", "created_at", "expires_at", "status", "allocation_sequence" },
+            ErpAsapWorkbook.Headers("Reservations"));
+        Assert.Equal(
+            new[] { "warehouse_id", "company_id", "name", "type", "emirate", "customs_status", "central_fulfilment", "allow_reservation" },
+            ErpAsapWorkbook.Headers("Warehouses"));
         Assert.Equal(
             new[] { "sku", "brand_id", "part_number", "description", "category_id", "origin_country", "hs_code", "uom", "pack_qty", "weight_kg", "dimensions", "active" },
             ErpAsapWorkbook.Headers("Product_Master"));
@@ -151,6 +157,37 @@ public sealed class ErpAsapStockTests
             }
             : sheet).ToList();
         Assert.Contains(ErpAsapWorkbook.Validate(vat), error => error.Contains("VAT", StringComparison.Ordinal));
+        var zone = book.Select(sheet => sheet.Name == "VAT_Customs"
+            ? sheet with
+            {
+                Records =
+                [
+                    new Dictionary<string, string>(StringComparer.Ordinal)
+                    {
+                        ["tax_code"] = "VAT-FZ",
+                        ["customs_zone"] = "JAFZA",
+                        ["vat_treatment"] = "exempt",
+                    },
+                ],
+            }
+            : sheet).ToList();
+        Assert.Contains(ErpAsapWorkbook.Validate(zone), error => error.Contains("designated zone", StringComparison.Ordinal));
+        var move = book.Select(sheet => sheet.Name == "Warehouse_Transfers"
+            ? sheet with
+            {
+                Records =
+                [
+                    new Dictionary<string, string>(StringComparer.Ordinal)
+                    {
+                        ["transfer_id"] = "TR-9",
+                        ["from_company"] = "CO-A",
+                        ["to_company"] = "CO-B",
+                        ["transfer_type"] = "warehouse",
+                    },
+                ],
+            }
+            : sheet).ToList();
+        Assert.Contains(ErpAsapWorkbook.Validate(move), error => error.Contains("owning company", StringComparison.Ordinal));
     }
 
     [Fact]

@@ -14,13 +14,16 @@ public static class ErpAsapWorkbook
     public static readonly string[] TemplateSheets =
     [
         "START_HERE", "Companies", "Business_Centres", "Profit_Centres", "Cost_Centres", "Branches",
-        "Brands", "GL_Accounts", "Product_Master", "Product_Attributes", "OEM_References",
-        "Cross_References", "Alternates_Kits", "Customers", "Customer_Price_List", "Purchase_Orders",
-        "PO_Lines", "Import_Shipments", "Import_Costs", "Goods_Receipts", "GRN_Lines",
-        "Inventory_Opening", "Inventory_Movements", "Bins", "Pick_Waves", "Pick_Lines", "Deliveries",
-        "Cycle_Counts", "Intercompany_Rules", "Intercompany_Transactions", "Bank_Cheques",
-        "Payments_Receipts", "Journal_Entries", "Budgets", "Forecast_Demand", "AR_Opening",
-        "AP_Opening", "Expenses", "Alerts", "Documents", "Import_Audit",
+        "Warehouses", "Brands", "GL_Accounts", "Suppliers", "Product_Master", "Product_Attributes",
+        "OEM_References", "Vehicle_Fitment", "Cross_References", "Alternates_Kits", "Customers",
+        "Customer_Price_List", "Users_Roles", "Purchase_Requisitions", "Purchase_Orders", "PO_Lines",
+        "Supplier_Price_List", "Import_Shipments", "Import_Costs", "Goods_Receipts", "GRN_Lines",
+        "Inventory_Opening", "Inventory_Movements", "Reorder_Policies", "Stock_Ageing", "Bins",
+        "Warehouse_Transfers", "Pick_Waves", "Pick_Lines", "Sales_Orders", "SO_Lines", "Reservations",
+        "Deliveries", "Sales_Invoices", "Sales_Invoice_Lines", "Returns_RMA", "Cycle_Counts",
+        "Intercompany_Rules", "Intercompany_Transactions", "TP_Documentation", "Bank_Cheques",
+        "Payments_Receipts", "Journal_Entries", "VAT_Customs", "Budgets", "Forecast_Demand",
+        "AR_Opening", "AP_Opening", "Expenses", "Alerts", "Documents", "Import_Audit",
     ];
 
     public sealed record Sheet(
@@ -48,7 +51,7 @@ public static class ErpAsapWorkbook
 
             var readme = zip.CreateEntry("README.txt");
             using var writer = new StreamWriter(readme.Open(), new UTF8Encoding(false));
-            writer.Write("ASAP workbook for the 40 reference sheets supplied so far, plus START_HERE. Stock is reserved only when an order confirms. Opening inventory, goods receipts, and pick lines do not create a second reservation. This package does not post reservations, invoices, or journals.");
+            writer.Write("ASAP workbook: 57 reference sheets plus START_HERE. The Reservations sheet does not allocate live stock. A warehouse move inside one company is not an intercompany sale. A designated zone is not automatically VAT exempt. This package does not post reservations, invoices, or journals.");
         }
 
         return ms.ToArray();
@@ -199,6 +202,75 @@ public static class ErpAsapWorkbook
                         }
 
                         break;
+                    case "Reservations":
+                        if (Cell(row, "status").Equals("confirmed", StringComparison.OrdinalIgnoreCase)
+                            && Cell(row, "expires_at").Length > 0)
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": a confirmed reservation does not expire.");
+                        }
+
+                        break;
+                    case "Warehouse_Transfers":
+                        if (Cell(row, "transfer_type").Equals("warehouse", StringComparison.OrdinalIgnoreCase)
+                            && Cell(row, "from_company").Length > 0
+                            && !Cell(row, "from_company").Equals(Cell(row, "to_company"), StringComparison.OrdinalIgnoreCase))
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": a warehouse move does not change the owning company.");
+                        }
+
+                        break;
+                    case "VAT_Customs":
+                        var zone = Cell(row, "customs_zone");
+                        if (Cell(row, "vat_treatment").Equals("exempt", StringComparison.OrdinalIgnoreCase)
+                            && (zone.Contains("designated", StringComparison.OrdinalIgnoreCase)
+                                || zone.Contains("jafza", StringComparison.OrdinalIgnoreCase)
+                                || zone.Contains("free", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": a designated zone is not automatically VAT exempt.");
+                        }
+
+                        break;
+                    case "Vehicle_Fitment":
+                        Need(errors, sheet.Name, rowNo, row, "verification_source");
+                        if (Num(row, "year_from") > 0m && Num(row, "year_to") > 0m && Num(row, "year_to") < Num(row, "year_from"))
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": year_to is before year_from.");
+                        }
+
+                        break;
+                    case "Reorder_Policies":
+                        if (Num(row, "max_qty") > 0m && Num(row, "min_qty") > Num(row, "max_qty"))
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": min_qty cannot exceed max_qty.");
+                        }
+
+                        break;
+                    case "Sales_Invoices":
+                        if (Num(row, "subtotal") + Num(row, "vat_amount") != Num(row, "total")
+                            && (Num(row, "subtotal") > 0m || Num(row, "vat_amount") > 0m || Num(row, "total") > 0m))
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": total must equal subtotal plus VAT.");
+                        }
+
+                        break;
+                    case "SO_Lines":
+                        if (Num(row, "qty") <= 0m)
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": qty must be greater than zero.");
+                        }
+
+                        break;
+                    case "TP_Documentation":
+                        Need(errors, sheet.Name, rowNo, row, "method");
+                        break;
+                    case "Users_Roles":
+                        if (Cell(row, "can_override_reservation").Equals("yes", StringComparison.OrdinalIgnoreCase)
+                            && Cell(row, "can_reserve").Equals("no", StringComparison.OrdinalIgnoreCase))
+                        {
+                            errors.Add(sheet.Name + " row " + rowNo + ": a user who cannot reserve cannot override a reservation.");
+                        }
+
+                        break;
                 }
             }
         }
@@ -335,6 +407,23 @@ public static class ErpAsapWorkbook
         "PO_Lines" => ["po_id", "line_no", "sku", "ordered_qty", "unit_price", "discount_pct", "warehouse_id", "expected_date"],
         "Product_Attributes" => ["sku", "attribute_name", "attribute_value"],
         "Product_Master" => ["sku", "brand_id", "part_number", "description", "category_id", "origin_country", "hs_code", "uom", "pack_qty", "weight_kg", "dimensions", "active"],
+        "Reorder_Policies" => ["sku", "warehouse_id", "min_qty", "max_qty", "safety_stock", "lead_time_days", "reorder_point", "order_multiple"],
+        "Reservations" => ["reservation_id", "so_id", "line_no", "sku", "warehouse_id", "qty", "created_at", "expires_at", "status", "allocation_sequence"],
+        "Returns_RMA" => ["rma_id", "original_invoice", "customer_id", "sku", "qty", "reason", "inspection_status", "credit_note_id"],
+        "Sales_Invoice_Lines" => ["invoice_id", "line_no", "sku", "qty", "unit_price", "discount", "vat_code", "cost_centre_id", "profit_centre_id"],
+        "Sales_Invoices" => ["invoice_id", "company_id", "customer_id", "so_id", "invoice_date", "currency", "subtotal", "vat_amount", "total", "status"],
+        "Sales_Orders" => ["so_id", "company_id", "branch_id", "customer_id", "order_date", "channel", "currency", "priority", "status"],
+        "SO_Lines" => ["so_id", "line_no", "sku", "qty", "unit_price", "source_warehouse", "profit_centre_id", "requested_date"],
+        "Stock_Ageing" => ["company_id", "warehouse_id", "sku", "lot_no", "receipt_date", "qty_on_hand", "unit_cost", "as_of_date"],
+        "Supplier_Price_List" => ["supplier_id", "sku", "supplier_part_number", "currency", "unit_price", "moq", "available_qty", "valid_from", "valid_to"],
+        "Suppliers" => ["supplier_id", "legal_name", "country", "currency", "trade_terms", "lead_time_days", "trn", "credit_days", "bank_ref"],
+        "TP_Documentation" => ["tp_doc_id", "rule_id", "method", "benchmark_source", "benchmark_date", "arm_length_range", "approval_by", "document_ref"],
+        "Users_Roles" => ["user_id", "company_id", "branch_id", "role_id", "can_reserve", "can_override_reservation", "approval_limit"],
+        "VAT_Customs" => ["tax_code", "transaction_type", "origin_country", "destination_country", "customs_zone", "vat_treatment", "document_required"],
+        "Vehicle_Fitment" => ["fitment_id", "sku", "vehicle_make", "model", "year_from", "year_to", "engine", "vin_range", "position", "verification_source"],
+        "Warehouse_Transfers" => ["transfer_id", "from_company", "from_warehouse", "to_company", "to_warehouse", "sku", "qty", "transfer_type", "status"],
+        "Warehouses" => ["warehouse_id", "company_id", "name", "type", "emirate", "customs_status", "central_fulfilment", "allow_reservation"],
+        "Purchase_Requisitions" => ["pr_id", "company_id", "warehouse_id", "sku", "qty", "required_date", "requester", "status"],
         _ => throw new ArgumentOutOfRangeException(nameof(sheet), sheet, "Unknown ASAP sheet."),
     };
 
@@ -345,8 +434,12 @@ public static class ErpAsapWorkbook
             return
             [
                 ["Purpose", "Automotive aftermarket ERP for multi-company wholesale, retail, import and central warehousing"],
-                ["Sheets", "40 reference sheets from the supplied CSVs, plus this instruction sheet"],
-                ["Reservation", "Excel does not reserve stock. A confirmed order is the only event that keeps a quantity. A pick line uses that reservation and does not reserve again"],
+                ["Sheets", "57 reference sheets from the supplied CSVs, plus this instruction sheet. Purchase_Orders is included once"],
+                ["Reservation", "Excel does not reserve stock. The Reservations sheet is a reference only. A confirmed reservation has no expiry. A pick line uses that reservation and does not reserve again"],
+                ["Transfer", "A warehouse move inside one company does not change ownership and is not an intercompany sale"],
+                ["Tax", "A designated zone or JAFZA movement is not automatically VAT exempt"],
+                ["Fitment", "Vehicle fitment keeps its source. This workbook does not invent compatibility"],
+                ["Journals", "A posted journal is reversed. It is not overwritten"],
                 ["Landed cost", "Freight and duty can be capitalized. Recoverable VAT stays out of inventory cost"],
                 ["Intercompany", "The selling company and the buying company are different legal entities"],
                 ["Ownership", "Warehouse location and the owning company are separate. Another company's stock needs an intercompany fulfilment"],
@@ -386,6 +479,41 @@ public static class ErpAsapWorkbook
             return [["SH-1", "COST-1", "freight", "SUP-1", "USD", "100", "value", "yes"]];
         }
 
+        if (sheet == "Reservations")
+        {
+            return [["RSV-1", "SO-1", "1", "FILTER-001", "WH-CENTRAL", "6", "2026-10-15", "", "confirmed", "1"]];
+        }
+
+        if (sheet == "Warehouse_Transfers")
+        {
+            return [["TR-1", "CO-A", "WH-1", "CO-A", "WH-2", "FILTER-001", "2", "warehouse", "planned"]];
+        }
+
+        if (sheet == "VAT_Customs")
+        {
+            return [["VAT-DOM", "domestic", "AE", "AE", "mainland", "standard", "tax_invoice"]];
+        }
+
+        if (sheet == "Vehicle_Fitment")
+        {
+            return [["FIT-1", "FILTER-001", "Toyota", "Corolla", "2018", "2022", "1.8", "", "front", "catalogue"]];
+        }
+
+        if (sheet == "Sales_Invoices")
+        {
+            return [["INV-1", "CO-A", "CUST-1", "SO-1", "2026-10-15", "AED", "100", "5", "105", "draft"]];
+        }
+
+        if (sheet == "SO_Lines")
+        {
+            return [["SO-1", "1", "FILTER-001", "6", "10", "WH-CENTRAL", "PC-1", "2026-10-15"]];
+        }
+
+        if (sheet == "TP_Documentation")
+        {
+            return [["TP-1", "IC-1", "comparable_uncontrolled_price", "supplier quotes", "2026-01-01", "documented range", "CFO", "DOC-1"]];
+        }
+
         if (sheet == "Pick_Lines")
         {
             return [["WAVE-1", "PICK-1", "RSV-1", "FILTER-001", "BIN-1", "4", "4", "2026-10-15"]];
@@ -406,7 +534,7 @@ public static class ErpAsapWorkbook
     private static string[] Sample(string sheet)
     {
         var headers = Headers(sheet);
-        return headers.Select(header => header.EndsWith("_qty", StringComparison.Ordinal) || header is "quantity" or "qty" or "credit_limit" or "credit_days" or "unit_price" or "discount_pct" or "amount" or "net_amount" or "vat_amount" or "budget_amount" or "outstanding_amount" or "system_qty" or "counted_qty" or "priority" or "version" or "debit" or "credit" or "pack_qty" or "weight_kg" or "markup_pct" or "transfer_price" or "unit_cost" or "rows_accepted" or "rows_rejected" or "line_no"
+        return headers.Select(header => header.EndsWith("_qty", StringComparison.Ordinal) || header is "quantity" or "qty" or "credit_limit" or "credit_days" or "unit_price" or "discount_pct" or "amount" or "net_amount" or "vat_amount" or "budget_amount" or "outstanding_amount" or "system_qty" or "counted_qty" or "priority" or "version" or "debit" or "credit" or "pack_qty" or "weight_kg" or "markup_pct" or "transfer_price" or "unit_cost" or "rows_accepted" or "rows_rejected" or "line_no" or "safety_stock" or "lead_time_days" or "reorder_point" or "order_multiple" or "subtotal" or "total" or "discount" or "year_from" or "year_to" or "approval_limit" or "moq" or "allocation_sequence"
             ? "0"
             : header.EndsWith("_date", StringComparison.Ordinal) || header.EndsWith("_at", StringComparison.Ordinal) || header is "forecast_month" or "valid_from" or "valid_to" or "month" or "eta" or "effective_from" or "effective_to"
                 ? "2026-10-15"
