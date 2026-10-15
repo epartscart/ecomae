@@ -179,6 +179,63 @@ public sealed class ClientErpPathTests
     }
 
     [Fact]
+    public async Task PlatformErpEntry_DropsCompanyCookieInsteadOfJumpingTenant()
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("www.ecomae.com");
+        ctx.Request.Path = "/erp/app";
+        ctx.Request.Headers.Cookie = ClientErpPath.CookieName + "=real";
+        var ranNext = false;
+        var mw = new ClientErpCookieRedirectMiddleware(_ =>
+        {
+            ranNext = true;
+            return Task.CompletedTask;
+        });
+
+        await mw.InvokeAsync(ctx);
+
+        Assert.True(ranNext);
+        Assert.Equal(200, ctx.Response.StatusCode);
+        Assert.Equal("platform-entry", ctx.Response.Headers["X-EcomAE-Client-Erp"].ToString());
+        Assert.False(ctx.Response.Headers.ContainsKey("Location"));
+        Assert.Contains(ClientErpPath.CookieName, ctx.Response.Headers.SetCookie.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task PlatformErpEntry_FromInsideTheCompany_StaysOnThatCompany()
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("www.ecomae.com");
+        ctx.Request.Path = "/erp/app";
+        ctx.Request.Headers.Cookie = ClientErpPath.CookieName + "=real";
+        ctx.Request.Headers.Referer = "https://www.ecomae.com/cp/client-erp/real/erp/cash-entries-app";
+        var ranNext = false;
+        var mw = new ClientErpCookieRedirectMiddleware(_ =>
+        {
+            ranNext = true;
+            return Task.CompletedTask;
+        });
+
+        await mw.InvokeAsync(ctx);
+
+        Assert.False(ranNext);
+        Assert.Equal(302, ctx.Response.StatusCode);
+        Assert.Equal("/cp/client-erp/real/erp/app", ctx.Response.Headers.Location.ToString());
+    }
+
+    [Fact]
+    public void RefererFromControlPanel_DoesNotKeepTheCompany()
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("www.ecomae.com");
+        ctx.Request.Headers.Referer = "https://www.ecomae.com/cp";
+        Assert.True(ClientErpPath.IsPlatformErpEntry("/erp"));
+        Assert.True(ClientErpPath.IsPlatformErpEntry("/erp/app"));
+        Assert.False(ClientErpPath.IsPlatformErpEntry("/erp/cash-entries-app"));
+        Assert.False(ClientErpPath.RefererKeepsCompany(ctx.Request, "real"));
+    }
+
+    [Fact]
     public async Task CookieRedirect_DoesNotInterceptErpLogout()
     {
         var ctx = new DefaultHttpContext();

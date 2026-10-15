@@ -4,8 +4,8 @@ namespace EcomAE.Platform.Middleware;
 
 /// <summary>
 /// ERP chrome uses absolute <c>/erp/…</c> links. After a client-erp login the Super host
-/// must send those requests back under <c>/cp/client-erp/{key}/</c> so Super <c>/erp</c>
-/// stays the platform company workspace.
+/// sends those links back under <c>/cp/client-erp/{key}/</c>.
+/// Opening <c>/erp</c> itself stays the platform workspace and drops the company cookie.
 /// </summary>
 public sealed class ClientErpCookieRedirectMiddleware
 {
@@ -38,6 +38,17 @@ public sealed class ClientErpCookieRedirectMiddleware
         var key = ClientErpPath.CookieSiteKey(context.Request);
         if (key is null)
         {
+            return _next(context);
+        }
+
+        // ecomae.com/erp is the platform workspace. A leftover company cookie must not
+        // send that address to /cp/client-erp/{key}. A click that started inside the
+        // company (Dashboard) still returns there.
+        if (ClientErpPath.IsPlatformErpEntry(path) && !ClientErpPath.RefererKeepsCompany(context.Request, key))
+        {
+            ClientErpPath.ClearCookie(context.Response);
+            context.Response.Headers["X-EcomAE-Client-Erp"] = "platform-entry";
+            context.Response.Headers["Cache-Control"] = "no-store";
             return _next(context);
         }
 
