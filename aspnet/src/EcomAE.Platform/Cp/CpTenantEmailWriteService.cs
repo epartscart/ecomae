@@ -26,6 +26,8 @@ public interface ICpTenantEmailWriteService
     Task<ErpSimpleWriteResult> SendAsync(CpTenantEmailMessage message, CancellationToken cancellationToken = default);
 }
 
+public sealed record CpTenantEmailAttachment(string Path, string? Name);
+
 public sealed record CpTenantEmailMessage(
     string To,
     string Subject,
@@ -33,7 +35,8 @@ public sealed record CpTenantEmailMessage(
     string? AttachmentPath = null,
     string? AttachmentName = null,
     string? Cc = null,
-    string? ReplyTo = null);
+    string? ReplyTo = null,
+    IReadOnlyList<CpTenantEmailAttachment>? Attachments = null);
 
 /// <summary>Live PHP <c>ajax_integrations.php</c> <c>save_tenant_smtp</c> / <c>test_tenant_smtp</c>.</summary>
 public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
@@ -90,6 +93,50 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
         foreach (var address in ErpTenancyExpiryMail.Addresses(replyTo))
         {
             mail.ReplyToList.Add(address);
+        }
+
+        return null;
+    }
+
+    /// <summary>Adds every listed file. Returns the missing-file sentence when any path is absent, and adds none in that case.</summary>
+    public static string? BindAttachments(MailMessage mail, CpTenantEmailMessage message)
+    {
+        var files = new List<(string Path, string? Name)>();
+        if (!string.IsNullOrWhiteSpace(message.AttachmentPath))
+        {
+            files.Add((message.AttachmentPath, message.AttachmentName));
+        }
+
+        if (message.Attachments is not null)
+        {
+            foreach (var item in message.Attachments)
+            {
+                if (!string.IsNullOrWhiteSpace(item.Path))
+                {
+                    files.Add((item.Path, item.Name));
+                }
+            }
+        }
+
+        if (files.Count == 0)
+        {
+            return null;
+        }
+
+        if (files.Any(file => !File.Exists(file.Path)))
+        {
+            return "Attachment file not found.";
+        }
+
+        foreach (var file in files)
+        {
+            var attachment = new Attachment(file.Path);
+            if (!string.IsNullOrWhiteSpace(file.Name))
+            {
+                attachment.Name = file.Name;
+            }
+
+            mail.Attachments.Add(attachment);
         }
 
         return null;
@@ -271,20 +318,10 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
             {
                 return ErpSimpleWriteResult.Fail("invalid", bound);
             }
-            if (!string.IsNullOrWhiteSpace(message.AttachmentPath))
+            var attached = BindAttachments(mail, message);
+            if (attached is not null)
             {
-                if (!File.Exists(message.AttachmentPath))
-                {
-                    return ErpSimpleWriteResult.Fail("attachment_missing", "Attachment file not found.");
-                }
-
-                var attachment = new Attachment(message.AttachmentPath);
-                if (!string.IsNullOrWhiteSpace(message.AttachmentName))
-                {
-                    attachment.Name = message.AttachmentName;
-                }
-
-                mail.Attachments.Add(attachment);
+                return ErpSimpleWriteResult.Fail("attachment_missing", attached);
             }
 
             using var client = new SmtpClient(host, port)
