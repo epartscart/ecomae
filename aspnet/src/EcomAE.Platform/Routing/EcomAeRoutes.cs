@@ -1173,6 +1173,7 @@ public static class EcomAeRoutes
     public const string ErpJewelleryBarcodeGenerateForm = "/erp/jewellery/barcode-generate";
     /// <summary>PHP epc_jw_tag_create. <c>confirmWrites=true</c> inserts <c>epc_jw_tags</c>.</summary>
     public const string ErpJewelleryTagCreateForm = "/erp/jewellery/tag-create";
+    public const string ErpJewelleryWorkbook = "/erp/jewellery/workbook";
     /// <summary>PHP epc_jw_tag_sell. <c>confirmWrites=true</c> marks <c>epc_jw_tags</c> sold.</summary>
     public const string ErpJewelleryTagSellForm = "/erp/jewellery/tag-sell";
     public const string ErpJewelleryStockAvailability = "/erp/jewellery/stock-availability";

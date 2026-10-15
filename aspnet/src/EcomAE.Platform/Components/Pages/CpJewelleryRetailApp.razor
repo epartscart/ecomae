@@ -29,6 +29,12 @@
 
     <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.RetailTabs" />
 
+    <div class="epc-erp-empty" style="display:block;margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#f8fafc;color:#334155;">
+        <strong>Metal books.</strong> Net weight is gross minus stones and other material. Pure gold is that net times purity per thousand. An exchange keeps the full sale and the old-gold purchase apart. A POS line keeps metal, making, stones, and VAT, and the cash taken cannot exceed that sale. A melt records the variance and leaves the original tag weight in place.
+        <a href="@WorkbookHref("template")">Download template</a>
+        <a href="@WorkbookHref("package")">Download package</a>
+    </div>
+
     @if (_isAdmin)
     {
         <div class="epc-erp-empty" style="display:block;margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#f8fafc;">
@@ -554,6 +560,17 @@
     private string _message = "";
     private string _ok = "";
     private string _err = "";
+    private string WorkbookHref(string kind)
+    {
+        var href = "/erp/jewellery/workbook?kind=" + kind;
+        if (_company > 0)
+        {
+            href += "&company=" + _company.ToString(CultureInfo.InvariantCulture);
+        }
+
+        return href;
+    }
+
     private string _listHref = "/erp/jewellery-retail-app";
     private long _openedId;
     private CpJewelleryVoucherDetail? _opened;

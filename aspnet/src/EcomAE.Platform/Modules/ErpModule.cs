@@ -7817,6 +7817,7 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryWorkbook, HandleJewelleryWorkbookAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryTagCreateForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -25059,6 +25060,29 @@ public sealed class ErpModule : ISurfaceModule
         return Results.Content(
             ErpRealEstateReportPack.Html(snap, title, pdfHref, docxHref, utc),
             "text/html; charset=utf-8");
+    }
+
+    private static async Task<IResult> HandleJewelleryWorkbookAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/jewellery-retail-app", "Jewellery access is required for the metal workbook.");
+        }
+
+        var kind = (context.Request.Query["kind"].ToString() ?? "").Trim().ToLowerInvariant();
+        if (kind == "package")
+        {
+            return Results.File(ErpJewelWorkbook.ExportPackage(), "application/zip", "INDJ_Registers.zip");
+        }
+
+        return Results.File(
+            ErpJewelWorkbook.Template(),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "INDJ_JEWELLERY_MASTER_IMPORT_TEMPLATE.xlsx");
     }
 
     private static async Task<IResult> HandleFitOutWorkbookAsync(
