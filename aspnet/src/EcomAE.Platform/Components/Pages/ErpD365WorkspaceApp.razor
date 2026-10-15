@@ -264,7 +264,7 @@
                                         var partyBinding = BindingFor(edge.ToTab);
                                         if (partyBinding.LinksParty)
                                         {
-                                            <ErpMasterPicker Kind="@partyBinding.PartyKind" FieldName="party" InputId="@("lnk-" + edge.ToTab + "-party")" Label="Vendor / party" ValueMode="code" AllowNew="true" MaxLength="160" />
+                                            <ErpMasterPicker Kind="@partyBinding.PartyKind" FieldName="party" InputId="@("lnk-" + edge.ToTab + "-party")" Label="@MasterLabel(partyBinding.PartyKind)" ValueMode="code" AllowNew="true" MaxLength="160" />
                                         }
                                         else
                                         {
@@ -315,7 +315,7 @@
                                         var partyBinding = BindingFor(edge.ToTab);
                                         if (partyBinding.LinksParty)
                                         {
-                                            <ErpMasterPicker Kind="@partyBinding.PartyKind" FieldName="party" InputId="@("lnk-" + edge.ToTab + "-party")" Label="Vendor / party" ValueMode="code" AllowNew="true" MaxLength="160" />
+                                            <ErpMasterPicker Kind="@partyBinding.PartyKind" FieldName="party" InputId="@("lnk-" + edge.ToTab + "-party")" Label="@MasterLabel(partyBinding.PartyKind)" ValueMode="code" AllowNew="true" MaxLength="160" />
                                         }
                                         else
                                         {
@@ -468,7 +468,7 @@
                         {
                             @if (_binding.LinksParty)
                             {
-                                <ErpMasterPicker Kind="@_binding.PartyKind" FieldName="party" InputId="ws-party" Label="@PartyLabel" ValueMode="code" AllowNew="true" SelectedCode="@_follow.Party" MaxLength="160" />
+                                <ErpMasterPicker Kind="@_binding.PartyKind" FieldName="party" InputId="ws-party" Label="@MasterLabel(_binding.PartyKind)" ValueMode="code" AllowNew="true" SelectedCode="@_follow.Party" MaxLength="160" />
                             }
                             else
                             {
@@ -677,6 +677,17 @@
     };
 
     private bool NameRequired => _page.Kind is ErpD365Part3Catalog.FormKind.Order or ErpD365Part3Catalog.FormKind.Forecast;
+
+    private static string MasterLabel(string kind) => kind switch
+    {
+        "supplier" => "Supplier",
+        "customer" => "Customer",
+        "item" => "Item",
+        "account" => "Account",
+        "project" => "Project",
+        "business-unit" => "Branch",
+        _ => "Master",
+    };
 
     private static ErpD365FieldBinding.Binding BindingFor(string tab)
         => ErpD365WorkspaceCatalog.TryGet(tab, out var page)
