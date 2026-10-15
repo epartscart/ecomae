@@ -14,6 +14,9 @@ public sealed class ErpFitOutCostingTests
         Assert.Equal(2750m, ErpFitOutCalc.SellingFromMargin(estimated, 20));
         Assert.Equal(2640m, ErpFitOutCalc.SellingFromMarkup(estimated, 20));
         Assert.Equal(0m, ErpFitOutCalc.SellingFromMargin(estimated, 100));
+        var priced = ErpFitOutCalc.PriceAtMargin(10, 100, 40, 10, 50, 20, 0, 20);
+        Assert.Equal(2200m, priced.TotalCost);
+        Assert.Equal(2750m, priced.SellingAmount);
     }
 
     [Fact]

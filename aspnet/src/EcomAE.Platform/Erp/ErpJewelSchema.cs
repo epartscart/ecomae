@@ -1071,6 +1071,9 @@ internal static class ErpJewelSchema
         "ALTER TABLE `epc_jewel_color_stone_master` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
         "ALTER TABLE `epc_jewel_design` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
         "ALTER TABLE `epc_jw_tags` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
+        "ALTER TABLE `epc_jw_tags` ADD COLUMN `other_weight` DECIMAL(10,3) NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_jw_tags` ADD COLUMN `purity_ppt` DECIMAL(8,3) NOT NULL DEFAULT 0",
+        "ALTER TABLE `epc_jw_tags` ADD COLUMN `pure_weight` DECIMAL(10,4) NOT NULL DEFAULT 0",
         "ALTER TABLE `epc_gold_schemes` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
         "ALTER TABLE `epc_gold_rates` ADD COLUMN `created_by` VARCHAR(80) NOT NULL DEFAULT ''",
     ];

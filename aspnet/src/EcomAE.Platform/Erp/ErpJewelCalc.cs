@@ -58,4 +58,23 @@ public static class ErpJewelCalc
 
     public static decimal StockVariance(decimal counted, decimal system)
         => Grams(counted - system);
+
+    public static string? TagNetProblem(decimal grossGrams, decimal stoneGrams, decimal otherGrams, decimal suppliedNet)
+    {
+        var net = NetMetal(grossGrams, stoneGrams, otherGrams);
+        if (net < 0)
+        {
+            return "Stone and other weight exceed the gross weight.";
+        }
+
+        if (suppliedNet > 0 && !WithinTolerance(suppliedNet, net, 0.001m))
+        {
+            return "Net weight must be gross minus stones and other material.";
+        }
+
+        return null;
+    }
+
+    public static decimal TagNet(decimal grossGrams, decimal stoneGrams, decimal otherGrams, decimal suppliedNet)
+        => suppliedNet > 0 ? Grams(suppliedNet) : NetMetal(grossGrams, stoneGrams, otherGrams);
 }

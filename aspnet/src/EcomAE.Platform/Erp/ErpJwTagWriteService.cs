@@ -40,7 +40,9 @@ public sealed record ErpJwTagCreateRequest(
     string? PurchaseDate = null,
     string? Location = null,
     string? Description = null,
-    string? CreatedBy = null);
+    string? CreatedBy = null,
+    decimal OtherWeight = 0,
+    decimal PurityPpt = 0);
 
 public sealed record ErpJwTagSellRequest(
     long TagId = 0,
@@ -77,6 +79,12 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
         if (tagNo.Length == 0 && description.Length == 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Tag number or description is required.");
+        }
+
+        var weightProblem = ErpJewelCalc.TagNetProblem(request.GrossWeight, request.StoneWeight, request.OtherWeight, request.NetWeight);
+        if (weightProblem is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", weightProblem);
         }
 
         if (!_connections.IsConfigured)
@@ -142,7 +150,7 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
                 itemType,
                 karat,
                 RoundNonNeg(request.GrossWeight, 3),
-                RoundNonNeg(request.NetWeight, 3),
+                RoundNonNeg(ErpJewelCalc.TagNet(request.GrossWeight, request.StoneWeight, request.OtherWeight, request.NetWeight), 3),
                 RoundNonNeg(request.StoneWeight, 3),
                 request.StoneCount < 0 ? 0 : request.StoneCount,
                 RoundNonNeg(request.MakingCharges, 2),
@@ -167,6 +175,20 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
                 return ErpSimpleWriteResult.Fail("invalid", "Failed");
             }
+
+            var net = ErpJewelCalc.TagNet(request.GrossWeight, request.StoneWeight, request.OtherWeight, request.NetWeight);
+            var purity = request.PurityPpt > 1m ? request.PurityPpt : request.PurityPpt * 1000m;
+            var pure = purity > 0 ? ErpJewelCalc.PureMetal(net, purity) : 0m;
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "UPDATE `epc_jw_tags` SET `other_weight`=?, `purity_ppt`=?, `pure_weight`=? WHERE `id`=?"),
+                cancellationToken,
+                RoundNonNeg(request.OtherWeight, 3),
+                RoundNonNeg(purity, 3),
+                pure,
+                id).ConfigureAwait(false);
 
             if (hasHistory)
             {
