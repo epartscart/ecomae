@@ -71,4 +71,19 @@ public static class ErpFitOutCalc
 
     public static decimal CurrentBudget(decimal original, decimal approvedRevisions)
         => Money(original + approvedRevisions);
+
+    public static decimal LabourCost(decimal regularHours, decimal overtimeHours, decimal hourlyCost)
+        => Money((regularHours + overtimeHours) * hourlyCost);
+
+    public static decimal RateLine(decimal quantityPerUnit, decimal unitCost)
+        => Money(quantityPerUnit * unitCost);
+
+    public static decimal RetentionOutstanding(decimal held, decimal released)
+        => Money(Math.Max(0, held - released));
+
+    public static bool CountsTowardContract(string? variationStatus)
+        => string.Equals(variationStatus?.Trim(), "approved", StringComparison.OrdinalIgnoreCase);
+
+    public static decimal ApprovedVariationValue(string? variationStatus, decimal sellingValue)
+        => CountsTowardContract(variationStatus) ? Money(sellingValue) : 0m;
 }

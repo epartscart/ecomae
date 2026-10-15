@@ -12,10 +12,12 @@ public static class ErpFitOutWorkbook
 {
     public static readonly string[] TemplateSheets =
     [
-        "Customers", "Projects", "BOQ", "Budgets", "Contracts", "Purchase_Orders",
-        "Goods_Receipts", "Material_Issues", "Customer_Invoices", "Collections",
-        "PDC_Cheques", "Expenses", "Petty_Cash", "Employees", "Items",
-        "Opening_Stock", "Opening_AR_AP", "Fixed_Assets", "Historical_Costs", "Documents",
+        "START_HERE", "Customers", "Suppliers", "Employees", "Items", "Projects",
+        "BOQ", "Rate_Analysis", "Quotations", "Contracts", "Budgets", "Tasks",
+        "Variations", "Subcontracts", "Purchase_Orders", "Goods_Receipts", "Material_Issues",
+        "Timesheets", "Site_Progress", "Customer_Invoices", "Supplier_Invoices", "Collections",
+        "PDC_Cheques", "Retention", "Expenses", "Petty_Cash", "Opening_Stock", "Opening_AR_AP",
+        "Fixed_Assets", "Historical_Costs", "Documents",
     ];
 
     public sealed record Sheet(
@@ -25,7 +27,7 @@ public static class ErpFitOutWorkbook
 
     public static byte[] Template()
     {
-        var sheets = TemplateSheets.Select(name => (name, Headers(name), new[] { Sample(name) })).ToArray();
+        var sheets = TemplateSheets.Select(name => (name, Headers(name), SheetRows(name))).ToArray();
         return Xlsx(sheets);
     }
 
@@ -43,7 +45,7 @@ public static class ErpFitOutWorkbook
 
             var readme = zip.CreateEntry("README.txt");
             using var writer = new StreamWriter(readme.Open(), new UTF8Encoding(false));
-            writer.Write("Fit-out workbook plus a document manifest. Cheque images and drawings stay as files named in Documents.Relative_ZIP_Path. This package is not a full restoration archive.");
+            writer.Write("Fit-out workbook plus a document manifest. Open START_HERE first. Cheque images and drawings stay as files named in Documents.Relative_ZIP_Path. This package is not a full restoration archive.");
         }
 
         return ms.ToArray();
@@ -138,19 +140,19 @@ public static class ErpFitOutWorkbook
                     errors.Add(expected + " repeats " + id + ".");
                 }
 
-                if (id.StartsWith("SAMPLE", StringComparison.OrdinalIgnoreCase))
+                if (id.StartsWith("SAMPLE", StringComparison.OrdinalIgnoreCase) || expected == "START_HERE")
                 {
                     continue;
                 }
 
-                ValidateRow(expected, id, row, errors);
+                ValidateRow(expected, id, row, sheets, errors);
             }
         }
 
         return errors;
     }
 
-    private static void ValidateRow(string sheet, string id, IReadOnlyDictionary<string, string> row, List<string> errors)
+    private static void ValidateRow(string sheet, string id, IReadOnlyDictionary<string, string> row, IReadOnlyList<Sheet> sheets, List<string> errors)
     {
         if (sheet == "BOQ")
         {
@@ -208,6 +210,89 @@ public static class ErpFitOutWorkbook
         {
             errors.Add("Cheque " + id + " is cleared without a cleared date.");
         }
+        else if (sheet == "Rate_Analysis" && decimal.TryParse(Cell(row, "Quantity_Per_Unit"), NumberStyles.Number, CultureInfo.InvariantCulture, out var perUnit))
+        {
+            var total = ErpFitOutCalc.RateLine(perUnit, Num(row, "Unit_Cost_AED"));
+            if (Math.Abs(total - Num(row, "Total_Cost_AED")) > 0.02m)
+            {
+                errors.Add("Rate " + id + " total is not quantity per unit times unit cost.");
+            }
+        }
+        else if (sheet == "Variations")
+        {
+            RequireRef(errors, sheets, sheet, id, "Projects", "Project_ID", Cell(row, "Project_ID"));
+            if (ErpFitOutCalc.CountsTowardContract(Cell(row, "Status")) && Cell(row, "Approved_Date").Length == 0)
+            {
+                errors.Add("Variation " + id + " is approved without an approved date.");
+            }
+        }
+        else if (sheet == "Retention" && Num(row, "Released_AED") - Num(row, "Retention_Amount_AED") > 0.02m)
+        {
+            errors.Add("Retention " + id + " released amount is above the amount held.");
+        }
+        else if (sheet == "Timesheets")
+        {
+            if (Num(row, "Regular_Hours") < 0 || Num(row, "Overtime_Hours") < 0)
+            {
+                errors.Add("Timesheet " + id + " has negative hours.");
+            }
+
+            RequireRef(errors, sheets, sheet, id, "Employees", "Employee_ID", Cell(row, "Employee_ID"));
+            RequireRef(errors, sheets, sheet, id, "Projects", "Project_ID", Cell(row, "Project_ID"));
+        }
+        else if (sheet is "Tasks" or "Site_Progress")
+        {
+            var progress = Num(row, "Progress_Pct");
+            if (progress < 0 || progress > 100)
+            {
+                errors.Add(sheet + " " + id + " progress is outside 0 to 100.");
+            }
+
+            if (sheet == "Site_Progress")
+            {
+                RequireRef(errors, sheets, sheet, id, "Tasks", "Task_ID", Cell(row, "Task_ID"));
+            }
+        }
+        else if (sheet == "Quotations")
+        {
+            RequireRef(errors, sheets, sheet, id, "BOQ", "BOQ_ID", Cell(row, "BOQ_ID"));
+        }
+        else if (sheet == "Subcontracts")
+        {
+            RequireRef(errors, sheets, sheet, id, "Suppliers", "Supplier_ID", Cell(row, "Supplier_ID"));
+        }
+        else if (sheet == "Supplier_Invoices")
+        {
+            RequireRef(errors, sheets, sheet, id, "Purchase_Orders", "PO_ID", Cell(row, "PO_ID"));
+            RequireRef(errors, sheets, sheet, id, "Suppliers", "Supplier_ID", Cell(row, "Supplier_ID"));
+        }
+    }
+
+    private static void RequireRef(
+        List<string> errors,
+        IReadOnlyList<Sheet> sheets,
+        string sheet,
+        string id,
+        string refSheet,
+        string refHeader,
+        string value)
+    {
+        if (value.Length == 0 || value.StartsWith("SAMPLE", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var known = sheets.FirstOrDefault(item => string.Equals(item.Name, refSheet, StringComparison.OrdinalIgnoreCase));
+        if (known is null)
+        {
+            return;
+        }
+
+        var found = known.Records.Any(row => string.Equals(Cell(row, refHeader), value, StringComparison.OrdinalIgnoreCase));
+        if (!found)
+        {
+            errors.Add(sheet + " " + id + " references missing " + refHeader + " " + value + ".");
+        }
     }
 
     public static string[] Headers(string sheet) => sheet switch
@@ -232,19 +317,57 @@ public static class ErpFitOutWorkbook
         "Fixed_Assets" => ["Asset_ID", "Asset_Name", "Category", "Acquisition_Date", "Cost_AED", "Useful_Life_Months", "Project_ID", "Status"],
         "Historical_Costs" => ["Cost_Transaction_ID", "Project_ID", "Cost_Code", "Transaction_Date", "Source_Type", "Source_ID", "Description", "Amount_AED", "Posting_Status"],
         "Documents" => ["Document_ID", "Entity_Type", "Entity_ID", "Project_ID", "Document_Category", "File_Name", "Relative_ZIP_Path", "Revision", "Issue_Date", "Expiry_Date", "Confidentiality"],
+        "START_HERE" => ["FITO — COMPLETE ERP IMPORT REFERENCE", "Instructions"],
+        "Suppliers" => ["Supplier_ID", "Supplier_Name", "Trade", "TRN", "Contact", "Email", "Mobile", "Payment_Terms_Days", "Status"],
+        "Quotations" => ["Quotation_ID", "Project_ID", "BOQ_ID", "Revision", "Quotation_Date", "Valid_Until", "Quoted_Value_AED", "Status"],
+        "Rate_Analysis" => ["Rate_ID", "BOQ_Item_Code", "Cost_Type", "Resource_ID", "Description", "Quantity_Per_Unit", "Unit_Cost_AED", "Total_Cost_AED"],
+        "Tasks" => ["Task_ID", "Project_ID", "Phase", "Work_Package", "Task_Name", "Planned_Start", "Planned_End", "Actual_End", "Progress_Pct", "Status"],
+        "Timesheets" => ["Timesheet_ID", "Employee_ID", "Project_ID", "Cost_Code", "Work_Date", "Regular_Hours", "Overtime_Hours", "Hourly_Cost_AED", "Approved_By", "Status"],
+        "Variations" => ["Variation_ID", "Project_ID", "Description", "Requested_Date", "Cost_Impact_AED", "Selling_Value_AED", "Days_Impact", "Approved_Date", "Status"],
+        "Retention" => ["Retention_ID", "Project_ID", "Party_Type", "Party_ID", "Source_Invoice_ID", "Retention_Amount_AED", "Expected_Release_Date", "Released_AED", "Status"],
+        "Site_Progress" => ["Progress_ID", "Project_ID", "Task_ID", "Report_Date", "Engineer", "Progress_Pct", "Workers_Count", "Work_Description", "Issues", "Status"],
+        "Subcontracts" => ["Subcontract_ID", "Project_ID", "Supplier_ID", "Trade", "Agreement_Date", "Contract_Value_AED", "Retention_Pct", "Status"],
+        "Supplier_Invoices" => ["AP_Invoice_ID", "Supplier_ID", "Project_ID", "PO_ID", "Invoice_Date", "Due_Date", "Cost_Code", "Net_Amount_AED", "VAT_AED", "Status"],
         _ => ["Id"],
     };
+
+    private static string[][] SheetRows(string sheet)
+    {
+        if (sheet != "START_HERE")
+        {
+            return [Sample(sheet)];
+        }
+
+        return
+        [
+            ["Version", "1.0 | 15 Oct 2026"],
+            ["Purpose", "Developer reference templates; adapt mappings to actual FITO schema"],
+            ["IDs", "Use stable unique IDs. Referenced IDs must exist in master worksheets"],
+            ["Dates", "Use ISO YYYY-MM-DD format"],
+            ["Amounts", "AED, excluding VAT unless explicitly labelled"],
+            ["Attachments", "Store actual files in ZIP; Documents tab references relative paths"],
+            ["Import safety", "Validate first; do not directly post financial transactions without approval"],
+        ];
+    }
 
     private static string[] Sample(string sheet)
     {
         var headers = Headers(sheet);
-        var row = headers.Select(header => header.EndsWith("_AED", StringComparison.Ordinal) || header is "Quantity" or "Revision" or "Target_Margin_Pct" or "Retention_Pct" or "Hourly_Cost_AED"
+        var row = headers.Select(header => IsZero(header)
             ? "0"
-            : header.EndsWith("_Date", StringComparison.Ordinal) || header is "Date"
+            : IsDate(header)
                 ? "2026-10-15"
-                : header is "Status" or "Posting_Status" ? "Draft" : header is "UOM" ? "Nos" : header.EndsWith("_ID", StringComparison.Ordinal) || header is "Stock_Ref" || header is "Reference" || header is "Bank_Ref" ? "SAMPLE-001" : "SAMPLE — replace").ToArray();
+                : header is "Status" or "Posting_Status" ? "Draft" : header is "UOM" ? "Nos" : header.EndsWith("_ID", StringComparison.Ordinal) || header is "Stock_Ref" or "Reference" or "Bank_Ref" ? "SAMPLE-001" : "SAMPLE — replace").ToArray();
         return row;
     }
+
+    private static bool IsZero(string header)
+        => header.EndsWith("_AED", StringComparison.Ordinal)
+            || header is "Quantity" or "Revision" or "Target_Margin_Pct" or "Retention_Pct" or "Progress_Pct" or "Regular_Hours" or "Overtime_Hours" or "Days_Impact";
+
+    private static bool IsDate(string header)
+        => header.EndsWith("_Date", StringComparison.Ordinal)
+            || header is "Date" or "Planned_Start" or "Planned_End" or "Actual_End" or "Valid_Until" or "Expected_Release_Date" or "Agreement_Date" or "Work_Date" or "Report_Date";
 
     private static string Cell(IReadOnlyDictionary<string, string> row, string key)
         => row.TryGetValue(key, out var value) ? value.Trim() : "";
