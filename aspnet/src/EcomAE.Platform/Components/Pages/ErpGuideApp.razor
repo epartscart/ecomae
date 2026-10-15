@@ -17,6 +17,7 @@
 @using EcomAE.Platform.Presentation
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject IErpOperatorAiDispatcher Tools
 
 <PageTitle>@_pageTitle · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -45,11 +46,18 @@
 </style>
 </HeadContent>
 
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="ERP Guide" BreadcrumbArea="Home" BreadcrumbTab="Guide">
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_chromeTitle" BreadcrumbArea="Home" BreadcrumbTab="@_crumb">
 
     <PhpErpModulePageHeader Title="@_pageTitle"
-                            Subtitle="@_book.Summary" />
+                            Subtitle="@(_aiAdvisor ? "ChatGPT, Cursor, and Devin on your own accounts." : _book.Summary)" />
 
+    @if (_aiAdvisor)
+    {
+        <ErpOperatorAiAdvisor SignedIn="_isAdmin" Connected="_connected" StatusSay="@_advisorSay" />
+        <p class="epc-eg-empty" style="margin-top:12px;"><a href="@GuideBooksHref">Open the module guide</a></p>
+    }
+    else
+    {
     <nav class="epc-eg-books" aria-label="ERP guide books">
         @foreach (var book in ErpGuideBooks.All)
         {
@@ -167,8 +175,11 @@
             }
         </article>
     }
+    }
 </PhpErpDesktopChrome>
 
+@if (!_aiAdvisor)
+{
 <form method="post" action="/erp/guide/articles/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/guide-app" />
@@ -185,11 +196,18 @@
             <label>Body <input type="text" name="body_html" style="width:16rem" /></label>
             <button type="submit" class="btn btn-sm btn-primary">Publish article</button>
         </form>
+}
 
 @code {
     private bool _isAdmin;
+    private bool _aiAdvisor;
+    private int _userId;
     private string _q = "";
     private string _pageTitle = "ERP Guide";
+    private string _chromeTitle = "ERP Guide";
+    private string _crumb = "Guide";
+    private string _advisorSay = "";
+    private IReadOnlyList<string> _connected = [];
     private ErpGuideBooks.Book _book = ErpGuideBooks.Get(ErpGuideBooks.Modules);
     private IReadOnlyList<ErpGuideModuleRecord> _all = [];
     private IReadOnlyList<ErpGuideModuleRecord> _filtered = [];
@@ -204,6 +222,25 @@
     [SupplyParameterFromQuery(Name = "book")]
     public string? BookQuery { get; set; }
 
+    [SupplyParameterFromQuery(Name = "tab")]
+    public string? TabQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "company")]
+    public string? CompanyQuery { get; set; }
+
+    private string GuideBooksHref
+    {
+        get
+        {
+            if (long.TryParse(CompanyQuery, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var company) && company > 0)
+            {
+                return "/erp/guide-app?company=" + company.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            }
+
+            return "/erp/guide-app";
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
@@ -211,10 +248,17 @@
         {
             var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
             _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+            _userId = session.UserId;
         }
 
         _all = ErpGuideCatalog.All;
         Resolve();
+        if (_aiAdvisor && _isAdmin && _userId > 0 && ctx is not null)
+        {
+            var status = await Tools.StatusAsync(_userId, ctx.RequestAborted);
+            _connected = status.Connected;
+            _advisorSay = ForThisPage(status.Say);
+        }
     }
 
     protected override void OnParametersSet()
@@ -250,8 +294,11 @@
             }
         }
 
+        _aiAdvisor = string.Equals(TabQuery?.Trim(), "ai_advisor", StringComparison.OrdinalIgnoreCase);
         _book = ErpGuideBooks.Get(bookKey);
-        _pageTitle = _book.Title;
+        _pageTitle = _aiAdvisor ? "AI advisor" : _book.Title;
+        _chromeTitle = _aiAdvisor ? "AI advisor" : "ERP Guide";
+        _crumb = _aiAdvisor ? "AI advisor" : "Guide";
         _q = SearchQuery ?? "";
         _filtered = string.IsNullOrWhiteSpace(_q) ? _all : ErpGuideCatalog.Search(_q);
         SelectModule(ModuleQuery);
@@ -268,4 +315,10 @@
         _selected ??= _all.FirstOrDefault(m => m.Module.Equals("core", StringComparison.OrdinalIgnoreCase))
                       ?? _all.FirstOrDefault();
     }
+
+    private static string ForThisPage(string say)
+        => (say ?? string.Empty).Replace(
+            "Open Voice and paste the key from your own ChatGPT, Cursor, or Devin account.",
+            "Paste the key from your own ChatGPT, Cursor, or Devin account on this page.",
+            StringComparison.Ordinal);
 }

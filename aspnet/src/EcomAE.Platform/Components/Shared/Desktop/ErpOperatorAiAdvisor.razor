@@ -1,0 +1,194 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
+
+<section class="epc-ai-advisor" data-erp-ai-advisor data-erp-ai-ajax="@ToolsAjax" aria-label="ChatGPT, Cursor, and Devin">
+    <p class="epc-ai-advisor__lead">ChatGPT, Cursor, and Devin each use the key from the account you log in to. The key stays on the server and is not shown again. A voucher is posted only when you press Validate and post.</p>
+    <p class="epc-ai-advisor__say" data-erp-ai-say>@ShownSay</p>
+
+    <div class="epc-ai-advisor__grid">
+        <article class="epc-ai-advisor__tool" data-erp-ai-tool="chatgpt">
+            <h2>ChatGPT <span data-erp-ai-state>@State("chatgpt")</span></h2>
+            <p>ChatGPT answers inside this ERP. Ask it to guide you, prepare a receipt or a payment, open a report, or check the books. It fills the form. You press Validate and post.</p>
+            <p class="epc-ai-advisor__ask">Say: ask ChatGPT, then the work you want.</p>
+            <label>Key from your ChatGPT account
+                <input type="password" data-erp-ai-token maxlength="512" autocomplete="off" spellcheck="false" placeholder="Key from your ChatGPT account" />
+            </label>
+            <label>Model, optional
+                <input type="text" data-erp-ai-model maxlength="64" autocomplete="off" spellcheck="false" placeholder="Model, optional" />
+            </label>
+            <div class="epc-ai-advisor__actions">
+                <button type="button" data-erp-ai-save>Save</button>
+                <button type="button" data-erp-ai-remove>Remove</button>
+            </div>
+        </article>
+
+        <article class="epc-ai-advisor__tool" data-erp-ai-tool="cursor">
+            <h2>Cursor <span data-erp-ai-state>@State("cursor")</span></h2>
+            <p>Cursor starts the work on your Cursor account. Open the agent to watch it. If you save a repository, Cursor starts there. Nothing is posted in the ERP until you press Validate and post.</p>
+            <p class="epc-ai-advisor__ask">Say: ask Cursor, then the work you want.</p>
+            <label>Key from your Cursor account
+                <input type="password" data-erp-ai-token maxlength="512" autocomplete="off" spellcheck="false" placeholder="Key from your Cursor account" />
+            </label>
+            <label>Repository https address, optional
+                <input type="text" data-erp-ai-repo maxlength="300" autocomplete="off" spellcheck="false" placeholder="Repository https address, optional" />
+            </label>
+            <div class="epc-ai-advisor__actions">
+                <button type="button" data-erp-ai-save>Save</button>
+                <button type="button" data-erp-ai-remove>Remove</button>
+            </div>
+        </article>
+
+        <article class="epc-ai-advisor__tool" data-erp-ai-tool="devin">
+            <h2>Devin <span data-erp-ai-state>@State("devin")</span></h2>
+            <p>Devin starts a session on your Devin account. Open the session to watch it. Paste the organisation id from Devin settings when Devin asks for it. Nothing is posted in the ERP until you press Validate and post.</p>
+            <p class="epc-ai-advisor__ask">Say: ask Devin, then the work you want.</p>
+            <label>Key from your Devin account
+                <input type="password" data-erp-ai-token maxlength="512" autocomplete="off" spellcheck="false" placeholder="Key from your Devin account" />
+            </label>
+            <label>Organisation id, if Devin asks for it
+                <input type="text" data-erp-ai-org maxlength="80" autocomplete="off" spellcheck="false" placeholder="Organisation id, if Devin asks for it" />
+            </label>
+            <div class="epc-ai-advisor__actions">
+                <button type="button" data-erp-ai-save>Save</button>
+                <button type="button" data-erp-ai-remove>Remove</button>
+            </div>
+        </article>
+    </div>
+</section>
+
+<style>
+    .epc-ai-advisor { background:#fff; border:1px solid #c5d4de; border-radius:3px; padding:12px 14px; }
+    .epc-ai-advisor__lead, .epc-ai-advisor__say, .epc-ai-advisor__tool p { font-size:12.5px; line-height:1.45; color:#334155; }
+    .epc-ai-advisor__say { margin:8px 0 12px; font-weight:600; color:#1e293b; }
+    .epc-ai-advisor__grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; }
+    .epc-ai-advisor__tool { border:1px solid #c5d4de; border-radius:3px; padding:10px 12px; background:#f8fafc; }
+    .epc-ai-advisor__tool h2 { margin:0 0 6px; font-size:15px; color:#1e3a8a; }
+    .epc-ai-advisor__tool h2 span { font-size:12px; font-weight:600; color:#64748b; }
+    .epc-ai-advisor__ask { color:#3d5a6c !important; font-weight:600; }
+    .epc-ai-advisor__tool label { display:block; margin-top:8px; font-size:12px; font-weight:700; color:#334155; }
+    .epc-ai-advisor__tool input { display:block; width:100%; box-sizing:border-box; margin-top:4px; border:1px solid #cbd5e1; border-radius:8px; padding:.4rem .5rem; font-size:13px; background:#fff; color:#0f172a; }
+    .epc-ai-advisor__actions { margin-top:8px; }
+    .epc-ai-advisor__actions button { border:0; background:#1d4ed8; color:#fff; border-radius:8px; padding:.4rem .7rem; font-weight:700; cursor:pointer; margin-right:.35rem; }
+    .epc-ai-advisor__actions button[data-erp-ai-remove] { background:#e2e8f0; color:#1e293b; }
+    @@media (max-width:900px) { .epc-ai-advisor__grid { grid-template-columns:1fr; } }
+</style>
+
+<script>
+    (function () {
+        var root = document.querySelector("[data-erp-ai-advisor]");
+        if (!root || root.getAttribute("data-erp-ai-advisor-bound") === "1") return;
+        root.setAttribute("data-erp-ai-advisor-bound", "1");
+        var say = root.querySelector("[data-erp-ai-say]");
+        var toolsAjax = root.getAttribute("data-erp-ai-ajax") || "/erp/ajax/ai-tools";
+
+        function pageSay(text) {
+            if (!text) return "";
+            return String(text).replace(
+                "Open Voice and paste the key from your own ChatGPT, Cursor, or Devin account.",
+                "Paste the key from your own ChatGPT, Cursor, or Devin account on this page.");
+        }
+
+        function paintStatus(connected) {
+            var list = connected || [];
+            root.querySelectorAll("[data-erp-ai-tool]").forEach(function (box) {
+                var state = box.querySelector("[data-erp-ai-state]");
+                if (!state) return;
+                state.textContent = list.indexOf(box.getAttribute("data-erp-ai-tool")) >= 0 ? "Connected" : "Not connected";
+            });
+        }
+
+        function post(url, payload) {
+            return fetch(url, {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                body: JSON.stringify(payload)
+            }).then(function (response) {
+                return response.json().then(function (body) { return { ok: response.ok, body: body || {} }; });
+            });
+        }
+
+        function field(box, name) {
+            var node = box.querySelector(name);
+            return node ? (node.value || "").trim() : "";
+        }
+
+        function saveTool(box) {
+            if (!box) return;
+            say.textContent = "Checking the key…";
+            post(toolsAjax, {
+                action: "connect",
+                provider: box.getAttribute("data-erp-ai-tool"),
+                token: field(box, "[data-erp-ai-token]"),
+                model: field(box, "[data-erp-ai-model]"),
+                repo: field(box, "[data-erp-ai-repo]"),
+                org: field(box, "[data-erp-ai-org]")
+            }).then(function (result) {
+                var token = box.querySelector("[data-erp-ai-token]");
+                if (result.body.ok && token) token.value = "";
+                paintStatus(result.body.connected);
+                say.textContent = pageSay(result.body.say || result.body.message || "The key was not saved.");
+            }).catch(function () {
+                say.textContent = "The key did not reach the server. Try again.";
+            });
+        }
+
+        function removeTool(box) {
+            if (!box) return;
+            post(toolsAjax, { action: "disconnect", provider: box.getAttribute("data-erp-ai-tool") }).then(function (result) {
+                paintStatus(result.body.connected);
+                say.textContent = pageSay(result.body.say || "The tool was removed.");
+            }).catch(function () {
+                say.textContent = "The request did not reach the server. Try again.";
+            });
+        }
+
+        root.querySelectorAll("[data-erp-ai-save]").forEach(function (button) {
+            button.addEventListener("click", function () { saveTool(button.closest("[data-erp-ai-tool]")); });
+        });
+        root.querySelectorAll("[data-erp-ai-remove]").forEach(function (button) {
+            button.addEventListener("click", function () { removeTool(button.closest("[data-erp-ai-tool]")); });
+        });
+        post(toolsAjax, { action: "status" }).then(function (result) {
+            paintStatus(result.body.connected);
+            if (result.body.say) say.textContent = pageSay(result.body.say);
+        }).catch(function () { });
+    })();
+</script>
+
+@code {
+    [Parameter] public bool SignedIn { get; set; }
+
+    [Parameter] public IReadOnlyList<string> Connected { get; set; } = [];
+
+    [Parameter] public string StatusSay { get; set; } = "";
+
+    private string ToolsAjax => Prefix("/erp/ajax/ai-tools");
+
+    private string ShownSay
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(StatusSay))
+            {
+                return StatusSay;
+            }
+
+            return SignedIn
+                ? "No tool is connected yet. Paste the key from your own ChatGPT, Cursor, or Devin account on this page."
+                : "Sign in to connect a tool.";
+        }
+    }
+
+    private string State(string provider)
+        => Connected.Any(name => string.Equals(name, provider, StringComparison.Ordinal))
+            ? "Connected"
+            : "Not connected";
+
+    private string Prefix(string path)
+    {
+        var key = ClientErpPath.BoundSiteKey(Http.HttpContext);
+        return string.IsNullOrWhiteSpace(key) ? path : ClientErpPath.PrefixErpPath(key, path);
+    }
+}
