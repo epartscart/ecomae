@@ -23,7 +23,8 @@ public sealed record LegacyLoginSuccess(
     string SessionToken,
     string CsrfGuardKey,
     bool AdminSession,
-    string RedirectPath);
+    string RedirectPath,
+    string LandingPath = "");
 
 public sealed record LegacyLoginFailure(string Message, string Code, int WaitMinutes = 0)
 {

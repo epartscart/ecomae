@@ -503,6 +503,7 @@ builder.Services.AddSingleton<IErpSoSaveDryRun, ErpSoSaveDryRun>();
 builder.Services.AddSingleton<IErpItemReserveDryRun, ErpItemReserveDryRun>();
 // Live ERP writes (PHP epc_erp_vouchers.php parity) — used when confirmWrites=true.
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWriteConnectionFactory, EcomAE.Platform.Erp.ErpWriteConnectionFactory>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpLandingPage, EcomAE.Platform.Erp.ErpLandingPageService>();
 builder.Services.AddScoped<EcomAE.Platform.Presentation.IErpNavTenantRules, EcomAE.Platform.Presentation.ErpNavTenantRules>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpVoucherNumberService, EcomAE.Platform.Erp.ErpVoucherNumberService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTaxAmountCalculator, EcomAE.Platform.Erp.ErpTaxAmountCalculator>();
