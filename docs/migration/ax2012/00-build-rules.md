@@ -2,7 +2,9 @@
 
 Audience: [Devin.ai migration review](https://cursor.com/agents/bc-d97081dc-aff3-46b1-a904-2a60549a5dbd). Parent study: `docs/migration/AX2012_AX32_CLIENT_STUDY.md`.
 
-This folder is the build contract for the AX 2012 client (`Ax32.exe`). Each module file lists the menu sections, the list page, the details form, the FastTabs (sections), the business fields on those sections, and the key that links the field to the next table. The client was not launched. These are standard AX 2012 form fields (R2/R3 shape). Custom fields in a CUS or VAR model were not observed. Do not invent them.
+This folder is a build contract for the main documents, not a census of every field on every form. Item tracking is the worked example of the missing depth: `11-item-tracking-fields.md`. Do not tell a builder that the module files already list each control.
+
+Each module file lists the main menu sections, the list page, the details form, the FastTabs, the business fields on those sections, and the key that links the field to the next table. The client was not launched. These are standard AX 2012 form fields (R2/R3 shape). Custom fields in a CUS or VAR model were not observed. Do not invent them.
 
 ## Rules for the builder
 
