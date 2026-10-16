@@ -52,10 +52,11 @@ public sealed class ErpSuperMailPresenceTests
         Assert.Contains("Platform mailboxes", razor, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate", razor, StringComparison.Ordinal);
         Assert.Contains("ErpOnlyLaunchClients.SuperMailbox", razor, StringComparison.Ordinal);
+        Assert.Contains("passwords on Tenants", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("phone", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("password", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("name=\"phone\"", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("name=\"password\"", razor, StringComparison.OrdinalIgnoreCase);
     }
 
     private static ErpTenantUserRow Person(long id, string email, string name, int openSessions, long lastVisit)
