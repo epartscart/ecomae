@@ -583,7 +583,15 @@ a.ns-kpi-card:hover .kv {
     flex-direction: column;
     align-items: stretch;
     gap: .3rem;
-    min-width: 12rem;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.epc-erp-master-picker .form-control {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .epc-erp-master-picker__label {
@@ -604,6 +612,7 @@ a.ns-kpi-card:hover .kv {
 .epc-erp-master-picker__hint {
     order: 4;
     margin: 0 !important;
+    overflow-wrap: anywhere;
 }
 
 .epc-fno-form .epc-erp-master-picker,
@@ -876,6 +885,13 @@ a.ns-kpi-card:hover .kv {
 .epc-cp-content-inner form > div {
     grid-column: 1 / -1;
     min-width: 0;
+}
+
+.epc-erp-content-body form > .epc-erp-master-picker,
+.epc-cp-content-inner form > .epc-erp-master-picker,
+.epc-erp-content-body form fieldset > .epc-erp-master-picker,
+.epc-cp-content-inner form fieldset > .epc-erp-master-picker {
+    grid-column: 1 / -1;
 }
 
 /* A grouped block (purchase, sales, stock) keeps its own fields in a row.

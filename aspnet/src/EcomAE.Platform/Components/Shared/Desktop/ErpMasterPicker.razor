@@ -17,17 +17,14 @@
         <datalist id="@ListId">
             @foreach (var row in _rows)
             {
-                var optionValue = UseCodeValue
-                    ? (string.IsNullOrWhiteSpace(row.Code) ? row.Id.ToString(CultureInfo.InvariantCulture) : row.Code)
-                    : row.Id.ToString(CultureInfo.InvariantCulture);
-                <option value="@optionValue" data-id="@row.Id.ToString(CultureInfo.InvariantCulture)" data-code="@row.Code" data-name="@row.Name" data-extra="@row.Extra">@FormatOption(row)</option>
+                <option value="@PostedValue(row)" data-id="@row.Id.ToString(CultureInfo.InvariantCulture)" data-code="@row.Code" data-name="@row.Name" data-extra="@row.Extra">@FormatOption(row)</option>
             }
         </datalist>
         <p class="help-block small epc-erp-master-picker__hint">One box: type a new @ResolvedLabel.ToLowerInvariant() or pick an existing one. Duplicates are not saved.</p>
     }
     else if (_rows.Count == 0)
     {
-        <input class="form-control input-sm" type="@(UseCodeValue ? "text" : "number")" name="@FieldName" id="@ResolvedInputId" min="@(UseCodeValue ? null : Min)" value="@ValueText" required="@Required" placeholder="@Placeholder" />
+        <input class="form-control input-sm" type="@(UseTextValue ? "text" : "number")" name="@FieldName" id="@ResolvedInputId" min="@(UseTextValue ? null : Min)" value="@ValueText" required="@Required" placeholder="@Placeholder" />
         <p class="help-block small epc-erp-master-picker__hint">No @ResolvedLabel.ToLowerInvariant() masters yet — type the id, or <a href="@MasterHref">add one</a>.</p>
     }
     else
@@ -36,7 +33,7 @@
         <select class="form-control input-sm" name="@FieldName" id="@ResolvedInputId" required="@Required" data-erp-picker-select>
             @if (!Required)
             {
-                <option value="@(UseCodeValue ? "" : "0")" selected="@(!HasSelected)">— none —</option>
+                <option value="@(UseTextValue ? "" : "0")" selected="@(!HasSelected)">— none —</option>
             }
             else
             {
@@ -44,10 +41,7 @@
             }
             @foreach (var row in _rows)
             {
-                var optionValue = UseCodeValue
-                    ? (string.IsNullOrWhiteSpace(row.Code) ? row.Id.ToString(CultureInfo.InvariantCulture) : row.Code)
-                    : row.Id.ToString(CultureInfo.InvariantCulture);
-                <option value="@optionValue"
+                <option value="@PostedValue(row)"
                         data-id="@row.Id.ToString(CultureInfo.InvariantCulture)"
                         data-code="@row.Code"
                         data-name="@row.Name"
@@ -70,7 +64,7 @@
     [Parameter] public string? NameFieldName { get; set; }
     [Parameter] public int Min { get; set; } = 0;
     [Parameter] public string? Placeholder { get; set; }
-    /// <summary>When <c>code</c>, the posted value is the master code/SKU (item_code fields).</summary>
+    /// <summary><c>code</c> posts the master code or SKU. <c>name</c> posts the master name. Otherwise the id.</summary>
     [Parameter] public string ValueMode { get; set; } = "id";
     [Parameter] public string? SelectedCode { get; set; }
     /// <summary>Optional sibling field filled from the option extra (karat purity, metal-stock metal · purity · karat).</summary>
@@ -86,15 +80,34 @@
     private string ListId => ResolvedInputId + "-list";
     private string MasterHref => ErpMasterLookupReadService.MasterHref(ResolvedKind);
     private bool UseCodeValue => string.Equals(ValueMode, "code", StringComparison.OrdinalIgnoreCase);
+    private bool UseNameValue => string.Equals(ValueMode, "name", StringComparison.OrdinalIgnoreCase);
+    private bool UseTextValue => UseCodeValue || UseNameValue;
     private bool HasSelected => Value > 0 || !string.IsNullOrWhiteSpace(SelectedCode);
-    private string? ValueText => UseCodeValue
+    private string? ValueText => UseTextValue
         ? SelectedCode
         : (Value > 0 ? Value.ToString(CultureInfo.InvariantCulture) : null);
 
+    private string PostedValue(ErpMasterOption row)
+    {
+        if (UseNameValue && !string.IsNullOrWhiteSpace(row.Name))
+        {
+            return row.Name.Trim();
+        }
+
+        if (UseTextValue)
+        {
+            return string.IsNullOrWhiteSpace(row.Code) ? row.Id.ToString(CultureInfo.InvariantCulture) : row.Code;
+        }
+
+        return row.Id.ToString(CultureInfo.InvariantCulture);
+    }
+
     private bool IsSelected(ErpMasterOption row)
-        => UseCodeValue
-            ? !string.IsNullOrWhiteSpace(SelectedCode) && string.Equals(row.Code, SelectedCode, StringComparison.OrdinalIgnoreCase)
-            : Value > 0 && Value == row.Id;
+        => UseNameValue
+            ? !string.IsNullOrWhiteSpace(SelectedCode) && string.Equals(row.Name, SelectedCode, StringComparison.OrdinalIgnoreCase)
+            : UseCodeValue
+                ? !string.IsNullOrWhiteSpace(SelectedCode) && string.Equals(row.Code, SelectedCode, StringComparison.OrdinalIgnoreCase)
+                : Value > 0 && Value == row.Id;
 
     protected override async Task OnInitializedAsync()
     {

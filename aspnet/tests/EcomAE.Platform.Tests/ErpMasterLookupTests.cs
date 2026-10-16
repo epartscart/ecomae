@@ -15,6 +15,12 @@ public sealed class ErpMasterLookupTests
     [InlineData("vendors", "supplier")]
     [InlineData("item-code", "item")]
     [InlineData("sku", "item")]
+    [InlineData("item_id", "item")]
+    [InlineData("coa", "coa")]
+    [InlineData("chart", "coa")]
+    [InlineData("gl_account", "coa")]
+    [InlineData("warehouse", "warehouse")]
+    [InlineData("warehouses", "warehouse")]
     [InlineData("jw-metal-stock", "jw-metal-stock")]
     [InlineData("metal-stock", "jw-metal-stock")]
     [InlineData("jw-item", "jw-metal-stock")]
@@ -124,6 +130,36 @@ public sealed class ErpMasterLookupTests
         Assert.Contains("<ErpMasterPicker", text, StringComparison.Ordinal);
         Assert.Contains(needle, text, StringComparison.Ordinal);
         Assert.Contains(field, text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EntryFormsPickChartItemCustomerVendorAndWarehouse()
+    {
+        var product = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpProductInfoApp.razor"));
+        Assert.Contains("Kind=\"coa\"", product, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"cogs_account\"", product, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"income_account\"", product, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"asset_account\"", product, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"preferred_vendor\"", product, StringComparison.Ordinal);
+        Assert.Contains("ValueMode=\"name\"", product, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"bom_sku\"", product, StringComparison.Ordinal);
+        Assert.DoesNotContain("value=\"Cost of goods sold\"", product, StringComparison.Ordinal);
+
+        var catalog = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpSheetEntryCatalog.cs"));
+        Assert.Contains("MasterKind: \"warehouse\"", catalog, StringComparison.Ordinal);
+        Assert.Contains("MasterKind: \"item\"", catalog, StringComparison.Ordinal);
+        Assert.Contains("MasterKind: \"coa\"", catalog, StringComparison.Ordinal);
+        Assert.Contains("MasterKind: \"customer\"", catalog, StringComparison.Ordinal);
+
+        var sheet = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/ErpSheetEntryForm.razor"));
+        Assert.Contains("<ErpMasterPicker", sheet, StringComparison.Ordinal);
+
+        var picker = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/ErpMasterPicker.razor"));
+        Assert.Contains("UseNameValue", picker, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/coa-accounts-app", ErpMasterLookupReadService.MasterHref("coa"));
+        Assert.Equal("/erp/warehouses-app", ErpMasterLookupReadService.MasterHref("warehouse"));
+        Assert.Equal("Chart account", ErpMasterLookupReadService.KindLabel("coa"));
     }
 
     [Fact]

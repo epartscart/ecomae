@@ -9,7 +9,9 @@ public sealed record ErpSheetField(
     string Type,
     bool Wide = false,
     string Placeholder = "",
-    IReadOnlyList<(string Value, string Text)>? Options = null);
+    IReadOnlyList<(string Value, string Text)>? Options = null,
+    string MasterKind = "",
+    string ValueMode = "id");
 
 public sealed record ErpSheetDefinition(
     string Key,
@@ -84,9 +86,9 @@ public static class ErpSheetEntryCatalog
                 "New stock transfer",
                 "Validate checks the warehouses and quantity. Post saves a draft transfer. Open the posted transfer to review it.",
                 [
-                    new("from_warehouse_id", "From warehouse", "number", Placeholder: "Warehouse id"),
-                    new("to_warehouse_id", "To warehouse", "number", Placeholder: "Warehouse id"),
-                    new("sku", "SKU", "text"),
+                    new("from_warehouse_id", "From warehouse", "master", MasterKind: "warehouse"),
+                    new("to_warehouse_id", "To warehouse", "master", MasterKind: "warehouse"),
+                    new("sku", "Item", "master", MasterKind: "item", ValueMode: "code"),
                     new("qty", "Quantity", "number", Placeholder: "0"),
                     new("reason", "Reason", "text", Placeholder: "Replenishment"),
                     new("notes", "Notes", "text"),
@@ -97,8 +99,8 @@ public static class ErpSheetEntryCatalog
                 "Validate checks warehouse, item, and quantity. Post writes the inventory movement ledger. Open a posted movement to review the note.",
                 [
                     new("movement_type", "Movement", "select", Options: MovementTypes),
-                    new("warehouse_id", "Warehouse", "number", Placeholder: "Warehouse id"),
-                    new("item_id", "Item", "number", Placeholder: "Item id"),
+                    new("warehouse_id", "Warehouse", "master", MasterKind: "warehouse"),
+                    new("item_id", "Item", "master", MasterKind: "item"),
                     new("qty", "Quantity", "number"),
                     new("unit_cost", "Unit cost", "number"),
                     new("reference", "Reference", "text"),
@@ -110,7 +112,7 @@ public static class ErpSheetEntryCatalog
                 "New staff profile",
                 "Validate checks the user, name, and department. Post saves the staff profile. Open a posted profile to review it. Email and phone stay off the open pane.",
                 [
-                    new("user_id", "User id", "number"),
+                    new("user_id", "User", "master", MasterKind: "customer"),
                     new("display_name", "Name", "text"),
                     new("department_code", "Department", "select", Options: ErpStaffDepartmentCatalog.All.Select(d => (d.Code, d.Name)).ToArray()),
                     new("job_title", "Job title", "text"),
@@ -139,7 +141,7 @@ public static class ErpSheetEntryCatalog
                     new("module", "Module", "select", Options: OpeningModules),
                     new("as_of_date", "As of date", "date"),
                     new("reference", "Reference", "text"),
-                    new("account_id", "Account id", "number"),
+                    new("account_id", "Chart account", "master", MasterKind: "coa"),
                     new("debit", "Debit", "number"),
                     new("credit", "Credit", "number"),
                     new("note", "Note", "text", Wide: true),

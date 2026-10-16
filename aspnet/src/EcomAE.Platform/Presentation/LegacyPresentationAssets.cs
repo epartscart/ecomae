@@ -40,7 +40,7 @@ public static class LegacyPresentationAssets
         // (Super CP + Tenant CP). /platform-assets survives PHP pause.
         "/platform-assets/epc_cp_aspnet_module_parity.css?v=20260811scp",
         "/content/general_pages/epc_cp_aspnet_module_parity_css.php",
-        "/platform-assets/css/epc-enterprise-design-system.css?v=20261013tab1"
+        "/platform-assets/css/epc-enterprise-design-system.css?v=20261016masters"
     ];
 
     /// <summary>
@@ -101,7 +101,7 @@ public static class LegacyPresentationAssets
         // /platform-assets survives PHP pause on Super / Tenant / ERP-only hosts.
         "/platform-assets/epc_erp_aspnet_module_parity.css?v=20261013tab1",
         "/content/shop/finance/epc_erp_aspnet_module_parity_css.php",
-        "/platform-assets/css/epc-enterprise-design-system.css?v=20261013tab1",
+        "/platform-assets/css/epc-enterprise-design-system.css?v=20261016masters",
         "/platform-assets/css/erp-document-workspace.css?v=20261013row1",
         "/platform-assets/css/erp-finance-voucher-workspace.css?v=20260929finance"
     ];
