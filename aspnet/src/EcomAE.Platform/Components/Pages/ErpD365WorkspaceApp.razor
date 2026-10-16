@@ -54,6 +54,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_title" BreadcrumbArea="@_areaLabel" BreadcrumbTab="@_page.Label">
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="@_appPath" IsAdmin="_isAdmin" />
     <PhpErpModulePageHeader Title="@_page.Label" Subtitle="@_page.Purpose" PhpTabHref="@_phpTab" />
+    <p class="help-block"><strong>How to use.</strong> @ErpAreaUseGuide.UseFor(_area) <a href="@GuideHref">How to use every area</a></p>
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
     <div class="epc-d365-workspace">
@@ -737,6 +738,9 @@
         ErpD365Part3Catalog.FormKind.Procurement => field is "code" or "name" or "party" or "status" or "qty" or "amount" or "note",
         _ => field is "code" or "name" or "note",
     };
+
+    private string GuideHref
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/guide-app") + "#" + ErpAreaUseGuide.Anchor(_area);
 
     private string PageHref(ErpD365Part3Catalog.Page page)
         => ClientErpPath.PrefixIfBound(Http.HttpContext, page.AppPath + "?tab=" + page.Tab);
