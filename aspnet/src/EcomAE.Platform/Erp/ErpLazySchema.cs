@@ -1656,8 +1656,9 @@ internal static class ErpLazySchema
     }
 
     /// <summary>Workspace rows for Dynamics-style leave, planning, equipment, organization, payroll, and procurement pages.</summary>
-    public static Task EnsureD365WorkspaceAsync(DbConnection c, CancellationToken ct) =>
-        ErpDb.TryExecuteAsync(
+    public static async Task EnsureD365WorkspaceAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(
             c,
             "CREATE TABLE IF NOT EXISTS `epc_erp_d365_workspace` (" +
             "`id` int(11) NOT NULL AUTO_INCREMENT," +
@@ -1677,6 +1678,7 @@ internal static class ErpLazySchema
             "`amount` decimal(16,2) NOT NULL DEFAULT 0.00," +
             "`extra` text," +
             "`note` varchar(255) NOT NULL DEFAULT ''," +
+            "`fields_json` text," +
             "`created_by` int(11) NOT NULL DEFAULT 0," +
             "`time_created` int(11) NOT NULL DEFAULT 0," +
             "`time_updated` int(11) NOT NULL DEFAULT 0," +
@@ -1684,7 +1686,9 @@ internal static class ErpLazySchema
             "KEY `x_area_tab` (`area`,`tab`)," +
             "KEY `x_status` (`status`)" +
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Dynamics-style workspace rows'",
-            ct);
+            ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_d365_workspace", "fields_json", "text", ct).ConfigureAwait(false);
+    }
 
     /// <summary>Company-level official process parameters for workspace areas.</summary>
     public static Task EnsureD365ParametersAsync(DbConnection c, CancellationToken ct) =>
