@@ -62,6 +62,8 @@ public static partial class PhpModuleCatalog
             "Prepare department users, credential controls, login and audit logs", false, false, "Security"),
         new("projects/real_estate", "Real estate investment", "/erp/real-estate-app", "fa-building", "projects",
             "Property register, pipeline, leases, development and construction", false, false, "Common"),
+        new("projects/real_estate_year_book", "Year book", "/erp/landlord-app?year=2025", "fa-calendar", "projects",
+            "Income, expenses and profit and loss for each property and year", false, false, "Common"),
         new("projects/real_estate_leases", "Leases and collections", "/erp/real-estate-app?tab=leases", "fa-key", "projects",
             "Tenants, rent schedules, cheques and security deposits", false, false, "Common"),
         new("projects/real_estate_projects", "Development and construction", "/erp/real-estate-app?tab=projects", "fa-hard-hat", "projects",

@@ -227,6 +227,20 @@ public sealed class ErpRealEstateTests
         Assert.Equal("/erp/real-estate-app", href);
         Assert.Contains(ErpCapabilityCatalog.Groups, g => g.Key == "real_estate" && g.Href == "/erp/real-estate-app");
         Assert.Contains(PhpModuleCatalog.AspNetErpTabs, t => t.Id == "projects/real_estate");
+        Assert.Contains(PhpModuleCatalog.AspNetErpTabs, t => t.Id == "projects/real_estate_year_book" && t.Href == "/erp/landlord-app?year=2025");
+        var propertiesAt = ErpRealEstateWorkspace.Tabs.ToList().FindIndex(t => t.Key == "properties");
+        Assert.Equal("yearbook", ErpRealEstateWorkspace.Tabs[propertiesAt + 1].Key);
+        Assert.Contains("ErpRealEstateWorkspaceTabs", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpLandlordApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("ErpRealEstateWorkspaceTabs", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor")), StringComparison.Ordinal);
+        var yearBook = PhpModuleCatalog.AspNetErpTabs.Single(t => t.Id == "projects/real_estate_year_book");
+        Assert.True(ErpIndustryNav.IsRealEstateTab(yearBook));
+        var real = new ErpCompanyDigest(4, "REAL", "Real Estate Company", "AED", "AE", "real-estate-development", true);
+        var parts = new ErpCompanyDigest(1, "MAIN", "Main", "AED", "AE", "", true);
+        var menu = LegacyDesktopChromeCatalog.ErpTopnav();
+        var realMenu = ErpIndustryNav.FilterTopnav(menu, new ErpIndustryNav.ErpNavAudience("current", "real_estate", null, false, Company: real));
+        var partsMenu = ErpIndustryNav.FilterTopnav(menu, new ErpIndustryNav.ErpNavAudience("current", "auto_parts", null, false, Company: parts));
+        Assert.Contains(realMenu.SelectMany(g => g.Links), t => t.Id == "projects/real_estate_year_book");
+        Assert.DoesNotContain(partsMenu.SelectMany(g => g.Links), t => t.Id == "projects/real_estate_year_book");
         Assert.Contains("IErpRealEstateWriteService", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Program.cs")), StringComparison.Ordinal);
         Assert.Contains("HandleRealEstateSaveAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs")), StringComparison.Ordinal);
         Assert.Contains("HandleRealEstateReportAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs")), StringComparison.Ordinal);
@@ -273,7 +287,7 @@ public sealed class ErpRealEstateTests
         Assert.Contains("income statement", razor, StringComparison.Ordinal);
         Assert.Contains("save_boq_line", razor, StringComparison.Ordinal);
         Assert.Contains("Cheque maturity calendar", razor, StringComparison.Ordinal);
-        Assert.Contains("\"calendar\", \"Calendars\"", razor, StringComparison.Ordinal);
+        Assert.Contains("new(\"calendar\", \"Calendars\"", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Presentation/ErpRealEstateWorkspace.cs")), StringComparison.Ordinal);
         Assert.Contains("reset_portfolio", razor, StringComparison.Ordinal);
         Assert.Contains("Empty portfolio for new entry", razor, StringComparison.Ordinal);
     }

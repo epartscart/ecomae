@@ -108,6 +108,7 @@ public static class ErpIndustryNav
         var href = tab.Href ?? string.Empty;
         return key.StartsWith("real_estate", StringComparison.OrdinalIgnoreCase)
             || href.Contains("/erp/real-estate-app", StringComparison.OrdinalIgnoreCase)
+            || href.Contains("/erp/landlord-app", StringComparison.OrdinalIgnoreCase)
             || href.Contains("tab=real_estate", StringComparison.OrdinalIgnoreCase);
     }
 

@@ -47,12 +47,7 @@
         .re-filter label { font-size: 12px; color: #334155; }
     </style>
 
-    <nav class="epc-org-tabs" aria-label="Real estate workspaces">
-        @foreach (var tab in Tabs)
-        {
-            <a class="@TabClass(tab.Key)" href="@OrgHref(tab.Key)"><i class="fa @tab.Icon"></i> @tab.Label</a>
-        }
-    </nav>
+    <ErpRealEstateWorkspaceTabs Active="@_tab" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Real estate KPIs">
         <a class="kpi" href="@OrgHref("opportunities")"><div class="lbl">Opportunities</div><div class="val">@_snap.Kpis.Opportunities.ToString(CultureInfo.InvariantCulture)</div></a>
@@ -921,26 +916,6 @@
 </PhpErpDesktopChrome>
 
 @code {
-    private static readonly (string Key, string Label, string Icon)[] Tabs =
-    [
-        ("dashboard", "Dashboard", "fa-dashboard"),
-        ("opportunities", "Opportunities", "fa-lightbulb-o"),
-        ("properties", "Properties", "fa-building"),
-        ("acquisitions", "Buy / sell", "fa-exchange"),
-        ("valuations", "Valuation", "fa-line-chart"),
-        ("leases", "Tenants & leases", "fa-key"),
-        ("collections", "Rent & cheques", "fa-money"),
-        ("maintenance", "Maintenance", "fa-wrench"),
-        ("projects", "Development", "fa-sitemap"),
-        ("sales", "Unit sales", "fa-home"),
-        ("construction", "Contracts", "fa-hard-hat"),
-        ("calendar", "Calendars", "fa-calendar"),
-        ("documents", "Documents", "fa-folder-open"),
-        ("import", "Import / export", "fa-file-excel-o"),
-        ("alerts", "Alerts", "fa-bell"),
-        ("reports", "Reports", "fa-bar-chart"),
-    ];
-
     private bool _isAdmin;
     private string _tab = "dashboard";
     private string _tabLabel = "Dashboard";
@@ -980,9 +955,6 @@
     private static int Meter(decimal part, decimal whole)
         => whole <= 0 ? 0 : (int)Math.Min(100m, decimal.Round(part / whole * 100m, 0, MidpointRounding.AwayFromZero));
 
-    private string TabClass(string tab)
-        => string.Equals(_tab, tab, StringComparison.OrdinalIgnoreCase) ? "active" : "";
-
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
@@ -994,7 +966,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _tab = NormalizeTab(ctx.Request.Query["tab"].ToString());
-        _tabLabel = Tabs.FirstOrDefault(t => t.Key == _tab).Label ?? "Dashboard";
+        _tabLabel = ErpRealEstateWorkspace.Label(_tab);
         _emirate = ctx.Request.Query["emirate"].ToString() ?? "";
         long.TryParse(ctx.Request.Query["propertyId"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _propertyId);
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -1029,7 +1001,7 @@
     private static string NormalizeTab(string? raw)
     {
         var tab = (raw ?? string.Empty).Trim().ToLowerInvariant();
-        return Tabs.Any(t => t.Key == tab) ? tab : "dashboard";
+        return ErpRealEstateWorkspace.IsContentTab(tab) ? tab : "dashboard";
     }
 
     private static IReadOnlyList<(ErpRealEstateRow Row, decimal Change)> BuildValuationTimeline(
