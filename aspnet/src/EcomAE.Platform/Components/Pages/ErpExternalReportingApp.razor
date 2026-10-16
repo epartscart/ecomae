@@ -2,10 +2,12 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @inject ILegacySessionValidator Sessions
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IErpFinancialStatementReadService Statements
 @inject IErpExternalReportingPackCache Packs
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
@@ -310,18 +312,53 @@
             <div class="text-muted" style="font-size:12px;margin-bottom:6px;">
                 <strong>To:</strong> @auth.Name &nbsp;·&nbsp; <strong>Under:</strong> @auth.Law
             </div>
-            @if (_built is { Summary.Count: > 0 })
+            @if (_ledgerFromBooks && _ledgerPl is not null && _ledgerBs is not null)
             {
-                <div class="epc-ext-sum">
-                    @foreach (var card in _built.Summary)
+                <p style="font-size:13px;margin:0 0 6px;">
+                    <strong>Posted books</strong>
+                    · @_ledgerPl.LevelLabel
+                    · accounting @_ledgerPl.AccountingCurrency
+                    @if (!string.Equals(_ledgerPl.ReportingCurrency, _ledgerPl.AccountingCurrency, StringComparison.OrdinalIgnoreCase))
                     {
-                        <div style="border-top-color:@card.Color;"><div class="k">@card.Label</div><div class="v" style="color:@card.Color;">@card.Value</div></div>
+                        <span> · reporting @_ledgerPl.ReportingCurrency at @_ledgerPl.Rate.ToString("0.########", CultureInfo.InvariantCulture)</span>
                     }
+                </p>
+                <p class="text-muted" style="font-size:12px;">
+                    @_ledgerPl.Message
+                    <a href="@LedgerHref("pl")">Profit and loss</a>
+                    · <a href="@LedgerHref("balance_sheet")">Balance sheet</a>
+                    · <a href="@LedgerHref("pl", "business_unit")">Business unit</a>
+                    · <a href="@LedgerHref("balance_sheet", "consolidation")">Consolidation</a>
+                </p>
+                <div class="epc-ext-sum">
+                    <div style="border-top-color:#2f855a;"><div class="k">Income</div><div class="v" style="color:#2f855a;">@Money(_ledgerPl.IncomeAccounting)</div></div>
+                    <div style="border-top-color:#c53030;"><div class="k">Expense</div><div class="v" style="color:#c53030;">@Money(_ledgerPl.ExpenseAccounting)</div></div>
+                    <div style="border-top-color:#805ad5;"><div class="k">Net profit</div><div class="v" style="color:#805ad5;">@Money(_ledgerPl.NetProfitAccounting)</div></div>
+                    <div style="border-top-color:#2b6cb0;"><div class="k">Assets</div><div class="v" style="color:#2b6cb0;">@Money(_ledgerBs.AssetAccounting)</div></div>
+                    <div style="border-top-color:#b7791f;"><div class="k">Liabilities</div><div class="v" style="color:#b7791f;">@Money(_ledgerBs.LiabilityAccounting)</div></div>
+                    <div style="border-top-color:#1d2740;"><div class="k">Equity</div><div class="v" style="color:#1d2740;">@Money(_ledgerBs.EquityAccounting)</div></div>
+                    <div style="border-top-color:#5b6577;"><div class="k">Out of balance</div><div class="v" style="color:#5b6577;">@Money(_ledgerBs.BalanceCheckAccounting)</div></div>
                 </div>
+                <h4 style="margin-top:18px;">Profit and loss</h4>
+                @LedgerTable(_ledgerPl)
+                <h4 style="margin-top:18px;">Balance sheet</h4>
+                @LedgerTable(_ledgerBs)
             }
-            @if (!string.IsNullOrWhiteSpace(_built?.BodyHtml))
+            else
             {
-                @((MarkupString)_built!.BodyHtml)
+                @if (_built is { Summary.Count: > 0 })
+                {
+                    <div class="epc-ext-sum">
+                        @foreach (var card in _built.Summary)
+                        {
+                            <div style="border-top-color:@card.Color;"><div class="k">@card.Label</div><div class="v" style="color:@card.Color;">@card.Value</div></div>
+                        }
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(_built?.BodyHtml))
+                {
+                    @((MarkupString)_built!.BodyHtml)
+                }
             }
             <div style="margin-top:28px;display:flex;justify-content:space-between;gap:30px;">
                 <div style="flex:1;border-top:1px solid #aaa;padding-top:6px;font-size:12px;color:#555;">Prepared by &amp; date</div>
@@ -451,6 +488,9 @@
     private ErpExternalReportingCatalog.Category? _category;
     private string? _catLabel;
     private ErpExternalReportingBuilt? _built;
+    private ErpFinancialStatement? _ledgerPl;
+    private ErpFinancialStatement? _ledgerBs;
+    private bool _ledgerFromBooks;
     private bool _fetched;
     private string _trn = "";
     private string _ccy = "AED";
@@ -595,6 +635,46 @@
                 {
                     liveFigs = false;
                 }
+
+                if (UsesPostedBooks(_report.Key))
+                {
+                    var level = _report.Key == "fin__consolidated_financial_statements" ? "consolidation" : "company";
+                    var currency = ctx.Request.Query["currency"].ToString().Trim();
+                    if (currency.Length == 0)
+                    {
+                        currency = _ccy;
+                    }
+
+                    try
+                    {
+                        _ledgerPl = await Statements.ReadAsync(
+                            ErpFinancialStatementQuery.FromQuery("pl", level, _companyId.ToString(CultureInfo.InvariantCulture), "0", currency),
+                            ctx.RequestAborted);
+                        _ledgerBs = await Statements.ReadAsync(
+                            ErpFinancialStatementQuery.FromQuery("balance_sheet", level, _companyId.ToString(CultureInfo.InvariantCulture), "0", currency),
+                            ctx.RequestAborted);
+                    }
+                    catch
+                    {
+                        _ledgerPl = null;
+                        _ledgerBs = null;
+                    }
+
+                    var hasProfit = _ledgerPl is { Source: "live" }
+                        && (Math.Abs(_ledgerPl.IncomeAccounting) > 0.005m || Math.Abs(_ledgerPl.ExpenseAccounting) > 0.005m);
+                    var hasAssets = _ledgerBs is { Source: "live" } && Math.Abs(_ledgerBs.AssetAccounting) > 0.005m;
+                    _ledgerFromBooks = _ledgerPl is { Source: "live" } && _ledgerBs is { Source: "live" } && (hasProfit || hasAssets);
+                    if (hasProfit && _ledgerPl is not null)
+                    {
+                        sales = _ledgerPl.IncomeAccounting;
+                        purch = _ledgerPl.ExpenseAccounting;
+                        liveFigs = true;
+                    }
+                    else if (_ledgerFromBooks)
+                    {
+                        liveFigs = true;
+                    }
+                }
             }
         }
 
@@ -661,6 +741,88 @@
 
         _headerContextItems = BuildHeaderContextItems();
     }
+
+    private static bool UsesPostedBooks(string key)
+        => key is "fin__annual_financial_statements"
+            or "fin__statutory_accounts_filing"
+            or "fin__ifrs_reporting"
+            or "fin__gaap_reporting"
+            or "fin__interim_financial_statements"
+            or "fin__consolidated_financial_statements"
+            or "audit__external_audit_report";
+
+    private string LedgerHref(string tab, string? level = null)
+    {
+        level ??= _report?.Key == "fin__consolidated_financial_statements" ? "consolidation" : "company";
+        var q = new List<string>
+        {
+            "tab=" + Uri.EscapeDataString(tab),
+            "level=" + Uri.EscapeDataString(level),
+        };
+        if (_companyId > 0)
+        {
+            q.Add("company=" + _companyId.ToString(CultureInfo.InvariantCulture));
+        }
+
+        var currency = _ledgerPl?.ReportingCurrency ?? "";
+        if (currency.Length > 0)
+        {
+            q.Add("currency=" + Uri.EscapeDataString(currency));
+        }
+
+        return "/erp/report-center-app?" + string.Join("&", q);
+    }
+
+    private static string Money(decimal value)
+        => value.ToString("N2", CultureInfo.InvariantCulture);
+
+    private static RenderFragment LedgerTable(ErpFinancialStatement statement) => builder =>
+    {
+        builder.OpenElement(0, "table");
+        builder.AddAttribute(1, "class", "table table-striped table-bordered table-condensed");
+        builder.OpenElement(2, "thead");
+        builder.OpenElement(3, "tr");
+        builder.OpenElement(4, "th");
+        builder.AddContent(5, "Code");
+        builder.CloseElement();
+        builder.OpenElement(6, "th");
+        builder.AddContent(7, "Name");
+        builder.CloseElement();
+        builder.OpenElement(8, "th");
+        builder.AddAttribute(9, "class", "text-right");
+        builder.AddContent(10, statement.AccountingCurrency);
+        builder.CloseElement();
+        builder.OpenElement(11, "th");
+        builder.AddAttribute(12, "class", "text-right");
+        builder.AddContent(13, statement.ReportingCurrency);
+        builder.CloseElement();
+        builder.CloseElement();
+        builder.CloseElement();
+        builder.OpenElement(14, "tbody");
+        var seq = 15;
+        foreach (var line in statement.Lines)
+        {
+            builder.OpenElement(seq++, "tr");
+            builder.OpenElement(seq++, "td");
+            builder.AddContent(seq++, line.Code);
+            builder.CloseElement();
+            builder.OpenElement(seq++, "td");
+            builder.AddContent(seq++, line.Name);
+            builder.CloseElement();
+            builder.OpenElement(seq++, "td");
+            builder.AddAttribute(seq++, "class", "text-right");
+            builder.AddContent(seq++, Money(line.Accounting));
+            builder.CloseElement();
+            builder.OpenElement(seq++, "td");
+            builder.AddAttribute(seq++, "class", "text-right");
+            builder.AddContent(seq++, Money(line.Reporting));
+            builder.CloseElement();
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+        builder.CloseElement();
+    };
 
     private string Href(string? cat = null, string? rep = null, string? tool = null)
     {

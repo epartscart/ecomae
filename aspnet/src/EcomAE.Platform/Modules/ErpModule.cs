@@ -11730,6 +11730,9 @@ public sealed class ErpModule : ISurfaceModule
                         Description = body.Description ?? string.Empty,
                         JournalDate = body.JournalDate,
                         IdempotencyKey = body.IdempotencyKey ?? string.Empty,
+                        CompanyId = body.CompanyId,
+                        BusinessUnitId = body.BusinessUnitId,
+                        CurrencyCode = body.CurrencyCode ?? string.Empty,
                     },
                     session.UserId,
                     cancellationToken);
@@ -13049,7 +13052,7 @@ public sealed class ErpModule : ISurfaceModule
                 message = result.Message,
                 phpAuthoritative = true,
                 session = SessionPayload(session),
-                note = "PHP epc_entity_consolidated_tb projection: entity count plus empty accounts container; detailed consolidated balances remain PHP-owned."
+                note = "PHP epc_entity_consolidated_tb projection: entity count plus the consolidated balance sheet from the posted ledger."
             });
         });
         endpoints.MapPost(EcomAeRoutes.ErpMultiEntityWrite, async (
@@ -29289,7 +29292,10 @@ public sealed class ErpModule : ISurfaceModule
             LiveWriteFormBinder.Text(form, "description"),
             LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"),
             LiveWriteFormBinder.Long(form, "journalDate", "journal_date"),
-            LiveWriteFormBinder.Text(form, "idempotencyKey", "idempotency_key", "idem_key"));
+            LiveWriteFormBinder.Text(form, "idempotencyKey", "idempotency_key", "idem_key"),
+            LiveWriteFormBinder.Long(form, "legal_entity_id", "company_id"),
+            LiveWriteFormBinder.Long(form, "business_unit_id"),
+            LiveWriteFormBinder.Text(form, "currency_code", "currency"));
     }
 
     private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);
@@ -29299,7 +29305,10 @@ public sealed class ErpModule : ISurfaceModule
         string? Description,
         bool ConfirmWrites = false,
         long JournalDate = 0,
-        string? IdempotencyKey = null);
+        string? IdempotencyKey = null,
+        long CompanyId = 0,
+        long BusinessUnitId = 0,
+        string? CurrencyCode = null);
     private sealed record ErpGlReverseJournalBody(
         long JournalId,
         string? Note,

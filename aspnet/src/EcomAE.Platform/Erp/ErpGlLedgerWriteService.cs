@@ -16,6 +16,12 @@ public sealed record ErpManualJournalInput
     public long JournalDate { get; init; }
 
     public string IdempotencyKey { get; init; } = string.Empty;
+
+    public long CompanyId { get; init; }
+
+    public long BusinessUnitId { get; init; }
+
+    public string CurrencyCode { get; init; } = string.Empty;
 }
 
 /// <summary>PHP <c>epc_erp_gl_create_coa</c> payload.</summary>
@@ -205,6 +211,9 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
                     Reference = input.Reference,
                     Description = input.Description.Trim().Length > 0 ? input.Description : "Manual journal entry",
                     SourceType = "manual",
+                    CompanyId = input.CompanyId,
+                    BusinessUnitId = input.BusinessUnitId,
+                    CurrencyCode = input.CurrencyCode,
                 },
                 lines,
                 adminId,

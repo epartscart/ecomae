@@ -770,6 +770,7 @@ builder.Services.AddScoped<EcomAE.Platform.Migration.IErpD365LinkDryRun, EcomAE.
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365StudyWriteService, EcomAE.Platform.Erp.ErpD365StudyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Migration.IErpD365StudyDryRun, EcomAE.Platform.Migration.ErpD365StudyDryRun>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTrialBalanceReadService, EcomAE.Platform.Erp.ErpTrialBalanceReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFinancialStatementReadService, EcomAE.Platform.Erp.ErpFinancialStatementReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTrialBalanceWriteService, EcomAE.Platform.Erp.ErpTrialBalanceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Migration.IErpTrialBalanceDryRun, EcomAE.Platform.Migration.ErpTrialBalanceDryRun>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpApSetupReadService, EcomAE.Platform.Erp.ErpApSetupReadService>();

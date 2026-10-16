@@ -1,0 +1,598 @@
+using System.Data.Common;
+using System.Globalization;
+
+namespace EcomAE.Platform.Erp;
+
+public enum ErpFinancialStatementKind
+{
+    ProfitAndLoss,
+    BalanceSheet,
+}
+
+public enum ErpFinancialStatementLevel
+{
+    Company,
+    BusinessUnit,
+    Consolidation,
+}
+
+public sealed record ErpFinancialStatementQuery(
+    ErpFinancialStatementKind Kind,
+    ErpFinancialStatementLevel Level,
+    int CompanyId,
+    long BusinessUnitId,
+    string ReportingCurrency)
+{
+    public static ErpFinancialStatementQuery FromQuery(
+        string? tab,
+        string? level,
+        string? company,
+        string? businessUnit,
+        string? currency)
+    {
+        var kind = string.Equals(tab, "balance_sheet", StringComparison.OrdinalIgnoreCase)
+            ? ErpFinancialStatementKind.BalanceSheet
+            : ErpFinancialStatementKind.ProfitAndLoss;
+        var scope = (level ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "business_unit" or "bu" or "branch" => ErpFinancialStatementLevel.BusinessUnit,
+            "consolidation" or "consolidated" or "group" => ErpFinancialStatementLevel.Consolidation,
+            _ => ErpFinancialStatementLevel.Company,
+        };
+        _ = int.TryParse(company, NumberStyles.Integer, CultureInfo.InvariantCulture, out var companyId);
+        _ = long.TryParse(businessUnit, NumberStyles.Integer, CultureInfo.InvariantCulture, out var unitId);
+        var code = (currency ?? string.Empty).Trim().ToUpperInvariant();
+        if (code.Length > 8)
+        {
+            code = code[..8];
+        }
+
+        return new(kind, scope, companyId < 0 ? 0 : companyId, unitId < 0 ? 0 : unitId, code);
+    }
+}
+
+public sealed record ErpFinancialStatementLine(
+    string Code,
+    string Name,
+    string AccountType,
+    decimal Accounting,
+    decimal Reporting);
+
+public sealed record ErpFinancialStatementUnit(long Id, string Code, string Name);
+
+public sealed record ErpFinancialStatement(
+    ErpFinancialStatementQuery Query,
+    string AccountingCurrency,
+    string ReportingCurrency,
+    decimal Rate,
+    string RateNote,
+    IReadOnlyList<ErpFinancialStatementLine> Lines,
+    decimal IncomeAccounting,
+    decimal ExpenseAccounting,
+    decimal NetProfitAccounting,
+    decimal AssetAccounting,
+    decimal LiabilityAccounting,
+    decimal EquityAccounting,
+    decimal BalanceCheckAccounting,
+    string LevelLabel,
+    string Source,
+    string Message,
+    IReadOnlyList<ErpFinancialStatementUnit> BusinessUnits);
+
+public interface IErpFinancialStatementReadService
+{
+    Task<ErpFinancialStatement> ReadAsync(
+        ErpFinancialStatementQuery query,
+        CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Profit and loss and balance sheet from posted journals.
+/// Company uses one legal entity. Business unit uses the document header.
+/// Consolidation sums every company and removes intercompany amounts.
+/// A reporting currency translates the accounting-currency totals with the latest exchange rate.
+/// </summary>
+public sealed class ErpFinancialStatementReadService : IErpFinancialStatementReadService
+{
+    private readonly IErpWriteConnectionFactory _connections;
+
+    public ErpFinancialStatementReadService(IErpWriteConnectionFactory connections)
+    {
+        _connections = connections;
+    }
+
+    public async Task<ErpFinancialStatement> ReadAsync(
+        ErpFinancialStatementQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        if (!_connections.IsConfigured)
+        {
+            return Empty(query, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await ErpGlPostingService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            await ErpLazySchema.EnsureFxRatesAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException ex)
+        {
+            return Empty(query, "database-error", ex.Message);
+        }
+
+        var units = await LoadUnitsAsync(connection, cancellationToken).ConfigureAwait(false);
+        var accounting = await AccountingCurrencyAsync(connection, query.CompanyId, cancellationToken).ConfigureAwait(false);
+        var (rate, reporting, rateNote) = await ResolveRateAsync(
+            connection, accounting, query.ReportingCurrency, cancellationToken).ConfigureAwait(false);
+
+        List<RawLine> raw;
+        try
+        {
+            raw = await LoadAccountsAsync(connection, query, cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException ex)
+        {
+            return Empty(query, "database-error", ex.Message, units);
+        }
+
+        var income = 0m;
+        var expense = 0m;
+        var assets = 0m;
+        var liabilities = 0m;
+        var equity = 0m;
+        var built = new List<(string Code, string Name, string Type, decimal Amount)>();
+        foreach (var row in raw)
+        {
+            var amount = Signed(row, query.Level);
+            if (Math.Abs(amount) < 0.005m)
+            {
+                continue;
+            }
+
+            var type = row.Type;
+            if (type is "revenue" or "income") income += amount;
+            else if (type == "expense") expense += amount;
+            else if (type == "asset") assets += amount;
+            else if (type == "liability") liabilities += amount;
+            else if (type == "equity") equity += amount;
+            else continue;
+
+            built.Add((row.Code, row.Name, type, amount));
+        }
+
+        if (query.Level == ErpFinancialStatementLevel.Consolidation)
+        {
+            var (elimIncome, elimExpense, elimAsset, elimLiability) =
+                await LoadEliminationsAsync(connection, cancellationToken).ConfigureAwait(false);
+            AddElim(built, "ELIM-REV", "Intercompany revenue eliminated", "revenue", -elimIncome, ref income);
+            AddElim(built, "ELIM-EXP", "Intercompany expense eliminated", "expense", -elimExpense, ref expense);
+            AddElim(built, "ELIM-ASSET", "Intercompany asset eliminated", "asset", -elimAsset, ref assets);
+            AddElim(built, "ELIM-LIAB", "Intercompany liability eliminated", "liability", -elimLiability, ref liabilities);
+        }
+
+        if (built.Count == 0 && query.Level == ErpFinancialStatementLevel.Consolidation)
+        {
+            var figures = await LoadFiguresAsync(connection, cancellationToken).ConfigureAwait(false);
+            if (figures is not null)
+            {
+                AddFigure(built, "FIG-REV", "Subsidiary revenue", "revenue", figures.Value.Revenue, ref income);
+                AddFigure(built, "FIG-EXP", "Subsidiary expenses", "expense", figures.Value.Expenses, ref expense);
+                AddFigure(built, "FIG-ASSET", "Subsidiary assets", "asset", figures.Value.Assets, ref assets);
+                AddFigure(built, "FIG-LIAB", "Subsidiary liabilities", "liability", figures.Value.Liabilities, ref liabilities);
+                AddFigure(built, "FIG-EQ", "Subsidiary equity", "equity", figures.Value.Equity, ref equity);
+            }
+        }
+
+        var profit = Round2(income - expense);
+        income = Round2(income);
+        expense = Round2(expense);
+        assets = Round2(assets);
+        liabilities = Round2(liabilities);
+        equity = Round2(equity);
+        var check = Round2(assets - liabilities - equity - profit);
+
+        var wanted = query.Kind == ErpFinancialStatementKind.ProfitAndLoss
+            ? new[] { "revenue", "income", "expense" }
+            : new[] { "asset", "liability", "equity" };
+        var lines = built
+            .Where(row => wanted.Contains(row.Type, StringComparer.Ordinal))
+            .OrderBy(row => Order(row.Type))
+            .ThenBy(row => row.Code, StringComparer.OrdinalIgnoreCase)
+            .Select(row => new ErpFinancialStatementLine(
+                row.Code,
+                row.Name,
+                row.Type,
+                Round2(row.Amount),
+                Round2(row.Amount * rate)))
+            .ToList();
+
+        if (query.Kind == ErpFinancialStatementKind.ProfitAndLoss)
+        {
+            lines.Add(new("", "Net profit / (loss)", "total", profit, Round2(profit * rate)));
+        }
+        else
+        {
+            lines.Add(new("", "Current year earnings", "equity", profit, Round2(profit * rate)));
+            lines.Add(new(
+                "",
+                Math.Abs(check) < 0.005m ? "In balance" : "Out of balance",
+                "total",
+                check,
+                Round2(check * rate)));
+        }
+
+        var levelLabel = query.Level switch
+        {
+            ErpFinancialStatementLevel.BusinessUnit => UnitLabel(units, query.BusinessUnitId),
+            ErpFinancialStatementLevel.Consolidation => "Consolidation",
+            _ => query.CompanyId > 0 ? "Company " + query.CompanyId.ToString(CultureInfo.InvariantCulture) : "This company",
+        };
+        var message = query.Level switch
+        {
+            ErpFinancialStatementLevel.BusinessUnit => "Posted ledger for this business unit. Opening balances stay on the company statement.",
+            ErpFinancialStatementLevel.Consolidation => "Consolidated posted ledger. Intercompany sales, purchases, and loans are eliminated.",
+            _ => "Posted ledger for this company.",
+        };
+        if (rateNote.Length > 0)
+        {
+            message = message + " " + rateNote;
+        }
+
+        return new(
+            query,
+            accounting,
+            reporting,
+            rate,
+            rateNote,
+            lines,
+            income,
+            expense,
+            profit,
+            assets,
+            liabilities,
+            equity,
+            check,
+            levelLabel,
+            "live",
+            message,
+            units);
+    }
+
+    private static void AddElim(
+        List<(string Code, string Name, string Type, decimal Amount)> built,
+        string code,
+        string name,
+        string type,
+        decimal amount,
+        ref decimal total)
+    {
+        if (Math.Abs(amount) < 0.005m)
+        {
+            return;
+        }
+
+        built.Add((code, name, type, amount));
+        total += amount;
+    }
+
+    private static void AddFigure(
+        List<(string Code, string Name, string Type, decimal Amount)> built,
+        string code,
+        string name,
+        string type,
+        decimal amount,
+        ref decimal total)
+    {
+        if (Math.Abs(amount) < 0.005m)
+        {
+            return;
+        }
+
+        built.Add((code, name, type, amount));
+        total += amount;
+    }
+
+    private static decimal Signed(RawLine row, ErpFinancialStatementLevel level)
+    {
+        var opening = level == ErpFinancialStatementLevel.BusinessUnit ? 0m : row.Opening;
+        return string.Equals(row.Side, "credit", StringComparison.OrdinalIgnoreCase)
+            ? opening + row.Credits - row.Debits
+            : opening + row.Debits - row.Credits;
+    }
+
+    private static int Order(string type) => type switch
+    {
+        "revenue" or "income" => 0,
+        "expense" => 1,
+        "asset" => 0,
+        "liability" => 1,
+        "equity" => 2,
+        _ => 9,
+    };
+
+    private static decimal Round2(decimal value)
+        => Math.Round(value, 2, MidpointRounding.AwayFromZero);
+
+    private async Task<List<RawLine>> LoadAccountsAsync(
+        DbConnection connection,
+        ErpFinancialStatementQuery query,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        var filter = query.Level switch
+        {
+            ErpFinancialStatementLevel.BusinessUnit => " AND IFNULL(j.`business_unit_id`, 0) = @unitId",
+            ErpFinancialStatementLevel.Company when query.CompanyId > 0 => " AND IFNULL(j.`company_id`, 0) IN (@companyId, 0)",
+            _ => string.Empty,
+        };
+        command.CommandText =
+            "SELECT IFNULL(a.`code`, '') AS code,"
+            + " IFNULL(a.`name`, '') AS name,"
+            + " IFNULL(a.`account_type`, '') AS account_type,"
+            + " IFNULL(a.`normal_side`, 'debit') AS normal_side,"
+            + " IFNULL(a.`opening_balance`, 0) AS opening_balance,"
+            + " IFNULL(SUM(CASE WHEN j.`id` IS NOT NULL THEN l.`debit` ELSE 0 END), 0) AS debits,"
+            + " IFNULL(SUM(CASE WHEN j.`id` IS NOT NULL THEN l.`credit` ELSE 0 END), 0) AS credits"
+            + " FROM `epc_erp_coa_accounts` a"
+            + " LEFT JOIN `epc_erp_gl_lines` l ON l.`coa_id` = a.`id`"
+            + " LEFT JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1"
+            + filter
+            + " WHERE a.`active` = 1"
+            + " GROUP BY a.`id`, a.`code`, a.`name`, a.`account_type`, a.`normal_side`, a.`opening_balance`"
+            + " ORDER BY a.`code`";
+        if (query.Level == ErpFinancialStatementLevel.BusinessUnit)
+        {
+            Add(command, "@unitId", query.BusinessUnitId);
+        }
+        else if (query.Level == ErpFinancialStatementLevel.Company && query.CompanyId > 0)
+        {
+            Add(command, "@companyId", query.CompanyId);
+        }
+
+        var rows = new List<RawLine>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new RawLine(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2).Trim().ToLowerInvariant(),
+                reader.GetString(3),
+                reader.GetDecimal(4),
+                reader.GetDecimal(5),
+                reader.GetDecimal(6)));
+        }
+
+        return rows;
+    }
+
+    private static async Task<(decimal Income, decimal Expense, decimal Asset, decimal Liability)> LoadEliminationsAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT IFNULL(`txn_type`, '') AS txn_type, IFNULL(`amount`, 0) AS amount
+                FROM `epc_cons_ic`
+                """;
+            decimal income = 0, expense = 0, asset = 0, liability = 0;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var amount = reader.GetDecimal(1);
+                var type = reader.GetString(0).Trim().ToLowerInvariant();
+                if (type is "loan" or "balance")
+                {
+                    asset += amount;
+                    liability += amount;
+                }
+                else
+                {
+                    income += amount;
+                    expense += amount;
+                }
+            }
+
+            return (income, expense, asset, liability);
+        }
+        catch (DbException)
+        {
+            return (0, 0, 0, 0);
+        }
+    }
+
+    private static async Task<(decimal Revenue, decimal Expenses, decimal Assets, decimal Liabilities, decimal Equity)?> LoadFiguresAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT IFNULL(SUM(`revenue`), 0), IFNULL(SUM(`expenses`), 0),
+                       IFNULL(SUM(`assets`), 0), IFNULL(SUM(`liabilities`), 0), IFNULL(SUM(`equity`), 0)
+                FROM `epc_cons_figures`
+                """;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            return (reader.GetDecimal(0), reader.GetDecimal(1), reader.GetDecimal(2), reader.GetDecimal(3), reader.GetDecimal(4));
+        }
+        catch (DbException)
+        {
+            return null;
+        }
+    }
+
+    private static async Task<string> AccountingCurrencyAsync(
+        DbConnection connection,
+        int companyId,
+        CancellationToken cancellationToken)
+    {
+        if (companyId <= 0)
+        {
+            return "AED";
+        }
+
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT IFNULL(`currency_code`, '') FROM `epc_erp_pm_legal_entities`
+                WHERE `id` = @id AND `active` = 1 LIMIT 1
+                """;
+            Add(command, "@id", companyId);
+            var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            var code = Convert.ToString(value, CultureInfo.InvariantCulture)?.Trim().ToUpperInvariant() ?? "";
+            return code.Length == 3 ? code : "AED";
+        }
+        catch (DbException)
+        {
+            return "AED";
+        }
+    }
+
+    private static async Task<(decimal Rate, string Reporting, string Note)> ResolveRateAsync(
+        DbConnection connection,
+        string accounting,
+        string requested,
+        CancellationToken cancellationToken)
+    {
+        if (requested.Length == 0 || requested.Equals(accounting, StringComparison.OrdinalIgnoreCase))
+        {
+            return (1m, accounting, string.Empty);
+        }
+
+        try
+        {
+            var direct = await RateAsync(connection, accounting, requested, cancellationToken).ConfigureAwait(false);
+            if (direct is > 0)
+            {
+                return (direct.Value, requested, string.Empty);
+            }
+
+            var back = await RateAsync(connection, requested, accounting, cancellationToken).ConfigureAwait(false);
+            if (back is > 0)
+            {
+                return (Round8(1m / back.Value), requested, string.Empty);
+            }
+        }
+        catch (DbException)
+        {
+            // Rates stay in the accounting currency.
+        }
+
+        return (1m, accounting, "No exchange rate from " + accounting + " to " + requested + ". Amounts stay in " + accounting + ".");
+    }
+
+    private static async Task<decimal?> RateAsync(
+        DbConnection connection,
+        string from,
+        string to,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT `rate` FROM `epc_fx_rates`
+            WHERE `base_currency` = @from AND `target_currency` = @to AND `rate` > 0
+            ORDER BY `effective_date` DESC, `id` DESC
+            LIMIT 1
+            """;
+        Add(command, "@from", from);
+        Add(command, "@to", to);
+        var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        if (value is null or DBNull)
+        {
+            return null;
+        }
+
+        return Convert.ToDecimal(value, CultureInfo.InvariantCulture);
+    }
+
+    private static async Task<IReadOnlyList<ErpFinancialStatementUnit>> LoadUnitsAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT `id`, IFNULL(`code`, ''), IFNULL(`name`, '')
+                FROM `epc_erp_pm_business_units`
+                WHERE `active` = 1
+                ORDER BY `code`
+                LIMIT 80
+                """;
+            var rows = new List<ErpFinancialStatementUnit>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new(reader.GetInt64(0), reader.GetString(1), reader.GetString(2)));
+            }
+
+            return rows;
+        }
+        catch (DbException)
+        {
+            return [];
+        }
+    }
+
+    private static string UnitLabel(IReadOnlyList<ErpFinancialStatementUnit> units, long id)
+    {
+        var unit = units.FirstOrDefault(row => row.Id == id);
+        if (unit is null)
+        {
+            return id > 0
+                ? "Business unit " + id.ToString(CultureInfo.InvariantCulture)
+                : "Business unit";
+        }
+
+        return string.IsNullOrWhiteSpace(unit.Name) ? unit.Code : unit.Code + " · " + unit.Name;
+    }
+
+    private static decimal Round8(decimal value)
+        => Math.Round(value, 8, MidpointRounding.AwayFromZero);
+
+    private static void Add(DbCommand command, string name, object value)
+    {
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = name;
+        parameter.Value = value;
+        command.Parameters.Add(parameter);
+    }
+
+    private static ErpFinancialStatement Empty(
+        ErpFinancialStatementQuery query,
+        string source,
+        string message,
+        IReadOnlyList<ErpFinancialStatementUnit>? units = null)
+        => new(
+            query,
+            "AED",
+            string.IsNullOrWhiteSpace(query.ReportingCurrency) ? "AED" : query.ReportingCurrency,
+            1m,
+            string.Empty,
+            [],
+            0, 0, 0, 0, 0, 0, 0,
+            query.Level.ToString(),
+            source,
+            message,
+            units ?? []);
+
+    private sealed record RawLine(
+        string Code,
+        string Name,
+        string Type,
+        string Side,
+        decimal Opening,
+        decimal Debits,
+        decimal Credits);
+}
