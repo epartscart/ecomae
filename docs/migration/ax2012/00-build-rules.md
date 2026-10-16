@@ -92,6 +92,7 @@ Each arrow is a foreign key in the module file. If a step does not exist yet, le
 | `11-item-tracking-fields.md` | Tracking dimension groups, one form counted | Not a full inventory census |
 | `12-inventory-setup-field-counts.md` | Item model groups (19), storage groups (38), product groups (11), inventory parameters (72) | Same method. Remaining inventory forms are listed as uncounted |
 | `13-architecture-mapping.md` | Client, AOS, SQL, and services mapped onto ASP.NET, MariaDB, and `ErpGlPostingService` | System contract. Not a field census |
+| `14-all-modules-form-register.md` | Every standard AX 2012 area and its forms | Counted, fields listed, or named. Named forms are not a field list |
 | `07-general-ledger.md` | General ledger | Record-to-Report |
 | `08-cash-bank-assets.md` | Cash and bank, fixed assets | Treasury, fixed assets |
 | `09-production-project-service-retail-hr.md` | Production, projects, service, retail, HR | Those open processes |
