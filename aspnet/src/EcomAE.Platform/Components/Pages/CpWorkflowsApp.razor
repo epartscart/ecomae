@@ -9,7 +9,7 @@
 @inject IHttpContextAccessor Http
 <PageTitle>@(_isErpHost ? "Automation Centre · ERP" : "Workflows · Control Panel") · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="@(_isErpHost ? "erp" : "cp")" />
-<HeadContent>
+@* Body style: live SSR drops HeadOutlet on /erp/*, so HeadContent never paints this page. *@
 <style>
 .epc-auto-hero{background:#0f4c6e;color:#fff;padding:12px 14px;margin:0 0 12px}
 .epc-auto-hero h3{margin:0 0 4px;font-size:16px;font-weight:800;color:#fff}
@@ -21,9 +21,11 @@
 .epc-auto-tabs{display:flex;flex-wrap:wrap;gap:0;margin:0 0 12px;border-bottom:1px solid #dbe4ea}
 .epc-auto-tabs a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:0;border-bottom:3px solid transparent;background:transparent;color:#334155;font-weight:700;font-size:12px;text-decoration:none}
 .epc-auto-tabs a.active{color:#0e7490;border-bottom-color:#0e7490;background:#fff}
-.epc-auto-chains{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch;margin:0 0 12px}
-.epc-auto-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;align-items:stretch}
-.epc-auto-card{background:#fff;border:1px solid #dbe4ea;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-width:0;height:100%}
+.epc-auto-chains{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:auto auto auto;gap:12px;align-items:stretch;margin:0 0 12px}
+.epc-auto-chains>.epc-auto-chain{display:grid;grid-template-rows:subgrid;grid-row:span 3;gap:0}
+.epc-auto-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:auto auto auto auto;gap:12px;margin:0;align-items:stretch}
+.epc-auto-card{background:#fff;border:1px solid #dbe4ea;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.epc-auto-grid>.epc-auto-card{display:grid;grid-template-rows:subgrid;grid-row:span 4;gap:8px;height:auto}
 .epc-auto-card__head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .epc-auto-card__head .label{flex:0 0 auto}
 .epc-auto-card__title{margin:0;font-size:13px;font-weight:800;color:#0f172a;line-height:1.3}
@@ -49,8 +51,9 @@
 .epc-auto-connector{width:1.4rem;display:flex;align-items:center;justify-content:center;color:#94a3b8;position:relative}
 .epc-auto-connector::before{content:"";position:absolute;left:0;right:0;height:1px;background:#cbd5e1;top:50%}
 .epc-auto-connector i{position:relative;z-index:1;background:#fff;padding:0 1px;font-size:10px}
-.epc-auto-map{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0;align-items:stretch}
+.epc-auto-map{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:auto auto auto auto;gap:10px;margin:0;align-items:stretch}
 .epc-auto-map__item{background:#fff;border:1px solid #dbe4ea;padding:10px 12px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.epc-auto-map>.epc-auto-map__item{display:grid;grid-template-rows:subgrid;grid-row:span 4;gap:6px}
 .epc-auto-map__item h5{margin:0;font-size:13px;font-weight:800;color:#0f172a}
 .epc-auto-map__item p{margin:0}
 .ef-window{margin:0 0 12px;background:#fff;border:1px solid #dbe4ea;min-width:0}
@@ -88,7 +91,6 @@
   .epc-auto-flow-row{grid-template-columns:1fr}
 }
 </style>
-</HeadContent>
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin">
 
