@@ -3,7 +3,13 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
-public sealed record ErpGlLine(long CoaId, decimal Debit, decimal Credit, string LineNote);
+public sealed record ErpGlLine(
+    long CoaId,
+    decimal Debit,
+    decimal Credit,
+    string LineNote,
+    long BusinessUnitId = 0,
+    long LegalEntityId = 0);
 
 public sealed record ErpGlSalesInvoicePosting(
     long InvoiceId,
@@ -191,17 +197,25 @@ public sealed class ErpGlPostingService : IErpGlPostingService
             var journalId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
             foreach (var line in lines)
             {
+                var businessUnitId = line.BusinessUnitId > 0
+                    ? line.BusinessUnitId
+                    : header.BusinessUnitId > 0 ? header.BusinessUnitId : 0L;
+                var legalEntityId = line.LegalEntityId > 0
+                    ? line.LegalEntityId
+                    : header.CompanyId > 0 ? header.CompanyId : 0L;
                 await ErpDb.ExecuteAsync(
                     connection,
                     transaction,
                     ErpDb.Positional(
-                        "INSERT INTO `epc_erp_gl_lines` (`journal_id`, `coa_id`, `debit`, `credit`, `line_note`) VALUES (?,?,?,?,?)"),
+                        "INSERT INTO `epc_erp_gl_lines` (`journal_id`, `coa_id`, `debit`, `credit`, `line_note`, `business_unit_id`, `legal_entity_id`) VALUES (?,?,?,?,?,?,?)"),
                     cancellationToken,
                     journalId,
                     line.CoaId,
                     ErpTaxAmountCalculator.Round2(line.Debit),
                     ErpTaxAmountCalculator.Round2(line.Credit),
-                    (line.LineNote ?? string.Empty).Trim()).ConfigureAwait(false);
+                    (line.LineNote ?? string.Empty).Trim(),
+                    businessUnitId,
+                    legalEntityId).ConfigureAwait(false);
             }
 
             if (owned)
@@ -856,6 +870,14 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         await ErpDb.TryExecuteAsync(
             connection,
             "ALTER TABLE `epc_erp_cash_bank_entries` ADD `gl_journal_id` int(11) NOT NULL DEFAULT 0",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_gl_lines` ADD `business_unit_id` int(11) NOT NULL DEFAULT 0",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_gl_lines` ADD `legal_entity_id` int(11) NOT NULL DEFAULT 0",
             cancellationToken).ConfigureAwait(false);
     }
 }

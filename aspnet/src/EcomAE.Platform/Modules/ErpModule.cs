@@ -11725,7 +11725,13 @@ public sealed class ErpModule : ISurfaceModule
                     new ErpManualJournalInput
                     {
                         Lines = (body.Lines ?? [])
-                            .Select(l => new ErpGlLine(l.CoaId, l.Debit, l.Credit, l.LineNote ?? string.Empty))
+                            .Select(l => new ErpGlLine(
+                                l.CoaId,
+                                l.Debit,
+                                l.Credit,
+                                l.LineNote ?? string.Empty,
+                                l.BusinessUnitId,
+                                l.LegalEntityId))
                             .ToList(),
                         Reference = body.Reference ?? string.Empty,
                         Description = body.Description ?? string.Empty,
@@ -11738,7 +11744,7 @@ public sealed class ErpModule : ISurfaceModule
                     session.UserId,
                     cancellationToken);
                 return (
-                    "GL journal posted",
+                    string.IsNullOrWhiteSpace(posted.Note) ? "GL journal posted" : posted.Note,
                     (object)new { journal_id = posted.JournalId, journal_no = posted.JournalNo });
                 });
         });
@@ -29365,7 +29371,10 @@ public sealed class ErpModule : ISurfaceModule
                 LiveWriteFormBinder.Long(form, $"lines[{index}].coaId", $"lines[{index}].coa_id"),
                 LiveWriteFormBinder.Dec(form, $"lines[{index}].debit"),
                 LiveWriteFormBinder.Dec(form, $"lines[{index}].credit"),
-                LiveWriteFormBinder.Text(form, $"lines[{index}].lineNote", $"lines[{index}].line_note")))
+                LiveWriteFormBinder.Text(form, $"lines[{index}].lineNote", $"lines[{index}].line_note"),
+                LiveWriteFormBinder.Long(form, $"lines[{index}].businessUnitId", $"lines[{index}].business_unit_id"),
+                LiveWriteFormBinder.Long(form, $"lines[{index}].legalEntityId", $"lines[{index}].legal_entity_id")))
+            .Where(line => line.CoaId > 0 || line.Debit != 0m || line.Credit != 0m)
             .ToList();
 
         return new ErpGlManualEntryBody(
@@ -29380,7 +29389,13 @@ public sealed class ErpModule : ISurfaceModule
             LiveWriteFormBinder.Text(form, "currency_code", "currency"));
     }
 
-    private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);
+    private sealed record ErpGlManualLineBody(
+        long CoaId,
+        decimal Debit,
+        decimal Credit,
+        string? LineNote = null,
+        long BusinessUnitId = 0,
+        long LegalEntityId = 0);
     private sealed record ErpGlManualEntryBody(
         IReadOnlyList<ErpGlManualLineBody>? Lines,
         string? Reference,

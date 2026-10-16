@@ -185,7 +185,9 @@ public sealed class ErpIntercompanySetupService : IErpIntercompanySetupService
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         foreach (var account in new (string Code, string Name, string Type, string Side)[]
         {
+            ("1150", "VAT input (recoverable)", "asset", "debit"),
             ("1180", "Intercompany receivable", "asset", "debit"),
+            ("2100", "VAT output (payable)", "liability", "credit"),
             ("2180", "Intercompany payable", "liability", "credit"),
             ("4180", "Intercompany sales", "revenue", "credit"),
             ("5180", "Intercompany purchases", "expense", "debit"),

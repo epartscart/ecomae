@@ -337,8 +337,8 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         await using var command = connection.CreateCommand();
         var filter = query.Level switch
         {
-            ErpFinancialStatementLevel.BusinessUnit => " AND IFNULL(j.`business_unit_id`, 0) = @unitId",
-            ErpFinancialStatementLevel.Company when query.CompanyId > 0 => " AND IFNULL(j.`company_id`, 0) IN (@companyId, 0)",
+            ErpFinancialStatementLevel.BusinessUnit => " AND IFNULL(NULLIF(l.`business_unit_id`, 0), IFNULL(j.`business_unit_id`, 0)) = @unitId",
+            ErpFinancialStatementLevel.Company when query.CompanyId > 0 => " AND IFNULL(NULLIF(l.`legal_entity_id`, 0), IFNULL(j.`company_id`, 0)) IN (@companyId, 0)",
             _ => string.Empty,
         };
         command.CommandText =
