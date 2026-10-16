@@ -3142,5 +3142,8 @@ public static class EcomAeRoutes
     public const string ErpIntercompanyApp = "/erp/intercompany-app";
     /// <summary>Intercompany relationship, account, elimination, tax, and currency setup. confirmWrites=true writes the setup tables.</summary>
     public const string ErpIntercompanySave = "/erp/intercompany/save";
+    public const string ErpPricingApp = "/erp/pricing-app";
+    /// <summary>Margin structure and price levels. confirmWrites=true writes the structure and levels.</summary>
+    public const string ErpPricingSave = "/erp/pricing/save";
 
 }

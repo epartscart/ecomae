@@ -60,6 +60,7 @@ public static class ErpPhpTabRouteMap
         ["consolidation_group"] = "/erp/consolidations-app?tab=consolidation_group",
         ["consolidation_ic"] = "/erp/consolidations-app?tab=consolidation_ic",
         ["intercompany"] = "/erp/intercompany-app",
+        ["pricing"] = "/erp/pricing-app",
         ["ic_elimination"] = "/erp/intercompany-app?tab=elimination",
         ["contacts"] = "/erp/contacts-app",
         ["contracts"] = "/erp/contracts-app",

@@ -422,6 +422,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpDocExpiryDelete, HandleDocxDeleteAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpTenantConfigSave, HandleTenantConfigSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpIntercompanySave, HandleIntercompanySaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpPricingSave, HandlePricingSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPrintDesignerSave, HandlePrintDesignerSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxFtaFetch, HandleUaeTaxFtaFetchAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationAsk, HandleUaeTaxLegislationAskAsync).DisableAntiforgery();
@@ -24148,6 +24149,83 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandlePricingSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPricingService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/pricing-app", "Admin ERP capability required for pricing.");
+        }
+
+        if (!context.Request.HasFormContentType)
+        {
+            return Results.Json(new { ok = false, writes = 0, message = "Send the pricing form." }, statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken);
+        var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, writesBlocked = true, phpAuthoritative = true, message = "Confirm writes to save pricing." });
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpPricingSaveRequest(
+                LiveWriteFormBinder.Text(form, "action"),
+                MarginRequired(form, "unit_margin"),
+                MarginRequired(form, "offer_margin"),
+                MarginRequired(form, "actual_margin"),
+                MarginRequired(form, "msp_margin"),
+                LiveWriteFormBinder.Text(form, "currency_code", "currency"),
+                LiveWriteFormBinder.Text(form, "channel"),
+                LiveWriteFormBinder.Text(form, "country_code", "country"),
+                LiveWriteFormBinder.Text(form, "customer_group", "group"),
+                LiveWriteFormBinder.Text(form, "customer_code", "customer"),
+                LiveWriteFormBinder.Text(form, "item_code", "item"),
+                LiveWriteFormBinder.Dec(form, "min_qty", "qty"),
+                MarginOptional(form, "rule_unit_margin"),
+                MarginOptional(form, "rule_offer_margin"),
+                MarginOptional(form, "rule_actual_margin"),
+                MarginOptional(form, "rule_msp_margin"),
+                LiveWriteFormBinder.Text(form, "rule_currency"),
+                LiveWriteFormBinder.Long(form, "rule_id"),
+                LiveWriteFormBinder.Text(form, "note")),
+            cancellationToken).ConfigureAwait(false);
+        var tab = LiveWriteFormBinder.Text(form, "tab");
+        if (tab is not ("levels" or "quote"))
+        {
+            tab = "structure";
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/pricing-app?tab=" + Uri.EscapeDataString(tab),
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+    }
+
+    private static decimal MarginRequired(IFormCollection form, string name)
+    {
+        var text = LiveWriteFormBinder.Text(form, name);
+        return decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var value) ? value : -1m;
+    }
+
+    private static decimal MarginOptional(IFormCollection form, string name)
+    {
+        var text = LiveWriteFormBinder.Text(form, name);
+        if (text.Length == 0)
+        {
+            return -1m;
+        }
+
+        return decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var value) ? value : -1m;
     }
 
     private static async Task<IResult> HandleIntercompanySaveAsync(
