@@ -131,6 +131,24 @@ public sealed class ErpTenancyExpiryMailTests
         Assert.Equal(new DateOnly(2026, 10, 15), ErpTenancyExpiryMail.GulfToday(new DateTime(2026, 10, 15, 19, 0, 0, DateTimeKind.Utc)));
         Assert.Equal(new DateOnly(2026, 10, 16), ErpTenancyExpiryMail.GulfToday(new DateTime(2026, 10, 15, 20, 30, 0, DateTimeKind.Utc)));
         Assert.Contains("three months", ErpTenancyExpiryMail.DefaultBody, StringComparison.Ordinal);
+        var sample = ErpTenancyExpiryMail.Sample();
+        Assert.Equal("sample", sample.Status);
+        Assert.Contains("Tenant name", sample.Body, StringComparison.Ordinal);
+        Assert.DoesNotContain("{{tenant_name}}", sample.Body, StringComparison.Ordinal);
+        var filled = ErpTenancyExpiryMail.PreviewsFor(
+            [new ErpTenancyLeaseFact(9, "L9", "active", new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), 50000m, "Ada", "ada@example.com", "", "Tower", "12", 4)],
+            ErpTenancyExpiryMail.DefaultTemplate,
+            new HashSet<long>(),
+            new DateOnly(2026, 6, 1));
+        Assert.Single(filled);
+        Assert.Contains("Ada", filled[0].Body, StringComparison.Ordinal);
+        Assert.Equal("ada@example.com", filled[0].ToEmails);
+        var hidden = ErpTenancyExpiryMail.PreviewsFor(
+            [new ErpTenancyLeaseFact(9, "L9", "active", new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), 50000m, "Ada", "ada@example.com", "", "Tower", "12", 4)],
+            ErpTenancyExpiryMail.DefaultTemplate,
+            new HashSet<long> { 9 },
+            new DateOnly(2026, 6, 1));
+        Assert.Empty(hidden);
     }
 
     [Fact]
@@ -193,14 +211,24 @@ public sealed class ErpTenancyExpiryMailTests
     public void PageKeepsTheDraftAndPostsTheNoticeActions()
     {
         var root = FindRepoRoot();
-        var page = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpLandlordApp.razor"));
+        var page = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor"));
+        var yearBook = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpLandlordApp.razor"));
         var panel = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Shared/ErpTenancyExpiryPanel.razor"));
         Assert.Contains("ErpTenancyExpiryPanel", page, StringComparison.Ordinal);
+        Assert.Contains("tab=expiry", page, StringComparison.Ordinal);
+        Assert.Contains("Expiry.LoadAsync", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("SendDueAsync", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("ErpTenancyExpiryPanel", yearBook, StringComparison.Ordinal);
+        Assert.DoesNotContain("SendDueAsync", yearBook, StringComparison.Ordinal);
+        Assert.Contains("tab=expiry", yearBook, StringComparison.Ordinal);
         Assert.Contains("save_expiry_template", panel, StringComparison.Ordinal);
         Assert.Contains("send_expiry_due", panel, StringComparison.Ordinal);
         Assert.Contains("file_expiry_reply", panel, StringComparison.Ordinal);
         Assert.Contains("name=\"replyEmails\"", panel, StringComparison.Ordinal);
-        Assert.Contains("name=\"autoSend\"", panel, StringComparison.Ordinal);
+        Assert.Contains("Preview before send", panel, StringComparison.Ordinal);
+        Assert.Contains("expiry-letter", panel, StringComparison.Ordinal);
+        Assert.Contains("name=\"returnUrl\"", panel, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"autoSend\"", panel, StringComparison.Ordinal);
         Assert.Contains("name=\"csrf_guard_key\"", panel, StringComparison.Ordinal);
         Assert.Contains("{{tenant_name}}", panel, StringComparison.Ordinal);
         Assert.Contains("attach_expiry_document", panel, StringComparison.Ordinal);

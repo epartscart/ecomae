@@ -66,6 +66,8 @@ public static partial class PhpModuleCatalog
             "Income, expenses and profit and loss for each property and year", false, false, "Common"),
         new("projects/real_estate_leases", "Leases and collections", "/erp/real-estate-app?tab=leases", "fa-key", "projects",
             "Tenants, rent schedules, cheques and security deposits", false, false, "Common"),
+        new("projects/real_estate_expiry", "Tenancy expiry email", "/erp/real-estate-app?tab=expiry", "fa-envelope", "projects",
+            "Preview the tenancy ending letter and its details before it is sent", false, false, "Common"),
         new("projects/real_estate_projects", "Development and construction", "/erp/real-estate-app?tab=projects", "fa-hard-hat", "projects",
             "Development projects, unit sales and contractor certificates", false, false, "Periodic"),
     ];

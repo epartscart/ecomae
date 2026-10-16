@@ -228,7 +228,10 @@ public sealed class ErpRealEstateTests
         Assert.Contains(ErpCapabilityCatalog.Groups, g => g.Key == "real_estate" && g.Href == "/erp/real-estate-app");
         Assert.Contains(PhpModuleCatalog.AspNetErpTabs, t => t.Id == "projects/real_estate");
         Assert.Contains(PhpModuleCatalog.AspNetErpTabs, t => t.Id == "projects/real_estate_year_book" && t.Href == "/erp/landlord-app?year=2025");
+        Assert.Contains(PhpModuleCatalog.AspNetErpTabs, t => t.Id == "projects/real_estate_expiry" && t.Href == "/erp/real-estate-app?tab=expiry");
         var propertiesAt = ErpRealEstateWorkspace.Tabs.ToList().FindIndex(t => t.Key == "properties");
+        var leasesAt = ErpRealEstateWorkspace.Tabs.ToList().FindIndex(t => t.Key == "leases");
+        Assert.Equal("expiry", ErpRealEstateWorkspace.Tabs[leasesAt + 1].Key);
         Assert.Equal("yearbook", ErpRealEstateWorkspace.Tabs[propertiesAt + 1].Key);
         Assert.Contains("ErpRealEstateWorkspaceTabs", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpLandlordApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ErpRealEstateWorkspaceTabs", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor")), StringComparison.Ordinal);

@@ -5,10 +5,13 @@
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Services
 @inject ILegacySessionValidator Sessions
+@inject ICpCsrfGuard Csrf
 @inject IHttpContextAccessor Http
 @inject IErpRealEstateReadService RealEstate
+@inject IErpTenancyExpiryMail Expiry
 
 <PageTitle>Real estate · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -49,6 +52,15 @@
 
     <ErpRealEstateWorkspaceTabs Active="@_tab" />
 
+    @if (_tab == "expiry")
+    {
+        @if (_isAdmin)
+        {
+            <ErpTenancyExpiryPanel Book="_expiry" SaveAction="@LandlordSave" Csrf="@_csrf" ReturnUrl="/erp/real-estate-app?tab=expiry" />
+        }
+    }
+    else
+    {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Real estate KPIs">
         <a class="kpi" href="@OrgHref("opportunities")"><div class="lbl">Opportunities</div><div class="val">@_snap.Kpis.Opportunities.ToString(CultureInfo.InvariantCulture)</div></a>
         <a class="kpi" href="@OrgHref("properties")"><div class="lbl">Owned properties</div><div class="val">@_snap.Kpis.OwnedProperties.ToString(CultureInfo.InvariantCulture)</div></a>
@@ -87,6 +99,7 @@
     </div>
 
     <p class="text-muted">Finance links: legal entity, invoices, cash/bank, ageing, GL and VAT stay on the existing ERP modules. Cheques in hand are not cash until bank clearance. Recognized rent is spread over the lease; receiving a cheque does not book the whole year as income. NOI is recognized rent minus posted operating expenses. Capital improvements, financing, depreciation and tax stay out of NOI. Landlord cards follow the emirate and property filter. Investment cards stay on the whole portfolio. Posted documents cannot be edited. Use Void to keep the original row, or Delete to remove it. Reverse is also available on posted rows.</p>
+    }
 
     @if (!string.IsNullOrWhiteSpace(_snap.Message))
     {
@@ -923,6 +936,8 @@
     private string _flashErr = "";
     private string _emirate = "";
     private long _propertyId;
+    private string _csrf = "";
+    private ErpTenancyExpiryBook _expiry = ErpTenancyExpiryBook.Empty("");
     private ErpRealEstateSnapshot _snap = new(
         new ErpRealEstateKpis(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
         [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
@@ -949,6 +964,9 @@
     private string LandlordHref
         => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/landlord-app?year=2025");
 
+    private string LandlordSave
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/landlord/save");
+
     private string CoaHref
         => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/coa-accounts-app");
 
@@ -974,6 +992,20 @@
         if (!_isAdmin)
         {
             return;
+        }
+
+        if (_tab == "expiry")
+        {
+            _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
+            try
+            {
+                _expiry = await Expiry.LoadAsync(ErpTenancyExpiryMail.GulfToday(DateTime.UtcNow), ctx.RequestAborted);
+            }
+            catch (Exception ex)
+            {
+                var text = ex.Message.Length > 300 ? ex.Message[..300] : ex.Message;
+                _expiry = ErpTenancyExpiryBook.Empty(text);
+            }
         }
 
         _snap = await RealEstate.LoadScopedAsync(_propertyId, _emirate, ctx.RequestAborted);
