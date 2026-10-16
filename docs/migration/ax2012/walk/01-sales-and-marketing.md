@@ -8,14 +8,14 @@ The sales chain is in the order requested. Invoice, customer payment, and settle
 
 | Menu path | List page and details form | What New creates, and the number sequence | Header FastTabs and line FastTabs | Action-pane buttons, including reversal | Block rule in the infolog | Inquiry, printout, and report | Setup form and the one setting |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Quote — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Sales order — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Confirmation — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Packing slip — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Invoice — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Customer payment — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Settlement — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Credit note — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Quote | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Sales order | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Confirmation | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Packing slip | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Invoice | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Customer payment | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Settlement | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Credit note | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
 
 ## Forms the field register marks only as Named
 
@@ -23,11 +23,11 @@ The sales chain is in the order requested. Invoice, customer payment, and settle
 
 | Form in the register | This walk |
 | --- | --- |
-| Modes of delivery (`DlvMode`) | not in this license. not clicked |
-| Terms of delivery (`DlvTerm`) | not in this license. not clicked |
-| Payment terms (`PaymTerm`) | not in this license. not clicked |
-| Sales origins, sales pools, charges (`SalesOrigin`, `SalesPool`, `MarkupTable`) | not in this license. not clicked |
-| Customer groups (`CustGroup`) | not in this license. not clicked |
+| Modes of delivery (`DlvMode`) | not clicked. Ax32.exe did not start |
+| Terms of delivery (`DlvTerm`) | not clicked. Ax32.exe did not start |
+| Payment terms (`PaymTerm`) | not clicked. Ax32.exe did not start |
+| Sales origins, sales pools, charges (`SalesOrigin`, `SalesPool`, `MarkupTable`) | not clicked. Ax32.exe did not start |
+| Customer groups (`CustGroup`) | not clicked. Ax32.exe did not start |
 
 ## ECOM AE table for a new column
 

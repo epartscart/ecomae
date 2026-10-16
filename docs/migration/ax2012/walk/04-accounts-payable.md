@@ -6,10 +6,10 @@ Click result used in every cell below: not clicked. `Ax32.exe` did not start. No
 
 | Menu path | List page and details form | What New creates, and the number sequence | Header FastTabs and line FastTabs | Action-pane buttons, including reversal | Block rule in the infolog | Inquiry, printout, and report | Setup form and the one setting |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Vendor invoice — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Matching — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Payment — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Settlement — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Vendor invoice | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Matching | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Payment | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Settlement | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
 
 Accounts payable parameters were not opened. See `19-parameters.md`.
 
@@ -19,11 +19,11 @@ Accounts payable parameters were not opened. See `19-parameters.md`.
 
 | Form in the register | This walk |
 | --- | --- |
-| Accounts payable parameters (`VendParameters`) | not in this license. not clicked. See `19-parameters.md` |
-| Vendor posting profiles (`VendLedger`) | not in this license. not clicked |
-| Vendor groups (`VendGroup`) | not in this license. not clicked |
-| Matching policy | not in this license. not clicked |
-| Charges (`MarkupTrans`) | not in this license. not clicked |
+| Accounts payable parameters (`VendParameters`) | not clicked. Ax32.exe did not start. See `19-parameters.md` |
+| Vendor posting profiles (`VendLedger`) | not clicked. Ax32.exe did not start |
+| Vendor groups (`VendGroup`) | not clicked. Ax32.exe did not start |
+| Matching policy | not clicked. Ax32.exe did not start |
+| Charges (`MarkupTrans`) | not clicked. Ax32.exe did not start |
 
 ## ECOM AE table for a new column
 

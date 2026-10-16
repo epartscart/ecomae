@@ -1,6 +1,6 @@
 # System administration
 
-Area page: not in this license. not clicked. The page was not on screen. Menu items under this area were not listed, because the page was not on screen.
+Area page: not clicked. Ax32.exe did not start. The page was not on screen. Menu items under this area were not listed, because the page was not on screen.
 
 Click result: not clicked. `Ax32.exe` did not start. No infolog was shown. The AOT was not opened. Users, security, and batch were not opened.
 
@@ -10,10 +10,10 @@ Click result: not clicked. `Ax32.exe` did not start. No infolog was shown. The A
 
 | Form in the register | This walk |
 | --- | --- |
-| Data security policies (`SecurityPolicy`) | not in this license. not clicked |
-| Inbound ports | not in this license. not clicked |
-| Database log (`DatabaseLog`) | not in this license. not clicked |
-| Email templates (`SysEmailTable`) | not in this license. not clicked |
+| Data security policies (`SecurityPolicy`) | not clicked. Ax32.exe did not start |
+| Inbound ports | not clicked. Ax32.exe did not start |
+| Database log (`DatabaseLog`) | not clicked. Ax32.exe did not start |
+| Email templates (`SysEmailTable`) | not clicked. Ax32.exe did not start |
 
 ## ECOM AE table for a new column
 

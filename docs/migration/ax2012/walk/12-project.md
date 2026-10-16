@@ -8,10 +8,10 @@ The project chain is in the order requested. It does not stop at the project.
 
 | Menu path | List page and details form | What New creates, and the number sequence | Header FastTabs and line FastTabs | Action-pane buttons, including reversal | Block rule in the infolog | Inquiry, printout, and report | Setup form and the one setting |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Project — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Item requirement — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Invoice proposal — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Revenue recognition — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Project | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Item requirement | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Invoice proposal | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Revenue recognition | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
 
 Project parameters were not opened. See `19-parameters.md`.
 
@@ -21,8 +21,8 @@ Project parameters were not opened. See `19-parameters.md`.
 
 | Form in the register | This walk |
 | --- | --- |
-| Project groups (`ProjGroup`) | not in this license. not clicked |
-| Project categories | not in this license. not clicked |
+| Project groups (`ProjGroup`) | not clicked. Ax32.exe did not start |
+| Project categories | not clicked. Ax32.exe did not start |
 
 ## ECOM AE table for a new column
 

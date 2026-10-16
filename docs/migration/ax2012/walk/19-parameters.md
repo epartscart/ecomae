@@ -6,11 +6,11 @@ These forms decide posting accounts, matching tolerances, reservation, and negat
 
 | Parameters form | Result |
 | --- | --- |
-| Accounts receivable | not in this license. not clicked. Not exported. No screenshot. |
-| Accounts payable | not in this license. not clicked. Not exported. No screenshot. |
-| Inventory | not in this license. not clicked. Not exported. No screenshot. |
-| General ledger | not in this license. not clicked. Not exported. No screenshot. The field register does not name this form. |
-| Production | not in this license. not clicked. Not exported. No screenshot. |
-| Project | not in this license. not clicked. Not exported. No screenshot. The field register does not name this form. |
+| Accounts receivable | not clicked. Ax32.exe did not start. Not exported. No screenshot. |
+| Accounts payable | not clicked. Ax32.exe did not start. Not exported. No screenshot. |
+| Inventory | not clicked. Ax32.exe did not start. Not exported. No screenshot. |
+| General ledger | not clicked. Ax32.exe did not start. Not exported. No screenshot. The field register does not name this form. |
+| Production | not clicked. Ax32.exe did not start. Not exported. No screenshot. |
+| Project | not clicked. Ax32.exe did not start. Not exported. No screenshot. The field register does not name this form. |
 
 Posting accounts, matching tolerances, the reservation rule, and the negative-inventory rule were not read from this install.

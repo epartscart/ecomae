@@ -6,9 +6,9 @@ Click result used in every cell below: not clicked. `Ax32.exe` did not start. No
 
 | Menu path | List page and details form | What New creates, and the number sequence | Header FastTabs and line FastTabs | Action-pane buttons, including reversal | Block rule in the infolog | Inquiry, printout, and report | Setup form and the one setting |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Acquisition — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Depreciation — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Disposal — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Acquisition | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Depreciation | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Disposal | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
 
 ## Forms the field register marks only as Named
 
@@ -16,9 +16,9 @@ Click result used in every cell below: not clicked. `Ax32.exe` did not start. No
 
 | Form in the register | This walk |
 | --- | --- |
-| Asset groups (`AssetGroup`) | not in this license. not clicked |
-| Depreciation profiles (`AssetDepreciationProfile`) | not in this license. not clicked |
-| Books (`AssetBookTable`) | not in this license. not clicked |
+| Asset groups (`AssetGroup`) | not clicked. Ax32.exe did not start |
+| Depreciation profiles (`AssetDepreciationProfile`) | not clicked. Ax32.exe did not start |
+| Books (`AssetBookTable`) | not clicked. Ax32.exe did not start |
 
 ## ECOM AE table for a new column
 

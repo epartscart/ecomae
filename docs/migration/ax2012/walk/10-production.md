@@ -8,11 +8,11 @@ The production chain is in the order requested. It does not stop at the producti
 
 | Menu path | List page and details form | What New creates, and the number sequence | Header FastTabs and line FastTabs | Action-pane buttons, including reversal | Block rule in the infolog | Inquiry, printout, and report | Setup form and the one setting |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Production order — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Bill of materials — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Route — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Costing — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Report as finished — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Production order | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Bill of materials | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Route | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Costing | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Report as finished | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
 
 Production parameters were not opened. See `19-parameters.md`.
 
@@ -22,10 +22,10 @@ Production parameters were not opened. See `19-parameters.md`.
 
 | Form in the register | This walk |
 | --- | --- |
-| Resources (`WrkCtrTable`) | not in this license. not clicked |
-| Production parameters (`ProdParameters`) | not in this license. not clicked. See `19-parameters.md` |
-| Cost groups and costing versions (`InventItemPrice`) | not in this license. not clicked |
-| Picking list and report as finished journals | not in this license. not clicked |
+| Resources (`WrkCtrTable`) | not clicked. Ax32.exe did not start |
+| Production parameters (`ProdParameters`) | not clicked. Ax32.exe did not start. See `19-parameters.md` |
+| Cost groups and costing versions (`InventItemPrice`) | not clicked. Ax32.exe did not start |
+| Picking list and report as finished journals | not clicked. Ax32.exe did not start |
 
 ## ECOM AE table for a new column
 

@@ -8,11 +8,11 @@ The ledger chain is in the order requested. It does not stop at the general jour
 
 | Menu path | List page and details form | What New creates, and the number sequence | Header FastTabs and line FastTabs | Action-pane buttons, including reversal | Block rule in the infolog | Inquiry, printout, and report | Setup form and the one setting |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| General journal — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Voucher — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Period close — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Consolidation — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Financial report — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| General journal | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Voucher | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Period close | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Consolidation | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Financial report | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
 
 General ledger parameters were not opened. See `19-parameters.md`.
 
@@ -22,9 +22,9 @@ General ledger parameters were not opened. See `19-parameters.md`.
 
 | Form in the register | This walk |
 | --- | --- |
-| Journal names (`LedgerJournalName`) | not in this license. not clicked |
-| Currencies and exchange rates (`Currency`, `ExchangeRate`) | not in this license. not clicked |
-| Fiscal year close parameters | not in this license. not clicked |
+| Journal names (`LedgerJournalName`) | not clicked. Ax32.exe did not start |
+| Currencies and exchange rates (`Currency`, `ExchangeRate`) | not clicked. Ax32.exe did not start |
+| Fiscal year close parameters | not clicked. Ax32.exe did not start |
 
 ## ECOM AE table for a new column
 

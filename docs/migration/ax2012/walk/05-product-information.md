@@ -8,7 +8,7 @@ Released product is the first step of the inventory chain. The rest of that chai
 
 | Menu path | List page and details form | What New creates, and the number sequence | Header FastTabs and line FastTabs | Action-pane buttons, including reversal | Block rule in the infolog | Inquiry, printout, and report | Setup form and the one setting |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Released product — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Released product | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
 
 ## Forms the field register marks only as Named
 
@@ -16,9 +16,9 @@ Released product is the first step of the inventory chain. The rest of that chai
 
 | Form in the register | This walk |
 | --- | --- |
-| Item groups (`InventItemGroup`) | not in this license. not clicked |
-| Units (`UnitOfMeasure`) | not in this license. not clicked |
-| Categories (`EcoResCategory`) | not in this license. not clicked |
+| Item groups (`InventItemGroup`) | not clicked. Ax32.exe did not start |
+| Units (`UnitOfMeasure`) | not clicked. Ax32.exe did not start |
+| Categories (`EcoResCategory`) | not clicked. Ax32.exe did not start |
 
 ## ECOM AE table for a new column
 

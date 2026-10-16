@@ -6,7 +6,6 @@ The process was not started. This session is Linux, kernel 6.12.94+, x86_64. `/m
 
 Help, About, and the status bar were not shown. The values below were not read. They are not guessed.
 
-**not in this license** means the form was not in the install this walk could open. The license configuration was not opened, so the phrase is not a finding that a license key excludes the module.
 
 | Fact | Result |
 | --- | --- |
@@ -20,7 +19,7 @@ Help, About, and the status bar were not shown. The values below were not read. 
 | Area pages missing from this license | not read. A missing page can be named only after the license list is on screen. |
 | CUS, VAR, or ISV model | not read. The model store was not opened. |
 | Extra menus and forms from a custom model | not read. |
-| Jewellery, metal, purity, and assay screens | not in this license. The screens were not opened. No extra menu was listed. |
+| Jewellery, metal, purity, and assay screens | not read. The screens were not opened. No extra menu was listed. |
 
 ## Desktop check
 
@@ -56,4 +55,4 @@ Field lists already in `docs/migration/ax2012/` were not rewritten.
 | `18-compliance.md` | Compliance and internal controls |
 | `19-parameters.md` | Parameters forms requested for export |
 
-Each of those files uses the same click result: not clicked, because Ax32.exe did not start and no infolog was shown. Each menu path is also marked not in this license, with the meaning above. Forms the field register marks only as Named are listed in the area file. Those FastTabs were not opened.
+Each of those files uses the same click result: not clicked, because Ax32.exe did not start and no infolog was shown. That is not a license finding. The license configuration was not opened. Forms the field register marks only as Named are listed in the area file. Those FastTabs were not opened.
