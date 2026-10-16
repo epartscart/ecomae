@@ -19,11 +19,13 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Real estate" BreadcrumbArea="Industry" BreadcrumbTab="@_tabLabel">
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/real-estate-app" IsAdmin="_isAdmin" />
     <PhpErpModulePageHeader
-        Title="Investment, development and construction"
-        Subtitle="Property master, pipeline, leases, cheques, development, BOQ, escrow, off-plan instalments and contractor certificates — linked to legal entities, GL, VAT and existing finance. Posted rows cannot be edited; void (keep on file) or delete them. Reverse remains available. Opportunities stay off both statements. Completed acquisitions, deposits, cheques, escrow and certificates hit the balance sheet; rent, fair-value moves (IAS 40 through P&L, not OCI) and recognized unit sales (IFRS 15) hit the income statement. Off-plan collections stay a contract liability until sold."
+        Title="@(_tab == ErpRealEstateGuide.TabKey ? "Real estate, step by step" : "Investment, development and construction")"
+        Subtitle="@(_tab == ErpRealEstateGuide.TabKey ? null : "Property master, pipeline, leases, cheques, development, BOQ, escrow, off-plan instalments and contractor certificates — linked to legal entities, GL, VAT and existing finance. Posted rows cannot be edited; void (keep on file) or delete them. Reverse remains available. Opportunities stay off both statements. Completed acquisitions, deposits, cheques, escrow and certificates hit the balance sheet; rent, fair-value moves (IAS 40 through P&L, not OCI) and recognized unit sales (IFRS 15) hit the income statement. Off-plan collections stay a contract liability until sold.")"
         PhpTabHref="/erp/real-estate-app" />
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
+    @if (_tab != ErpRealEstateGuide.TabKey)
+    {
     <div class="re-board-dock" aria-label="Download investment report from any tab">
         <div>
             <strong>Investment report</strong>
@@ -49,10 +51,15 @@
         .re-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin: 0 0 12px; }
         .re-filter label { font-size: 12px; color: #334155; }
     </style>
+    }
 
     <ErpRealEstateWorkspaceTabs Active="@_tab" />
 
-    @if (_tab == "expiry")
+    @if (_tab == ErpRealEstateGuide.TabKey)
+    {
+        <ErpRealEstateGuideBoard />
+    }
+    else if (_tab == "expiry")
     {
         @if (_isAdmin)
         {
@@ -841,6 +848,8 @@
         }
     }
 
+    @if (_tab is not ("guide" or "expiry"))
+    {
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
@@ -926,6 +935,7 @@
             <a class="btn btn-sm re-board-btn" href="@LandlordHref">Year book</a>
         </div>
     </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {
@@ -1031,10 +1041,7 @@
     }
 
     private static string NormalizeTab(string? raw)
-    {
-        var tab = (raw ?? string.Empty).Trim().ToLowerInvariant();
-        return ErpRealEstateWorkspace.IsContentTab(tab) ? tab : "dashboard";
-    }
+        => ErpRealEstateGuide.Normalize(raw);
 
     private static IReadOnlyList<(ErpRealEstateRow Row, decimal Change)> BuildValuationTimeline(
         IReadOnlyList<ErpRealEstateRow> valuations)
