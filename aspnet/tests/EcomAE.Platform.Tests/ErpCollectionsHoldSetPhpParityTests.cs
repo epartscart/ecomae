@@ -15,7 +15,7 @@ public sealed class ErpCollectionsHoldSetPhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpCollectionsDunningApp.razor"));
         Assert.Contains("action=\"/erp/collections/hold/set\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"customer_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"customer_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"place\"", text, StringComparison.Ordinal);
         Assert.Contains("Set credit hold", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Dunning run stays on the Classic twin", text, StringComparison.Ordinal);

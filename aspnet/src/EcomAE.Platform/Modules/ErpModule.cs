@@ -6668,7 +6668,21 @@ public sealed class ErpModule : ISurfaceModule
 
             var form = await context.Request.ReadFormAsync(cancellationToken);
             var action = LiveWriteFormBinder.Text(form, "pinfo_action");
-            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            var intent = LiveWriteFormBinder.Text(form, "intent");
+            if (string.Equals(intent, "validate", StringComparison.OrdinalIgnoreCase))
+            {
+                var name = LiveWriteFormBinder.Text(form, "pim_name");
+                var ready = !string.Equals(action, "pim_create_field", StringComparison.OrdinalIgnoreCase) || name.Length > 0;
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/product-info-app?pm_view=pim_entry",
+                    ready,
+                    ready ? "Attribute is ready to post." : "Field name is required.",
+                    new { ok = ready, writes = 0, validation_code = ready ? "ok" : "invalid", message = ready ? "Attribute is ready to post." : "Field name is required.", session = SessionPayload(session) });
+            }
+
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes")
+                && !string.Equals(intent, "post", StringComparison.OrdinalIgnoreCase))
             {
                 return LiveWriteFormBinder.Complete(
                     context,

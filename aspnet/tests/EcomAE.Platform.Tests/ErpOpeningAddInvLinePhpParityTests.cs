@@ -16,7 +16,7 @@ public sealed class ErpOpeningAddInvLinePhpParityTests
         Assert.Contains("name=\"item_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"qty\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"unit_cost\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"warehouse_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"warehouse_id\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);

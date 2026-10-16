@@ -655,14 +655,15 @@ a.ns-kpi-card:hover .kv {
     background: transparent !important;
 }
 
-.epc-erp-content-body table form,
-.epc-erp-content-body td form,
-.epc-erp-content-body th form,
-.epc-erp-content-body .btn-group form,
-.epc-cp-content-inner table form,
-.epc-cp-content-inner td form,
-.epc-cp-content-inner th form,
-.epc-cp-content-inner .btn-group form {
+/* Must beat form:not([data-epc-inline="1"]) or every row action becomes a card. */
+.epc-erp-content-body table form:not([data-epc-inline="1"]),
+.epc-erp-content-body td form:not([data-epc-inline="1"]),
+.epc-erp-content-body th form:not([data-epc-inline="1"]),
+.epc-erp-content-body .btn-group form:not([data-epc-inline="1"]),
+.epc-cp-content-inner table form:not([data-epc-inline="1"]),
+.epc-cp-content-inner td form:not([data-epc-inline="1"]),
+.epc-cp-content-inner th form:not([data-epc-inline="1"]),
+.epc-cp-content-inner .btn-group form:not([data-epc-inline="1"]) {
     display: inline-flex !important;
     grid-template-columns: none !important;
     gap: .35rem;
@@ -672,6 +673,7 @@ a.ns-kpi-card:hover .kv {
     margin: 0 !important;
     padding: 0 !important;
     border: 0 !important;
+    border-radius: 0 !important;
     box-shadow: none !important;
     background: transparent !important;
 }
@@ -728,6 +730,38 @@ a.ns-kpi-card:hover .kv {
 .epc-cp-content-inner form textarea {
     min-height: 5rem;
     resize: vertical;
+}
+
+/* Inline width="6rem" leftovers were leaving tiny controls inside the field grid. */
+.epc-erp-content-body form input[style],
+.epc-erp-content-body form select[style],
+.epc-erp-content-body form textarea[style],
+.epc-cp-content-inner form input[style],
+.epc-cp-content-inner form select[style],
+.epc-cp-content-inner form textarea[style] {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+.epc-erp-content-body table form input[style],
+.epc-erp-content-body td form input[style],
+.epc-erp-content-body th form input[style],
+.epc-erp-content-body .btn-group form input[style],
+.epc-erp-content-body form.epc-ui-toolbar input[style],
+.epc-erp-content-body > form.form-inline input[style],
+.epc-erp-content-body > form[method="get"] input[style],
+.epc-erp-content-body .epc-document-workspace form input[style],
+.epc-erp-content-body .epc-finance-voucher form input[style],
+.epc-cp-content-inner table form input[style],
+.epc-cp-content-inner td form input[style],
+.epc-cp-content-inner th form input[style],
+.epc-cp-content-inner .btn-group form input[style],
+.epc-cp-content-inner form.epc-ui-toolbar input[style],
+.epc-cp-content-inner > form.form-inline input[style],
+.epc-cp-content-inner > form[method="get"] input[style] {
+    width: auto !important;
+    max-width: 14rem !important;
 }
 
 .epc-erp-content-body form input:focus,
@@ -887,10 +921,106 @@ a.ns-kpi-card:hover .kv {
     min-width: 0;
 }
 
+.epc-erp-content-body form > .form-group,
+.epc-cp-content-inner form > .form-group,
 .epc-erp-content-body form > .epc-erp-master-picker,
 .epc-cp-content-inner form > .epc-erp-master-picker,
 .epc-erp-content-body form fieldset > .epc-erp-master-picker,
 .epc-cp-content-inner form fieldset > .epc-erp-master-picker {
+    grid-column: auto;
+    min-width: 0;
+}
+
+.epc-erp-content-body form > .form-group:has(button[type="submit"]),
+.epc-erp-content-body form > .form-group:has(.checkbox),
+.epc-erp-content-body form > .form-group:has(.checkbox-inline),
+.epc-cp-content-inner form > .form-group:has(button[type="submit"]),
+.epc-cp-content-inner form > .form-group:has(.checkbox),
+.epc-cp-content-inner form > .form-group:has(.checkbox-inline) {
+    grid-column: 1 / -1;
+}
+
+/* Bootstrap rows and horizontal pairs inside an ERP form use the same field grid
+   as a direct label. Column widths and floats were painting over the next field. */
+.epc-erp-content-body form .row,
+.epc-cp-content-inner form .row {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 1fr));
+    gap: var(--epc-form-gap);
+    margin: 0 !important;
+    width: 100%;
+}
+
+.epc-erp-content-body form .row::before,
+.epc-erp-content-body form .row::after,
+.epc-cp-content-inner form .row::before,
+.epc-cp-content-inner form .row::after {
+    content: none !important;
+    display: none !important;
+}
+
+.epc-erp-content-body form .row > [class*="col-"],
+.epc-cp-content-inner form .row > [class*="col-"],
+.epc-erp-content-body form .form-group > [class*="col-"],
+.epc-cp-content-inner form .form-group > [class*="col-"],
+.epc-erp-content-body form .form-group > .control-label,
+.epc-cp-content-inner form .form-group > .control-label {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .35rem;
+    width: auto !important;
+    max-width: none !important;
+    float: none !important;
+    clear: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-width: 0;
+    position: static;
+    text-align: left !important;
+}
+
+/* Purchase and sales entry headers sit in a panel, not a form, so the form grid never reached them. */
+.epc-erp-content-body #erp-module-new.panel .panel-body > .row,
+.epc-cp-content-inner #erp-module-new.panel .panel-body > .row {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 1fr));
+    gap: var(--epc-form-gap);
+    margin: 0 0 .75rem !important;
+    width: 100%;
+}
+
+.epc-erp-content-body #erp-module-new.panel .panel-body > .row::before,
+.epc-erp-content-body #erp-module-new.panel .panel-body > .row::after,
+.epc-cp-content-inner #erp-module-new.panel .panel-body > .row::before,
+.epc-cp-content-inner #erp-module-new.panel .panel-body > .row::after {
+    content: none !important;
+    display: none !important;
+}
+
+.epc-erp-content-body #erp-module-new.panel .panel-body > .row > .epc-erp-doc-header,
+.epc-cp-content-inner #erp-module-new.panel .panel-body > .row > .epc-erp-doc-header {
+    grid-column: 1 / -1;
+}
+
+.epc-erp-content-body #erp-module-new.panel .panel-body > .row > [class*="col-"],
+.epc-cp-content-inner #erp-module-new.panel .panel-body > .row > [class*="col-"] {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .35rem;
+    width: auto !important;
+    max-width: none !important;
+    float: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-width: 0;
+}
+
+.epc-erp-content-body form .row > [class*="col-"]:has(textarea),
+.epc-cp-content-inner form .row > [class*="col-"]:has(textarea),
+.epc-erp-content-body form > .form-group:has(textarea),
+.epc-cp-content-inner form > .form-group:has(textarea) {
     grid-column: 1 / -1;
 }
 

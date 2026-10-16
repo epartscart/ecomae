@@ -629,6 +629,17 @@ body.epc-erp-cp-shell .table-responsive {
         text-decoration: none;
     }
 
+    .epc-cp-shell .epc-cp-header-bar a,
+    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit),
+    .epc-erp-cp-shell .epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit):hover,
+    .epc-erp-cp-shell .epc-erp-topbar__nav,
+    .epc-erp-cp-shell .epc-erp-topbar__user,
+    .epc-erp-cp-shell .epc-erp-topbar__brand,
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-landing,
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-landing label {
+        color: #fff !important;
+    }
+
     .epc-erp-cp-shell a.btn-primary,
     .epc-erp-cp-shell a.btn-primary:hover,
     .epc-erp-cp-shell a.btn-primary:focus,
