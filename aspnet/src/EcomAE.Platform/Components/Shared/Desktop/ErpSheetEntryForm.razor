@@ -1,0 +1,84 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Globalization
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Routing
+
+@if (!IsAdmin)
+{
+    <p class="text-muted">Sign in with a staff session to enter a record.</p>
+}
+else if (!ErpSheetEntryCatalog.TryGet(Sheet, out var sheet))
+{
+    <p class="text-muted">This entry is not set up.</p>
+}
+else
+{
+    <div class="hpanel epc-erp-section">
+        <div class="panel-heading hbuilt">@sheet.Title</div>
+        <div class="panel-body">
+            <p class="text-muted" style="margin-top:0">@sheet.Intro</p>
+            <form class="epc-sheet-entry" method="post" action="@EcomAeRoutes.ErpSheetEntry" data-epc-sheet-entry="@sheet.Key">
+                <input type="hidden" name="sheet" value="@sheet.Key" />
+                <input type="hidden" name="company_id" value="@CompanyId.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="returnUrl" id="@("epc-sheet-return-" + sheet.Key)" value="@EntryHref" />
+                <input type="hidden" name="confirmWrites" id="@("epc-sheet-confirm-" + sheet.Key)" value="" />
+                <fieldset>
+                    <legend>@sheet.Title</legend>
+                    @foreach (var field in sheet.Fields)
+                    {
+                        <label class="@(field.Wide ? "epc-sheet-entry__wide" : null)">@field.Label
+                            @if (field.Type == "select" && field.Options is not null)
+                            {
+                                <select class="form-control input-sm" name="@field.Name">
+                                    @foreach (var option in field.Options)
+                                    {
+                                        <option value="@option.Value">@option.Text</option>
+                                    }
+                                </select>
+                            }
+                            else if (field.Type == "textarea")
+                            {
+                                <textarea class="form-control input-sm" name="@field.Name" rows="8" placeholder="@field.Placeholder"></textarea>
+                            }
+                            else
+                            {
+                                <input class="form-control input-sm" type="@InputType(field.Type)" name="@field.Name" placeholder="@field.Placeholder" step="@(field.Type == "number" ? "any" : null)" />
+                            }
+                        </label>
+                    }
+                    <p class="form-actions">
+                        <button type="submit" class="btn btn-default" name="intent" value="validate" formnovalidate>Validate</button>
+                        <button type="submit" class="btn btn-primary" name="intent" value="post" id="@("epc-sheet-post-" + sheet.Key)">Post</button>
+                    </p>
+                </fieldset>
+            </form>
+            <script>
+                (function () {
+                    var post = document.getElementById(@JsonId("epc-sheet-post-" + sheet.Key));
+                    var ret = document.getElementById(@JsonId("epc-sheet-return-" + sheet.Key));
+                    var confirm = document.getElementById(@JsonId("epc-sheet-confirm-" + sheet.Key));
+                    if (!post || !ret || !confirm) return;
+                    post.addEventListener('click', function () {
+                        confirm.value = 'true';
+                        ret.value = @JsonId(ListHref);
+                    });
+                })();
+            </script>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string Sheet { get; set; } = "";
+    [Parameter] public bool IsAdmin { get; set; }
+    [Parameter] public string ListHref { get; set; } = "/erp";
+    [Parameter] public int CompanyId { get; set; } = 1;
+
+    private string EntryHref => ListHref + (ListHref.Contains('?', StringComparison.Ordinal) ? "&" : "?") + "pm_view=entry";
+
+    private static string InputType(string type)
+        => type is "number" or "date" ? type : "text";
+
+    private static string JsonId(string value)
+        => System.Text.Json.JsonSerializer.Serialize(value);
+}

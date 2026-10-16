@@ -3125,6 +3125,8 @@ public static class EcomAeRoutes
     public const string ErpCsDeleteDeclaration = "/erp/custom-shipping/delete";
     /// <summary>Dynamics-style workspace save for leave, planning, equipment, organization, payroll, and procurement pages.</summary>
     public const string ErpD365WorkspaceSave = "/erp/d365-workspace/save";
+    /// <summary>New-entry post for list-only ERP pages. intent=validate checks only. intent=post with confirmWrites writes the existing table.</summary>
+    public const string ErpSheetEntry = "/erp/sheet-entry";
     /// <summary>Official company parameter save for process lanes. confirmWrites=true writes epc_erp_d365_parameters.</summary>
     public const string ErpD365ParameterSave = "/erp/d365-parameters/save";
     /// <summary>Official document interlink or follow-next save. confirmWrites=true writes epc_erp_d365_link.</summary>

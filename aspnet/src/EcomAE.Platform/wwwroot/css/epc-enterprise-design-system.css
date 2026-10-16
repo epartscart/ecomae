@@ -895,9 +895,17 @@ a.ns-kpi-card:hover .kv {
 .epc-erp-content-body form fieldset > p,
 .epc-cp-content-inner form fieldset > legend,
 .epc-cp-content-inner form fieldset > table,
-.epc-cp-content-inner form fieldset > p {
+.epc-cp-content-inner form fieldset > p,
+.epc-erp-content-body form fieldset > label.epc-sheet-entry__wide,
+.epc-cp-content-inner form fieldset > label.epc-sheet-entry__wide {
     grid-column: 1 / -1;
     margin: 0;
+}
+
+.epc-sheet-entry textarea {
+    min-height: 9rem;
+    width: 100%;
+    resize: vertical;
 }
 
 .epc-erp-content-body form div > label,

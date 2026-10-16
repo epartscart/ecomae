@@ -426,6 +426,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationRegen, HandleUaeTaxLegislationRegenAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationChecklistSet, HandleUaeTaxLegislationChecklistSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365WorkspaceSave, HandleD365WorkspaceSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpSheetEntry, HandleSheetEntryAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365ParameterSave, HandleD365ParameterSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365LinkSave, HandleD365LinkSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365StudySave, HandleD365StudySaveAsync).DisableAntiforgery();
@@ -24597,6 +24598,71 @@ public sealed class ErpModule : ISurfaceModule
                 validation_code = written.Code,
                 message = written.Message,
                 status = written.Succeeded,
+                id = written.Id,
+                session = SessionPayload(session),
+            });
+    }
+
+    private static async Task<IResult> HandleSheetEntryAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpSheetEntryWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        const string fallback = "/erp/data-migrations-app?pm_view=entry";
+        if (!PhpParityDumpCatalog.HasStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/data-migrations-app",
+                "Staff ERP access is required.");
+        }
+
+        if (!context.Request.HasFormContentType)
+        {
+            return Results.Json(new { ok = false, writes = 0, message = "Form is required." }, statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken);
+        var sheet = LiveWriteFormBinder.Text(form, "sheet");
+        var intent = LiveWriteFormBinder.Text(form, "intent");
+        var fields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var key in form.Keys)
+        {
+            if (key is "returnUrl" or "return_url" or "confirmWrites" or "confirm_writes" or "intent" or "sheet")
+            {
+                continue;
+            }
+
+            fields[key] = form[key].ToString();
+        }
+
+        var post = string.Equals(intent, "post", StringComparison.OrdinalIgnoreCase);
+        if (!post)
+        {
+            var check = ErpSheetEntryCatalog.Check(sheet, fields);
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                check.Ok,
+                check.Message,
+                new { ok = check.Ok, writes = 0, phpAuthoritative = false, message = check.Message, session = SessionPayload(session) });
+        }
+
+        var written = await writes.PostAsync(sheet, fields, session.UserId, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallback,
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
                 id = written.Id,
                 session = SessionPayload(session),
             });
