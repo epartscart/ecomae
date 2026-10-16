@@ -760,6 +760,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlPostSalesWriteService, Ecom
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOrganizationMasterReadService, EcomAE.Platform.Erp.ErpOrganizationMasterReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365WorkspaceReadService, EcomAE.Platform.Erp.ErpD365WorkspaceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365WorkspaceWriteService, EcomAE.Platform.Erp.ErpD365WorkspaceWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSheetEntryWriteService, EcomAE.Platform.Erp.ErpSheetEntryWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Migration.IErpD365WorkspaceDryRun, EcomAE.Platform.Migration.ErpD365WorkspaceDryRun>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365ProcessReadService, EcomAE.Platform.Erp.ErpD365ProcessReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpD365ParameterWriteService, EcomAE.Platform.Erp.ErpD365ParameterWriteService>();

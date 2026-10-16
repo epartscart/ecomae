@@ -19,12 +19,19 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/erp/data-migrations-app")</p>
-                <p>Open a job for mapping, validation errors, and row status. Import is not available on this page.</p>
+                <p>New import checks the CSV, then post stores the job and its rows. Open a posted job to review mapping and row status.</p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody AppPath="/erp/data-migrations-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
-
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+    <ErpPhpViewTabs QueryName="pm_view" Active="@_view" BaseHref="@TabBase" Tabs="@_entryTabs" />
+    @if (_view == "entry")
+    {
+        <ErpSheetEntryForm Sheet="data_migration" IsAdmin="_isAdmin" ListHref="@TabBase" CompanyId="_company" />
+    }
+    else
+    {
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedMigration is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Data migration KPIs">
@@ -164,6 +171,7 @@
             </div>
         </div>
     </div>
+    }
 
 </PhpErpDesktopChrome>
 
@@ -178,6 +186,13 @@
     private CpDataMigrationsDetail? _openedMigration;
     private IReadOnlyList<CpDataMigrationLineDigest> _openedLines = [];
     private string _listHref = "/erp/data-migrations-app";
+    private string _view = "posted";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private int _company = 1;
+    private static readonly IReadOnlyList<(string Key, string Label)> _entryTabs =
+        [("entry", "New import"), ("posted", "Posted jobs")];
+    private string TabBase => _listHref + "?company=" + _company.ToString(CultureInfo.InvariantCulture);
 
     private string OpenedCaption => _openedMigration is null
         ? ""
@@ -189,10 +204,11 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
-        var path = ctx.Request.Path.Value;
-        _listHref = string.Equals(path, "/erp/data-migrations-app", StringComparison.OrdinalIgnoreCase)
-            ? "/erp/data-migrations-app"
-            : "/erp/data-migrations-app";
+        _listHref = "/erp/data-migrations-app";
+        _company = ReadCompany(ctx);
+        _view = ReadView(ctx);
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "migration_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -227,4 +243,15 @@
             }
         }
     }
+
+    private static int ReadCompany(HttpContext ctx)
+    {
+        var raw = ctx.Request.Query["company"].ToString();
+        return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var company) && company > 0
+            ? company
+            : 1;
+    }
+
+    private static string ReadView(HttpContext ctx)
+        => ctx.Request.Query["pm_view"].ToString() is "entry" or "new" ? "entry" : "posted";
 }
