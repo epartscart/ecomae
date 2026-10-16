@@ -13,8 +13,8 @@ public sealed class ErpMfgBomSavePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpProductionOverviewApp.razor"));
         Assert.Contains("action=\"/erp/manufacturing/bom/save\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"product_item_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"component_item_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"product_item_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"component_item_id\"", text, StringComparison.Ordinal);
         Assert.Contains("Save BOM", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
