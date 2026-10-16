@@ -18,6 +18,8 @@ public sealed class ErpRowWiseLayoutTests
         Assert.Contains("--epc-field-min: 10.5rem", css, StringComparison.Ordinal);
         Assert.Contains(".epc-erp-fact-row", css, StringComparison.Ordinal);
         Assert.Contains(".epc-erp-doc-header .epc-erp-doc-header", css, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-content-body form > div", css, StringComparison.Ordinal);
+        Assert.Contains(".epc-item-part__books", css, StringComparison.Ordinal);
         Assert.Contains("display: contents", css, StringComparison.Ordinal);
         Assert.Contains(".epc-jw-panel[hidden]", css, StringComparison.Ordinal);
         Assert.DoesNotContain("--epc-field-min: 13.5rem", css, StringComparison.Ordinal);

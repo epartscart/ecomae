@@ -866,13 +866,70 @@ a.ns-kpi-card:hover .kv {
 .epc-erp-content-body form > p,
 .epc-erp-content-body form > .alert,
 .epc-erp-content-body form > fieldset,
+.epc-erp-content-body form > div,
 .epc-cp-content-inner form > .epc-erp-table-wrap,
 .epc-cp-content-inner form > .table-responsive,
 .epc-cp-content-inner form > .help-block,
 .epc-cp-content-inner form > p,
 .epc-cp-content-inner form > .alert,
-.epc-cp-content-inner form > fieldset {
+.epc-cp-content-inner form > fieldset,
+.epc-cp-content-inner form > div {
     grid-column: 1 / -1;
+    min-width: 0;
+}
+
+/* A grouped block (purchase, sales, stock) keeps its own fields in a row.
+   It must not share a narrow cell with the next group, or the labels overlap. */
+.epc-erp-content-body form fieldset,
+.epc-cp-content-inner form fieldset {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--epc-field-min), 1fr));
+    gap: var(--epc-form-gap);
+    align-items: end;
+    min-width: 0;
+    margin: 0;
+}
+
+.epc-erp-content-body form fieldset > legend,
+.epc-erp-content-body form fieldset > table,
+.epc-erp-content-body form fieldset > p,
+.epc-cp-content-inner form fieldset > legend,
+.epc-cp-content-inner form fieldset > table,
+.epc-cp-content-inner form fieldset > p {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+.epc-erp-content-body form div > label,
+.epc-erp-content-body form fieldset > label,
+.epc-cp-content-inner form div > label,
+.epc-cp-content-inner form fieldset > label {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .35rem;
+    margin: 0 !important;
+    min-width: 0;
+    color: #334155 !important;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.epc-erp-content-body form div > label:has(> input[type="checkbox"]),
+.epc-erp-content-body form fieldset > label:has(> input[type="checkbox"]),
+.epc-cp-content-inner form div > label:has(> input[type="checkbox"]),
+.epc-cp-content-inner form fieldset > label:has(> input[type="checkbox"]) {
+    flex-direction: row;
+    align-items: center;
+    min-height: var(--epc-control-h);
+}
+
+.epc-item-part__books {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    gap: .75rem;
+    min-width: 0;
 }
 
 .epc-erp-content-body .epc-erp-form-panel form,

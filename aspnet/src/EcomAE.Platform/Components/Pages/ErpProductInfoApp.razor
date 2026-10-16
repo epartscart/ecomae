@@ -55,17 +55,18 @@
         </div>
     }
 
-    @if (_isAdmin && _view is "all" or "devkit" or "released")
+    @if (_isAdmin && _view == "entry")
     {
         <ErpPhpCreateWell Title="New inventory part or assembly">
             <form method="post" action="/erp/ajax/inv-create-item" class="epc-item-part" data-epc-item-part="1">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/erp/product-info-app?pm_view=@_view" />
-                <div class="epc-item-part__type">
+                <input type="hidden" name="returnUrl" id="epc-part-return" value="/erp/product-info-app?pm_view=entry" />
+                <div class="epc-erp-doc-header">
+                    <p class="epc-erp-doc-header__title">Item</p>
                     <label>Type
                         <select class="form-control input-sm" name="part_kind" id="epc-part-kind">
-                            <option value="inventory_part">Inventory part — goods you buy, stock, and resell</option>
-                            <option value="inventory_assembly">Inventory assembly — built from other items, then sold</option>
+                            <option value="inventory_part">Inventory part</option>
+                            <option value="inventory_assembly">Inventory assembly</option>
                         </select>
                     </label>
                     <label>SKU <input class="form-control input-sm" name="sku" required /></label>
@@ -74,7 +75,7 @@
                     <label>Unit <input class="form-control input-sm" name="unit" value="pcs" /></label>
                     <label class="epc-item-part__check"><input type="checkbox" name="inactive" value="1" /> Item is inactive</label>
                 </div>
-                <div class="epc-item-part__cols">
+                <div class="epc-item-part__books">
                     <fieldset>
                         <legend>Purchase information</legend>
                         <label>Description on purchase transactions
@@ -92,6 +93,13 @@
                         <label>Sales price <input class="form-control input-sm" name="sales_price" id="epc-part-price" value="0.00" /></label>
                         <p class="text-muted" id="epc-part-margin">Markup 0% · Margin 0%</p>
                         <label>Income account <input class="form-control input-sm" name="income_account" /></label>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Stock</legend>
+                        <label>Asset account <input class="form-control input-sm" name="asset_account" value="Inventory" /></label>
+                        <label>Reorder min <input class="form-control input-sm" name="reorder_min" value="0" /></label>
+                        <label>Max <input class="form-control input-sm" name="reorder_max" value="0" /></label>
+                        <label>On hand <input class="form-control input-sm" name="on_hand" value="0" /></label>
                     </fieldset>
                 </div>
                 <fieldset class="epc-item-part__bom" id="epc-part-bom">
@@ -112,31 +120,18 @@
                         </tbody>
                     </table>
                 </fieldset>
-                <div class="epc-item-part__stock">
-                    <label>Asset account <input class="form-control input-sm" name="asset_account" value="Inventory" /></label>
-                    <label>Reorder min <input class="form-control input-sm" name="reorder_min" value="0" /></label>
-                    <label>Max <input class="form-control input-sm" name="reorder_max" value="0" /></label>
-                    <label>On hand <input class="form-control input-sm" name="on_hand" value="0" /></label>
-                </div>
                 @if (_pimFormHtml.Length > 0)
                 {
-                    <div>
-                        <h5 style="margin:6px 0;"><i class="fa fa-tags"></i> PIM custom attributes</h5>
+                    <div class="epc-erp-doc-header">
+                        <p class="epc-erp-doc-header__title">Custom attributes</p>
                         @((MarkupString)_pimFormHtml)
                     </div>
                 }
-                <button type="submit" class="btn btn-primary btn-sm">Save item</button>
-                <button type="submit" class="btn btn-default btn-sm" formaction="@EcomAeRoutes.ErpProductInfoCreateItemForm" formnovalidate>Check SKU (dry run)</button>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-default" formaction="@EcomAeRoutes.ErpProductInfoCreateItemForm" formnovalidate>Validate</button>
+                    <button type="submit" class="btn btn-primary" id="epc-part-post">Post</button>
+                </div>
             </form>
-            <style>
-                .epc-item-part { display:flex; flex-direction:column; gap:10px; }
-                .epc-item-part__type, .epc-item-part__stock { display:flex; flex-wrap:wrap; gap:8px; align-items:end; }
-                .epc-item-part label { display:flex; flex-direction:column; gap:2px; font-size:12px; min-width:140px; }
-                .epc-item-part__cols { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-                .epc-item-part fieldset { border:1px solid #d5deea; border-radius:6px; padding:8px; }
-                .epc-item-part legend { font-size:12px; font-weight:700; }
-                @@media (max-width: 900px) { .epc-item-part__cols { grid-template-columns:1fr; } }
-            </style>
             <script>
                 (function () {
                     var kind = document.getElementById('epc-part-kind');
@@ -155,13 +150,16 @@
                     if (kind) kind.addEventListener('change', sync);
                     if (cost) cost.addEventListener('input', sync);
                     if (price) price.addEventListener('input', sync);
+                    var post = document.getElementById('epc-part-post');
+                    var ret = document.getElementById('epc-part-return');
+                    if (post && ret) post.addEventListener('click', function () { ret.value = '/erp/product-info-app?pm_view=all'; });
                     sync();
                 })();
             </script>
         </ErpPhpCreateWell>
     }
 
-    @if (_openedItem is not null)
+    @if (_view != "entry" && _openedItem is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedItemCaption</strong>
@@ -251,7 +249,7 @@
         </div>
     }
 
-    @if (_openedField is not null)
+    @if (_view != "entry" && _openedField is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedFieldCaption</strong>
@@ -305,7 +303,7 @@
         </div>
     }
 
-    @if (_openedVariant is not null)
+    @if (_view != "entry" && _openedVariant is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
             <p style="margin:0 0 .5rem"><strong>@OpenedVariantCaption</strong>
@@ -604,6 +602,13 @@
             </table>
         </div>
     }
+    else if (_view == "entry")
+    {
+        @if (!_isAdmin)
+        {
+            <p class="text-muted">Sign in to post a new item. Posted items stay on All products.</p>
+        }
+    }
     else
     {
         <h2 style="font-size:16px;">@(_view == "devkit" ? "Product dev kit" : _view == "released" ? "Release product" : "All products")</h2>
@@ -685,11 +690,11 @@
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=pim&tab=product_info";
     private const string _listHref = "/erp/product-info-app";
     private static readonly IReadOnlyList<(string Key, string Label)> CoreViews =
-        [("devkit", "Product dev kit"), ("all", "All products"), ("released", "Release product"), ("dimensions", "Dimensions & variants"), ("fields", "Field setup"), ("pim_attrs", "PIM attributes")];
+        [("entry", "New item"), ("all", "All products"), ("devkit", "Product dev kit"), ("released", "Release product"), ("dimensions", "Dimensions & variants"), ("fields", "Field setup"), ("pim_attrs", "PIM attributes")];
     private static readonly IReadOnlyList<(string Key, string Label)> JewelleryViews =
         [("jw_masters", "Jewellery masters"), ("jw_stock", "Metal stock"), ("jw_stock_report", "Stock report")];
     private IReadOnlyList<(string Key, string Label)> _views => _jewellery
-        ? [CoreViews[0], CoreViews[1], CoreViews[2], JewelleryViews[0], JewelleryViews[1], JewelleryViews[2], CoreViews[3], CoreViews[4], CoreViews[5]]
+        ? [CoreViews[0], CoreViews[1], CoreViews[2], CoreViews[3], JewelleryViews[0], JewelleryViews[1], JewelleryViews[2], CoreViews[4], CoreViews[5], CoreViews[6]]
         : CoreViews;
     private const string PimHref = "/erp/product-info-app?pm_view=pim_attrs";
     private bool _isAdmin;
@@ -957,6 +962,7 @@
         var value = (raw ?? string.Empty).Trim().TrimEnd('-').Replace('_', '-');
         return value switch
         {
+            "entry" or "new" => "entry",
             "devkit" => "devkit",
             "released" => "released",
             "dimensions" => "dimensions",
