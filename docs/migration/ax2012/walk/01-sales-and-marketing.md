@@ -8,18 +8,30 @@ The sales chain is in the order requested. Invoice, customer payment, and settle
 
 | Menu path | List page and details form | What New creates, and the number sequence | Header FastTabs and line FastTabs | Action-pane buttons, including reversal | Block rule in the infolog | Inquiry, printout, and report | Setup form and the one setting |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Quote | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Sales order | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Confirmation | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Packing slip | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Invoice | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Customer payment | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Settlement | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Credit note | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Quote — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Sales order — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Confirmation — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Packing slip — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Invoice — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Customer payment — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Settlement — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Credit note — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+
+## Forms the field register marks only as Named
+
+`14-all-modules-form-register.md` marks these forms Named. This walk did not open them. Header FastTabs and line FastTabs: not clicked. `Ax32.exe` did not start, so no infolog was shown.
+
+| Form in the register | This walk |
+| --- | --- |
+| Modes of delivery (`DlvMode`) | not in this license. not clicked |
+| Terms of delivery (`DlvTerm`) | not in this license. not clicked |
+| Payment terms (`PaymTerm`) | not in this license. not clicked |
+| Sales origins, sales pools, charges (`SalesOrigin`, `SalesPool`, `MarkupTable`) | not in this license. not clicked |
+| Customer groups (`CustGroup`) | not in this license. not clicked |
 
 ## ECOM AE table for a new column
 
-No new column was observed. Do not add a second sales table. The tables already named in `docs/migration/ax2012/00-build-rules.md` are:
+No new column was observed. Do not add a second sales table or a second invoice table. `00-build-rules.md` names `epc_erp_sales_orders` for this chain. The other tables in the list are already in the module files. This walk does not add a table.
 
 | Step | Table that would receive a new column |
 | --- | --- |

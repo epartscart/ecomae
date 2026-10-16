@@ -6,12 +6,24 @@ Click result used in every cell below: not clicked. `Ax32.exe` did not start. No
 
 | Menu path | List page and details form | What New creates, and the number sequence | Header FastTabs and line FastTabs | Action-pane buttons, including reversal | Block rule in the infolog | Inquiry, printout, and report | Setup form and the one setting |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Invoice | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Customer payment | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Settlement | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Credit note | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Invoice — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Customer payment — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Settlement — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Credit note — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
 
 Accounts receivable parameters were not opened. See `19-parameters.md`.
+
+## Forms the field register marks only as Named
+
+`14-all-modules-form-register.md` marks these forms Named. This walk did not open them. Header FastTabs and line FastTabs: not clicked. `Ax32.exe` did not start, so no infolog was shown.
+
+| Form in the register | This walk |
+| --- | --- |
+| Accounts receivable parameters (`CustParameters`) | not in this license. not clicked. See `19-parameters.md` |
+| Customer posting profiles (`CustLedger`) | not in this license. not clicked |
+| Methods of payment (`CustPaymModeTable`) | not in this license. not clicked |
+| Cash discounts (`CashDisc`) | not in this license. not clicked |
+| Customer bank accounts (`CustBankAccount`) | not in this license. not clicked |
 
 ## ECOM AE table for a new column
 

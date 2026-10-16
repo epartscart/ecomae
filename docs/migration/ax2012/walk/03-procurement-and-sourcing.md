@@ -8,14 +8,23 @@ The purchase chain is in the order requested. Vendor invoice, matching, payment,
 
 | Menu path | List page and details form | What New creates, and the number sequence | Header FastTabs and line FastTabs | Action-pane buttons, including reversal | Block rule in the infolog | Inquiry, printout, and report | Setup form and the one setting |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Requisition | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Request for quotation | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Purchase order | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Product receipt | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Vendor invoice | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Matching | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Payment | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Settlement | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Requisition — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Request for quotation — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Purchase order — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Product receipt — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Vendor invoice — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Matching — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Payment — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Settlement — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+
+## Forms the field register marks only as Named
+
+`14-all-modules-form-register.md` marks these forms Named. This walk did not open them. Header FastTabs and line FastTabs: not clicked. `Ax32.exe` did not start, so no infolog was shown.
+
+| Form in the register | This walk |
+| --- | --- |
+| Procurement categories (`EcoResCategory`) | not in this license. not clicked |
+| Purchasing policies | not in this license. not clicked |
 
 ## ECOM AE table for a new column
 

@@ -6,11 +6,11 @@ These forms decide posting accounts, matching tolerances, reservation, and negat
 
 | Parameters form | Result |
 | --- | --- |
-| Accounts receivable | not clicked. Not exported. |
-| Accounts payable | not clicked. Not exported. |
-| Inventory | not clicked. Not exported. |
-| General ledger | not clicked. Not exported. |
-| Production | not clicked. Not exported. |
-| Project | not clicked. Not exported. |
+| Accounts receivable | not in this license. not clicked. Not exported. No screenshot. |
+| Accounts payable | not in this license. not clicked. Not exported. No screenshot. |
+| Inventory | not in this license. not clicked. Not exported. No screenshot. |
+| General ledger | not in this license. not clicked. Not exported. No screenshot. The field register does not name this form. |
+| Production | not in this license. not clicked. Not exported. No screenshot. |
+| Project | not in this license. not clicked. Not exported. No screenshot. The field register does not name this form. |
 
 Posting accounts, matching tolerances, the reservation rule, and the negative-inventory rule were not read from this install.

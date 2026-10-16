@@ -6,7 +6,11 @@ Click result used in every cell below: not clicked. `Ax32.exe` did not start. No
 
 | Menu path | List page and details form | What New creates, and the number sequence | Header FastTabs and line FastTabs | Action-pane buttons, including reversal | Block rule in the infolog | Inquiry, printout, and report | Setup form and the one setting |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Retail statement | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Retail statement — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+
+## Forms the field register marks only as Named
+
+`14-all-modules-form-register.md` marks tender types Named. This walk did not open that form. Header FastTabs and line FastTabs: not clicked. not in this license. `Ax32.exe` did not start.
 
 ## ECOM AE table for a new column
 

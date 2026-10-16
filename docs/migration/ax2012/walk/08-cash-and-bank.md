@@ -8,9 +8,18 @@ Fixed asset acquisition, depreciation, and disposal are in `09-fixed-assets.md`.
 
 | Menu path | List page and details form | What New creates, and the number sequence | Header FastTabs and line FastTabs | Action-pane buttons, including reversal | Block rule in the infolog | Inquiry, printout, and report | Setup form and the one setting |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Bank deposit | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Reconciliation | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
-| Check | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Bank deposit — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Reconciliation — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+| Check — not in this license | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked | not clicked |
+
+## Forms the field register marks only as Named
+
+`14-all-modules-form-register.md` marks these forms Named. This walk did not open them. Header FastTabs and line FastTabs: not clicked. `Ax32.exe` did not start, so no infolog was shown.
+
+| Form in the register | This walk |
+| --- | --- |
+| Bank groups (`BankGroup`) | not in this license. not clicked |
+| Bank transaction types | not in this license. not clicked |
 
 ## ECOM AE table for a new column
 

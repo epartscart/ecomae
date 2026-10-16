@@ -1,8 +1,17 @@
 # Master planning
 
-Area page: not opened. Menu items under this area were not listed, because the page was not on screen.
+Area page: not in this license. not clicked. The page was not on screen. Menu items under this area were not listed, because the page was not on screen.
 
 Click result: not clicked. `Ax32.exe` did not start. No infolog was shown. No planned order, firming button, or explosion was used.
+
+## Forms the field register marks only as Named
+
+`14-all-modules-form-register.md` marks these forms Named. This walk did not open them. not clicked. `Ax32.exe` did not start.
+
+| Form in the register | This walk |
+| --- | --- |
+| Coverage groups (`ReqGroup`) | not in this license. not clicked |
+| Master plans (`ReqPlan`) | not in this license. not clicked |
 
 ## ECOM AE table for a new column
 
