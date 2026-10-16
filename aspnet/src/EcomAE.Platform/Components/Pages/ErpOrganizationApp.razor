@@ -47,11 +47,11 @@
         @if (_tab == "legal_entities")
         {
             <ErpPhpCreateWell Title="New legal entity">
-                <form method="post" action="@PmSaveAction">
+                <form id="erp-module-new" method="post" action="@PmSaveAction">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@OrgHref("legal_entities")" />
                     <input type="hidden" name="pm_table" value="epc_erp_pm_legal_entities" />
-                    <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="LE-AE" /></label>
+                    <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="LE-AE" data-erp-new-field /></label>
                     <label>Legal name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
                     <label>Country <input class="form-control input-sm" name="country_code" maxlength="4" placeholder="AE" /></label>
                     <label>Currency <input class="form-control input-sm" name="currency_code" maxlength="8" placeholder="AED" /></label>
@@ -64,21 +64,13 @@
         else if (_tab == "business_units")
         {
             <ErpPhpCreateWell Title="New business unit">
-                <form method="post" action="@PmSaveAction">
+                <form id="erp-module-new" method="post" action="@PmSaveAction">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@OrgHref("business_units")" />
                     <input type="hidden" name="pm_table" value="epc_erp_pm_business_units" />
-                    <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="BU-RETAIL" /></label>
+                    <label>Code <input class="form-control input-sm" name="code" required maxlength="40" placeholder="BU-RETAIL" data-erp-new-field /></label>
                     <label>Name <input class="form-control input-sm" name="name" required maxlength="190" /></label>
-                    <label>Legal entity
-                        <select class="form-control input-sm" name="legal_entity_id">
-                            <option value="0">— none —</option>
-                            @foreach (var entity in _snapshot.LegalEntities.Where(r => r.Active))
-                            {
-                                <option value="@entity.Id">@entity.Code · @entity.Name</option>
-                            }
-                        </select>
-                    </label>
+                    <ErpMasterPicker Kind="legal-entity" FieldName="legal_entity_id" Label="Legal entity" InputId="org-bu-legal" />
                     <label>Manager <input class="form-control input-sm" name="manager" maxlength="120" /></label>
                     <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
                     <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save business unit</button></div>
@@ -153,11 +145,11 @@
         else
         {
             <ErpPhpCreateWell Title="New cost centre">
-                <form method="post" action="@CostCentreAction">
+                <form id="erp-module-new" method="post" action="@CostCentreAction">
                     <input type="hidden" name="action" value="save_center" />
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@OrgHref("cost_centres")" />
-                    <label>Code <input class="form-control input-sm" name="code" required maxlength="30" placeholder="CC-ADMIN" /></label>
+                    <label>Code <input class="form-control input-sm" name="code" required maxlength="30" placeholder="CC-ADMIN" data-erp-new-field /></label>
                     <label>Name <input class="form-control input-sm" name="name" maxlength="160" /></label>
                     <ErpMasterPicker Kind="business_unit" FieldName="branch_id" Label="Business unit" InputId="org-cc-bu" />
                     <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save cost centre</button></div>

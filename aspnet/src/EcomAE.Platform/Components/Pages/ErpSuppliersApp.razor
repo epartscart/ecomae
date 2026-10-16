@@ -12,7 +12,6 @@
 @inject NavigationManager Nav
 @inject IErpDimensionLinkReadService DimensionLinks
 @inject IErpApSetupReadService ApSetup
-@inject IErpOrganizationMasterReadService OrganizationMasters
 @inject IErpSupplierOnboardReadService Onboard
 
 <PageTitle>Suppliers · ERP · eParts Cart</PageTitle>
@@ -344,7 +343,7 @@
     {
         <ErpPhpCreateWell Title="Add vendor">
             <p class="text-muted" style="margin:0 0 .6rem">Save a draft, attach trade license and partner documents, then approve. Only approved suppliers appear on purchase.</p>
-            <form method="post" action="@CreateAction">
+            <form id="erp-module-new" method="post" action="@CreateAction">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@VendorReturnHref" />
                 <input type="hidden" name="scheme_id" value="0230" />
@@ -352,7 +351,7 @@
                     <tbody>
                         <tr>
                             <th style="width:9rem">Name *</th>
-                            <td><input class="form-control input-sm" name="name" required maxlength="190" placeholder="Legal / trade name" /></td>
+                            <td><input class="form-control input-sm" name="name" required maxlength="190" placeholder="Legal / trade name" data-erp-new-field /></td>
                             <th style="width:10rem">Supplier code</th>
                             <td><input class="form-control input-sm" name="supplier_code" maxlength="32" placeholder="Auto V-0001" /></td>
                             <th style="width:8rem">Currency</th>
@@ -363,13 +362,7 @@
                             </td>
                             <th style="width:10rem">AP / Chart of account</th>
                             <td>
-                                <select class="form-control input-sm" name="ap_coa_id">
-                                    <option value="0">— pick payable account —</option>
-                                    @foreach (var acc in _onboard.PayableAccounts)
-                                    {
-                                        <option value="@acc.Id">@acc.Code · @acc.Name</option>
-                                    }
-                                </select>
+                                <ErpMasterPicker Kind="coa" FieldName="ap_coa_id" InputId="supplier-ap-coa" Label="Payable account" />
                             </td>
                         </tr>
                         <tr>
@@ -390,10 +383,7 @@
                             </td>
                             <th>Legal entity</th>
                             <td>
-                                <select class="form-control input-sm" name="legal_entity_id">
-                                    <option value="0">— none —</option>
-                                    @foreach (var entity in _org.LegalEntities.Where(r => r.Active)) { <option value="@entity.Id">@entity.Code · @entity.Name</option> }
-                                </select>
+                                <ErpMasterPicker Kind="legal-entity" FieldName="legal_entity_id" InputId="supplier-legal" Label="Legal entity" />
                             </td>
                             <th>Business unit</th>
                             <td>
@@ -685,7 +675,6 @@
     ];
     private ErpApSetupSnapshot _ap = new([], [], [], "n/a", "");
     private IReadOnlyList<ErpApSetupRow> _apRows = [];
-    private ErpOrganizationMasterSnapshot _org = new([], [], [], [], [], [], "n/a", "");
     private ErpSupplierOnboardSnapshot _onboard = new(null, [], [], [], false, [], new Dictionary<long, string>(), "n/a", "");
     private IReadOnlyList<ErpSupplierDigest> _suppliers = [];
     private ErpSupplierPortalSummary _portal = new(0, 0, 0, 0, "n/a", "");
@@ -754,7 +743,6 @@
         }
 
         _ap = await ApSetup.LoadAsync(200, ctx.RequestAborted);
-        _org = await OrganizationMasters.LoadAsync(200, ctx.RequestAborted);
         _onboard = await Onboard.LoadAsync(_openedId, 200, ctx.RequestAborted);
         _apRows = _pmView switch
         {
