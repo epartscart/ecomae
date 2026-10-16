@@ -19,6 +19,7 @@ public static class ErpRealEstateWorkspace
         new("acquisitions", "Buy / sell", "fa-exchange", "/erp/real-estate-app?tab=acquisitions"),
         new("valuations", "Valuation", "fa-line-chart", "/erp/real-estate-app?tab=valuations"),
         new("leases", "Tenants & leases", "fa-key", "/erp/real-estate-app?tab=leases"),
+        new("expiry", "Expiry email", "fa-envelope", "/erp/real-estate-app?tab=expiry"),
         new("collections", "Rent & cheques", "fa-money", "/erp/real-estate-app?tab=collections"),
         new("maintenance", "Maintenance", "fa-wrench", "/erp/real-estate-app?tab=maintenance"),
         new("projects", "Development", "fa-sitemap", "/erp/real-estate-app?tab=projects"),
