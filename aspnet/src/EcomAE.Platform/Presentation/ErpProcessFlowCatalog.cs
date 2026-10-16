@@ -93,7 +93,7 @@ public static class ErpProcessFlowCatalog
         [
             S("Legal entities", "fa-building-o", "/erp/organization-app?tab=legal_entities"),
             S("Consolidate", "fa-sitemap", "/erp/consolidations-app"),
-            S("Eliminations", "fa-exchange", "/erp/consolidations-app?tab=consolidation_ic"),
+            S("Eliminations", "fa-exchange", "/erp/intercompany-app?tab=elimination"),
             S("Group reports", "fa-table", "/erp/trial-balance-app"),
         ],
         ["cost_acct"] =

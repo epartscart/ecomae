@@ -25,6 +25,7 @@ public enum ErpTrialBalanceDimensionSet
 {
     MainAccount,
     MainAccountCompany,
+    MainAccountBusinessUnit,
 }
 
 public sealed record ErpTrialBalanceParameters(
@@ -39,7 +40,9 @@ public sealed record ErpTrialBalanceParameters(
     string? AccountCode = null,
     int Limit = 500,
     string Interval = "",
-    string? Filter = null)
+    string? Filter = null,
+    long BusinessUnitId = 0,
+    int CompanyId = 0)
 {
     public const string AppPath = "/erp/trial-balance-app";
     public const string SnapshotPath = "/erp/trial-balance/snapshot";
@@ -58,7 +61,9 @@ public sealed record ErpTrialBalanceParameters(
         string? account,
         string? limit,
         string? interval = null,
-        string? filter = null)
+        string? filter = null,
+        string? businessUnit = null,
+        string? company = null)
     {
         var intervalKey = IntervalKey(interval);
         DateOnly fromDate;
@@ -98,7 +103,9 @@ public sealed record ErpTrialBalanceParameters(
             string.IsNullOrWhiteSpace(account) ? null : account.Trim(),
             parsedLimit,
             intervalKey,
-            string.IsNullOrWhiteSpace(filter) ? null : filter.Trim());
+            string.IsNullOrWhiteSpace(filter) ? null : filter.Trim(),
+            ParseId(businessUnit),
+            ParseCompany(company));
     }
 
     public long FromUnix => new DateTimeOffset(FromDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero).ToUnixTimeSeconds();
@@ -132,6 +139,16 @@ public sealed record ErpTrialBalanceParameters(
         if (!string.IsNullOrWhiteSpace(account))
         {
             parts.Add("account=" + Uri.EscapeDataString(account));
+        }
+
+        if (BusinessUnitId > 0)
+        {
+            parts.Add("bu=" + BusinessUnitId.ToString(CultureInfo.InvariantCulture));
+        }
+
+        if (CompanyId > 0)
+        {
+            parts.Add("company=" + CompanyId.ToString(CultureInfo.InvariantCulture));
         }
 
         return string.Join("&", parts);
@@ -262,8 +279,19 @@ public sealed record ErpTrialBalanceParameters(
         => (raw ?? string.Empty).Trim().ToLowerInvariant() switch
         {
             "company" or "main_account_company" => ErpTrialBalanceDimensionSet.MainAccountCompany,
+            "business_unit" or "bu" or "main_account_business_unit" => ErpTrialBalanceDimensionSet.MainAccountBusinessUnit,
             _ => ErpTrialBalanceDimensionSet.MainAccount,
         };
+
+    public static long ParseId(string? raw)
+        => long.TryParse((raw ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0
+            ? id
+            : 0;
+
+    public static int ParseCompany(string? raw)
+        => int.TryParse((raw ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0
+            ? id
+            : 0;
 
     public static bool ParseFlag(string? raw, bool fallback)
     {
@@ -298,7 +326,12 @@ public sealed record ErpTrialBalanceParameters(
         };
 
     public static string DimensionKey(ErpTrialBalanceDimensionSet set)
-        => set == ErpTrialBalanceDimensionSet.MainAccountCompany ? "company" : "main_account";
+        => set switch
+        {
+            ErpTrialBalanceDimensionSet.MainAccountCompany => "company",
+            ErpTrialBalanceDimensionSet.MainAccountBusinessUnit => "business_unit",
+            _ => "main_account",
+        };
 
     public static string LayerLabel(ErpTrialBalancePostingLayer layer)
         => layer switch
@@ -317,9 +350,15 @@ public sealed record ErpTrialBalanceParameters(
         };
 
     public static string DimensionLabel(ErpTrialBalanceDimensionSet set)
-        => set == ErpTrialBalanceDimensionSet.MainAccountCompany
-            ? "Main account + company"
-            : "Main account";
+        => set switch
+        {
+            ErpTrialBalanceDimensionSet.MainAccountCompany => "Main account + company",
+            ErpTrialBalanceDimensionSet.MainAccountBusinessUnit => "Main account + business unit",
+            _ => "Main account",
+        };
+
+    public static bool UsesUnitLedger(ErpTrialBalanceDimensionSet set, long businessUnitId)
+        => set == ErpTrialBalanceDimensionSet.MainAccountBusinessUnit || businessUnitId > 0;
 
     public static string IntervalKey(string? interval)
         => (interval ?? string.Empty).Trim().ToLowerInvariant() switch

@@ -38,18 +38,25 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             ? Array.Empty<ErpTrialBalanceVoucher>()
             : await LoadVouchersAsync(connection, parameters, cancellationToken).ConfigureAwait(false);
         var snapshots = await LoadSnapshotsAsync(connection, cancellationToken).ConfigureAwait(false);
+        var opening = lines.Sum(l => l.Opening);
+        var debit = lines.Sum(l => l.Debit);
+        var credit = lines.Sum(l => l.Credit);
+        var closing = lines.Sum(l => l.Closing);
+        var message = ErpTrialBalanceParameters.UsesUnitLedger(parameters.DimensionSet, parameters.BusinessUnitId)
+            ? "Business unit ledger uses posted journals only. Company opening balances stay on the company trial balance."
+            : string.Empty;
 
         return new(
             parameters,
             lines,
             vouchers,
             snapshots,
-            lines.Sum(l => l.Opening),
-            lines.Sum(l => l.Debit),
-            lines.Sum(l => l.Credit),
-            lines.Sum(l => l.Closing),
+            opening,
+            debit,
+            credit,
+            closing,
             "live",
-            string.Empty);
+            message);
     }
 
     private static async Task<IReadOnlyList<ErpTrialBalanceLine>> LoadLinesAsync(
@@ -65,6 +72,7 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
                    IFNULL(a.`normal_side`, '') AS normal_side,
                    IFNULL(a.`opening_balance`, 0) AS opening_balance,
                    IFNULL(j.`company_id`, 0) AS company_id,
+                   IFNULL(j.`business_unit_id`, 0) AS business_unit_id,
                    IFNULL(j.`journal_no`, '') AS journal_no,
                    IFNULL(j.`source_type`, '') AS source_type,
                    IFNULL(j.`reference`, '') AS reference,
@@ -91,19 +99,40 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             var side = ReadString(reader, "normal_side");
             var openingBalance = ReadDec(reader, "opening_balance");
             var companyId = ReadLong(reader, "company_id");
-            var company = parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany && companyId > 0
-                ? companyId.ToString(CultureInfo.InvariantCulture)
-                : "";
-            var key = parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany
-                ? code + "|" + company
-                : code;
+            var businessUnitId = ReadLong(reader, "business_unit_id");
+            var journalUnix = ReadLong(reader, "journal_unix");
+            var unitLedger = ErpTrialBalanceParameters.UsesUnitLedger(parameters.DimensionSet, parameters.BusinessUnitId);
+            if (journalUnix <= 0)
+            {
+                if (unitLedger)
+                {
+                    continue;
+                }
+            }
+            else if (parameters.CompanyId > 0 && companyId != 0 && companyId != parameters.CompanyId)
+            {
+                continue;
+            }
+            else if (parameters.BusinessUnitId > 0 && businessUnitId != parameters.BusinessUnitId)
+            {
+                continue;
+            }
+
+            var dimension = parameters.DimensionSet switch
+            {
+                ErpTrialBalanceDimensionSet.MainAccountCompany when companyId > 0 => companyId.ToString(CultureInfo.InvariantCulture),
+                ErpTrialBalanceDimensionSet.MainAccountBusinessUnit => businessUnitId.ToString(CultureInfo.InvariantCulture),
+                _ => "",
+            };
+            var key = parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccount
+                ? code
+                : code + "|" + dimension;
             if (!buckets.TryGetValue(key, out var acc))
             {
-                acc = new LineAcc(code, name, type, side, openingBalance, company);
+                acc = new LineAcc(code, name, type, side, unitLedger ? 0m : openingBalance, dimension);
                 buckets[key] = acc;
             }
 
-            var journalUnix = ReadLong(reader, "journal_unix");
             if (journalUnix <= 0)
             {
                 continue;
@@ -166,6 +195,8 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
             INNER JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1
             INNER JOIN `epc_erp_coa_accounts` a ON a.`id` = l.`coa_id`
             WHERE a.`code` = @code
+              AND (@bu = 0 OR IFNULL(j.`business_unit_id`, 0) = @bu)
+              AND (@company = 0 OR IFNULL(j.`company_id`, 0) IN (@company, 0))
             ORDER BY journal_unix DESC, j.`id` DESC
             LIMIT 200
             """;
@@ -173,6 +204,14 @@ public sealed class ErpTrialBalanceReadService : IErpTrialBalanceReadService
         p.ParameterName = "@code";
         p.Value = parameters.AccountCode ?? "";
         command.Parameters.Add(p);
+        var bu = command.CreateParameter();
+        bu.ParameterName = "@bu";
+        bu.Value = parameters.BusinessUnitId;
+        command.Parameters.Add(bu);
+        var company = command.CreateParameter();
+        company.ParameterName = "@company";
+        company.Value = parameters.CompanyId;
+        command.Parameters.Add(company);
 
         var rows = new List<ErpTrialBalanceVoucher>();
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);

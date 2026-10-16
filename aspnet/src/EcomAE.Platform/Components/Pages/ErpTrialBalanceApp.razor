@@ -29,6 +29,7 @@
                             <a class="epc-d365-ap-btn" href="/erp/gl-journals-app"><i class="fa fa-list" aria-hidden="true"></i><span>All transactions</span></a>
                             <a class="epc-d365-ap-btn" href="/erp/period-close-app"><i class="fa fa-calendar" aria-hidden="true"></i><span>Fiscal year transactions</span></a>
                             <a class="epc-d365-ap-btn" href="/erp/multi-currency-gl-app"><i class="fa fa-money" aria-hidden="true"></i><span>By currency</span></a>
+                            <a class="epc-d365-ap-btn" href="/erp/intercompany-app"><i class="fa fa-exchange" aria-hidden="true"></i><span>Intercompany setup</span></a>
                             <a class="epc-d365-ap-btn" href="/erp/period-close-app"><i class="fa fa-clock-o" aria-hidden="true"></i><span>Period</span></a>
                             <a class="epc-d365-ap-btn" href="/erp/cash-accounts-app?tab=cash_forecast"><i class="fa fa-line-chart" aria-hidden="true"></i><span>Cash flow forecasts</span></a>
                         </div>
@@ -70,8 +71,16 @@
                 <select name="dimension_set">
                     <option value="main_account" selected="@(_parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccount)">Main account</option>
                     <option value="company" selected="@(_parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany)">Main account + company</option>
+                    <option value="business_unit" selected="@(_parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountBusinessUnit)">Main account + business unit</option>
                 </select>
             </label>
+            <label>Business unit
+                <input type="number" name="bu" min="0" step="1" value="@(_parameters.BusinessUnitId > 0 ? _parameters.BusinessUnitId.ToString(CultureInfo.InvariantCulture) : "")" placeholder="All units" />
+            </label>
+            @if (_parameters.CompanyId > 0)
+            {
+                <input type="hidden" name="company" value="@_parameters.CompanyId.ToString(CultureInfo.InvariantCulture)" />
+            }
             <label>Posting layer
                 <select name="layer">
                     <option value="current" selected="@(_parameters.PostingLayer == ErpTrialBalancePostingLayer.Current)">Current</option>
@@ -153,9 +162,9 @@
                     <th>Main account</th>
                     <th>Name</th>
                     <th>Type</th>
-                    @if (_parameters.SeparateDimensionColumns || _parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany)
+                    @if (ShowDimension)
                     {
-                        <th>Company</th>
+                        <th>@DimensionHeading</th>
                     }
                     <th>Opening balance</th>
                     <th>Debit</th>
@@ -178,7 +187,7 @@
                             <td><a href="@_parameters.AppHref(line.Code)"><strong>@line.Code</strong></a></td>
                             <td>@line.Name</td>
                             <td>@line.AccountType</td>
-                            @if (_parameters.SeparateDimensionColumns || _parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany)
+                            @if (ShowDimension)
                             {
                                 <td>@(string.IsNullOrWhiteSpace(line.Company) ? "—" : line.Company)</td>
                             }
@@ -191,7 +200,7 @@
                         </tr>
                     }
                     <tr>
-                        <td colspan="@(_parameters.SeparateDimensionColumns || _parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany ? 4 : 3)"><strong>Total</strong></td>
+                        <td colspan="@(ShowDimension ? 4 : 3)"><strong>Total</strong></td>
                         <td><strong>@_result.OpeningTotal.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
                         <td><strong>@_result.DebitTotal.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
                         <td><strong>@_result.CreditTotal.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
@@ -273,6 +282,7 @@
         · @ErpTrialBalanceParameters.DimensionLabel(_parameters.DimensionSet)
         · Debit total @_result.DebitTotal.ToString("N2", CultureInfo.InvariantCulture)
         · Credit total @_result.CreditTotal.ToString("N2", CultureInfo.InvariantCulture)
+        · @(InBalance ? "In balance" : "Out of balance")
         · Balance @_result.ClosingTotal.ToString("N2", CultureInfo.InvariantCulture)
         · Click a balance to open voucher transactions.
         @if (!string.IsNullOrWhiteSpace(_result.Message)) { <span> @_result.Message</span> }
@@ -285,8 +295,11 @@
     private ErpTrialBalanceParameters _parameters = ErpTrialBalanceParameters.FromQuery(null, null, null, null, null, null, null, null, null, null);
     private ErpTrialBalanceResult _result = new(ErpTrialBalanceParameters.FromQuery(null, null, null, null, null, null, null, null, null, null), [], [], [], 0, 0, 0, 0, "migration", "");
 
-    private int Colspan => _parameters.SeparateDimensionColumns || _parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountCompany ? 10 : 9;
+    private bool ShowDimension => _parameters.SeparateDimensionColumns || _parameters.DimensionSet != ErpTrialBalanceDimensionSet.MainAccount;
+    private string DimensionHeading => _parameters.DimensionSet == ErpTrialBalanceDimensionSet.MainAccountBusinessUnit ? "Business unit" : "Company";
+    private int Colspan => ShowDimension ? 10 : 9;
     private decimal AmountTotal => _result.DebitTotal - _result.CreditTotal;
+    private bool InBalance => Math.Abs(_result.DebitTotal - _result.CreditTotal) < 0.005m && Math.Abs(_result.ClosingTotal) < 0.005m;
 
     protected override async Task OnInitializedAsync()
     {
@@ -301,7 +314,8 @@
             q["from"], q["to"], q["layer"], q["opening"],
             q["include_closing"], q["include_closing_adj"],
             q["dimension_set"], q["separate_dims"], q["account"], q["limit"],
-            q["interval"], string.IsNullOrWhiteSpace(q["q"]) ? q["filter"] : q["q"]);
+            q["interval"], string.IsNullOrWhiteSpace(q["q"]) ? q["filter"] : q["q"],
+            q["bu"], q["company"]);
 
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

@@ -124,8 +124,18 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
 
         var units = await LoadUnitsAsync(connection, cancellationToken).ConfigureAwait(false);
         var accounting = await AccountingCurrencyAsync(connection, query.CompanyId, cancellationToken).ConfigureAwait(false);
+        var requested = query.ReportingCurrency;
+        if (requested.Length == 0)
+        {
+            var policyCurrency = await PolicyReportingCurrencyAsync(connection, cancellationToken).ConfigureAwait(false);
+            if (policyCurrency.Length == 3 && !policyCurrency.Equals(accounting, StringComparison.OrdinalIgnoreCase))
+            {
+                requested = policyCurrency;
+            }
+        }
+
         var (rate, reporting, rateNote) = await ResolveRateAsync(
-            connection, accounting, query.ReportingCurrency, cancellationToken).ConfigureAwait(false);
+            connection, accounting, requested, cancellationToken).ConfigureAwait(false);
 
         List<RawLine> raw;
         try
@@ -165,8 +175,11 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
 
         if (query.Level == ErpFinancialStatementLevel.Consolidation)
         {
-            var (elimIncome, elimExpense, elimAsset, elimLiability) =
-                await LoadEliminationsAsync(connection, cancellationToken).ConfigureAwait(false);
+            var ledger = await LoadIcLedgerEliminationsAsync(connection, cancellationToken).ConfigureAwait(false);
+            var useLedger = Math.Abs(ledger.Income) + Math.Abs(ledger.Expense) + Math.Abs(ledger.Asset) + Math.Abs(ledger.Liability) >= 0.005m;
+            var (elimIncome, elimExpense, elimAsset, elimLiability) = useLedger
+                ? ledger
+                : await LoadEliminationsAsync(connection, cancellationToken).ConfigureAwait(false);
             AddElim(built, "ELIM-REV", "Intercompany revenue eliminated", "revenue", -elimIncome, ref income);
             AddElim(built, "ELIM-EXP", "Intercompany expense eliminated", "expense", -elimExpense, ref expense);
             AddElim(built, "ELIM-ASSET", "Intercompany asset eliminated", "asset", -elimAsset, ref assets);
@@ -233,7 +246,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         var message = query.Level switch
         {
             ErpFinancialStatementLevel.BusinessUnit => "Posted ledger for this business unit. Opening balances stay on the company statement.",
-            ErpFinancialStatementLevel.Consolidation => "Consolidated posted ledger. Intercompany sales, purchases, and loans are eliminated.",
+            ErpFinancialStatementLevel.Consolidation => "Consolidated posted ledger. Active elimination rules clear intercompany sales, purchases, receivables, and payables.",
             _ => "Posted ledger for this company. Accounts with no movement stay on the statement at zero.",
         };
         if (rateNote.Length > 0)
@@ -367,6 +380,171 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         }
 
         return rows;
+    }
+
+    private static async Task<(decimal Income, decimal Expense, decimal Asset, decimal Liability)> LoadIcLedgerEliminationsAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var purposes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            await using (var rules = connection.CreateCommand())
+            {
+                rules.CommandText = """
+                    SELECT IFNULL(`debit_purpose`, '') AS debit_purpose,
+                           IFNULL(`credit_purpose`, '') AS credit_purpose
+                    FROM `epc_erp_ic_elim_rules`
+                    WHERE `active` = 1 AND `method` = 'full'
+                    """;
+                await using var reader = await rules.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    AddPurpose(purposes, reader.GetString(0));
+                    AddPurpose(purposes, reader.GetString(1));
+                }
+            }
+
+            if (purposes.Count == 0)
+            {
+                return (0, 0, 0, 0);
+            }
+
+            var codesByPurpose = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+            await using (var map = connection.CreateCommand())
+            {
+                map.CommandText = """
+                    SELECT IFNULL(`purpose`, '') AS purpose, IFNULL(`coa_code`, '') AS coa_code
+                    FROM `epc_erp_ic_accounts`
+                    WHERE `active` = 1
+                    """;
+                await using var reader = await map.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var purpose = reader.GetString(0).Trim().ToLowerInvariant();
+                    var code = reader.GetString(1).Trim();
+                    if (!purposes.Contains(purpose) || code.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    if (!codesByPurpose.TryGetValue(purpose, out var set))
+                    {
+                        set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        codesByPurpose[purpose] = set;
+                    }
+
+                    set.Add(code);
+                }
+            }
+
+            var codes = codesByPurpose.SelectMany(pair => pair.Value).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            if (codes.Count == 0)
+            {
+                return (0, 0, 0, 0);
+            }
+
+            var balances = new Dictionary<string, (string Side, decimal Opening, decimal Debit, decimal Credit)>(StringComparer.OrdinalIgnoreCase);
+            await using (var balancesCommand = connection.CreateCommand())
+            {
+                var names = new string[codes.Count];
+                for (var i = 0; i < codes.Count; i++)
+                {
+                    names[i] = "@c" + i.ToString(CultureInfo.InvariantCulture);
+                    var parameter = balancesCommand.CreateParameter();
+                    parameter.ParameterName = names[i];
+                    parameter.Value = codes[i];
+                    balancesCommand.Parameters.Add(parameter);
+                }
+
+                balancesCommand.CommandText =
+                    "SELECT IFNULL(a.`code`, '') AS code, IFNULL(a.`normal_side`, 'debit') AS normal_side,"
+                    + " IFNULL(a.`opening_balance`, 0) AS opening_balance,"
+                    + " IFNULL(SUM(CASE WHEN j.`id` IS NOT NULL THEN l.`debit` ELSE 0 END), 0) AS debits,"
+                    + " IFNULL(SUM(CASE WHEN j.`id` IS NOT NULL THEN l.`credit` ELSE 0 END), 0) AS credits"
+                    + " FROM `epc_erp_coa_accounts` a"
+                    + " LEFT JOIN `epc_erp_gl_lines` l ON l.`coa_id` = a.`id`"
+                    + " LEFT JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1"
+                    + " WHERE a.`code` IN (" + string.Join(",", names) + ")"
+                    + " GROUP BY a.`id`, a.`code`, a.`normal_side`, a.`opening_balance`";
+                await using var reader = await balancesCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    balances[reader.GetString(0)] = (reader.GetString(1), reader.GetDecimal(2), reader.GetDecimal(3), reader.GetDecimal(4));
+                }
+            }
+
+            decimal income = 0, expense = 0, asset = 0, liability = 0;
+            foreach (var purpose in purposes)
+            {
+                if (!codesByPurpose.TryGetValue(purpose, out var set))
+                {
+                    continue;
+                }
+
+                var signed = 0m;
+                foreach (var code in set)
+                {
+                    if (!balances.TryGetValue(code, out var row))
+                    {
+                        continue;
+                    }
+
+                    signed += string.Equals(row.Side, "credit", StringComparison.OrdinalIgnoreCase)
+                        ? row.Opening + row.Credit - row.Debit
+                        : row.Opening + row.Debit - row.Credit;
+                }
+
+                switch (purpose)
+                {
+                    case "sales":
+                        income += signed;
+                        break;
+                    case "purchase":
+                        expense += signed;
+                        break;
+                    case "receivable":
+                        asset += signed;
+                        break;
+                    case "payable":
+                        liability += signed;
+                        break;
+                }
+            }
+
+            return (income, expense, asset, liability);
+        }
+        catch (DbException)
+        {
+            return (0, 0, 0, 0);
+        }
+    }
+
+    private static void AddPurpose(HashSet<string> purposes, string raw)
+    {
+        var purpose = raw.Trim().ToLowerInvariant();
+        if (purpose is "sales" or "purchase" or "receivable" or "payable")
+        {
+            purposes.Add(purpose);
+        }
+    }
+
+    private static async Task<string> PolicyReportingCurrencyAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT IFNULL(`reporting_currency`, '') FROM `epc_erp_ic_policy` WHERE `id` = 1";
+            var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            var code = Convert.ToString(value, CultureInfo.InvariantCulture)?.Trim().ToUpperInvariant() ?? "";
+            return code.Length == 3 ? code : "";
+        }
+        catch (DbException)
+        {
+            return "";
+        }
     }
 
     private static async Task<(decimal Income, decimal Expense, decimal Asset, decimal Liability)> LoadEliminationsAsync(
