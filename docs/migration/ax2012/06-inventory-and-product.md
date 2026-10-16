@@ -28,7 +28,7 @@ FastTabs: **General, Purchase, Sell, Manage inventory, Engineer, Financial dimen
 | Sell | `SalesUnitId` | `UnitOfMeasure` | `unit` |
 | Inventory | `BatchNumGroupId`, `SerialNumGroupId` | Number sequences | `track_expiry`. Serial group is GAP. The tracking setup form itself is counted in `11-item-tracking-fields.md` |
 | Inventory | `modelGroupId` | `InventModelGroup` (stocked, FIFO/weighted, quarantine, registration) | Group `valuation` is `weighted_avg` on `epc_erp_pm_inv_groups`. FIFO, standard, and moving average are GAP |
-| Inventory | `DimGroupId` (storage, tracking, product) | Which `InventDim` fields are required | GAP. Today the stock key is warehouse + item + batch + variant label |
+| Inventory | `DimGroupId` (storage, tracking, product) | Which `InventDim` fields are required | GAP. Field counts for the three group forms and the inventory parameters are in `11-item-tracking-fields.md` and `12-inventory-setup-field-counts.md` |
 | Dimensions | `DefaultDimension` | | `epc_erp_dim_links` |
 | Extra | Tenant fields | | `epc_erp_inv_item_fields` (`item_id`, `field_key`, `value`) defined by `epc_erp_inv_field_defs` |
 

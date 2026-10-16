@@ -90,6 +90,7 @@ Each arrow is a foreign key in the module file. If a step does not exist yet, le
 | `05-accounts-payable.md` | Accounts payable | Vendor invoice, match, payment |
 | `06-inventory-and-product.md` | Inventory, warehouse, product information | Inventory / WMS |
 | `11-item-tracking-fields.md` | Tracking dimension groups, one form counted | Not a full inventory census |
+| `12-inventory-setup-field-counts.md` | Item model groups (19), storage groups (38), product groups (11), inventory parameters (72) | Same method. Remaining inventory forms are listed as uncounted |
 | `07-general-ledger.md` | General ledger | Record-to-Report |
 | `08-cash-bank-assets.md` | Cash and bank, fixed assets | Treasury, fixed assets |
 | `09-production-project-service-retail-hr.md` | Production, projects, service, retail, HR | Those open processes |
