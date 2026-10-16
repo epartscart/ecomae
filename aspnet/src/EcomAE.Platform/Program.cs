@@ -1076,6 +1076,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRbacUserRoleWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTenantUserAdminService, EcomAE.Platform.Erp.ErpTenantUserAdminService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRbacAuditReadService, EcomAE.Platform.Erp.ErpRbacAuditReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPermissionScopeReadService, EcomAE.Platform.Erp.ErpPermissionScopeReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPermissionGrantWriteService, EcomAE.Platform.Erp.ErpPermissionGrantWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpQmPlanSaveWriteService, EcomAE.Platform.Erp.ErpQmPlanSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpQmTestAddWriteService, EcomAE.Platform.Erp.ErpQmTestAddWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpProcCategorySaveWriteService, EcomAE.Platform.Erp.ErpProcCategorySaveWriteService>();
@@ -1421,6 +1422,7 @@ app.UseMiddleware<IndustryStorefrontSlugMiddleware>();
 app.UseRouting();
 // Required for Blazor SSR endpoints (MapRazorComponents adds antiforgery metadata).
 app.UseAntiforgery();
+app.UseMiddleware<EcomAE.Platform.Middleware.ErpControlledAccessMiddleware>();
 
 app.MapHealthChecks(EcomAeRoutes.Health);
 

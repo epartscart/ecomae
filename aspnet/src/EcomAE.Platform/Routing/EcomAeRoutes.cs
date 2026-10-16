@@ -1061,6 +1061,8 @@ public static class EcomAeRoutes
     public const string ErpUsersPrepare = "/erp/users/prepare";
     public const string ErpUsersCredentials = "/erp/users/credentials";
     public const string ErpUsersDepartment = "/erp/users/department";
+    /// <summary>Save module and action grants for one ERP user.</summary>
+    public const string ErpUserControlGrant = "/erp/user-control/grant";
     public const string ErpUsersSessions = "/erp/users/sessions";
     public const string ErpUsersAudit = "/erp/users/audit";
     public const string ErpContracts = "/erp/contracts";
