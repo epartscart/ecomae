@@ -82,7 +82,7 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                             LegacySessionKind.Admin,
                             adminUser,
                             adminSession,
-                            LegacyAdminPermissionSets.ForRequestHost(httpContext.Request.Host.Host),
+                            LegacyAdminPermissionSets.ForRequest(httpContext),
                             identity.Email,
                             identity.GroupIds,
                             HasBackendAccess: true,
@@ -100,7 +100,7 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                     LegacySessionKind.Admin,
                     adminUser,
                     adminSession,
-                    LegacyAdminPermissionSets.ForRequestHost(httpContext.Request.Host.Host),
+                    LegacyAdminPermissionSets.ForRequest(httpContext),
                     HasBackendAccess: true);
             }
         }
