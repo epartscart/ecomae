@@ -53,8 +53,13 @@ public class ErpLandingPageTests
         Assert.Contains(core, choice => choice.Path == "/erp/coa-accounts-app" || choice.Label.Contains("Chart", StringComparison.OrdinalIgnoreCase) || choice.Path.StartsWith("/erp/", StringComparison.Ordinal));
         Assert.DoesNotContain(core, choice => choice.Path.Contains("landlord", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(real, choice => choice.Path == "/erp/landlord-app");
-        Assert.Contains("Set this page as the home page", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor")), StringComparison.Ordinal);
-        Assert.Contains("erp/landing/save", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor")), StringComparison.Ordinal);
+        var chrome = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor"));
+        Assert.Contains("Set this page as the home page", chrome, StringComparison.Ordinal);
+        Assert.Contains("After login, open", chrome, StringComparison.Ordinal);
+        Assert.Contains("erp-header-landing", chrome, StringComparison.Ordinal);
+        Assert.Contains("erp/landing/save", chrome, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-topbar__user", chrome, StringComparison.Ordinal);
+        Assert.DoesNotContain("erp-landing-page", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor")), StringComparison.Ordinal);
     }
 
     private static string Find(string relative)

@@ -17,8 +17,6 @@
 @inject ICpPowerBiService PowerBi
 @inject IHttpContextAccessor Http
 @inject IErpLandlordBook LandlordBook
-@inject ICpCsrfGuard Csrf
-@inject IErpLandingPage Landing
 
 <PageTitle>@_pageTitle</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -68,29 +66,6 @@
                         </a>
                     }
                 </div>
-                <form method="post" action="/erp/landing/save" class="epc-dash-customize__roles" style="margin-top:8px">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="csrf_guard_key" value="@_csrf" />
-                    <input type="hidden" name="returnUrl" value="/erp" />
-                    <label for="erp-landing-page">After login, open
-                        <select id="erp-landing-page" name="path" class="form-control input-sm">
-                            @foreach (var group in _landingChoices.GroupBy(choice => choice.Group))
-                            {
-                                <optgroup label="@group.Key">
-                                    @foreach (var choice in group)
-                                    {
-                                        <option value="@choice.Path" selected="@(ErpLandingPage.Same(choice.Path, _landing) ? "selected" : null)">@choice.Label</option>
-                                    }
-                                </optgroup>
-                            }
-                            @if (!string.IsNullOrEmpty(_landing) && !_landingChoices.Any(choice => ErpLandingPage.Same(choice.Path, _landing)))
-                            {
-                                <option value="@_landing" selected="selected">Saved page</option>
-                            }
-                        </select>
-                    </label>
-                    <button type="submit" class="btn btn-default btn-sm">Save landing page</button>
-                </form>
             </div>
         }
         @if (_jewellery)
@@ -925,9 +900,6 @@
     private ErpWorkspaceHomeDigest _home = EmptyHome();
     private ErpWorkspacePeriodKpis _cur = EmptyPeriod();
     private bool _isAdmin;
-    private string _csrf = "";
-    private string _landing = "";
-    private IReadOnlyList<ErpLandingChoice> _landingChoices = ErpLandingPage.Choices(false, false, false);
     private bool _hasFullErpAccess;
     private bool _isSuperHost;
     private bool _jewellery;
@@ -1114,9 +1086,6 @@
             _trendProf = _home.Trend.Select(t => t.Profit).ToArray();
             _hasTrend = _home.Trend.Any(t => t.Revenue != 0 || t.Profit != 0);
             _hasTasks = _cur.ProcessOpen + _cur.ProcessDone + _cur.ProcessOverdue > 0;
-            _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
-            _landing = await Landing.CurrentAsync(ctx.RequestAborted);
-            _landingChoices = ErpLandingPage.Choices(_jewellery, _fitOut, _realEstate);
         }
         else
         {

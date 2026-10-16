@@ -171,6 +171,11 @@
     }
     .epc-erp-topnav-links li { display:flex; align-items:center; }
     .epc-erp-topnav-links li > a { flex:1 1 auto; min-width:0; }
+    .epc-erp-landing { display:inline-flex; align-items:center; gap:.35rem; margin:0; font-size:12px; font-weight:600; color:#fff; white-space:nowrap; }
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-landing,
+    .epc-erp-cp-shell .epc-erp-topbar .epc-erp-landing label { color:#fff; }
+    .epc-erp-landing select { color:#0f172a; background:#fff; border:0; border-radius:6px; height:28px; max-width:12.5rem; padding:0 .4rem; font-size:12px; font-weight:600; }
+    .epc-erp-landing button { height:28px; border:0; border-radius:6px; background:#fff; color:#0f172a; font-size:12px; font-weight:700; padding:0 .55rem; cursor:pointer; }
 </style>
 
 <div class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell epc-cp--blue-theme epc-cp-modern epc-php-font-root"
@@ -271,6 +276,32 @@
                 }
                 else
                 {
+                    @if (_canChooseLanding)
+                    {
+                        <form method="post" action="/erp/landing/save" class="epc-erp-landing" title="Page that opens after login">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                            <input type="hidden" name="returnUrl" value="@LandingReturnHref" />
+                            <label for="erp-header-landing">After login, open
+                                <select id="erp-header-landing" name="path">
+                                    @foreach (var group in LandingChoices.GroupBy(choice => choice.Group))
+                                    {
+                                        <optgroup label="@group.Key">
+                                            @foreach (var choice in group)
+                                            {
+                                                <option value="@choice.Path" selected="@(ErpLandingPage.Same(choice.Path, _landing) ? "selected" : null)">@choice.Label</option>
+                                            }
+                                        </optgroup>
+                                    }
+                                    @if (!string.IsNullOrEmpty(_landing) && !LandingChoices.Any(choice => ErpLandingPage.Same(choice.Path, _landing)))
+                                    {
+                                        <option value="@_landing" selected="selected">Saved page</option>
+                                    }
+                                </select>
+                            </label>
+                            <button type="submit">Save landing page</button>
+                        </form>
+                    }
                     <span title="@_userLabel">@_userLabel</span>
                     <a class="btn btn-default btn-xs" href="@LogoutHref" title="Log out" data-enhance-nav="false" rel="nofollow"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>
                 }
@@ -829,6 +860,7 @@
     private string _currentPath = "/erp";
     private string _csrf = "";
     private string _landing = "";
+    private bool _canChooseLanding;
     private ErpHostContext.Context _ctx = ErpHostContext.Resolve(null);
     private IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> _nav = LegacyDesktopChromeCatalog.ErpTopnav();
     private List<FavChip> _favs = [];
@@ -837,6 +869,18 @@
     private sealed record FavChip(long Id, string Label, string Href, string Icon);
 
     private string ErpHomeHref => _activeCompanyId > 0 ? $"/erp?company={_activeCompanyId}" : "/erp";
+
+    private IReadOnlyList<ErpLandingChoice> LandingChoices
+        => ErpLandingPage.Choices(_jewellery, _fitOut, _realEstate);
+
+    private string LandingReturnHref
+    {
+        get
+        {
+            var href = FavoriteReturnHref;
+            return href.StartsWith('/') && !href.StartsWith("//", StringComparison.Ordinal) ? href : "/erp";
+        }
+    }
 
     private string? LandingCandidate => ErpLandingPage.Normalize(FavoriteReturnHref);
 
@@ -1137,6 +1181,7 @@
         if (_signedIn)
         {
             _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
+            _canChooseLanding = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
             await LoadFavouritesAsync(session.UserId, ctx.RequestAborted);
             _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
             _landing = await Landing.CurrentAsync(ctx.RequestAborted);
