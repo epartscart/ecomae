@@ -12,17 +12,17 @@
         </div>
         <div class="epc-d365-ap-row is-active" data-aptab="home">
             <div class="epc-d365-actionpane" role="toolbar">
-                <div class="epc-d365-ap-group">
-                    <div class="epc-d365-ap-buttons">
-                        @if (!string.IsNullOrWhiteSpace(PhpTabHref))
-                        {
+                @if (!string.IsNullOrWhiteSpace(PhpTabHref))
+                {
+                    <div class="epc-d365-ap-group">
+                        <div class="epc-d365-ap-buttons">
                             <a class="epc-d365-ap-btn is-primary" href="@ErpRecordOpen.NewHref(PhpTabHref)">
                                 <i class="fa fa-plus" aria-hidden="true"></i><span>New</span>
                             </a>
-                        }
+                        </div>
+                        <div class="epc-d365-ap-label">New</div>
                     </div>
-                    <div class="epc-d365-ap-label">New</div>
-                </div>
+                }
                 <div class="epc-d365-ap-group">
                     <div class="epc-d365-ap-buttons">
                         @foreach (var action in StandardActions)
