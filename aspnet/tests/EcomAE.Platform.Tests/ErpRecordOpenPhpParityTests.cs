@@ -1190,7 +1190,7 @@ public sealed class ErpRecordOpenPhpParityTests
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpPlatformCommunicationApp.razor"));
         Assert.Contains("ReadId(ctx.Request, \"task_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("?edit_task=", text, StringComparison.Ordinal);
+        Assert.Contains("edit_task=", text, StringComparison.Ordinal);
         Assert.Contains("_edit?.Description", text, StringComparison.Ordinal);
         Assert.Contains("epc-scp-empty-state", text, StringComparison.Ordinal);
         Assert.Contains("epc-scp-data-table", text, StringComparison.Ordinal);

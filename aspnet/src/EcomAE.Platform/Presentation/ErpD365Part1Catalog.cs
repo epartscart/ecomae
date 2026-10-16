@@ -502,7 +502,7 @@ public static class ErpD365Part1Catalog
         yield return P(a, "cm_production_orders", "Production orders", "Manufacturing accounting", "Production orders that absorb cost.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/production-overview-app", "fa-industry");
         yield return P(a, "cm_wip", "Work in process", "Manufacturing accounting", "WIP value on open production orders.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-tasks");
         yield return P(a, "cm_indirect", "Indirect cost in process", "Manufacturing accounting", "Indirect cost absorbed into WIP.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-random");
-        yield return P(a, "cm_variance", "Variance statement", "Manufacturing accounting", "Production variances versus standard.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/report-center-app?tab=pl&level=business_unit", "fa-balance-scale");
+        yield return P(a, "cm_variance", "Variance statement", "Manufacturing accounting", "Production variances versus standard.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-balance-scale");
         yield return P(a, "cm_cost_groups", "Cost groups", "Setup", "Material, labour, and overhead cost groups.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-object-group");
         yield return P(a, "cm_item_groups", "Item groups", "Setup", "Item groups that share a costing setup.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-cubes");
         yield return P(a, "cm_costing_sheets", "Costing sheets", "Setup", "How cost components roll into a sheet.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-table");
