@@ -421,6 +421,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpCostCenterWrite, HandleCostCenterWriteAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpDocExpiryDelete, HandleDocxDeleteAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpTenantConfigSave, HandleTenantConfigSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpIntercompanySave, HandleIntercompanySaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPrintDesignerSave, HandlePrintDesignerSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxFtaFetch, HandleUaeTaxFtaFetchAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationAsk, HandleUaeTaxLegislationAskAsync).DisableAntiforgery();
@@ -24141,6 +24142,87 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleIntercompanySaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpIntercompanySetupService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/intercompany-app", "Admin ERP capability required for intercompany setup.");
+        }
+
+        if (!context.Request.HasFormContentType)
+        {
+            return Results.Json(new { ok = false, writes = 0, message = "Send the intercompany form." }, statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken);
+        var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, writesBlocked = true, phpAuthoritative = true, message = "Confirm writes to save intercompany setup." });
+        }
+
+        var current = (await writes.ReadAsync(cancellationToken).ConfigureAwait(false)).Policy;
+        var action = LiveWriteFormBinder.Text(form, "action");
+        var tax = string.Equals(action, "tax", StringComparison.OrdinalIgnoreCase);
+        var currency = string.Equals(action, "currency", StringComparison.OrdinalIgnoreCase);
+        var companyText = LiveWriteFormBinder.Text(form, "company");
+        _ = int.TryParse(companyText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var companyId);
+        var written = await writes.SaveAsync(
+            new ErpIntercompanySaveRequest(
+                action,
+                LiveWriteFormBinder.Text(form, "scope"),
+                LiveWriteFormBinder.Text(form, "from_code"),
+                LiveWriteFormBinder.Text(form, "to_code"),
+                LiveWriteFormBinder.Text(form, "role"),
+                LiveWriteFormBinder.Text(form, "purpose"),
+                LiveWriteFormBinder.Text(form, "coa_code"),
+                LiveWriteFormBinder.Text(form, "rule_code"),
+                LiveWriteFormBinder.Text(form, "rule_name"),
+                LiveWriteFormBinder.Text(form, "debit_purpose"),
+                LiveWriteFormBinder.Text(form, "credit_purpose"),
+                LiveWriteFormBinder.Text(form, "method"),
+                LiveWriteFormBinder.Flag(form, "rule_active"),
+                tax ? LiveWriteFormBinder.Flag(form, "vat_group") : current.VatGroup,
+                tax ? LiveWriteFormBinder.Flag(form, "ct_group") : current.CtGroup,
+                tax ? Rate(form, "sales_vat_rate", current.SalesVatRate) : current.SalesVatRate,
+                tax ? Rate(form, "purchase_vat_rate", current.PurchaseVatRate) : current.PurchaseVatRate,
+                tax ? LiveWriteFormBinder.Text(form, "tp_method") : current.TpMethod,
+                currency ? LiveWriteFormBinder.Text(form, "reporting_currency") : current.ReportingCurrency,
+                currency ? LiveWriteFormBinder.Text(form, "translation_method") : current.TranslationMethod,
+                currency ? LiveWriteFormBinder.Text(form, "transaction_currency") : current.TransactionCurrency,
+                companyId < 0 ? 0 : companyId),
+            cancellationToken).ConfigureAwait(false);
+        var tab = LiveWriteFormBinder.Text(form, "tab");
+        if (tab is not ("accounts" or "elimination" or "tax" or "currency"))
+        {
+            tab = "relationships";
+        }
+
+        var back = "/erp/intercompany-app?tab=" + Uri.EscapeDataString(tab);
+        if (companyText.Length > 0)
+        {
+            back += "&company=" + Uri.EscapeDataString(companyText);
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            back,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+    }
+
+    private static decimal Rate(IFormCollection form, string name, decimal fallback)
+    {
+        var text = LiveWriteFormBinder.Text(form, name);
+        return decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var rate) ? rate : fallback;
     }
 
     private static async Task<IResult> HandleTenantConfigSaveAsync(
