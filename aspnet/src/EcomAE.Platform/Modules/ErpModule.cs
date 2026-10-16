@@ -24639,6 +24639,7 @@ public sealed class ErpModule : ISurfaceModule
         var sourceId = 0L;
         var companyId = 0L;
         var confirm = false;
+        var fieldsJson = "";
         var returnUrl = "/erp/leave-absence-app";
         if (context.Request.HasFormContentType)
         {
@@ -24665,6 +24666,19 @@ public sealed class ErpModule : ISurfaceModule
             companyId = LiveWriteFormBinder.Long(form, "company_id", "companyId");
             confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+            if (ErpD365WorkspaceCatalog.TryGet(tab, out var axPage) && axPage.ExistingHref is null)
+            {
+                var axValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var key in form.Keys)
+                {
+                    if (key.StartsWith("ax_", StringComparison.OrdinalIgnoreCase) && key.Length > 3)
+                    {
+                        axValues[key[3..]] = LiveWriteFormBinder.Text(form, key);
+                    }
+                }
+
+                fieldsJson = ErpAxMenuFields.Pack(axValues, axPage);
+            }
         }
 
         if (companyId <= 0)
@@ -24674,7 +24688,7 @@ public sealed class ErpModule : ISurfaceModule
 
         var request = new ErpD365WorkspaceWriteRequest(
             area, tab, code, name, worker, party, kind, status, period, dateFrom, dateTo, qty, amount, extra, note, session.UserId,
-            sourceTab, sourceId, sourceCode, relation, companyId);
+            sourceTab, sourceId, sourceCode, relation, companyId, fieldsJson);
         if (!confirm)
         {
             return Results.Ok(dryRun.Evaluate(request, false).ToPayload(SessionPayload(session)));
