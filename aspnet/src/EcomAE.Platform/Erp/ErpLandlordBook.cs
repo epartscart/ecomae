@@ -54,7 +54,7 @@ public sealed record ErpLandlordTotals(
             : null;
 }
 
-public sealed record ErpLandlordMeasure(int Year, decimal YearIncome, decimal YearExpense, decimal AllIncome, decimal AllExpense)
+public sealed record ErpLandlordMeasure(int Year, decimal YearIncome, decimal YearExpense, decimal AllIncome, decimal AllExpense, int Properties = 0)
 {
     public decimal YearReturn => YearIncome - YearExpense;
 

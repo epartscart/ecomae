@@ -68,10 +68,12 @@
         <p class="text-muted">@_board.Message</p>
     }
 
+    <h3 id="profit-and-loss">Profit &amp; loss</h3>
+    <p class="text-muted">Profit and loss for this view is income minus expenses. Each figure opens the lines that make it.</p>
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Selected year">
-        <div class="kpi"><div class="lbl">@YearMeasureLabel income</div><div class="val">@Money(_board.Totals.Income)</div></div>
-        <div class="kpi"><div class="lbl">@YearMeasureLabel expenses</div><div class="val">@Money(_board.Totals.Expense)</div></div>
-        <div class="kpi"><div class="lbl">@YearMeasureLabel return</div><div class="val">@Money(_board.Totals.ReturnAmount)</div></div>
+        <a class="kpi" href="#income-lines"><div class="lbl">@YearMeasureLabel income</div><div class="val">@Money(_board.Totals.Income)</div></a>
+        <a class="kpi" href="#expense-lines"><div class="lbl">@YearMeasureLabel expenses</div><div class="val">@Money(_board.Totals.Expense)</div></a>
+        <a class="kpi" href="#profit-and-loss"><div class="lbl">@YearMeasureLabel profit &amp; loss</div><div class="val">@Money(_board.Totals.ReturnAmount)</div></a>
         <div class="kpi"><div class="lbl">Recovery</div><div class="val">@RecoveryText(_board.Totals)</div></div>
         <div class="kpi"><div class="lbl">Investment</div><div class="val">@InvestmentText(_board.Totals)</div></div>
         <div class="kpi"><div class="lbl">Costs through 2024</div><div class="val">@ThroughText(_board.Totals)</div></div>
@@ -79,9 +81,9 @@
     @if (_year > 0)
     {
         <div class="epc-erp-kpi epc-erp-stat-row" aria-label="All years">
-            <div class="kpi"><div class="lbl">All years income</div><div class="val">@Money(_board.Life.Income)</div></div>
-            <div class="kpi"><div class="lbl">All years expenses</div><div class="val">@Money(_board.Life.Expense)</div></div>
-            <div class="kpi"><div class="lbl">All years return</div><div class="val">@Money(_board.Life.ReturnAmount)</div></div>
+            <a class="kpi" href="@ViewHref(0, _propertyId, _unitId)#income-lines"><div class="lbl">All years income</div><div class="val">@Money(_board.Life.Income)</div></a>
+            <a class="kpi" href="@ViewHref(0, _propertyId, _unitId)#expense-lines"><div class="lbl">All years expenses</div><div class="val">@Money(_board.Life.Expense)</div></a>
+            <a class="kpi" href="@ViewHref(0, _propertyId, _unitId)#profit-and-loss"><div class="lbl">All years profit &amp; loss</div><div class="val">@Money(_board.Life.ReturnAmount)</div></a>
             <div class="kpi"><div class="lbl">All years recovery</div><div class="val">@RecoveryText(_board.Life)</div></div>
             <div class="kpi"><div class="lbl">Investment</div><div class="val">@InvestmentText(_board.Life)</div></div>
             <div class="kpi"><div class="lbl">Costs through 2024</div><div class="val">@ThroughText(_board.Life)</div></div>
@@ -261,7 +263,7 @@
         </ErpPhpCreateWell>
     }
 
-    <h3>Expenses, one by one</h3>
+    <h3 id="expense-lines">Expenses, one by one</h3>
     <div class="epc-erp-table-wrap">
         <table class="table table-condensed table-bordered table-epc">
             <thead>
@@ -323,7 +325,7 @@
         </table>
     </div>
 
-    <h3>Income, one by one</h3>
+    <h3 id="income-lines">Income, one by one</h3>
     <div class="epc-erp-table-wrap">
         <table class="table table-condensed table-bordered table-epc">
             <thead>

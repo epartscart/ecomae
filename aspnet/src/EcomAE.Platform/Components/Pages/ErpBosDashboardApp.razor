@@ -147,13 +147,15 @@
                     @if (_yearBook.Year > 0)
                     {
                         <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Landlord year on the home dashboard">
-                            <div class="kpi"><div class="lbl">@_yearBook.Year income</div><div class="val">@_yearBook.YearIncome.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-                            <div class="kpi"><div class="lbl">@_yearBook.Year expenses</div><div class="val">@_yearBook.YearExpense.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-                            <div class="kpi"><div class="lbl">@_yearBook.Year return</div><div class="val">@_yearBook.YearReturn.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-                            <div class="kpi"><div class="lbl">All years income</div><div class="val">@_yearBook.AllIncome.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-                            <div class="kpi"><div class="lbl">All years expenses</div><div class="val">@_yearBook.AllExpense.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-                            <div class="kpi"><div class="lbl">All years return</div><div class="val">@_yearBook.AllReturn.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                            <a class="kpi" href="@Go(YearBook("#income-lines"))"><div class="lbl">@_yearBook.Year income</div><div class="val">@ErpNetsuiteDashboardCatalog.Money(_yearBook.YearIncome)</div></a>
+                            <a class="kpi" href="@Go(YearBook("#expense-lines"))"><div class="lbl">@_yearBook.Year expenses</div><div class="val">@ErpNetsuiteDashboardCatalog.Money(_yearBook.YearExpense)</div></a>
+                            <a class="kpi" href="@Go(YearBook("#profit-and-loss"))"><div class="lbl">@_yearBook.Year profit &amp; loss</div><div class="val">@ErpNetsuiteDashboardCatalog.Money(_yearBook.YearReturn)</div></a>
+                            <a class="kpi" href="@Go("/erp/landlord-app?year=0#income-lines")"><div class="lbl">All years income</div><div class="val">@ErpNetsuiteDashboardCatalog.Money(_yearBook.AllIncome)</div></a>
+                            <a class="kpi" href="@Go("/erp/landlord-app?year=0#expense-lines")"><div class="lbl">All years expenses</div><div class="val">@ErpNetsuiteDashboardCatalog.Money(_yearBook.AllExpense)</div></a>
+                            <a class="kpi" href="@Go("/erp/landlord-app?year=0#profit-and-loss")"><div class="lbl">All years profit &amp; loss</div><div class="val">@ErpNetsuiteDashboardCatalog.Money(_yearBook.AllReturn)</div></a>
+                            <a class="kpi" href="@Go("/erp/real-estate-app?tab=properties")"><div class="lbl">Properties</div><div class="val">@_yearBook.Properties.ToString("N0", CultureInfo.InvariantCulture)</div></a>
                         </div>
+                        <p class="ns-fitout-scope-note"><a href="@Go(YearBook("#profit-and-loss"))"><i class="fa fa-bar-chart"></i> Profit &amp; loss</a> opens the @_yearBook.Year income, expenses and return. Each figure opens the lines behind it.</p>
                     }
                     <p class="ns-fitout-scope-note"><i class="fa fa-lock"></i> Opportunities stay off the balance sheet until purchase. Cheques are not cash until clearance. Year-book income and expenses link to the chart of accounts. A supplier bill still posts through the expense register.</p>
                 </div>
@@ -172,6 +174,10 @@
                 </p>
                 <div class="ns-hero-meta">
                     <span class="ns-chip"><i class="fa fa-calendar"></i> @_periodFrom → @_periodTo</span>
+                    @if (_figureYear > 0)
+                    {
+                        <span class="ns-chip"><i class="fa fa-bar-chart"></i> Income, expenses and profit are the <a href="@Go(YearBook("#profit-and-loss"))">@_figureYear profit &amp; loss</a></span>
+                    }
                     <span class="ns-chip"><i class="fa fa-money"></i> @_currency</span>
                     @if (!ErpNetsuiteDashboardCatalog.Can(_profile, "profit"))
                     {
@@ -183,11 +189,11 @@
                 @foreach (var hm in _hero)
                 {
                     var chg = ErpNetsuiteDashboardCatalog.Change(hm.Current, hm.Previous, hm.GoodWhenUp);
-                    <div class="ns-metric3d">
-                        <div class="ml">@hm.Label</div>
+                    <a class="ns-metric3d" href="@Go(ErpDashboardFigureLinks.Href(hm.Label, _figureYear))">
+                        <div class="ml">@ErpDashboardFigureLinks.DisplayLabel(hm.Label, _figureYear)</div>
                         <div class="mv">@(hm.Money ? ErpNetsuiteDashboardCatalog.Money(hm.Current) : hm.Current.ToString("N0", CultureInfo.InvariantCulture))</div>
                         <div class="md"><span class="@chg.Css">@chg.Text</span> vs prior period</div>
-                    </div>
+                    </a>
                 }
             </div>
         </div>
@@ -195,6 +201,7 @@
         <ErpHomeProcessMap CompanyId="@_activeCompanyId" ShowJewellery="@_jewellery" />
         <ErpHomeInsights
             CompanyId="@_activeCompanyId"
+            BooksYear="@_figureYear"
             Revenue="@_cur.RevenueExVat"
             PreviousRevenue="@_home.Previous.RevenueExVat"
             Expense="@_cur.PurchaseExVat"
@@ -276,7 +283,7 @@
         <div class="ns-tiles">
             @foreach (var tile in _tiles)
             {
-                <a class="ns-tile @tile.Tone" href="@WithCompany(tile.Href)">
+                <a class="ns-tile @tile.Tone" href="@Go(tile.Href)">
                     <i class="fa @tile.Icon ic"></i>
                     <span class="tl">@tile.Label</span>
                 </a>
@@ -289,7 +296,7 @@
                 <div class="ns-qa-grid">
                     @foreach (var qa in _quick)
                     {
-                        <a class="ns-qa" href="@WithCompany(qa.Href)">
+                        <a class="ns-qa" href="@Go(qa.Href)">
                             <span class="qa-ic @qa.Tone"><i class="fa @qa.Icon"></i></span>
                             <span class="qa-lb">@qa.Label</span>
                         </a>
@@ -366,7 +373,7 @@
                                             </div>
                                             <span class="epc-insights__label">@card.Label</span>
                                             <div class="epc-insights__value">
-                                                @ErpInsightsSuiteCatalog.FormatValue(card, _insights.Currency)
+                                                <a href="@WithCompany(card.Href)">@ErpInsightsSuiteCatalog.FormatValue(card, _insights.Currency)</a>
                                                 @if (!string.IsNullOrWhiteSpace(card.DeltaLabel))
                                                 {
                                                     <span class="epc-insights__delta @deltaCss">
@@ -400,12 +407,12 @@
                     <div class="ns-kpi-grid">
                         @foreach (var k in _opKpis)
                         {
-                            <div class="ns-kpi-card @k.Health" title="@k.Hint">
+                            <a class="ns-kpi-card @k.Health" title="@k.Hint" href="@Go(ErpDashboardFigureLinks.Href(k.Key, _figureYear))">
                                 <span class="dot"></span>
-                                <div class="kl">@k.Label</div>
+                                <div class="kl">@ErpDashboardFigureLinks.DisplayLabel(k.Label, _figureYear)</div>
                                 <div class="kv">@k.Value</div>
                                 <div class="kh">@k.Hint</div>
-                            </div>
+                            </a>
                         }
                     </div>
                 </div>
@@ -473,7 +480,7 @@
                             <div class="ns-mini-grid">
                                 @foreach (var l in grp.Links)
                                 {
-                                    <a class="ns-mini" href="@WithCompany(l.Href)"><span class="mi @grp.Tone"><i class="fa @l.Icon"></i></span><span class="ml">@l.Label</span></a>
+                                    <a class="ns-mini" href="@Go(l.Href)"><span class="mi @grp.Tone"><i class="fa @l.Icon"></i></span><span class="ml">@l.Label</span></a>
                                 }
                             </div>
                         }
@@ -494,8 +501,8 @@
                                     {
                                         var chg = ErpNetsuiteDashboardCatalog.Change(k.Current, k.Previous, k.GoodWhenUp);
                                         <tr>
-                                            <td>@k.Name</td>
-                                            <td>@ErpNetsuiteDashboardCatalog.Money(k.Current)</td>
+                                            <td><a href="@Go(ErpDashboardFigureLinks.Href(k.Name, _figureYear))">@ErpDashboardFigureLinks.DisplayLabel(k.Name, _figureYear)</a></td>
+                                            <td><a href="@Go(ErpDashboardFigureLinks.Href(k.Name, _figureYear))">@ErpNetsuiteDashboardCatalog.Money(k.Current)</a></td>
                                             <td>@ErpNetsuiteDashboardCatalog.Money(k.Previous)</td>
                                             <td><span class="@chg.Css">@chg.Text</span></td>
                                         </tr>
@@ -513,7 +520,7 @@
                             <div class="ns-fin">
                                 @foreach (var f in _fin)
                                 {
-                                    <div class="cell"><div class="l">@f.Label</div><div class="v">@f.Value</div></div>
+                                    <a class="cell" href="@Go(ErpDashboardFigureLinks.Href(f.Label, _figureYear))"><div class="l">@ErpDashboardFigureLinks.DisplayLabel(f.Label, _figureYear)</div><div class="v">@f.Value</div></a>
                                 }
                             </div>
                         </div>
@@ -545,7 +552,7 @@
                                     <circle cx="100" cy="110" r="7" fill="#102a43"/>
                                     <circle cx="100" cy="110" r="3" fill="#1d4f91"/>
                                 </svg>
-                                <div class="gval" style="color:@(_cur.CashPosition >= 0 ? "#1a7f4b" : "#b42318")">@ErpNetsuiteDashboardCatalog.Money(_cur.CashPosition)</div>
+                                <div class="gval" style="color:@(_cur.CashPosition >= 0 ? "#1a7f4b" : "#b42318")"><a href="@Go("/erp/cash-accounts-app")">@ErpNetsuiteDashboardCatalog.Money(_cur.CashPosition)</a></div>
                                 <div class="gsub">@_currency · live cash &amp; bank position</div>
                             </div>
                         </div>
@@ -561,7 +568,7 @@
                                 <p class="text-muted" style="margin:0 0 10px;">No open receivables in this company yet. Aging buckets stay at zero until invoices have a balance due.</p>
                             }
                             <div class="ns-chart-wrap"><canvas id="nsChartAr" aria-label="A/R aging chart"></canvas></div>
-                            <div class="ns-total">Total receivable: <strong>@ErpNetsuiteDashboardCatalog.Money(_arGrand) @_currency</strong></div>
+                            <div class="ns-total">Total receivable: <strong><a href="@Go("/erp/aging-app?tab=ar")">@ErpNetsuiteDashboardCatalog.Money(_arGrand) @_currency</a></strong></div>
                         </div>
                     </div>
                 }
@@ -627,7 +634,7 @@
                                         <tr>
                                             <td>@s.Name</td>
                                             <td class="text-center">@s.Rating</td>
-                                            <td class="text-right">@ErpNetsuiteDashboardCatalog.Money(s.Spend)</td>
+                                            <td class="text-right"><a href="@Go(_figureYear > 0 ? YearBook("#expense-lines") : "/erp/purchases-app")">@ErpNetsuiteDashboardCatalog.Money(s.Spend)</a></td>
                                             <td class="text-right">@s.PoCount</td>
                                             <td class="text-right">@ErpNetsuiteDashboardCatalog.Money(s.Score)</td>
                                         </tr>
@@ -645,7 +652,7 @@
                             <a class="list-group-item" href="@WithCompany("/erp/guide-app?tab=ai_advisor")"><i class="fa fa-magic"></i> AI advisor &amp; forecasts</a>
                             @if (ErpNetsuiteDashboardCatalog.Can(_profile, "profit"))
                             {
-                                <a class="list-group-item" href="@WithCompany("/erp/report-center-app?tab=pl")"><i class="fa fa-bar-chart"></i> Profit &amp; loss</a>
+                                <a class="list-group-item" href="@Go(ErpDashboardFigureLinks.ProfitPath(_figureYear))"><i class="fa fa-bar-chart"></i> Profit &amp; loss</a>
                             }
                             <a class="list-group-item" href="@WithCompany("/erp/order-planning-app")"><i class="fa fa-cubes"></i> Order planning</a>
                             @if (ErpNetsuiteDashboardCatalog.Can(_profile, "suppliers"))
@@ -928,6 +935,7 @@
     private bool _fitOut;
     private bool _realEstate;
     private ErpLandlordMeasure _yearBook = ErpLandlordMeasure.Empty;
+    private int _figureYear;
     private long _activeCompanyId;
     private string _companyLabel = "MAIN";
     private string _heroEntity = "Operations";
@@ -1005,6 +1013,27 @@
     }
 
     private string RealEstateHref(string href) => _realEstate ? WithCompany(href) : href;
+
+    private string YearBook(string hash)
+        => "/erp/landlord-app?year=" + _yearBook.Year.ToString(CultureInfo.InvariantCulture) + hash;
+
+    private string Go(string href)
+    {
+        if (_figureYear > 0
+            && href.Contains("tab=pl", StringComparison.OrdinalIgnoreCase)
+            && !href.Contains("landlord-app", StringComparison.OrdinalIgnoreCase))
+        {
+            href = ErpDashboardFigureLinks.ProfitPath(_figureYear);
+        }
+
+        var fragmentIndex = href.IndexOf('#');
+        if (fragmentIndex < 0)
+        {
+            return WithCompany(href);
+        }
+
+        return WithCompany(href[..fragmentIndex]) + href[fragmentIndex..];
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -1102,6 +1131,16 @@
         if (_realEstate && _isAdmin && ctx is not null)
         {
             _yearBook = await LandlordBook.MeasureAsync(ctx.RequestAborted);
+        }
+
+        if (ErpDashboardFigureLinks.UseYearBook(_realEstate, _yearBook, _cur))
+        {
+            _cur = ErpDashboardFigureLinks.ApplyYearBook(_cur, _yearBook);
+            _figureYear = _yearBook.Year;
+            _trendLabels = [_yearBook.Year.ToString(CultureInfo.InvariantCulture)];
+            _trendRev = [_yearBook.YearIncome];
+            _trendProf = [_yearBook.YearReturn];
+            _hasTrend = _yearBook.YearIncome != 0 || _yearBook.YearExpense != 0;
         }
 
         BindProfileViews();
