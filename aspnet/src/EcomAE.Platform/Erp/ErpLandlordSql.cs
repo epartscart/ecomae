@@ -691,7 +691,23 @@ public static class ErpLandlordSql
         }
 
         byYear.TryGetValue(latest, out var chosen);
-        return new ErpLandlordMeasure(latest, chosen.Income, chosen.Expense, allIncome, allExpense);
+        var properties = 0;
+        try
+        {
+            await using var count = connection.CreateCommand();
+            count.CommandText = "SELECT COUNT(*) FROM `epc_erp_properties`";
+            var raw = await count.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            if (raw is not null and not DBNull)
+            {
+                properties = Convert.ToInt32(raw, CultureInfo.InvariantCulture);
+            }
+        }
+        catch (DbException)
+        {
+            properties = 0;
+        }
+
+        return new ErpLandlordMeasure(latest, chosen.Income, chosen.Expense, allIncome, allExpense, properties);
     }
 
     private sealed record LineHead(string Status, long ParentId, long ReversalOf, decimal Amount);

@@ -32,7 +32,7 @@
     </div>
 
     <article class="epc-qb-widget" data-boards="overview customer-sales profit cash">
-        <header>Income and expense trend <a href="@Href("/erp/report-center-app")">Open reports</a></header>
+        <header>Income and expense trend <a href="@Href(BooksYear > 0 ? Book("#profit-and-loss") : "/erp/report-center-app")">@(BooksYear > 0 ? "Profit & loss" : "Open reports")</a></header>
         <div class="epc-qb-bars" aria-label="Income and expense by period">
             @for (var i = 0; i < Bars; i++)
             {
@@ -51,16 +51,25 @@
     </article>
 
     <article class="epc-qb-widget" data-boards="overview customer-sales customers">
-        <header>Previous year income <a href="@Href("/erp/accounts-summary-app")">View</a></header>
-        <div class="epc-qb-compare">
-            <div><span style="height:@Pct(PreviousRevenue, ComparePeak)%"></span><em>Prior</em><strong>@Money(PreviousRevenue)</strong></div>
-            <div class="now"><span style="height:@Pct(Revenue, ComparePeak)%"></span><em>This year</em><strong>@Money(Revenue)</strong></div>
-        </div>
+        @if (BooksYear > 0)
+        {
+            <header>@BooksYear income <a href="@Href(Book("#income-lines"))">Open the lines</a></header>
+            <p class="epc-qb-big"><a href="@Href(Book("#income-lines"))">@Money(Revenue)</a></p>
+            <p>Expenses <a href="@Href(Book("#expense-lines"))">@Money(Expense)</a>. Profit &amp; loss <a href="@Href(Book("#profit-and-loss"))">@Money(Profit)</a>.</p>
+        }
+        else
+        {
+            <header>Previous year income <a href="@Href("/erp/accounts-summary-app")">View</a></header>
+            <div class="epc-qb-compare">
+                <div><span style="height:@Pct(PreviousRevenue, ComparePeak)%"></span><em>Prior</em><strong><a href="@Href("/erp/accounts-summary-app")">@Money(PreviousRevenue)</a></strong></div>
+                <div class="now"><span style="height:@Pct(Revenue, ComparePeak)%"></span><em>This year</em><strong><a href="@Href("/erp/sales-orders-app")">@Money(Revenue)</a></strong></div>
+            </div>
+        }
     </article>
 
     <article class="epc-qb-widget" data-boards="overview customers">
         <header>Who owes money <a href="@Href("/erp/aging-app")">Receive payments</a></header>
-        <p class="epc-qb-big">@Money(Receivables)</p>
+        <p class="epc-qb-big"><a href="@Href("/erp/aging-app")">@Money(Receivables)</a></p>
         <p>@Count(InvoicesDue) invoices with a balance. @Count(OverdueInvoices) are overdue.</p>
         <a class="epc-qb-go" href="@Href("/erp/receivables-app")">Open receivables</a>
     </article>
@@ -69,37 +78,38 @@
         <header>Account balances <a href="@Href("/erp/coa-accounts-app")">Chart of accounts</a></header>
         <table>
             <tbody>
-                <tr><td>Cash</td><td>@Money(Cash)</td></tr>
-                <tr><td>Accounts receivable</td><td>@Money(Receivables)</td></tr>
-                <tr><td>Accounts payable</td><td>@Money(Payables)</td></tr>
-                <tr><td>Stock</td><td>@Money(Stock)</td></tr>
-                <tr><td>VAT net</td><td>@Money(Vat)</td></tr>
-                <tr><td>Profit</td><td>@Money(Profit)</td></tr>
+                <tr><td>Cash</td><td><a href="@Href("/erp/cash-accounts-app")">@Money(Cash)</a></td></tr>
+                <tr><td>Accounts receivable</td><td><a href="@Href("/erp/aging-app?tab=ar")">@Money(Receivables)</a></td></tr>
+                <tr><td>Accounts payable</td><td><a href="@Href("/erp/payables-app")">@Money(Payables)</a></td></tr>
+                <tr><td>Stock</td><td><a href="@Href("/erp/inventory-stock-app")">@Money(Stock)</a></td></tr>
+                <tr><td>VAT net</td><td><a href="@Href("/erp/vat-app?tab=vat_return")">@Money(Vat)</a></td></tr>
+                <tr><td>Profit</td><td><a href="@Href(BooksYear > 0 ? Book("#profit-and-loss") : "/erp/report-center-app?tab=pl")">@Money(Profit)</a></td></tr>
             </tbody>
         </table>
     </article>
 
     <article class="epc-qb-widget" data-boards="overview suppliers">
-        <header>Expense breakdown <a href="@Href("/erp/purchases-app")">Purchases</a></header>
+        <header>Expense breakdown <a href="@Href(BooksYear > 0 ? Book("#expense-lines") : "/erp/purchases-app")">@(BooksYear > 0 ? "Expenses" : "Purchases")</a></header>
         <div class="epc-qb-pie" style="background:@Pie" aria-label="Expense mix"></div>
         <ul class="epc-qb-slices">
-            <li><i style="background:#b91c1c"></i> Purchases @Money(Expense)</li>
+            <li><i style="background:#b91c1c"></i> @(BooksYear > 0 ? "Expenses" : "Purchases") <a href="@Href(BooksYear > 0 ? Book("#expense-lines") : "/erp/purchases-app")">@Money(Expense)</a></li>
             <li><i style="background:#f97316"></i> Payables still open @Money(Payables)</li>
             <li><i style="background:#facc15"></i> Stock on hand @Money(Stock)</li>
         </ul>
     </article>
 
     <article class="epc-qb-widget" data-boards="overview suppliers">
-        <header>Previous year expense <a href="@Href("/erp/payables-app")">Payables</a></header>
+        <header>@(BooksYear > 0 ? BooksYear + " expenses" : "Previous year expense") <a href="@Href(BooksYear > 0 ? Book("#expense-lines") : "/erp/payables-app")">@(BooksYear > 0 ? "Open the lines" : "Payables")</a></header>
         <div class="epc-qb-compare">
-            <div class="exp"><span style="height:@Pct(PreviousExpense, ExpensePeak)%"></span><em>Prior</em><strong>@Money(PreviousExpense)</strong></div>
-            <div class="exp now"><span style="height:@Pct(Expense, ExpensePeak)%"></span><em>This year</em><strong>@Money(Expense)</strong></div>
+            <div class="exp"><span style="height:@Pct(PreviousExpense, ExpensePeak)%"></span><em>Prior</em><strong><a href="@Href("/erp/purchases-app")">@Money(PreviousExpense)</a></strong></div>
+            <div class="exp now"><span style="height:@Pct(Expense, ExpensePeak)%"></span><em>@(BooksYear > 0 ? "Year book" : "This year")</em><strong><a href="@Href(BooksYear > 0 ? Book("#expense-lines") : "/erp/purchases-app")">@Money(Expense)</a></strong></div>
         </div>
     </article>
 
     <article class="epc-qb-widget" data-boards="overview">
         <header>Quick links</header>
         <div class="epc-qb-links">
+            <a href="@Href(BooksYear > 0 ? Book("#profit-and-loss") : "/erp/report-center-app?tab=pl")"><i class="fa fa-bar-chart"></i> Profit &amp; loss</a>
             <a href="@Href("/erp/receivables-app")"><i class="fa fa-money"></i> Receive payment</a>
             <a href="@Href("/erp/invoices-app")"><i class="fa fa-file-text-o"></i> Create invoice</a>
             <a href="@Href("/erp/invoices-app")"><i class="fa fa-undo"></i> Credits and refunds</a>
@@ -109,18 +119,18 @@
 
     <article class="epc-qb-widget" data-boards="overview customers">
         <header>Invoice payment status <a href="@Href("/erp/invoices-app")">Invoices</a></header>
-        <p class="epc-qb-big">@Money(Receivables)</p>
+        <p class="epc-qb-big"><a href="@Href("/erp/invoices-app")">@Money(Receivables)</a></p>
         <p>Open balance on the customer side. Paid work this period is inside income @Money(Revenue).</p>
     </article>
 
     <article class="epc-qb-widget epc-qb-widget--wide" data-boards="overview customers customer-sales">
         <header>Receivables snapshot <a href="@Href("/erp/receivables-app")">Customers</a></header>
         <dl class="epc-qb-facts">
-            <div><dt>Open balance</dt><dd>@Money(Receivables)</dd></div>
-            <div><dt>Invoices due</dt><dd>@Count(InvoicesDue)</dd></div>
-            <div><dt>Overdue</dt><dd>@Count(OverdueInvoices)</dd></div>
-            <div><dt>Sales this period</dt><dd>@Money(Revenue)</dd></div>
-            <div><dt>Sales prior period</dt><dd>@Money(PreviousRevenue)</dd></div>
+            <div><dt>Open balance</dt><dd><a href="@Href("/erp/receivables-app")">@Money(Receivables)</a></dd></div>
+            <div><dt>Invoices due</dt><dd><a href="@Href("/erp/invoices-app")">@Count(InvoicesDue)</a></dd></div>
+            <div><dt>Overdue</dt><dd><a href="@Href("/erp/aging-app")">@Count(OverdueInvoices)</a></dd></div>
+            <div><dt>@(BooksYear > 0 ? BooksYear + " income" : "Sales this period")</dt><dd><a href="@Href(BooksYear > 0 ? Book("#income-lines") : "/erp/sales-orders-app")">@Money(Revenue)</a></dd></div>
+            <div><dt>Sales prior period</dt><dd><a href="@Href("/erp/sales-orders-app")">@Money(PreviousRevenue)</a></dd></div>
         </dl>
         <p><a href="@Href("/erp/aging-app")">Open ageing and statements</a> · <a href="@Href("/erp/receivables-app")">Settle an invoice</a></p>
     </article>
@@ -137,7 +147,7 @@
 
     <article class="epc-qb-widget" data-boards="suppliers">
         <header>Who we owe <a href="@Href("/erp/payables-app")">Pay a supplier</a></header>
-        <p class="epc-qb-big">@Money(Payables)</p>
+        <p class="epc-qb-big"><a href="@Href("/erp/payables-app")">@Money(Payables)</a></p>
         <p>Open supplier balances. Purchases this period are @Money(Expense).</p>
         <a class="epc-qb-go" href="@Href("/erp/purchases-app")">Open purchases</a>
     </article>
@@ -145,10 +155,10 @@
     <article class="epc-qb-widget epc-qb-widget--wide" data-boards="suppliers">
         <header>Payables snapshot <a href="@Href("/erp/payables-app")">Suppliers</a></header>
         <dl class="epc-qb-facts">
-            <div><dt>Open payables</dt><dd>@Money(Payables)</dd></div>
-            <div><dt>Purchases this period</dt><dd>@Money(Expense)</dd></div>
-            <div><dt>Purchases prior period</dt><dd>@Money(PreviousExpense)</dd></div>
-            <div><dt>Stock on hand</dt><dd>@Money(Stock)</dd></div>
+            <div><dt>Open payables</dt><dd><a href="@Href("/erp/payables-app")">@Money(Payables)</a></dd></div>
+            <div><dt>@(BooksYear > 0 ? BooksYear + " expenses" : "Purchases this period")</dt><dd><a href="@Href(BooksYear > 0 ? Book("#expense-lines") : "/erp/purchases-app")">@Money(Expense)</a></dd></div>
+            <div><dt>Purchases prior period</dt><dd><a href="@Href("/erp/purchases-app")">@Money(PreviousExpense)</a></dd></div>
+            <div><dt>Stock on hand</dt><dd><a href="@Href("/erp/inventory-stock-app")">@Money(Stock)</a></dd></div>
         </dl>
         <p><a href="@Href("/erp/purchase-orders-app")">Purchase orders</a> · <a href="@Href("/erp/payables-app")">Settle a bill</a></p>
     </article>
@@ -164,22 +174,22 @@
     </article>
 
     <article class="epc-qb-widget" data-boards="cash">
-        <header>Cash position <a href="@Href("/erp/accounts-summary-app")">Accounts</a></header>
-        <p class="epc-qb-big">@Money(Cash)</p>
+        <header>Cash position <a href="@Href("/erp/cash-accounts-app")">Accounts</a></header>
+        <p class="epc-qb-big"><a href="@Href("/erp/cash-accounts-app")">@Money(Cash)</a></p>
         <p>VAT net @Money(Vat). Customer balances @Money(Receivables). Supplier balances @Money(Payables).</p>
         <a class="epc-qb-go" href="@Href("/erp/cash-entries-app")">Open cash entries</a>
     </article>
 
-    <article class="epc-qb-widget" data-boards="profit">
-        <header>Profit this period <a href="@Href("/erp/report-center-app?tab=pl")">Profit and loss</a></header>
-        <p class="epc-qb-big">@Money(Profit)</p>
-        <p>Income @Money(Revenue). Expense @Money(Expense). Prior income @Money(PreviousRevenue).</p>
+    <article class="epc-qb-widget" data-boards="overview profit">
+        <header>@(BooksYear > 0 ? BooksYear + " profit & loss" : "Profit this period") <a href="@Href(BooksYear > 0 ? Book("#profit-and-loss") : "/erp/report-center-app?tab=pl")">Profit and loss</a></header>
+        <p class="epc-qb-big"><a href="@Href(BooksYear > 0 ? Book("#profit-and-loss") : "/erp/report-center-app?tab=pl")">@Money(Profit)</a></p>
+        <p>Income <a href="@Href(BooksYear > 0 ? Book("#income-lines") : "/erp/sales-orders-app")">@Money(Revenue)</a>. Expense <a href="@Href(BooksYear > 0 ? Book("#expense-lines") : "/erp/purchases-app")">@Money(Expense)</a>. Prior income @Money(PreviousRevenue).</p>
         <a class="epc-qb-go" href="@Href("/erp/report-center-app?tab=balance_sheet")">Balance sheet</a>
     </article>
 
     <article class="epc-qb-widget" data-boards="inventory">
         <header>Stock on hand <a href="@Href("/erp/inventory-stock-app")">Stock</a></header>
-        <p class="epc-qb-big">@Money(Stock)</p>
+        <p class="epc-qb-big"><a href="@Href("/erp/inventory-stock-app")">@Money(Stock)</a></p>
         <p>Purchases this period @Money(Expense). Purchases last period @Money(PreviousExpense).</p>
         <a class="epc-qb-go" href="@Href("/erp/product-info-app")">Open products</a>
     </article>
@@ -282,6 +292,7 @@
 
 @code {
     [Parameter] public long CompanyId { get; set; }
+    [Parameter] public int BooksYear { get; set; }
     [Parameter] public decimal Revenue { get; set; }
     [Parameter] public decimal PreviousRevenue { get; set; }
     [Parameter] public decimal Expense { get; set; }
@@ -350,14 +361,25 @@
 
     private static string Count(int value) => value.ToString("N0", CultureInfo.InvariantCulture);
 
+    private string Book(string hash)
+        => "/erp/landlord-app?year=" + BooksYear.ToString(CultureInfo.InvariantCulture) + hash;
+
     private string Href(string path)
     {
-        if (CompanyId <= 0)
+        var hash = "";
+        var cut = path.IndexOf('#');
+        if (cut >= 0)
         {
-            return path;
+            hash = path[cut..];
+            path = path[..cut];
         }
 
-        var join = path.Contains('?', StringComparison.Ordinal) ? "&" : "?";
-        return path + join + "company=" + CompanyId.ToString(CultureInfo.InvariantCulture);
+        if (CompanyId > 0)
+        {
+            var join = path.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+            path += join + "company=" + CompanyId.ToString(CultureInfo.InvariantCulture);
+        }
+
+        return path + hash;
     }
 }

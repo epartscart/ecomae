@@ -55,23 +55,23 @@
     </nav>
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Real estate KPIs">
-        <div class="kpi"><div class="lbl">Opportunities</div><div class="val">@_snap.Kpis.Opportunities.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Owned properties</div><div class="val">@_snap.Kpis.OwnedProperties.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Active leases</div><div class="val">@_snap.Kpis.ActiveLeases.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Portfolio cost</div><div class="val">@_snap.Kpis.PortfolioCost.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Fair value</div><div class="val">@_snap.Kpis.PortfolioFair.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Gross yield</div><div class="val">@((_snap.Kpis.GrossYield * 100).ToString("0.00", CultureInfo.InvariantCulture))%</div></div>
-        <div class="kpi"><div class="lbl">Occupancy</div><div class="val">@((_snap.Kpis.Occupancy * 100).ToString("0.0", CultureInfo.InvariantCulture))%</div></div>
-        <div class="kpi"><div class="lbl">Cost to complete</div><div class="val">@_snap.Kpis.CostToComplete.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Escrow held</div><div class="val">@_snap.Kpis.EscrowBalance.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Vacant units</div><div class="val">@_snap.Kpis.VacantUnits.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Recognized rent</div><div class="val">@_snap.Kpis.RecognizedRent.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Rent collected</div><div class="val">@_snap.Kpis.RentCollected.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Outstanding</div><div class="val">@_snap.Kpis.OutstandingRent.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">PDCs in hand</div><div class="val">@_snap.Kpis.PdcInHand.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Cheques due</div><div class="val">@_snap.Kpis.ChequesDue.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">NOI</div><div class="val">@_snap.Kpis.Noi.ToString("N0", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Net cash flow</div><div class="val">@_snap.Kpis.NetCashFlow.ToString("N0", CultureInfo.InvariantCulture)</div></div>
+        <a class="kpi" href="@OrgHref("opportunities")"><div class="lbl">Opportunities</div><div class="val">@_snap.Kpis.Opportunities.ToString(CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("properties")"><div class="lbl">Owned properties</div><div class="val">@_snap.Kpis.OwnedProperties.ToString(CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("leases")"><div class="lbl">Active leases</div><div class="val">@_snap.Kpis.ActiveLeases.ToString(CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("reports")"><div class="lbl">Portfolio cost</div><div class="val">@_snap.Kpis.PortfolioCost.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("reports")"><div class="lbl">Fair value</div><div class="val">@_snap.Kpis.PortfolioFair.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("reports")"><div class="lbl">Gross yield</div><div class="val">@((_snap.Kpis.GrossYield * 100).ToString("0.00", CultureInfo.InvariantCulture))%</div></a>
+        <a class="kpi" href="@OrgHref("leases")"><div class="lbl">Occupancy</div><div class="val">@((_snap.Kpis.Occupancy * 100).ToString("0.0", CultureInfo.InvariantCulture))%</div></a>
+        <a class="kpi" href="@OrgHref("construction")"><div class="lbl">Cost to complete</div><div class="val">@_snap.Kpis.CostToComplete.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("construction")"><div class="lbl">Escrow held</div><div class="val">@_snap.Kpis.EscrowBalance.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("properties")"><div class="lbl">Vacant units</div><div class="val">@_snap.Kpis.VacantUnits.ToString(CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=2025#income-lines")"><div class="lbl">Recognized rent</div><div class="val">@_snap.Kpis.RecognizedRent.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("collections")"><div class="lbl">Rent collected</div><div class="val">@_snap.Kpis.RentCollected.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("collections")"><div class="lbl">Outstanding</div><div class="val">@_snap.Kpis.OutstandingRent.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("calendar")"><div class="lbl">PDCs in hand</div><div class="val">@_snap.Kpis.PdcInHand.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@OrgHref("calendar")"><div class="lbl">Cheques due</div><div class="val">@_snap.Kpis.ChequesDue.ToString(CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=2025#profit-and-loss")"><div class="lbl">NOI</div><div class="val">@_snap.Kpis.Noi.ToString("N0", CultureInfo.InvariantCulture)</div></a>
+        <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=2025#profit-and-loss")"><div class="lbl">Net cash flow</div><div class="val">@_snap.Kpis.NetCashFlow.ToString("N0", CultureInfo.InvariantCulture)</div></a>
     </div>
     <div class="re-meters" aria-label="Landlord position">
         <div class="re-meter"><strong>Occupancy @((_snap.Kpis.Occupancy * 100).ToString("0.0", CultureInfo.InvariantCulture))%</strong><i><b style="width:@Meter(_snap.Kpis.Occupancy, 1m)%"></b></i></div>
@@ -80,14 +80,14 @@
         @if (_snap.YearBook is { Year: > 0 } book)
         {
             <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Year book on the dashboard">
-                <div class="kpi"><div class="lbl">@book.Year income</div><div class="val">@book.YearIncome.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-                <div class="kpi"><div class="lbl">@book.Year expenses</div><div class="val">@book.YearExpense.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-                <div class="kpi"><div class="lbl">@book.Year return</div><div class="val">@book.YearReturn.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-                <div class="kpi"><div class="lbl">All years income</div><div class="val">@book.AllIncome.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-                <div class="kpi"><div class="lbl">All years expenses</div><div class="val">@book.AllExpense.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-                <div class="kpi"><div class="lbl">All years return</div><div class="val">@book.AllReturn.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=" + book.Year.ToString(CultureInfo.InvariantCulture) + "#income-lines")"><div class="lbl">@book.Year income</div><div class="val">@book.YearIncome.ToString("N2", CultureInfo.InvariantCulture)</div></a>
+                <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=" + book.Year.ToString(CultureInfo.InvariantCulture) + "#expense-lines")"><div class="lbl">@book.Year expenses</div><div class="val">@book.YearExpense.ToString("N2", CultureInfo.InvariantCulture)</div></a>
+                <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=" + book.Year.ToString(CultureInfo.InvariantCulture) + "#profit-and-loss")"><div class="lbl">@book.Year profit &amp; loss</div><div class="val">@book.YearReturn.ToString("N2", CultureInfo.InvariantCulture)</div></a>
+                <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=0#income-lines")"><div class="lbl">All years income</div><div class="val">@book.AllIncome.ToString("N2", CultureInfo.InvariantCulture)</div></a>
+                <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=0#expense-lines")"><div class="lbl">All years expenses</div><div class="val">@book.AllExpense.ToString("N2", CultureInfo.InvariantCulture)</div></a>
+                <a class="kpi" href="@FinanceHref("/erp/landlord-app?year=0#profit-and-loss")"><div class="lbl">All years profit &amp; loss</div><div class="val">@book.AllReturn.ToString("N2", CultureInfo.InvariantCulture)</div></a>
             </div>
-            <p class="text-muted">These figures are the year book. Rent and expense cards above use them until a lease or a posted supplier bill exists. Assets, income and expenses link to the chart of accounts. <a href="@LandlordHref">Open the year book</a> · <a href="@CoaHref">Chart of accounts</a></p>
+            <p class="text-muted">These figures are the year book. <a href="@FinanceHref("/erp/landlord-app?year=" + book.Year.ToString(CultureInfo.InvariantCulture) + "#profit-and-loss")">Profit &amp; loss</a> opens income minus expenses. Rent and expense cards above use them until a lease or a posted supplier bill exists. <a href="@LandlordHref">Open the year book</a> · <a href="@CoaHref">Chart of accounts</a></p>
         }
     </div>
 
