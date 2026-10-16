@@ -358,54 +358,70 @@
         </div>
     }
 
-    @if (_view == "pim_attrs")
+    @if (_view == "pim_entry")
     {
-        <div class="epc-erp-section">
-            <h4><i class="fa fa-tags"></i> PIM custom attributes <span class="badge">@_pimFields.Count.ToString(CultureInfo.InvariantCulture)</span></h4>
-            <p class="text-muted">Create unlimited custom product attributes with any field type. Each attribute can be shown on <strong>Inventory</strong>, <strong>Sales</strong>, and/or <strong>Purchase</strong> module forms. Options are managed per field for dropdown and checkbox types.</p>
-            @if (_isAdmin)
-            {
-                <div style="background:#f4f8fc;border:1px solid #dbe6f1;border-radius:8px;padding:14px;margin-bottom:16px;">
-                    <h5 style="margin-top:0;"><i class="fa fa-plus-circle"></i> Create new attribute</h5>
-                    <form method="post" action="@EcomAeRoutes.ErpProductInfoPimAction">
-                        <input type="hidden" name="confirmWrites" value="true" />
-                        <input type="hidden" name="pinfo_action" value="pim_create_field" />
-                        <input type="hidden" name="returnUrl" value="@PimHref" />
-                        <div class="row">
-                            <div class="form-group col-sm-4" style="padding:6px;"><label>Field name <span style="color:red">*</span></label><input type="text" name="pim_name" class="form-control input-sm" placeholder="e.g. Inventory Type" maxlength="200" required /></div>
-                            <div class="form-group col-sm-3" style="padding:6px;"><label>Type</label>
-                                <select name="pim_type" class="form-control input-sm" onchange="document.getElementById('pim_opts_row').style.display=(this.value==='single_option'||this.value==='multi_option')?'block':'none';">
-                                    @foreach (var (type, label) in ErpPimCustomFields.TypeLabels)
-                                    {
-                                        <option value="@type">@label</option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="form-group col-sm-5" style="padding:6px;"><label>Description</label><input type="text" name="pim_desc" class="form-control input-sm" placeholder="Optional help text" maxlength="500" /></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-4" style="padding:6px;"><label>Show on modules</label><div>
-                                <label style="display:inline-block;margin-right:10px;font-weight:normal;"><input type="checkbox" name="pim_show_inventory" value="1" checked /> Inventory</label>
-                                <label style="display:inline-block;margin-right:10px;font-weight:normal;"><input type="checkbox" name="pim_show_sales" value="1" checked /> Sales</label>
-                                <label style="display:inline-block;font-weight:normal;"><input type="checkbox" name="pim_show_purchase" value="1" checked /> Purchase</label>
-                            </div></div>
-                            <div class="col-sm-2" style="padding:6px;"><label>&nbsp;</label><div><label style="font-weight:normal;"><input type="checkbox" name="pim_required" value="1" /> Required</label></div></div>
-                        </div>
-                        <div id="pim_opts_row" style="display:none;padding:6px;">
-                            <label>Options (comma-separated for dropdown/checkbox fields)</label>
-                            <textarea name="pim_options" class="form-control input-sm" rows="2" placeholder="e.g. Inventory, Non-Inventory, Service"></textarea>
-                        </div>
-                        <div style="padding:6px;"><button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Create attribute</button></div>
-                    </form>
-                </div>
-            }
-            <div class="table-responsive">
-                <table class="table table-bordered table-condensed table-striped" style="background:#fff;">
-                    <thead><tr><th>Name</th><th>Code</th><th>Type</th><th>Inventory</th><th>Sales</th><th>Purchase</th><th>Required</th><th>Options</th><th>Actions</th></tr></thead>
+        @if (!_isAdmin)
+        {
+            <p class="text-muted">Sign in to post a new attribute. Posted attributes stay on PIM attributes.</p>
+        }
+        else
+        {
+            <ErpPhpCreateWell Title="New attribute">
+                <form method="post" action="@EcomAeRoutes.ErpProductInfoPimAction" class="epc-pim-attr">
+                    <input type="hidden" name="pinfo_action" value="pim_create_field" />
+                    <input type="hidden" name="returnUrl" id="epc-pim-return" value="@PimEntryHref" />
+                    <input type="hidden" name="confirmWrites" id="epc-pim-confirm" value="" />
+                    <fieldset>
+                        <legend>Attribute</legend>
+                        <label>Field name <input class="form-control input-sm" name="pim_name" maxlength="200" required placeholder="Inventory type" /></label>
+                        <label>Type
+                            <select class="form-control input-sm" name="pim_type">
+                                @foreach (var (type, label) in ErpPimCustomFields.TypeLabels)
+                                {
+                                    <option value="@type">@label</option>
+                                }
+                            </select>
+                        </label>
+                        <label>Description <input class="form-control input-sm" name="pim_desc" maxlength="500" placeholder="Help text" /></label>
+                        <label class="epc-sheet-entry__wide">Options
+                            <textarea class="form-control input-sm" name="pim_options" rows="3" placeholder="Comma-separated. Used when the type is a dropdown or checkbox."></textarea>
+                        </label>
+                        <label><input type="checkbox" name="pim_show_inventory" value="1" checked /> Show on inventory</label>
+                        <label><input type="checkbox" name="pim_show_sales" value="1" checked /> Show on sales</label>
+                        <label><input type="checkbox" name="pim_show_purchase" value="1" checked /> Show on purchase</label>
+                        <label><input type="checkbox" name="pim_required" value="1" /> Required</label>
+                        <p class="form-actions">
+                            <button type="submit" class="btn btn-default" name="intent" value="validate" formnovalidate>Validate</button>
+                            <button type="submit" class="btn btn-primary" name="intent" value="post" id="epc-pim-post">Post</button>
+                        </p>
+                    </fieldset>
+                </form>
+                <script>
+                    (function () {
+                        var post = document.getElementById('epc-pim-post');
+                        var ret = document.getElementById('epc-pim-return');
+                        var confirm = document.getElementById('epc-pim-confirm');
+                        if (!post || !ret || !confirm) return;
+                        post.addEventListener('click', function () {
+                            confirm.value = 'true';
+                            ret.value = @System.Text.Json.JsonSerializer.Serialize(PimHref);
+                        });
+                    })();
+                </script>
+            </ErpPhpCreateWell>
+        }
+    }
+    else if (_view == "pim_attrs")
+    {
+        <h2 style="font-size:16px;">PIM attributes</h2>
+        <p class="text-muted">Posted attributes. Use New attribute to add one. Dropdown and checkbox options are maintained on this list.</p>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Name</th><th>Code</th><th>Type</th><th>Inventory</th><th>Sales</th><th>Purchase</th><th>Required</th><th>Options</th><th></th></tr></thead>
                     <tbody>
                         @if (_pimFields.Count == 0)
                         {
-                            <tr><td colspan="9" class="text-muted">No PIM attributes yet. Use the form above to create one.</td></tr>
+                            <tr><td colspan="9" class="text-muted">No PIM attributes yet. Use New attribute to post one.</td></tr>
                         }
                         @foreach (var pf in _pimFields)
                         {
@@ -456,7 +472,7 @@
                                             <input type="hidden" name="pinfo_action" value="pim_delete_field" />
                                             <input type="hidden" name="pim_field_id" value="@pf.Id.ToString(CultureInfo.InvariantCulture)" />
                                             <input type="hidden" name="returnUrl" value="@PimHref" />
-                                            <button type="submit" class="btn btn-danger btn-xs" title="Deactivate" onclick="return confirm('Deactivate this attribute?');"><i class="fa fa-trash"></i></button>
+                                            <button type="submit" class="btn btn-default btn-xs">Deactivate</button>
                                         </form>
                                     }
                                 </td>
@@ -465,7 +481,6 @@
                     </tbody>
                 </table>
             </div>
-        </div>
     }
     else if (_view == "fields")
     {
@@ -690,13 +705,14 @@
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=pim&tab=product_info";
     private const string _listHref = "/erp/product-info-app";
     private static readonly IReadOnlyList<(string Key, string Label)> CoreViews =
-        [("entry", "New item"), ("all", "All products"), ("devkit", "Product dev kit"), ("released", "Release product"), ("dimensions", "Dimensions & variants"), ("fields", "Field setup"), ("pim_attrs", "PIM attributes")];
+        [("entry", "New item"), ("all", "All products"), ("devkit", "Product dev kit"), ("released", "Release product"), ("dimensions", "Dimensions & variants"), ("fields", "Field setup"), ("pim_entry", "New attribute"), ("pim_attrs", "PIM attributes")];
     private static readonly IReadOnlyList<(string Key, string Label)> JewelleryViews =
         [("jw_masters", "Jewellery masters"), ("jw_stock", "Metal stock"), ("jw_stock_report", "Stock report")];
     private IReadOnlyList<(string Key, string Label)> _views => _jewellery
-        ? [CoreViews[0], CoreViews[1], CoreViews[2], CoreViews[3], JewelleryViews[0], JewelleryViews[1], JewelleryViews[2], CoreViews[4], CoreViews[5], CoreViews[6]]
+        ? [CoreViews[0], CoreViews[1], CoreViews[2], CoreViews[3], JewelleryViews[0], JewelleryViews[1], JewelleryViews[2], CoreViews[4], CoreViews[5], CoreViews[6], CoreViews[7]]
         : CoreViews;
     private const string PimHref = "/erp/product-info-app?pm_view=pim_attrs";
+    private const string PimEntryHref = "/erp/product-info-app?pm_view=pim_entry";
     private bool _isAdmin;
     private bool _jewellery;
     private int _company;
@@ -967,6 +983,7 @@
             "released" => "released",
             "dimensions" => "dimensions",
             "fields" => "fields",
+            "pim-entry" or "pim-new" => "pim_entry",
             "pim-attrs" or "pim_attrs" => "pim_attrs",
             "jw-masters" or "jewellery" or "jw-master" => "jw_masters",
             "jw-stock" or "metal-stock" => "jw_stock",
