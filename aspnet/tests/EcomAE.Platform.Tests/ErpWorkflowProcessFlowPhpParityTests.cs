@@ -89,6 +89,11 @@ public sealed class ErpWorkflowProcessFlowPhpParityTests
         Assert.Equal("/erp/process-flow-tasks-app", ErpAutomationCatalogue.OpenHref(
             ErpAutomationCatalogue.All.First(i => i.Id == "process_flow_routing")));
         Assert.True(ErpAutomationCatalogue.Templates.Count >= 7);
+        Assert.Equal(3, ErpAutomationCatalogue.SystemChains.Count);
+        Assert.Contains(ErpAutomationCatalogue.SystemChains, chain => chain.Name == "Order to cash" && chain.ItemIds.Contains("order_to_erp"));
+        Assert.Contains(ErpAutomationCatalogue.SystemChains, chain => chain.Name == "Procure to pay" && chain.ItemIds.Contains("three_way_match"));
+        Assert.Contains(ErpAutomationCatalogue.SystemChains, chain => chain.Name == "Record to report" && chain.ItemIds.Contains("period_close"));
+        Assert.All(ErpAutomationCatalogue.SystemChains.SelectMany(chain => chain.ItemIds), id => Assert.NotNull(ErpAutomationCatalogue.Find(id)));
     }
 
     [Fact]
