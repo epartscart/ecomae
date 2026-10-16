@@ -57,4 +57,41 @@ public static class ErpIntercompanyTax
 
     public static string FormatRate(decimal rate)
         => rate.ToString("0.##", CultureInfo.InvariantCulture) + "%";
+
+    /// <summary>Digits only, so a spaced TRN matches the same registration number.</summary>
+    public static string TrnDigits(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        Span<char> buffer = stackalloc char[value.Length];
+        var n = 0;
+        foreach (var ch in value)
+        {
+            if (char.IsDigit(ch))
+            {
+                buffer[n++] = ch;
+            }
+        }
+
+        return n == 0 ? string.Empty : new string(buffer[..n]);
+    }
+
+    /// <summary>
+    /// UAE VAT invoicing. The same TRN is one taxable person (a branch, or a VAT group).
+    /// A seller with no TRN cannot issue a tax invoice. A registered seller charges VAT
+    /// when the buyer's TRN is different or missing.
+    /// </summary>
+    public static bool ChargeVatOnInvoice(string? sellerTrn, string? buyerTrn)
+    {
+        var seller = TrnDigits(sellerTrn);
+        if (seller.Length == 0)
+        {
+            return false;
+        }
+
+        return !string.Equals(seller, TrnDigits(buyerTrn), StringComparison.Ordinal);
+    }
 }
