@@ -34,6 +34,15 @@ public sealed record ErpGlJournalHeader
     /// unless the caller supplies one, so tenant-country compliance stays with the caller.
     /// </summary>
     public string LegislationRef { get; init; } = string.Empty;
+
+    /// <summary>Business unit stamped from the document header. Zero is the company books.</summary>
+    public long BusinessUnitId { get; init; }
+
+    /// <summary>Transaction currency. Blank means the accounting currency.</summary>
+    public string CurrencyCode { get; init; } = string.Empty;
+
+    /// <summary>Units of accounting currency per 1 transaction currency. Zero is stored as 1.</summary>
+    public decimal ExchangeRate { get; init; } = 1m;
 }
 
 /// <summary>
@@ -162,7 +171,8 @@ public sealed class ErpGlPostingService : IErpGlPostingService
                 transaction,
                 ErpDb.Positional(
                     "INSERT INTO `epc_erp_gl_journals` (`journal_no`, `journal_date`, `reference`, `description`, `source_type`,"
-                    + " `source_id`, `company_id`, `uae_tax_legislation_ref`, `admin_id`, `time_created`) VALUES (?,?,?,?,?,?,?,?,?,?)"),
+                    + " `source_id`, `company_id`, `uae_tax_legislation_ref`, `admin_id`, `time_created`,"
+                    + " `business_unit_id`, `currency_code`, `exchange_rate`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"),
                 cancellationToken,
                 journalNo,
                 journalDate,
@@ -173,7 +183,10 @@ public sealed class ErpGlPostingService : IErpGlPostingService
                 companyId,
                 header.LegislationRef.Trim(),
                 adminId,
-                DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+                DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                header.BusinessUnitId > 0 ? header.BusinessUnitId : 0L,
+                header.CurrencyCode.Trim().ToUpperInvariant(),
+                header.ExchangeRate == 0m ? 1m : header.ExchangeRate).ConfigureAwait(false);
 
             var journalId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
             foreach (var line in lines)
@@ -827,6 +840,18 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         await ErpDb.TryExecuteAsync(
             connection,
             "ALTER TABLE `epc_erp_gl_journals` ADD `uae_tax_legislation_ref` varchar(64) NOT NULL DEFAULT ''",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_gl_journals` ADD `business_unit_id` int(11) NOT NULL DEFAULT 0",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_gl_journals` ADD `currency_code` varchar(8) NOT NULL DEFAULT ''",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_gl_journals` ADD `exchange_rate` decimal(16,8) NOT NULL DEFAULT 1.00000000",
             cancellationToken).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(
             connection,
