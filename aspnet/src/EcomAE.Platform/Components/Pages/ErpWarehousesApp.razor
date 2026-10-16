@@ -56,10 +56,10 @@
                 <form method="post" action="@EcomAeRoutes.ErpVirtualWarehouseTransferForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="/erp/warehouses-app?tab=virtual_warehouse" />
-                    <label>From id <input class="form-control input-sm" name="from_warehouse_id" type="number" min="1" required /></label>
-                    <label>To id <input class="form-control input-sm" name="to_warehouse_id" type="number" min="1" required /></label>
+                    <ErpMasterPicker Kind="warehouse" FieldName="from_warehouse_id" InputId="wh-xfer-from" Label="From warehouse" Required="true" Min="1" />
+                    <ErpMasterPicker Kind="warehouse" FieldName="to_warehouse_id" InputId="wh-xfer-to" Label="To warehouse" Required="true" Min="1" />
                     <label>Reason <input class="form-control input-sm" name="reason" value="exhibition" /></label>
-                    <label>SKU <input class="form-control input-sm" name="sku" placeholder="SKU-1" /></label>
+                    <ErpMasterPicker Kind="item" FieldName="sku" InputId="wh-xfer-sku" Label="Item" ValueMode="code" />
                     <label>Qty <input class="form-control input-sm" name="qty" type="number" step="0.001" value="1" /></label>
                     <button type="submit" class="btn btn-primary btn-sm">Create transfer</button>
                 </form>

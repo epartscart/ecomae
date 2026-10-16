@@ -50,8 +50,8 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_returnHref" />
             <input type="hidden" name="id" value="@OpenedIdValue" />
-            <label>Customer <input name="customer_name" required value="@OpenedCustomerName" /></label>
-            <label>Customer id <input name="customer_id" type="number" min="0" style="width:6rem" value="@OpenedCustomerIdValue" /></label>
+            <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="aml-kyc-customer" Label="Customer" Required="true" Min="1" NameFieldName="customer_name" Value="@(_openedDetail is { CustomerId: > 0 } ? _openedDetail.CustomerId : 0)" />
+            <input type="hidden" name="customer_name" value="@OpenedCustomerName" />
             <label>Id type <input name="id_type" value="@OpenedIdType" /></label>
             <label>Id number <input name="id_number" value="@OpenedIdNumber" /></label>
             <label>Expiry <input name="id_expiry" value="@OpenedIdExpiry" /></label>

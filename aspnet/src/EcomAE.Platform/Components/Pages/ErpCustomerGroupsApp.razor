@@ -56,7 +56,7 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/erp/customer-groups-app" />
                 <label>Group id <input class="form-control input-sm" name="group_id" type="number" min="1" required /></label>
-                <label>Customer id <input class="form-control input-sm" name="customer_id" type="number" min="1" required /></label>
+                <ErpMasterPicker Kind="customer" FieldName="customer_id" InputId="customer-group-assign" Label="Customer" Required="true" Min="1" />
                 <button type="submit" class="btn btn-primary btn-sm">Assign customer</button>
             </form>
         </ErpPhpCreateWell>

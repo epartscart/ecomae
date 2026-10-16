@@ -26,6 +26,18 @@ else
                     <legend>@sheet.Title</legend>
                     @foreach (var field in sheet.Fields)
                     {
+                        if (!string.IsNullOrWhiteSpace(field.MasterKind))
+                        {
+                            <ErpMasterPicker Kind="@field.MasterKind"
+                                             FieldName="@field.Name"
+                                             InputId="@("epc-sheet-" + sheet.Key + "-" + field.Name)"
+                                             Label="@field.Label"
+                                             ValueMode="@field.ValueMode"
+                                             Placeholder="@field.Placeholder"
+                                             Required="true" />
+                        }
+                        else
+                        {
                         <label class="@(field.Wide ? "epc-sheet-entry__wide" : null)">@field.Label
                             @if (field.Type == "select" && field.Options is not null)
                             {
@@ -45,6 +57,7 @@ else
                                 <input class="form-control input-sm" type="@InputType(field.Type)" name="@field.Name" placeholder="@field.Placeholder" step="@(field.Type == "number" ? "any" : null)" />
                             }
                         </label>
+                        }
                     }
                     <p class="form-actions">
                         <button type="submit" class="btn btn-default" name="intent" value="validate" formnovalidate>Validate</button>

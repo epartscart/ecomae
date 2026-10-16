@@ -230,7 +230,7 @@ document.querySelectorAll('[data-opening-post-submit]').forEach(function (button
             </label>
             <label>Qty <input type="number" name="qty" step="0.001" style="width:6rem" /></label>
             <label>Unit cost <input type="number" name="unit_cost" step="0.0001" style="width:7rem" /></label>
-            <label>Warehouse id <input type="number" name="warehouse_id" style="width:6rem" /></label>
+            <ErpMasterPicker Kind="warehouse" FieldName="warehouse_id" InputId="opening-inv-wh" Label="Warehouse" />
             <label>Batch no <input name="batch_no" /></label>
             <label>Expiry <input type="date" name="expiry_date" /></label>
             <button type="submit">Add inventory line</button>

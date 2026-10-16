@@ -37,15 +37,15 @@
         <form method="post" action="/erp/ajax/inv-set-reorder-level" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
-            <label>Item id <input type="number" name="itemId" min="1" required style="width:6rem" /></label>
+            <ErpMasterPicker Kind="item" FieldName="itemId" InputId="inv-reorder-item" Label="Item" Required="true" Min="1" />
             <label>Reorder level <input type="text" name="reorderLevel" required /></label>
             <button type="submit" class="btn btn-sm btn-primary">Save reorder level</button>
         </form>
         <form method="post" action="/erp/ajax/inv-record-movement" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
-            <label>Warehouse id <input type="number" name="warehouseId" min="1" required style="width:6rem" /></label>
-            <label>Item id <input type="number" name="itemId" min="1" required style="width:6rem" /></label>
+            <ErpMasterPicker Kind="warehouse" FieldName="warehouseId" InputId="inv-move-wh" Label="Warehouse" Required="true" Min="1" />
+            <ErpMasterPicker Kind="item" FieldName="itemId" InputId="inv-move-item" Label="Item" Required="true" Min="1" />
             <label>Qty <input type="text" name="qty" required /></label>
             <label>Unit cost <input type="text" name="unitCost" /></label>
             <label>Type
@@ -64,9 +64,9 @@
         <form method="post" action="/erp/ajax/inv-transfer" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
-            <label>From warehouse <input type="number" name="fromWarehouseId" min="1" required style="width:6rem" /></label>
-            <label>To warehouse <input type="number" name="toWarehouseId" min="1" required style="width:6rem" /></label>
-            <label>Item id <input type="number" name="itemId" min="1" required style="width:6rem" /></label>
+            <ErpMasterPicker Kind="warehouse" FieldName="fromWarehouseId" InputId="inv-xfer-from" Label="From warehouse" Required="true" Min="1" />
+            <ErpMasterPicker Kind="warehouse" FieldName="toWarehouseId" InputId="inv-xfer-to" Label="To warehouse" Required="true" Min="1" />
+            <ErpMasterPicker Kind="item" FieldName="itemId" InputId="inv-xfer-item" Label="Item" Required="true" Min="1" />
             <label>Qty <input type="text" name="qty" required /></label>
             <label>Reference <input type="text" name="reference" /></label>
             <button type="submit" class="btn btn-sm btn-default">Transfer stock</button>
@@ -110,13 +110,13 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
             <label>Period end <input type="text" name="periodEnd" placeholder="YYYY-MM-DD" /></label>
-            <label>Warehouse id <input type="number" name="warehouseId" min="0" style="width:6rem" /></label>
+            <ErpMasterPicker Kind="warehouse" FieldName="warehouseId" InputId="inv-close-wh" Label="Warehouse" />
             <button type="submit" class="btn btn-sm btn-default">Run closing</button>
         </form>
         <form method="post" action="/erp/ajax/inv-import-csv" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
-            <label>Warehouse id <input type="number" name="warehouseId" min="0" style="width:6rem" /></label>
+            <ErpMasterPicker Kind="warehouse" FieldName="warehouseId" InputId="inv-import-wh" Label="Warehouse" />
             <label>Default type <input type="text" name="defaultMovementType" value="purchase_in" /></label>
             <label>CSV text <textarea name="csvText" rows="3" cols="48" placeholder="sku,qty,unit_cost,movement_type,warehouse_code"></textarea></label>
             <button type="submit" class="btn btn-sm btn-primary">Import CSV text</button>

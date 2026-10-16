@@ -82,8 +82,8 @@
                             <textarea class="form-control input-sm" name="purchase_description" rows="2"></textarea>
                         </label>
                         <label>Cost <input class="form-control input-sm" name="cost" id="epc-part-cost" value="0.00" /></label>
-                        <label>COGS account <input class="form-control input-sm" name="cogs_account" value="Cost of goods sold" /></label>
-                        <label>Preferred vendor <input class="form-control input-sm" name="preferred_vendor" /></label>
+                        <ErpMasterPicker Kind="coa" FieldName="cogs_account" InputId="epc-part-cogs" Label="COGS account" ValueMode="code" />
+                        <ErpMasterPicker Kind="supplier" FieldName="preferred_vendor" InputId="epc-part-vendor" Label="Preferred vendor" ValueMode="name" />
                     </fieldset>
                     <fieldset>
                         <legend>Sales information</legend>
@@ -92,11 +92,11 @@
                         </label>
                         <label>Sales price <input class="form-control input-sm" name="sales_price" id="epc-part-price" value="0.00" /></label>
                         <p class="text-muted" id="epc-part-margin">Markup 0% · Margin 0%</p>
-                        <label>Income account <input class="form-control input-sm" name="income_account" /></label>
+                        <ErpMasterPicker Kind="coa" FieldName="income_account" InputId="epc-part-income" Label="Income account" ValueMode="code" />
                     </fieldset>
                     <fieldset>
                         <legend>Stock</legend>
-                        <label>Asset account <input class="form-control input-sm" name="asset_account" value="Inventory" /></label>
+                        <ErpMasterPicker Kind="coa" FieldName="asset_account" InputId="epc-part-asset" Label="Asset account" ValueMode="code" />
                         <label>Reorder min <input class="form-control input-sm" name="reorder_min" value="0" /></label>
                         <label>Max <input class="form-control input-sm" name="reorder_max" value="0" /></label>
                         <label>On hand <input class="form-control input-sm" name="on_hand" value="0" /></label>
@@ -110,7 +110,7 @@
                             @for (var i = 0; i < 4; i++)
                             {
                                 <tr>
-                                    <td><input class="form-control input-sm" name="bom_sku" /></td>
+                                    <td><ErpMasterPicker Kind="item" FieldName="bom_sku" InputId="@("epc-part-bom-" + i.ToString(CultureInfo.InvariantCulture))" Label="Item" ValueMode="code" /></td>
                                     <td><input class="form-control input-sm" name="bom_desc" /></td>
                                     <td><input class="form-control input-sm" name="bom_qty" /></td>
                                     <td><input class="form-control input-sm" name="bom_cost" /></td>
