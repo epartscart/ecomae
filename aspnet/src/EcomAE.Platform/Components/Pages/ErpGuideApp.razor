@@ -67,7 +67,11 @@
         <a href="/cp/guides-app">CP operator guides</a>
     </nav>
 
-    @if (_book.Key == ErpGuideBooks.Modules)
+    @if (_book.Key == ErpGuideBooks.Areas)
+    {
+        <ErpAreaUseGuideBoard />
+    }
+    else if (_book.Key == ErpGuideBooks.Modules)
     {
         <div class="epc-eg-layout">
             <aside class="epc-eg-side" aria-label="Guide modules">
@@ -208,7 +212,7 @@
     private string _crumb = "Guide";
     private string _advisorSay = "";
     private IReadOnlyList<string> _connected = [];
-    private ErpGuideBooks.Book _book = ErpGuideBooks.Get(ErpGuideBooks.Modules);
+    private ErpGuideBooks.Book _book = ErpGuideBooks.Get(null);
     private IReadOnlyList<ErpGuideModuleRecord> _all = [];
     private IReadOnlyList<ErpGuideModuleRecord> _filtered = [];
     private ErpGuideModuleRecord? _selected;
