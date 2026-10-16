@@ -28,11 +28,30 @@
     .pf-om-node{background:#fff;border:1px solid #e2e8f0;border-radius:8px;min-width:140px;overflow:hidden;}
     .pf-om-nhd{color:#fff;font-weight:700;font-size:12px;padding:8px 10px;display:flex;justify-content:space-between;}
     .pf-om-nbody{padding:8px 10px;font-size:12px;color:#334155;}
+    .pf-guide{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;}
+    .pf-guide__step{flex:1 1 150px;background:#fff;border:1px solid #dbe4ea;border-top:3px solid #1d4f91;padding:8px 10px;}
+    .pf-guide__n{display:inline-block;width:18px;height:18px;border-radius:50%;background:#1d4f91;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;margin-right:4px;}
+    .pf-guide__step strong{display:block;color:#0f172a;font-size:13px;}
+    .pf-guide__step p{margin:4px 0 0;color:#475569;font-size:12px;}
+    .pf-tool-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-top:8px;}
+    .pf-tool{background:#fff;border:1px solid #dbe4ea;padding:12px;}
+    .pf-tool h3{margin:0 0 4px;font-size:14px;color:#0f172a;}
+    .pf-tool>p{margin:0 0 8px;color:#475569;font-size:12px;}
+    .pf-tool form[data-epc-inline="1"]{display:flex !important;flex-wrap:wrap;gap:8px;align-items:flex-end;width:auto !important;max-width:none !important;margin:0 !important;padding:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important;}
+    .pf-tool label{display:flex;flex-direction:column;gap:2px;margin:0;font-size:11px;font-weight:700;color:#475569;}
 </style>
 </HeadContent>
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Process flow" BreadcrumbArea="Overview" BreadcrumbTab="Process flow">
 
     <PhpErpModulePageHeader Title="Process flow" Subtitle="Define a process as a chain of steps, route work automatically from one person or department head to the next, and monitor exactly where every case has reached." />
+
+    <section class="pf-guide" aria-label="How a case moves">
+        <div class="pf-guide__step"><span class="pf-guide__n">1</span><strong>Name the process</strong><p>One chain, such as Customer Order → Delivery.</p></div>
+        <div class="pf-guide__step"><span class="pf-guide__n">2</span><strong>Add the steps</strong><p>Each step names who acts and how many hours they have.</p></div>
+        <div class="pf-guide__step"><span class="pf-guide__n">3</span><strong>Name the head</strong><p>A step sent to the department head lands on this person.</p></div>
+        <div class="pf-guide__step"><span class="pf-guide__n">4</span><strong>Start the case</strong><p>The case opens on step 1 and shows on the monitor.</p></div>
+        <div class="pf-guide__step"><span class="pf-guide__n">5</span><strong>Act or reassign</strong><p>Approve moves it on. Reject or cancel stops it.</p></div>
+    </section>
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -134,7 +153,7 @@
                     </div>
                     @if (_isAdmin && detail.Status == "open")
                     {
-                        <form method="post" action="/erp/process-flow/cases/act" class="form-inline" style="margin-top:12px;">
+                        <form method="post" action="/erp/process-flow/cases/act" class="pf-tool" data-epc-inline="1" style="margin-top:12px;">
                             <input type="hidden" name="confirmWrites" value="true" />
                             <input type="hidden" name="returnUrl" value="@ViewHref("monitor")" />
                             <input type="hidden" name="case_id" value="@detail.Id.ToString(CultureInfo.InvariantCulture)" />
@@ -142,7 +161,7 @@
                             <label>Comment <input type="text" name="comment" class="form-control input-sm" /></label>
                             <button type="submit" class="btn btn-sm btn-primary">Approve step</button>
                         </form>
-                        <form method="post" action="/erp/process-flow/cases/act" class="form-inline" style="margin-top:8px;">
+                        <form method="post" action="/erp/process-flow/cases/act" class="pf-tool" data-epc-inline="1" style="margin-top:8px;">
                             <input type="hidden" name="confirmWrites" value="true" />
                             <input type="hidden" name="returnUrl" value="@ViewHref("monitor")" />
                             <input type="hidden" name="case_id" value="@detail.Id.ToString(CultureInfo.InvariantCulture)" />
@@ -150,7 +169,7 @@
                             <label>Comment <input type="text" name="comment" class="form-control input-sm" /></label>
                             <button type="submit" class="btn btn-sm btn-default">Reject case</button>
                         </form>
-                        <form method="post" action="/erp/ajax/pf-case-cancel" class="form-inline" style="margin-top:8px;">
+                        <form method="post" action="/erp/ajax/pf-case-cancel" class="pf-tool" data-epc-inline="1" style="margin-top:8px;">
                             <input type="hidden" name="confirmWrites" value="true" />
                             <input type="hidden" name="returnUrl" value="@ViewHref("monitor")" />
                             <input type="hidden" name="id" value="@detail.Id.ToString(CultureInfo.InvariantCulture)" />
@@ -175,8 +194,12 @@
             <span style="font-size:12px;color:#1e3a8a;"><i class="fa fa-truck"></i> <strong>Customer Order → Delivery</strong> runs automatically for every order (online &amp; manual): quote → payment → procured → out for delivery → delivered → invoiced. Each completed stage is credited to the responsible employee.</span>
         </div>
 
-        <form method="get" action="/erp/process-flow-tasks-app" class="form-inline" style="margin-bottom:10px;">
+        <form method="get" action="/erp/process-flow-tasks-app" class="form-inline" data-epc-inline="1" style="margin-bottom:10px;display:flex;gap:8px;align-items:center;">
             <input type="hidden" name="pf_view" value="monitor" />
+            @if (_companyId > 0)
+            {
+                <input type="hidden" name="company" value="@_companyId.ToString(CultureInfo.InvariantCulture)" />
+            }
             <label>Show</label>
             <select name="f_status" class="form-control input-sm" onchange="this.form.submit()">
                 @foreach (var statusRow in StatusFilters)
@@ -341,96 +364,145 @@
     @if (_isAdmin)
     {
         <div class="panel panel-default" style="margin-top:18px;">
-            <div class="panel-heading"><strong>Case tools</strong></div>
+            <div class="panel-heading"><strong>Case tools</strong> <span class="text-muted">— one card for each action</span></div>
             <div class="panel-body">
-                <form method="post" action="/erp/ajax/pf-case-cancel" class="form-inline" style="margin:0 0 .75rem;">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-                    <label>Case id <input type="number" name="id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
-                    <button type="submit" class="btn btn-sm btn-default">Cancel case</button>
-                </form>
-                <form method="post" action="/erp/ajax/pf-step-delete" class="form-inline" style="margin:0 0 .75rem;">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-                    <label>Step id <input type="number" name="step_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
-                    <button type="submit" class="btn btn-sm btn-default">Remove step</button>
-                </form>
-                <form method="post" action="/erp/process-flow/processes/save" class="form-inline" style="margin:0 0 .75rem;">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-                    <input type="hidden" name="id" value="0" />
-                    <label>Name <input type="text" name="name" required maxlength="160" class="form-control input-sm" style="width:12rem" /></label>
-                    <label>Category <input type="text" name="category" maxlength="64" placeholder="general" class="form-control input-sm" style="width:8rem" /></label>
-                    <label>Description <input type="text" name="description" class="form-control input-sm" style="width:14rem" /></label>
-                    <label>Active
-                        <select name="active" class="form-control input-sm">
-                            <option value="1" selected>active</option>
-                            <option value="0">inactive</option>
-                        </select>
-                    </label>
-                    <button type="submit" class="btn btn-sm btn-default">Save process</button>
-                </form>
-                <form method="post" action="/erp/process-flow/steps/save" class="form-inline" style="margin:0 0 .75rem;">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-                    <label>Process id <input type="number" name="process_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
-                    <label>Name <input type="text" name="name" required maxlength="160" class="form-control input-sm" style="width:10rem" /></label>
-                    <label>Assign
-                        <select name="assign_type" class="form-control input-sm">
-                            <option value="dept_head" selected>dept_head</option>
-                            <option value="user">user</option>
-                            <option value="department">department</option>
-                            <option value="initiator">initiator</option>
-                        </select>
-                    </label>
-                    <label>User id <input type="number" name="assign_user_id" min="0" value="0" class="form-control input-sm" style="width:5rem" /></label>
-                    <label>Department <input type="text" name="assign_department" maxlength="32" class="form-control input-sm" style="width:8rem" /></label>
-                    <label>SLA hours <input type="number" name="sla_hours" min="0" value="24" class="form-control input-sm" style="width:5rem" /></label>
-                    <button type="submit" class="btn btn-sm btn-default">Add step</button>
-                </form>
-                <form method="post" action="/erp/process-flow/dept-heads/save" class="form-inline" style="margin:0 0 .75rem;">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-                    <label>Department code <input type="text" name="department_code" required class="form-control input-sm" /></label>
-                    <label>Head user id <input type="number" name="head_user_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
-                    <button type="submit" class="btn btn-sm btn-default">Save department head</button>
-                </form>
-                <form method="post" action="/erp/process-flow/cases/reassign" class="form-inline" style="margin:0 0 .75rem;">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-                    <label>Case id <input type="number" name="case_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
-                    <label>Assignee user id <input type="number" name="user_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
-                    <button type="submit" class="btn btn-sm btn-default">Reassign case</button>
-                </form>
-                <form method="post" action="/erp/process-flow/cases/start" class="form-inline" style="margin:0 0 .75rem;">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-                    <label>Process id <input type="number" name="process_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
-                    <label>Title <input type="text" name="title" required maxlength="255" class="form-control input-sm" style="width:14rem" /></label>
-                    <label>Reference <input type="text" name="reference" maxlength="120" class="form-control input-sm" style="width:10rem" /></label>
-                    <label>Priority
-                        <select name="priority" class="form-control input-sm">
-                            <option value="normal" selected>normal</option>
-                            <option value="low">low</option>
-                            <option value="high">high</option>
-                            <option value="urgent">urgent</option>
-                        </select>
-                    </label>
-                    <button type="submit" class="btn btn-sm btn-default">Start case</button>
-                </form>
-                <form method="post" action="/erp/process-flow/cases/act" class="form-inline" style="margin:0;">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-                    <label>Case id <input type="number" name="case_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
-                    <label>Decision
-                        <select name="decision" class="form-control input-sm">
-                            <option value="approve" selected>approve</option>
-                            <option value="reject">reject</option>
-                        </select>
-                    </label>
-                    <label>Comment <input type="text" name="comment" class="form-control input-sm" style="width:14rem" /></label>
-                    <button type="submit" class="btn btn-sm btn-default">Act on case</button>
-                </form>
+                <div class="pf-tool-groups">
+                    <article class="pf-tool">
+                        <h3>Save the process</h3>
+                        <p>Create the chain before you add steps.</p>
+                        <form method="post" action="/erp/process-flow/processes/save" data-epc-inline="1">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                            <input type="hidden" name="id" value="0" />
+                            <label>Name <input type="text" name="name" required maxlength="160" class="form-control input-sm" /></label>
+                            <label>Category <input type="text" name="category" maxlength="64" placeholder="general" class="form-control input-sm" /></label>
+                            <label>Description <input type="text" name="description" class="form-control input-sm" /></label>
+                            <label>Active
+                                <select name="active" class="form-control input-sm">
+                                    <option value="1" selected>active</option>
+                                    <option value="0">inactive</option>
+                                </select>
+                            </label>
+                            <button type="submit" class="btn btn-sm btn-primary">Save process</button>
+                        </form>
+                    </article>
+                    <article class="pf-tool">
+                        <h3>Add a step</h3>
+                        <p>Use the process number from the Processes tab.</p>
+                        <form method="post" action="/erp/process-flow/steps/save" data-epc-inline="1">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                            <label>Process id <input type="number" name="process_id" min="1" required class="form-control input-sm" /></label>
+                            <label>Step name <input type="text" name="name" required maxlength="160" class="form-control input-sm" /></label>
+                            <label>Send to
+                                <select name="assign_type" class="form-control input-sm">
+                                    <option value="dept_head" selected>Department head</option>
+                                    <option value="user">A person</option>
+                                    <option value="department">A department</option>
+                                    <option value="initiator">The person who started it</option>
+                                </select>
+                            </label>
+                            <label>User id <input type="number" name="assign_user_id" min="0" value="0" class="form-control input-sm" /></label>
+                            <label>Department
+                                <select name="assign_department" class="form-control input-sm">
+                                    <option value="">—</option>
+                                    @foreach (var deptRow in ErpStaffDepartmentCatalog.All)
+                                    {
+                                        <option value="@deptRow.Code">@deptRow.Name</option>
+                                    }
+                                </select>
+                            </label>
+                            <label>Hours allowed <input type="number" name="sla_hours" min="0" value="24" class="form-control input-sm" /></label>
+                            <button type="submit" class="btn btn-sm btn-primary">Add step</button>
+                        </form>
+                    </article>
+                    <article class="pf-tool">
+                        <h3>Remove a step</h3>
+                        <p>Only a step that is not the current stop on an open case.</p>
+                        <form method="post" action="/erp/ajax/pf-step-delete" data-epc-inline="1">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                            <label>Step id <input type="number" name="step_id" min="1" required class="form-control input-sm" /></label>
+                            <button type="submit" class="btn btn-sm btn-default">Remove step</button>
+                        </form>
+                    </article>
+                    <article class="pf-tool">
+                        <h3>Department head</h3>
+                        <p>Steps sent to the department head go to this user number.</p>
+                        <form method="post" action="/erp/process-flow/dept-heads/save" data-epc-inline="1">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                            <label>Department
+                                <select name="department_code" required class="form-control input-sm">
+                                    @foreach (var deptRow in ErpStaffDepartmentCatalog.All)
+                                    {
+                                        <option value="@deptRow.Code">@deptRow.Name</option>
+                                    }
+                                </select>
+                            </label>
+                            <label>Head user id <input type="number" name="head_user_id" min="1" required class="form-control input-sm" /></label>
+                            <button type="submit" class="btn btn-sm btn-primary">Save department head</button>
+                        </form>
+                    </article>
+                    <article class="pf-tool">
+                        <h3>Start a case</h3>
+                        <p>Opens the case on the first step of the process.</p>
+                        <form method="post" action="/erp/process-flow/cases/start" data-epc-inline="1">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                            <label>Process id <input type="number" name="process_id" min="1" required class="form-control input-sm" /></label>
+                            <label>Title <input type="text" name="title" required maxlength="255" class="form-control input-sm" /></label>
+                            <label>Reference <input type="text" name="reference" maxlength="120" class="form-control input-sm" /></label>
+                            <label>Priority
+                                <select name="priority" class="form-control input-sm">
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="low">Low</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                </select>
+                            </label>
+                            <button type="submit" class="btn btn-sm btn-primary">Start case</button>
+                        </form>
+                    </article>
+                    <article class="pf-tool">
+                        <h3>Act on a case</h3>
+                        <p>Approve sends it to the next step. Reject stops the case.</p>
+                        <form method="post" action="/erp/process-flow/cases/act" data-epc-inline="1">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                            <label>Case id <input type="number" name="case_id" min="1" required class="form-control input-sm" /></label>
+                            <label>Decision
+                                <select name="decision" class="form-control input-sm">
+                                    <option value="approve" selected>Approve</option>
+                                    <option value="reject">Reject</option>
+                                </select>
+                            </label>
+                            <label>Comment <input type="text" name="comment" class="form-control input-sm" /></label>
+                            <button type="submit" class="btn btn-sm btn-primary">Act on case</button>
+                        </form>
+                    </article>
+                    <article class="pf-tool">
+                        <h3>Reassign</h3>
+                        <p>Move an open case to another person without changing the step.</p>
+                        <form method="post" action="/erp/process-flow/cases/reassign" data-epc-inline="1">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                            <label>Case id <input type="number" name="case_id" min="1" required class="form-control input-sm" /></label>
+                            <label>Assignee user id <input type="number" name="user_id" min="1" required class="form-control input-sm" /></label>
+                            <button type="submit" class="btn btn-sm btn-default">Reassign case</button>
+                        </form>
+                    </article>
+                    <article class="pf-tool">
+                        <h3>Cancel a case</h3>
+                        <p>Stops the case. It stays on the monitor under Cancelled.</p>
+                        <form method="post" action="/erp/ajax/pf-case-cancel" data-epc-inline="1">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                            <label>Case id <input type="number" name="id" min="1" required class="form-control input-sm" /></label>
+                            <button type="submit" class="btn btn-sm btn-default">Cancel case</button>
+                        </form>
+                    </article>
+                </div>
             </div>
         </div>
     }
@@ -459,6 +531,8 @@
 
     private bool _isAdmin;
     private long _userId;
+    private int _companyId;
+    private string _returnUrl = "/erp/process-flow-tasks-app";
     private string _view = "monitor";
     private string _status = "open";
     private long _pfCaseId;
@@ -486,6 +560,8 @@
         _status = (ctx.Request.Query["f_status"].ToString() ?? "open").Trim().ToLowerInvariant();
         if (StatusFilters.All(s => s.Key != _status)) _status = "open";
         long.TryParse(ctx.Request.Query["pf_case"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _pfCaseId);
+        _companyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
+        _returnUrl = ViewHref(_view);
 
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -576,8 +652,17 @@
         </table>
     };
 
-    private static string ViewHref(string view) => "/erp/process-flow-tasks-app?pf_view=" + Uri.EscapeDataString(view);
-    private static string CaseHref(long id) => "/erp/process-flow-tasks-app?pf_view=monitor&pf_case=" + id.ToString(CultureInfo.InvariantCulture);
+    private string ViewHref(string view)
+    {
+        var href = "/erp/process-flow-tasks-app?pf_view=" + Uri.EscapeDataString(view);
+        return _companyId > 0 ? href + "&company=" + _companyId.ToString(CultureInfo.InvariantCulture) : href;
+    }
+
+    private string CaseHref(long id)
+    {
+        var href = "/erp/process-flow-tasks-app?pf_view=monitor&pf_case=" + id.ToString(CultureInfo.InvariantCulture);
+        return _companyId > 0 ? href + "&company=" + _companyId.ToString(CultureInfo.InvariantCulture) : href;
+    }
 
     private static string StatusClass(string? status) => status switch
     {
