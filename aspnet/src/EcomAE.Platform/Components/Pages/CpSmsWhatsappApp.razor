@@ -4,10 +4,14 @@
 @using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Cp
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ICpSmsOperatorsDeskService Operators
+@inject ICpTenantAdminDirectoryService TenantPeople
+@inject IErpTenantUserAdminService CompanyUsers
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -15,21 +19,22 @@
 <PhpChromeStyles Surface="cp" />
 
 <style>
-.epc-sms-guide {
-    background: linear-gradient(135deg, #f0f7f4 0%, #e8f0fa 100%);
-    border: 1px solid #c5d6ce;
-    border-radius: 4px;
-    padding: 14px 16px;
-    margin-bottom: 0;
-    line-height: 1.45;
-}
-.epc-sms-guide h4 { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: #1a3a2f; }
-.epc-sms-guide ul { margin: 0 0 0 18px; padding: 0; }
-.epc-sms-guide li { margin-bottom: 4px; }
-.epc-sms-guide code { background: rgba(255,255,255,.7); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+.epc-sms-guide { margin: 0 0 14px; padding: 12px 14px; border: 1px solid #dbe4ea; background: #fff; line-height: 1.45; }
+.epc-sms-guide h3 { margin: 0 0 4px; font-size: 15px; color: #0f172a; }
+.epc-sms-guide__lead { margin: 0 0 10px; color: #475569; }
+.epc-sms-steps { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.epc-sms-steps li { flex: 1 1 180px; border: 1px solid #dbe4ea; border-top: 3px solid #0f4c81; background: #f8fafc; padding: 8px 10px; }
+.epc-sms-steps strong { color: #0f172a; }
+.epc-sms-steps p { margin: 4px 0 0; font-size: 12px; color: #475569; }
+.epc-sms-counts { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.epc-sms-count { flex: 1 1 140px; background: #fff; border: 1px solid #dbe4ea; padding: 10px 12px; }
+.epc-sms-count span { display: block; font-size: 12px; font-weight: 700; color: #475569; }
+.epc-sms-count strong { display: block; margin-top: 2px; font-size: 16px; color: #0f172a; }
 .epc-sms-sender-hint { display: inline-block; margin-top: 6px; font-size: 12px; color: #2c5f4a; }
 .epc-sms-desc { color: #555; font-size: 13px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd; }
 #mysql_options_div_fields label.epc-sms-sender-label { color: #1a5c40; font-weight: 600; }
+.sms-form[data-epc-inline="1"] { display: block !important; width: auto !important; max-width: none !important; margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
+.sms-inline[data-epc-inline="1"] { display: inline-flex !important; width: auto !important; max-width: none !important; margin: 0 0 8px !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
 </style>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
@@ -41,11 +46,21 @@
                 <a class="btn btn-xs btn-default pull-right" href="/cp/communications-test-app" style="margin-right:.4rem">Communications test</a>
             </div>
             <div class="panel-body">
-                <p>Operator catalogue, credentials and WhatsApp delivery log from <code>sms_api</code> / <code>epc_whatsapp_notify_log</code>. One operator can be active at a time (or none). Credential fields are saved with the operator; blank secret fields keep the stored value. This page does not invent a send — test under Communications.</p>
+                <section class="epc-sms-guide" aria-label="How SMS and WhatsApp work">
+                    <h3>What this page is for</h3>
+                    <p class="epc-sms-guide__lead">This is the phone channel. SMS leaves through one operator. WhatsApp uses the phone number stored on each company and each person. A person with no number cannot receive a WhatsApp message. Credential fields are saved with the operator; blank secret fields keep the stored value. This page does not invent a send — test under Communications.</p>
+                    <h3>How to use it</h3>
+                    <ol class="epc-sms-steps">
+                        <li><strong>1. Turn on one operator</strong><p>Choose Etisalat, du, Unifonic, or the Pakistan line. Fill the sender number and the keys. Save and activate. Only one operator stays on.</p></li>
+                        <li><strong>2. Set the From number</strong><p>The sender number is who the message comes from. Leave a secret blank to keep the one already saved.</p></li>
+                        <li><strong>3. Give each person a number</strong><p>The list below is every company and the people who can sign in. The WhatsApp number is their phone. Set a missing number on that company’s Users page.</p></li>
+                        <li><strong>4. Read the log</strong><p>Sent and failed are messages already attempted. Test a new one under Communications.</p></li>
+                    </ol>
+                </section>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/sms-whatsapp-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/sms-whatsapp-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -56,23 +71,15 @@
         <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
     }
 
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">UAE / GCC / Pakistan SMS</div>
-            <div class="panel-body">
-                <div class="epc-sms-guide">
-                    <h4>How messaging is structured</h4>
-                    <ul>
-                        <li><strong>From number</strong> defaults to <code>@_desk.DefaultSender</code>. Change it anytime in the <em>Sender number</em> field — no code deploy needed.</li>
-                        <li><strong>Etisalat (e&amp;)</strong> and <strong>du</strong> need the partner API URL + key from your UAE Business Messaging contract (A2P / Sender ID may need TDRA registration).</li>
-                        <li><strong>Unifonic</strong> is the general GCC / MENA REST path — paste AppSid, keep or change the sender.</li>
-                        <li><strong>Pakistan / Jazz</strong> is for +92 recipients; sender can stay UAE or switch to a local mask later.</li>
-                        <li>Only <strong>one</strong> operator can be active. Save after selecting and filling credentials. Test under <a href="/cp/communications-test-app">Communications</a>.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+    <div class="epc-sms-counts" aria-label="Phone channel summary">
+        <div class="epc-sms-count"><span>SMS operator</span><strong>@(string.IsNullOrWhiteSpace(_summary.ActiveOperator) ? "Off" : _summary.ActiveOperator)</strong></div>
+        <div class="epc-sms-count"><span>From number</span><strong>@_desk.ActiveSender</strong></div>
+        <div class="epc-sms-count"><span>People with a number</span><strong>@WithNumber.ToString(CultureInfo.InvariantCulture)</strong></div>
+        <div class="epc-sms-count"><span>People with no number</span><strong>@WithoutNumber.ToString(CultureInfo.InvariantCulture)</strong></div>
+        <div class="epc-sms-count"><span>WhatsApp sent</span><strong>@_summary.WhatsappSent.ToString(CultureInfo.InvariantCulture)</strong></div>
+        <div class="epc-sms-count"><span>WhatsApp failed</span><strong>@_summary.WhatsappFailed.ToString(CultureInfo.InvariantCulture)</strong></div>
     </div>
+    <p class="help-block">Default From number is <code>@_desk.DefaultSender</code>. Etisalat and du need the partner URL and key. Unifonic uses an AppSid. The Pakistan line is for +92 numbers.</p>
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -100,7 +107,11 @@
             <div class="hpanel">
                 <div class="panel-heading hbuilt">Select SMS operator</div>
                 <div class="panel-body">
-                    <form method="get" action="/cp/sms-whatsapp-app">
+                    <form method="get" class="sms-inline" data-epc-inline="1" action="@ListPath">
+                        @if (CompanyId is int filterCompany)
+                        {
+                            <input type="hidden" name="company" value="@filterCompany.ToString(CultureInfo.InvariantCulture)" />
+                        }
                         <select id="system_selector" name="system_id" class="form-control" onchange="this.form.submit();">
                             <option value="0" selected="@(_desk.SelectedId == 0)">— not selected —</option>
                             @foreach (var group in _desk.Operators.GroupBy(o => o.Group))
@@ -133,9 +144,9 @@
                     }
                     else
                     {
-                        <form method="post" action="/cp/sms-whatsapp/activate" class="form-horizontal" name="form_to_save">
+                        <form method="post" action="/cp/sms-whatsapp/activate" class="form-horizontal sms-form" data-epc-inline="1" name="form_to_save">
                             <input type="hidden" name="confirmWrites" value="true" />
-                            <input type="hidden" name="returnUrl" value="/cp/sms-whatsapp-app?system_id=@selected.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <input type="hidden" name="returnUrl" value="@ReturnHref(selected.Id)" />
                             <input type="hidden" name="system_id" value="@selected.Id.ToString(CultureInfo.InvariantCulture)" />
                             @foreach (var field in selected.Fields)
                             {
@@ -193,9 +204,9 @@
                 <p class="help-block">@(_isAdmin ? $"{_operators.Count} operators · active: {(string.IsNullOrWhiteSpace(_summary.ActiveOperator) ? "—" : _summary.ActiveOperator)}." : "Sign in to load operators.")</p>
                 @if (_isAdmin)
                 {
-                    <form method="post" action="/cp/sms-whatsapp/activate" class="form-inline" style="margin-bottom:.75rem">
+                    <form method="post" action="/cp/sms-whatsapp/activate" class="sms-inline" data-epc-inline="1">
                         <input type="hidden" name="confirmWrites" value="true" />
-                        <input type="hidden" name="returnUrl" value="/cp/sms-whatsapp-app" />
+                        <input type="hidden" name="returnUrl" value="@ReturnHref(0)" />
                         <input type="hidden" name="system_id" value="0" />
                         <button type="submit" class="btn btn-sm btn-default">Deactivate all</button>
                     </form>
@@ -240,9 +251,9 @@
                                         }
                                         else
                                         {
-                                            <form method="post" action="/cp/sms-whatsapp/activate" style="display:inline">
+                                            <form method="post" action="/cp/sms-whatsapp/activate" class="sms-inline" data-epc-inline="1">
                                                 <input type="hidden" name="confirmWrites" value="true" />
-                                                <input type="hidden" name="returnUrl" value="/cp/sms-whatsapp-app" />
+                                                <input type="hidden" name="returnUrl" value="@ReturnHref(0)" />
                                                 <input type="hidden" name="system_id" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
                                                 <button type="submit" class="btn btn-xs btn-primary">Activate</button>
                                             </form>
@@ -254,6 +265,49 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Companies and their people</div>
+            <div class="panel-body">
+                <p class="help-block">WhatsApp for a company goes to these people. The number is the phone on the user. @WithNumber.ToString(CultureInfo.InvariantCulture) can receive a message. @WithoutNumber.ToString(CultureInfo.InvariantCulture) need a number first.</p>
+                @if (!_isAdmin)
+                {
+                    <p>Sign in for live data.</p>
+                }
+                else if (_waPeople.Count == 0)
+                {
+                    <p>No company people are loaded yet.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Person</th>
+                                    <th>WhatsApp number</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var person in _waPeople)
+                            {
+                                <tr>
+                                    <td>@person.Company</td>
+                                    <td>@person.Name</td>
+                                    <td>@(string.IsNullOrWhiteSpace(person.Phone) ? "No number" : person.Phone)</td>
+                                    <td><a href="@person.UsersHref">Set number</a></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -315,6 +369,40 @@
     private CpSmsOperatorsDeskView _desk = CpSmsOperatorsDeskView.Empty("unauthenticated", "");
     private IReadOnlyList<CpSmsOperatorDigest> _operators = [];
     private IReadOnlyList<CpWhatsappLogDigest> _whatsappLogs = [];
+    private IReadOnlyList<WaPerson> _waPeople = [];
+
+    private sealed record WaPerson(string Company, string Name, string Phone, string UsersHref);
+
+    private int? CompanyId => ErpHostContext.ActiveCompanyIdFromQuery(Http.HttpContext?.Request);
+
+    private int WithNumber => _waPeople.Count(person => !string.IsNullOrWhiteSpace(person.Phone));
+
+    private int WithoutNumber => _waPeople.Count - WithNumber;
+
+    private string ListPath
+    {
+        get
+        {
+            var path = Http.HttpContext?.Request.Path.Value;
+            return string.IsNullOrWhiteSpace(path) || !path.StartsWith('/') ? "/cp/sms-whatsapp-app" : path;
+        }
+    }
+
+    private string ReturnHref(long systemId)
+    {
+        var parts = new List<string>();
+        if (CompanyId is int company)
+        {
+            parts.Add("company=" + company.ToString(CultureInfo.InvariantCulture));
+        }
+
+        if (systemId > 0)
+        {
+            parts.Add("system_id=" + systemId.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return parts.Count == 0 ? ListPath : ListPath + "?" + string.Join("&", parts);
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -339,5 +427,35 @@
         _summary = result.Summary;
         _operators = result.Operators;
         _whatsappLogs = result.WhatsappLog;
+        _waPeople = await LoadPeopleAsync(ctx, ctx.RequestAborted);
+    }
+
+    private async Task<IReadOnlyList<WaPerson>> LoadPeopleAsync(HttpContext ctx, CancellationToken cancellationToken)
+    {
+        if (SuperCpHostGate.IsAllowed(ctx))
+        {
+            var directory = await TenantPeople.ListAsync(null, null, CpTenantAdminDirectoryService.DirectoryLimit, cancellationToken);
+            if (directory.Users.Count > 0)
+            {
+                return directory.Users
+                    .Select(person => new WaPerson(
+                        string.IsNullOrWhiteSpace(person.TradeName) ? person.SiteKey : person.TradeName,
+                        string.IsNullOrWhiteSpace(person.DisplayName) ? person.Email : person.DisplayName,
+                        person.Phone,
+                        person.UsersAppHref))
+                    .ToArray();
+            }
+        }
+
+        var local = await CompanyUsers.ListAsync(null, null, ErpTenantUserAdminService.DirectoryLimit, cancellationToken);
+        var company = CompanyId is int id ? "company=" + id.ToString(CultureInfo.InvariantCulture) : string.Empty;
+        var usersHref = company.Length == 0 ? "/erp/users-app" : "/erp/users-app?" + company;
+        return local.Users
+            .Select(person => new WaPerson(
+                "This company",
+                string.IsNullOrWhiteSpace(person.DisplayName) ? person.Email : person.DisplayName,
+                person.Phone,
+                usersHref))
+            .ToArray();
     }
 }
