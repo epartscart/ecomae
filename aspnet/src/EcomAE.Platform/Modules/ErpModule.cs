@@ -397,6 +397,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpSecurityRolesAttachDuty, HandleRbacRoleDutyAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpSecurityUsersAssignRole, HandleRbacUserRoleAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUsersPrepare, HandleErpUsersPrepareAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpUserControlGrant, HandleErpUserControlGrantAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUsersCredentials, HandleErpUsersCredentialsAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUsersDepartment, HandleErpUsersDepartmentAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpQualityTestAddForm, HandleQmTestAddAsync).DisableAntiforgery();
@@ -19901,6 +19902,82 @@ public sealed class ErpModule : ISurfaceModule
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
+
+    private static async Task<IResult> HandleErpUserControlGrantAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPermissionGrantWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/user-control-app", "Admin ERP capability required to set user access.");
+        }
+
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Edit")
+            && !ErpCapabilityCatalog.CanAction(session, "administration", "New"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/user-control-app", "Administration edit is required to set user access.");
+        }
+
+        if (!context.Request.HasFormContentType)
+        {
+            return Results.Json(new { ok = false, message = "User access is posted from the User control form." }, statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken);
+        var intent = form["intent"].ToString();
+        var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes")
+            || string.Equals(intent, "post", StringComparison.OrdinalIgnoreCase);
+        if (string.Equals(intent, "validate", StringComparison.OrdinalIgnoreCase))
+        {
+            confirm = false;
+        }
+
+        if (!ErpPermissionGrantWriteService.TryParse(form, session.UserId, out var request, out var parseError))
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/user-control-app",
+                false,
+                parseError,
+                new { ok = false, writes = 0, validation_code = "invalid", message = parseError, session = SessionPayload(session) });
+        }
+
+        var preview = ErpPermissionGrantWriteService.Validate(request);
+        if (!confirm || preview is not null)
+        {
+            var message = preview?.Message ?? "Access is ready to post.";
+            return LiveWriteFormBinder.Complete(
+                context,
+                GrantReturn(request.UserId),
+                preview is null && !confirm,
+                message,
+                new
+                {
+                    ok = preview is null,
+                    writes = 0,
+                    phpAuthoritative = false,
+                    validation_code = preview?.Code ?? "confirm_required",
+                    message,
+                    session = SessionPayload(session),
+                });
+        }
+
+        var written = await writes.SaveAsync(request, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            GrantReturn(request.UserId),
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static string GrantReturn(int userId)
+        => userId > 0
+            ? "/erp/user-control-app?user_id=" + userId.ToString(CultureInfo.InvariantCulture)
+            : "/erp/user-control-app";
 
     private static async Task<IResult> HandleErpUsersPrepareAsync(
         HttpContext context,
