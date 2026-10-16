@@ -13,6 +13,8 @@ public sealed class ErpFinancialStatementTests
         var report = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpReportCenterApp.razor"));
         Assert.Contains("Profit and loss", report, StringComparison.Ordinal);
         Assert.Contains("Balance sheet", report, StringComparison.Ordinal);
+        Assert.Contains("Total assets", report, StringComparison.Ordinal);
+        Assert.Contains("Total liabilities and equity", report, StringComparison.Ordinal);
         Assert.Contains("business_unit", report, StringComparison.Ordinal);
         Assert.Contains("consolidation", report, StringComparison.Ordinal);
         Assert.Contains("IErpFinancialStatementReadService", report, StringComparison.Ordinal);

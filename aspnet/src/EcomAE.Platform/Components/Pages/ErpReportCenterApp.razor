@@ -75,6 +75,11 @@
             }
         </div>
         <p class="text-muted">@_statement.Message</p>
+        <style>
+            .epc-stmt-section td{background:#f8fafc;font-weight:800;color:#0f172a;letter-spacing:.02em}
+            .epc-stmt-total td{font-weight:750;border-top:2px solid #cbd5e1}
+            .epc-stmt-check td{font-weight:750;background:#f8fafc}
+        </style>
         <div class="epc-erp-table-wrap">
             <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
                 <thead>
@@ -87,18 +92,39 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (_statement.Lines.Count == 0)
+                    @if (_statement.Query.Kind == ErpFinancialStatementKind.BalanceSheet)
                     {
-                        <tr><td colspan="5" class="text-muted">No posted balances for this level yet. Post a journal, then run the statement again.</td></tr>
+                        @Section("Assets", "asset", "Total assets", _statement.AssetAccounting)
+                        @Section("Liabilities", "liability", "Total liabilities", _statement.LiabilityAccounting)
+                        @Section("Equity", "equity", "Total equity", _statement.EquityAccounting + _statement.NetProfitAccounting)
+                        <tr class="epc-stmt-total">
+                            <td></td>
+                            <td>Total liabilities and equity</td>
+                            <td></td>
+                            <td class="text-right">@Money(_statement.LiabilityAccounting + _statement.EquityAccounting + _statement.NetProfitAccounting)</td>
+                            <td class="text-right">@Money((_statement.LiabilityAccounting + _statement.EquityAccounting + _statement.NetProfitAccounting) * _statement.Rate)</td>
+                        </tr>
+                        @foreach (var line in _statement.Lines.Where(line => line.AccountType == "total"))
+                        {
+                            <tr class="epc-stmt-check">
+                                <td></td>
+                                <td>@line.Name</td>
+                                <td></td>
+                                <td class="text-right">@Money(line.Accounting)</td>
+                                <td class="text-right">@Money(line.Reporting)</td>
+                            </tr>
+                        }
                     }
                     else
                     {
-                        @foreach (var line in _statement.Lines)
+                        @Section("Income", "revenue", "Total income", _statement.IncomeAccounting)
+                        @Section("Expenses", "expense", "Total expenses", _statement.ExpenseAccounting)
+                        @foreach (var line in _statement.Lines.Where(line => line.AccountType == "total"))
                         {
-                            <tr>
-                                <td>@(string.IsNullOrWhiteSpace(line.Code) ? "" : line.Code)</td>
-                                <td><strong>@line.Name</strong></td>
-                                <td>@line.AccountType</td>
+                            <tr class="epc-stmt-total">
+                                <td></td>
+                                <td>@line.Name</td>
+                                <td></td>
                                 <td class="text-right">@Money(line.Accounting)</td>
                                 <td class="text-right">@Money(line.Reporting)</td>
                             </tr>
@@ -380,6 +406,38 @@
     private static bool IsStatementTab(string tab)
         => tab.Equals("pl", StringComparison.OrdinalIgnoreCase)
             || tab.Equals("balance_sheet", StringComparison.OrdinalIgnoreCase);
+
+    private RenderFragment Section(string title, string accountType, string totalLabel, decimal total) => __builder =>
+    {
+        var lines = _statement!.Lines.Where(line =>
+            line.AccountType == accountType
+            || (accountType == "revenue" && line.AccountType == "income")).ToList();
+        <tr class="epc-stmt-section"><td colspan="5">@title</td></tr>
+        @if (lines.Count == 0)
+        {
+            <tr><td colspan="5" class="text-muted">No @title.ToLowerInvariant() accounts on the chart yet.</td></tr>
+        }
+        else
+        {
+            @foreach (var line in lines)
+            {
+                <tr>
+                    <td>@(string.IsNullOrWhiteSpace(line.Code) ? "" : line.Code)</td>
+                    <td>@line.Name</td>
+                    <td>@line.AccountType</td>
+                    <td class="text-right">@Money(line.Accounting)</td>
+                    <td class="text-right">@Money(line.Reporting)</td>
+                </tr>
+            }
+        }
+        <tr class="epc-stmt-total">
+            <td></td>
+            <td>@totalLabel</td>
+            <td></td>
+            <td class="text-right">@Money(total)</td>
+            <td class="text-right">@Money(total * _statement.Rate)</td>
+        </tr>
+    };
 
     private static string Money(decimal value)
         => value.ToString("N2", CultureInfo.InvariantCulture);
