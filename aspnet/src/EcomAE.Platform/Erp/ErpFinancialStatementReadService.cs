@@ -146,11 +146,6 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         foreach (var row in raw)
         {
             var amount = Signed(row, query.Level);
-            if (Math.Abs(amount) < 0.005m)
-            {
-                continue;
-            }
-
             var type = row.Type;
             if (type is "revenue" or "income") income += amount;
             else if (type == "expense") expense += amount;
@@ -159,7 +154,13 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             else if (type == "equity") equity += amount;
             else continue;
 
-            built.Add((row.Code, row.Name, type, amount));
+            var onThisStatement = query.Kind == ErpFinancialStatementKind.BalanceSheet
+                ? type is "asset" or "liability" or "equity"
+                : type is "revenue" or "income" or "expense";
+            if (onThisStatement)
+            {
+                built.Add((row.Code, row.Name, type, amount));
+            }
         }
 
         if (query.Level == ErpFinancialStatementLevel.Consolidation)
@@ -233,7 +234,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
         {
             ErpFinancialStatementLevel.BusinessUnit => "Posted ledger for this business unit. Opening balances stay on the company statement.",
             ErpFinancialStatementLevel.Consolidation => "Consolidated posted ledger. Intercompany sales, purchases, and loans are eliminated.",
-            _ => "Posted ledger for this company.",
+            _ => "Posted ledger for this company. Accounts with no movement stay on the statement at zero.",
         };
         if (rateNote.Length > 0)
         {
