@@ -94,6 +94,10 @@ public sealed class ErpWorkflowProcessFlowPhpParityTests
         Assert.Contains(ErpAutomationCatalogue.SystemChains, chain => chain.Name == "Procure to pay" && chain.ItemIds.Contains("three_way_match"));
         Assert.Contains(ErpAutomationCatalogue.SystemChains, chain => chain.Name == "Record to report" && chain.ItemIds.Contains("period_close"));
         Assert.All(ErpAutomationCatalogue.SystemChains.SelectMany(chain => chain.ItemIds), id => Assert.NotNull(ErpAutomationCatalogue.Find(id)));
+        var favorites = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpWorkspaceFavoritesApp.razor"));
+        Assert.Contains("What this page is for", favorites, StringComparison.Ordinal);
+        Assert.Contains("fav-bar", favorites, StringComparison.Ordinal);
+        Assert.Contains("The star in the top bar", favorites, StringComparison.Ordinal);
     }
 
     [Fact]
