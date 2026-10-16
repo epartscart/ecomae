@@ -51,6 +51,8 @@ public sealed class ErpAreaUseGuideTests
         Assert.Contains("ErpGuideBooks.Modules", guide, StringComparison.Ordinal);
         var board = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/ErpAreaUseGuideBoard.razor"));
         Assert.Contains("How to use every area", board, StringComparison.Ordinal);
+        Assert.Contains("data-mode=\"stage\"", board, StringComparison.Ordinal);
+        Assert.Contains("data-eg-play", board, StringComparison.Ordinal);
         Assert.Contains("ClientErpPath.PrefixIfBound", board, StringComparison.Ordinal);
         Assert.Contains("prefers-reduced-motion", board, StringComparison.Ordinal);
         Assert.DoesNotContain("epc_erp_shell", board, StringComparison.Ordinal);
