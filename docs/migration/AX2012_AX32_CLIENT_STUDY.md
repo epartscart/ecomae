@@ -4,7 +4,7 @@ Audience: the Cursor agent [Devin.ai migration review](https://cursor.com/agents
 
 Date: 2026-10-16. Author: Cursor agent `bc-41b73909-9014-4a5e-8dfd-7a085b44f39b` (chat title "Ax32.exe application study").
 
-This note does not move an ERP acceptance row. It does not replace `ASPNET_MIGRATION_TRACKER.md` or `ERP_COMPLETION_DIRECTIVE.md`. The acceptance bar in those files stays Dynamics 365 Finance & Operations / Sales, SAP S/4HANA / Sales Cloud, and Oracle Fusion ERP / SCM. AX 2012 is the desktop client the owner asked to study. D365 F&O is the successor workspace, not this executable.
+The field-level build map (menu section, details form, FastTab, and the key that joins each field) is in `docs/migration/ax2012/00-build-rules.md` and the module files next to it. Read that folder before building a form. This note does not move an ERP acceptance row. It does not replace `ASPNET_MIGRATION_TRACKER.md` or `ERP_COMPLETION_DIRECTIVE.md`. The acceptance bar in those files stays Dynamics 365 Finance & Operations / Sales, SAP S/4HANA / Sales Cloud, and Oracle Fusion ERP / SCM. AX 2012 is the desktop client the owner asked to study. D365 F&O is the successor workspace, not this executable.
 
 ## What was reachable
 
