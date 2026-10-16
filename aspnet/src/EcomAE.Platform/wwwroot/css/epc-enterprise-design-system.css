@@ -1327,10 +1327,62 @@ a.ns-kpi-card:hover .kv {
     margin: 0;
 }
 
+/* A fieldset cannot be a grid in Chromium: the fields spill out of the card.
+   Sheet entry uses a plain grid so type, entity, and the CSV stay inside the page. */
+.epc-erp-content-body form.epc-sheet-entry,
+.epc-cp-content-inner form.epc-sheet-entry {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+.epc-sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--epc-form-gap);
+    align-items: end;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.epc-sheet-grid > label,
+.epc-sheet-grid > .epc-erp-master-picker {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.epc-sheet-grid > .epc-sheet-entry__wide,
+.epc-sheet-grid > .form-actions,
+.epc-sheet-grid > .epc-erp-master-picker:has(textarea) {
+    grid-column: 1 / -1;
+}
+
+.epc-sheet-grid > .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+    justify-content: flex-start;
+    margin: .15rem 0 0;
+}
+
 .epc-sheet-entry textarea {
     min-height: 9rem;
     width: 100%;
+    max-width: 100%;
     resize: vertical;
+    box-sizing: border-box;
+}
+
+@media (max-width: 800px) {
+    .epc-sheet-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .epc-erp-content-body form div > label,
