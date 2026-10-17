@@ -117,6 +117,8 @@ public sealed class ErpDocumentDesignTests
     {
         var razor = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpPrintDesignerApp.razor"));
         Assert.Contains("Visual guide", razor, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-cp-shell .epc-dd-kinds a.is-active", razor, StringComparison.Ordinal);
+        Assert.Contains("color:#1d2740 !important", razor, StringComparison.Ordinal);
         Assert.Contains("Preview", razor, StringComparison.Ordinal);
         Assert.Contains("New print template", razor, StringComparison.Ordinal);
         Assert.Contains("srcdoc=\"@PreviewDocument\"", razor, StringComparison.Ordinal);
