@@ -19,6 +19,9 @@
 
     
     <PhpErpModulePageHeader Title="@_pageTitle" Subtitle="@_pageSubtitle" PhpTabHref="@_phpTab" />
+    <style>
+        .epc-stmt-actions a{display:inline-block;background:#1f4e79;color:#fff !important;text-decoration:none;border-radius:.25rem;padding:.35rem .7rem;margin:0 .35rem .35rem 0}
+    </style>
 
     @if (_statement is not null)
     {
@@ -76,66 +79,59 @@
         </div>
         <p class="text-muted">@_statement.Message</p>
         <style>
-            .epc-stmt-section td{background:#f8fafc;font-weight:800;color:#0f172a;letter-spacing:.02em}
-            .epc-stmt-total td{font-weight:750;border-top:2px solid #cbd5e1}
-            .epc-stmt-check td{font-weight:750;background:#f8fafc}
+            .epc-ifrs{color:#1d2740}
+            .epc-ifrs h2{margin:0 0 .35rem;font-size:1.05rem;color:#1d2740}
+            .epc-ifrs p,.epc-ifrs td,.epc-ifrs th{color:#1d2740}
+            .epc-stmt-section td{background:#e8eef5;font-weight:700;color:#1d2740}
+            .epc-stmt-subtotal td{font-weight:700;border-top:2px solid #1f4e79;color:#1d2740}
+            .epc-stmt-total td{font-weight:800;border-top:2px solid #1d2740;border-bottom:3px double #1d2740;color:#1d2740}
+            .epc-stmt-note td{color:#334155;font-size:.92rem}
+            .epc-stmt-actions a{display:inline-block;background:#1f4e79;color:#fff !important;text-decoration:none;border-radius:.25rem;padding:.35rem .7rem;margin:0 .35rem .35rem 0}
+            @@media print {
+                .epc-stmt-actions,.epc-ui-toolbar,.help-block,.epc-erp-kpi,.epc-erp-topnav,.epc-erp-d365{display:none !important}
+                .epc-ifrs,.epc-ifrs td,.epc-ifrs th{color:#111 !important;background:#fff !important}
+            }
         </style>
-        <div class="epc-erp-table-wrap">
-            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th class="text-right">@_statement.AccountingCurrency</th>
-                        <th class="text-right">@_statement.ReportingCurrency</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (_statement.Query.Kind == ErpFinancialStatementKind.BalanceSheet)
-                    {
-                        @Section("Assets", "asset", "Total assets", _statement.AssetAccounting)
-                        @Section("Liabilities", "liability", "Total liabilities", _statement.LiabilityAccounting)
-                        @Section("Equity", "equity", "Total equity", _statement.EquityAccounting + _statement.NetProfitAccounting)
-                        <tr class="epc-stmt-total">
-                            <td></td>
-                            <td>Total liabilities and equity</td>
-                            <td></td>
-                            <td class="text-right">@Money(_statement.LiabilityAccounting + _statement.EquityAccounting + _statement.NetProfitAccounting)</td>
-                            <td class="text-right">@Money((_statement.LiabilityAccounting + _statement.EquityAccounting + _statement.NetProfitAccounting) * _statement.Rate)</td>
+        <section class="epc-ifrs" aria-label="IFRS 18 statement">
+            <h2>@(_statement.Query.Kind == ErpFinancialStatementKind.BalanceSheet ? "Statement of financial position" : "Statement of profit or loss")</h2>
+            <p>Presented under IFRS 18. Income and expenses are classified as operating, investing, or financing, then income taxes and discontinued operations. The face carries operating profit or loss, profit or loss before financing and income taxes, and profit or loss. The statement of financial position shows current and non-current groups, Total assets, and Total liabilities and equity. No management-defined performance measure is added.</p>
+            <p class="epc-stmt-actions">
+                <a href="@FileHref("print")" target="_blank" rel="noopener">Print</a>
+                <a href="@FileHref("pdf")">PDF</a>
+                <a href="@FileHref("xlsx")">Excel</a>
+            </p>
+            <div class="epc-erp-table-wrap">
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Line</th>
+                            <th class="text-right">@_statement.AccountingCurrency</th>
+                            <th class="text-right">@_statement.ReportingCurrency</th>
                         </tr>
-                        @foreach (var line in _statement.Lines.Where(line => line.AccountType == "total"))
+                    </thead>
+                    <tbody>
+                        @foreach (var row in _face)
                         {
-                            <tr class="epc-stmt-check">
-                                <td></td>
-                                <td>@line.Name</td>
-                                <td></td>
-                                <td class="text-right">@Money(line.Accounting)</td>
-                                <td class="text-right">@Money(line.Reporting)</td>
+                            <tr class="@RowClass(row.Kind)">
+                                <td>@row.Code</td>
+                                <td>@row.Label</td>
+                                <td class="text-right">@(row.Accounting is null ? "" : Money(row.Accounting.Value))</td>
+                                <td class="text-right">@(row.Reporting is null ? "" : Money(row.Reporting.Value))</td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        @Section("Income", "revenue", "Total income", _statement.IncomeAccounting)
-                        @Section("Expenses", "expense", "Total expenses", _statement.ExpenseAccounting)
-                        @foreach (var line in _statement.Lines.Where(line => line.AccountType == "total"))
-                        {
-                            <tr class="epc-stmt-total">
-                                <td></td>
-                                <td>@line.Name</td>
-                                <td></td>
-                                <td class="text-right">@Money(line.Accounting)</td>
-                                <td class="text-right">@Money(line.Reporting)</td>
-                            </tr>
-                        }
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     }
     else
     {
+    <p class="epc-stmt-actions">
+        <a href="@CatalogFileHref("print")" target="_blank" rel="noopener">Print</a>
+        <a href="@CatalogFileHref("pdf")">PDF</a>
+        <a href="@CatalogFileHref("xlsx")">Excel</a>
+    </p>
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Report center stats">
         <div class="kpi"><div class="lbl">Reports</div><div class="val">@_summary.ReportCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Areas</div><div class="val">@_summary.AreaCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -236,6 +232,7 @@
     private string _pageTitle = "Report center";
     private string _pageSubtitle = "Run financial and operational reports.";
     private ErpFinancialStatement? _statement;
+    private IReadOnlyList<ErpIfrs18Row> _face = [];
     private string _level = "company";
     private long _businessUnit;
     private string _currency = "";
@@ -256,8 +253,8 @@
 
         (_pageTitle, _pageSubtitle) = _navTab.ToLowerInvariant() switch
         {
-            "pl" => ("Profit & loss", "Income and expense from posted ledger balances."),
-            "balance_sheet" => ("Balance sheet", "Assets, liabilities and equity from posted ledger balances."),
+            "pl" => ("Statement of profit or loss", "IFRS 18 categories and the three mandatory subtotals, from the posted ledger."),
+            "balance_sheet" => ("Statement of financial position", "Current and non-current assets, liabilities, and equity, from the posted ledger."),
             "enterprise_reports" or "jw_trial_balance" => ("Trial balance", "Use the dedicated trial-balance list for date range, date interval, posting layer, Amount, and voucher drill."),
             _ => ("Report center", "Run financial and operational reports."),
         };
@@ -292,6 +289,9 @@
                     _businessUnit.ToString(CultureInfo.InvariantCulture),
                     _currency),
                 ctx.RequestAborted);
+            _face = _statement.Query.Kind == ErpFinancialStatementKind.BalanceSheet
+                ? ErpIfrs18Face.FinancialPosition(_statement)
+                : ErpIfrs18Face.ProfitOrLoss(_statement);
             _level = _statement.Query.Level switch
             {
                 ErpFinancialStatementLevel.BusinessUnit => "business_unit",
@@ -407,36 +407,26 @@
         => tab.Equals("pl", StringComparison.OrdinalIgnoreCase)
             || tab.Equals("balance_sheet", StringComparison.OrdinalIgnoreCase);
 
-    private RenderFragment Section(string title, string accountType, string totalLabel, decimal total) => __builder =>
+    private string FileHref(string format)
     {
-        var lines = _statement!.Lines.Where(line =>
-            line.AccountType == accountType
-            || (accountType == "revenue" && line.AccountType == "income")).ToList();
-        <tr class="epc-stmt-section"><td colspan="5">@title</td></tr>
-        @if (lines.Count == 0)
-        {
-            <tr><td colspan="5" class="text-muted">No @title.ToLowerInvariant() accounts on the chart yet.</td></tr>
-        }
-        else
-        {
-            @foreach (var line in lines)
-            {
-                <tr>
-                    <td>@(string.IsNullOrWhiteSpace(line.Code) ? "" : line.Code)</td>
-                    <td>@line.Name</td>
-                    <td>@line.AccountType</td>
-                    <td class="text-right">@Money(line.Accounting)</td>
-                    <td class="text-right">@Money(line.Reporting)</td>
-                </tr>
-            }
-        }
-        <tr class="epc-stmt-total">
-            <td></td>
-            <td>@totalLabel</td>
-            <td></td>
-            <td class="text-right">@Money(total)</td>
-            <td class="text-right">@Money(total * _statement.Rate)</td>
-        </tr>
+        var href = StatementHref(_navTab, _level, _businessUnit, _currency);
+        var query = href.Contains('?', StringComparison.Ordinal) ? href[(href.IndexOf('?') + 1)..] : "";
+        return "/erp/financial-reports/file?" + query + "&format=" + Uri.EscapeDataString(format);
+    }
+
+    private string CatalogFileHref(string format)
+    {
+        var href = AppHref(string.IsNullOrWhiteSpace(_summary.SelectedKey) ? null : _summary.SelectedKey);
+        var query = href.Contains('?', StringComparison.Ordinal) ? href[(href.IndexOf('?') + 1)..] : "tab=reports";
+        return "/erp/financial-reports/file?" + query + "&format=" + Uri.EscapeDataString(format);
+    }
+
+    private static string RowClass(string kind) => kind switch
+    {
+        "section" => "epc-stmt-section",
+        "subtotal" or "total" => kind == "total" ? "epc-stmt-total" : "epc-stmt-subtotal",
+        "note" => "epc-stmt-note",
+        _ => "",
     };
 
     private static string Money(decimal value)

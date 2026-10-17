@@ -436,6 +436,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpD365StudySave, HandleD365StudySaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpTrialBalance, HandleTrialBalanceDigestAsync);
         endpoints.MapGet(EcomAeRoutes.ErpTrialBalanceExport, HandleTrialBalanceExportAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpTrialBalanceFile, HandleTrialBalanceFileAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFinancialReportFile, HandleFinancialReportFileAsync);
         endpoints.MapPost(EcomAeRoutes.ErpTrialBalanceSnapshot, HandleTrialBalanceSnapshotAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPmSave, HandlePmSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRealEstateSave, HandleRealEstateSaveAsync).DisableAntiforgery();
@@ -25028,6 +25030,129 @@ public sealed class ErpModule : ISurfaceModule
             "text/csv",
             "trial-balance-" + parameters.FromDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture)
                 + "-" + parameters.ToDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + ".csv");
+    }
+
+    private static async Task<IResult> HandleTrialBalanceFileAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTrialBalanceReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/trial-balance-app", "Admin ERP capability required for trial-balance export.");
+        }
+
+        var parameters = TrialBalanceParametersFrom(context.Request);
+        var result = await read.ReadAsync(parameters, cancellationToken);
+        var debits = result.Lines
+            .Select(line => new ErpIfrs18Row("line", line.Code, line.Name, line.Debit, line.Credit))
+            .Append(new ErpIfrs18Row("total", "", "Total", result.DebitTotal, result.CreditTotal))
+            .ToList();
+        var balances = result.Lines
+            .Select(line => new ErpIfrs18Row("line", line.Code, line.Name, line.Opening, line.Closing))
+            .Append(new ErpIfrs18Row("total", "", "Total", result.OpeningTotal, result.ClosingTotal))
+            .ToList();
+        var document = new ErpFinancialReportDocument(
+            "Trial balance",
+            "Ledger source for the IFRS 18 primary statements. "
+                + parameters.FromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+                + " to " + parameters.ToDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+                + ". The trial balance is not itself a primary statement.",
+            [
+                new ErpFinancialReportSheet("Debit and credit", ["Code", "Name", "Debit", "Credit"], debits),
+                new ErpFinancialReportSheet("Balances", ["Code", "Name", "Opening", "Closing"], balances),
+            ]);
+        return ReportFile(context, document, "trial-balance");
+    }
+
+    private static async Task<IResult> HandleFinancialReportFileAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFinancialStatementReadService statements,
+        ISurfaceDashboardSummaryReporter dashboards,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/report-center-app", "Admin ERP capability required for financial reports.");
+        }
+
+        var tab = context.Request.Query["tab"].ToString();
+        var level = context.Request.Query["level"].ToString();
+        var company = context.Request.Query["company"].ToString();
+        var businessUnit = context.Request.Query["bu"].ToString();
+        var currency = context.Request.Query["currency"].ToString();
+        ErpFinancialReportDocument document;
+        if (tab.Equals("pl", StringComparison.OrdinalIgnoreCase)
+            || tab.Equals("balance_sheet", StringComparison.OrdinalIgnoreCase)
+            || string.IsNullOrWhiteSpace(tab)
+            || tab.Equals("statements", StringComparison.OrdinalIgnoreCase))
+        {
+            var profit = await statements.ReadAsync(
+                ErpFinancialStatementQuery.FromQuery("pl", level, company, businessUnit, currency),
+                cancellationToken).ConfigureAwait(false);
+            var position = await statements.ReadAsync(
+                ErpFinancialStatementQuery.FromQuery("balance_sheet", level, company, businessUnit, currency),
+                cancellationToken).ConfigureAwait(false);
+            document = ErpIfrs18Face.PrimaryStatements(profit, position);
+        }
+        else
+        {
+            var key = context.Request.Query["key"].ToString();
+            int? companyId = int.TryParse(company, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) && parsed > 0
+                ? parsed
+                : null;
+            var digest = await dashboards.BuildErpReportCenterDigestAsync(
+                string.IsNullOrWhiteSpace(key) ? null : key,
+                200,
+                cancellationToken,
+                companyId).ConfigureAwait(false);
+            var rows = digest.Rows.Count == 0
+                ? digest.Reports.Select(report => (IReadOnlyList<string>)[report.Key, report.Name, report.Area, report.Desc]).ToList()
+                : digest.Rows.Select(row =>
+                {
+                    var cells = digest.Columns.Select(column => row.TryGetValue(column, out var value) ? value : "").Take(4).ToList();
+                    while (cells.Count < 4)
+                    {
+                        cells.Add(string.Empty);
+                    }
+
+                    return (IReadOnlyList<string>)cells;
+                }).ToList();
+            var headers = digest.Rows.Count == 0
+                ? new[] { "Key", "Name", "Area", "Description" }
+                : digest.Columns.Take(4).ToArray();
+            document = ErpFinancialReportFile.Table(
+                "Financial reports",
+                "Report center listing. Primary statements are the statement of profit or loss and the statement of financial position under IFRS 18.",
+                "Reports",
+                headers,
+                rows);
+        }
+
+        return ReportFile(context, document, "ifrs18-financial-statements");
+    }
+
+    private static IResult ReportFile(HttpContext context, ErpFinancialReportDocument document, string stem)
+    {
+        var format = context.Request.Query["format"].ToString().Trim().ToLowerInvariant();
+        if (format is "print" or "html" or "screen")
+        {
+            return Results.Content(ErpFinancialReportFile.Html(document), "text/html; charset=utf-8");
+        }
+
+        if (format is "xlsx" or "excel")
+        {
+            return Results.File(
+                ErpFinancialReportFile.Xlsx(document),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                stem + ".xlsx");
+        }
+
+        return Results.File(ErpFinancialReportFile.Pdf(document), "application/pdf", stem + ".pdf");
     }
 
     private static string Csv(string? value)
