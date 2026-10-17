@@ -352,6 +352,8 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpVatApp.razor", "/erp/ajax/bos-vat-refund-status"),
             ("ErpVatApp.razor", "/erp/tourist-refund/create"),
             ("ErpVatApp.razor", "/erp/tourist-refund/validate"),
+            ("ErpVatApp.razor", "/erp/tourist-refund/planet-invoice"),
+            ("ErpVatApp.razor", "/erp/tourist-refund/planet-pay"),
             ("ErpRfidApp.razor", "/erp/rfid/register"),
             ("ErpRfidApp.razor", "/erp/rfid/start-session"),
             ("ErpRfidApp.razor", "/erp/rfid/scan"),

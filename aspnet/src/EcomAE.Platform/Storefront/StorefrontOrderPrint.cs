@@ -303,7 +303,9 @@ public static partial class StorefrontPhpAjax
             var saved = await SavedTaxInvoiceAsync(connection, orderId, cancellationToken).ConfigureAwait(false);
             if (saved is not null && saved.Lines.Count > 0)
             {
-                return TaxInvoicePrintHtml(saved with { Buyer = await EnrichBuyerAsync(connection, saved.Buyer, order, cancellationToken).ConfigureAwait(false) });
+                var buyer = await EnrichBuyerAsync(connection, saved.Buyer, order, cancellationToken).ConfigureAwait(false);
+                var tag = await PlanetTagAsync(connection, saved.InvoiceNumber, orderId, cancellationToken).ConfigureAwait(false);
+                return TaxInvoicePrintHtml(saved with { Buyer = buyer, PlanetTag = tag });
             }
         }
         catch (Exception ex) when (ex is DbException or JsonException or ErpWriteException)
@@ -314,7 +316,8 @@ public static partial class StorefrontPhpAjax
         {
             var built = await invoices.BuildDocumentDraftAsync(connection, orderId, null, cancellationToken).ConfigureAwait(false);
             var draft = ErpInvoiceFromOrderWriteService.WithBuyer(built, await EnrichBuyerAsync(connection, built.Buyer, order, cancellationToken).ConfigureAwait(false));
-            var html = TaxInvoicePrintHtml(FromDraft(draft, draft.Buyer));
+            var draftTag = await PlanetTagAsync(connection, draft.InvoiceNumber, orderId, cancellationToken).ConfigureAwait(false);
+            var html = TaxInvoicePrintHtml(FromDraft(draft, draft.Buyer) with { PlanetTag = draftTag });
             if (draft.Errors.Count == 0)
             {
                 try
@@ -361,7 +364,8 @@ public static partial class StorefrontPhpAjax
         decimal TotalInclVat,
         decimal AmountDue,
         string PaymentTerms,
-        string Uuid);
+        string Uuid,
+        string PlanetTag = "");
 
     private static TaxInvoicePrint FromDraft(ErpOrderEinvoiceDraft draft, IReadOnlyDictionary<string, string> buyer)
         => new(
@@ -656,11 +660,35 @@ public static partial class StorefrontPhpAjax
             .Append(". Currency ").Append(h(currency))
             .Append(". Payment due: ").Append(Date(doc.PaymentDueDate))
             .Append(". Preceding invoice reference: none. No QR code. The electronic invoice is the XML file.</p>");
+        if (!string.IsNullOrWhiteSpace(doc.PlanetTag))
+        {
+            html.Append(ErpTouristRefundLaw.InvoiceTagHtml(doc.PlanetTag, doc.TotalVat));
+        }
         html.Append("<div class=\"foot\">UAE FTA Tax Invoice / e-Invoice (PINT-AE) · Specification ")
             .Append(h("urn:peppol:pint:billing-1@ae-1"))
             .Append("<br>UUID ").Append(h(doc.Uuid))
             .Append(" · Retain records for minimum 5 years as required by UAE law.</div></body></html>");
         return html.ToString();
+    }
+
+    private static async Task<string> PlanetTagAsync(DbConnection connection, string invoiceNumber, long orderId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var barcode = await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "SELECT `barcode` FROM `epc_tourist_refund_invoices` WHERE (`invoice_no` <> '' AND `invoice_no` = ?) OR (`invoice_id` > 0 AND `invoice_id` = ?) ORDER BY `id` DESC LIMIT 1"),
+                cancellationToken,
+                invoiceNumber ?? string.Empty,
+                orderId).ConfigureAwait(false);
+            return (barcode ?? string.Empty).Trim();
+        }
+        catch (DbException)
+        {
+            return string.Empty;
+        }
     }
 
     private static bool PhpEmptyValue(string? value) => string.IsNullOrEmpty(value) || value == "0";
