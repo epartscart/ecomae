@@ -3070,6 +3070,8 @@ public static class EcomAeRoutes
     public const string ErpPmSave = "/erp/pm/save";
     public const string ErpRealEstateApp = "/erp/real-estate-app";
     public const string ErpRealEstateSave = "/erp/real-estate/save";
+    /// <summary>Stamp the real-estate law pack and check the public legislation pages. The pack text is not overwritten.</summary>
+    public const string ErpRealEstateLawFetch = "/erp/real-estate/legislation-fetch";
     public const string ErpRealEstateReport = "/erp/real-estate/report";
     public const string ErpRealEstateWorkbook = "/erp/real-estate/workbook";
     public const string ErpLandlordApp = "/erp/landlord-app";

@@ -443,6 +443,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpTrialBalanceSnapshot, HandleTrialBalanceSnapshotAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPmSave, HandlePmSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRealEstateSave, HandleRealEstateSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpRealEstateLawFetch, HandleRealEstateLawFetchAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpRealEstateReport, HandleRealEstateReportAsync);
         endpoints.MapGet(EcomAeRoutes.ErpAmlPackDownload, HandleAmlPackDownloadAsync);
         endpoints.MapGet(EcomAeRoutes.ErpRealEstateWorkbook, HandleRealEstateWorkbookAsync);
@@ -26014,6 +26015,69 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         return Results.File(ErpAmlDocumentPack.Pdf(code, utc), "application/pdf", stem + ".pdf");
+    }
+
+    private static async Task<IResult> HandleRealEstateLawFetchAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpRealEstateLawFetchWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!PhpParityDumpCatalog.HasStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/real-estate-app?tab=compliance",
+                "Admin ERP capability required to fetch real-estate legislation.");
+        }
+
+        var confirm = false;
+        var force = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            force = LiveWriteFormBinder.Flag(form, "force");
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRealEstateLawFetchBody>(context, cancellationToken)
+                       ?? new ErpRealEstateLawFetchBody(false, false);
+            confirm = body.ConfirmWrites;
+            force = body.Force;
+        }
+
+        const string returnApp = "/erp/real-estate-app?tab=compliance";
+        if (!confirm)
+        {
+            var detail = "Fetch will stamp real-estate law pack " + ErpRealEstateLaw.PackVersion + " and check the public legislation pages. The pack text is not overwritten.";
+            if (LiveWriteFormBinder.WantsHtml(context))
+            {
+                return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), true, detail);
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                phpAuthoritative = false,
+                validation_code = "dry-run",
+                message = detail,
+                session = SessionPayload(session),
+            });
+        }
+
+        var written = await writes.FetchAsync(force, cancellationToken);
+        return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+        {
+            ok = written.Succeeded,
+            writes = written.Writes,
+            phpAuthoritative = false,
+            validation_code = written.Code,
+            message = written.Message,
+            session = SessionPayload(session),
+        });
     }
 
     private static async Task<IResult> HandleRealEstateReportAsync(
