@@ -36,6 +36,7 @@
             · <a href="@WithCompany("/erp/tax-external-reporting-app")">External reporting</a>
             · <a href="@WithCompany("/erp/report-center-app?tab=reports")">All reports</a>
         </p>
+        <p class="help-block">Each legal entity posts in the currency of its country. Consolidation is the head office reporting currency, and each exchange rate is applied before the accounts are added.</p>
         <form method="get" action="/erp/report-center-app" data-epc-inline="1" class="epc-ui-toolbar" style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:end;margin:0 0 1rem;">
             <input type="hidden" name="tab" value="@_navTab" />
             @if (_company > 0)
