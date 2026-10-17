@@ -141,7 +141,7 @@ public static class ErpAreaUseGuide
         "leave_abs" => "Set the leave plan, enter the request, approve it, then pass it to payroll.",
         "projects" => "Open the project or the property, record the cost or the time, invoice it, then read the result.",
         "time_att" => "Register the time, approve it, transfer it to payroll, then read attendance.",
-        "tax" => "Prepare the e-invoice and the VAT return, check withholding, then file the return.",
+        "tax" => "Follow the e-invoice guide, send the PINT-AE invoice through the accredited service provider, then prepare the VAT return, withholding, and the filing.",
         "risk" => "Set the policy, record the claim, watch document expiry, then review the trail.",
         "setup" => "Set the company, add the users, set security, then import the opening data.",
         "enterprise" => "Set the business unit and the legal entity, file the contract, then keep the documents.",
