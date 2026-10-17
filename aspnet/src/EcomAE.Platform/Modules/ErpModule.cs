@@ -9411,6 +9411,69 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAmlLegislationFetchForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpAmlLegislationFetchWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/aml-compliance-app",
+                    "Admin ERP capability required to fetch AML legislation.");
+            }
+
+            var confirm = false;
+            var force = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                force = LiveWriteFormBinder.Flag(form, "force");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpAmlLegislationFetchBody>(context, cancellationToken)
+                           ?? new ErpAmlLegislationFetchBody(false, false);
+                confirm = body.ConfirmWrites;
+                force = body.Force;
+            }
+
+            const string returnApp = "/erp/aml-compliance-app";
+            if (!confirm)
+            {
+                var detail = "Fetch will stamp AML pack " + ErpAmlProgramme.PackVersion + " and check the FATF public list. Country lists are not overwritten.";
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), true, detail);
+                }
+
+                return Results.Ok(new
+                {
+                    ok = true,
+                    writes = 0,
+                    phpAuthoritative = false,
+                    validation_code = "dry-run",
+                    message = detail,
+                    session = SessionPayload(session),
+                });
+            }
+
+            var written = await writes.FetchAsync(force, cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpTicketsCreateForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -27794,7 +27857,8 @@ public sealed class ErpModule : ISurfaceModule
             AmlText(fields, "transaction_type"),
             AmlDec(fields, "amount"),
             AmlText(fields, "currency"),
-            AmlText(fields, "reference")), cancellationToken);
+            AmlText(fields, "reference"),
+            AmlText(fields, "country")), cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/aml-compliance-app",

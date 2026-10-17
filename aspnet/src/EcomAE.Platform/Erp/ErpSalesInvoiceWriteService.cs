@@ -444,6 +444,7 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         }
 
         var buyerCountry = Value(buyer, "buyer_country_code").ToUpperInvariant();
+        errors.AddRange(ErpAmlProgramme.InvoiceRestrictions(buyerCountry, sellerCountry));
         var buyerTrn = Digits(Value(buyer, "buyer_trn"));
         if (buyerTrn.Length > 0 && !TaxRegistrationValid(buyerCountry, buyerTrn))
         {

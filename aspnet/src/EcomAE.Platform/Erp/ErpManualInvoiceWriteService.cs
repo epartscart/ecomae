@@ -641,6 +641,9 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         CheckJsonField(errors, buyerJson, "buyer_emirate", "Buyer country subdivision");
         CheckJsonField(errors, buyerJson, "buyer_country_code", "Buyer country code");
         CheckJsonField(errors, buyerJson, "buyer_peppol_endpoint", "Buyer electronic address");
+        errors.AddRange(ErpAmlProgramme.InvoiceRestrictions(
+            JsonText(buyerJson, "buyer_country_code"),
+            JsonText(sellerJson, "seller_country_code")));
         for (var index = 0; index < lines.Count; index++)
         {
             if (string.IsNullOrWhiteSpace(lines[index].ItemName))

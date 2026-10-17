@@ -1217,6 +1217,8 @@ public static class EcomAeRoutes
     public const string ErpAmlKycSaveForm = "/erp/aml/kyc-save";
     /// <summary>PHP epc_aml_alert_set_status. <c>confirmWrites=true</c> updates <c>epc_aml_transactions.review_status</c>. Schema-ensure stays PHP.</summary>
     public const string ErpAmlAlertStatusForm = "/erp/aml/alert-status";
+    /// <summary>Stamps the workspace AML pack and checks the FATF public list. Country lists are not overwritten from the page.</summary>
+    public const string ErpAmlLegislationFetchForm = "/erp/aml/legislation-fetch";
     /// <summary>PHP epc_sla_create. <c>confirmWrites=true</c> inserts <c>epc_sla_agreements</c>.</summary>
     public const string ErpSlaCreateForm = "/erp/sla/create";
     /// <summary>PHP epc_tickets_create. <c>confirmWrites=true</c> inserts <c>epc_tickets</c>.</summary>
