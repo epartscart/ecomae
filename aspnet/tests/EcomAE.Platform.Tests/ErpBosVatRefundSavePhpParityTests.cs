@@ -61,10 +61,12 @@ public sealed class ErpBosVatRefundSavePhpParityTests
         Assert.Equal("refunded", ErpBosVatRefundSaveWriteService.NormalizeStatus("refunded"));
         Assert.Equal(12.50m, ErpBosVatRefundSaveWriteService.ResolveVat(null, 250, 5));
         var ae = ErpBosVatRefundSaveWriteService.SchemeFor("AE");
+        Assert.Equal(ErpTouristRefundLaw.TouristShare, ae.RefundRate);
+        Assert.Equal(ErpTouristRefundLaw.FixedFeeAed, ae.FeePerTag);
         var calc = ErpBosVatRefundSaveWriteService.Calculate(ae, 12.50m);
-        Assert.Equal(5.83m, calc.Refund);
-        Assert.Equal(4.80m, calc.Fee);
-        Assert.Equal(6.67m, calc.Retained);
+        Assert.Equal(7.28m, calc.Refund);
+        Assert.Equal(3.60m, calc.Fee);
+        Assert.Equal(5.22m, calc.Retained);
         Assert.Equal("Refund record saved (refund 5.83)", ErpBosVatRefundSaveWriteService.FormatSavedMessage(5.83m));
         Assert.Equal(1_788_480_000, ErpBosVatRefundSaveWriteService.ResolveSaleDateUnix("2026-09-04"));
     }

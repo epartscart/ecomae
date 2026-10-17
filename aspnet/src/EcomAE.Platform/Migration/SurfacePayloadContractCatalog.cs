@@ -1903,6 +1903,8 @@ public static class SurfacePayloadContractCatalog
         new("erp", "jw_tourist_vat_save write", "/erp/jewellery/tourist-vat-save", "write-live-gated", "POST PHP jw_tourist_vat_save; confirmWrites=true inserts epc_jewel_tourist_vat_refund. Schema-ensure stays PHP."),
         new("erp", "tourist refund create", "/erp/tourist-refund/create", "write-live-gated", "POST PHP epc_tourist_refund_create; confirmWrites=true inserts epc_tourist_refund_invoices. Schema-ensure stays PHP."),
         new("erp", "tourist refund validate", "/erp/tourist-refund/validate", "write-live-gated", "POST PHP epc_tourist_refund_validate; confirmWrites=true marks pending epc_tourist_refund_invoices validated. Schema-ensure stays PHP."),
+        new("erp", "tourist refund planet invoice", "/erp/tourist-refund/planet-invoice", "write-live-gated", "POST records Planet's 15-day tourist VAT invoice and posts output VAT against Planet payable."),
+        new("erp", "tourist refund planet pay", "/erp/tourist-refund/planet-pay", "write-live-gated", "POST pays a recorded Planet tourist-refund invoice from bank or cash."),
         new("erp", "RFID register", "/erp/rfid/register", "write-live-gated", "POST PHP epc_rfid_register_tag; confirmWrites=true inserts epc_rfid_tags. Schema-ensure stays PHP."),
         new("erp", "RFID start session", "/erp/rfid/start-session", "write-live-gated", "POST PHP epc_rfid_start_scan_session; confirmWrites=true inserts epc_rfid_scan_sessions. Schema-ensure stays PHP."),
         new("erp", "RFID scan", "/erp/rfid/scan", "write-live-gated", "POST PHP epc_rfid_process_scan; confirmWrites=true writes epc_rfid_scan_results. Schema-ensure stays PHP."),

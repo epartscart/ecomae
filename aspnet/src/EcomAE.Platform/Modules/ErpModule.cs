@@ -8716,6 +8716,9 @@ public sealed class ErpModule : ISurfaceModule
             var vatAmount = body.VatAmount;
             var refundPct = body.RefundPct;
             var refundProvider = body.RefundProvider;
+            var supplyKind = body.SupplyKind;
+            var refundMethod = body.RefundMethod;
+            var supplyDate = body.SupplyDate;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -8731,6 +8734,9 @@ public sealed class ErpModule : ISurfaceModule
                 vatAmount = LiveWriteFormBinder.Dec(form, "vatAmount", "vat_amount");
                 refundPct = LiveWriteFormBinder.Dec(form, "refundPct", "refund_pct");
                 refundProvider = LiveWriteFormBinder.Text(form, "refundProvider", "refund_provider");
+                supplyKind = LiveWriteFormBinder.Text(form, "supplyKind", "supply_kind");
+                refundMethod = LiveWriteFormBinder.Text(form, "refundMethod", "refund_method");
+                supplyDate = LiveWriteFormBinder.Text(form, "supplyDate", "supply_date");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -8747,7 +8753,7 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             var written = await writes.CreateAsync(
-                new ErpTouristRefundCreateRequest(companyId, invoiceId, invoiceNo, touristName, passportNo, nationality, departureDate, totalAmount, vatAmount, refundPct, refundProvider),
+                new ErpTouristRefundCreateRequest(companyId, invoiceId, invoiceNo, touristName, passportNo, nationality, departureDate, totalAmount, vatAmount, refundPct, refundProvider, supplyKind, refundMethod, supplyDate),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
@@ -8801,6 +8807,124 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             var written = await writes.ValidateAsync(new ErpTouristRefundValidateRequest(barcode), cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpTouristRefundPlanetInvoiceForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpTouristRefundWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/vat-app?tab=tourist_refund",
+                    "Admin ERP capability required for a Planet invoice.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpTouristRefundPlanetBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var invoiceNo = body.InvoiceNo;
+            var invoiceDate = body.InvoiceDate;
+            var barcodes = body.Barcodes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                invoiceNo = LiveWriteFormBinder.Text(form, "invoiceNo", "invoice_no", "planet_invoice_no");
+                invoiceDate = LiveWriteFormBinder.Text(form, "invoiceDate", "invoice_date");
+                barcodes = LiveWriteFormBinder.Text(form, "barcodes", "barcode");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/vat-app?tab=tourist_refund";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("tourist_refund_planet_invoice", invoiceNo, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.RecordPlanetInvoiceAsync(
+                new ErpTouristRefundPlanetInvoiceRequest(companyId, invoiceNo, invoiceDate, barcodes),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpTouristRefundPlanetPayForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpTouristRefundWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/vat-app?tab=tourist_refund",
+                    "Admin ERP capability required to pay a Planet invoice.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpTouristRefundPlanetBody>(context, cancellationToken)
+                       ?? new();
+            var invoiceNo = body.InvoiceNo;
+            var invoiceDate = body.InvoiceDate;
+            var payFrom = body.PayFrom;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                invoiceNo = LiveWriteFormBinder.Text(form, "invoiceNo", "invoice_no", "planet_invoice_no");
+                invoiceDate = LiveWriteFormBinder.Text(form, "payDate", "pay_date", "invoiceDate", "invoice_date");
+                payFrom = LiveWriteFormBinder.Text(form, "payFrom", "pay_from");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/vat-app?tab=tourist_refund";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("tourist_refund_planet_pay", invoiceNo, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.PayPlanetInvoiceAsync(
+                new ErpTouristRefundPlanetPayRequest(invoiceNo, invoiceDate, payFrom),
+                cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
                 ok = written.Succeeded,
@@ -31205,10 +31329,20 @@ public sealed class ErpModule : ISurfaceModule
         string? DepartureDate = null,
         decimal TotalAmount = 0,
         decimal VatAmount = 0,
-        decimal RefundPct = 85,
+        decimal RefundPct = 87,
         string? RefundProvider = null,
+        string? SupplyKind = null,
+        string? RefundMethod = null,
+        string? SupplyDate = null,
         bool ConfirmWrites = false);
     private sealed record ErpTouristRefundValidateBody(string? Barcode = null, bool ConfirmWrites = false);
+    private sealed record ErpTouristRefundPlanetBody(
+        int CompanyId = 0,
+        string? InvoiceNo = null,
+        string? InvoiceDate = null,
+        string? Barcodes = null,
+        string? PayFrom = null,
+        bool ConfirmWrites = false);
     private sealed record ErpRfidRegisterBody(
         int CompanyId = 0,
         string? RfidEpc = null,

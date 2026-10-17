@@ -1199,6 +1199,10 @@ public static class EcomAeRoutes
     public const string ErpTouristRefundCreateForm = "/erp/tourist-refund/create";
     /// <summary>PHP epc_tourist_refund_validate. <c>confirmWrites=true</c> marks a pending barcode validated.</summary>
     public const string ErpTouristRefundValidateForm = "/erp/tourist-refund/validate";
+    /// <summary>Records Planet's 15-day invoice for validated tourist tags and posts output VAT against Planet payable.</summary>
+    public const string ErpTouristRefundPlanetInvoiceForm = "/erp/tourist-refund/planet-invoice";
+    /// <summary>Pays a recorded Planet tourist-refund invoice from bank or cash.</summary>
+    public const string ErpTouristRefundPlanetPayForm = "/erp/tourist-refund/planet-pay";
     /// <summary>PHP epc_rfid_register_tag. <c>confirmWrites=true</c> inserts <c>epc_rfid_tags</c>.</summary>
     public const string ErpRfidRegisterForm = "/erp/rfid/register";
     /// <summary>PHP epc_rfid_start_scan_session. <c>confirmWrites=true</c> inserts <c>epc_rfid_scan_sessions</c>.</summary>
