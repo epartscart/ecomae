@@ -54,13 +54,16 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IErpVoucherNumberService _vouchers;
+    private readonly IErpCreditManagementService? _credit;
 
     public ErpManualInvoiceWriteService(
         IErpWriteConnectionFactory connections,
-        IErpVoucherNumberService vouchers)
+        IErpVoucherNumberService vouchers,
+        IErpCreditManagementService? credit = null)
     {
         _connections = connections;
         _vouchers = vouchers;
+        _credit = credit;
     }
 
     public async Task<ErpManualInvoiceWriteResult> SaveAsync(
@@ -144,6 +147,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             paidAmount,
             amountDue,
             taxBreakdown);
+
+        await EnsureCreditAsync(connection, request.UserId, amountDue, issueDate, dueDate, paymentTerms, 0, cancellationToken).ConfigureAwait(false);
 
         long invoiceId;
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
@@ -239,7 +244,35 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         return new(invoiceId, invoiceNumber, subtotal, totalVat, totalIncl);
     }
 
-    private static async Task<ErpManualInvoiceWriteResult> UpdateAsync(
+    private async Task EnsureCreditAsync(
+        DbConnection connection,
+        long customerId,
+        decimal amountDue,
+        long issueDate,
+        long dueDate,
+        string paymentTerms,
+        long excludeInvoiceId,
+        CancellationToken cancellationToken)
+    {
+        if (_credit is null)
+        {
+            return;
+        }
+
+        var termsDays = ErpCreditBlock.TermsDaysBetween(
+            issueDate,
+            dueDate,
+            ErpCreditBlock.TermsDaysFromText(paymentTerms, 30));
+        await _credit.EnsureAllowsInvoiceAsync(
+            connection,
+            customerId,
+            amountDue,
+            termsDays,
+            excludeInvoiceId,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<ErpManualInvoiceWriteResult> UpdateAsync(
         DbConnection connection,
         ErpManualInvoiceWriteRequest request,
         IReadOnlyList<ErpManualInvoiceLineInput> lines,
@@ -328,6 +361,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             paidAmount,
             amountDue,
             taxBreakdown);
+
+        await EnsureCreditAsync(connection, request.UserId, amountDue, issueDate, dueDate, paymentTerms, request.Id, cancellationToken).ConfigureAwait(false);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
