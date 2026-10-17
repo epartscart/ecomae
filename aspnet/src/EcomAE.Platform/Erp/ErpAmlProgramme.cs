@@ -20,7 +20,9 @@ public static class ErpAmlProgramme
     public const int RecordYears = 5;
     public const int FreezeHours = 24;
     public const int TfsReportBusinessDays = 5;
+    public const int PartialMatchBusinessDays = 10;
     public const int DpmsrDiaryDays = 14;
+    public const int HighRiskReviewMonths = 6;
 
     public static readonly ErpAmlCountry[] Countermeasures =
     [
@@ -263,6 +265,51 @@ public static class ErpAmlProgramme
         new("6", "Keep", "Retain the file for five years. Train every year. Fetch the law when it changes."),
     ];
 
+    public static IReadOnlyList<ErpAmlTimeFrame> TimeFrames { get; } =
+    [
+        new("Suspicious transaction report", "Suspicion arises", "Without delay, on goAML"),
+        new("Freeze", "Confirmed match on an existing customer", "Within 24 hours. Do not tell the customer first"),
+        new("Sanctions match report", "The freeze, suspension, or rejection", "Within five business days"),
+        new("Partial-match identity", "A partial name match", "10 business days, then reject if the documents have not arrived"),
+        new("Dealers' report", "A qualified precious-metals or precious-stones cash transaction", "Diary of 14 days. Fetch checks the current Ministry circular"),
+        new("High-risk and politically exposed person review", "The last completed review", "At least every six months"),
+        new("Annual review", "The last approval of the risk assessment and the training", "Once a year"),
+        new("Ministry file", "A supervisor request, an officer change, or a change in risk", "Send the pack that is current on that date"),
+        new("Records", "The relationship ends or the transaction is completed", "Five years, and longer while a case is open"),
+    ];
+
+    public static IReadOnlyList<ErpAmlClock> Clocks(DateTime utc)
+    {
+        var prepared = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
+        return
+        [
+            new("Prepared", prepared.ToString("dd MMMM yyyy HH:mm 'UTC'", CultureInfo.InvariantCulture)),
+            new("Legislation pack", PackVersion + " · " + Decree + " · " + Resolution),
+            new("Dealers' report if the cash transaction is now", prepared.AddDays(DpmsrDiaryDays).ToString("dd MMMM yyyy", CultureInfo.InvariantCulture)),
+            new("Sanctions report if the freeze starts now", AddBusinessDays(prepared, TfsReportBusinessDays).ToString("dd MMMM yyyy HH:mm 'UTC'", CultureInfo.InvariantCulture)),
+            new("Identity documents if the partial match is now", AddBusinessDays(prepared, PartialMatchBusinessDays).ToString("dd MMMM yyyy", CultureInfo.InvariantCulture)),
+            new("High-risk and PEP review if completed now", prepared.AddMonths(HighRiskReviewMonths).ToString("dd MMMM yyyy", CultureInfo.InvariantCulture)),
+            new("Annual review if approved now", prepared.AddYears(1).ToString("dd MMMM yyyy", CultureInfo.InvariantCulture)),
+            new("Record retention if the relationship ended now", prepared.AddYears(RecordYears).ToString("dd MMMM yyyy", CultureInfo.InvariantCulture)),
+        ];
+    }
+
+    public static DateTime AddBusinessDays(DateTime utc, int days)
+    {
+        var date = utc;
+        var left = Math.Max(0, days);
+        while (left > 0)
+        {
+            date = date.AddDays(1);
+            if (date.DayOfWeek is not DayOfWeek.Saturday and not DayOfWeek.Sunday)
+            {
+                left--;
+            }
+        }
+
+        return date;
+    }
+
     public static readonly ErpAmlOfficialSource[] OfficialSources =
     [
         new("FATF black and grey lists", "https://www.fatf-gafi.org/en/countries/black-and-grey-lists.html", "Iran"),
@@ -302,3 +349,7 @@ public sealed record ErpAmlDocument(
 public sealed record ErpAmlStep(string Number, string Title, string Body);
 
 public sealed record ErpAmlOfficialSource(string Label, string Url, string Marker);
+
+public sealed record ErpAmlTimeFrame(string Duty, string Clock, string Due);
+
+public sealed record ErpAmlClock(string Label, string When);

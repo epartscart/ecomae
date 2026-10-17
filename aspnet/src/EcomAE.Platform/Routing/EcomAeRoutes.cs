@@ -1219,6 +1219,8 @@ public static class EcomAeRoutes
     public const string ErpAmlAlertStatusForm = "/erp/aml/alert-status";
     /// <summary>Stamps the workspace AML pack and checks the FATF public list. Country lists are not overwritten from the page.</summary>
     public const string ErpAmlLegislationFetchForm = "/erp/aml/legislation-fetch";
+    /// <summary>GET PDF or Word of the AML pack. <c>format=pdf|docx</c> and optional <c>doc</c> code. Stamped at download time.</summary>
+    public const string ErpAmlPackDownload = "/erp/aml/pack";
     /// <summary>PHP epc_sla_create. <c>confirmWrites=true</c> inserts <c>epc_sla_agreements</c>.</summary>
     public const string ErpSlaCreateForm = "/erp/sla/create";
     /// <summary>PHP epc_tickets_create. <c>confirmWrites=true</c> inserts <c>epc_tickets</c>.</summary>

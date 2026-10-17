@@ -1,3 +1,5 @@
+using System.IO.Compression;
+using System.Text;
 using EcomAE.Platform.Erp;
 using Xunit;
 
@@ -77,6 +79,50 @@ public sealed class ErpAmlProgrammeTests
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-aml-hero", text, StringComparison.Ordinal);
         Assert.Contains("IErpAmlLegislationFetchWriteService", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Program.cs")), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Downloads_are_stamped_with_the_reporting_clocks()
+    {
+        var utc = new DateTime(2026, 10, 17, 9, 0, 0, DateTimeKind.Utc);
+        var clocks = ErpAmlProgramme.Clocks(utc);
+        Assert.Equal("17 October 2026 09:00 UTC", clocks[0].When);
+        Assert.Contains(clocks, clock => clock.When == "31 October 2026");
+        Assert.Contains(clocks, clock => clock.When == "23 October 2026 09:00 UTC");
+        Assert.Contains(clocks, clock => clock.When == "30 October 2026");
+        Assert.Contains(clocks, clock => clock.When == "17 April 2027");
+        Assert.Contains(clocks, clock => clock.When == "17 October 2027");
+        Assert.Contains(clocks, clock => clock.When == "17 October 2031");
+
+        var cash = WordText(ErpAmlDocumentPack.Docx("cash", utc));
+        Assert.Contains("Cash acceptance", cash, StringComparison.Ordinal);
+        Assert.Contains("AED 55,000", cash, StringComparison.Ordinal);
+        Assert.Contains("31 October 2026", cash, StringComparison.Ordinal);
+        Assert.Contains("17 October 2026 09:00 UTC", cash, StringComparison.Ordinal);
+
+        var pack = WordText(ErpAmlDocumentPack.Docx(null, utc));
+        foreach (var doc in ErpAmlProgramme.Documents)
+        {
+            Assert.Contains(doc.Title, pack, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("Kimberley", pack, StringComparison.Ordinal);
+        Assert.Contains("Federal Decree-Law No. 10 of 2025", pack, StringComparison.Ordinal);
+        var pdf = ErpAmlDocumentPack.Pdf("tfs", utc);
+        Assert.True(pdf.Length > 8_000);
+        Assert.Equal("%PDF", Encoding.ASCII.GetString(pdf, 0, 4));
+        Assert.Contains("/erp/aml/pack?format=", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpAmlComplianceApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("Download full pack PDF", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpAmlComplianceApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("Download full pack Word", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpAmlComplianceApp.razor")), StringComparison.Ordinal);
+    }
+
+    private static string WordText(byte[] docx)
+    {
+        using var zip = new ZipArchive(new MemoryStream(docx), ZipArchiveMode.Read);
+        var entry = zip.GetEntry("word/document.xml");
+        Assert.NotNull(entry);
+        using var reader = new StreamReader(entry.Open(), Encoding.UTF8);
+        return reader.ReadToEnd();
     }
 
     private static Dictionary<string, string> Seller() => new(StringComparer.Ordinal)

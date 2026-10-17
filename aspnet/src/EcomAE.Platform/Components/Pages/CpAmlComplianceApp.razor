@@ -26,7 +26,11 @@
         .epc-aml-doc strong{display:block;color:#1d2740;font-size:12px;}
         .epc-aml-doc span{display:block;color:#64748b;font-size:11px;margin-top:4px;}
         .epc-aml-doc.is-open{border-color:#1f4e79;background:#eef4fa;}
-        .epc-aml-doc.is-open strong,.epc-aml-doc.is-open span{color:#1d2740;}
+        .epc-aml-doc.is-open strong,.epc-aml-doc.is-open span,.epc-aml-doc.is-open a{color:#1d2740;}
+        .epc-aml-dl{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px;}
+        .epc-aml-dl a{display:inline-block;background:#1f4e79;color:#fff;text-decoration:none;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700;}
+        .epc-aml-mini{display:flex;gap:10px;margin-top:6px;}
+        .epc-aml-mini a{color:#1f4e79;font-size:11px;font-weight:700;}
         .epc-aml-sheet{background:#fff;border:1px solid #d5dde6;border-radius:8px;padding:12px;margin:0 0 12px;}
         .epc-aml-sheet h3{margin:0 0 6px;color:#1d2740;font-size:15px;}
         .epc-aml-sheet h4{margin:10px 0 4px;color:#1d2740;font-size:13px;}
@@ -65,7 +69,11 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">Visual guide · AML programme · pack @ErpAmlProgramme.PackVersion</div>
             <div class="panel-body">
-                <p class="epc-aml-lead">This is the workspace pack for every tenant where AML applies: a financial institution, a virtual-asset service provider, or a designated non-financial business. A dealer in precious metals and stones uses the same pack, and the cash and supply-chain annex, when a single or linked cash transaction reaches AED 55,000. A purchase above AED 100,000 is inside that line. The wording is original. It follows @ErpAmlProgramme.Decree and @ErpAmlProgramme.Resolution. Reports go to the Financial Intelligence Unit on goAML. Records are kept for five years. Fetch AML legislation when the Ministry or the FATF publishes an update. The country list does not replace name screening against the UN consolidated list and the UAE local terrorist list.</p>
+                <p class="epc-aml-lead">This is the workspace pack for every tenant where AML applies: a financial institution, a virtual-asset service provider, or a designated non-financial business. A dealer in precious metals and stones uses the same pack, and the cash and supply-chain annex, when a single or linked cash transaction reaches AED 55,000. A purchase above AED 100,000 is inside that line. The wording is original. It follows @ErpAmlProgramme.Decree and @ErpAmlProgramme.Resolution. Reports go to the Financial Intelligence Unit on goAML. Records are kept for five years. Fetch AML legislation when the Ministry or the FATF publishes an update. The country list does not replace name screening against the UN consolidated list and the UAE local terrorist list. Download PDF or Word at any time. Each file is stamped with the date and time it is prepared, and the reporting clocks are counted from that moment.</p>
+                <div class="epc-aml-dl">
+                    <a href="@DownloadHref(null, "pdf")">Download full pack PDF</a>
+                    <a href="@DownloadHref(null, "docx")">Download full pack Word</a>
+                </div>
                 <div class="epc-aml-steps" aria-label="AML process from registration to reporting">
                     @foreach (var step in ErpAmlProgramme.Steps)
                     {
@@ -79,10 +87,14 @@
                 <div class="epc-aml-docs" aria-label="AML documents">
                     @foreach (var doc in ErpAmlProgramme.Documents)
                     {
-                        <a class="epc-aml-doc @(_pack?.Code == doc.Code ? "is-open" : "")" href="@WithQuery(doc.Code, _country)">
-                            <strong>@doc.Title</strong>
+                        <div class="epc-aml-doc @(_pack?.Code == doc.Code ? "is-open" : "")">
+                            <a href="@WithQuery(doc.Code, _country)"><strong>@doc.Title</strong></a>
                             <span>@doc.AppliesTo</span>
-                        </a>
+                            <span class="epc-aml-mini">
+                                <a href="@DownloadHref(doc.Code, "pdf")">PDF</a>
+                                <a href="@DownloadHref(doc.Code, "docx")">Word</a>
+                            </span>
+                        </div>
                     }
                 </div>
                 @if (_pack is not null)
@@ -95,7 +107,11 @@
                             <h4>@section.Heading</h4>
                             <p>@section.Body</p>
                         }
-                        <p><a href="@WithQuery(null, _country)">All documents</a></p>
+                        <p class="epc-aml-mini">
+                            <a href="@DownloadHref(_pack.Code, "pdf")">Download this document PDF</a>
+                            <a href="@DownloadHref(_pack.Code, "docx")">Download this document Word</a>
+                            <a href="@WithQuery(null, _country)">All documents</a>
+                        </p>
                     </article>
                 }
                 <div class="epc-aml-countries" aria-label="Invoice country monitor">
@@ -405,6 +421,17 @@
     private ErpAmlDocument? _pack;
     private string _country = "";
     private string _screen = "";
+
+    private string DownloadHref(string? code, string format)
+    {
+        var path = "/erp/aml/pack?format=" + format;
+        if (!string.IsNullOrWhiteSpace(code))
+        {
+            path += "&doc=" + Uri.EscapeDataString(code.Trim());
+        }
+
+        return ClientErpPath.PrefixIfBound(Http.HttpContext, path);
+    }
 
     private string WithQuery(string? pack, string? country)
     {

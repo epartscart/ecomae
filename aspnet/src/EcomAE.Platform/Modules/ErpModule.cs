@@ -439,6 +439,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpPmSave, HandlePmSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRealEstateSave, HandleRealEstateSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpRealEstateReport, HandleRealEstateReportAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpAmlPackDownload, HandleAmlPackDownloadAsync);
         endpoints.MapGet(EcomAeRoutes.ErpRealEstateWorkbook, HandleRealEstateWorkbookAsync);
         endpoints.MapPost(EcomAeRoutes.ErpLandlordSave, HandleLandlordSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpLandlordReport, HandleLandlordReportAsync);
@@ -25571,6 +25572,35 @@ public sealed class ErpModule : ISurfaceModule
             session = SessionPayload(session),
             note = "Read-only master picker catalog. Writes stay on the document save routes."
         });
+    }
+
+    private static async Task<IResult> HandleAmlPackDownloadAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!PhpParityDumpCatalog.HasStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/aml-compliance-app",
+                "Admin ERP capability required to download the AML pack.");
+        }
+
+        var format = (context.Request.Query["format"].ToString() ?? "pdf").Trim().ToLowerInvariant();
+        var code = context.Request.Query["doc"].ToString();
+        var utc = DateTime.UtcNow;
+        var stem = ErpAmlDocumentPack.FileStem(string.IsNullOrWhiteSpace(code) ? "full-pack" : code, utc);
+        if (format is "docx" or "word" or "doc")
+        {
+            return Results.File(
+                ErpAmlDocumentPack.Docx(code, utc),
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                stem + ".docx");
+        }
+
+        return Results.File(ErpAmlDocumentPack.Pdf(code, utc), "application/pdf", stem + ".pdf");
     }
 
     private static async Task<IResult> HandleRealEstateReportAsync(
