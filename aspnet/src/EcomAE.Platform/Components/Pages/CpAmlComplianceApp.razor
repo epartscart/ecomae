@@ -102,10 +102,10 @@
                     <article class="epc-aml-sheet">
                         <h3>@_pack.Title</h3>
                         <p><strong>@_pack.AppliesTo.</strong> @_pack.Lead</p>
-                        @foreach (var section in _pack.Sections)
+                        @foreach (var part in _pack.Sections)
                         {
-                            <h4>@section.Heading</h4>
-                            <p>@section.Body</p>
+                            <h4>@part.Heading</h4>
+                            <p>@part.Body</p>
                         }
                         <p class="epc-aml-mini">
                             <a href="@DownloadHref(_pack.Code, "pdf")">Download this document PDF</a>
