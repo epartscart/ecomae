@@ -3,6 +3,7 @@
 @using System.Globalization
 @using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
@@ -10,33 +11,47 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>E-invoice documents · ERP · eParts Cart</PageTitle>
+<PageTitle>E-invoice · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<PhpErpDesktopChrome IsAdmin="_isAdmin">
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                E-invoice documents
-            </div>
-            <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/erp/einvoice-documents-app")</p>
-                <p>Open a document to see seller/buyer JSON, tax breakdown, validation, lines, and events. Save seller, buyer, and ASP e-invoice settings here. Fetch FTA legislation to ingest PINT-AE / Peppol instruments.</p>
-            </div>
-        </div>
-    </div>
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="E-invoice" BreadcrumbArea="Tax" BreadcrumbTab="E-invoice">
     <PhpParityModuleBody AppPath="/erp/einvoice-documents-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+    <PhpErpModulePageHeader Title="E-invoice" Subtitle="UAE Electronic Invoicing System. One accredited service provider exchanges the PINT-AE invoice, and the Federal Tax Authority receives the tax data." />
+
+    <style>
+        .epc-ei-tabs { display:flex; flex-wrap:wrap; gap:.4rem; margin:0 0 .8rem; }
+        .epc-ei-tabs a { padding:.35rem .7rem; border:1px solid #c5cdd6; border-radius:4px; text-decoration:none; }
+        .epc-ei-tabs a.is-active { background:#1f4e79; color:#fff; border-color:#1f4e79; }
+        .epc-ei-note { margin:0 0 .7rem; }
+        .epc-ei-corners { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:.45rem; margin:0 0 .8rem; }
+        .epc-ei-corners article { border:1px solid #d5dde6; border-radius:4px; padding:.45rem .55rem; background:#f7fafc; min-width:0; }
+        .epc-ei-corners strong { display:block; }
+        .epc-ei-corners span { display:inline-block; min-width:1.4rem; margin-right:.25rem; color:#1f4e79; font-weight:700; }
+        .epc-ei-phases { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:.45rem; margin:0 0 .8rem; }
+        .epc-ei-phases article { border-left:3px solid #1f4e79; padding:.35rem .55rem; background:#f7fafc; }
+        .epc-ei-phases strong { display:block; }
+        .epc-ei-scope { width:100%; border-collapse:collapse; margin:0 0 .8rem; }
+        .epc-ei-scope th, .epc-ei-scope td { border:1px solid #d5dde6; padding:.35rem .5rem; text-align:center; }
+        .epc-ei-scope td.is-in { background:#ecfdf5; }
+        .epc-ei-scope td.is-out { background:#f8fafc; color:#64748b; }
+        .epc-ei-grid { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:.55rem .8rem; }
+        .epc-ei-grid label { display:flex; flex-direction:column; gap:.2rem; font-size:12px; min-width:0; }
+        .epc-ei-grid .wide, .epc-ei-grid .form-actions { grid-column:1 / -1; }
+        .epc-ei-steps { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:.45rem; margin:0; padding:0; list-style:none; }
+        .epc-ei-steps li { border:1px solid #d5dde6; border-radius:4px; padding:.45rem .55rem; background:#fff; }
+        .epc-ei-steps a { font-weight:700; }
+        @@media (max-width: 900px) {
+            .epc-ei-corners, .epc-ei-phases, .epc-ei-steps, .epc-ei-grid { grid-template-columns:1fr; }
+        }
+    </style>
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
-        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+        <div class="alert alert-success" role="status">@_flashOk</div>
     }
     @if (!string.IsNullOrWhiteSpace(_flashErr))
     {
-        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+        <div class="alert alert-danger" role="status">@_flashErr</div>
     }
-
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedDocument is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="E-invoice KPIs">
         <div class="kpi"><div class="lbl">Documents</div><div class="val">@_summary.DocumentCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -45,183 +60,244 @@
         <div class="kpi"><div class="lbl">Total incl VAT</div><div class="val">@_summary.TotalInclVat.ToString("0.00", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    @if (_isAdmin)
+    <nav class="epc-ei-tabs" aria-label="E-invoice">
+        <a class="@TabClass("guide")" href="@Href("guide")">Visual guide</a>
+        <a class="@TabClass("setup")" href="@Href("setup")">Seller, buyer, provider</a>
+        <a class="@TabClass("documents")" href="@Href("documents")">Documents</a>
+    </nav>
+
+    @if (_tab == "setup")
     {
-        <form id="seller" method="post" action="/erp/ajax/einvoice-save-seller" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:1rem 0;max-width:52rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnHref" />
-            <label>Seller name <input type="text" name="sellerName" value="@_sellerProfile.SellerName" required /></label>
-            <label>TRN <input type="text" name="sellerTrn" value="@_sellerProfile.SellerTrn" required maxlength="15" /></label>
-            <label>Country <input type="text" name="sellerCountryCode" value="@(_sellerProfile.SellerCountryCode is { Length: > 0 } ? _sellerProfile.SellerCountryCode : "AE")" style="width:4rem" /></label>
-            <label>City <input type="text" name="sellerCity" value="@(_sellerProfile.SellerCity is { Length: > 0 } ? _sellerProfile.SellerCity : "Dubai")" /></label>
-            <label>Emirate / subdivision <input type="text" name="sellerEmirate" value="@(_sellerProfile.SellerEmirate is { Length: > 0 } ? _sellerProfile.SellerEmirate : "Dubai")" /></label>
-            <label>Trade licence / legal reg. no. <input type="text" name="sellerLegalRegNo" value="@_sellerProfile.SellerLegalRegNo" required /></label>
-            <label>Reg. type
-                <select name="sellerLegalRegType">
-                    @foreach (var regType in new[] { "TL", "EID", "PAS", "CD" })
-                    {
-                        <option value="@regType" selected="@(string.Equals(_sellerProfile.SellerLegalRegType, regType, StringComparison.OrdinalIgnoreCase))">@regType</option>
-                    }
-                </select>
-            </label>
-            <label>Authority <input type="text" name="sellerAuthorityName" value="@(_sellerProfile.SellerAuthorityName is { Length: > 0 } ? _sellerProfile.SellerAuthorityName : "Dubai Economy and Tourism")" /></label>
-            <label>Address line 1 <input type="text" name="sellerAddressLine1" value="@_sellerProfile.SellerAddressLine1" required style="min-width:16rem" /></label>
-            <label>Phone <input type="text" name="sellerPhone" value="@_sellerProfile.SellerPhone" /></label>
-            <label>Email <input type="email" name="sellerEmail" value="@_sellerProfile.SellerEmail" /></label>
-            <label>VAT registered <input type="checkbox" name="companyVatRegistered" value="1" checked="@_sellerProfile.CompanyVatRegistered" /></label>
-            <button type="submit">Save seller</button>
-        </form>
-        <form method="post" action="/erp/ajax/einvoice-save-buyer" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnHref" />
-            <label>Customer user id <input type="number" name="userId" min="1" required style="width:6rem" /></label>
-            <label>Buyer name <input type="text" name="buyerName" required /></label>
-            <label>TRN <input type="text" name="trn" /></label>
-            <button type="submit">Save buyer</button>
-        </form>
-        <form method="post" action="/erp/ajax/einvoice-save-asp" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnHref" />
-            <label>ASP name <input type="text" name="aspName" required /></label>
-            <label>Mode <input type="text" name="aspApiMode" value="manual" style="width:7rem" /></label>
-            <button type="submit">Save ASP</button>
-        </form>
-        <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/uae-tax/fta-fetch")" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnHref" />
-            <label><input type="checkbox" name="force" value="1" /> Force refetch</label>
-            <button type="submit">Fetch FTA e-invoicing legislation</button>
-        </form>
-        <div class="epc-ei-note">Seller / buyer / ASP profile saves and guarded credit-note draft persistence are available here. Document generation, validation, API submission, retries, and polling continue through the configured tax-service workflow. FTA fetch writes PINT-AE / Peppol instruments into the UAE tax legislation library.</div>
+        <section class="epc-erp-form-panel" id="seller">
+            <p class="epc-ei-note">The participant identifier is 0235 plus the first 10 digits of the TRN. That 10-digit number is the TIN. A VAT group member uses its own TRN, not the representative's. Appoint one provider through EmaraTax.</p>
+            @if (!string.IsNullOrWhiteSpace(_endpoint))
+            {
+                <p class="epc-ei-note">Saved seller endpoint @_endpoint. TIN @_tin.</p>
+            }
+            @if (_isAdmin)
+            {
+                <form method="post" action="/erp/ajax/einvoice-save-seller" class="epc-ei-grid">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@_returnHref" />
+                    <label>Seller name <input class="form-control input-sm" type="text" name="sellerName" value="@_sellerProfile.SellerName" required /></label>
+                    <label>TRN <input class="form-control input-sm" type="text" name="sellerTrn" value="@_sellerProfile.SellerTrn" required maxlength="15" /></label>
+                    <label>Country <input class="form-control input-sm" type="text" name="sellerCountryCode" value="@(_sellerProfile.SellerCountryCode is { Length: > 0 } ? _sellerProfile.SellerCountryCode : "AE")" /></label>
+                    <label>City <input class="form-control input-sm" type="text" name="sellerCity" value="@(_sellerProfile.SellerCity is { Length: > 0 } ? _sellerProfile.SellerCity : "Dubai")" /></label>
+                    <label>Emirate <input class="form-control input-sm" type="text" name="sellerEmirate" value="@(_sellerProfile.SellerEmirate is { Length: > 0 } ? _sellerProfile.SellerEmirate : "Dubai")" /></label>
+                    <label>Legal registration no. <input class="form-control input-sm" type="text" name="sellerLegalRegNo" value="@_sellerProfile.SellerLegalRegNo" required /></label>
+                    <label>Registration type
+                        <select class="form-control input-sm" name="sellerLegalRegType">
+                            @foreach (var regType in new[] { "TL", "EID", "PAS", "CD" })
+                            {
+                                <option value="@regType" selected="@(string.Equals(_sellerProfile.SellerLegalRegType, regType, StringComparison.OrdinalIgnoreCase))">@regType</option>
+                            }
+                        </select>
+                    </label>
+                    <label>Authority <input class="form-control input-sm" type="text" name="sellerAuthorityName" value="@(_sellerProfile.SellerAuthorityName is { Length: > 0 } ? _sellerProfile.SellerAuthorityName : "Dubai Economy and Tourism")" /></label>
+                    <label class="wide">Address line 1 <input class="form-control input-sm" type="text" name="sellerAddressLine1" value="@_sellerProfile.SellerAddressLine1" required /></label>
+                    <label>Phone <input class="form-control input-sm" type="text" name="sellerPhone" value="@_sellerProfile.SellerPhone" /></label>
+                    <label>Email <input class="form-control input-sm" type="email" name="sellerEmail" value="@_sellerProfile.SellerEmail" /></label>
+                    <label>VAT registered <input type="checkbox" name="companyVatRegistered" value="1" checked="@_sellerProfile.CompanyVatRegistered" /></label>
+                    <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save seller</button></div>
+                </form>
+                <form id="buyer" method="post" action="/erp/ajax/einvoice-save-buyer" class="epc-ei-grid">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@_returnHref" />
+                    <label>Customer user id <input class="form-control input-sm" type="number" name="userId" min="1" required /></label>
+                    <label>Buyer name <input class="form-control input-sm" type="text" name="buyerName" required /></label>
+                    <label>TRN <input class="form-control input-sm" type="text" name="trn" /></label>
+                    <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save buyer</button></div>
+                </form>
+                <form id="asp" method="post" action="/erp/ajax/einvoice-save-asp" class="epc-ei-grid">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@_returnHref" />
+                    <label>Accredited service provider <input class="form-control input-sm" type="text" name="aspName" required /></label>
+                    <label>Mode <input class="form-control input-sm" type="text" name="aspApiMode" value="manual" /></label>
+                    <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save ASP</button></div>
+                </form>
+                <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/uae-tax/fta-fetch")" class="epc-ei-grid">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@_returnHref" />
+                    <label><input type="checkbox" name="force" value="1" /> Force refetch</label>
+                    <div class="form-actions"><button type="submit" class="btn btn-default btn-sm">Fetch FTA e-invoicing legislation</button></div>
+                </form>
+            }
+        </section>
     }
-
-    @if (_openedDocument is not null)
+    else if (_tab == "documents")
     {
-        <ErpDocumentWorkspace
-            DocumentKind="E-invoice"
-            Title="@(!string.IsNullOrWhiteSpace(_openedDocument.InvoiceNumber) ? _openedDocument.InvoiceNumber : $"E-invoice #{_openedDocument.Id.ToString(CultureInfo.InvariantCulture)}")"
-            DocumentNumber="@_openedDocument.Id.ToString(CultureInfo.InvariantCulture)"
-            PartyLabel="Buyer"
-            Party="@($"User {_openedDocument.UserId.ToString(CultureInfo.InvariantCulture)}")"
-            ReferenceLabel="Source order"
-            Reference="@(_openedDocument.OrderId > 0 ? _openedDocument.OrderId.ToString(CultureInfo.InvariantCulture) : "—")"
-            Status="@(!string.IsNullOrWhiteSpace(_openedDocument.Status) ? _openedDocument.Status : "—")"
-            ApprovalState="@(_openedDocument.ValidationOk ? "Validated" : "Validation required")"
-            CompanyContext="Tenant / company"
-            Currency="@(!string.IsNullOrWhiteSpace(_openedDocument.CurrencyCode) ? _openedDocument.CurrencyCode : "—")"
-            Subtotal="@_openedDocument.SubtotalExVat"
-            Tax="@_openedDocument.TotalVat"
-            Total="@_openedDocument.TotalInclVat"
-            BalanceDue="@_openedDocument.AmountDue"
-            Fields="@EinvoiceWorkspaceFields"
-            Lines="@EinvoiceWorkspaceLines"
-            Tabs="@EinvoiceWorkspaceTabs" />
-
-        <p class="text-muted" style="margin:.85rem 0 0">Validation, tax, seller/buyer, XML, external-service, and FTA evidence remain visible in the workspace fields. Credit-note draft persistence is guarded here; downstream generation, submission, retries, and polling continue through the configured tax-service workflow.</p>
-        @if (_isAdmin)
+        @if (_openedDocument is not null)
         {
-            <form method="post" action="/erp/ajax/einvoice-credit-note" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:1rem 0;max-width:52rem">
-                <input type="hidden" name="document_id" value="@_openedDocument.Id.ToString(CultureInfo.InvariantCulture)" />
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHref" />
-                <label>Reason <input type="text" name="reason" maxlength="255" placeholder="Correction or return" /></label>
-                <button type="submit" class="btn btn-warning btn-xs">Create credit-note draft</button>
-            </form>
+            <ErpDocumentWorkspace
+                DocumentKind="E-invoice"
+                Title="@(!string.IsNullOrWhiteSpace(_openedDocument.InvoiceNumber) ? _openedDocument.InvoiceNumber : $"E-invoice #{_openedDocument.Id.ToString(CultureInfo.InvariantCulture)}")"
+                DocumentNumber="@_openedDocument.Id.ToString(CultureInfo.InvariantCulture)"
+                PartyLabel="Buyer"
+                Party="@($"User {_openedDocument.UserId.ToString(CultureInfo.InvariantCulture)}")"
+                ReferenceLabel="Source order"
+                Reference="@(_openedDocument.OrderId > 0 ? _openedDocument.OrderId.ToString(CultureInfo.InvariantCulture) : "—")"
+                Status="@(!string.IsNullOrWhiteSpace(_openedDocument.Status) ? _openedDocument.Status : "—")"
+                ApprovalState="@(_openedDocument.ValidationOk ? "Validated" : "Validation required")"
+                CompanyContext="Tenant / company"
+                Currency="@(!string.IsNullOrWhiteSpace(_openedDocument.CurrencyCode) ? _openedDocument.CurrencyCode : "—")"
+                Subtotal="@_openedDocument.SubtotalExVat"
+                Tax="@_openedDocument.TotalVat"
+                Total="@_openedDocument.TotalInclVat"
+                BalanceDue="@_openedDocument.AmountDue"
+                Fields="@EinvoiceWorkspaceFields"
+                Lines="@EinvoiceWorkspaceLines"
+                Tabs="@EinvoiceWorkspaceTabs" />
+            <ErpOpenedRecordBanner Id="_openedId" Found="true" Caption="@OpenedCaption" ListHref="@Href("documents")" />
+            @if (_isAdmin)
+            {
+                <form method="post" action="/erp/ajax/einvoice-credit-note" class="epc-ei-grid">
+                    <input type="hidden" name="document_id" value="@_openedDocument.Id.ToString(CultureInfo.InvariantCulture)" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@_returnHref" />
+                    <label>Reason <input class="form-control input-sm" type="text" name="reason" maxlength="255" placeholder="Correction or return" /></label>
+                    <div class="form-actions"><button type="submit" class="btn btn-warning btn-sm">Create credit-note draft</button></div>
+                </form>
+            }
+            <div class="epc-erp-table-wrap">
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Id</th><th>Type</th><th>Status</th><th>Message</th></tr></thead>
+                    <tbody>
+                        @if (_openedEvents.Count == 0)
+                        {
+                            <tr><td colspan="4">No events yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in _openedEvents)
+                            {
+                                <tr>
+                                    <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@Text(row.EventType)</td>
+                                    <td>@Text(row.Status)</td>
+                                    <td>@Text(row.Message)</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
 
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Events</div>
-                <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Type</th>
-                                    <th>Status</th>
-                                    <th>Message</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedEvents.Count == 0)
-                                {
-                                    <tr><td colspan="4">No events yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var row in _openedEvents)
-                                    {
-                                        <tr>
-                                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(row.EventType) ? row.EventType : "—")</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(row.Message) ? row.Message : "—")</td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-    <p class="help-block">@_summary.DocumentCount.ToString(CultureInfo.InvariantCulture) Documents · @_summary.OpenCount.ToString(CultureInfo.InvariantCulture) Open · @_summary.SubmittedCount.ToString(CultureInfo.InvariantCulture) Submitted · @_summary.TotalInclVat.ToString("0.00", CultureInfo.InvariantCulture) Total incl VAT.</p>
-
-    <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Invoice</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                    <th>CCY</th>
-                    <th>Total</th>
-                    <th>Valid</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_rows.Count == 0)
-                {
-                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
-                }
-                else
-                {
-                    @foreach (var row in _rows)
-                    {
-                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.InvoiceNumber) ? row.InvoiceNumber : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.DocCategory) ? row.DocCategory : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CurrencyCode) ? row.CurrencyCode : "—")</td>
-                            <td>@row.TotalInclVat.ToString("0.00", CultureInfo.InvariantCulture)</td>
-                            <td>@(row.ValidationOk ? "yes" : "no")</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "ei_id", row.Id)">Open</a></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-                        </table>
+                <div class="epc-erp-table-wrap">
+                    <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                        <thead>
+                            <tr><th>Id</th><th>Invoice</th><th>Category</th><th>Status</th><th>CCY</th><th>Total</th><th>Valid</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            @if (_rows.Count == 0)
+                            {
+                                <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in _rows)
+                                {
+                                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
+                                        <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@Text(row.InvoiceNumber)</td>
+                                        <td>@Text(row.DocCategory)</td>
+                                        <td>@Text(row.Status)</td>
+                                        <td>@Text(row.CurrencyCode)</td>
+                                        <td>@row.TotalInclVat.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                        <td>@(row.ValidationOk ? "yes" : "no")</td>
+                                        <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "ei_id", row.Id)">Open</a></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-    </div>
+    }
+    else
+    {
+        <section class="epc-erp-form-panel" aria-label="Electronic invoicing visual guide">
+            <p class="epc-ei-note">Ministerial Decision No. 243 of 2025 sets who must use the system. Ministerial Decision No. 244 of 2025 sets the dates. On 10 May 2026 the Ministry amended Decision 244: a person with revenue of @ErpEinvoiceLaw.LargeRevenue or more appoints the provider by @ErpEinvoiceLaw.AmendedAspDate, and still starts mandatory use on 1 January 2027. Ministerial Decision No. 64 of 2025 accredits the provider. Cabinet Decision No. 106 of 2025 sets the electronic invoicing penalties. Under Article 65(5) of the VAT Decree-Law, the tax invoice of a person on the system is the electronic invoice.</p>
 
+            <h3>Five corners</h3>
+            <p class="epc-ei-note">The invoice is XML in the PINT-AE format. It has no QR code. The file moves through five corners. This company is corner 1.</p>
+            <div class="epc-ei-corners">
+                @foreach (var corner in ErpEinvoiceLaw.Corners)
+                {
+                    <article><span>@corner.Number.ToString(CultureInfo.InvariantCulture)</span><strong>@corner.Title</strong>@corner.Role</article>
+                }
+            </div>
+
+            <h3>Who must send and receive</h3>
+            <table class="epc-ei-scope">
+                <thead>
+                    <tr><th>Supplier</th><th>Buyer</th><th>Code</th><th>Electronic invoice</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var cell in ErpEinvoiceLaw.Scope)
+                    {
+                        <tr>
+                            <td>@cell.Supplier</td>
+                            <td>@cell.Buyer</td>
+                            <td>@cell.Code</td>
+                            <td class="@(cell.InScope ? "is-in" : "is-out")">@(cell.InScope ? "In" : "Out")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <p class="epc-ei-note">A supply to a consumer is out, including when an agent bills that consumer. VAT registration is not the test. A buyer who is not yet on the system does not remove the supplier's duty. Give that buyer a readable invoice as well, because the electronic file is XML. A person with no UAE residence who must issue a VAT tax invoice issues it as an electronic invoice. A holding company that earns only passive income is out until it recharges a business cost.</p>
+
+            <h3>Dates</h3>
+            <div class="epc-ei-phases">
+                @foreach (var phase in ErpEinvoiceLaw.Phases)
+                {
+                    <article><strong>@phase.When</strong>@phase.Who. @phase.Duty</article>
+                }
+            </div>
+            <p class="epc-ei-note">Revenue is the gross income of the latest accounting period. Transactions inside one VAT group stay in scope, with a grace period of 24 months from 1 January 2027. Other transactions of that person follow the date in the table.</p>
+
+            <h3>Out of the system</h3>
+            <ul>
+                <li>A government entity acting in a sovereign capacity, and not in competition with the private sector.</li>
+                <li>An airline's international passenger ticket, and the ancillary passenger document. An airway bill for goods is out for 24 months from the date in Article 5 of Ministerial Decision No. 244 of 2025.</li>
+                <li>Financial services that are exempt under Article 42 of the VAT Executive Regulation, including those treated as a zero-rated export. A standard-rated financial service stays in, even when the export is zero-rated.</li>
+                <li>Import of concerned goods or concerned services under the reverse charge. Name the goods on the electronic invoice when a domestic reverse charge applies, including electronic devices, precious metals, hydrocarbons, and metal scrap.</li>
+            </ul>
+
+            <h3>How an invoice is issued</h3>
+            <ul>
+                <li>Issue a tax invoice when an advance is received. On the final invoice, put that advance in the paid amount and name the earlier invoice.</li>
+                <li>Keep the retention calculation on a commercial paper. The electronic invoice is the amount payable after retention, with VAT. Issue another electronic invoice when the retention is released.</li>
+                <li>A credit note that reduces or cancels a supply also goes through the system.</li>
+            </ul>
+
+            <h3>How long to keep it</h3>
+            <p class="epc-ei-note">Article 11 of Ministerial Decision No. 243 of 2025 follows the tax procedures periods. A taxable person keeps the file for 5 years after the tax period. Any other person keeps it for 5 years from the end of the calendar year it was created. Real estate records are kept for 7 years from the end of that calendar year. Add 4 years when there is a dispute or an audit notice, and 1 year after a voluntary disclosure made in the fifth year. The file may be stored outside the UAE when a complete copy can be given to the Authority. The person remains responsible if the provider stores it.</p>
+
+            <h3>Penalties</h3>
+            <p class="epc-ei-note">Cabinet Decision No. 106 of 2025 applies from the date the system is mandatory for that person. It does not apply to a voluntary invoice issued before that date. Cabinet Decision No. 40 of 2017 still applies when a VAT tax invoice is missing or wrong.</p>
+
+            <h3>What to do on this page</h3>
+            <ol class="epc-ei-steps">
+                <li><a href="@Href("setup")">1. Save the seller</a><p>Name, 15-digit TRN, trade licence or other registration, authority, address, emirate, phone, and email.</p></li>
+                <li><a href="@Href("setup")#buyer">2. Save each business buyer</a><p>The buyer's own TRN. A consumer is not entered as an electronic invoice customer.</p></li>
+                <li><a href="@Href("setup")#asp">3. Save the one provider</a><p>Appoint that provider in EmaraTax by the date in the table, then record the name here.</p></li>
+                <li><a href="@Href("documents")">4. Issue and keep the document</a><p>Send the invoice data to the provider. Open the row for validation, tax, the XML preview, and the Authority report.</p></li>
+                <li><a href="@Href("documents")">5. Issue the credit note</a><p>A correction or a return becomes a credit-note draft on the open document.</p></li>
+                <li><a href="@Href("setup")">6. Refresh the legislation</a><p>Fetch the Authority library when a decision changes.</p></li>
+            </ol>
+        </section>
+    }
 </PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=einvoice";
     private string _listHref = "/erp/einvoice-documents-app";
     private bool _isAdmin;
+    private string _tab = "guide";
     private CpEinvoiceDocumentsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpEinvoiceDocumentDigest> _rows = [];
     private string _source = "n/a";
@@ -230,6 +306,8 @@
     private string _flashOk = "";
     private string _flashErr = "";
     private string _returnHref = "/erp/einvoice-documents-app";
+    private string _tin = "";
+    private string _endpoint = "";
     private CpEinvoiceDocumentDetail? _openedDocument;
     private IReadOnlyList<CpEinvoiceLineDigest> _openedLines = [];
     private IReadOnlyList<CpEinvoiceEventDigest> _openedEvents = [];
@@ -248,25 +326,25 @@
     private IReadOnlyList<ErpDocumentWorkspaceField> EinvoiceWorkspaceFields => _openedDocument is null
         ? []
         : [
-            new("UUID", string.IsNullOrWhiteSpace(_openedDocument.Uuid) ? "—" : _openedDocument.Uuid, "General"),
-            new("Document category", string.IsNullOrWhiteSpace(_openedDocument.DocCategory) ? "—" : _openedDocument.DocCategory, "General"),
+            new("UUID", Text(_openedDocument.Uuid), "General"),
+            new("Document category", Text(_openedDocument.DocCategory), "General"),
             new("Issue date", FormatTime(_openedDocument.IssueDate), "General"),
             new("Payment due", FormatTime(_openedDocument.PaymentDueDate), "Financial"),
-            new("Payment terms", string.IsNullOrWhiteSpace(_openedDocument.PaymentTerms) ? "—" : _openedDocument.PaymentTerms, "Financial"),
-            new("Bank account", string.IsNullOrWhiteSpace(_openedDocument.BankAccount) ? "—" : _openedDocument.BankAccount, "Financial"),
+            new("Payment terms", Text(_openedDocument.PaymentTerms), "Financial"),
+            new("Bank account", Text(_openedDocument.BankAccount), "Financial"),
             new("Subtotal ex VAT", _openedDocument.SubtotalExVat.ToString("N2", CultureInfo.InvariantCulture), "Financial"),
             new("VAT", _openedDocument.TotalVat.ToString("N2", CultureInfo.InvariantCulture), "Financial"),
             new("Paid", _openedDocument.PaidAmount.ToString("N2", CultureInfo.InvariantCulture), "Financial"),
             new("Validation", _openedDocument.ValidationOk ? "Valid" : "Invalid", "Validation"),
             new("Validation errors", string.IsNullOrWhiteSpace(_openedDocument.ValidationErrorsJson) ? "None" : _openedDocument.ValidationErrorsJson, "Validation"),
-            new("Tax breakdown", string.IsNullOrWhiteSpace(_openedDocument.TaxBreakdownJson) ? "—" : _openedDocument.TaxBreakdownJson, "Tax"),
-            new("Seller", string.IsNullOrWhiteSpace(_openedDocument.SellerJson) ? "—" : _openedDocument.SellerJson, "Operational"),
-            new("Buyer", string.IsNullOrWhiteSpace(_openedDocument.BuyerJson) ? "—" : _openedDocument.BuyerJson, "Operational"),
-            new("ASP", string.IsNullOrWhiteSpace(_openedDocument.AspName) ? "—" : _openedDocument.AspName, "Operational"),
-            new("ASP reference", string.IsNullOrWhiteSpace(_openedDocument.AspReference) ? "—" : _openedDocument.AspReference, "Operational"),
-            new("FTA report", string.IsNullOrWhiteSpace(_openedDocument.FtaReportStatus) ? "—" : _openedDocument.FtaReportStatus, "Tax"),
+            new("Tax breakdown", Text(_openedDocument.TaxBreakdownJson), "Tax"),
+            new("Seller", Text(_openedDocument.SellerJson), "Operational"),
+            new("Buyer", Text(_openedDocument.BuyerJson), "Operational"),
+            new("ASP", Text(_openedDocument.AspName), "Operational"),
+            new("ASP reference", Text(_openedDocument.AspReference), "Operational"),
+            new("FTA report", Text(_openedDocument.FtaReportStatus), "Tax"),
             new("XML bytes", _openedDocument.XmlBytes.ToString(CultureInfo.InvariantCulture), "Validation"),
-            new("XML preview", string.IsNullOrWhiteSpace(_openedDocument.XmlPreview) ? "—" : _openedDocument.XmlPreview, "Validation")
+            new("XML preview", Text(_openedDocument.XmlPreview), "Validation")
         ];
 
     private IReadOnlyList<ErpDocumentWorkspaceLine> EinvoiceWorkspaceLines => _openedLines
@@ -285,6 +363,12 @@
             $"E-invoice #{row.DocumentId.ToString(CultureInfo.InvariantCulture)}"))
         .ToList();
 
+    private string TabClass(string tab) => _tab == tab ? "is-active" : "";
+
+    private string Href(string tab) => _listHref + "?tab=" + tab;
+
+    private static string Text(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
+
     private static string FormatTime(long unixSeconds) =>
         unixSeconds <= 0
             ? "—"
@@ -298,16 +382,24 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _listHref = ClientErpPath.PrefixIfBound(ctx, "/erp/einvoice-documents-app");
+        var requested = ctx.Request.Query["tab"].ToString();
+        _tab = requested is "setup" or "documents" ? requested : "guide";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "ei_id");
-        _returnHref = _openedId > 0
+        if (_openedId > 0)
+        {
+            _tab = "documents";
+        }
+
+        var returnBase = _openedId > 0
             ? ErpRecordOpen.Href(_listHref, "ei_id", _openedId).Split('#')[0]
             : _listHref;
+        _returnHref = _tab == "guide" ? returnBase : returnBase + (returnBase.Contains('?') ? "&" : "?") + "tab=" + _tab;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
         var result = await Dashboards.BuildCpEinvoiceDocumentsDigestAsync(200, ctx.RequestAborted);
@@ -316,6 +408,13 @@
         _source = result.Source;
         _message = result.Message;
         _sellerProfile = await Dashboards.BuildCpEinvoiceSellerProfileAsync(ctx.RequestAborted);
+        _tin = new string((_sellerProfile.SellerTin.Length > 0 ? _sellerProfile.SellerTin : _sellerProfile.SellerTrn).Where(char.IsDigit).ToArray());
+        if (_tin.Length >= 10)
+        {
+            _tin = _tin[..10];
+        }
+
+        _endpoint = ErpEinvoiceLaw.Endpoint(_tin);
 
         if (_openedId > 0)
         {
