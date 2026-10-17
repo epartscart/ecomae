@@ -61,7 +61,7 @@
     </form>
 
     <article class="epc-vatct-result">
-        <p><strong>@_posting.DocumentCategory</strong> · adjustment <strong>@_posting.CreditCategory</strong> · VAT @_posting.Vat.ToString("0.00", CultureInfo.InvariantCulture) on @_posting.Gross.ToString("0.00", CultureInfo.InvariantCulture)</p>
+        <p><strong>@Paper(_posting.DocumentCategory)</strong> · later adjustment <strong>@Paper(_posting.CreditCategory)</strong> · VAT @_posting.Vat.ToString("0.00", CultureInfo.InvariantCulture) on @_posting.Gross.ToString("0.00", CultureInfo.InvariantCulture)</p>
         <p>@_posting.Reason</p>
         <table>
             <thead><tr><th>Account</th><th class="num">Debit</th><th class="num">Credit</th></tr></thead>
@@ -78,7 +78,7 @@
                 }
             </tbody>
         </table>
-        <p>Final invoice VAT @_settlement.InvoiceVat.ToString("0.00", CultureInfo.InvariantCulture), advance VAT already posted @_settlement.AdvanceVat.ToString("0.00", CultureInfo.InvariantCulture), still to post @_settlement.Remaining.ToString("0.00", CultureInfo.InvariantCulture).</p>
+        <p>Example of the later invoice only: if its VAT is @_settlement.InvoiceVat.ToString("0.00", CultureInfo.InvariantCulture), this advance already covers @_settlement.Credit.ToString("0.00", CultureInfo.InvariantCulture) and @_settlement.Remaining.ToString("0.00", CultureInfo.InvariantCulture) is still to post.</p>
     </article>
 
     <form method="get" action="/erp/uae-tax-compliance-app">
@@ -196,6 +196,15 @@
     }
 
     private bool Is(string value) => string.Equals(_supply, value, StringComparison.OrdinalIgnoreCase);
+
+    private static string Paper(string category) => category switch
+    {
+        ErpUaeSupplyTax.TaxInvoice => "Tax invoice",
+        ErpUaeSupplyTax.TaxCreditNote => "Tax credit note",
+        ErpUaeSupplyTax.CommercialInvoice => "Commercial invoice",
+        ErpUaeSupplyTax.CreditNote => "Credit note",
+        _ => category,
+    };
 
     private static string Value(HttpContext ctx, string key, string fallback)
     {
