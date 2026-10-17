@@ -327,6 +327,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpComplianceFilingSave, HandleBosComplianceFileAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFiscalYearCreate, HandleFyCreateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFiscalYearAction, HandleFyActionAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCreditProfileSave, HandleCreditProfileAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCreditRulesSave, HandleCreditRulesAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpApprovalsRequestDecide, HandleBosWfDecideAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpApprovalsRequestRaise, HandleBosWfRaiseAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpContactsPartiesSave, HandleOaPartySaveAsync).DisableAntiforgery();
@@ -18428,6 +18430,236 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private sealed record ErpCreditProfileBody(
+        long CustomerId,
+        long CompanyId,
+        string? Name,
+        bool OnHold,
+        bool Mandatory,
+        decimal PermanentLimit,
+        int PermanentTermsDays,
+        string? ReviewDate,
+        decimal TemporaryLimit,
+        int TemporaryTermsDays,
+        string? TemporaryFrom,
+        string? TemporaryUntil,
+        bool ConfirmWrites);
+
+    private sealed record ErpCreditRulesBody(
+        long CompanyId,
+        bool AccountStatus,
+        bool CreditLimit,
+        decimal LimitPercent,
+        decimal Tolerance,
+        bool LimitExpired,
+        bool DaysOverdue,
+        int DaysThreshold,
+        int GraceDays,
+        bool OverdueAmount,
+        decimal OverdueThreshold,
+        bool TermsOfPayment,
+        bool ConfirmWrites);
+
+    private static async Task<IResult> HandleCreditProfileAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCreditManagementService credit,
+        CancellationToken cancellationToken)
+    {
+        const string fallback = "/erp/credit-collections-workspace-app?tab=cc_credit_limit_adj";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(fallback), "Admin ERP capability required for credit limits.");
+        }
+
+        var customerId = 0L;
+        var companyId = CompanyHint(context);
+        var name = string.Empty;
+        var onHold = false;
+        var mandatory = false;
+        var permanentLimit = 0m;
+        var permanentTerms = 0;
+        var reviewDate = string.Empty;
+        var temporaryLimit = 0m;
+        var temporaryTerms = 0;
+        var temporaryFrom = string.Empty;
+        var temporaryUntil = string.Empty;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            customerId = LiveWriteFormBinder.Long(form, "customer_id", "customerId");
+            var postedCompany = LiveWriteFormBinder.Long(form, "company_id", "companyId");
+            if (postedCompany > 0)
+            {
+                companyId = postedCompany;
+            }
+
+            name = LiveWriteFormBinder.Text(form, "customer_name", "name");
+            onHold = LiveWriteFormBinder.Flag(form, "on_hold", "onHold");
+            mandatory = LiveWriteFormBinder.Flag(form, "mandatory_limit", "mandatory");
+            permanentLimit = LiveWriteFormBinder.Dec(form, "permanent_limit", "permanentLimit");
+            permanentTerms = LiveWriteFormBinder.Int(form, "permanent_terms_days", "permanentTermsDays");
+            reviewDate = LiveWriteFormBinder.Text(form, "review_date", "reviewDate");
+            temporaryLimit = LiveWriteFormBinder.Dec(form, "temporary_limit", "temporaryLimit");
+            temporaryTerms = LiveWriteFormBinder.Int(form, "temporary_terms_days", "temporaryTermsDays");
+            temporaryFrom = LiveWriteFormBinder.Text(form, "temporary_from", "temporaryFrom");
+            temporaryUntil = LiveWriteFormBinder.Text(form, "temporary_until", "temporaryUntil");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCreditProfileBody>(context, cancellationToken);
+            if (body is not null)
+            {
+                customerId = body.CustomerId;
+                if (body.CompanyId > 0)
+                {
+                    companyId = body.CompanyId;
+                }
+
+                name = body.Name ?? string.Empty;
+                onHold = body.OnHold;
+                mandatory = body.Mandatory;
+                permanentLimit = body.PermanentLimit;
+                permanentTerms = body.PermanentTermsDays;
+                reviewDate = body.ReviewDate ?? string.Empty;
+                temporaryLimit = body.TemporaryLimit;
+                temporaryTerms = body.TemporaryTermsDays;
+                temporaryFrom = body.TemporaryFrom ?? string.Empty;
+                temporaryUntil = body.TemporaryUntil ?? string.Empty;
+                confirm = body.ConfirmWrites;
+            }
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Confirm the credit limit before it is saved.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "confirm_writes_required", message = "Confirm the credit limit before it is saved.", session = SessionPayload(session) });
+        }
+
+        var written = await credit.SaveProfileAsync(
+            new ErpCreditProfileWrite(customerId, companyId, name, onHold, mandatory, permanentLimit, permanentTerms, reviewDate, temporaryLimit, temporaryTerms, temporaryFrom, temporaryUntil),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallback,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleCreditRulesAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCreditManagementService credit,
+        CancellationToken cancellationToken)
+    {
+        const string fallback = "/erp/credit-collections-workspace-app?tab=cc_blocking_rules";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(fallback), "Admin ERP capability required for blocking rules.");
+        }
+
+        var companyId = CompanyHint(context);
+        var accountStatus = false;
+        var creditLimit = false;
+        var limitPercent = 100m;
+        var tolerance = 0m;
+        var limitExpired = false;
+        var daysOverdue = false;
+        var daysThreshold = 1;
+        var graceDays = 0;
+        var overdueAmount = false;
+        var overdueThreshold = 0.01m;
+        var termsOfPayment = false;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var postedCompany = LiveWriteFormBinder.Long(form, "company_id", "companyId");
+            if (postedCompany > 0)
+            {
+                companyId = postedCompany;
+            }
+
+            accountStatus = LiveWriteFormBinder.Flag(form, "block_account_status", "accountStatus");
+            creditLimit = LiveWriteFormBinder.Flag(form, "block_credit_limit", "creditLimit");
+            limitPercent = LiveWriteFormBinder.Dec(form, "limit_percent", "limitPercent");
+            tolerance = LiveWriteFormBinder.Dec(form, "limit_tolerance", "tolerance");
+            limitExpired = LiveWriteFormBinder.Flag(form, "block_limit_expired", "limitExpired");
+            daysOverdue = LiveWriteFormBinder.Flag(form, "block_days_overdue", "daysOverdue");
+            daysThreshold = LiveWriteFormBinder.Int(form, "days_threshold", "daysThreshold");
+            graceDays = LiveWriteFormBinder.Int(form, "grace_days", "graceDays");
+            overdueAmount = LiveWriteFormBinder.Flag(form, "block_overdue_amount", "overdueAmount");
+            overdueThreshold = LiveWriteFormBinder.Dec(form, "overdue_threshold", "overdueThreshold");
+            termsOfPayment = LiveWriteFormBinder.Flag(form, "block_terms", "termsOfPayment");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCreditRulesBody>(context, cancellationToken);
+            if (body is not null)
+            {
+                if (body.CompanyId > 0)
+                {
+                    companyId = body.CompanyId;
+                }
+
+                accountStatus = body.AccountStatus;
+                creditLimit = body.CreditLimit;
+                limitPercent = body.LimitPercent;
+                tolerance = body.Tolerance;
+                limitExpired = body.LimitExpired;
+                daysOverdue = body.DaysOverdue;
+                daysThreshold = body.DaysThreshold;
+                graceDays = body.GraceDays;
+                overdueAmount = body.OverdueAmount;
+                overdueThreshold = body.OverdueThreshold;
+                termsOfPayment = body.TermsOfPayment;
+                confirm = body.ConfirmWrites;
+            }
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Confirm the blocking rules before they are saved.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "confirm_writes_required", message = "Confirm the blocking rules before they are saved.", session = SessionPayload(session) });
+        }
+
+        var written = await credit.SaveRulesAsync(
+            companyId,
+            new ErpCreditBlock.Rules(accountStatus, creditLimit, limitPercent, tolerance, limitExpired, daysOverdue, daysThreshold, graceDays, overdueAmount, overdueThreshold, termsOfPayment),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallback,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static long CompanyHint(HttpContext context)
+    {
+        if (context.Request.Query.TryGetValue("company", out var companyQ)
+            && long.TryParse(companyQ.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedCompany))
+        {
+            return parsedCompany;
+        }
+
+        return 0L;
     }
 
     private static async Task<IResult> HandleBosWfDecideAsync(

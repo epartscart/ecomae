@@ -2880,6 +2880,10 @@ public static class EcomAeRoutes
     public const string ErpFiscalYearCreate = "/erp/fiscal-years/create";
     /// <summary>Hold, open, or close a fiscal year. Close posts the P&amp;L entry and opens the next year.</summary>
     public const string ErpFiscalYearAction = "/erp/fiscal-years/action";
+    /// <summary>Save a customer's permanent credit limit and terms, and an optional temporary limit that replaces them between two dates.</summary>
+    public const string ErpCreditProfileSave = "/erp/credit-management/profile";
+    /// <summary>Save the invoice blocking rules for a company: hold, credit limit, expiry, days overdue, overdue amount, and payment terms.</summary>
+    public const string ErpCreditRulesSave = "/erp/credit-management/rules";
     /// <summary>Live PHP bos_wf_decide twin (confirmWrites=true writes).</summary>
     public const string ErpApprovalsRequestDecide = "/erp/approvals/requests/decide";
     /// <summary>Live PHP epc_bos_wf_raise / bos_wf_raise_test twin (confirmWrites=true writes).</summary>
