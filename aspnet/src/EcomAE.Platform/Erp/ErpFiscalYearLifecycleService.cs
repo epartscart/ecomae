@@ -21,7 +21,10 @@ public sealed record ErpFiscalYearRow(
     long EndDate,
     string Status,
     decimal RetainedPl,
-    int PeriodCount);
+    int PeriodCount,
+    decimal CurrencyRevaluation = 0m,
+    decimal Fraction = 0m,
+    decimal Depreciation = 0m);
 
 /// <summary>
 /// Hold, open, and close a fiscal year. Close posts the P&amp;L entry and opens
@@ -71,6 +74,34 @@ public sealed class ErpFiscalYearLifecycleService : IErpFiscalYearLifecycleServi
                     reader.IsDBNull(4) ? "open" : reader.GetString(4),
                     reader.IsDBNull(5) ? 0m : Convert.ToDecimal(reader.GetValue(5), CultureInfo.InvariantCulture),
                     Convert.ToInt32(reader.GetValue(6), CultureInfo.InvariantCulture)));
+            }
+
+            for (var i = 0; i < rows.Count; i++)
+            {
+                var row = rows[i];
+                if (!row.Status.Equals("open", StringComparison.OrdinalIgnoreCase)
+                    && !row.Status.Equals("hold", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var snap = await ErpFinancialCloseData.LoadAsync(connection, null, row.StartDate, row.EndDate, cancellationToken).ConfigureAwait(false);
+                    var fxLines = ErpFinancialCloseBooks.Revaluation(snap.Monetary, snap.RevaluationAlready);
+                    var fractionLines = ErpFinancialCloseBooks.Fraction(snap.Monetary, snap.FractionAlready);
+                    var depreciation = ErpFinancialCloseBooks.Depreciate(snap.Assets, snap.OpenMonths);
+                    rows[i] = row with
+                    {
+                        CurrencyRevaluation = ErpFinancialCloseBooks.SignedGain(fxLines, ErpFinancialCloseBooks.FxAccount),
+                        Fraction = ErpFinancialCloseBooks.SignedGain(fractionLines, ErpFinancialCloseBooks.FractionAccount),
+                        Depreciation = depreciation.Total,
+                    };
+                }
+                catch (DbException)
+                {
+                    // The year list still opens when currency or asset tables are absent.
+                }
             }
 
             return rows;
@@ -202,9 +233,11 @@ public sealed class ErpFiscalYearLifecycleService : IErpFiscalYearLifecycleServi
 
         await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await EnsureClearingAccountsAsync(connection, cancellationToken).ConfigureAwait(false);
+        await EnsureAdjustmentAccountsAsync(connection, cancellationToken).ConfigureAwait(false);
         var companies = await CompanyIdsAsync(connection, cancellationToken).ConfigureAwait(false);
         var exclude = "FY-CLOSE-" + year.Id.ToString(CultureInfo.InvariantCulture) + "%";
         decimal net = 0m;
+        var adjustments = "";
 
         await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -228,6 +261,8 @@ public sealed class ErpFiscalYearLifecycleService : IErpFiscalYearLifecycleServi
                 year.Id,
                 year.EndDate,
                 year.EndDate).ConfigureAwait(false);
+
+            adjustments = await PostAdjustmentsAsync(connection, tx, year, companies[0], request, cancellationToken).ConfigureAwait(false);
 
             foreach (var companyId in companies)
             {
@@ -304,11 +339,153 @@ public sealed class ErpFiscalYearLifecycleService : IErpFiscalYearLifecycleServi
         var books = companies.Count > 1
             ? " across " + companies.Count.ToString(CultureInfo.InvariantCulture) + " legal entities"
             : string.Empty;
-        var summary = year.Label + " is closed · " + outcome + " net P&L " + amount + books + ". " + opened.Message;
+        var summary = year.Label + " is closed · " + outcome + " net P&L " + amount + books + ". " + adjustments + " " + opened.Message;
         return opened.Succeeded
             ? ErpSimpleWriteResult.Ok(summary, year.Id)
             : ErpSimpleWriteResult.Fail(opened.Code, summary);
     }
+
+    /// <summary>
+    /// Posts currency revaluation, the currency fraction, and depreciation on the
+    /// first legal entity before profit and loss is cleared. A second close finds
+    /// the same references and does not post them again.
+    /// </summary>
+    private async Task<string> PostAdjustmentsAsync(
+        DbConnection connection,
+        DbTransaction transaction,
+        YearRow year,
+        long companyId,
+        ErpFiscalYearActionRequest request,
+        CancellationToken cancellationToken)
+    {
+        ErpFinancialCloseData.Snapshot snapshot;
+        try
+        {
+            snapshot = await ErpFinancialCloseData.LoadAsync(connection, transaction, year.StartDate, year.EndDate, cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            return "Currency revaluation, fraction, and depreciation were skipped.";
+        }
+
+        var fxReference = JournalReference("FY-FX", year.Id, companyId);
+        var fractionReference = JournalReference("FY-FRAC", year.Id, companyId);
+        var depreciationReference = JournalReference("FY-DEPR", year.Id, companyId);
+        var fxLines = ErpFinancialCloseBooks.Revaluation(snapshot.Monetary, snapshot.RevaluationAlready);
+        var fractionLines = ErpFinancialCloseBooks.Fraction(snapshot.Monetary, snapshot.FractionAlready);
+        var depreciation = ErpFinancialCloseBooks.Depreciate(snapshot.Assets, snapshot.OpenMonths);
+
+        var fxText = await PostOneAsync(
+            connection,
+            transaction,
+            year,
+            companyId,
+            request,
+            fxReference,
+            "Year-end currency revaluation",
+            fxLines,
+            "Currency revaluation " + Money(ErpFinancialCloseBooks.SignedGain(fxLines, ErpFinancialCloseBooks.FxAccount)),
+            cancellationToken).ConfigureAwait(false);
+        var fractionText = await PostOneAsync(
+            connection,
+            transaction,
+            year,
+            companyId,
+            request,
+            fractionReference,
+            "Year-end currency fraction",
+            fractionLines,
+            "Fraction " + Money(ErpFinancialCloseBooks.SignedGain(fractionLines, ErpFinancialCloseBooks.FractionAccount)),
+            cancellationToken).ConfigureAwait(false);
+
+        string depreciationText;
+        if (await JournalIdAsync(connection, transaction, "adjustment", year.Id, depreciationReference, cancellationToken).ConfigureAwait(false) != 0)
+        {
+            depreciationText = "Depreciation is already posted.";
+        }
+        else if (depreciation.Lines.Count < 2)
+        {
+            depreciationText = "Depreciation 0.00.";
+        }
+        else
+        {
+            await PostJournalAsync(connection, transaction, year, companyId, request, depreciationReference, "Year-end depreciation", depreciation.Lines, cancellationToken).ConfigureAwait(false);
+            await ErpFinancialCloseData.SaveDepreciationAsync(connection, transaction, depreciation, year.EndDate, request.AdminId, cancellationToken).ConfigureAwait(false);
+            depreciationText = "Depreciation " + Money(depreciation.Total) + ".";
+        }
+
+        return fxText + " " + fractionText + " " + depreciationText;
+    }
+
+    private async Task<string> PostOneAsync(
+        DbConnection connection,
+        DbTransaction transaction,
+        YearRow year,
+        long companyId,
+        ErpFiscalYearActionRequest request,
+        string reference,
+        string description,
+        IReadOnlyList<ErpFyCloseEntryLine> lines,
+        string postedText,
+        CancellationToken cancellationToken)
+    {
+        if (await JournalIdAsync(connection, transaction, "adjustment", year.Id, reference, cancellationToken).ConfigureAwait(false) != 0)
+        {
+            return description + " is already posted.";
+        }
+
+        if (lines.Count < 2)
+        {
+            return postedText + ".";
+        }
+
+        await PostJournalAsync(connection, transaction, year, companyId, request, reference, description, lines, cancellationToken).ConfigureAwait(false);
+        return postedText + ".";
+    }
+
+    private Task PostJournalAsync(
+        DbConnection connection,
+        DbTransaction transaction,
+        YearRow year,
+        long companyId,
+        ErpFiscalYearActionRequest request,
+        string reference,
+        string description,
+        IReadOnlyList<ErpFyCloseEntryLine> lines,
+        CancellationToken cancellationToken)
+        => PostReadyAsync(connection, transaction, year, companyId, request, reference, description, lines, cancellationToken);
+
+    private async Task PostReadyAsync(
+        DbConnection connection,
+        DbTransaction transaction,
+        YearRow year,
+        long companyId,
+        ErpFiscalYearActionRequest request,
+        string reference,
+        string description,
+        IReadOnlyList<ErpFyCloseEntryLine> lines,
+        CancellationToken cancellationToken)
+    {
+        var ready = await ToGlLinesAsync(connection, transaction, lines, cancellationToken).ConfigureAwait(false);
+        await _gl.PostJournalAsync(
+            connection,
+            transaction,
+            new ErpGlJournalHeader
+            {
+                JournalDate = year.EndDate,
+                Reference = reference,
+                Description = description,
+                SourceType = "adjustment",
+                SourceId = year.Id,
+                CompanyId = companyId,
+            },
+            ready,
+            request.AdminId,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private static string Money(decimal amount)
+        => amount.ToString("#,##0.00", CultureInfo.InvariantCulture);
 
     private async Task<ErpSimpleWriteResult> FinishNextYearAsync(
         DbConnection connection,
@@ -439,6 +616,15 @@ public sealed class ErpFiscalYearLifecycleService : IErpFiscalYearLifecycleServi
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         await InsertAccountAsync(connection, ErpFiscalYearBooks.RetainedAccount, "Retained earnings", "equity", "credit", "Year-end profit and loss", now, cancellationToken).ConfigureAwait(false);
         await InsertAccountAsync(connection, ErpFiscalYearBooks.ClearingAccount, "Profit and loss clearing", "equity", "credit", "Clears income and expense at year end", now, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task EnsureAdjustmentAccountsAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await InsertAccountAsync(connection, ErpFinancialCloseBooks.FxAccount, "Foreign exchange gain or loss", "expense", "debit", "Closing-rate difference on monetary items", now, cancellationToken).ConfigureAwait(false);
+        await InsertAccountAsync(connection, ErpFinancialCloseBooks.FractionAccount, "Currency fraction", "expense", "debit", "Fil left when a foreign amount is rounded at the closing rate", now, cancellationToken).ConfigureAwait(false);
+        await InsertAccountAsync(connection, ErpFinancialCloseBooks.DepreciationExpense, "Depreciation expense", "expense", "debit", "Period depreciation of fixed assets", now, cancellationToken).ConfigureAwait(false);
+        await InsertAccountAsync(connection, ErpFinancialCloseBooks.AccumulatedDepreciation, "Accumulated depreciation", "asset", "credit", "Contra-asset: cumulative depreciation on fixed assets", now, cancellationToken).ConfigureAwait(false);
     }
 
     private static Task<int> InsertAccountAsync(

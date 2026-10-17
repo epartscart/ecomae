@@ -101,6 +101,10 @@ public sealed class ErpFiscalYearLifecycleTests
         Assert.Contains("value=\"close\"", razor, StringComparison.Ordinal);
         Assert.Contains("3900", razor, StringComparison.Ordinal);
         Assert.Contains("3200", razor, StringComparison.Ordinal);
+        Assert.Contains("6900", razor, StringComparison.Ordinal);
+        Assert.Contains("6910", razor, StringComparison.Ordinal);
+        Assert.Contains("5100", razor, StringComparison.Ordinal);
+        Assert.Contains("1550", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@section", razor, StringComparison.Ordinal);
@@ -121,6 +125,9 @@ public sealed class ErpFiscalYearLifecycleTests
         Assert.Contains("SourceType = \"opening\"", lifecycle, StringComparison.Ordinal);
         Assert.Contains("\"FY-CLOSE\"", lifecycle, StringComparison.Ordinal);
         Assert.Contains("\"FY-OPEN\"", lifecycle, StringComparison.Ordinal);
+        Assert.Contains("\"FY-FX\"", lifecycle, StringComparison.Ordinal);
+        Assert.Contains("\"FY-FRAC\"", lifecycle, StringComparison.Ordinal);
+        Assert.Contains("\"FY-DEPR\"", lifecycle, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", lifecycle, StringComparison.Ordinal);
 
         var program = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs"));

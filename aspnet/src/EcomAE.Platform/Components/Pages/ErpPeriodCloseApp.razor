@@ -101,7 +101,7 @@
         .epc-fy-board { margin: 0 0 1rem; padding: .9rem 1rem; border: 1px solid #c5d4de; border-radius: .4rem; background: #f8fafc; color: #1d2740; }
         .epc-fy-board h2 { margin: 0 0 .4rem; font-size: 1.05rem; color: #1d2740; }
         .epc-fy-board p, .epc-fy-board li, .epc-fy-board label, .epc-fy-board td, .epc-fy-board th, .epc-fy-board option { color: #1d2740; }
-        .epc-fy-board button { background: #1f4e79; color: #fff !important; border: 0; border-radius: .25rem; padding: .35rem .75rem; }
+        .epc-fy-board button { background: #1f4e79 !important; color: #fff !important; border: 0; border-radius: .25rem; padding: .35rem .75rem; }
         .epc-fy-board select, .epc-fy-board input { color: #1d2740; background: #fff; }
         .epc-fy-board table { width: 100%; border-collapse: collapse; }
         .epc-fy-board th, .epc-fy-board td { text-align: left; padding: .35rem .45rem; border-bottom: 1px solid #d5e0ea; }
@@ -115,6 +115,7 @@
             <li><strong>Close</strong> zeros income and expense through account 3900. Profit is credited to retained earnings 3200. A loss is debited to 3200. The next year starts the next day. Balance-sheet accounts carry forward as the opening entry. Income and expense start at zero.</li>
         </ul>
         <p>The year-end month must still accept the closing journal. A locked or soft-closed month blocks that entry until the month is opened. Close writes one entry for each legal entity, because the fiscal year is shared.</p>
+        <p>Before profit and loss is cleared, Close posts three adjustments on the first legal entity. Currency revaluation restates open foreign-currency receivables at the year-end rate. A gain or loss goes to account 6900 and is not reversed the next day. The fraction is the fil left when the foreign amount times that rate is rounded. It posts to account 6910 only when the new amount is within 1.00. A larger difference stays for review. Depreciation for each month of the year that has not already been run posts expense 5100 and accumulated depreciation 1550. Those amounts then flow through 3900 into retained earnings 3200. An open or held year shows the amounts Close would post.</p>
         @if (_isAdmin)
         {
             <form method="post" action="@FyActionHref" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:.6rem 0">
@@ -144,6 +145,9 @@
                             <th>To</th>
                             <th>Status</th>
                             <th>Retained P&amp;L</th>
+                            <th>Revaluation</th>
+                            <th>Fraction</th>
+                            <th>Depreciation</th>
                             <th>Periods</th>
                         </tr>
                     </thead>
@@ -156,6 +160,9 @@
                                 <td>@FormatTime(year.EndDate)</td>
                                 <td>@(string.IsNullOrWhiteSpace(year.Status) ? "open" : year.Status)</td>
                                 <td>@year.RetainedPl.ToString("#,##0.00", CultureInfo.InvariantCulture)</td>
+                                <td>@CloseFigure(year, year.CurrencyRevaluation)</td>
+                                <td>@CloseFigure(year, year.Fraction)</td>
+                                <td>@CloseFigure(year, year.Depreciation)</td>
                                 <td>@year.PeriodCount.ToString(CultureInfo.InvariantCulture)</td>
                             </tr>
                         }
@@ -318,6 +325,11 @@
                 + "company=" + _companyId.ToString(CultureInfo.InvariantCulture);
         }
     }
+
+    private static string CloseFigure(ErpFiscalYearRow year, decimal amount)
+        => year.Status.Equals("open", StringComparison.OrdinalIgnoreCase) || year.Status.Equals("hold", StringComparison.OrdinalIgnoreCase)
+            ? amount.ToString("#,##0.00", CultureInfo.InvariantCulture)
+            : "—";
 
     private string OpenedCaption => _opened is null
         ? ""
