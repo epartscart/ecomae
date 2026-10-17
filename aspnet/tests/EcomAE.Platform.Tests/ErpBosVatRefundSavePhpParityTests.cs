@@ -20,6 +20,11 @@ public sealed class ErpBosVatRefundSavePhpParityTests
         Assert.Contains("epc-vat-actionbar", text, StringComparison.Ordinal);
         Assert.Contains("epc-vat-position", text, StringComparison.Ordinal);
         Assert.Contains("UAE registered country", text, StringComparison.Ordinal);
+        Assert.Contains("Visual guide", text, StringComparison.Ordinal);
+        Assert.Contains("Drill down", text, StringComparison.Ordinal);
+        Assert.Contains("Fetch FTA legislation", text, StringComparison.Ordinal);
+        Assert.Contains("Fetch &amp; build", text, StringComparison.Ordinal);
+        Assert.Contains("Article 65(5)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Open PHP reference", text, StringComparison.Ordinal);
