@@ -3149,6 +3149,9 @@ public static class EcomAeRoutes
     public const string ErpTrialBalanceApp = "/erp/trial-balance-app";
     public const string ErpTrialBalanceSnapshot = "/erp/trial-balance/snapshot";
     public const string ErpTrialBalanceExport = "/erp/trial-balance/export";
+    public const string ErpTrialBalanceFile = "/erp/trial-balance/file";
+    /// <summary>IFRS 18 statement print, PDF, and Excel.</summary>
+    public const string ErpFinancialReportFile = "/erp/financial-reports/file";
     public const string ErpIntercompanyApp = "/erp/intercompany-app";
     /// <summary>Intercompany relationship, account, elimination, tax, and currency setup. confirmWrites=true writes the setup tables.</summary>
     public const string ErpIntercompanySave = "/erp/intercompany/save";
