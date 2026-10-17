@@ -333,6 +333,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpCreditPartnerSave, HandleCreditPartnerAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpCreditDocument, HandleCreditDocumentSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpCreditDocument, HandleCreditDocumentOpenAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpSalesOrderSplit, HandleOrderSplitAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpPurchaseOrderSplit, HandleOrderSplitAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpApprovalsRequestDecide, HandleBosWfDecideAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpApprovalsRequestRaise, HandleBosWfRaiseAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpContactsPartiesSave, HandleOaPartySaveAsync).DisableAntiforgery();
@@ -18652,6 +18654,63 @@ public sealed class ErpModule : ISurfaceModule
             companyId,
             new ErpCreditBlock.Rules(accountStatus, creditLimit, limitPercent, tolerance, limitExpired, daysOverdue, daysThreshold, graceDays, overdueAmount, overdueThreshold, termsOfPayment, documents),
             cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallback,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleOrderSplitAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpOrderSplitService splits,
+        CancellationToken cancellationToken)
+    {
+        var sales = context.Request.Path.Value?.Contains("/sales-orders/", StringComparison.OrdinalIgnoreCase) == true;
+        var side = sales ? ErpOrderSplit.Sales : ErpOrderSplit.Purchase;
+        var fallback = sales ? "/erp/sales-orders-app" : "/erp/purchase-orders-app";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(fallback), "Admin ERP capability required for a partial order.");
+        }
+
+        var action = string.Empty;
+        var linesText = string.Empty;
+        var orderId = 0L;
+        var lineId = 0L;
+        var qty = 0m;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            action = LiveWriteFormBinder.Text(form, "action");
+            linesText = LiveWriteFormBinder.Text(form, "lines");
+            orderId = LiveWriteFormBinder.Long(form, "order_id", "orderId");
+            lineId = LiveWriteFormBinder.Long(form, "line_id", "lineId");
+            qty = LiveWriteFormBinder.Dec(form, "qty");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        var moves = ErpOrderSplit.Parse(linesText).ToList();
+        if (moves.Count == 0 && orderId > 0 && lineId > 0 && qty > 0m)
+        {
+            moves.Add(new ErpOrderSplit.Move(orderId, lineId, qty));
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Confirm the partial order before it is posted.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "confirm_writes_required", message = "Confirm the partial order before it is posted.", session = SessionPayload(session) });
+        }
+
+        var written = await splits.PostAsync(new ErpOrderSplitPost(side, action, moves), cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
             fallback,
