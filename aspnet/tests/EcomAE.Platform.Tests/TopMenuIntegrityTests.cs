@@ -27,8 +27,6 @@ public sealed class TopMenuIntegrityTests
         "CpDashboardSummaryApp.razor", "ErpNavigationCoverageApp.razor",
         "CpPriceListsApp.razor", "CpPricesEditApp.razor", "CpPoApprovalsApp.razor", "CpCrmActivitiesApp.razor",
         "CpAdminSessionsApp.razor", "CpPrintDocsApp.razor", "CpBulkUploadApp.razor", "CpFinanceCloseApp.razor",
-        "ErpIntercompanyApp.razor",
-        "ErpPricingApp.razor",
     ];
 
     public static IEnumerable<object[]> Menus()
