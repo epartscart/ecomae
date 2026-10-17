@@ -73,6 +73,16 @@
                     <div class="field wide"><label for="rv_note">Narration / note</label><input id="rv_note" type="text" name="note" maxlength="255" value="@_rvNote" /></div>
                     <div class="form-actions">
                         <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="is_advance" value="true" checked="@_rvAdvance" /> Advance receipt</label>
+                        <label>VAT on the advance
+                            <select name="supply_treatment">
+                                <option value="taxable">Taxable supply, 5 percent</option>
+                                <option value="zero_rated">Zero-rated export</option>
+                                <option value="designated_goods">Designated zone goods, not consumed</option>
+                                <option value="designated_consumed">Designated zone goods, consumed</option>
+                                <option value="designated_service">Designated zone service</option>
+                                <option value="free_zone">Free zone, not a designated zone</option>
+                            </select>
+                        </label>
                         <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="auto_allocate" value="true" checked="@_rvAllocate" /> Auto-allocate open invoices</label>
                         <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="post_gl" value="true" checked /> Post to GL</label>
                         <span style="flex:1;"></span>
@@ -104,6 +114,22 @@
                     <div class="field wide"><label for="pv_note">Narration / note</label><input id="pv_note" type="text" name="note" maxlength="255" value="@_pvNote" /></div>
                     <div class="form-actions">
                         <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="is_advance" value="true" checked="@_pvAdvance" /> Advance payment</label>
+                        <label>Supplier tax invoice
+                            <select name="supplier_tax_invoice">
+                                <option value="true" selected>Held, recover input VAT now</option>
+                                <option value="false">Not held yet, keep the whole payment on 2060</option>
+                            </select>
+                        </label>
+                        <label>VAT on the advance
+                            <select name="supply_treatment">
+                                <option value="taxable">Taxable supply, 5 percent</option>
+                                <option value="zero_rated">Zero-rated export</option>
+                                <option value="designated_goods">Designated zone goods, not consumed</option>
+                                <option value="designated_consumed">Designated zone goods, consumed</option>
+                                <option value="designated_service">Designated zone service</option>
+                                <option value="free_zone">Free zone, not a designated zone</option>
+                            </select>
+                        </label>
                         <label style="display:inline-flex;flex-direction:row;align-items:center;gap:.35rem;font-weight:500;"><input type="checkbox" name="auto_allocate" value="true" checked="@_pvAllocate" /> Auto-allocate open bills</label>
                         <span style="flex:1;"></span>
                         <button type="reset" class="btn btn-sm btn-default">Clear</button>
