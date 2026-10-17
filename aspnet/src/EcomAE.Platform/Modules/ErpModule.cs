@@ -335,6 +335,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpCreditDocument, HandleCreditDocumentOpenAsync);
         endpoints.MapPost(EcomAeRoutes.ErpSalesOrderSplit, HandleOrderSplitAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPurchaseOrderSplit, HandleOrderSplitAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpInvoiceShippingPack, HandleShippingPackAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpApprovalsRequestDecide, HandleBosWfDecideAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpApprovalsRequestRaise, HandleBosWfRaiseAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpContactsPartiesSave, HandleOaPartySaveAsync).DisableAntiforgery();
@@ -18654,6 +18655,70 @@ public sealed class ErpModule : ISurfaceModule
             companyId,
             new ErpCreditBlock.Rules(accountStatus, creditLimit, limitPercent, tolerance, limitExpired, daysOverdue, daysThreshold, graceDays, overdueAmount, overdueThreshold, termsOfPayment, documents),
             cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallback,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleShippingPackAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShippingPackService packs,
+        CancellationToken cancellationToken)
+    {
+        const string fallback = "/erp/invoices-app";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(fallback), "Admin ERP capability required for shipping documents.");
+        }
+
+        var action = "prepare";
+        var invoices = string.Empty;
+        var packages = 0;
+        var weight = 0m;
+        var carrier = string.Empty;
+        var tracking = string.Empty;
+        var shipTo = string.Empty;
+        var packId = 0L;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            action = LiveWriteFormBinder.Text(form, "action");
+            invoices = LiveWriteFormBinder.Text(form, "invoices");
+            packages = LiveWriteFormBinder.Int(form, "packages");
+            weight = LiveWriteFormBinder.Dec(form, "weight");
+            carrier = LiveWriteFormBinder.Text(form, "carrier");
+            tracking = LiveWriteFormBinder.Text(form, "tracking");
+            shipTo = LiveWriteFormBinder.Text(form, "ship_to", "shipTo");
+            packId = LiveWriteFormBinder.Long(form, "pack_id", "packId");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Confirm the shipping documents before they are prepared.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "confirm_writes_required", message = "Confirm the shipping documents before they are prepared.", session = SessionPayload(session) });
+        }
+
+        var release = string.Equals(action, "release", StringComparison.OrdinalIgnoreCase);
+        var written = release
+            ? await packs.ReleaseAsync(packId, cancellationToken)
+            : await packs.PrepareAsync(new ErpShippingPackPrepare(ErpShippingPack.Parse(invoices), packages, weight, carrier, tracking, shipTo), cancellationToken);
+        if (LiveWriteFormBinder.WantsHtml(context) && written.Succeeded && !release)
+        {
+            var dest = ClientErpPath.PrefixIfBound(context, "/erp/invoices-app?pack=" + written.Id.ToString(CultureInfo.InvariantCulture));
+            return Results.Redirect(dest + "&ok=" + Uri.EscapeDataString(written.Message ?? string.Empty));
+        }
+
         return LiveWriteFormBinder.Complete(
             context,
             fallback,
