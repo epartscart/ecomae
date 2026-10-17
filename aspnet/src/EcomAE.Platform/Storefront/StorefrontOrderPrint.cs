@@ -578,16 +578,30 @@ public static partial class StorefrontPhpAjax
             .Append("Print / Save as PDF</button>")
             .Append("<span style=\"margin-left:10px;color:#64748b;font-size:12px;\">Use your browser print dialog → Save as PDF</span>")
             .Append("</div>");
-        html.Append("<div class=\"hdr\"><h1>TAX INVOICE</h1><p style=\"margin:4px 0 0;color:#64748b;\">UAE Federal Tax Authority · e-Invoice (PINT-AE) · ")
+        html.Append("<div class=\"hdr\"><h1>TAX INVOICE</h1><p style=\"margin:4px 0 0;color:#64748b;\">UAE Federal Tax Authority · e-Invoice (PINT-AE) · Invoice number ")
             .Append(h(doc.InvoiceNumber)).Append("</p></div>");
 
         var sellerAddress = (Coalesce(seller, "seller_address_line1", string.Empty) + ", " + Coalesce(seller, "seller_city", string.Empty) + ", "
             + Coalesce(seller, "seller_emirate", string.Empty) + ", " + Coalesce(seller, "seller_country_code", "AE")).Trim(' ', ',');
         var sellerReg = (Coalesce(seller, "seller_legal_reg_type", string.Empty) + " " + Coalesce(seller, "seller_legal_reg_no", string.Empty)).Trim();
-        html.Append("<div class=\"grid\"><div class=\"box\"><h3>Seller</h3><strong>").Append(h(Coalesce(seller, "seller_name", "Company"))).Append("</strong><br>TRN: ")
-            .Append(h(Coalesce(seller, "seller_trn", "—")))
-            .Append(sellerReg.Length > 0 ? "<br>Legal reg: " + h(sellerReg) : string.Empty)
-            .Append("<br>").Append(h(sellerAddress))
+        var sellerTrn = Coalesce(seller, "seller_trn", string.Empty);
+        var endpoint = ErpEinvoiceLaw.Endpoint(sellerTrn);
+        if (endpoint.Length == 0)
+        {
+            endpoint = "0235:";
+        }
+
+        var authority = Coalesce(seller, "seller_authority_name", string.Empty).Trim();
+        if (authority.Length == 0)
+        {
+            authority = "Federal Tax Authority";
+        }
+
+        html.Append("<div class=\"grid\"><div class=\"box\"><h3>Supplier</h3><strong>").Append(h(Coalesce(seller, "seller_name", "Company"))).Append("</strong><br>TRN: ")
+            .Append(h(sellerTrn.Length > 0 ? sellerTrn : "—"))
+            .Append("<br>Legal registration: ").Append(h(sellerReg.Length > 0 ? sellerReg : "—"))
+            .Append("<br>Authority: ").Append(h(authority))
+            .Append("<br>Address: ").Append(h(sellerAddress))
             .Append(Filled(seller, "seller_phone") ? "<br>Tel: " + h(seller["seller_phone"]) : string.Empty)
             .Append(Filled(seller, "seller_email") ? "<br>" + h(seller["seller_email"]) : string.Empty)
             .Append("</div>");
@@ -596,7 +610,7 @@ public static partial class StorefrontPhpAjax
         var buyerAddress = (Coalesce(buyer, "buyer_address_line1", string.Empty) + ", " + Coalesce(buyer, "buyer_city", string.Empty) + ", "
             + Coalesce(buyer, "buyer_emirate", string.Empty) + ", " + Coalesce(buyer, "buyer_country_code", "AE")).Trim(' ', ',');
         html.Append("<div class=\"box\"><h3>Buyer</h3><strong>").Append(h(Coalesce(buyer, "buyer_name", "—"))).Append("</strong><br>TRN: ")
-            .Append(h(buyerTrn.Length > 0 ? buyerTrn : "Not registered / B2C")).Append("<br>").Append(h(buyerAddress))
+            .Append(h(buyerTrn.Length > 0 ? buyerTrn : "Not registered / B2C")).Append("<br>Address: ").Append(h(buyerAddress))
             .Append(Filled(buyer, "buyer_phone") ? "<br>Tel: " + h(buyer["buyer_phone"]) : string.Empty)
             .Append(Filled(buyer, "buyer_email") ? "<br>" + h(buyer["buyer_email"]) : string.Empty)
             .Append("</div>");
@@ -613,7 +627,7 @@ public static partial class StorefrontPhpAjax
 
         html.Append("</div></div>");
         html.Append("<p style=\"font-size:12px;color:#475569;margin:0 0 12px;\">This is a Tax Invoice for UAE VAT purposes. Seller TRN must appear on all tax invoices. Retain for minimum 5 years.</p>");
-        html.Append("<table><thead><tr><th>#</th><th>Description</th><th>Qty</th><th>Unit</th><th>Net</th><th>VAT %</th><th>VAT</th><th>Gross</th></tr></thead><tbody>");
+        html.Append("<table><thead><tr><th>#</th><th>Description</th><th>Quantity</th><th>Unit price</th><th>Net</th><th>VAT %</th><th>VAT amount</th><th>Gross</th></tr></thead><tbody>");
         foreach (var line in doc.Lines)
         {
             html.Append("<tr><td>").Append(line.LineNo.ToString(CultureInfo.InvariantCulture)).Append("</td><td>").Append(h(line.ItemName)).Append("</td>")
@@ -624,8 +638,13 @@ public static partial class StorefrontPhpAjax
         }
 
         html.Append("</tbody></table>");
-        html.Append("<table class=\"totals\"><tr><td>Subtotal ex VAT</td><td style=\"text-align:right;\">").Append(Nf(doc.SubtotalExVat)).Append(' ').Append(h(doc.CurrencyCode)).Append("</td></tr>")
-            .Append("<tr><td>VAT</td><td style=\"text-align:right;\">").Append(Nf(doc.TotalVat)).Append("</td></tr>")
+        var currency = string.IsNullOrWhiteSpace(doc.CurrencyCode) ? "AED" : doc.CurrencyCode;
+        var exchange = currency.Equals("AED", StringComparison.OrdinalIgnoreCase) ? "1" : "see the tax currency conversion";
+        html.Append("<table class=\"totals\"><tr><td>Subtotal ex VAT</td><td style=\"text-align:right;\">").Append(Nf(doc.SubtotalExVat)).Append(' ').Append(h(currency)).Append("</td></tr>")
+            .Append("<tr><td>Discount</td><td style=\"text-align:right;\">").Append(Nf(0m)).Append("</td></tr>")
+            .Append("<tr><td>VAT amount</td><td style=\"text-align:right;\">").Append(Nf(doc.TotalVat)).Append("</td></tr>")
+            .Append("<tr><td>Tax amount in AED</td><td style=\"text-align:right;\">").Append(Nf(doc.TotalVat)).Append(" AED</td></tr>")
+            .Append("<tr><td>Exchange rate</td><td style=\"text-align:right;\">").Append(h(exchange)).Append("</td></tr>")
             .Append("<tr class=\"total\"><td>Total incl. VAT</td><td style=\"text-align:right;\">").Append(Nf(doc.TotalInclVat)).Append("</td></tr>")
             .Append("<tr><td>Amount due</td><td style=\"text-align:right;\"><strong>").Append(Nf(doc.AmountDue)).Append("</strong></td></tr></table>");
         if (!PhpEmptyValue(doc.PaymentTerms))
@@ -633,6 +652,10 @@ public static partial class StorefrontPhpAjax
             html.Append("<p><strong>Payment terms:</strong> ").Append(h(doc.PaymentTerms)).Append("</p>");
         }
 
+        html.Append("<p>Electronic address ").Append(h(endpoint))
+            .Append(". Currency ").Append(h(currency))
+            .Append(". Payment due: ").Append(Date(doc.PaymentDueDate))
+            .Append(". Preceding invoice reference: none. No QR code. The electronic invoice is the XML file.</p>");
         html.Append("<div class=\"foot\">UAE FTA Tax Invoice / e-Invoice (PINT-AE) · Specification ")
             .Append(h("urn:peppol:pint:billing-1@ae-1"))
             .Append("<br>UUID ").Append(h(doc.Uuid))
