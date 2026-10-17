@@ -2884,6 +2884,12 @@ public static class EcomAeRoutes
     public const string ErpCreditProfileSave = "/erp/credit-management/profile";
     /// <summary>Save the invoice blocking rules for a company: hold, credit limit, expiry, days overdue, overdue amount, and payment terms.</summary>
     public const string ErpCreditRulesSave = "/erp/credit-management/rules";
+    /// <summary>Save the credit application party, requested limit, and the date the application expires.</summary>
+    public const string ErpCreditApplicationSave = "/erp/credit-management/application";
+    /// <summary>Add or remove a partner on a credit application. Each partner keeps their own papers.</summary>
+    public const string ErpCreditPartnerSave = "/erp/credit-management/partner";
+    /// <summary>Attach or open a credit-application document. POST stores the file. GET opens one stored file.</summary>
+    public const string ErpCreditDocument = "/erp/credit-management/document";
     /// <summary>Live PHP bos_wf_decide twin (confirmWrites=true writes).</summary>
     public const string ErpApprovalsRequestDecide = "/erp/approvals/requests/decide";
     /// <summary>Live PHP epc_bos_wf_raise / bos_wf_raise_test twin (confirmWrites=true writes).</summary>
