@@ -908,8 +908,12 @@ public static class EcomAeRoutes
     public const string ErpInvoicesCancel = "/erp/invoices/cancel";
     /// <summary>ERP so_cancel compatibility endpoint with dry-run and confirmed-write modes.</summary>
     public const string ErpSalesOrdersCancel = "/erp/sales-orders/cancel";
+    /// <summary>Post a partial confirmation, delivery, invoice, or backorder cancellation. One document can list several sales orders.</summary>
+    public const string ErpSalesOrderSplit = "/erp/sales-orders/split";
     /// <summary>Wave B dry-run draft PO delete (PHP po_delete remains authoritative).</summary>
     public const string ErpPurchaseOrdersDelete = "/erp/purchase-orders/delete";
+    /// <summary>Post a partial confirmation, delivery, invoice, or backorder cancellation. One document can list several purchase orders.</summary>
+    public const string ErpPurchaseOrderSplit = "/erp/purchase-orders/split";
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";
