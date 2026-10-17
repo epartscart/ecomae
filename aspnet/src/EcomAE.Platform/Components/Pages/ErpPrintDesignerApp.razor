@@ -32,9 +32,21 @@
         .epc-dd-tabs a { padding:.35rem .7rem; border:1px solid #c5cdd6; border-radius:4px; text-decoration:none; }
         .epc-dd-tabs a.is-active { background:#1f4e79; color:#fff; border-color:#1f4e79; }
         .epc-dd-kinds { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:.45rem; margin:0 0 .8rem; }
-        .epc-dd-kinds a { display:block; border:1px solid #d5dde6; border-radius:4px; padding:.45rem .55rem; background:#f7fafc; text-decoration:none; min-width:0; }
-        .epc-dd-kinds a.is-active { border-color:#1f4e79; background:#eef4fa; }
-        .epc-dd-kinds strong { display:block; }
+        .epc-dd-kinds a { display:block; border:1px solid #d5dde6; border-radius:4px; padding:.45rem .55rem; background:#f7fafc; text-decoration:none; min-width:0; color:#1d2740; }
+        .epc-dd-kinds a.is-active { border-color:#1f4e79; background:#eef4fa; box-shadow:inset 3px 0 0 #1f4e79; }
+        .epc-erp-cp-shell .epc-dd-kinds a,
+        .epc-erp-cp-shell .epc-dd-kinds a:link,
+        .epc-erp-cp-shell .epc-dd-kinds a:visited,
+        .epc-erp-cp-shell .epc-dd-kinds a:hover,
+        .epc-erp-cp-shell .epc-dd-kinds a:focus,
+        .epc-erp-cp-shell .epc-dd-kinds a.is-active,
+        .epc-erp-cp-shell .epc-dd-kinds a.is-active:hover,
+        .epc-erp-cp-shell .epc-dd-kinds a.is-active:focus,
+        .epc-erp-cp-shell .epc-dd-kinds a.is-active:visited,
+        .epc-erp-cp-shell .epc-dd-kinds a strong,
+        .epc-erp-cp-shell .epc-dd-kinds a span { color:#1d2740 !important; }
+        .epc-dd-kinds strong { display:block; color:#1d2740; }
+        .epc-dd-kinds span { color:#334155; }
         .epc-dd-steps { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:.45rem; margin:0; padding:0; list-style:none; }
         .epc-dd-steps li { border:1px solid #d5dde6; border-radius:4px; padding:.45rem .55rem; background:#fff; }
         .epc-dd-miss { color:#9f1239; font-weight:700; }
