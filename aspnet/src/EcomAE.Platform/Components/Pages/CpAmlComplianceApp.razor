@@ -31,10 +31,12 @@
         .epc-aml-sheet h3{margin:0 0 6px;color:#1d2740;font-size:15px;}
         .epc-aml-sheet h4{margin:10px 0 4px;color:#1d2740;font-size:13px;}
         .epc-aml-sheet p{margin:0 0 6px;color:#334155;font-size:13px;line-height:1.45;}
-        .epc-aml-countries{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px;}
+        .epc-aml-countries{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px;align-items:start;}
         .epc-aml-country{border:1px solid #d5dde6;border-radius:8px;padding:8px 10px;background:#fff;}
         .epc-aml-country h3{margin:0 0 6px;color:#1d2740;font-size:13px;}
+        .epc-aml-country ul{margin:0;padding-left:1.1rem;}
         .epc-aml-country li{color:#1d2740;font-size:12px;margin:0 0 3px;}
+        .epc-aml-edd ul{columns:2;column-gap:12px;}
         .epc-aml-refuse{background:#fef2f2;border-color:#fecaca;}
         .epc-aml-hold{background:#fffbeb;border-color:#fde68a;}
         .epc-aml-edd{background:#f8fbff;border-color:#dbe7f5;}
@@ -44,7 +46,7 @@
         .epc-aml-diary{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 0;}
         .epc-aml-diary th,.epc-aml-diary td{border:1px solid #e6eaf1;padding:6px 8px;text-align:left;color:#1d2740;}
         .epc-aml-diary th{background:#1d2740;color:#fff;}
-        @@media (max-width:900px){.epc-aml-steps,.epc-aml-docs,.epc-aml-countries{grid-template-columns:1fr;}}
+        @@media (max-width:900px){.epc-aml-steps,.epc-aml-docs,.epc-aml-countries{grid-template-columns:1fr;}.epc-aml-edd ul{columns:1;}}
     </style>
 
     <div class="col-lg-12">
