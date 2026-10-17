@@ -2878,6 +2878,8 @@ public static class EcomAeRoutes
     public const string ErpComplianceFilingSave = "/erp/compliance/filings/save";
     /// <summary>Live PHP fy_create twin (confirmWrites=true writes).</summary>
     public const string ErpFiscalYearCreate = "/erp/fiscal-years/create";
+    /// <summary>Hold, open, or close a fiscal year. Close posts the P&amp;L entry and opens the next year.</summary>
+    public const string ErpFiscalYearAction = "/erp/fiscal-years/action";
     /// <summary>Live PHP bos_wf_decide twin (confirmWrites=true writes).</summary>
     public const string ErpApprovalsRequestDecide = "/erp/approvals/requests/decide";
     /// <summary>Live PHP epc_bos_wf_raise / bos_wf_raise_test twin (confirmWrites=true writes).</summary>

@@ -1700,6 +1700,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "process-flow dept-head save", "/erp/process-flow/dept-heads/save", "write-live-gated", "POST PHP epc_pf_set_dept_head; confirmWrites=true writes ASP.NET; seed and schema ensure stay PHP."),
         new("erp", "compliance filing save", "/erp/compliance/filings/save", "write-live-gated", "POST PHP epc_bos_compliance_set_filing; confirmWrites=true writes ASP.NET; add/retention and schema ensure stay PHP."),
         new("erp", "fiscal year create", "/erp/fiscal-years/create", "write-live-gated", "POST PHP epc_fy_create_year; confirmWrites=true writes ASP.NET; year-end close and schema ensure stay PHP."),
+        new("erp", "fiscal year action", "/erp/fiscal-years/action", "write-live-gated", "POST hold, open, or close. Close posts the P&L clearing entry to retained earnings and opens the next year with balance-sheet opening balances."),
         new("erp", "approval request decide", "/erp/approvals/requests/decide", "write-live-gated", "POST PHP epc_bos_wf_decide; confirmWrites=true writes ASP.NET; save/raise and schema ensure stay PHP."),
         new("erp", "approval request raise", "/erp/approvals/requests/raise", "write-live-gated", "POST PHP epc_bos_wf_raise; confirmWrites=true writes ASP.NET; save/decide and schema ensure stay PHP."),
         new("erp", "address-book party save", "/erp/contacts/parties/save", "write-live-gated", "POST PHP epc_oa_party_save; confirmWrites=true writes ASP.NET; address, contact, calendar, holiday, and schema ensure stay PHP."),

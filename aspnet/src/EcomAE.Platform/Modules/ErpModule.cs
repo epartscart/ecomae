@@ -326,6 +326,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpProcessFlowDeptHeadSave, HandlePfSetDeptHeadAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpComplianceFilingSave, HandleBosComplianceFileAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFiscalYearCreate, HandleFyCreateAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFiscalYearAction, HandleFyActionAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpApprovalsRequestDecide, HandleBosWfDecideAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpApprovalsRequestRaise, HandleBosWfRaiseAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpContactsPartiesSave, HandleOaPartySaveAsync).DisableAntiforgery();
@@ -18372,6 +18373,61 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleFyActionAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFiscalYearLifecycleService years,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/period-close-app", "Admin ERP capability required for fiscal-year hold, open, or close.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFyActionBody>(context, cancellationToken) ?? new();
+        var action = body.Action;
+        var yearId = body.YearId > 0 ? body.YearId : body.Id;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            action = LiveWriteFormBinder.Text(form, "action");
+            yearId = LiveWriteFormBinder.Long(form, "year_id", "yearId", "id");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        var companyHint = 0L;
+        if (context.Request.Query.TryGetValue("company", out var companyQ)
+            && long.TryParse(companyQ.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedCompany))
+        {
+            companyHint = parsedCompany;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new
+            {
+                ok = false,
+                writes = 0,
+                phpAuthoritative = false,
+                validation_code = "confirm_writes_required",
+                message = "Confirm the fiscal year action to hold, open, or close.",
+                session = SessionPayload(session),
+            });
+        }
+
+        var written = await years.ApplyAsync(
+            new ErpFiscalYearActionRequest(action, yearId, companyHint, session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/period-close-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleBosWfDecideAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -30409,6 +30465,7 @@ public sealed class ErpModule : ISurfaceModule
         bool Monthly = false,
         bool ConfirmWrites = false);
     private sealed record ErpFyCloseBody(long Id = 0, string? Code = null, bool ConfirmWrites = false, long YearId = 0);
+    private sealed record ErpFyActionBody(string? Action = null, long Id = 0, long YearId = 0, bool ConfirmWrites = false);
     private sealed record ErpFyReopenBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpFyPeriodStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false, int PeriodNo = 0);
     private sealed record ErpPltJobSaveBody(
