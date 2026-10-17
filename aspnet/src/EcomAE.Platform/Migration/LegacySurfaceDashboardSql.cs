@@ -323,6 +323,43 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Per-case step trail for the process-flow route and the step table.</summary>
+    public const string SelectErpProcessFlowCaseSteps = """
+        SELECT cs.`case_id`, cs.`step_no`, IFNULL(cs.`name`,''), IFNULL(cs.`department`,''),
+               IFNULL(cs.`assignee_id`,0), IFNULL(a.`display_name`,''), IFNULL(cs.`status`,''),
+               IFNULL(cs.`comment`,''), IFNULL(cs.`activated_at`,0), IFNULL(cs.`completed_at`,0),
+               IFNULL(b.`display_name`,'')
+        FROM `epc_pf_case_steps` cs
+        LEFT JOIN `epc_erp_staff_profiles` a ON a.`user_id` = cs.`assignee_id`
+        LEFT JOIN `epc_erp_staff_profiles` b ON b.`user_id` = cs.`acted_by`
+        ORDER BY cs.`case_id`, cs.`step_no`, cs.`id`
+        LIMIT 2000
+        """;
+
+    /// <summary>Optional location on a case step. Missing column is ignored by the reader.</summary>
+    public const string SelectErpProcessFlowStepLocations = """
+        SELECT `case_id`, `step_no`, IFNULL(`location`,'')
+        FROM `epc_pf_case_steps`
+        ORDER BY `id`
+        LIMIT 2000
+        """;
+
+    /// <summary>Process template chain used to draw the org map.</summary>
+    public const string SelectErpProcessFlowTemplateSteps = """
+        SELECT `process_id`, `step_no`, IFNULL(`name`,''), IFNULL(`assign_department`,'')
+        FROM `epc_pf_steps`
+        ORDER BY `process_id`, `step_no`, `id`
+        LIMIT 500
+        """;
+
+    /// <summary>Optional staff place fields for the workforce cards.</summary>
+    public const string SelectErpProcessFlowStaffPlaces = """
+        SELECT `user_id`, IFNULL(`location`,''), IFNULL(`business_unit`,''), IFNULL(`legal_entity`,'')
+        FROM `epc_erp_staff_profiles`
+        WHERE IFNULL(`active`,1) = 1
+        LIMIT 500
+        """;
+
     public const string CountCustomerOrders = """
         SELECT COUNT(*) FROM `shop_orders` WHERE `user_id` = @userId
         """;
