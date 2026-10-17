@@ -827,6 +827,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGoldRateSetWriteService, Ecom
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlKycSaveWriteService, EcomAE.Platform.Erp.ErpAmlKycSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlAlertStatusWriteService, EcomAE.Platform.Erp.ErpAmlAlertStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlLegislationFetchWriteService, EcomAE.Platform.Erp.ErpAmlLegislationFetchWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRealEstateLawFetchWriteService, EcomAE.Platform.Erp.ErpRealEstateLawFetchWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlCheckWriteService, EcomAE.Platform.Erp.ErpAmlCheckWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlSeedRulesWriteService, EcomAE.Platform.Erp.ErpAmlSeedRulesWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlSettingsSaveWriteService, EcomAE.Platform.Erp.ErpAmlSettingsSaveWriteService>();

@@ -68,6 +68,8 @@ public static partial class PhpModuleCatalog
             "Property register, pipeline, leases, development and construction", false, false, "Common"),
         new("projects/real_estate_guide", "Real estate guide", "/erp/real-estate-app?tab=guide", "fa-map-signs", "projects",
             "The property path, one step at a time", false, false, "Common"),
+        new("projects/real_estate_compliance", "Real estate law", "/erp/real-estate-app?tab=compliance", "fa-balance-scale", "projects",
+            "Property law pack, fetch, and the graphical guide", false, false, "Common"),
         new("projects/real_estate_year_book", "Year book", "/erp/landlord-app?year=2025", "fa-calendar", "projects",
             "Income, expenses and profit and loss for each property and year", false, false, "Common"),
         new("projects/real_estate_leases", "Leases and collections", "/erp/real-estate-app?tab=leases", "fa-key", "projects",
