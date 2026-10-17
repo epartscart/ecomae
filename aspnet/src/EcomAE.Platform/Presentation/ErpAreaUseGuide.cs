@@ -115,7 +115,7 @@ public static class ErpAreaUseGuide
         "cost_acct" => "Enter the allocation, post it to the ledger, then read the cost report.",
         "audit_wb" => "Open the audit policy, review the trail, keep the proof, then close the period.",
         "fixed_assets" => "Register the asset, acquire it, run depreciation, then dispose of it when it leaves.",
-        "purchasing" => "Add the supplier, raise the requisition and the order, receive the goods, match the bill, then pay it.",
+        "purchasing" => "Add the supplier and the KYC file, raise the requisition and the order, receive the goods, match the bill, then pay it.",
         "ap" => "Set up the vendor, enter the bill, match it, pay it, then read the aging.",
         "landed_cost_area" => "Open the voyage, add the charges, allocate them, then read the inventory cost.",
         "expense" => "Enter the expense, approve it, reimburse it, then post it to the ledger.",
