@@ -143,7 +143,7 @@ public static class ErpAreaUseGuide
         "time_att" => "Register the time, approve it, transfer it to payroll, then read attendance.",
         "tax" => "Follow the e-invoice guide, send the PINT-AE invoice through the accredited service provider, then prepare the VAT return, withholding, and the filing.",
         "risk" => "Set the policy, record the claim, watch document expiry, then review the trail.",
-        "setup" => "Set the company, add the users, set security, then import the opening data.",
+        "setup" => "Set the company, add the users, set security, then design the invoice, voucher, and posted report.",
         "enterprise" => "Set the business unit and the legal entity, file the contract, then keep the documents.",
         "common" => "Open the agenda and the contacts, then file the document and the attachment.",
         "questionnaire" => "Design the questionnaire, choose the contacts, send it, then read the results.",

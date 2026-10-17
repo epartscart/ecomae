@@ -4,6 +4,7 @@
 @using System.Net
 @using System.Text.Json
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -17,7 +18,7 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Print templates" Subtitle="Open a row for page setup and full HTML/CSS bodies. Save writes here." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Document designer" Subtitle="Edit any invoice, voucher, or posted result here. The preview shows the result. Open a row for page setup and full HTML/CSS bodies. Save writes here." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Print template KPIs">
@@ -26,6 +27,103 @@
         <div class="kpi"><div class="lbl">Doc types</div><div class="val">@_docTypes.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
+    <style>
+        .epc-dd-tabs { display:flex; flex-wrap:wrap; gap:.4rem; margin:0 0 .8rem; }
+        .epc-dd-tabs a { padding:.35rem .7rem; border:1px solid #c5cdd6; border-radius:4px; text-decoration:none; }
+        .epc-dd-tabs a.is-active { background:#1f4e79; color:#fff; border-color:#1f4e79; }
+        .epc-dd-kinds { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:.45rem; margin:0 0 .8rem; }
+        .epc-dd-kinds a { display:block; border:1px solid #d5dde6; border-radius:4px; padding:.45rem .55rem; background:#f7fafc; text-decoration:none; min-width:0; }
+        .epc-dd-kinds a.is-active { border-color:#1f4e79; background:#eef4fa; }
+        .epc-dd-kinds strong { display:block; }
+        .epc-dd-steps { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:.45rem; margin:0; padding:0; list-style:none; }
+        .epc-dd-steps li { border:1px solid #d5dde6; border-radius:4px; padding:.45rem .55rem; background:#fff; }
+        .epc-dd-miss { color:#9f1239; font-weight:700; }
+        .epc-dd-ok { color:#166534; font-weight:700; }
+        .epc-dd-preview { width:100%; min-height:28rem; border:1px solid #c5d4de; background:#fff; }
+        @@media (max-width: 900px) {
+            .epc-dd-kinds, .epc-dd-steps { grid-template-columns:1fr; }
+        }
+    </style>
+
+    <nav class="epc-dd-tabs" aria-label="Document designer">
+        <a class="@TabClass("guide")" href="@TabHref("guide")">Visual guide</a>
+        <a class="@TabClass("design")" href="@TabHref("design")">Designer</a>
+        <a class="@TabClass("preview")" href="@TabHref("preview")">Preview</a>
+    </nav>
+
+    @if (_tab == "guide")
+    {
+        <p>A document is any paper the company issues or files. That includes a tax invoice, a credit note, a receipt, a delivery note, a packing slip, a payment voucher, a receipt voucher, a journal voucher, and the result of a posted transaction such as a posted journal or a trial balance.</p>
+        <p>The tax invoice follows the VAT tax invoice and, when the supply is in scope, the readable copy of the electronic invoice. It uses the words Tax Invoice. It names the supplier and the buyer, with address and TRN, a sequential invoice number, the issue date, and the supply date when that date differs. Each line has a description, quantity, unit price, and tax rate. The totals show the discount, the VAT amount, and the total. In another currency the tax amount is also in AED, with the exchange rate. The readable copy adds the UUID, the legal registration, the authority, the electronic address 0235 plus the first 10 digits of the TRN, the currency, the payment due date, and the preceding invoice when there is one. It has no QR code. The electronic file is XML.</p>
+        <p>A voucher and a posted report are not tax invoices. They show the number, the date, the party or the account, and the amount. A posted journal and a trial balance use posted amounts, and the debit matches the credit.</p>
+        <p>The full electronic-invoice dates, scope, and retention rules stay on the <a href="/erp/einvoice-documents-app?tab=guide">e-invoice guide</a>.</p>
+        <div class="epc-dd-kinds" aria-label="Documents">
+            @foreach (var kind in ErpDocumentDesign.Kinds)
+            {
+                <a class="@(_kind == kind.Code ? "is-active" : "")" href="@KindHref(kind.Code, "guide")">
+                    <strong>@kind.Title</strong>
+                    <span>@kind.Family. @kind.Purpose</span>
+                </a>
+            }
+        </div>
+        <h3 class="epc-erp-page-title">@_activeKind.Title check</h3>
+        <p>The law sample for this document is checked below. Open Designer to edit that sample, then open Preview to see it.</p>
+        <table class="table table-bordered table-condensed table-epc epc-erp-table">
+            <thead><tr><th>Mark</th><th>Law sample</th></tr></thead>
+            <tbody>
+                @foreach (var finding in SampleFindings)
+                {
+                    <tr>
+                        <td>@finding.Label</td>
+                        <td class="@(finding.Met ? "epc-dd-ok" : "epc-dd-miss")">@(finding.Met ? "Present" : "Missing")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @if (_kind == "invoice")
+        {
+            <h3 class="epc-erp-page-title">Stored sales invoice</h3>
+            <p>The older sales-invoice wording is checked against the same marks. Missing marks stay listed here. The law sample above is the wording to save from the designer.</p>
+            <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Mark</th><th>Stored wording</th></tr></thead>
+                <tbody>
+                    @foreach (var finding in LegacyFindings)
+                    {
+                        <tr>
+                            <td>@finding.Label</td>
+                            <td class="@(finding.Met ? "epc-dd-ok" : "epc-dd-miss")">@(finding.Met ? "Present" : "Missing")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        <p class="text-muted">Law sample preview</p>
+        <iframe title="Law sample preview" sandbox class="epc-dd-preview" srcdoc="@SampleDocument"></iframe>
+        <ol class="epc-dd-steps">
+            <li>Read the marks for the tax invoice.</li>
+            <li>Choose the document: invoice, voucher, or posted report.</li>
+            <li>Edit the wording on the designer. Leave the QR box clear on a tax invoice.</li>
+            <li>Open the preview and read the result.</li>
+            <li>Save the template.</li>
+            <li>Print it from the posted transaction.</li>
+        </ol>
+    }
+    else if (_tab == "preview")
+    {
+        <div class="epc-dd-kinds" aria-label="Preview document">
+            @foreach (var kind in ErpDocumentDesign.Kinds)
+            {
+                <a class="@(_kind == kind.Code ? "is-active" : "")" href="@KindHref(kind.Code, "preview")">
+                    <strong>@kind.Title</strong>
+                    <span>@kind.Family</span>
+                </a>
+            }
+        </div>
+        <p>@_previewCaption <a href="@KindHref(_kind, "design")">Edit this document</a></p>
+        <iframe title="Document preview" sandbox class="epc-dd-preview" srcdoc="@PreviewWindow"></iframe>
+    }
+    else if (_tab == "design")
+    {
     @if (_opened is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
@@ -80,6 +178,19 @@
                     sandbox
                     srcdoc="@PreviewDocument"
                     style="width:100%;min-height:22rem;border:1px solid #c5d4de;background:#fff"></iframe>
+            <p class="text-muted" style="margin:1rem 0 .35rem">Law check for this design</p>
+            <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>Mark</th><th>This design</th></tr></thead>
+                <tbody>
+                    @foreach (var finding in OpenedFindings)
+                    {
+                        <tr>
+                            <td>@finding.Label</td>
+                            <td class="@(finding.Met ? "epc-dd-ok" : "epc-dd-miss")">@(finding.Met ? "Present" : "Missing")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
             @if (_openedSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-type siblings</p>
@@ -155,7 +266,17 @@
         Source: @_source.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
-</PhpErpDesktopChrome>
+
+    <div class="epc-dd-kinds" aria-label="Start from a law sample">
+        @foreach (var kind in ErpDocumentDesign.Kinds)
+        {
+            <a class="@(_kind == kind.Code ? "is-active" : "")" href="@KindHref(kind.Code, "design")">
+                <strong>@kind.Title</strong>
+                <span>@kind.DocType</span>
+            </a>
+        }
+    </div>
+    <p>The form below starts from the law sample for @_activeKind.Title. Edit the wording, then save. Open Preview to see the result. Leave the QR box clear on a tax invoice. The electronic invoice has no QR code.</p>
 
 @if (_opened is not null)
 {
@@ -197,23 +318,29 @@
 }
 
 <ErpPhpCreateWell Title="New print template">
-<form method="post" action="/erp/print-designer/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
-                <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?template_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
+<form method="post" action="/erp/print-designer/save" style="display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="@DesignReturnHref" />
                 <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="show_terms" value="1" />
+                <input type="hidden" name="show_bank_details" value="1" />
                 <label>Doc type
                     <select class="form-control input-sm" name="doc_type">
-                        <option value="invoice">invoice</option>
-                        <option value="sales_order">sales_order</option>
-                        <option value="purchase_order">purchase_order</option>
-                        <option value="payment_voucher">payment_voucher</option>
-                        <option value="receipt_voucher">receipt_voucher</option>
-                        <option value="journal_voucher">journal_voucher</option>
-                        <option value="delivery_note">delivery_note</option>
-                        <option value="quotation">quotation</option>
-                        <option value="report">report</option>
+                        <option value="invoice" selected="@(_parts.DocType == "invoice")">invoice</option>
+                        <option value="credit_note" selected="@(_parts.DocType == "credit_note")">credit_note</option>
+                        <option value="sales_order" selected="@(_parts.DocType == "sales_order")">sales_order</option>
+                        <option value="purchase_order" selected="@(_parts.DocType == "purchase_order")">purchase_order</option>
+                        <option value="payment_voucher" selected="@(_parts.DocType == "payment_voucher")">payment_voucher</option>
+                        <option value="receipt_voucher" selected="@(_parts.DocType == "receipt_voucher")">receipt_voucher</option>
+                        <option value="journal_voucher" selected="@(_parts.DocType == "journal_voucher")">journal_voucher</option>
+                        <option value="delivery_note" selected="@(_parts.DocType == "delivery_note")">delivery_note</option>
+                        <option value="packing_slip" selected="@(_parts.DocType == "packing_slip")">packing_slip</option>
+                        <option value="posted_journal" selected="@(_parts.DocType == "posted_journal")">posted_journal</option>
+                        <option value="posted_report" selected="@(_parts.DocType == "posted_report")">posted_report</option>
+                        <option value="quotation" selected="@(_parts.DocType == "quotation")">quotation</option>
+                        <option value="report" selected="@(_parts.DocType == "report")">report</option>
                     </select>
                 </label>
-                <label>Name <input class="form-control input-sm" name="name" style="width:180px;" /></label>
+                <label>Name <input class="form-control input-sm" name="name" value="@_parts.Name" /></label>
                 <label>Page
                     <select class="form-control input-sm" name="page_size">
                         <option value="A4">A4</option>
@@ -227,10 +354,17 @@
                         <option value="landscape">landscape</option>
                     </select>
                 </label>
+                <label>Body columns <input class="form-control input-sm" name="body_columns" value="@_parts.BodyColumns" /></label>
                 <label><input type="checkbox" name="is_default" value="1" /> Default</label>
+                <label style="grid-column:span 3">Header HTML <textarea class="form-control input-sm" name="header_html" rows="8">@_parts.HeaderHtml</textarea><small class="text-muted">Merge fields: @MergeFields</small></label>
+                <label style="grid-column:span 3">Footer HTML <textarea class="form-control input-sm" name="footer_html" rows="4">@_parts.FooterHtml</textarea></label>
+                <label style="grid-column:span 3">Terms HTML <textarea class="form-control input-sm" name="terms_html" rows="4">@_parts.TermsHtml</textarea></label>
+                <label style="grid-column:span 3">Bank details HTML <textarea class="form-control input-sm" name="bank_details_html" rows="3">@_parts.BankHtml</textarea></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save template</button>
             </form>
 </ErpPhpCreateWell>
+    }
+</PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=setup&tab=print_designer";
@@ -246,6 +380,8 @@
     private ErpPrintTemplateDetail? _opened;
     private IReadOnlyList<ErpPrintTemplateDigest> _openedSiblings = [];
     private const string MergeFields = "{{company_name}}, {{trn}}, {{address}}, {{phone}}, {{email}}, {{doc_no}}, {{doc_date}}, {{due_date}}, {{customer_name}}, {{supplier_name}}, {{currency}}, {{total}}, {{page}}, {{total_pages}}, {{printed_by}}, {{printed_date}}";
+    private string _tab = "guide";
+    private string _kind = "invoice";
 
     private string OpenedCaption => _opened is null
         ? ""
@@ -254,8 +390,80 @@
             : ("Template #" + _opened.Id.ToString(CultureInfo.InvariantCulture)));
 
     private string OpenedReturnHref => _openedId > 0
-        ? _listHref + "?template_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
-        : _listHref;
+        ? _listHref + "?tab=design&template_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+        : _listHref + "?tab=design&kind=" + _kind;
+
+    private string DesignReturnHref => _listHref + "?tab=design&kind=" + _kind;
+
+    private ErpDocumentKind _activeKind => ErpDocumentDesign.Kind(_kind);
+
+    private ErpDocumentParts _parts => ErpDocumentDesign.Parts(_kind);
+
+    private IReadOnlyList<ErpDocumentFinding> SampleFindings => ErpDocumentDesign.Check(_kind, SampleDocument);
+
+    private IReadOnlyList<ErpDocumentFinding> LegacyFindings => ErpDocumentDesign.Check("invoice", LegacyTaxInvoiceHtml);
+
+    private IReadOnlyList<ErpDocumentFinding> OpenedFindings => ErpDocumentDesign.Check(OpenedKind, OpenedText);
+
+    private string SampleDocument => ErpDocumentDesign.SampleHtml(_kind);
+
+    private string PreviewWindow => _opened is null ? SampleDocument : PreviewDocument;
+
+    private string _previewCaption => _opened is null
+        ? "Law sample for " + _activeKind.Title + "."
+        : "Saved design for " + OpenedCaption + ".";
+
+    private string OpenedKind => _opened is null
+        ? _kind
+        : ErpDocumentDesign.Kinds.FirstOrDefault(item => item.DocType.Equals(_opened.DocType, StringComparison.OrdinalIgnoreCase))?.Code
+            ?? _kind;
+
+    private string OpenedText
+    {
+        get
+        {
+            if (_opened is null)
+            {
+                return string.Empty;
+            }
+
+            var text = string.Join(
+                "\n",
+                _opened.HeaderHtmlExcerpt,
+                _opened.FooterHtmlExcerpt,
+                _opened.TermsHtmlExcerpt,
+                _opened.BankDetailsHtmlExcerpt,
+                _opened.BodyColumns,
+                _opened.ShowQrCode ? "QR code" : "No QR code");
+            return _opened.ShowQrCode
+                ? text.Replace("No QR code", "", StringComparison.OrdinalIgnoreCase)
+                : text;
+        }
+    }
+
+    private static string LegacyTaxInvoiceHtml
+    {
+        get
+        {
+            var row = ErpDocumentControlRender.DefaultTemplates.First(item => item.Code == "fta_tax_invoice");
+            return row.HeaderHtml + row.BodyHtml + row.FooterHtml;
+        }
+    }
+
+    private string TabClass(string tab) => _tab == tab ? "is-active" : "";
+
+    private string TabHref(string tab)
+    {
+        var href = _listHref + "?tab=" + tab + "&kind=" + _kind;
+        if (_openedId > 0)
+        {
+            href += "&template_id=" + _openedId.ToString(CultureInfo.InvariantCulture);
+        }
+
+        return href;
+    }
+
+    private string KindHref(string kind, string tab) => _listHref + "?tab=" + tab + "&kind=" + kind;
 
     private string PreviewDocument
     {
@@ -411,6 +619,18 @@
         if (ctx is null) return;
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "template_id");
+        var requestedKind = ctx.Request.Query["kind"].ToString();
+        if (ErpDocumentDesign.Kinds.Any(item => item.Code.Equals(requestedKind, StringComparison.OrdinalIgnoreCase)))
+        {
+            _kind = requestedKind.Trim().ToLowerInvariant();
+        }
+
+        var requestedTab = ctx.Request.Query["tab"].ToString();
+        _tab = requestedTab is "design" or "preview" ? requestedTab : "guide";
+        if (_openedId > 0 && string.IsNullOrWhiteSpace(requestedTab))
+        {
+            _tab = "design";
+        }
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
@@ -434,6 +654,16 @@
             _openedSiblings = detail.Siblings;
             if (_opened is not null)
             {
+                if (string.IsNullOrWhiteSpace(requestedKind))
+                {
+                    var match = ErpDocumentDesign.Kinds.FirstOrDefault(item =>
+                        item.DocType.Equals(_opened.DocType, StringComparison.OrdinalIgnoreCase));
+                    if (match is not null)
+                    {
+                        _kind = match.Code;
+                    }
+                }
+
                 var openedList = _templates.FirstOrDefault(r => r.Id == _openedId);
                 if (openedList is not null)
                 {
