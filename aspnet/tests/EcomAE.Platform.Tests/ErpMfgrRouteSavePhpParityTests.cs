@@ -12,7 +12,7 @@ public sealed class ErpMfgrRouteSavePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpProductionOverviewApp.razor"));
         Assert.Contains("/erp/mfgr/routes/save", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"product_item_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"product_item_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"op_no[]\"", text, StringComparison.Ordinal);
         Assert.Contains("Save route", text, StringComparison.Ordinal);
         Assert.DoesNotContain("writes=0", text, StringComparison.Ordinal);

@@ -83,6 +83,27 @@ public sealed class BosHostGateMiddlewareTests
     }
 
     [Fact]
+    public async Task CompanyOnSuperHostDoesNotOpenBos()
+    {
+        var nextCalled = false;
+        var mw = new BosHostGateMiddleware(_ =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        });
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Host = new HostString("www.ecomae.com");
+        ctx.Request.Path = "/bos/tenants-app";
+        ctx.Items[ClientErpPath.HttpContextItemKey] = "real";
+        ctx.Response.Body = new MemoryStream();
+
+        await mw.InvokeAsync(ctx);
+
+        Assert.False(nextCalled);
+        Assert.Equal(StatusCodes.Status404NotFound, ctx.Response.StatusCode);
+    }
+
+    [Fact]
     public async Task TenantHostAllowsCp()
     {
         var nextCalled = false;

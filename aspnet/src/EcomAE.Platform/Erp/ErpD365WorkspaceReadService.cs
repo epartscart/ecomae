@@ -20,7 +20,8 @@ public sealed record ErpD365WorkspaceRow(
     decimal Amount,
     string Extra,
     string Note,
-    long TimeCreated);
+    long TimeCreated,
+    string FieldsJson = "");
 
 public interface IErpD365WorkspaceReadService
 {
@@ -71,7 +72,7 @@ public sealed class ErpD365WorkspaceReadService : IErpD365WorkspaceReadService
             "SELECT `id`,IFNULL(`area`,''),IFNULL(`tab`,''),IFNULL(`code`,''),IFNULL(`name`,'')," +
             "IFNULL(`worker`,''),IFNULL(`party`,''),IFNULL(`kind`,''),IFNULL(`status`,''),IFNULL(`period`,'')," +
             "IFNULL(`date_from`,''),IFNULL(`date_to`,''),IFNULL(`qty`,0),IFNULL(`amount`,0)," +
-            "IFNULL(`extra`,''),IFNULL(`note`,''),IFNULL(`time_created`,0) " +
+            "IFNULL(`extra`,''),IFNULL(`note`,''),IFNULL(`time_created`,0),IFNULL(`fields_json`,'') " +
             "FROM `epc_erp_d365_workspace` WHERE `area` = ? AND `tab` = ?" + companyClause +
             " ORDER BY `id` DESC LIMIT " +
             limit.ToString(CultureInfo.InvariantCulture));
@@ -104,7 +105,8 @@ public sealed class ErpD365WorkspaceReadService : IErpD365WorkspaceReadService
                 Convert.ToDecimal(reader.GetValue(13), CultureInfo.InvariantCulture),
                 Convert.ToString(reader.GetValue(14), CultureInfo.InvariantCulture) ?? string.Empty,
                 Convert.ToString(reader.GetValue(15), CultureInfo.InvariantCulture) ?? string.Empty,
-                Convert.ToInt64(reader.GetValue(16), CultureInfo.InvariantCulture)));
+                Convert.ToInt64(reader.GetValue(16), CultureInfo.InvariantCulture),
+                Convert.ToString(reader.GetValue(17), CultureInfo.InvariantCulture) ?? string.Empty));
         }
 
         return rows;

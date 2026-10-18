@@ -1190,7 +1190,7 @@ public sealed class ErpRecordOpenPhpParityTests
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpPlatformCommunicationApp.razor"));
         Assert.Contains("ReadId(ctx.Request, \"task_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("?edit_task=", text, StringComparison.Ordinal);
+        Assert.Contains("edit_task=", text, StringComparison.Ordinal);
         Assert.Contains("_edit?.Description", text, StringComparison.Ordinal);
         Assert.Contains("epc-scp-empty-state", text, StringComparison.Ordinal);
         Assert.Contains("epc-scp-data-table", text, StringComparison.Ordinal);
@@ -3784,6 +3784,13 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("same-item siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("Dimension-link save stays Classic", razor, StringComparison.Ordinal);
         Assert.Contains("/erp/ajax/inv-create-item", razor, StringComparison.Ordinal);
+        Assert.Contains("pm_view=entry", razor, StringComparison.Ordinal);
+        Assert.Contains(">Validate<", razor, StringComparison.Ordinal);
+        Assert.Contains(">Post<", razor, StringComparison.Ordinal);
+        Assert.Contains("_view == \"entry\"", razor, StringComparison.Ordinal);
+        Assert.Contains("_view != \"entry\" && _openedItem", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Save item", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Check SKU", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
