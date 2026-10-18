@@ -32,6 +32,10 @@
         <a href="/erp/sales-orders-app">Sales orders</a>
         · <a href="/erp/sales-orders-app?tab=subscriptions">Subscriptions</a>
     </p>
+    @if (_view != "subscriptions")
+    {
+        <ErpOrderSplitPanel Side="sales" OrderId="_openedId" />
+    }
 
     @if (_view == "subscriptions")
     {

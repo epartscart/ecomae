@@ -6,7 +6,7 @@
     <div class="epc-flow__bar">
         <div class="epc-flow__lead">
             <h2>Process flow</h2>
-            <p>Select a process area to follow its cycle.</p>
+            <p>Select a process area to follow its cycle. <a href="@GuideHref">How to use every area</a></p>
         </div>
         <label class="epc-flow__pick" for="erp-flow-area">
             <span>Process area</span>
@@ -43,6 +43,7 @@
                     <p class="epc-flow__kicker">@opening.CategoryLabel</p>
                     <h3>@opening.Label</h3>
                     <p>@opening.Summary</p>
+                    <p class="epc-flow__use">@ErpAreaUseGuide.UseFor(opening.Id)</p>
                 </div>
             </div>
             <ol class="epc-flow__track">
@@ -82,6 +83,8 @@
     .epc-flow__bar { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
     .epc-flow__lead h2 { margin: 0; font-size: 18px; line-height: 1.2; color: #0f2744; font-weight: 700; letter-spacing: -.01em; }
     .epc-flow__lead p, .epc-flow__intro p { margin: 3px 0 0; color: #5b6b82; font-size: 13px; line-height: 1.35; }
+    .epc-flow__lead a { color: #1d4ed8; font-weight: 700; }
+    .epc-flow__use { margin: 4px 0 0; color: #1e3a5f; font-size: 13px; font-weight: 600; line-height: 1.35; }
     .epc-flow__pick { display: flex; flex-direction: column; gap: 4px; min-width: min(100%, 280px); font-size: 12px; font-weight: 700; color: #3d4f66; }
     .epc-flow__pick select {
         appearance: none;
@@ -198,6 +201,12 @@
             copy.appendChild(kicker);
             copy.appendChild(title);
             copy.appendChild(summary);
+            if (area.use) {
+                var use = document.createElement("p");
+                use.className = "epc-flow__use";
+                use.textContent = area.use;
+                copy.appendChild(use);
+            }
             intro.appendChild(mark);
             intro.appendChild(copy);
             var list = document.createElement("ol");
@@ -341,6 +350,7 @@
                     icon = area.Icon,
                     category = area.CategoryLabel,
                     summary = area.Summary,
+                    use = ErpAreaUseGuide.UseFor(area.Id),
                     steps = area.Visible(ShowJewellery).Select(step => new
                     {
                         label = step.Label,
@@ -353,6 +363,8 @@
 
     private static string Tone(int index)
         => "tone-" + (index % 5).ToString(CultureInfo.InvariantCulture);
+
+    private string GuideHref => Href("/erp/guide-app");
 
     private string Href(string path)
     {

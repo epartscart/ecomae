@@ -17,9 +17,16 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Inventory report" Subtitle="Open a category or snapshot for company id. Snapshot generate is not available on this page." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Inventory report" Subtitle="New report saves a category or a snapshot. Open a posted row for company id." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
-
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+    <ErpPhpViewTabs QueryName="pm_view" Active="@_view" BaseHref="@TabBase" Tabs="@_entryTabs" />
+    @if (_view == "entry")
+    {
+        <ErpSheetEntryForm Sheet="inventory_report" IsAdmin="_isAdmin" ListHref="@TabBase" CompanyId="_company" />
+    }
+    else
+    {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Inventory report KPIs">
         <div class="kpi"><div class="lbl">Categories</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Snapshots</div><div class="val">@_snapCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -48,7 +55,7 @@
                 Fields="@CategoryWorkspaceFields"
                 Lines="@CategoryWorkspaceLines"
                 Tabs="@InventoryWorkspaceTabs" />
-            <p class="text-muted" style="margin:.85rem 0 0">Snapshot generate is not available on this page.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Posted from New report.</p>
             @if (_openedCategorySiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-level siblings</p>
@@ -96,7 +103,7 @@
                 Fields="@SnapshotWorkspaceFields"
                 Lines="@SnapshotWorkspaceLines"
                 Tabs="@InventoryWorkspaceTabs" />
-            <p class="text-muted" style="margin:.85rem 0 0">Snapshot generate is not available on this page.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Posted from New report.</p>
             @if (_openedSnapshotSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-category siblings</p>
@@ -184,9 +191,10 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Snapshot generate is not available on this page.
+        Source: @_source. Categories and snapshots post from New report.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {
@@ -199,6 +207,13 @@
     private decimal _totalValue;
     private string _source = "n/a";
     private string _message = "";
+    private string _view = "posted";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private int _company = 1;
+    private static readonly IReadOnlyList<(string Key, string Label)> _entryTabs =
+        [("entry", "New report"), ("posted", "Posted report")];
+    private string TabBase => _listHref + "?company=" + _company.ToString(CultureInfo.InvariantCulture);
     private long _openedCategoryId;
     private long _openedSnapshotId;
     private ErpInventoryReportCategoryDetail? _openedCategory;
@@ -280,6 +295,10 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _company = ReadCompany(ctx);
+        _view = ReadView(ctx);
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
         _openedCategoryId = ErpRecordOpen.ReadId(ctx.Request, "invrep_cat_id");
         _openedSnapshotId = ErpRecordOpen.ReadId(ctx.Request, "invrep_snap_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -333,6 +352,17 @@
             }
         }
     }
+
+    private static int ReadCompany(HttpContext ctx)
+    {
+        var raw = ctx.Request.Query["company"].ToString();
+        return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var company) && company > 0
+            ? company
+            : 1;
+    }
+
+    private static string ReadView(HttpContext ctx)
+        => ctx.Request.Query["pm_view"].ToString() is "entry" or "new" ? "entry" : "posted";
 
     private static string FormatTime(long unix)
     {

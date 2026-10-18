@@ -50,7 +50,27 @@ public sealed class ErpConsolidatedTrialBalanceReadService : IErpConsolidatedTri
                 cancellationToken,
                 groupId).ConfigureAwait(false);
 
-            return new(groupId, checked((int)entities), [], "database", string.Empty);
+            var statement = await new ErpFinancialStatementReadService(_connections).ReadAsync(
+                new ErpFinancialStatementQuery(
+                    ErpFinancialStatementKind.BalanceSheet,
+                    ErpFinancialStatementLevel.Consolidation,
+                    0,
+                    0,
+                    string.Empty),
+                cancellationToken).ConfigureAwait(false);
+            var accounts = statement.Lines
+                .Select(line => (object)new
+                {
+                    code = line.Code,
+                    name = line.Name,
+                    account_type = line.AccountType,
+                    balance = line.Accounting,
+                    reporting = line.Reporting,
+                    currency = statement.ReportingCurrency,
+                })
+                .ToList();
+
+            return new(groupId, checked((int)entities), accounts, "database", statement.Message);
         }
         catch (DbException exception)
         {

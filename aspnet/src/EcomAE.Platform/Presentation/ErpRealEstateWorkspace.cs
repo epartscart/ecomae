@@ -1,3 +1,5 @@
+using EcomAE.Platform.Erp;
+
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
@@ -12,6 +14,8 @@ public static class ErpRealEstateWorkspace
 
     public static readonly IReadOnlyList<Tab> Tabs =
     [
+        new(ErpRealEstateGuide.TabKey, "Guide", "fa-map-signs", "/erp/real-estate-app?tab=guide"),
+        new(ErpRealEstateLaw.Tab, "Law", "fa-balance-scale", "/erp/real-estate-app?tab=compliance"),
         new("dashboard", "Dashboard", "fa-dashboard", "/erp/real-estate-app?tab=dashboard"),
         new("opportunities", "Opportunities", "fa-lightbulb-o", "/erp/real-estate-app?tab=opportunities"),
         new("properties", "Properties", "fa-building", "/erp/real-estate-app?tab=properties"),

@@ -11,8 +11,8 @@ public sealed class ErpOplParamsSavePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpOrderPlanningApp.razor"));
         Assert.Contains("ErpOrderPlanningParamsSave", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"item_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"warehouse_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"item_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"warehouse_id\"", text, StringComparison.Ordinal);
         Assert.Contains("Planning parameters", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);

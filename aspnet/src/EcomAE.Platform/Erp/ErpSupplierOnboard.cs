@@ -21,7 +21,18 @@ public static class ErpSupplierOnboard
         "Abu Dhabi", "Dubai", "Sharjah", "Ajman", "Umm Al Quwain", "Ras Al Khaimah", "Fujairah",
     ];
     public static readonly string[] Currencies = ["AED", "USD", "EUR", "GBP", "SAR", "INR"];
-    public static readonly string[] DocKinds = [DocTradeLicense, DocTrnCertificate, DocPartnerId];
+    public static readonly string[] DocKinds =
+    [
+        DocTradeLicense,
+        DocTrnCertificate,
+        DocPartnerId,
+        ErpSupplierKycLaw.DocMemorandum,
+        ErpSupplierKycLaw.DocArticles,
+        ErpSupplierKycLaw.DocSeniorManagement,
+        ErpSupplierKycLaw.DocBeneficialOwnerId,
+        ErpSupplierKycLaw.DocSignatoryId,
+        ErpSupplierKycLaw.DocSignatoryAuthority,
+    ];
 
     public static string NormalizeTrn(string? raw)
         => string.IsNullOrWhiteSpace(raw) ? "" : new string(raw.Where(char.IsDigit).ToArray());
