@@ -1,6 +1,7 @@
 @page "/cp/tenant-email-app"
 @page "/erp/tenant-email-app"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
@@ -11,39 +12,58 @@
 
 <PageTitle>Email / SMTP · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<style>
+    .mail-purpose{margin:0 0 14px;padding:12px 14px;border:1px solid #dbe4ea;background:#fff}
+    .mail-purpose h3{margin:0 0 4px;font-size:15px;color:#0f172a}
+    .mail-purpose__lead{margin:0 0 10px;color:#475569}
+    .mail-steps{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+    .mail-steps li{flex:1 1 200px;border:1px solid #dbe4ea;border-top:3px solid #0f4c81;background:#f8fafc;padding:8px 10px}
+    .mail-steps__n{display:inline-block;width:18px;height:18px;border-radius:50%;background:#0f4c81;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;margin-right:4px}
+    .mail-steps strong{color:#0f172a}
+    .mail-steps p{margin:4px 0 0;font-size:12px;color:#475569}
+    .mail-counts{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+    .mail-count{flex:1 1 160px;background:#fff;border:1px solid #dbe4ea;padding:10px 12px}
+    .mail-count span{display:block;font-size:12px;font-weight:700;color:#475569}
+    .mail-count strong{display:block;margin-top:2px;font-size:16px;color:#0f172a}
+    .mail-form[data-epc-inline="1"]{display:block !important;width:auto !important;max-width:none !important;margin:0 0 14px !important;padding:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important}
+    .mail-card{background:#fff;border:1px solid #dbe4ea;padding:12px;margin:0 0 12px}
+    .mail-card h3{margin:0 0 4px;font-size:14px;color:#0f172a}
+    .mail-card>p{margin:0 0 8px;color:#475569;font-size:12px}
+    .mail-fields{display:flex !important;flex-wrap:wrap;gap:8px;align-items:flex-end}
+    .mail-fields label{flex:0 0 auto}
+    .mail-fields .mail-wide{flex:0 0 auto;width:18rem;max-width:100%}
+    .mail-check{margin:0 0 8px}
+</style>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                <span class="label label-primary">Tenant CP</span> Email / SMTP settings
-                <a class="btn btn-xs btn-default pull-right" href="/cp/integrations-app" style="margin-right:.4rem">Integrations</a>
-            </div>
-            <div class="panel-body">
-                <p>This tenant’s outgoing mail for OTP codes, order notifications, and customer emails. The password is never returned to the browser.</p>
-            </div>
-        </div>
-    </div>
+    <section class="mail-purpose" aria-label="What company mail is for">
+        <span class="label label-primary">Tenant CP</span>
+        <h3>What this page is for</h3>
+        <p class="mail-purpose__lead">This is the mailbox this site sends from. Sign-in codes, order notices, and messages to customers leave from here. Turn company mail on to use your own server. Leave it off and those messages use the platform mailbox. The password is never returned to the browser. One mailbox covers this site.</p>
+        <h3>Activate in 3 steps</h3>
+        <ol class="mail-steps">
+            <li><span class="mail-steps__n">1</span><strong>Enable</strong><p>Tick “Use tenant SMTP”, then save. Until you do, mail uses the platform mailbox.</p></li>
+            <li><span class="mail-steps__n">2</span><strong>Configure</strong><p>Enter the mail server, the sign-in, and the name customers see on the message.</p></li>
+            <li><span class="mail-steps__n">3</span><strong>Test</strong><p>Send a test to yourself. Then try a sign-in code.</p></li>
+        </ol>
+    </section>
 
     @if (_isSuperCpHost)
     {
-        <div class="col-lg-12">
-            <div class="alert alert-info" role="status">
-                Platform SMTP is configured under
-                <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_cp_auth_settings")">Modern auth settings</a>.
-                This page is for tenant CP hosts.
-            </div>
+        <div class="alert alert-info" role="status">
+            The platform mailbox is under
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_cp_auth_settings")">Modern auth settings</a>.
+            This page is the company mailbox.
         </div>
     }
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
-        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+        <div class="alert alert-success" role="status">@_flashOk</div>
     }
     @if (!string.IsNullOrWhiteSpace(_flashErr))
     {
-        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+        <div class="alert alert-danger" role="status">@_flashErr</div>
     }
 
     @if (!_isAdmin)
@@ -51,23 +71,23 @@
         <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live tenant data.</div>
     }
 
-    <div class="col-lg-12">
-        <div class="well well-sm">
-            <strong>Current transport:</strong> @(_summary.UseTenantSmtp ? "tenant SMTP" : "platform default")
-            @if (!string.IsNullOrWhiteSpace(_summary.Host))
-            {
-                <text> — @_summary.Host@(!string.IsNullOrWhiteSpace(_summary.Port) ? ":" + _summary.Port : "")</text>
-            }
-        </div>
+    <div class="mail-counts" aria-label="How mail is sent now">
+        <div class="mail-count"><span>Sending from</span><strong>@(_summary.UseTenantSmtp ? "This company" : "Platform mailbox")</strong></div>
+        <div class="mail-count"><span>Mail server</span><strong>@ServerLine</strong></div>
+        <div class="mail-count"><span>Password saved</span><strong>@(_summary.HasPassword ? "Yes" : "No")</strong></div>
+        <div class="mail-count"><span>From</span><strong>@FromLine</strong></div>
+        <div class="mail-count"><span>This site</span><strong>@_host</strong></div>
     </div>
 
     @if (_isAdmin)
     {
-        <div class="col-lg-12">
-            <form method="post" action="/cp/tenant-email/save" class="well">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/cp/tenant-email-app" />
-                <div class="checkbox">
+        <form method="post" action="/cp/tenant-email/save" class="mail-form" data-epc-inline="1">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@ReturnHref" />
+            <section class="mail-card">
+                <h3>1. Enable company mail</h3>
+                <p>Use tenant SMTP when this company should send its own mail. Leave it clear to keep the platform mailbox.</p>
+                <div class="checkbox mail-check">
                     <label>
                         @if (_summary.UseTenantSmtp)
                         {
@@ -80,130 +100,83 @@
                         Use tenant SMTP (override platform default)
                     </label>
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>SMTP host</label>
-                            <input type="text" class="form-control" name="smtp_host" value="@_summary.Host" />
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Port</label>
-                            <input type="text" class="form-control" name="smtp_port" value="@(string.IsNullOrWhiteSpace(_summary.Port) ? "587" : _summary.Port)" />
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Encryption</label>
-                            <select class="form-control" name="smtp_encryption">
-                                @if (_enc == "ssl")
-                                {
-                                    <option value="tls">TLS</option>
-                                    <option value="ssl" selected>SSL</option>
-                                    <option value="">None</option>
-                                }
-                                else if (_enc != "tls")
-                                {
-                                    <option value="tls">TLS</option>
-                                    <option value="ssl">SSL</option>
-                                    <option value="" selected>None</option>
-                                }
-                                else
-                                {
-                                    <option value="tls" selected>TLS</option>
-                                    <option value="ssl">SSL</option>
-                                    <option value="">None</option>
-                                }
-                            </select>
-                        </div>
-                    </div>
+            </section>
+            <section class="mail-card">
+                <h3>2. Mail server</h3>
+                <p>The address your mail host gave you. Port 587 with TLS is the usual choice.</p>
+                <div class="mail-fields">
+                    <label class="mail-wide">SMTP host
+                        <input type="text" class="form-control" name="smtp_host" value="@_summary.Host" />
+                    </label>
+                    <label>Port
+                        <input type="text" class="form-control" name="smtp_port" value="@(string.IsNullOrWhiteSpace(_summary.Port) ? "587" : _summary.Port)" />
+                    </label>
+                    <label>Encryption
+                        <select class="form-control" name="smtp_encryption">
+                            @if (_enc == "ssl")
+                            {
+                                <option value="tls">TLS</option>
+                                <option value="ssl" selected>SSL</option>
+                                <option value="">None</option>
+                            }
+                            else if (_enc != "tls")
+                            {
+                                <option value="tls">TLS</option>
+                                <option value="ssl">SSL</option>
+                                <option value="" selected>None</option>
+                            }
+                            else
+                            {
+                                <option value="tls" selected>TLS</option>
+                                <option value="ssl">SSL</option>
+                                <option value="">None</option>
+                            }
+                        </select>
+                    </label>
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>Username</label>
-                            <input type="text" class="form-control" name="smtp_username" value="@_summary.Username" autocomplete="off" />
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>Password @if (_summary.HasPassword) { <span class="text-muted">(saved)</span> }</label>
-                            <input type="password" class="form-control" name="smtp_password" placeholder="Leave blank to keep current" autocomplete="new-password" />
-                        </div>
-                    </div>
+            </section>
+            <section class="mail-card">
+                <h3>Sign in to that server</h3>
+                <p>Leave the password blank to keep the one already saved. @(_summary.HasPassword ? "A password is saved." : "No password is saved yet.")</p>
+                <div class="mail-fields">
+                    <label>Username
+                        <input type="text" class="form-control" name="smtp_username" value="@_summary.Username" autocomplete="off" />
+                    </label>
+                    <label>Password
+                        <input type="password" class="form-control" name="smtp_password" placeholder="Leave blank to keep current" autocomplete="new-password" />
+                    </label>
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>From name</label>
-                            <input type="text" class="form-control" name="from_name" value="@_summary.FromName" />
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>From email</label>
-                            <input type="email" class="form-control" name="from_email" value="@_summary.FromEmail" />
-                        </div>
-                    </div>
+            </section>
+            <section class="mail-card">
+                <h3>Name on the message</h3>
+                <p>This is who the customer sees the message is from.</p>
+                <div class="mail-fields">
+                    <label>From name
+                        <input type="text" class="form-control" name="from_name" value="@_summary.FromName" />
+                    </label>
+                    <label>From email
+                        <input type="email" class="form-control" name="from_email" value="@_summary.FromEmail" />
+                    </label>
                 </div>
-                <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Save SMTP</button>
-            </form>
-        </div>
+                <button type="submit" class="btn btn-success" style="margin-top:10px"><i class="fa fa-save"></i> Save SMTP</button>
+            </section>
+        </form>
 
-        <div class="col-lg-12">
-            <form method="post" action="/cp/tenant-email/test" class="well" style="max-width:520px">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/cp/tenant-email-app" />
-                <h4 style="margin-top:0">Test send</h4>
-                <div class="form-group">
-                    <label>Send test to</label>
-                    <input type="email" class="form-control" name="test_to" value="@_testTo" required />
+        <form method="post" action="/cp/tenant-email/test" class="mail-form" data-epc-inline="1">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@ReturnHref" />
+            <section class="mail-card">
+                <h3>3. Test send</h3>
+                <p>Save first. Company mail must be on. The test goes only to the address you type here.</p>
+                <div class="mail-fields">
+                    <label class="mail-wide">Send test to
+                        <input type="email" class="form-control" name="test_to" value="@_testTo" required />
+                    </label>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-paper-plane"></i> Send test email</button>
                 </div>
-                <button type="submit" class="btn btn-primary"><i class="fa fa-paper-plane"></i> Send test email</button>
-            </form>
-        </div>
+            </section>
+        </form>
     }
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Tenant mail settings</div>
-            <div class="panel-body">
-                <dl class="dl-horizontal" style="margin:0">
-                    <dt>Use tenant SMTP</dt>
-                    <dd>@(_summary.UseTenantSmtp ? "yes" : "no")</dd>
-                    <dt>Host</dt>
-                    <dd>@(string.IsNullOrWhiteSpace(_summary.Host) ? _host : _summary.Host)</dd>
-                    <dt>Port / encryption</dt>
-                    <dd>@(string.IsNullOrWhiteSpace(_summary.Port) ? "—" : _summary.Port) / @(string.IsNullOrWhiteSpace(_summary.Encryption) ? "—" : _summary.Encryption)</dd>
-                    <dt>Username</dt>
-                    <dd>@(string.IsNullOrWhiteSpace(_summary.Username) ? "—" : _summary.Username)</dd>
-                    <dt>From name</dt>
-                    <dd>@(string.IsNullOrWhiteSpace(_summary.FromName) ? "—" : _summary.FromName)</dd>
-                    <dt>From email</dt>
-                    <dd>@(string.IsNullOrWhiteSpace(_summary.FromEmail) ? "—" : _summary.FromEmail)</dd>
-                    <dt>Password saved</dt>
-                    <dd>@(_summary.HasPassword ? "yes" : "no")</dd>
-                    <dt>This host</dt>
-                    <dd>@_host</dd>
-                </dl>
-                <p class="help-block" style="margin-top:1rem">On Super CP hosts, platform SMTP lives under Modern auth settings — not this tenant page.</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Activate in 3 steps</div>
-            <div class="panel-body">
-                <ol>
-                    <li><strong>Enable</strong> &mdash; Platform operator enables Email/SMTP for your tenant.</li>
-                    <li><strong>Configure</strong> &mdash; Enter SMTP host, port, and credentials above (Gmail App Password, SendGrid, etc.).</li>
-                    <li><strong>Test</strong> &mdash; Send test email, then try storefront OTP or CP login.</li>
-                </ol>
-            </div>
-        </div>
-    </div>
 </PhpCpDesktopChrome>
 
 @code {
@@ -216,6 +189,62 @@
     private string _flashOk = "";
     private string _flashErr = "";
     private CpTenantEmailSummary _summary = new(false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, false, "n/a", "");
+
+    private string ServerLine
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_summary.Host))
+            {
+                return "Not set";
+            }
+
+            var port = string.IsNullOrWhiteSpace(_summary.Port) ? "" : ":" + _summary.Port;
+            var enc = string.IsNullOrWhiteSpace(_summary.Encryption) ? "" : " " + _summary.Encryption.ToUpperInvariant();
+            return _summary.Host + port + enc;
+        }
+    }
+
+    private string FromLine
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_summary.FromEmail) && string.IsNullOrWhiteSpace(_summary.FromName))
+            {
+                return "Not set";
+            }
+
+            if (string.IsNullOrWhiteSpace(_summary.FromName))
+            {
+                return _summary.FromEmail;
+            }
+
+            if (string.IsNullOrWhiteSpace(_summary.FromEmail))
+            {
+                return _summary.FromName;
+            }
+
+            return _summary.FromName + " · " + _summary.FromEmail;
+        }
+    }
+
+    private string ReturnHref
+    {
+        get
+        {
+            var ctx = Http.HttpContext;
+            var path = ctx?.Request.Path.Value;
+            if (string.IsNullOrWhiteSpace(path) || !path.StartsWith('/'))
+            {
+                path = "/cp/tenant-email-app";
+            }
+
+            var company = ErpHostContext.ActiveCompanyIdFromQuery(ctx?.Request);
+            return company is int id
+                ? path + "?company=" + id.ToString(CultureInfo.InvariantCulture)
+                : path;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {

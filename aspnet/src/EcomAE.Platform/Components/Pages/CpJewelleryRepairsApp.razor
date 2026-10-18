@@ -133,7 +133,7 @@
             <form method="post" action="@EcomAeRoutes.ErpJewelleryRepairCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
-                <label>Customer Name <input class="form-control input-sm" name="customer_name" required /></label>
+                <ErpMasterPicker Kind="customer" FieldName="customer_name" InputId="jw-repair-customer" Label="Customer" ValueMode="name" Required="true" />
                 <label>Phone <input class="form-control input-sm" name="customer_phone" /></label>
                 <label>Item Description <input class="form-control input-sm" name="item_description" required style="width:200px;" /></label>
                 <label>Metal
@@ -170,7 +170,7 @@
             <form method="post" action="@EcomAeRoutes.ErpJewelleryRepairReceiptSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
-                <label>Customer Name <input class="form-control input-sm" name="customer_name" required /></label>
+                <ErpMasterPicker Kind="customer" FieldName="customer_name" InputId="jw-repair-receipt-customer" Label="Customer" ValueMode="name" Required="true" />
                 <label>Mobile <input class="form-control input-sm" name="mobile" /></label>
                 <label>Salesman <input class="form-control input-sm" name="salesman" /></label>
                 <label>Est. Cost <input class="form-control input-sm" name="total_est_cost" type="number" step="0.01" value="0" style="width:90px;" /></label>
@@ -187,7 +187,7 @@
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="voc_type" value="RSL" />
                 <label>Repair # <input class="form-control input-sm" name="repair_ref" required /></label>
-                <label>Customer <input class="form-control input-sm" name="party_name" /></label>
+                <ErpMasterPicker Kind="customer" FieldName="party_name" InputId="jw-repair-sale-customer" Label="Customer" ValueMode="name" />
                 <label>Net <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" style="width:90px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save repair sale</button>
             </form>
@@ -225,7 +225,7 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <label>Repair # <input class="form-control input-sm" name="code" required /></label>
-                <label>Customer <input class="form-control input-sm" name="customer_name" /></label>
+                <ErpMasterPicker Kind="customer" FieldName="customer_name" InputId="jw-repair-delivery-customer" Label="Customer" ValueMode="name" />
                 <label>Charge <input class="form-control input-sm" name="total_charge" type="number" step="0.01" value="0" style="width:90px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save delivery</button>
             </form>

@@ -1,5 +1,7 @@
+using EcomAE.Platform.Erp;
 using EcomAE.Platform.Observability;
 using EcomAE.Platform.Security;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EcomAE.Platform.Auth;
 
@@ -11,10 +13,12 @@ namespace EcomAE.Platform.Auth;
 public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
 {
     private readonly ILegacySessionStore _sessions;
+    private readonly IServiceScopeFactory? _scopes;
 
-    public DbBackedLegacySessionValidator(ILegacySessionStore sessions)
+    public DbBackedLegacySessionValidator(ILegacySessionStore sessions, IServiceScopeFactory? scopes = null)
     {
         _sessions = sessions;
+        _scopes = scopes;
     }
 
     public async ValueTask<LegacySessionContext> ValidateCustomerAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
@@ -78,15 +82,17 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                     if (identity is not null && identity.HasBackendAccess)
                     {
                         activity?.SetTag("ecomae.session.kind", "admin");
+                        var areaGrants = await TryLoadAreaGrantsAsync(adminUser, cancellationToken).ConfigureAwait(false);
                         return new LegacySessionContext(
                             LegacySessionKind.Admin,
                             adminUser,
                             adminSession,
-                            LegacyAdminPermissionSets.ForRequestHost(httpContext.Request.Host.Host),
+                            LegacyAdminPermissionSets.ForRequest(httpContext),
                             identity.Email,
                             identity.GroupIds,
                             HasBackendAccess: true,
-                            ModuleAcl: identity.Modules);
+                            ModuleAcl: identity.Modules,
+                            AreaGrants: areaGrants);
                     }
                 }
 
@@ -100,7 +106,7 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                     LegacySessionKind.Admin,
                     adminUser,
                     adminSession,
-                    LegacyAdminPermissionSets.ForRequestHost(httpContext.Request.Host.Host),
+                    LegacyAdminPermissionSets.ForRequest(httpContext),
                     HasBackendAccess: true);
             }
         }
@@ -152,6 +158,55 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
             customerUser,
             customerSession,
             []);
+    }
+
+    private async Task<IReadOnlyList<ErpSessionAreaGrant>?> TryLoadAreaGrantsAsync(int userId, CancellationToken cancellationToken)
+    {
+        if (_scopes is null || userId <= 0)
+        {
+            return null;
+        }
+
+        try
+        {
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeout.CancelAfter(TimeSpan.FromSeconds(2));
+            await using var scope = _scopes.CreateAsyncScope();
+            var reader = scope.ServiceProvider.GetService<IErpPermissionScopeReadService>();
+            if (reader is null)
+            {
+                return null;
+            }
+
+            var listed = await reader.ListForUserAsync(userId, timeout.Token).ConfigureAwait(false);
+            var grants = new List<ErpSessionAreaGrant>();
+            foreach (var grant in listed.Grants)
+            {
+                grants.Add(ToAreaGrant(grant.GroupKey, grant.Actions));
+            }
+
+            foreach (var delegation in listed.Delegations)
+            {
+                grants.Add(ToAreaGrant(delegation.GroupKey, delegation.Actions));
+            }
+
+            return grants;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            // A missing grant table or a slow read must not sign the operator out.
+            return null;
+        }
+    }
+
+    private static ErpSessionAreaGrant ToAreaGrant(string groupKey, IReadOnlySet<string>? actions)
+    {
+        var all = actions is null || actions.Count == 0;
+        return new ErpSessionAreaGrant(groupKey ?? string.Empty, actions ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase), all);
     }
 
     private static LegacySessionContext Anonymous()
