@@ -55,6 +55,19 @@
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="@_appPath" IsAdmin="_isAdmin" />
     <PhpErpModulePageHeader Title="@_page.Label" Subtitle="@_page.Purpose" PhpTabHref="@_phpTab" />
     <p class="help-block"><strong>How to use.</strong> @ErpAreaUseGuide.UseFor(_area) <a href="@GuideHref">How to use every area</a></p>
+    @if (ShowBooks)
+    {
+        <p class="help-block">
+            <strong>Statements.</strong>
+            <a href="@BooksHref("pl")">Profit and loss</a>
+            · <a href="@BooksHref("balance_sheet")">Balance sheet</a>
+            · <a href="@BooksHref("pl", "company")">Company</a>
+            · <a href="@BooksHref("pl", "business_unit")">Business unit</a>
+            · <a href="@BooksHref("balance_sheet", "consolidation")">Consolidation</a>
+            · <a href="@ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany("/erp/trial-balance-app"))">Trial balance</a>
+            · <a href="@ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany("/erp/tax-external-reporting-app"))">External reporting</a>
+        </p>
+    }
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
 
     <div class="epc-d365-workspace">
@@ -83,6 +96,14 @@
             else if (ErpCustomerAr.IsInquiryTab(_page.Tab))
             {
                 <ErpCustomerArPanel />
+            }
+            else if (string.Equals(_page.Tab, ErpCreditApplication.Tab, StringComparison.OrdinalIgnoreCase))
+            {
+                <ErpCreditApplicationPanel />
+            }
+            else if (ErpCreditBlock.IsTab(_page.Tab))
+            {
+                <ErpCreditManagementPanel />
             }
             else
             {
@@ -294,7 +315,7 @@
                                     }
                                     <label>Note <input class="form-control input-sm" name="note" maxlength="255" /></label>
                                     <button type="submit" class="btn btn-primary btn-sm">Follow to form</button>
-                                    <a class="btn btn-sm btn-default" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, dedicated)">Open @StepLabel(edge.ToTab)</a>
+                                    <a class="btn btn-sm btn-default" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany(dedicated))">Open @StepLabel(edge.ToTab)</a>
                                 </form>
                             }
                             else
@@ -434,8 +455,12 @@
             @if (!string.IsNullOrWhiteSpace(_page.ExistingHref))
             {
                 <p class="help-block">This page already has a dedicated form.
-                    <a class="btn btn-sm btn-primary" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, _page.ExistingHref)">Open @_page.Label</a>
+                    <a class="btn btn-sm btn-primary" href="@ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany(_page.ExistingHref))">Open @_page.Label</a>
                 </p>
+                @if (AxFields.Count > 0)
+                {
+                    <p class="help-block">Fields on this menu: @string.Join(", ", AxFields.Select(field => field.Label)).</p>
+                }
             }
             else if (_isAdmin)
             {
@@ -448,7 +473,7 @@
                         <input type="hidden" name="csrf_guard_key" value="@_csrf" />
                         @if (Show("code"))
                         {
-                            <label>Code <input class="form-control input-sm" name="code" maxlength="40" /></label>
+                            <label>@CodeCaption <input class="form-control input-sm" name="code" maxlength="40" /></label>
                         }
                         @if (Show("name"))
                         {
@@ -513,10 +538,13 @@
                         {
                             <label>Period <input class="form-control input-sm" name="period" maxlength="24" placeholder="YYYY-MM" /></label>
                         }
-                        @if (Show("dates"))
+                        @if (Show("dates") || HasColumn("date_from"))
                         {
-                            <label>From <input class="form-control input-sm" type="date" name="date_from" /></label>
-                            <label>To <input class="form-control input-sm" type="date" name="date_to" /></label>
+                            <label>@DateFromCaption <input class="form-control input-sm" type="date" name="date_from" /></label>
+                        }
+                        @if (Show("dates") || HasColumn("date_to"))
+                        {
+                            <label>@DateToCaption <input class="form-control input-sm" type="date" name="date_to" /></label>
                         }
                         @if (Show("qty"))
                         {
@@ -524,13 +552,23 @@
                         }
                         @if (Show("amount"))
                         {
-                            <label>Amount <input class="form-control input-sm" name="amount" type="number" step="0.01" value="@(_follow.Amount == 0 ? "" : _follow.Amount.ToString(CultureInfo.InvariantCulture))" /></label>
+                            <label>@AmountCaption <input class="form-control input-sm" name="amount" type="number" step="0.01" value="@(_follow.Amount == 0 ? "" : _follow.Amount.ToString(CultureInfo.InvariantCulture))" /></label>
                         }
                         @if (Show("extra"))
                         {
                             <label>@ExtraLabel <input class="form-control input-sm" name="extra" maxlength="255" /></label>
                         }
                         <label>Note <input class="form-control input-sm" name="note" maxlength="255" value="@_follow.Note" /></label>
+                        @if (AxExtras.Count > 0)
+                        {
+                            <fieldset class="epc-ax-fields">
+                                <legend>@(_page.Label + " fields")</legend>
+                                @foreach (var field in AxExtras)
+                                {
+                                    <label>@field.Label <input class="form-control input-sm" name="@("ax_" + field.Key)" maxlength="80" /></label>
+                                }
+                            </fieldset>
+                        }
                         <input type="hidden" name="company_id" value="@_companyId" />
                         <input type="hidden" name="source_tab" value="@_follow.SourceTab" />
                         <input type="hidden" name="source_id" value="@_follow.SourceId" />
@@ -545,6 +583,8 @@
                 </ErpPhpCreateWell>
             }
 
+            @if (string.IsNullOrWhiteSpace(_page.ExistingHref))
+            {
             <div class="epc-erp-table-wrap">
                 <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
                     <thead>
@@ -557,7 +597,8 @@
                             <th>Status</th>
                             @if (_binding.LinksBranch) { <th>Branch</th> }
                             @if (Show("qty")) { <th class="text-right">@QtyLabel</th> }
-                            @if (Show("amount")) { <th class="text-right">Amount</th> }
+                            @if (Show("amount")) { <th class="text-right">@AmountCaption</th> }
+                            @if (AxExtras.Count > 0) { <th>Details</th> }
                             <th>Note</th>
                         </tr>
                     </thead>
@@ -580,6 +621,10 @@
                                     @if (_binding.LinksBranch) { <td>@(string.IsNullOrWhiteSpace(row.Extra) ? "—" : row.Extra)</td> }
                                     @if (Show("qty")) { <td class="text-right">@row.Qty.ToString("N3", CultureInfo.InvariantCulture)</td> }
                                     @if (Show("amount")) { <td class="text-right">@row.Amount.ToString("N2", CultureInfo.InvariantCulture)</td> }
+                                    @if (AxExtras.Count > 0)
+                                    {
+                                        <td>@(string.IsNullOrWhiteSpace(ErpAxMenuFields.Display(row.FieldsJson, _page)) ? "—" : ErpAxMenuFields.Display(row.FieldsJson, _page))</td>
+                                    }
                                     <td>@(string.IsNullOrWhiteSpace(row.Note) ? "—" : row.Note)</td>
                                 </tr>
                             }
@@ -587,6 +632,7 @@
                     </tbody>
                 </table>
             </div>
+            }
             }
         </section>
     </div>
@@ -609,6 +655,9 @@
     .epc-d365-strip li.current { border-color:#1d4ed8; background:#eff6ff; }
     .epc-d365-strip li span { display:block; font-size:11px; color:#64748b; }
     .epc-d365-param-row, .epc-d365-follow { display:flex; flex-wrap:wrap; gap:8px; align-items:end; margin:0 0 8px; }
+    .epc-ax-fields { border:1px solid #dbe4ea; margin:8px 0; padding:8px 10px; background:#f8fafc; }
+    .epc-ax-fields legend { font-size:13px; font-weight:700; padding:0 4px; }
+    .epc-ax-fields label { display:block; margin:0 0 6px; }
     @@media (max-width: 900px) {
         .epc-d365-workspace { display:block; }
         .epc-d365-groups { max-height:none; margin-bottom:12px; }
@@ -647,14 +696,18 @@
     private string LinkSaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365ProcessCatalog.LinkSavePath);
     private string StudySaveAction => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365ProcessCatalog.StudySavePath);
 
-    private string NameLabel => _page.Kind switch
+    private string NameLabel => ErpAxMenuFields.Caption(_page, "name", NameFallback);
+
+    private string NameFallback => _page.Kind switch
     {
         ErpD365Part3Catalog.FormKind.Order or ErpD365Part3Catalog.FormKind.Forecast or ErpD365Part3Catalog.FormKind.Procurement => "Item",
         ErpD365Part3Catalog.FormKind.Calendar => "Calendar",
         _ => "Name",
     };
 
-    private string PartyLabel => _page.Kind switch
+    private string PartyLabel => ErpAxMenuFields.Caption(_page, "party", PartyFallback);
+
+    private string PartyFallback => _page.Kind switch
     {
         ErpD365Part3Catalog.FormKind.Queue => "Equipment",
         ErpD365Part3Catalog.FormKind.Order => "Warehouse / supplier",
@@ -662,12 +715,29 @@
         _ => "Vendor",
     };
 
-    private string QtyLabel => _page.Kind switch
+    private string QtyLabel => ErpAxMenuFields.Caption(_page, "qty", QtyFallback);
+
+    private string QtyFallback => _page.Kind switch
     {
         ErpD365Part3Catalog.FormKind.Request => "Days",
         ErpD365Part3Catalog.FormKind.Payroll => "Hours / days",
         _ => "Qty",
     };
+
+    private string DateFromCaption => ErpAxMenuFields.Caption(_page, "date_from", "From");
+
+    private string DateToCaption => ErpAxMenuFields.Caption(_page, "date_to", "To");
+
+    private bool HasColumn(string column)
+        => AxFields.Any(field => field.Column.Equals(column, StringComparison.Ordinal));
+
+    private string CodeCaption => ErpAxMenuFields.Caption(_page, "code", "Code");
+
+    private string AmountCaption => ErpAxMenuFields.Caption(_page, "amount", "Amount");
+
+    private IReadOnlyList<ErpAxMenuFields.Field> AxFields => ErpAxMenuFields.For(_page);
+
+    private IReadOnlyList<ErpAxMenuFields.Field> AxExtras => ErpAxMenuFields.Extras(_page);
 
     private string ExtraLabel => _page.Kind switch
     {
@@ -742,8 +812,53 @@
     private string GuideHref
         => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/guide-app") + "#" + ErpAreaUseGuide.Anchor(_area);
 
+    private bool ShowBooks => _area is "gl" or "finance" or "general_ledger" or "cost_acct" or "cost_mgmt" or "consolidations";
+
+    private string BooksHref(string tab, string? level = null)
+    {
+        var path = "/erp/report-center-app?tab=" + Uri.EscapeDataString(tab);
+        if (!string.IsNullOrWhiteSpace(level))
+        {
+            path += "&level=" + Uri.EscapeDataString(level);
+        }
+        else if (_area == "consolidations")
+        {
+            path += "&level=consolidation";
+        }
+        else if (_area == "cost_acct")
+        {
+            path += "&level=business_unit";
+        }
+
+        return ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany(path));
+    }
+
+    private string WithCompany(string path)
+    {
+        if (_companyId <= 0 || path.Contains("company=", StringComparison.OrdinalIgnoreCase))
+        {
+            return path;
+        }
+
+        var hash = string.Empty;
+        var hashAt = path.IndexOf('#');
+        if (hashAt >= 0)
+        {
+            hash = path[hashAt..];
+            path = path[..hashAt];
+        }
+
+        var sep = path.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return path + sep + "company=" + _companyId.ToString(CultureInfo.InvariantCulture) + hash;
+    }
+
     private string PageHref(ErpD365Part3Catalog.Page page)
-        => ClientErpPath.PrefixIfBound(Http.HttpContext, page.AppPath + "?tab=" + page.Tab);
+    {
+        var path = !string.IsNullOrWhiteSpace(page.ExistingHref)
+            ? page.ExistingHref
+            : page.AppPath + "?tab=" + Uri.EscapeDataString(page.Tab);
+        return ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany(path));
+    }
 
     private string TabClass(string tab)
         => string.Equals(_page.Tab, tab, StringComparison.OrdinalIgnoreCase) ? "active" : "";
@@ -814,7 +929,7 @@
         ?? _area;
 
     private string StepHref(string tab)
-        => ClientErpPath.PrefixIfBound(Http.HttpContext, ErpD365ProcessCatalog.HrefForTab(tab));
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, WithCompany(ErpD365ProcessCatalog.HrefForTab(tab)));
 
     private static string StepLabel(string tab)
         => ErpD365WorkspaceCatalog.TryGet(tab, out var page) ? page.Label : tab;

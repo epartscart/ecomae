@@ -1,6 +1,5 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Erp
-@inject IErpOrganizationMasterReadService OrganizationMasters
 @*
   Common ERP document header: date (today), voucher/invoice number (Auto until post),
   legal entity, business unit, and cost centre. Drop into any create form.
@@ -16,22 +15,7 @@
 </label>
 @if (ShowLegalEntity)
 {
-    <label>Legal entity
-        @if (_legalEntities.Count == 0)
-        {
-            <input class="form-control input-sm" type="number" name="legal_entity_id" min="0" value="0" title="No legal entity rows yet — open Organization to add one" />
-        }
-        else
-        {
-            <select class="form-control input-sm" name="legal_entity_id">
-                @foreach (var entity in _legalEntities)
-                {
-                    <option value="@entity.Id">@entity.Code · @entity.Name</option>
-                }
-            </select>
-        }
-        <a class="epc-erp-header-org-link" href="/erp/organization-app?tab=legal_entities">Manage</a>
-    </label>
+    <ErpMasterPicker Kind="legal-entity" FieldName="legal_entity_id" Label="Legal entity" InputId="erp-doc-legal" />
 }
 @if (ShowBusinessUnit)
 {
@@ -40,23 +24,7 @@
 }
 @if (ShowCostCentre)
 {
-    <label>Cost centre
-        @if (_costCentres.Count == 0)
-        {
-            <input class="form-control input-sm" name="cost_centre" maxlength="40" placeholder="Cost centre" />
-        }
-        else
-        {
-            <select class="form-control input-sm" name="cost_centre">
-                <option value="">— none —</option>
-                @foreach (var centre in _costCentres)
-                {
-                    <option value="@centre.Code">@centre.Code · @centre.Name</option>
-                }
-            </select>
-        }
-        <a class="epc-erp-header-org-link" href="/erp/organization-app?tab=cost_centres">Manage</a>
-    </label>
+    <ErpMasterPicker Kind="cost-centre" FieldName="cost_centre" Label="Cost centre" ValueMode="code" InputId="erp-doc-cc" />
 }
 </div>
 
@@ -73,24 +41,4 @@
     [Parameter] public bool ShowCostCentre { get; set; } = true;
 
     private string DateDefault => string.IsNullOrWhiteSpace(DateValue) ? ErpVoucherHeader.TodayDate() : DateValue;
-    private IReadOnlyList<ErpOrganizationMasterRow> _legalEntities = [];
-    private IReadOnlyList<ErpOrganizationMasterRow> _costCentres = [];
-
-    protected override async Task OnInitializedAsync()
-    {
-        var snapshot = await OrganizationMasters.LoadAsync(200);
-        _legalEntities = snapshot.LegalEntities.Where(row => row.Active).Reverse().ToList();
-        _costCentres = snapshot.CostCentres.Where(row => row.Active).Reverse().ToList();
-        if (_costCentres.Count == 0)
-        {
-            var costDimIds = snapshot.Dimensions
-                .Where(d => d.Code.Equals("COSTCENTER", StringComparison.OrdinalIgnoreCase))
-                .Select(d => d.Id)
-                .ToHashSet();
-            _costCentres = snapshot.DimensionValues
-                .Where(row => row.Active && costDimIds.Contains(row.DimensionId))
-                .Reverse()
-                .ToList();
-        }
-    }
 }
