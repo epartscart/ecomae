@@ -151,19 +151,54 @@ public sealed class ErpFinancialStatementTests
             Assert.Equal(-40m, other.NetProfitAccounting);
 
             var groupPl = await read.ReadAsync(ErpFinancialStatementQuery.FromQuery("pl", "consolidation", "0", "0", "USD"));
-            Assert.Equal(75m, groupPl.IncomeAccounting);
-            Assert.Equal(15m, groupPl.ExpenseAccounting);
-            Assert.Equal(60m, groupPl.NetProfitAccounting);
-            Assert.Equal(16.20m, Round(groupPl.NetProfitAccounting * groupPl.Rate));
-            Assert.Contains(groupPl.Lines, line => line.Code == "ELIM-REV" && line.Accounting == -25m);
+            Assert.Equal("USD", groupPl.AccountingCurrency);
+            Assert.Equal("USD", groupPl.ReportingCurrency);
+            Assert.Equal(1m, groupPl.Rate);
+            Assert.Equal(20.25m, groupPl.IncomeAccounting);
+            Assert.Equal(4.05m, groupPl.ExpenseAccounting);
+            Assert.Equal(16.20m, groupPl.NetProfitAccounting);
+            Assert.Contains("head office reporting currency USD", groupPl.Message, StringComparison.Ordinal);
+            Assert.Contains("AED to USD at 0.27", groupPl.Message, StringComparison.Ordinal);
+            Assert.Contains(groupPl.Lines, line => line.Code == "ELIM-REV" && line.Accounting == -6.75m);
 
             var groupBs = await read.ReadAsync(ErpFinancialStatementQuery.FromQuery("balance_sheet", "consolidation", "0", "0", "USD"));
-            Assert.Equal(90m, groupBs.AssetAccounting);
-            Assert.Equal(30m, groupBs.LiabilityAccounting);
+            Assert.Equal(24.30m, groupBs.AssetAccounting);
+            Assert.Equal(8.10m, groupBs.LiabilityAccounting);
             Assert.Equal(0m, groupBs.EquityAccounting);
             Assert.Equal(0m, groupBs.BalanceCheckAccounting);
             Assert.Equal(27m, Assert.Single(groupBs.Lines, line => line.Code == "1000").Reporting);
             Assert.Equal(-2.70m, Assert.Single(groupBs.Lines, line => line.Code == "ELIM-ASSET").Reporting);
+
+            await using (var connection = await connections.OpenAsync())
+            {
+                var coa = await CoaIdsAsync(connection);
+                await posting.PostJournalAsync(connection, new ErpGlJournalHeader
+                {
+                    JournalDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    Reference = "EU",
+                    Description = "Euro company sale",
+                    SourceType = "manual",
+                    CompanyId = 3,
+                    CurrencyCode = "EUR",
+                    ExchangeRate = 1m,
+                }, [
+                    new ErpGlLine(coa["1000"], 50m, 0m, ""),
+                    new ErpGlLine(coa["4000"], 0m, 50m, ""),
+                ], 1);
+                await using var rate = connection.CreateCommand();
+                rate.CommandText =
+                    "INSERT INTO `epc_fx_rates` (`base_currency`,`target_currency`,`rate`,`inverse_rate`,`effective_date`) " +
+                    "VALUES ('EUR','USD',1.10,0.90909091,CURDATE())";
+                await rate.ExecuteNonQueryAsync();
+            }
+
+            var mixed = await read.ReadAsync(ErpFinancialStatementQuery.FromQuery("pl", "consolidation", "0", "0", "USD"));
+            Assert.Equal(75.25m, mixed.IncomeAccounting);
+            Assert.Equal(4.05m, mixed.ExpenseAccounting);
+            Assert.Contains("EUR to USD at 1.1", mixed.Message, StringComparison.Ordinal);
+            var euroCash = await read.ReadAsync(ErpFinancialStatementQuery.FromQuery("balance_sheet", "consolidation", "0", "0", "USD"));
+            Assert.Equal(79.30m, euroCash.AssetAccounting);
+            Assert.Equal(0m, euroCash.BalanceCheckAccounting);
 
             var missing = await read.ReadAsync(ErpFinancialStatementQuery.FromQuery("pl", "company", "1", "0", "EUR"));
             Assert.Equal("AED", missing.ReportingCurrency);
