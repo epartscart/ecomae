@@ -212,8 +212,8 @@
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
                 <ErpVoucherHeaderFields NumberPreview="Auto" />
-                <label>Customer <input class="form-control input-sm" name="customer_name" required /></label>
-                <label>Customer code <input class="form-control input-sm" name="party_code" /></label>
+                <ErpMasterPicker Kind="customer" FieldName="customer_name" InputId="jw-pos-advance-customer" Label="Customer" ValueMode="name" Required="true" CodeFieldName="party_code" />
+                <input type="hidden" name="party_code" value="" />
                 <label>Amount <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" /></label>
                 <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save POS advance</button>
@@ -232,7 +232,7 @@
                 }
                 <ErpVoucherHeaderFields DateFieldName="voc_date" NumberPreview="Auto" />
                 <label>Paid to <input class="form-control input-sm" name="paid_to" required maxlength="120" /></label>
-                <label>Account <input class="form-control input-sm" name="account_code" maxlength="20" placeholder="PETTY-CASH" /></label>
+                <ErpMasterPicker Kind="coa" FieldName="account_code" InputId="jw-petty-coa" Label="Chart account" ValueMode="code" />
                 <label>Amount <input class="form-control input-sm" name="total" type="number" step="0.01" value="0" /></label>
                 <label>Narration <input class="form-control input-sm" name="narration" maxlength="200" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save petty cash</button>
@@ -293,8 +293,8 @@
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
                 <ErpVoucherHeaderFields DateLabel="Invoice date" NumberLabel="Invoice no" NumberPreview="Auto" />
-                <label>Customer <input class="form-control input-sm" name="customer_name" required /></label>
-                <label>Customer code <input class="form-control input-sm" name="party_code" /></label>
+                <ErpMasterPicker Kind="customer" FieldName="customer_name" InputId="jw-retail-invoice-customer" Label="Customer" ValueMode="name" Required="true" CodeFieldName="party_code" />
+                <input type="hidden" name="party_code" value="" />
                 @if (_tab == "jw_sales_return")
                 {
                     <label>Source invoice id <input class="form-control input-sm" name="ref_invoice_no" type="number" min="1" required /></label>
@@ -391,7 +391,7 @@
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="action" value="@(_tab + "_save")" />
                 <label>Code <input class="form-control input-sm" name="code" required /></label>
-                <label>Customer <input class="form-control input-sm" name="customer_name" /></label>
+                <ErpMasterPicker Kind="customer" FieldName="customer_name" InputId="jw-retail-module-customer" Label="Customer" ValueMode="name" />
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </form>
         </ErpPhpCreateWell>
@@ -423,7 +423,7 @@
             <input type="hidden" name="returnUrl" value="@ReturnHref" />
             <strong style="width:100%;font-size:.85rem">Set assortment</strong>
             <label>Channel id <input type="number" name="channel_id" min="0" required style="width:6rem" /></label>
-            <label>Item id <input type="number" name="item_id" min="0" required style="width:6rem" /></label>
+            <ErpMasterPicker Kind="item" FieldName="item_id" InputId="retail-assortment-item" Label="Item" Required="true" Min="1" />
             <label>Active
                 <select name="active">
                     <option value="1" selected>active</option>

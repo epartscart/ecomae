@@ -24,7 +24,8 @@ public sealed record ErpD365WorkspaceWriteRequest(
     long SourceId = 0,
     string? SourceCode = null,
     string? Relation = null,
-    long CompanyId = 0);
+    long CompanyId = 0,
+    string? FieldsJson = null);
 
 public interface IErpD365WorkspaceWriteService
 {
@@ -72,6 +73,7 @@ public sealed class ErpD365WorkspaceWriteService : IErpD365WorkspaceWriteService
         var dateTo = Clip(request.DateTo, 16);
         var extra = Clip(request.Extra, 2000);
         var note = Clip(request.Note, 255);
+        var fieldsJson = Clip(request.FieldsJson, 4000);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -82,12 +84,12 @@ public sealed class ErpD365WorkspaceWriteService : IErpD365WorkspaceWriteService
             ErpDb.Positional(
                 "INSERT INTO `epc_erp_d365_workspace` (" +
                 "`company_id`,`area`,`tab`,`code`,`name`,`worker`,`party`,`kind`,`status`,`period`," +
-                "`date_from`,`date_to`,`qty`,`amount`,`extra`,`note`,`created_by`,`time_created`,`time_updated`" +
-                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
+                "`date_from`,`date_to`,`qty`,`amount`,`extra`,`note`,`fields_json`,`created_by`,`time_created`,`time_updated`" +
+                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
             cancellationToken,
             ErpD365FieldBinding.CompanyOrDefault(request.CompanyId),
             area, tab, code, name, worker, party, kind, status, period,
-            dateFrom, dateTo, request.Qty, request.Amount, extra, note, request.CreatedBy, now, now);
+            dateFrom, dateTo, request.Qty, request.Amount, extra, note, fieldsJson, request.CreatedBy, now, now);
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         if (id > 0 && !string.IsNullOrWhiteSpace(request.SourceTab))
         {

@@ -1161,6 +1161,11 @@ internal static class ErpLazySchema
             await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
         }
 
+        await ErpDb.TryExecuteAsync(
+            c,
+            "ALTER TABLE `epc_erp_pm_business_units` ADD `trn` varchar(40) NOT NULL DEFAULT ''",
+            ct).ConfigureAwait(false);
+
         // epc_erp_pm_seed_defaults: editable defaults so masters screens aren't empty.
         // Each table seeds only when completely empty (PHP seedIf semantics).
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -1482,6 +1487,86 @@ internal static class ErpLazySchema
         }
     }
 
+    /// <summary>PHP <c>epc_data_mig_ensure_schema</c> (content/shop/finance/epc_erp_data_migration.php).</summary>
+    public static async Task EnsureDataMigrationsAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_data_migrations` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`migration_type` varchar(50) NOT NULL DEFAULT 'open_balance'," +
+            "`entity_type` varchar(50) NOT NULL DEFAULT ''," +
+            "`file_name` varchar(300) NOT NULL DEFAULT ''," +
+            "`file_path` varchar(500) NOT NULL DEFAULT ''," +
+            "`total_rows` int(11) NOT NULL DEFAULT 0," +
+            "`valid_rows` int(11) NOT NULL DEFAULT 0," +
+            "`error_rows` int(11) NOT NULL DEFAULT 0," +
+            "`imported_rows` int(11) NOT NULL DEFAULT 0," +
+            "`status` enum('uploaded','validated','dry_run','importing','completed','failed','rolled_back') NOT NULL DEFAULT 'uploaded'," +
+            "`column_mapping` text," +
+            "`validation_errors` text," +
+            "`options` text," +
+            "`imported_by` int(11) NOT NULL DEFAULT 0," +
+            "`imported_by_name` varchar(120) NOT NULL DEFAULT ''," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_completed` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`), KEY `x_company` (`company_id`), KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Data migration jobs'",
+            "CREATE TABLE IF NOT EXISTS `epc_data_migration_rows` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`migration_id` int(11) NOT NULL DEFAULT 0," +
+            "`row_number` int(11) NOT NULL DEFAULT 0," +
+            "`raw_data` text," +
+            "`mapped_data` text," +
+            "`status` enum('pending','valid','error','imported','skipped') NOT NULL DEFAULT 'pending'," +
+            "`error_message` varchar(500) NOT NULL DEFAULT ''," +
+            "`created_entity_id` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`), KEY `x_migration` (`migration_id`), KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Individual migration rows'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP <c>epc_inv_report_ensure_schema</c> (content/shop/finance/epc_erp_inventory_report.php).</summary>
+    public static async Task EnsureInventoryReportAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_inventory_categories` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`parent_id` int(11) NOT NULL DEFAULT 0," +
+            "`code` varchar(30) NOT NULL DEFAULT ''," +
+            "`name` varchar(200) NOT NULL DEFAULT ''," +
+            "`level` int(11) NOT NULL DEFAULT 1," +
+            "`sort_order` int(11) NOT NULL DEFAULT 0," +
+            "`is_active` tinyint(1) NOT NULL DEFAULT 1," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`), KEY `x_company` (`company_id`), KEY `x_parent` (`parent_id`), KEY `x_code` (`code`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Inventory category hierarchy'",
+            "CREATE TABLE IF NOT EXISTS `epc_inventory_snapshots` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`snapshot_date` date NOT NULL," +
+            "`category_id` int(11) NOT NULL DEFAULT 0," +
+            "`total_skus` int(11) NOT NULL DEFAULT 0," +
+            "`total_qty` decimal(14,3) NOT NULL DEFAULT 0.000," +
+            "`total_value` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`avg_age_days` decimal(8,1) NOT NULL DEFAULT 0.0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`), KEY `x_company_date` (`company_id`, `snapshot_date`), KEY `x_category` (`category_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Daily inventory value snapshots per category'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
     /// <summary>PHP <c>epc_erp_payroll_ensure_schema</c> + <c>epc_erp_staff_ensure_schema</c>.</summary>
     public static async Task EnsurePayrollAsync(DbConnection c, CancellationToken ct)
     {
@@ -1656,8 +1741,9 @@ internal static class ErpLazySchema
     }
 
     /// <summary>Workspace rows for Dynamics-style leave, planning, equipment, organization, payroll, and procurement pages.</summary>
-    public static Task EnsureD365WorkspaceAsync(DbConnection c, CancellationToken ct) =>
-        ErpDb.TryExecuteAsync(
+    public static async Task EnsureD365WorkspaceAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(
             c,
             "CREATE TABLE IF NOT EXISTS `epc_erp_d365_workspace` (" +
             "`id` int(11) NOT NULL AUTO_INCREMENT," +
@@ -1677,6 +1763,7 @@ internal static class ErpLazySchema
             "`amount` decimal(16,2) NOT NULL DEFAULT 0.00," +
             "`extra` text," +
             "`note` varchar(255) NOT NULL DEFAULT ''," +
+            "`fields_json` text," +
             "`created_by` int(11) NOT NULL DEFAULT 0," +
             "`time_created` int(11) NOT NULL DEFAULT 0," +
             "`time_updated` int(11) NOT NULL DEFAULT 0," +
@@ -1684,7 +1771,9 @@ internal static class ErpLazySchema
             "KEY `x_area_tab` (`area`,`tab`)," +
             "KEY `x_status` (`status`)" +
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Dynamics-style workspace rows'",
-            ct);
+            ct).ConfigureAwait(false);
+        await AddColumnIfMissingAsync(c, "epc_erp_d365_workspace", "fields_json", "text", ct).ConfigureAwait(false);
+    }
 
     /// <summary>Company-level official process parameters for workspace areas.</summary>
     public static Task EnsureD365ParametersAsync(DbConnection c, CancellationToken ct) =>

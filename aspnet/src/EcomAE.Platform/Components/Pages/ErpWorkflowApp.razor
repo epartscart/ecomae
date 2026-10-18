@@ -10,10 +10,29 @@
 @inject IHttpContextAccessor Http
 <PageTitle>Workflow · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
+<style>
+    .epc-wf-guide { margin:0 0 12px; padding:12px 14px; border:1px solid #dbe4ea; background:#fff; }
+    .epc-wf-guide h3 { margin:0 0 4px; font-size:15px; color:#0f172a; }
+    .epc-wf-guide__lead { margin:0 0 10px; color:#475569; }
+    .epc-wf-guide__steps { display:flex; flex-wrap:wrap; gap:8px; list-style:none; margin:0; padding:0; }
+    .epc-wf-guide__steps li { display:flex; gap:8px; align-items:flex-start; flex:1 1 180px; padding:8px 10px; border:1px solid #dbe4ea; background:#f8fafc; }
+    .epc-wf-guide__n { flex:0 0 auto; width:22px; height:22px; border-radius:50%; background:#1d4f91; color:#fff; font-size:12px; font-weight:700; line-height:22px; text-align:center; }
+    .epc-wf-guide__steps strong { display:block; color:#0f172a; }
+    .epc-wf-guide__steps p { margin:2px 0 0; font-size:12px; color:#475569; }
+    .epc-wf-flow { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0 0 12px; }
+    .epc-wf-flow a { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid #dbe4ea; border-radius:999px; background:#fff; color:#0f172a; text-decoration:none; font-weight:700; }
+    .epc-wf-flow a.is-on { background:#1d4f91; border-color:#1d4f91; color:#fff; }
+    .epc-wf-flow .sep { color:#94a3b8; }
+    .epc-wf-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:end; margin:0 0 12px; padding:10px; border:1px solid #dbe4ea; background:#f8fafc; }
+    .epc-wf-toolbar label { display:block; margin:0 0 2px; font-size:11px; color:#475569; font-weight:700; }
+    .epc-wf-actions { white-space:nowrap; width:1%; }
+    .epc-wf-actions__row { display:flex; flex-wrap:nowrap; align-items:center; gap:4px; }
+    .epc-wf-actions__row form[data-epc-inline="1"] { display:inline-flex !important; width:auto !important; margin:0 !important; padding:0 !important; border:0 !important; background:transparent !important; box-shadow:none !important; }
+</style>
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Workflow" BreadcrumbArea="Overview" BreadcrumbTab="Workflow">
 
     <PhpErpModulePageHeader Title="Department workflow board" Subtitle="Cross-department order flow: Sales → Purchase → Logistics → Finance → Accounts. Marketing and HR support parallel tracks." />
-    <PhpErpD365ActionPane RefreshHref="?" />
+    <PhpErpD365ActionPane RefreshHref="@WithCompany("?")" />
 
     @if (_opened is not null)
     {
@@ -46,38 +65,83 @@
     <div class="hpanel epc-erp-section">
         <div class="panel-heading hbuilt"><i class="fa fa-random"></i> Department workflow board</div>
         <div class="panel-body">
-        <p class="text-muted">Cross-department order flow: <strong>Sales</strong> → <strong>Purchase</strong> → <strong>Logistics</strong> → <strong>Finance</strong> → <strong>Accounts</strong>. Marketing &amp; HR support parallel tracks.</p>
+        <section class="epc-wf-guide" aria-label="How to use the workflow board">
+            <h3>How to use this board</h3>
+            <p class="epc-wf-guide__lead">Cross-department order flow: <strong>Sales</strong> → <strong>Purchase</strong> → <strong>Logistics</strong> → <strong>Finance</strong> → <strong>Accounts</strong>. Marketing and HR run beside that chain. Open, Done, and Start sit on one row for the task you are looking at.</p>
+            <ol class="epc-wf-guide__steps">
+                <li><span class="epc-wf-guide__n">1</span><div><strong>Choose the department</strong><p>Use the chain or the department list. All departments stays the full board.</p></div></li>
+                <li><span class="epc-wf-guide__n">2</span><div><strong>Add the task</strong><p>Give it a title, the step name, the order number, and a priority.</p></div></li>
+                <li><span class="epc-wf-guide__n">3</span><div><strong>Open, Start, Done</strong><p>Open reads the task. Start marks it in progress. Done closes it.</p></div></li>
+            </ol>
+        </section>
 
-        <form method="get" action="/erp/workflow-app" class="form-inline" style="margin-bottom:12px;">
-            <label>Department</label>
-            <select name="dept" class="form-control input-sm" onchange="this.form.submit()">
-                <option value="">All departments</option>
-                @foreach (var deptRow in ErpStaffDepartmentCatalog.All)
+        <nav class="epc-wf-flow" aria-label="Department chain">
+            <a class="@FlowClass("")" href="@DeptHref("")">All</a>
+            <span class="sep">·</span>
+            @foreach (var code in Chain)
+            {
+                <a class="@FlowClass(code)" href="@DeptHref(code)">@ErpStaffDepartmentCatalog.NameFor(code)</a>
+                @if (code != "accounts")
                 {
-                    <option value="@deptRow.Code" selected="@string.Equals(_dept, deptRow.Code, StringComparison.OrdinalIgnoreCase)">@deptRow.Name</option>
+                    <span class="sep">→</span>
                 }
-            </select>
-        </form>
+            }
+            <span class="sep">·</span>
+            <a class="@FlowClass("marketing")" href="@DeptHref("marketing")">Marketing</a>
+            <a class="@FlowClass("hr")" href="@DeptHref("hr")">HR</a>
+        </nav>
 
-        @if (_isAdmin)
-        {
-            <form method="post" action="/erp/workflow/create" class="form-inline epc-erp-form-inline" style="margin-bottom:12px;">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnUrl" />
-                <select name="department_code" class="form-control input-sm">
+        <form method="get" action="/erp/workflow-app" class="epc-wf-toolbar" data-epc-inline="1">
+            @if (_companyId > 0)
+            {
+                <input type="hidden" name="company" value="@_companyId.ToString(CultureInfo.InvariantCulture)" />
+            }
+            <div>
+                <label>Department</label>
+                <select name="dept" class="form-control input-sm" onchange="this.form.submit()">
+                    <option value="">All departments</option>
                     @foreach (var deptRow in ErpStaffDepartmentCatalog.All)
                     {
                         <option value="@deptRow.Code" selected="@string.Equals(_dept, deptRow.Code, StringComparison.OrdinalIgnoreCase)">@deptRow.Name</option>
                     }
                 </select>
-                <input type="text" name="title" class="form-control input-sm" placeholder="Task title" required maxlength="255" />
-                <input type="text" name="workflow_step" class="form-control input-sm" placeholder="Step" maxlength="64" />
-                <input type="number" name="order_id" class="form-control input-sm" placeholder="Order ID" value="0" min="0" />
-                <select name="priority" class="form-control input-sm">
-                    <option value="normal">Normal</option>
-                    <option value="high">High</option>
-                    <option value="low">Low</option>
-                </select>
+            </div>
+        </form>
+
+        @if (_isAdmin)
+        {
+            <form method="post" action="/erp/workflow/create" class="epc-wf-toolbar epc-erp-form-inline" data-epc-inline="1">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                <div>
+                    <label>Department</label>
+                    <select name="department_code" class="form-control input-sm">
+                        @foreach (var deptRow in ErpStaffDepartmentCatalog.All)
+                        {
+                            <option value="@deptRow.Code" selected="@string.Equals(_dept, deptRow.Code, StringComparison.OrdinalIgnoreCase)">@deptRow.Name</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label>Task</label>
+                    <input type="text" name="title" class="form-control input-sm" placeholder="Task title" required maxlength="255" />
+                </div>
+                <div>
+                    <label>Step</label>
+                    <input type="text" name="workflow_step" class="form-control input-sm" placeholder="Step" maxlength="64" />
+                </div>
+                <div>
+                    <label>Order</label>
+                    <input type="number" name="order_id" class="form-control input-sm" placeholder="Order ID" value="0" min="0" />
+                </div>
+                <div>
+                    <label>Priority</label>
+                    <select name="priority" class="form-control input-sm">
+                        <option value="normal">Normal</option>
+                        <option value="high">High</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
                 <button type="submit" class="btn btn-sm btn-primary">Add task</button>
             </form>
         }
@@ -93,7 +157,7 @@
                     <th>Priority</th>
                     <th>Status</th>
                     <th>Due</th>
-                    <th></th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -119,27 +183,29 @@
                             <td>@(row.OrderId > 0 ? $"#{row.OrderId.ToString(CultureInfo.InvariantCulture)}" : "—")</td>
                             <td>@(string.IsNullOrWhiteSpace(row.AssigneeName) ? "—" : row.AssigneeName)</td>
                             <td>@row.Priority</td>
-                            <td><span class="label label-@statusClass">@row.Status</span></td>
+                            <td><span class="label label-@statusClass">@StatusLabel(row.Status)</span></td>
                             <td>@FormatDate(row.DueAt)</td>
-                            <td>
-                                <a class="btn btn-xs btn-default" href="@TaskHref(row.Id)">Open</a>
-                                @if (_isAdmin && row.Status != "done" && row.Status != "cancelled")
-                                {
-                                    <form method="post" action="/erp/workflow/status" style="display:inline">
-                                        <input type="hidden" name="confirmWrites" value="true" />
-                                        <input type="hidden" name="returnUrl" value="@_returnUrl" />
-                                        <input type="hidden" name="task_id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
-                                        <input type="hidden" name="status" value="done" />
-                                        <button type="submit" class="btn btn-xs btn-success epc-wf-done">Done</button>
-                                    </form>
-                                    <form method="post" action="/erp/workflow/status" style="display:inline">
-                                        <input type="hidden" name="confirmWrites" value="true" />
-                                        <input type="hidden" name="returnUrl" value="@_returnUrl" />
-                                        <input type="hidden" name="task_id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
-                                        <input type="hidden" name="status" value="in_progress" />
-                                        <button type="submit" class="btn btn-xs btn-default epc-wf-progress">Start</button>
-                                    </form>
-                                }
+                            <td class="epc-wf-actions">
+                                <div class="epc-wf-actions__row">
+                                    <a class="btn btn-xs btn-default" href="@TaskHref(row.Id)">Open</a>
+                                    @if (_isAdmin && row.Status != "done" && row.Status != "cancelled")
+                                    {
+                                        <form method="post" action="/erp/workflow/status" data-epc-inline="1">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                                            <input type="hidden" name="task_id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                            <input type="hidden" name="status" value="done" />
+                                            <button type="submit" class="btn btn-xs btn-success epc-wf-done">Done</button>
+                                        </form>
+                                        <form method="post" action="/erp/workflow/status" data-epc-inline="1">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                                            <input type="hidden" name="task_id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                            <input type="hidden" name="status" value="in_progress" />
+                                            <button type="submit" class="btn btn-xs btn-default epc-wf-progress">Start</button>
+                                        </form>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
@@ -156,7 +222,9 @@
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private static readonly string[] Chain = ["sales", "purchase", "logistics", "finance", "accounts"];
     private string _dept = "";
+    private long _companyId;
     private string _returnUrl = "/erp/workflow-app";
     private long _openedId;
     private ErpWorkflowTaskDigest? _opened;
@@ -202,12 +270,11 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _dept = (ctx.Request.Query["dept"].ToString() ?? "").Trim();
+        _companyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
         _openedId = long.TryParse(ctx.Request.Query["task_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var taskId)
             ? taskId
             : 0;
-        _returnUrl = string.IsNullOrWhiteSpace(_dept)
-            ? "/erp/workflow-app"
-            : "/erp/workflow-app?dept=" + Uri.EscapeDataString(_dept);
+        _returnUrl = BoardHref(_dept);
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
@@ -228,9 +295,57 @@
         }
     }
 
-    private string TaskHref(long taskId) =>
-        "/erp/workflow-app?task_id=" + taskId.ToString(CultureInfo.InvariantCulture)
-        + (string.IsNullOrWhiteSpace(_dept) ? "" : "&dept=" + Uri.EscapeDataString(_dept));
+    private string TaskHref(long taskId)
+        => BoardHref(_dept) + (BoardHref(_dept).Contains('?', StringComparison.Ordinal) ? "&" : "?")
+           + "task_id=" + taskId.ToString(CultureInfo.InvariantCulture);
+
+    private string DeptHref(string code) => BoardHref(code);
+
+    private string FlowClass(string code)
+        => string.Equals(_dept, code, StringComparison.OrdinalIgnoreCase) ? "is-on" : "";
+
+    private string BoardHref(string dept)
+    {
+        var path = "/erp/workflow-app";
+        var query = new List<string>();
+        if (!string.IsNullOrWhiteSpace(dept))
+        {
+            query.Add("dept=" + Uri.EscapeDataString(dept));
+        }
+
+        if (_companyId > 0)
+        {
+            query.Add("company=" + _companyId.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return query.Count == 0 ? path : path + "?" + string.Join("&", query);
+    }
+
+    private string WithCompany(string href)
+    {
+        if (_companyId <= 0 || href.Contains("company=", StringComparison.OrdinalIgnoreCase))
+        {
+            return href;
+        }
+
+        var company = "company=" + _companyId.ToString(CultureInfo.InvariantCulture);
+        if (href == "?")
+        {
+            return "?" + company;
+        }
+
+        return href + (href.Contains('?', StringComparison.Ordinal) ? "&" : "?") + company;
+    }
+
+    private static string StatusLabel(string status)
+        => status switch
+        {
+            "in_progress" => "In progress",
+            "done" => "Done",
+            "pending" => "Pending",
+            "cancelled" => "Cancelled",
+            _ => string.IsNullOrWhiteSpace(status) ? "Pending" : status,
+        };
 
     private static string FormatDate(long unix)
     {

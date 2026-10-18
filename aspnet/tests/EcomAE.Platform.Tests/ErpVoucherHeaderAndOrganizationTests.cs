@@ -25,13 +25,15 @@ public sealed class ErpVoucherHeaderAndOrganizationTests
         Assert.Contains("ErpVoucherHeader.TodayDate()", text, StringComparison.Ordinal);
         Assert.Contains("name=\"voc_no_preview\"", text, StringComparison.Ordinal);
         Assert.Contains("ErpVoucherHeader.AutoNumber", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"legal_entity_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"legal_entity_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("Kind=\"legal-entity\"", text, StringComparison.Ordinal);
         Assert.Contains("FieldName=\"business_unit_id\"", text, StringComparison.Ordinal);
         Assert.Contains("Kind=\"business_unit\"", text, StringComparison.Ordinal);
         Assert.Contains("CodeFieldName=\"branch\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"cost_centre\"", text, StringComparison.Ordinal);
-        Assert.Contains("/erp/organization-app?tab=legal_entities", text, StringComparison.Ordinal);
-        Assert.Contains("/erp/organization-app?tab=cost_centres", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"cost_centre\"", text, StringComparison.Ordinal);
+        Assert.Contains("Kind=\"cost-centre\"", text, StringComparison.Ordinal);
+        Assert.Equal("/erp/organization-app?tab=legal_entities", ErpMasterLookupReadService.MasterHref("legal-entity"));
+        Assert.Equal("/erp/organization-app?tab=cost_centres", ErpMasterLookupReadService.MasterHref("cost-centre"));
         Assert.Contains("epc-erp-doc-header", text, StringComparison.Ordinal);
         Assert.Contains("Document identity", text, StringComparison.Ordinal);
     }

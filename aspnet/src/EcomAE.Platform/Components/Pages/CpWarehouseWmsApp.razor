@@ -42,7 +42,7 @@
         <form method="post" action="/erp/wms/receive" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/warehouse-wms-app")" />
-            <label>Item / SKU <input type="text" name="item" required /></label>
+            <ErpMasterPicker Kind="item" FieldName="item" InputId="wms-receive-item" Label="Item" ValueMode="code" Required="true" />
             <label>Quantity <input type="number" step="0.001" name="qty" required /></label>
             <label>Receiving location <input type="number" name="receive_location_id" min="0" style="width:6rem" /></label>
             <label>Put-away destination <input type="number" name="putaway_location_id" min="0" style="width:6rem" /></label>
@@ -55,7 +55,7 @@
             <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/warehouse-wms-app")" />
             <label>Code <input name="code" required maxlength="64" style="width:7rem" /></label>
             <label>Name <input name="name" maxlength="120" style="width:10rem" /></label>
-            <label>Warehouse <input type="number" name="warehouse_id" min="0" style="width:5rem" /></label>
+            <ErpMasterPicker Kind="warehouse" FieldName="warehouse_id" InputId="wms-location-wh" Label="Warehouse" />
             <label>Zone <input name="zone" maxlength="40" style="width:5rem" /></label>
             <label>Aisle <input name="aisle" maxlength="40" style="width:5rem" /></label>
             <label>Rack <input name="rack" maxlength="40" style="width:5rem" /></label>
@@ -65,7 +65,7 @@
         <form method="post" action="/erp/wms/waves/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/warehouse-wms-app" />
-            <label>Item <input name="item" required maxlength="120" style="width:8rem" /></label>
+            <ErpMasterPicker Kind="item" FieldName="item" InputId="wms-wave-item" Label="Item" ValueMode="code" Required="true" />
             <label>Qty <input type="number" name="qty" min="0.001" step="0.001" required style="width:5rem" /></label>
             <label>Reference <input name="reference" maxlength="120" style="width:8rem" /></label>
             <button type="submit">Create wave</button>
