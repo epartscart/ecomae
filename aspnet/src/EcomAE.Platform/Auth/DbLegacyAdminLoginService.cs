@@ -212,9 +212,19 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
             // Storefront stays customer; CP/ERP/BOS/IP stay admin-gated.
             if (adminSession)
             {
-                var identity = await _sessions.GetAdminIdentityAsync(user.UserId, cancellationToken).ConfigureAwait(false);
+                // Reuse the login connection: the identity (groups/modules) must come from the
+                // same database and credentials where the user was found and the password verified.
+                var identity = await _sessions.GetAdminIdentityAsync(user.UserId, connection, cancellationToken).ConfigureAwait(false);
                 if (identity is null || !identity.HasBackendAccess)
                 {
+                    _log.LogWarning(
+                        "Login no_backend_access host={Host} db={Database} siteKey={SiteKey} userId={UserId} identityNull={IdentityNull} groups={Groups}",
+                        host,
+                        tenant?.DatabaseName ?? "(registry-default)",
+                        tenant?.SiteKey,
+                        user.UserId,
+                        identity is null,
+                        identity is null ? "-" : string.Join(',', identity.GroupIds));
                     return await Fail("Account lacks backend permissions.", "no_backend_access").ConfigureAwait(false);
                 }
             }

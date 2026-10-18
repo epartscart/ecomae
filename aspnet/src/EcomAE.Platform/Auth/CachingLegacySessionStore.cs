@@ -87,6 +87,16 @@ public sealed class CachingLegacySessionStore : ILegacySessionStore
         return identity;
     }
 
+    public Task<LegacyAdminIdentity?> GetAdminIdentityAsync(int userId, System.Data.Common.DbConnection? sharedConnection, CancellationToken cancellationToken = default)
+    {
+        if (sharedConnection is not null && _inner is DbLegacySessionStore dbStore)
+        {
+            return dbStore.GetAdminIdentityAsync(userId, sharedConnection, cancellationToken);
+        }
+
+        return GetAdminIdentityAsync(userId, cancellationToken);
+    }
+
     private string ScopeKey(string kind, int userId, string token)
     {
         var host = _http.HttpContext?.Request.Host.Host ?? "unknown";
