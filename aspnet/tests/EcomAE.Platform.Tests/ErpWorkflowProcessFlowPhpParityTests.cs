@@ -8,19 +8,18 @@ namespace EcomAE.Platform.Tests;
 public sealed class ErpWorkflowProcessFlowPhpParityTests
 {
     [Fact]
-    public void Shared_d365_action_pane_exposes_standard_erp_record_actions()
+    public void Shared_d365_action_pane_follows_the_page_tabs()
     {
         var source = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpD365ActionPane.razor"));
 
         Assert.Contains("<span>New</span>", source, StringComparison.Ordinal);
-        foreach (var action in new[] { "edit", "delete", "void", "submit", "approve", "post" })
-        {
-            Assert.Contains($"(\"{action}\",", source, StringComparison.Ordinal);
-        }
-
-        Assert.Contains("data-erp-standard-action", source, StringComparison.Ordinal);
-        Assert.Contains("Select a record to use", source, StringComparison.Ordinal);
+        Assert.Contains("<span>Refresh</span>", source, StringComparison.Ordinal);
+        Assert.Contains("ErpActionPaneViews", source, StringComparison.Ordinal);
+        Assert.Contains("epc-d365-aptab", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("data-erp-standard-action", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("Select a record to use", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", source, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -51,6 +50,9 @@ public sealed class ErpWorkflowProcessFlowPhpParityTests
         Assert.Contains("Live site map", text, StringComparison.Ordinal);
         Assert.Contains("pf-guide", text, StringComparison.Ordinal);
         Assert.Contains("pf-tool-groups", text, StringComparison.Ordinal);
+        Assert.Contains("pf-om-canvas", text, StringComparison.Ordinal);
+        Assert.Contains("pf-wf-grid", text, StringComparison.Ordinal);
+        Assert.Contains("YOU ARE HERE", text, StringComparison.Ordinal);
         Assert.Contains("How a case moves", text, StringComparison.Ordinal);
         foreach (var view in new[] { "monitor", "orgmap", "hierarchy", "workforce", "inbox", "processes", "heads" })
         {
@@ -94,6 +96,10 @@ public sealed class ErpWorkflowProcessFlowPhpParityTests
         Assert.Contains(ErpAutomationCatalogue.SystemChains, chain => chain.Name == "Procure to pay" && chain.ItemIds.Contains("three_way_match"));
         Assert.Contains(ErpAutomationCatalogue.SystemChains, chain => chain.Name == "Record to report" && chain.ItemIds.Contains("period_close"));
         Assert.All(ErpAutomationCatalogue.SystemChains.SelectMany(chain => chain.ItemIds), id => Assert.NotNull(ErpAutomationCatalogue.Find(id)));
+        var favorites = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpWorkspaceFavoritesApp.razor"));
+        Assert.Contains("What this page is for", favorites, StringComparison.Ordinal);
+        Assert.Contains("fav-bar", favorites, StringComparison.Ordinal);
+        Assert.Contains("The star in the top bar", favorites, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -22,6 +22,7 @@
 
     <PhpErpModulePageHeader Title="Delivery Notes" Subtitle="Create shipment notes with optional carrier, tracking, and shipped status." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <p class="text-muted" style="margin:0 0 10px;"><a href="/erp/invoices-app#shipping-documents">Several invoices in one shipment</a> become one shipping invoice and one packing slip.</p>
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Delivery Notes KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_notes.Count</div></div>

@@ -33,9 +33,9 @@ public sealed class CpPortalSettingsSuperOnlyTests
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpTenantEmailApp.razor"));
         Assert.Contains("@page \"/cp/tenant-email-app\"", text, StringComparison.Ordinal);
-        Assert.Contains("This tenant", text, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("class=\"hpanel\"", text, StringComparison.Ordinal);
-        Assert.Contains("well well-sm", text, StringComparison.Ordinal);
+        Assert.Contains("This company", text, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("class=\"mail-card\"", text, StringComparison.Ordinal);
+        Assert.Contains("mail-steps", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Deploy targets", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc_portal_deploy_targets", text, StringComparison.Ordinal);
         // PHP shows a Super-CP informational notice but never gates the page: tenant hosts keep the form.
