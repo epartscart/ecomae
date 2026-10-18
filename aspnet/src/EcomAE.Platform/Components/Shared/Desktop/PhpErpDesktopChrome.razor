@@ -251,7 +251,7 @@
                 <a href="/attention">Attention</a>
                 <a href="/erp/guide-app">Guide</a>
                 <a href="/erp/approvals-app">Approvals</a>
-                @if (IsAdmin)
+                @if (IsAdmin && AdministrationOpen)
                 {
                     <a href="/erp/navigation-coverage-app">Coverage</a>
                     <a href="/erp/user-control-app">User control</a>
@@ -472,6 +472,10 @@
                             Session lacks <code>erp</code> capability for live digests. Interactive writes stay on the ERP workspace.
                         </div>
                     }
+                    @if (_accessDenied.Length > 0)
+                    {
+                        <div class="alert alert-warning" role="alert">@_accessDenied is not granted for this user. An administrator sets modules and actions on User control.</div>
+                    }
                     @if (!IsDashboardHome)
                     {
                     <div class="epc-module-visual-frame" aria-label="ERP module presentation">
@@ -491,7 +495,14 @@
                     }
                     <div class="epc-erp-content-body">
                         <!--epc-cp-main-begin-->
-                        @ChildContent
+                        @if (PageIsBlocked)
+                        {
+                            <div class="alert alert-warning" role="alert">This module is not granted for this user. An administrator sets modules and actions on User control.</div>
+                        }
+                        else
+                        {
+                            @ChildContent
+                        }
                         <!--epc-cp-main-end-->
                     </div>
                 </div>
@@ -847,6 +858,10 @@
     private bool _clientErp;
     private bool _showControlPanel = true;
     private bool _signedIn;
+    private LegacySessionContext? _session;
+    private string _accessDenied = string.Empty;
+    private bool AdministrationOpen => _session is null || ErpCapabilityCatalog.CanAction(_session, "administration", "View");
+    private bool PageIsBlocked => _session is not null && !ErpControlledAccess.Allows(_session, _currentPath, "GET");
     private bool _jewellery;
     private bool _fitOut;
     private bool _realEstate;
@@ -1039,6 +1054,38 @@
         return mapped + sep + "company=" + _activeCompanyId;
     }
 
+    private IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> FilterGrantedNav(IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> nav)
+    {
+        var session = _session;
+        if (session is null)
+        {
+            return nav;
+        }
+
+        var groups = new List<LegacyDesktopChromeCatalog.MegaGroup>();
+        foreach (var group in nav)
+        {
+            var columns = (group.Columns ?? [])
+                .Select(column =>
+                {
+                    var tabs = column.Tabs.Where(tab => ErpControlledAccess.Allows(session, ModuleHref(tab.Href), "GET")).ToList();
+                    return column with { Tabs = tabs };
+                })
+                .Where(column => column.Tabs.Count > 0)
+                .ToList();
+            var links = group.Links.Where(link => ErpControlledAccess.Allows(session, ModuleHref(link.Href), "GET")).ToList();
+            if (columns.Count == 0 && links.Count == 0)
+            {
+                continue;
+            }
+
+            var hub = links.FirstOrDefault()?.Href ?? columns.FirstOrDefault()?.Tabs.FirstOrDefault()?.Href ?? group.HubHref;
+            groups.Add(group with { Columns = columns, Links = links, HubHref = hub });
+        }
+
+        return groups;
+    }
+
     private bool GroupIsActive(LegacyDesktopChromeCatalog.MegaGroup group)
         => PathIsActive(group.HubHref) || group.Links.Any(l => PathIsActive(l.Href));
 
@@ -1177,6 +1224,13 @@
                 Company: active));
 
         var session = await sessionTask;
+        _session = session;
+        _accessDenied = (ctx.Request.Query["access_denied"].ToString() ?? string.Empty).Trim();
+        if (session.AreaGrants is { Count: > 0 })
+        {
+            _nav = FilterGrantedNav(_nav);
+        }
+
         _signedIn = session.Kind == LegacySessionKind.Admin || IsAdmin;
         if (_signedIn)
         {

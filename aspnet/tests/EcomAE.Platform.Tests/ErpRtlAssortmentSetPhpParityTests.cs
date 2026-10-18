@@ -12,7 +12,7 @@ public sealed class ErpRtlAssortmentSetPhpParityTests
         Assert.Contains("action=\"/erp/retail/assortments/set\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"channel_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"item_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"item_id\"", text, StringComparison.Ordinal);
         Assert.Contains("Set assortment", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);

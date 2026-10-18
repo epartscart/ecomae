@@ -1161,6 +1161,11 @@ internal static class ErpLazySchema
             await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
         }
 
+        await ErpDb.TryExecuteAsync(
+            c,
+            "ALTER TABLE `epc_erp_pm_business_units` ADD `trn` varchar(40) NOT NULL DEFAULT ''",
+            ct).ConfigureAwait(false);
+
         // epc_erp_pm_seed_defaults: editable defaults so masters screens aren't empty.
         // Each table seeds only when completely empty (PHP seedIf semantics).
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -1475,6 +1480,86 @@ internal static class ErpLazySchema
         {
             "CREATE TABLE IF NOT EXISTS `epc_erp_opening_batches` (`id` int(11) NOT NULL AUTO_INCREMENT, `module` enum('coa','cash_bank','inventory','fixed_assets','combined') NOT NULL DEFAULT 'combined', `as_of_date` date NOT NULL, `reference` varchar(128) DEFAULT NULL, `status` enum('draft','posted','void') NOT NULL DEFAULT 'draft', `note` text, `admin_id` int(11) NOT NULL DEFAULT 0, `time_created` int(11) NOT NULL DEFAULT 0, `time_posted` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_date` (`as_of_date`,`module`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
             "CREATE TABLE IF NOT EXISTS `epc_erp_opening_lines` (`id` int(11) NOT NULL AUTO_INCREMENT, `batch_id` int(11) NOT NULL, `line_type` varchar(32) NOT NULL, `entity_id` int(11) NOT NULL DEFAULT 0, `entity_ref` varchar(64) DEFAULT NULL, `debit` decimal(14,2) NOT NULL DEFAULT 0.00, `credit` decimal(14,2) NOT NULL DEFAULT 0.00, `qty` decimal(14,3) NOT NULL DEFAULT 0.000, `unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000, `meta_json` text, PRIMARY KEY (`id`), KEY `x_batch` (`batch_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP <c>epc_data_mig_ensure_schema</c> (content/shop/finance/epc_erp_data_migration.php).</summary>
+    public static async Task EnsureDataMigrationsAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_data_migrations` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`migration_type` varchar(50) NOT NULL DEFAULT 'open_balance'," +
+            "`entity_type` varchar(50) NOT NULL DEFAULT ''," +
+            "`file_name` varchar(300) NOT NULL DEFAULT ''," +
+            "`file_path` varchar(500) NOT NULL DEFAULT ''," +
+            "`total_rows` int(11) NOT NULL DEFAULT 0," +
+            "`valid_rows` int(11) NOT NULL DEFAULT 0," +
+            "`error_rows` int(11) NOT NULL DEFAULT 0," +
+            "`imported_rows` int(11) NOT NULL DEFAULT 0," +
+            "`status` enum('uploaded','validated','dry_run','importing','completed','failed','rolled_back') NOT NULL DEFAULT 'uploaded'," +
+            "`column_mapping` text," +
+            "`validation_errors` text," +
+            "`options` text," +
+            "`imported_by` int(11) NOT NULL DEFAULT 0," +
+            "`imported_by_name` varchar(120) NOT NULL DEFAULT ''," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_completed` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`), KEY `x_company` (`company_id`), KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Data migration jobs'",
+            "CREATE TABLE IF NOT EXISTS `epc_data_migration_rows` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`migration_id` int(11) NOT NULL DEFAULT 0," +
+            "`row_number` int(11) NOT NULL DEFAULT 0," +
+            "`raw_data` text," +
+            "`mapped_data` text," +
+            "`status` enum('pending','valid','error','imported','skipped') NOT NULL DEFAULT 'pending'," +
+            "`error_message` varchar(500) NOT NULL DEFAULT ''," +
+            "`created_entity_id` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`), KEY `x_migration` (`migration_id`), KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Individual migration rows'",
+        };
+        foreach (var ddl in ddls)
+        {
+            await ErpDb.TryExecuteAsync(c, ddl, ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP <c>epc_inv_report_ensure_schema</c> (content/shop/finance/epc_erp_inventory_report.php).</summary>
+    public static async Task EnsureInventoryReportAsync(DbConnection c, CancellationToken ct)
+    {
+        string[] ddls =
+        {
+            "CREATE TABLE IF NOT EXISTS `epc_inventory_categories` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`parent_id` int(11) NOT NULL DEFAULT 0," +
+            "`code` varchar(30) NOT NULL DEFAULT ''," +
+            "`name` varchar(200) NOT NULL DEFAULT ''," +
+            "`level` int(11) NOT NULL DEFAULT 1," +
+            "`sort_order` int(11) NOT NULL DEFAULT 0," +
+            "`is_active` tinyint(1) NOT NULL DEFAULT 1," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`), KEY `x_company` (`company_id`), KEY `x_parent` (`parent_id`), KEY `x_code` (`code`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Inventory category hierarchy'",
+            "CREATE TABLE IF NOT EXISTS `epc_inventory_snapshots` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`snapshot_date` date NOT NULL," +
+            "`category_id` int(11) NOT NULL DEFAULT 0," +
+            "`total_skus` int(11) NOT NULL DEFAULT 0," +
+            "`total_qty` decimal(14,3) NOT NULL DEFAULT 0.000," +
+            "`total_value` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`avg_age_days` decimal(8,1) NOT NULL DEFAULT 0.0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`), KEY `x_company_date` (`company_id`, `snapshot_date`), KEY `x_category` (`category_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Daily inventory value snapshots per category'",
         };
         foreach (var ddl in ddls)
         {

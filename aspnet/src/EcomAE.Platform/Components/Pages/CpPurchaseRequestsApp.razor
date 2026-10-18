@@ -98,11 +98,11 @@
             <input type="hidden" name="csrf_guard_key" value="@_csrf" />
             <label>Req id <input type="number" name="id" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
             <label>Category <input type="number" name="category_id" min="0" style="width:6rem" /></label>
-            <label>Item <input type="text" name="item_code" maxlength="80" style="width:8rem" /></label>
+            <ErpMasterPicker Kind="item" FieldName="item_code" InputId="pr-line-item" Label="Item" ValueMode="code" />
             <label>Description <input type="text" name="description" maxlength="255" style="width:12rem" /></label>
             <label>Qty <input type="number" step="0.0001" name="qty" style="width:6rem" /></label>
             <label>Unit price <input type="number" step="0.01" name="unit_price" style="width:6rem" /></label>
-            <label>Vendor <input type="text" name="preferred_vendor" maxlength="160" style="width:10rem" /></label>
+            <ErpMasterPicker Kind="supplier" FieldName="preferred_vendor" InputId="pr-line-vendor" Label="Vendor" ValueMode="name" />
             <button type="submit">Add line</button>
         </form>
         <form method="post" action="@Href("/erp/procurement/requisitions/submit")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">

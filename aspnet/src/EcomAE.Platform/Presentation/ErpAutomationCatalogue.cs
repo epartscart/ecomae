@@ -102,6 +102,22 @@ public static class ErpAutomationCatalogue
         new("aml_compliance_alert", "AML Compliance Alert", "Flag transactions above AML threshold", "event", 2),
     ];
 
+    public sealed record Chain(string Name, string Purpose, IReadOnlyList<string> ItemIds);
+
+    /// <summary>The three automatic chains that cover the books. Each id is an item in <see cref="All"/>.</summary>
+    public static IReadOnlyList<Chain> SystemChains { get; } =
+    [
+        new("Order to cash", "A customer order is checked, invoiced, posted, collected, and reported for tax.",
+            ["credit_check", "order_to_erp", "invoice_autosend", "collections_dunning", "vat_reminder"]),
+        new("Procure to pay", "A purchase is approved, received, matched, and paid.",
+            ["po_approval", "goods_receipt_notify", "three_way_match", "payment_reminder", "gl_auto_post"]),
+        new("Record to report", "The books are reconciled, depreciated, closed, and sent out.",
+            ["bank_recon", "depreciation_run", "period_close", "year_end_close", "report_scheduler"]),
+    ];
+
+    public static Item? Find(string id)
+        => All.FirstOrDefault(item => string.Equals(item.Id, id, StringComparison.OrdinalIgnoreCase));
+
     public static IEnumerable<Item> Accounting => All.Where(i => i.Category == "accounting");
     public static IEnumerable<Item> Processes => All.Where(i => i.Category == "process");
 

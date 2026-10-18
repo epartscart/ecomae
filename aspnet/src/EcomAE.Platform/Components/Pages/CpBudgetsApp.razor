@@ -305,7 +305,7 @@
                 <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>Budget id <input class="form-control input-sm" name="budget_id" placeholder="Id" style="width:80px;" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-                <label>Account <input class="form-control input-sm" name="account_code" placeholder="Code" style="width:120px;" /></label>
+                <ErpMasterPicker Kind="coa" FieldName="account_code" InputId="budget-line-coa" Label="Chart account" ValueMode="code" NameFieldName="account_name" />
                 <label>Name <input class="form-control input-sm" name="account_name" placeholder="Name" style="width:180px;" /></label>
                 <label>Month <input class="form-control input-sm" name="month_no" placeholder="1-12" style="width:70px;" /></label>
                 <label>Amount <input class="form-control input-sm" name="amount" placeholder="0.00" style="width:100px;" /></label>

@@ -1,0 +1,241 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpCreditManagementService Credit
+
+<style>
+    .epc-credit-board { margin: 0 0 1rem; padding: .9rem 1rem; border: 1px solid #c5d4de; border-radius: .4rem; background: #f8fafc; color: #1d2740; }
+    .epc-credit-board h2 { margin: 0 0 .4rem; font-size: 1.05rem; color: #1d2740; }
+    .epc-credit-board p, .epc-credit-board li, .epc-credit-board label, .epc-credit-board td, .epc-credit-board th, .epc-credit-board option { color: #1d2740; }
+    .epc-credit-board button { background: #1f4e79 !important; color: #fff !important; border: 0; border-radius: .25rem; padding: .35rem .75rem; }
+    .epc-credit-board select, .epc-credit-board input { color: #1d2740; background: #fff; }
+    .epc-credit-board table { width: 100%; border-collapse: collapse; margin-top: .6rem; }
+    .epc-credit-board th, .epc-credit-board td { text-align: left; padding: .35rem .45rem; border-bottom: 1px solid #d5e0ea; }
+    .epc-credit-board form { display: flex; flex-wrap: wrap; gap: .45rem; align-items: end; margin: .6rem 0; }
+    .epc-credit-board .epc-credit-decision { margin: .4rem 0; padding: .55rem .7rem; border-radius: .3rem; }
+    .epc-credit-board .epc-credit-ok { background: #ecfdf5; color: #065f46; }
+    .epc-credit-board .epc-credit-block { background: #fef2f2; color: #991b1b; }
+</style>
+
+<section class="epc-credit-board" aria-label="Credit limits and blocking rules">
+    <h2>Credit limits and blocking rules</h2>
+    <p>A permanent credit limit and its terms days stay on the customer. A temporary credit limit replaces that permanent limit only while today is inside the temporary from and until dates, and the temporary terms days replace the permanent terms while that temporary limit is active.</p>
+    <p>An invoice is blocked when any enabled rule fails. Every failing rule is reported together.</p>
+    <ul>
+        <li><strong>Account on hold.</strong> A customer on hold cannot take a new invoice.</li>
+        <li><strong>Credit limit.</strong> Open invoices plus this invoice are blocked when they pass the percent of the limit, plus the tolerance. A zero limit is unlimited unless the limit is mandatory.</li>
+        <li><strong>Credit limit expiry.</strong> The permanent limit stops on its review date. The temporary limit stops after its until date and the permanent limit applies again.</li>
+        <li><strong>Days overdue.</strong> The oldest open invoice blocks the next invoice once the overdue days, after grace days, reach the threshold.</li>
+        <li><strong>Overdue amount.</strong> The sum of overdue invoices blocks the next invoice when it passes the threshold.</li>
+        <li><strong>Payment terms.</strong> Invoice terms longer than the allowed terms are blocked.</li>
+        <li><strong>Credit documents.</strong> A missing, expired, or soon-to-expire trade license, passport, visa, Emirates ID, or application period blocks the invoice. Each partner is checked separately.</li>
+    </ul>
+    <p>A customer with no credit profile is not blocked. Turning the hold off, or raising the limit, is how a blocked invoice is released. Supplier invoices are not part of this check.</p>
+
+    @if (!_isAdmin)
+    {
+        <p>Sign in with ERP capability to set limits and rules.</p>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(_message))
+        {
+            <p class="epc-credit-block epc-credit-decision">@_message</p>
+        }
+        @if (_decision is not null)
+        {
+            <p class="@(_decision.Allowed ? "epc-credit-ok" : "epc-credit-block") epc-credit-decision">@_decision.Message</p>
+        }
+
+        <form method="get" action="@CheckAction">
+            <input type="hidden" name="tab" value="@_tab" />
+            @if (_companyId > 0)
+            {
+                <input type="hidden" name="company" value="@_companyId.ToString(CultureInfo.InvariantCulture)" />
+            }
+            <label>Customer id <input type="number" name="customer" min="1" value="@CustomerValue" style="width:7rem" /></label>
+            <label>Invoice amount <input type="number" name="amount" min="0" step="0.01" value="@_amount" style="width:8rem" /></label>
+            <label>Terms days <input type="number" name="terms" min="0" step="1" value="@_terms" style="width:6rem" /></label>
+            <button type="submit">Check invoice</button>
+        </form>
+
+        <h2>Permanent and temporary credit limit</h2>
+        <form method="post" action="@ProfileAction">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@ProfileReturn" />
+            <input type="hidden" name="company_id" value="@_companyId.ToString(CultureInfo.InvariantCulture)" />
+            <label>Customer id <input type="number" name="customer_id" min="1" required value="@CustomerValue" style="width:7rem" /></label>
+            <label>Name <input type="text" name="customer_name" maxlength="255" value="@(_selected?.Name ?? "")" /></label>
+            <label>Permanent limit <input type="number" name="permanent_limit" min="0" step="0.01" value="@Money(_selected?.PermanentLimit)" style="width:8rem" /></label>
+            <label>Permanent terms days <input type="number" name="permanent_terms_days" min="0" step="1" value="@Days(_selected?.PermanentTermsDays)" style="width:6rem" /></label>
+            <label>Review date <input type="date" name="review_date" value="@ErpCreditBlock.Day(_selected?.ReviewUntil ?? 0)" /></label>
+            <label>Temporary limit <input type="number" name="temporary_limit" min="0" step="0.01" value="@Money(_selected?.TemporaryLimit)" style="width:8rem" /></label>
+            <label>Temporary terms days <input type="number" name="temporary_terms_days" min="0" step="1" value="@Days(_selected?.TemporaryTermsDays)" style="width:6rem" /></label>
+            <label>Temporary from <input type="date" name="temporary_from" value="@ErpCreditBlock.Day(_selected?.TemporaryFrom ?? 0)" /></label>
+            <label>Temporary until <input type="date" name="temporary_until" value="@ErpCreditBlock.Day(_selected?.TemporaryUntil ?? 0)" /></label>
+            <label><input type="checkbox" name="on_hold" value="true" checked="@(_selected?.OnHold == true)" /> Account on hold</label>
+            <label><input type="checkbox" name="mandatory_limit" value="true" checked="@(_selected?.Mandatory == true)" /> Credit limit is mandatory</label>
+            <button type="submit">Save credit limit</button>
+        </form>
+
+        <h2>Blocking rules</h2>
+        <form method="post" action="@RulesAction">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@RulesReturn" />
+            <input type="hidden" name="company_id" value="@_companyId.ToString(CultureInfo.InvariantCulture)" />
+            <label><input type="checkbox" name="block_account_status" value="true" checked="@_rules.AccountStatus" /> Account on hold</label>
+            <label><input type="checkbox" name="block_credit_limit" value="true" checked="@_rules.CreditLimit" /> Credit limit</label>
+            <label>Limit percent <input type="number" name="limit_percent" min="0" step="0.01" value="@_rules.LimitPercent.ToString("0.##", CultureInfo.InvariantCulture)" style="width:6rem" /></label>
+            <label>Tolerance <input type="number" name="limit_tolerance" step="0.01" value="@_rules.Tolerance.ToString("0.00", CultureInfo.InvariantCulture)" style="width:7rem" /></label>
+            <label><input type="checkbox" name="block_limit_expired" value="true" checked="@_rules.LimitExpired" /> Credit limit expiry</label>
+            <label><input type="checkbox" name="block_days_overdue" value="true" checked="@_rules.DaysOverdue" /> Days overdue</label>
+            <label>Days threshold <input type="number" name="days_threshold" min="0" step="1" value="@_rules.DaysThreshold.ToString(CultureInfo.InvariantCulture)" style="width:5rem" /></label>
+            <label>Grace days <input type="number" name="grace_days" min="0" step="1" value="@_rules.GraceDays.ToString(CultureInfo.InvariantCulture)" style="width:5rem" /></label>
+            <label><input type="checkbox" name="block_overdue_amount" value="true" checked="@_rules.OverdueAmount" /> Overdue amount</label>
+            <label>Overdue threshold <input type="number" name="overdue_threshold" min="0" step="0.01" value="@_rules.OverdueThreshold.ToString("0.00", CultureInfo.InvariantCulture)" style="width:7rem" /></label>
+            <label><input type="checkbox" name="block_terms" value="true" checked="@_rules.TermsOfPayment" /> Payment terms</label>
+            <label><input type="checkbox" name="block_documents" value="true" checked="@_rules.Documents" /> Credit documents</label>
+            <button type="submit">Save blocking rules</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Name</th>
+                    <th>Hold</th>
+                    <th>Permanent limit</th>
+                    <th>Terms</th>
+                    <th>Temporary limit</th>
+                    <th>Temporary terms</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_customers.Count == 0)
+                {
+                    <tr><td colspan="8">No credit profiles yet.</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _customers)
+                    {
+                        <tr>
+                            <td>@row.CustomerId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
+                            <td>@(row.OnHold ? "yes" : "no")</td>
+                            <td>@row.PermanentLimit.ToString("#,##0.00", CultureInfo.InvariantCulture)</td>
+                            <td>@row.PermanentTermsDays.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.TemporaryLimit.ToString("#,##0.00", CultureInfo.InvariantCulture)</td>
+                            <td>@row.TemporaryTermsDays.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><a href="@CustomerHref(row.CustomerId)">Open</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+</section>
+
+@code {
+    private bool _isAdmin;
+    private long _companyId;
+    private long _customerId;
+    private string _tab = "cc_blocking_rules";
+    private string _amount = "";
+    private string _terms = "";
+    private string _message = "";
+    private ErpCreditBlock.Rules _rules = ErpCreditBlock.Rules.Defaults;
+    private ErpCreditBlock.Decision? _decision;
+    private IReadOnlyList<ErpCreditProfileRow> _customers = [];
+
+    private ErpCreditProfileRow? _selected => _customers.FirstOrDefault(row => row.CustomerId == _customerId);
+
+    private string CustomerValue => _customerId > 0 ? _customerId.ToString(CultureInfo.InvariantCulture) : "";
+
+    private string CheckAction => ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/credit-collections-workspace-app");
+
+    private string ProfileAction => ClientErpPath.PrefixIfBound(Http.HttpContext, CompanyPath("/erp/credit-management/profile"));
+
+    private string RulesAction => ClientErpPath.PrefixIfBound(Http.HttpContext, CompanyPath("/erp/credit-management/rules"));
+
+    private string ProfileReturn => CompanyPath("/erp/credit-collections-workspace-app?tab=cc_credit_limit_adj");
+
+    private string RulesReturn => CompanyPath("/erp/credit-collections-workspace-app?tab=cc_blocking_rules");
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _companyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
+        var tab = ctx.Request.Query["tab"].ToString();
+        if (!string.IsNullOrWhiteSpace(tab))
+        {
+            _tab = tab;
+        }
+
+        if (long.TryParse(ctx.Request.Query["customer"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var customer) && customer > 0)
+        {
+            _customerId = customer;
+        }
+
+        _amount = ctx.Request.Query["amount"].ToString();
+        _terms = ctx.Request.Query["terms"].ToString();
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        try
+        {
+            var snap = await Credit.LoadAsync(_companyId, 0, ctx.RequestAborted);
+            _rules = snap.Rules;
+            _customers = snap.Customers;
+            if (_customerId > 0)
+            {
+                var amount = decimal.TryParse(_amount, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedAmount) ? parsedAmount : 0m;
+                var terms = int.TryParse(_terms, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedTerms) ? parsedTerms : 0;
+                _decision = await Credit.AssessAsync(_customerId, amount, terms, 0, ctx.RequestAborted);
+            }
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+        }
+    }
+
+    private string CompanyPath(string path)
+    {
+        if (_companyId <= 0)
+        {
+            return path;
+        }
+
+        var sep = path.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return path + sep + "company=" + _companyId.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private string CustomerHref(long customerId)
+    {
+        var path = "/erp/credit-collections-workspace-app?tab=" + Uri.EscapeDataString(_tab)
+            + "&customer=" + customerId.ToString(CultureInfo.InvariantCulture);
+        return ClientErpPath.PrefixIfBound(Http.HttpContext, CompanyPath(path));
+    }
+
+    private static string Money(decimal? value)
+        => value is > 0m ? value.Value.ToString("0.00", CultureInfo.InvariantCulture) : "";
+
+    private static string Days(int? value)
+        => value is > 0 ? value.Value.ToString(CultureInfo.InvariantCulture) : "";
+}
