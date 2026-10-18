@@ -94,7 +94,8 @@ public static class ErpHeadOfficeMoney
 
         if (!profitAndLoss && Math.Abs(translation) >= 0.005m)
         {
-            lines["CTA"] = ("Currency translation to " + reporting, "equity", translation);
+            var cta = lines.ContainsKey("CTA") ? "FX-CTA" : "CTA";
+            lines[cta] = ("Currency translation to " + reporting, "equity", translation);
         }
 
         var note = "Consolidated accounts are in the head office reporting currency " + reporting

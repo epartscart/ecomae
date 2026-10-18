@@ -53,6 +53,17 @@ public sealed class ErpHeadOfficeMoneyTests
         Assert.Equal(26m, Line(sheet, "4000"));
         Assert.Equal(1m, Line(sheet, "CTA"));
         Assert.Equal(1m, sheet.Translation);
+
+        var occupied = ErpHeadOfficeMoney.Consolidate(
+            [
+                new("CTA", "Cash trust account", "asset", "AED", 100m),
+                new("4000", "Sales", "revenue", "AED", 100m),
+            ],
+            "USD",
+            rates,
+            profitAndLoss: false);
+        Assert.Equal(27m, Line(occupied, "CTA"));
+        Assert.Equal(1m, Line(occupied, "FX-CTA"));
     }
 
     [Fact]

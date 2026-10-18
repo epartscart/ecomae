@@ -48,6 +48,7 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
         var builder = new MySqlConnectionStringBuilder(connectionString);
         ApplyPoolOptions(builder);
         ApplyFirstPaintTimeouts(builder);
+        KeepLoginConnection(builder);
 
         var tenant = CurrentTenant();
         var db = !string.IsNullOrWhiteSpace(databaseName)
@@ -107,6 +108,7 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
         var builder = new MySqlConnectionStringBuilder(connectionString);
         ApplyPoolOptions(builder);
         ApplyFirstPaintTimeouts(builder);
+        KeepLoginConnection(builder);
         // Explicitly do not apply TenantContext — portal registry must stay isolated.
         return await OpenWithRetryAsync(builder.ConnectionString, cancellationToken).ConfigureAwait(false);
     }
@@ -188,6 +190,25 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
         }
 
         builder.DefaultCommandTimeout = remain;
+    }
+
+    /// <summary>
+    /// Login uses a separate pool of 8 and an 8s wait. The catalog pool of 32
+    /// and the 1s first-paint cap stay on every other page.
+    /// </summary>
+    private void KeepLoginConnection(MySqlConnectionStringBuilder builder)
+    {
+        if (!ErpFirstPaint.IsLoginPath(_httpContextAccessor.HttpContext?.Request.Path ?? default))
+        {
+            return;
+        }
+
+        builder.MaximumPoolSize = 8;
+        builder.ConnectionTimeout = 8;
+        if (builder.DefaultCommandTimeout < 8)
+        {
+            builder.DefaultCommandTimeout = 8;
+        }
     }
 
     private string? ResolveBaseConnectionString()

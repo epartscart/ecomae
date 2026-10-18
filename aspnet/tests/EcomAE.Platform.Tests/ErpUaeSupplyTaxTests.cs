@@ -166,6 +166,7 @@ public sealed class ErpUaeSupplyTaxTests
         Assert.Contains("supply_treatment", cash, StringComparison.Ordinal);
         Assert.Contains("designated_goods", cash, StringComparison.Ordinal);
         Assert.Contains("supplier_tax_invoice", cash, StringComparison.Ordinal);
+        Assert.Contains("ClientErpPath.PrefixIfBound", panel, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", panel, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", panel, StringComparison.Ordinal);
         Assert.DoesNotContain("PHP", panel, StringComparison.Ordinal);

@@ -182,14 +182,23 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
                 reporting = headOffice.Currency;
                 rateNote = headOffice.Note;
             }
+            else if (headOffice is { Applied: false }
+                && headOffice.Note.Contains("No exchange rate", StringComparison.Ordinal))
+            {
+                rateNote = headOffice.Note;
+            }
         }
 
+        var rateMissing = headOffice is { Applied: false }
+            && headOffice.Note.Contains("No exchange rate", StringComparison.Ordinal);
         List<RawLine> raw;
         try
         {
             raw = headOffice is { Applied: true }
                 ? HeadOfficeRows(headOffice)
-                : await LoadAccountsAsync(connection, query, cancellationToken).ConfigureAwait(false);
+                : rateMissing
+                    ? []
+                    : await LoadAccountsAsync(connection, query, cancellationToken).ConfigureAwait(false);
         }
         catch (DbException ex)
         {
@@ -222,7 +231,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             }
         }
 
-        if (query.Level == ErpFinancialStatementLevel.Consolidation && headOffice is not { Applied: true })
+        if (query.Level == ErpFinancialStatementLevel.Consolidation && headOffice is not { Applied: true } && !rateMissing)
         {
             var ledger = await LoadIcLedgerEliminationsAsync(connection, cancellationToken).ConfigureAwait(false);
             var useLedger = Math.Abs(ledger.Income) + Math.Abs(ledger.Expense) + Math.Abs(ledger.Asset) + Math.Abs(ledger.Liability) >= 0.005m;
@@ -235,7 +244,7 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             AddElim(built, "ELIM-LIAB", "Intercompany liability eliminated", "liability", -elimLiability, ref liabilities);
         }
 
-        if (built.Count == 0 && query.Level == ErpFinancialStatementLevel.Consolidation && headOffice is not { Applied: true })
+        if (built.Count == 0 && query.Level == ErpFinancialStatementLevel.Consolidation && headOffice is not { Applied: true } && !rateMissing)
         {
             var figures = await LoadFiguresAsync(connection, cancellationToken).ConfigureAwait(false);
             if (figures is not null)
@@ -699,7 +708,13 @@ public sealed class ErpFinancialStatementReadService : IErpFinancialStatementRea
             AddSlice(slices, "ELIM-LIAB", "Intercompany liability eliminated", "liability", currency, -elim.Liability);
             var rates = await LoadRatesAsync(connection, cancellationToken).ConfigureAwait(false);
             var result = ErpHeadOfficeMoney.Consolidate(slices, reporting, rates, profitAndLoss);
-            return result.Applied ? result : null;
+            if (result.Applied)
+            {
+                return result;
+            }
+
+            // A missing rate must not fall through to a raw sum of mixed currencies.
+            return result.Note.Contains("No exchange rate", StringComparison.Ordinal) ? result : null;
         }
         catch (DbException)
         {
