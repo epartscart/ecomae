@@ -18,7 +18,7 @@ public interface IErpBosWfSaveRuleWriteService
         CancellationToken cancellationToken = default);
 }
 
-public sealed record ErpBosWfSaveStep(string Role, string Label);
+public sealed record ErpBosWfSaveStep(string Role, string Label, string Gate = "", int Level = 0, decimal Limit = 0);
 
 public sealed record ErpBosWfSaveRuleWriteRequest(
     long Id = 0,
@@ -80,13 +80,37 @@ public sealed class ErpBosWfSaveRuleWriteService : IErpBosWfSaveRuleWriteService
         }
 
         var threshold = decimal.Round(request.ThresholdAmount, 2, MidpointRounding.AwayFromZero);
+        var normalized = NormalizeSteps(request.Steps);
         var priority = request.Priority;
-        var stepsJson = JsonSerializer.Serialize(
-            NormalizeSteps(request.Steps).Select(step => new Dictionary<string, string>
+        if (normalized.Any(step => step.Gate == "save") && priority <= 100)
+        {
+            priority = 200;
+        }
+
+        var stepsJson = JsonSerializer.Serialize(normalized.Select(step =>
+        {
+            var row = new Dictionary<string, object>
             {
                 ["role"] = step.Role,
                 ["label"] = step.Label,
-            }));
+            };
+            if (step.Gate.Length > 0)
+            {
+                row["gate"] = step.Gate;
+            }
+
+            if (step.Level > 0)
+            {
+                row["level"] = step.Level;
+            }
+
+            if (step.Limit > 0)
+            {
+                row["limit"] = step.Limit;
+            }
+
+            return row;
+        }));
         var active = request.Disable ? 0 : 1;
         var adminId = request.AdminId < 0 ? 0 : request.AdminId;
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -140,7 +164,7 @@ public sealed class ErpBosWfSaveRuleWriteService : IErpBosWfSaveRuleWriteService
                 var fromJson = JsonSerializer.Deserialize<List<ErpBosWfSaveStepDto>>(stepsJson);
                 if (fromJson is not null)
                 {
-                    parsed.AddRange(fromJson.Select(item => new ErpBosWfSaveStep(item.Role ?? "", item.Label ?? "")));
+                    parsed.AddRange(fromJson.Select(item => new ErpBosWfSaveStep(item.Role ?? "", item.Label ?? "", item.Gate ?? "", item.Level, item.Limit)));
                 }
             }
             catch (JsonException)
@@ -153,12 +177,18 @@ public sealed class ErpBosWfSaveRuleWriteService : IErpBosWfSaveRuleWriteService
         {
             var roles = form["step_role"].Count > 0 ? form["step_role"] : form["stepRole"];
             var labels = form["step_label"].Count > 0 ? form["step_label"] : form["stepLabel"];
-            var count = Math.Max(roles.Count, labels.Count);
+            var gates = form["step_gate"];
+            var levels = form["step_level"];
+            var limits = form["step_limit"];
+            var count = Math.Max(roles.Count, Math.Max(labels.Count, gates.Count));
             for (var i = 0; i < count; i++)
             {
                 var role = i < roles.Count ? (roles[i] ?? string.Empty) : string.Empty;
                 var label = i < labels.Count ? (labels[i] ?? string.Empty) : string.Empty;
-                parsed.Add(new ErpBosWfSaveStep(role, label));
+                var gate = i < gates.Count ? (gates[i] ?? string.Empty) : string.Empty;
+                var level = i < levels.Count && int.TryParse(levels[i], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var parsedLevel) ? parsedLevel : 0;
+                var limit = i < limits.Count && decimal.TryParse(limits[i], System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var parsedLimit) ? parsedLimit : 0m;
+                parsed.Add(new ErpBosWfSaveStep(role, label, gate, level, limit));
             }
 
             var singleRole = LiveWriteFormBinder.Text(form, "approver_role", "approverRole");
@@ -191,7 +221,15 @@ public sealed class ErpBosWfSaveRuleWriteService : IErpBosWfSaveRuleWriteService
                     label = role + " approval";
                 }
 
-                kept.Add(new ErpBosWfSaveStep(role, label));
+                var gate = (step.Gate ?? string.Empty).Trim().ToLowerInvariant();
+                if (gate is not ("save" or "post"))
+                {
+                    gate = string.Empty;
+                }
+
+                var level = step.Level < 1 ? 0 : Math.Min(step.Level, 4);
+                var limit = step.Limit < 0 ? 0 : decimal.Round(step.Limit, 2, MidpointRounding.AwayFromZero);
+                kept.Add(new ErpBosWfSaveStep(role, label, gate, level, limit));
             }
         }
 
@@ -230,5 +268,14 @@ public sealed class ErpBosWfSaveRuleWriteService : IErpBosWfSaveRuleWriteService
 
         [JsonPropertyName("label")]
         public string? Label { get; set; }
+
+        [JsonPropertyName("gate")]
+        public string? Gate { get; set; }
+
+        [JsonPropertyName("level")]
+        public int Level { get; set; }
+
+        [JsonPropertyName("limit")]
+        public decimal Limit { get; set; }
     }
 }

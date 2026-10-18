@@ -116,6 +116,8 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "tenant" or "tenants" => "tenant",
             "contractor" or "contractors" => "contractor",
             "business-unit" or "business-units" or "branch" or "branches" or "bu" => "business-unit",
+            "legal-entity" or "legal-entities" or "legal-entity-id" => "legal-entity",
+            "cost-centre" or "cost-center" or "cost-centres" or "cc" => "cost-centre",
             _ => string.Empty,
         };
     }
@@ -143,7 +145,28 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "tenant" => "/erp/real-estate-app?tab=leases",
             "contractor" => "/erp/real-estate-app?tab=construction",
             "business-unit" => "/erp/organization-app?tab=business_units",
+            "legal-entity" => "/erp/organization-app?tab=legal_entities",
+            "cost-centre" => "/erp/organization-app?tab=cost_centres",
             _ => "/erp",
+        };
+
+    public static string RecordAppHref(string kind)
+        => kind switch
+        {
+            "item" => "/erp/product-info-app",
+            _ => MasterHref(kind),
+        };
+
+    public static string RecordQueryKey(string kind)
+        => kind switch
+        {
+            "customer" => "customer_id",
+            "supplier" => "supplier_id",
+            "item" => "pm_item_id",
+            "coa" => "account_id",
+            "warehouse" => "warehouse_id",
+            "account" => "account_id",
+            _ => "",
         };
 
     public static string KindLabel(string kind)
@@ -174,6 +197,8 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
             "tenant" => "Tenant",
             "contractor" => "Contractor",
             "business-unit" => "Business unit",
+            "legal-entity" => "Legal entity",
+            "cost-centre" => "Cost centre",
             _ => "Master",
         };
 
@@ -285,6 +310,12 @@ public sealed class ErpMasterLookupReadService : IErpMasterLookupReadService
                 query, limit, cancellationToken).ConfigureAwait(false),
             "business-unit" => await LoadSimpleAsync(
                 connection, "business-unit", "epc_erp_pm_business_units", "id", "code", "name", "code",
+                query, limit, cancellationToken, requireActive: true).ConfigureAwait(false),
+            "legal-entity" => await LoadSimpleAsync(
+                connection, "legal-entity", "epc_erp_pm_legal_entities", "id", "code", "name", "code",
+                query, limit, cancellationToken, requireActive: true).ConfigureAwait(false),
+            "cost-centre" => await LoadSimpleAsync(
+                connection, "cost-centre", "epc_cc_centers", "id", "code", "name", "code",
                 query, limit, cancellationToken, requireActive: true).ConfigureAwait(false),
             _ => [],
         };

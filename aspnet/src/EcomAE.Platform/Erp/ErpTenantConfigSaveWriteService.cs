@@ -18,6 +18,8 @@ public interface IErpTenantConfigSaveWriteService
     Task<ErpSimpleWriteResult> SaveAsync(
         ErpTenantConfigSaveWriteRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyDictionary<string, string>> ReadAsync(CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpTenantConfigSaveWriteRequest(
@@ -75,6 +77,60 @@ public sealed class ErpTenantConfigSaveWriteService : IErpTenantConfigSaveWriteS
         }
 
         return ErpSimpleWriteResult.Ok(values.Count.ToString(CultureInfo.InvariantCulture) + " settings saved", 0);
+    }
+
+    public async Task<IReadOnlyDictionary<string, string>> ReadAsync(CancellationToken cancellationToken = default)
+    {
+        var values = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (!_connections.IsConfigured)
+        {
+            return values;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            if (!await ColumnExistsAsync(connection, "epc_price_settings", "setting_key", cancellationToken).ConfigureAwait(false))
+            {
+                return values;
+            }
+
+            await using var command = connection.CreateCommand();
+            var names = new string[AllowedKeys.Length];
+            for (var i = 0; i < AllowedKeys.Length; i++)
+            {
+                names[i] = "@k" + i.ToString(CultureInfo.InvariantCulture);
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = names[i];
+                parameter.Value = "erp_" + AllowedKeys[i];
+                command.Parameters.Add(parameter);
+            }
+
+            command.CommandText =
+                "SELECT `setting_key`, IFNULL(`setting_value`, '') FROM `epc_price_settings` WHERE `setting_key` IN ("
+                + string.Join(",", names)
+                + ")";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var key = reader.GetString(0);
+                if (key.StartsWith("erp_", StringComparison.Ordinal))
+                {
+                    key = key[4..];
+                }
+
+                if (AllowedKeys.Contains(key, StringComparer.Ordinal))
+                {
+                    values[key] = reader.GetString(1);
+                }
+            }
+        }
+        catch (DbException)
+        {
+            return new Dictionary<string, string>(StringComparer.Ordinal);
+        }
+
+        return values;
     }
 
     public static Dictionary<string, string> CollectAllowed(IReadOnlyDictionary<string, string>? incoming)

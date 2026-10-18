@@ -177,6 +177,32 @@ public sealed class ErpMasterLookupTests
             "aspnet/src/EcomAE.Platform/wwwroot/css/epc-enterprise-design-system.css"));
         Assert.Contains(".epc-erp-master-picker", css, StringComparison.Ordinal);
         Assert.Contains(".epc-erp-master-picker__q", css, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-lookup__link", css, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-lookup__corner", css, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LookupIsOneBoxAndTheValueIsALink()
+    {
+        var picker = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/ErpMasterPicker.razor"));
+        Assert.Contains("data-erp-picker-q", picker, StringComparison.Ordinal);
+        Assert.Contains("data-erp-picker-link", picker, StringComparison.Ordinal);
+        Assert.Contains("data-erp-picker-corner", picker, StringComparison.Ordinal);
+        Assert.Contains("data-erp-manage", picker, StringComparison.Ordinal);
+        Assert.Contains("#erp-module-new", picker, StringComparison.Ordinal);
+        Assert.Contains("data-erp-picker-menu", picker, StringComparison.Ordinal);
+        Assert.DoesNotContain("Pick from saved masters", picker, StringComparison.Ordinal);
+        Assert.DoesNotContain("type=\"search\"", picker, StringComparison.Ordinal);
+        Assert.Equal("account_id", ErpMasterLookupReadService.RecordQueryKey("coa"));
+        Assert.Equal("supplier_id", ErpMasterLookupReadService.RecordQueryKey("supplier"));
+        Assert.Equal("/erp/product-info-app", ErpMasterLookupReadService.RecordAppHref("item"));
+
+        var js = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/wwwroot/erp/erp-master-picker.js"));
+        Assert.Contains("contextmenu", js, StringComparison.Ordinal);
+        Assert.Contains("data-erp-picker-corner", js, StringComparison.Ordinal);
+        Assert.Contains("#erp-module-new", js, StringComparison.Ordinal);
+        Assert.Contains("data-erp-picker-link", js, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)
