@@ -1,3 +1,5 @@
+using EcomAE.Platform.Erp;
+
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
@@ -64,6 +66,10 @@ public static class ErpRealEstateGuide
                 Step("projects"),
                 Step("construction"),
                 Step("sales"),
+            ]),
+            new("Keep the law", "fa-balance-scale",
+            [
+                Step("compliance"),
             ]),
             new("See the result", "fa-bar-chart",
             [
