@@ -156,6 +156,21 @@ public sealed class ErpTrialBalanceCoverageTests
     }
 
     [Fact]
+    public void BusinessUnitDimension_ParsesAndKeepsQuery()
+    {
+        var parameters = ErpTrialBalanceParameters.FromQuery(
+            "2026-01-01", "2026-12-31", null, null, null, null, "business_unit", null, null, null, null, null, "7", "1");
+        Assert.Equal(ErpTrialBalanceDimensionSet.MainAccountBusinessUnit, parameters.DimensionSet);
+        Assert.Equal(7, parameters.BusinessUnitId);
+        Assert.Equal(1, parameters.CompanyId);
+        Assert.Contains("dimension_set=business_unit", parameters.QueryString(), StringComparison.Ordinal);
+        Assert.Contains("bu=7", parameters.QueryString(), StringComparison.Ordinal);
+        Assert.Contains("company=1", parameters.QueryString(), StringComparison.Ordinal);
+        Assert.Equal("Main account + business unit", ErpTrialBalanceParameters.DimensionLabel(parameters.DimensionSet));
+        Assert.True(ErpTrialBalanceParameters.UsesUnitLedger(parameters.DimensionSet, 0));
+    }
+
+    [Fact]
     public void App_EmitsListPageWithoutForbiddenWords()
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpTrialBalanceApp.razor"));
@@ -164,6 +179,9 @@ public sealed class ErpTrialBalanceCoverageTests
         Assert.Contains("Date interval", text, StringComparison.Ordinal);
         Assert.Contains("Calculate balances", text, StringComparison.Ordinal);
         Assert.Contains("Financial dimension set", text, StringComparison.Ordinal);
+        Assert.Contains("value=\"business_unit\"", text, StringComparison.Ordinal);
+        Assert.Contains("In balance", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/intercompany-app", text, StringComparison.Ordinal);
         Assert.Contains("Posting layer", text, StringComparison.Ordinal);
         Assert.Contains(">Amount<", text, StringComparison.Ordinal);
         Assert.Contains("AmountTotal.ToString", text, StringComparison.Ordinal);
@@ -268,15 +286,15 @@ public sealed class ErpTrialBalanceCoverageTests
                     line1.CommandText = "INSERT INTO `epc_erp_gl_lines` (`journal_id`,`coa_id`,`debit`,`credit`,`line_note`) VALUES (@j,@coa,@d,@c,'')";
                     line1.Parameters.Add(new MySqlParameter("@j", journalId));
                     line1.Parameters.Add(new MySqlParameter("@coa", coa[0]));
-                    line1.Parameters.Add(new MySqlParameter("@d", debit));
-                    line1.Parameters.Add(new MySqlParameter("@c", 0m));
+                    line1.Parameters.Add(Money("@d", debit));
+                    line1.Parameters.Add(Money("@c", 0m));
                     await line1.ExecuteNonQueryAsync();
                     await using var line2 = connection.CreateCommand();
                     line2.CommandText = "INSERT INTO `epc_erp_gl_lines` (`journal_id`,`coa_id`,`debit`,`credit`,`line_note`) VALUES (@j,@coa,@d,@c,'')";
                     line2.Parameters.Add(new MySqlParameter("@j", journalId));
                     line2.Parameters.Add(new MySqlParameter("@coa", coa[1]));
-                    line2.Parameters.Add(new MySqlParameter("@d", 0m));
-                    line2.Parameters.Add(new MySqlParameter("@c", credit));
+                    line2.Parameters.Add(Money("@d", 0m));
+                    line2.Parameters.Add(Money("@c", credit));
                     await line2.ExecuteNonQueryAsync();
                 }
 
@@ -317,6 +335,55 @@ public sealed class ErpTrialBalanceCoverageTests
             var cashTax = Assert.Single(tax.Lines, line => line.Code == "1000");
             Assert.Equal(3m, cashTax.Debit);
             Assert.Contains(tax.Vouchers, v => v.JournalNo == "TX-1");
+
+            await using (var connection = await connections.OpenAsync())
+            {
+                await using var ids = connection.CreateCommand();
+                ids.CommandText = "SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` IN ('1000','2000') ORDER BY `code`";
+                var coa = new List<long>();
+                await using (var reader = await ids.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        coa.Add(reader.GetInt64(0));
+                    }
+                }
+
+                await using var header = connection.CreateCommand();
+                header.CommandText =
+                    "INSERT INTO `epc_erp_gl_journals` (`journal_no`,`journal_date`,`reference`,`description`,`source_type`,`source_id`,`company_id`,`business_unit_id`,`admin_id`,`active`,`time_created`) " +
+                    "VALUES ('BU-7',@date,'unit','Business unit rent','manual',0,1,7,1,1,@date)";
+                header.Parameters.Add(new MySqlParameter("@date", inPeriod));
+                await header.ExecuteNonQueryAsync();
+                long journalId;
+                await using (var last = connection.CreateCommand())
+                {
+                    last.CommandText = "SELECT LAST_INSERT_ID()";
+                    journalId = Convert.ToInt64(await last.ExecuteScalarAsync());
+                }
+
+                await using var line1 = connection.CreateCommand();
+                line1.CommandText = "INSERT INTO `epc_erp_gl_lines` (`journal_id`,`coa_id`,`debit`,`credit`,`line_note`) VALUES (@j,@coa,15,0,'')";
+                line1.Parameters.Add(new MySqlParameter("@j", journalId));
+                line1.Parameters.Add(new MySqlParameter("@coa", coa[0]));
+                await line1.ExecuteNonQueryAsync();
+                await using var line2 = connection.CreateCommand();
+                line2.CommandText = "INSERT INTO `epc_erp_gl_lines` (`journal_id`,`coa_id`,`debit`,`credit`,`line_note`) VALUES (@j,@coa,0,15,'')";
+                line2.Parameters.Add(new MySqlParameter("@j", journalId));
+                line2.Parameters.Add(new MySqlParameter("@coa", coa[1]));
+                await line2.ExecuteNonQueryAsync();
+            }
+
+            var unitTb = await read.ReadAsync(ErpTrialBalanceParameters.FromQuery(
+                "2026-01-01", "2026-12-31", "current", "column", "1", "1", "business_unit", null, null, null, null, null, "7", "1"));
+            Assert.Equal(15m, unitTb.DebitTotal);
+            Assert.Equal(15m, unitTb.CreditTotal);
+            Assert.Equal(0m, unitTb.OpeningTotal);
+            Assert.Equal(0m, unitTb.ClosingTotal);
+            var unitCash = Assert.Single(unitTb.Lines, line => line.Code == "1000");
+            Assert.Equal("7", unitCash.Company);
+            Assert.Equal(0m, unitCash.Opening);
+            Assert.Equal(15m, unitCash.Debit);
         }
         finally
         {
@@ -326,6 +393,9 @@ public sealed class ErpTrialBalanceCoverageTests
             await drop.ExecuteNonQueryAsync();
         }
     }
+
+    private static MySqlParameter Money(string name, decimal value)
+        => new(name, MySqlDbType.Decimal) { Value = value };
 
     private static string FindRepoFile(string relative)
     {
