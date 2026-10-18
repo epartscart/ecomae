@@ -65,6 +65,10 @@ public sealed class CpPlatformCommunicationWriteTests
         Assert.Contains("epc-scp-empty-state", razor, StringComparison.Ordinal);
         Assert.Contains("epc-scp-data-table", razor, StringComparison.Ordinal);
         Assert.Contains("SMTP source", razor, StringComparison.Ordinal);
+        Assert.Contains("What this page is for", razor, StringComparison.Ordinal);
+        Assert.Contains("How to use it", razor, StringComparison.Ordinal);
+        Assert.Contains("data-epc-inline=\"1\"", razor, StringComparison.Ordinal);
+        Assert.Contains("Save notification policy", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("Classic twin", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("ISurfaceDashboardSummaryReporter", razor, StringComparison.Ordinal);
         Assert.Contains("_isAdmin && _isSuper", razor, StringComparison.Ordinal);
