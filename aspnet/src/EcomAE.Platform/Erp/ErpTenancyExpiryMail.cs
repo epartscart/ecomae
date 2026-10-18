@@ -77,7 +77,8 @@ public sealed record ErpTenancyExpiryBook(
     IReadOnlyList<ErpTenancyExpiryWatch> Ended,
     string Message,
     IReadOnlyList<ErpTenancyExpiryDocument>? Documents = null,
-    IReadOnlyList<ErpTenancyExpiryFileLink>? Links = null)
+    IReadOnlyList<ErpTenancyExpiryFileLink>? Links = null,
+    IReadOnlyList<ErpTenancyExpiryDraft>? Previews = null)
 {
     public static ErpTenancyExpiryBook Empty(string message)
         => new(ErpTenancyExpiryMail.DefaultTemplate, [], [], [], message);
@@ -272,6 +273,51 @@ public static class ErpTenancyExpiryMail
             subject,
             body,
             to.Count == 0 ? "needs_email" : "ready");
+    }
+
+    /// <summary>A filled letter for the draft screen. It is not a notice and it is not sent.</summary>
+    public static ErpTenancyExpiryDraft Sample(ErpTenancyExpiryTemplate? template = null)
+    {
+        var draft = Draft(new ErpTenancyLeaseFact(
+            0,
+            "LEASE-SAMPLE",
+            "active",
+            new DateOnly(2026, 1, 1),
+            new DateOnly(2026, 12, 31),
+            120000m,
+            "Tenant name",
+            "tenant@example.com",
+            "",
+            "Property",
+            "Flat"), template ?? DefaultTemplate);
+        return draft with { Status = "sample" };
+    }
+
+    public static IReadOnlyList<ErpTenancyExpiryDraft> PreviewsFor(
+        IEnumerable<ErpTenancyLeaseFact> leases,
+        ErpTenancyExpiryTemplate template,
+        IReadOnlySet<long> preparedLeaseIds,
+        DateOnly today,
+        int max = 24)
+    {
+        var list = new List<ErpTenancyExpiryDraft>();
+        foreach (var lease in leases)
+        {
+            if (list.Count >= max || !IsActive(lease.Status) || preparedLeaseIds.Contains(lease.LeaseId))
+            {
+                continue;
+            }
+
+            var window = Window(lease.End, today);
+            var recentEnd = window == ErpTenancyExpiryWindow.Ended && lease.End >= today.AddDays(-90);
+            if (window is ErpTenancyExpiryWindow.Waiting or ErpTenancyExpiryWindow.Due || recentEnd)
+            {
+                list.Add(Draft(lease, template));
+            }
+        }
+
+        list.Sort((left, right) => left.DueOn.CompareTo(right.DueOn));
+        return list;
     }
 
     public static string SendFailure(string? code, string? message)

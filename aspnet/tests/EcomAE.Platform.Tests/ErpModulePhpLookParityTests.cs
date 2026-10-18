@@ -44,7 +44,7 @@ public sealed class ErpModulePhpLookParityTests
 
         var assets = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs"));
-        Assert.Contains("epc_erp_aspnet_module_parity.css?v=20261013tab1", assets, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_aspnet_module_parity.css?v=20261016topbar", assets, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -80,6 +80,10 @@ public sealed class ErpModulePhpLookParityTests
         Assert.Contains(".epc-jw-panel-nav a.is-active", chrome, StringComparison.Ordinal);
         Assert.Contains(".epc-dash-customize__role.is-active", chrome, StringComparison.Ordinal);
         Assert.Contains("color: #fff !important", chrome, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit)", chrome, StringComparison.Ordinal);
+        Assert.True(
+            chrome.Split(".epc-erp-topbar a:not(.btn):not(.epc-erp-global-search__hit)", StringSplitOptions.None).Length >= 3,
+            "Top-bar links need the white colour in the body style, because live SSR drops HeadContent.");
 
         Assert.Contains("a:not(.btn):not(.is-active):not(.epc-dash-customize__role)", parity, StringComparison.Ordinal);
         Assert.Contains(".epc-jw-panel-nav a.is-active", parity, StringComparison.Ordinal);

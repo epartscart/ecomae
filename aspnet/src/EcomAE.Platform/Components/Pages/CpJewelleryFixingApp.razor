@@ -299,7 +299,7 @@
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
                 <ErpVoucherHeaderFields DateFieldName="voc_date" NumberPreview="Auto" />
-                <label>Supplier <input class="form-control input-sm" name="supplier_name" required placeholder="Al Fahim" /></label>
+                <ErpMasterPicker Kind="supplier" FieldName="supplier_name" InputId="jw-fix-supplier" Label="Supplier" ValueMode="name" Required="true" />
                 <label>Structure
                     <select class="form-control input-sm" name="structure_type">
                         <option value="fix">Fix</option>

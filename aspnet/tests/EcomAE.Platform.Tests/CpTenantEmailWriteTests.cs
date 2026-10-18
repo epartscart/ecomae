@@ -33,8 +33,19 @@ public class CpTenantEmailWriteTests
         Assert.DoesNotContain("smtp_password\" value=", razor);
         Assert.Contains("Tenant CP", razor);
         Assert.Contains("Activate in 3 steps", razor);
+        Assert.Contains("What this page is for", razor);
+        Assert.Contains("data-epc-inline=\"1\"", razor);
+        Assert.Contains("The password is never returned to the browser.", razor);
         Assert.Contains("Modern auth settings", razor);
         Assert.Contains("SuperCpHostGate.IsAllowed", razor);
+        Assert.Contains("name=\"smtp_host\"", razor);
+        Assert.Contains("name=\"smtp_port\"", razor);
+        Assert.Contains("name=\"smtp_encryption\"", razor);
+        Assert.Contains("name=\"from_name\"", razor);
+        Assert.Contains("name=\"from_email\"", razor);
+        Assert.Contains("name=\"use_tenant_smtp\"", razor);
+        Assert.Contains("Save SMTP", razor);
+        Assert.Contains("Send test email", razor);
     }
 
     [Fact]

@@ -228,7 +228,24 @@ public sealed class ErpRealEstateTests
         Assert.Contains(ErpCapabilityCatalog.Groups, g => g.Key == "real_estate" && g.Href == "/erp/real-estate-app");
         Assert.Contains(PhpModuleCatalog.AspNetErpTabs, t => t.Id == "projects/real_estate");
         Assert.Contains(PhpModuleCatalog.AspNetErpTabs, t => t.Id == "projects/real_estate_year_book" && t.Href == "/erp/landlord-app?year=2025");
+        Assert.Contains(PhpModuleCatalog.AspNetErpTabs, t => t.Id == "projects/real_estate_expiry" && t.Href == "/erp/real-estate-app?tab=expiry");
         var propertiesAt = ErpRealEstateWorkspace.Tabs.ToList().FindIndex(t => t.Key == "properties");
+        var leasesAt = ErpRealEstateWorkspace.Tabs.ToList().FindIndex(t => t.Key == "leases");
+        Assert.Equal("expiry", ErpRealEstateWorkspace.Tabs[leasesAt + 1].Key);
+        Assert.Equal("guide", ErpRealEstateWorkspace.Tabs[0].Key);
+        Assert.Equal("guide", ErpRealEstateGuide.Normalize(""));
+        Assert.Equal("properties", ErpRealEstateGuide.Normalize("properties"));
+        var covered = ErpRealEstateGuide.Steps.Select(step => step.Key).ToList();
+        Assert.Equal(covered.Count, covered.Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(
+            ErpRealEstateWorkspace.Tabs.Where(tab => tab.Key != "guide").Select(tab => tab.Key).OrderBy(key => key, StringComparer.Ordinal),
+            covered.OrderBy(key => key, StringComparer.Ordinal));
+        Assert.Equal(Enumerable.Range(1, covered.Count), ErpRealEstateGuide.Steps.Select(step => step.Number));
+        Assert.Contains(PhpModuleCatalog.AspNetErpTabs, t => t.Id == "projects/real_estate_guide" && t.Href == "/erp/real-estate-app?tab=guide");
+        Assert.Contains("ErpRealEstateGuideBoard", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor")), StringComparison.Ordinal);
+        var board = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/ErpRealEstateGuideBoard.razor"));
+        Assert.Contains("re-guide__track", board, StringComparison.Ordinal);
+        Assert.DoesNotContain("<p class=\"text-muted\"", board, StringComparison.Ordinal);
         Assert.Equal("yearbook", ErpRealEstateWorkspace.Tabs[propertiesAt + 1].Key);
         Assert.Contains("ErpRealEstateWorkspaceTabs", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpLandlordApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ErpRealEstateWorkspaceTabs", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/ErpRealEstateApp.razor")), StringComparison.Ordinal);

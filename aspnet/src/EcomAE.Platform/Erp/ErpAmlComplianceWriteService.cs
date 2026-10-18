@@ -44,7 +44,8 @@ public sealed record ErpAmlCheckWriteRequest(
     string? TransactionType = null,
     decimal Amount = 0m,
     string? Currency = null,
-    string? Reference = null);
+    string? Reference = null,
+    string? Country = null);
 
 public sealed record ErpAmlCheckResult(
     bool Ok,
@@ -473,6 +474,18 @@ public sealed class ErpAmlCheckWriteService : IErpAmlCheckWriteService
         else if (request.CustomerId > 0 && request.Amount >= 10000m)
         {
             flags.Add("No KYC record for customer");
+            riskScore += 20;
+        }
+
+        var restriction = ErpAmlProgramme.InvoiceRestriction(request.Country);
+        if (restriction is not null)
+        {
+            flags.Add(restriction);
+            riskScore += 50;
+        }
+        else if (ErpAmlProgramme.Posture(request.Country) == ErpAmlCountryPosture.IncreasedMonitoring)
+        {
+            flags.Add("Increased monitoring: enhanced due diligence is required. The invoice is not refused.");
             riskScore += 20;
         }
 

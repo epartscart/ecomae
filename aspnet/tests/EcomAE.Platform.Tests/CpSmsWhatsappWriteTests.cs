@@ -27,6 +27,11 @@ public class CpSmsWhatsappWriteTests
         Assert.Contains("Deactivate all", razor);
         Assert.Contains("Activate", razor);
         Assert.Contains("does not invent a send", razor);
+        Assert.Contains("What this page is for", razor);
+        Assert.Contains("How to use it", razor);
+        Assert.Contains("Companies and their people", razor);
+        Assert.Contains("ICpTenantAdminDirectoryService", razor);
+        Assert.Contains("data-epc-inline=\"1\"", razor);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor);
         Assert.DoesNotContain("ASP.NET", razor);
         Assert.DoesNotContain("/php-reference/", razor);

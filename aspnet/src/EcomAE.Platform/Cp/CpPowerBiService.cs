@@ -1,7 +1,10 @@
 using System.Data.Common;
 using System.Globalization;
+using EcomAE.Platform.Auth;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Cp;
 
@@ -66,10 +69,12 @@ public sealed record CpPowerBiView(
 public sealed class CpPowerBiService : ICpPowerBiService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IHttpContextAccessor? _http;
 
-    public CpPowerBiService(IErpWriteConnectionFactory connections)
+    public CpPowerBiService(IErpWriteConnectionFactory connections, IHttpContextAccessor? httpContextAccessor = null)
     {
         _connections = connections;
+        _http = httpContextAccessor;
     }
 
     public async Task<CpPowerBiView> LoadAsync(
@@ -78,12 +83,18 @@ public sealed class CpPowerBiService : ICpPowerBiService
         CancellationToken cancellationToken = default)
     {
         var requested = CpPowerBiWriteService.NormalizeSiteKey(siteKey);
+        var scope = RequestScope();
+        if (scope.Confined && scope.SiteKey.Length == 0)
+        {
+            return CpPowerBiView.Empty(requested, "confined");
+        }
+
         if (!_connections.IsConfigured)
         {
             return CpPowerBiView.Empty(requested, "unconfigured");
         }
 
-        var hotKey = "pbi:" + (host ?? string.Empty).Trim() + "|" + requested;
+        var hotKey = CacheKey(host, requested, scope.SiteKey, scope.DatabaseName);
         if (ErpHotReadCache.TryGet(hotKey, out CpPowerBiView? cached) && cached is not null)
         {
             return cached;
@@ -95,7 +106,12 @@ public sealed class CpPowerBiService : ICpPowerBiService
             await CpPowerBiWriteService.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
             var tenants = await LoadTenantsAsync(connection, cancellationToken).ConfigureAwait(false);
-            var key = ResolveSiteKey(requested, host, tenants);
+            if (scope.Confined)
+            {
+                tenants = VisibleTenants(tenants, scope.SiteKey);
+            }
+
+            var key = ResolveSiteKey(requested, host, tenants, scope.Confined ? scope.SiteKey : null);
             var config = await LoadConfigAsync(connection, key, cancellationToken).ConfigureAwait(false);
             var reports = await LoadReportsAsync(connection, key, cancellationToken).ConfigureAwait(false);
             var embed = PowerBiCatalog.ResolveEmbed(config.Active, config.EmbedMode, config.EmbedUrl);
@@ -110,12 +126,49 @@ public sealed class CpPowerBiService : ICpPowerBiService
         }
     }
 
-    /// <summary>PHP host-match fallback then first tenant.</summary>
+    /// <summary>
+    /// Cache identity includes the company and its database. The host alone is shared
+    /// by every company opened on www.ecomae.com, so it must not be the whole key.
+    /// </summary>
+    public static string CacheKey(string? host, string requested, string? siteKey, string? database)
+        => "pbi:"
+            + CpPowerBiWriteService.NormalizeSiteKey(siteKey)
+            + "@"
+            + (database ?? string.Empty).Trim()
+            + "|"
+            + (host ?? string.Empty).Trim()
+            + "|"
+            + requested;
+
+    /// <summary>A bound company sees its own registry row. The platform workspace sees the directory.</summary>
+    public static IReadOnlyList<CpPowerBiTenantOption> VisibleTenants(
+        IReadOnlyList<CpPowerBiTenantOption> tenants,
+        string? confineToSite)
+    {
+        var confined = CpPowerBiWriteService.NormalizeSiteKey(confineToSite);
+        if (confined.Length == 0)
+        {
+            return tenants;
+        }
+
+        return tenants
+            .Where(tenant => string.Equals(CpPowerBiWriteService.NormalizeSiteKey(tenant.SiteKey), confined, StringComparison.Ordinal))
+            .ToArray();
+    }
+
+    /// <summary>PHP host-match fallback then first tenant. A confined company never falls through to another tenant.</summary>
     public static string ResolveSiteKey(
         string requested,
         string? host,
-        IReadOnlyList<CpPowerBiTenantOption> tenants)
+        IReadOnlyList<CpPowerBiTenantOption> tenants,
+        string? confineToSite = null)
     {
+        var confined = CpPowerBiWriteService.NormalizeSiteKey(confineToSite);
+        if (confined.Length > 0)
+        {
+            return confined;
+        }
+
         if (requested.Length > 0)
         {
             return requested;
@@ -134,6 +187,33 @@ public sealed class CpPowerBiService : ICpPowerBiService
         }
 
         return tenants.Count > 0 ? tenants[0].SiteKey : "epartscart";
+    }
+
+    private (string SiteKey, string DatabaseName, bool Confined) RequestScope()
+    {
+        var http = _http?.HttpContext;
+        if (http is null || !LegacyAdminPermissionSets.IsCompanyRequest(http))
+        {
+            var platformDb = http?.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext platform
+                ? platform.DatabaseName ?? string.Empty
+                : string.Empty;
+            return (string.Empty, platformDb.Trim(), false);
+        }
+
+        var tenant = http.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        var site = ClientErpPath.NormalizeSiteKey(tenant?.SiteKey);
+        if (site.Length == 0
+            && http.Items.TryGetValue(ClientErpPath.HttpContextItemKey, out var raw))
+        {
+            site = ClientErpPath.NormalizeSiteKey(raw as string);
+        }
+
+        if (site.Length == 0 && ClientErpPath.TryParse(http.Request.Path.Value, out var parsed))
+        {
+            site = parsed.SiteKey;
+        }
+
+        return (site, (tenant?.DatabaseName ?? string.Empty).Trim(), true);
     }
 
     private static string Strip(string hostname)
