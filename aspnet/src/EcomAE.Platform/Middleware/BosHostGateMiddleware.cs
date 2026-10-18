@@ -1,3 +1,4 @@
+using EcomAE.Platform.Auth;
 using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Middleware;
@@ -25,7 +26,7 @@ public sealed class BosHostGateMiddleware
         }
 
         var host = context.Request.Host.Host;
-        if (PlatformHostPolicy.IsSuperCpHost(host))
+        if (PlatformHostPolicy.IsSuperCpHost(host) && !LegacyAdminPermissionSets.IsCompanyRequest(context))
         {
             return _next(context);
         }

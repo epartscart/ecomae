@@ -326,6 +326,16 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpProcessFlowDeptHeadSave, HandlePfSetDeptHeadAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpComplianceFilingSave, HandleBosComplianceFileAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFiscalYearCreate, HandleFyCreateAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFiscalYearAction, HandleFyActionAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCreditProfileSave, HandleCreditProfileAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCreditRulesSave, HandleCreditRulesAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCreditApplicationSave, HandleCreditApplicationAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCreditPartnerSave, HandleCreditPartnerAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCreditDocument, HandleCreditDocumentSaveAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpCreditDocument, HandleCreditDocumentOpenAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpSalesOrderSplit, HandleOrderSplitAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpPurchaseOrderSplit, HandleOrderSplitAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpInvoiceShippingPack, HandleShippingPackAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpApprovalsRequestDecide, HandleBosWfDecideAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpApprovalsRequestRaise, HandleBosWfRaiseAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpContactsPartiesSave, HandleOaPartySaveAsync).DisableAntiforgery();
@@ -397,6 +407,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpSecurityRolesAttachDuty, HandleRbacRoleDutyAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpSecurityUsersAssignRole, HandleRbacUserRoleAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUsersPrepare, HandleErpUsersPrepareAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpUserControlGrant, HandleErpUserControlGrantAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUsersCredentials, HandleErpUsersCredentialsAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUsersDepartment, HandleErpUsersDepartmentAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpQualityTestAddForm, HandleQmTestAddAsync).DisableAntiforgery();
@@ -420,24 +431,33 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpCostCenterWrite, HandleCostCenterWriteAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpDocExpiryDelete, HandleDocxDeleteAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpTenantConfigSave, HandleTenantConfigSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpIntercompanySave, HandleIntercompanySaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpPricingSave, HandlePricingSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPrintDesignerSave, HandlePrintDesignerSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxFtaFetch, HandleUaeTaxFtaFetchAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationAsk, HandleUaeTaxLegislationAskAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationRegen, HandleUaeTaxLegislationRegenAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationChecklistSet, HandleUaeTaxLegislationChecklistSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365WorkspaceSave, HandleD365WorkspaceSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpSheetEntry, HandleSheetEntryAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365ParameterSave, HandleD365ParameterSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365LinkSave, HandleD365LinkSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpD365StudySave, HandleD365StudySaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpTrialBalance, HandleTrialBalanceDigestAsync);
         endpoints.MapGet(EcomAeRoutes.ErpTrialBalanceExport, HandleTrialBalanceExportAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpTrialBalanceFile, HandleTrialBalanceFileAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFinancialReportFile, HandleFinancialReportFileAsync);
         endpoints.MapPost(EcomAeRoutes.ErpTrialBalanceSnapshot, HandleTrialBalanceSnapshotAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPmSave, HandlePmSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRealEstateSave, HandleRealEstateSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpRealEstateLawFetch, HandleRealEstateLawFetchAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpRealEstateReport, HandleRealEstateReportAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpAmlPackDownload, HandleAmlPackDownloadAsync);
         endpoints.MapGet(EcomAeRoutes.ErpRealEstateWorkbook, HandleRealEstateWorkbookAsync);
         endpoints.MapPost(EcomAeRoutes.ErpLandlordSave, HandleLandlordSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpLandlordReport, HandleLandlordReportAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpLandlordDocument, HandleLandlordDocumentAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpLandingSave, HandleLandingSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpIndustryApply, HandleIndustryApplyAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpIndustryCurrent, HandleIndustryCurrentAsync);
         endpoints.MapPost(EcomAeRoutes.ErpPmBudgetSave, HandlePmBudgetSaveAsync).DisableAntiforgery();
@@ -2402,7 +2422,8 @@ public sealed class ErpModule : ISurfaceModule
                     LiveWriteFormBinder.Flag(form, "auto_allocate", "autoAllocate"),
                     LiveWriteFormBinder.ParallelLongs(form, "alloc_invoice_id[]", "alloc_invoice_id", "allocInvoiceId"),
                     LiveWriteFormBinder.ParallelDecimals(form, "alloc_amount[]", "alloc_amount", "allocAmount"),
-                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"));
+                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"),
+                    LiveWriteFormBinder.Text(form, "supply_treatment", "supplyTreatment"));
             }
             else
             {
@@ -2443,6 +2464,7 @@ public sealed class ErpModule : ISurfaceModule
                         AllocAmounts = body.AllocAmount,
                         Note = body.Note ?? string.Empty,
                         Time = body.Time,
+                        SupplyTreatment = body.SupplyTreatment ?? string.Empty,
                     },
                     session.UserId,
                     cancellationToken);
@@ -2480,7 +2502,9 @@ public sealed class ErpModule : ISurfaceModule
                     LiveWriteFormBinder.Flag(form, "auto_allocate", "autoAllocate"),
                     LiveWriteFormBinder.ParallelLongs(form, "alloc_invoice_id[]", "alloc_invoice_id", "allocInvoiceId"),
                     LiveWriteFormBinder.ParallelDecimals(form, "alloc_amount[]", "alloc_amount", "allocAmount"),
-                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"));
+                    LiveWriteFormBinder.UnixDate(form, "voc_date", "voucher_date", "entry_date"),
+                    LiveWriteFormBinder.Text(form, "supply_treatment", "supplyTreatment"),
+                    !form.ContainsKey("supplier_tax_invoice") || LiveWriteFormBinder.Flag(form, "supplier_tax_invoice", "supplierTaxInvoice"));
             }
             else
             {
@@ -2520,6 +2544,8 @@ public sealed class ErpModule : ISurfaceModule
                         Reference = body.Reference ?? string.Empty,
                         Note = body.Note ?? string.Empty,
                         Time = body.Time,
+                        SupplyTreatment = body.SupplyTreatment ?? string.Empty,
+                        SupplierTaxInvoiceHeld = body.SupplierTaxInvoice,
                     },
                     session.UserId,
                     cancellationToken);
@@ -6665,7 +6691,21 @@ public sealed class ErpModule : ISurfaceModule
 
             var form = await context.Request.ReadFormAsync(cancellationToken);
             var action = LiveWriteFormBinder.Text(form, "pinfo_action");
-            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            var intent = LiveWriteFormBinder.Text(form, "intent");
+            if (string.Equals(intent, "validate", StringComparison.OrdinalIgnoreCase))
+            {
+                var name = LiveWriteFormBinder.Text(form, "pim_name");
+                var ready = !string.Equals(action, "pim_create_field", StringComparison.OrdinalIgnoreCase) || name.Length > 0;
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/product-info-app?pm_view=pim_entry",
+                    ready,
+                    ready ? "Attribute is ready to post." : "Field name is required.",
+                    new { ok = ready, writes = 0, validation_code = ready ? "ok" : "invalid", message = ready ? "Attribute is ready to post." : "Field name is required.", session = SessionPayload(session) });
+            }
+
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes")
+                && !string.Equals(intent, "post", StringComparison.OrdinalIgnoreCase))
             {
                 return LiveWriteFormBinder.Complete(
                     context,
@@ -8696,6 +8736,9 @@ public sealed class ErpModule : ISurfaceModule
             var vatAmount = body.VatAmount;
             var refundPct = body.RefundPct;
             var refundProvider = body.RefundProvider;
+            var supplyKind = body.SupplyKind;
+            var refundMethod = body.RefundMethod;
+            var supplyDate = body.SupplyDate;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -8711,6 +8754,9 @@ public sealed class ErpModule : ISurfaceModule
                 vatAmount = LiveWriteFormBinder.Dec(form, "vatAmount", "vat_amount");
                 refundPct = LiveWriteFormBinder.Dec(form, "refundPct", "refund_pct");
                 refundProvider = LiveWriteFormBinder.Text(form, "refundProvider", "refund_provider");
+                supplyKind = LiveWriteFormBinder.Text(form, "supplyKind", "supply_kind");
+                refundMethod = LiveWriteFormBinder.Text(form, "refundMethod", "refund_method");
+                supplyDate = LiveWriteFormBinder.Text(form, "supplyDate", "supply_date");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -8727,7 +8773,7 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             var written = await writes.CreateAsync(
-                new ErpTouristRefundCreateRequest(companyId, invoiceId, invoiceNo, touristName, passportNo, nationality, departureDate, totalAmount, vatAmount, refundPct, refundProvider),
+                new ErpTouristRefundCreateRequest(companyId, invoiceId, invoiceNo, touristName, passportNo, nationality, departureDate, totalAmount, vatAmount, refundPct, refundProvider, supplyKind, refundMethod, supplyDate),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
@@ -8781,6 +8827,124 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             var written = await writes.ValidateAsync(new ErpTouristRefundValidateRequest(barcode), cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpTouristRefundPlanetInvoiceForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpTouristRefundWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/vat-app?tab=tourist_refund",
+                    "Admin ERP capability required for a Planet invoice.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpTouristRefundPlanetBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var invoiceNo = body.InvoiceNo;
+            var invoiceDate = body.InvoiceDate;
+            var barcodes = body.Barcodes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                invoiceNo = LiveWriteFormBinder.Text(form, "invoiceNo", "invoice_no", "planet_invoice_no");
+                invoiceDate = LiveWriteFormBinder.Text(form, "invoiceDate", "invoice_date");
+                barcodes = LiveWriteFormBinder.Text(form, "barcodes", "barcode");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/vat-app?tab=tourist_refund";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("tourist_refund_planet_invoice", invoiceNo, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.RecordPlanetInvoiceAsync(
+                new ErpTouristRefundPlanetInvoiceRequest(companyId, invoiceNo, invoiceDate, barcodes),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpTouristRefundPlanetPayForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpTouristRefundWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/vat-app?tab=tourist_refund",
+                    "Admin ERP capability required to pay a Planet invoice.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpTouristRefundPlanetBody>(context, cancellationToken)
+                       ?? new();
+            var invoiceNo = body.InvoiceNo;
+            var invoiceDate = body.InvoiceDate;
+            var payFrom = body.PayFrom;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                invoiceNo = LiveWriteFormBinder.Text(form, "invoiceNo", "invoice_no", "planet_invoice_no");
+                invoiceDate = LiveWriteFormBinder.Text(form, "payDate", "pay_date", "invoiceDate", "invoice_date");
+                payFrom = LiveWriteFormBinder.Text(form, "payFrom", "pay_from");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/vat-app?tab=tourist_refund";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("tourist_refund_planet_pay", invoiceNo, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.PayPlanetInvoiceAsync(
+                new ErpTouristRefundPlanetPayRequest(invoiceNo, invoiceDate, payFrom),
+                cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
                 ok = written.Succeeded,
@@ -9265,6 +9429,69 @@ public sealed class ErpModule : ISurfaceModule
                 message = written.Message,
                 id = written.Id,
                 session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAmlLegislationFetchForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpAmlLegislationFetchWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/aml-compliance-app",
+                    "Admin ERP capability required to fetch AML legislation.");
+            }
+
+            var confirm = false;
+            var force = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                force = LiveWriteFormBinder.Flag(form, "force");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpAmlLegislationFetchBody>(context, cancellationToken)
+                           ?? new ErpAmlLegislationFetchBody(false, false);
+                confirm = body.ConfirmWrites;
+                force = body.Force;
+            }
+
+            const string returnApp = "/erp/aml-compliance-app";
+            if (!confirm)
+            {
+                var detail = "Fetch will stamp AML pack " + ErpAmlProgramme.PackVersion + " and check the FATF public list. Country lists are not overwritten.";
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), true, detail);
+                }
+
+                return Results.Ok(new
+                {
+                    ok = true,
+                    writes = 0,
+                    phpAuthoritative = false,
+                    validation_code = "dry-run",
+                    message = detail,
+                    session = SessionPayload(session),
+                });
+            }
+
+            var written = await writes.FetchAsync(force, cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                session = SessionPayload(session),
             });
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpTicketsCreateForm, async (
@@ -11706,17 +11933,26 @@ public sealed class ErpModule : ISurfaceModule
                     new ErpManualJournalInput
                     {
                         Lines = (body.Lines ?? [])
-                            .Select(l => new ErpGlLine(l.CoaId, l.Debit, l.Credit, l.LineNote ?? string.Empty))
+                            .Select(l => new ErpGlLine(
+                                l.CoaId,
+                                l.Debit,
+                                l.Credit,
+                                l.LineNote ?? string.Empty,
+                                l.BusinessUnitId,
+                                l.LegalEntityId))
                             .ToList(),
                         Reference = body.Reference ?? string.Empty,
                         Description = body.Description ?? string.Empty,
                         JournalDate = body.JournalDate,
                         IdempotencyKey = body.IdempotencyKey ?? string.Empty,
+                        CompanyId = body.CompanyId,
+                        BusinessUnitId = body.BusinessUnitId,
+                        CurrencyCode = body.CurrencyCode ?? string.Empty,
                     },
                     session.UserId,
                     cancellationToken);
                 return (
-                    "GL journal posted",
+                    string.IsNullOrWhiteSpace(posted.Note) ? "GL journal posted" : posted.Note,
                     (object)new { journal_id = posted.JournalId, journal_no = posted.JournalNo });
                 });
         });
@@ -13031,7 +13267,7 @@ public sealed class ErpModule : ISurfaceModule
                 message = result.Message,
                 phpAuthoritative = true,
                 session = SessionPayload(session),
-                note = "PHP epc_entity_consolidated_tb projection: entity count plus empty accounts container; detailed consolidated balances remain PHP-owned."
+                note = "PHP epc_entity_consolidated_tb projection: entity count plus the consolidated balance sheet from the posted ledger."
             });
         });
         endpoints.MapPost(EcomAeRoutes.ErpMultiEntityWrite, async (
@@ -18155,6 +18391,590 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleFyActionAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFiscalYearLifecycleService years,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/period-close-app", "Admin ERP capability required for fiscal-year hold, open, or close.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFyActionBody>(context, cancellationToken) ?? new();
+        var action = body.Action;
+        var yearId = body.YearId > 0 ? body.YearId : body.Id;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            action = LiveWriteFormBinder.Text(form, "action");
+            yearId = LiveWriteFormBinder.Long(form, "year_id", "yearId", "id");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        var companyHint = 0L;
+        if (context.Request.Query.TryGetValue("company", out var companyQ)
+            && long.TryParse(companyQ.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedCompany))
+        {
+            companyHint = parsedCompany;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new
+            {
+                ok = false,
+                writes = 0,
+                phpAuthoritative = false,
+                validation_code = "confirm_writes_required",
+                message = "Confirm the fiscal year action to hold, open, or close.",
+                session = SessionPayload(session),
+            });
+        }
+
+        var written = await years.ApplyAsync(
+            new ErpFiscalYearActionRequest(action, yearId, companyHint, session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/period-close-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private sealed record ErpCreditProfileBody(
+        long CustomerId,
+        long CompanyId,
+        string? Name,
+        bool OnHold,
+        bool Mandatory,
+        decimal PermanentLimit,
+        int PermanentTermsDays,
+        string? ReviewDate,
+        decimal TemporaryLimit,
+        int TemporaryTermsDays,
+        string? TemporaryFrom,
+        string? TemporaryUntil,
+        bool ConfirmWrites);
+
+    private sealed record ErpCreditRulesBody(
+        long CompanyId,
+        bool AccountStatus,
+        bool CreditLimit,
+        decimal LimitPercent,
+        decimal Tolerance,
+        bool LimitExpired,
+        bool DaysOverdue,
+        int DaysThreshold,
+        int GraceDays,
+        bool OverdueAmount,
+        decimal OverdueThreshold,
+        bool TermsOfPayment,
+        bool Documents,
+        bool ConfirmWrites);
+
+    private static async Task<IResult> HandleCreditProfileAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCreditManagementService credit,
+        CancellationToken cancellationToken)
+    {
+        const string fallback = "/erp/credit-collections-workspace-app?tab=cc_credit_limit_adj";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(fallback), "Admin ERP capability required for credit limits.");
+        }
+
+        var customerId = 0L;
+        var companyId = CompanyHint(context);
+        var name = string.Empty;
+        var onHold = false;
+        var mandatory = false;
+        var permanentLimit = 0m;
+        var permanentTerms = 0;
+        var reviewDate = string.Empty;
+        var temporaryLimit = 0m;
+        var temporaryTerms = 0;
+        var temporaryFrom = string.Empty;
+        var temporaryUntil = string.Empty;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            customerId = LiveWriteFormBinder.Long(form, "customer_id", "customerId");
+            var postedCompany = LiveWriteFormBinder.Long(form, "company_id", "companyId");
+            if (postedCompany > 0)
+            {
+                companyId = postedCompany;
+            }
+
+            name = LiveWriteFormBinder.Text(form, "customer_name", "name");
+            onHold = LiveWriteFormBinder.Flag(form, "on_hold", "onHold");
+            mandatory = LiveWriteFormBinder.Flag(form, "mandatory_limit", "mandatory");
+            permanentLimit = LiveWriteFormBinder.Dec(form, "permanent_limit", "permanentLimit");
+            permanentTerms = LiveWriteFormBinder.Int(form, "permanent_terms_days", "permanentTermsDays");
+            reviewDate = LiveWriteFormBinder.Text(form, "review_date", "reviewDate");
+            temporaryLimit = LiveWriteFormBinder.Dec(form, "temporary_limit", "temporaryLimit");
+            temporaryTerms = LiveWriteFormBinder.Int(form, "temporary_terms_days", "temporaryTermsDays");
+            temporaryFrom = LiveWriteFormBinder.Text(form, "temporary_from", "temporaryFrom");
+            temporaryUntil = LiveWriteFormBinder.Text(form, "temporary_until", "temporaryUntil");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCreditProfileBody>(context, cancellationToken);
+            if (body is not null)
+            {
+                customerId = body.CustomerId;
+                if (body.CompanyId > 0)
+                {
+                    companyId = body.CompanyId;
+                }
+
+                name = body.Name ?? string.Empty;
+                onHold = body.OnHold;
+                mandatory = body.Mandatory;
+                permanentLimit = body.PermanentLimit;
+                permanentTerms = body.PermanentTermsDays;
+                reviewDate = body.ReviewDate ?? string.Empty;
+                temporaryLimit = body.TemporaryLimit;
+                temporaryTerms = body.TemporaryTermsDays;
+                temporaryFrom = body.TemporaryFrom ?? string.Empty;
+                temporaryUntil = body.TemporaryUntil ?? string.Empty;
+                confirm = body.ConfirmWrites;
+            }
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Confirm the credit limit before it is saved.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "confirm_writes_required", message = "Confirm the credit limit before it is saved.", session = SessionPayload(session) });
+        }
+
+        var written = await credit.SaveProfileAsync(
+            new ErpCreditProfileWrite(customerId, companyId, name, onHold, mandatory, permanentLimit, permanentTerms, reviewDate, temporaryLimit, temporaryTerms, temporaryFrom, temporaryUntil),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallback,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleCreditRulesAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCreditManagementService credit,
+        CancellationToken cancellationToken)
+    {
+        const string fallback = "/erp/credit-collections-workspace-app?tab=cc_blocking_rules";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(fallback), "Admin ERP capability required for blocking rules.");
+        }
+
+        var companyId = CompanyHint(context);
+        var accountStatus = false;
+        var creditLimit = false;
+        var limitPercent = 100m;
+        var tolerance = 0m;
+        var limitExpired = false;
+        var daysOverdue = false;
+        var daysThreshold = 1;
+        var graceDays = 0;
+        var overdueAmount = false;
+        var overdueThreshold = 0.01m;
+        var termsOfPayment = false;
+        var documents = false;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var postedCompany = LiveWriteFormBinder.Long(form, "company_id", "companyId");
+            if (postedCompany > 0)
+            {
+                companyId = postedCompany;
+            }
+
+            accountStatus = LiveWriteFormBinder.Flag(form, "block_account_status", "accountStatus");
+            creditLimit = LiveWriteFormBinder.Flag(form, "block_credit_limit", "creditLimit");
+            limitPercent = LiveWriteFormBinder.Dec(form, "limit_percent", "limitPercent");
+            tolerance = LiveWriteFormBinder.Dec(form, "limit_tolerance", "tolerance");
+            limitExpired = LiveWriteFormBinder.Flag(form, "block_limit_expired", "limitExpired");
+            daysOverdue = LiveWriteFormBinder.Flag(form, "block_days_overdue", "daysOverdue");
+            daysThreshold = LiveWriteFormBinder.Int(form, "days_threshold", "daysThreshold");
+            graceDays = LiveWriteFormBinder.Int(form, "grace_days", "graceDays");
+            overdueAmount = LiveWriteFormBinder.Flag(form, "block_overdue_amount", "overdueAmount");
+            overdueThreshold = LiveWriteFormBinder.Dec(form, "overdue_threshold", "overdueThreshold");
+            termsOfPayment = LiveWriteFormBinder.Flag(form, "block_terms", "termsOfPayment");
+            documents = LiveWriteFormBinder.Flag(form, "block_documents", "documents");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCreditRulesBody>(context, cancellationToken);
+            if (body is not null)
+            {
+                if (body.CompanyId > 0)
+                {
+                    companyId = body.CompanyId;
+                }
+
+                accountStatus = body.AccountStatus;
+                creditLimit = body.CreditLimit;
+                limitPercent = body.LimitPercent;
+                tolerance = body.Tolerance;
+                limitExpired = body.LimitExpired;
+                daysOverdue = body.DaysOverdue;
+                daysThreshold = body.DaysThreshold;
+                graceDays = body.GraceDays;
+                overdueAmount = body.OverdueAmount;
+                overdueThreshold = body.OverdueThreshold;
+                termsOfPayment = body.TermsOfPayment;
+                documents = body.Documents;
+                confirm = body.ConfirmWrites;
+            }
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Confirm the blocking rules before they are saved.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "confirm_writes_required", message = "Confirm the blocking rules before they are saved.", session = SessionPayload(session) });
+        }
+
+        var written = await credit.SaveRulesAsync(
+            companyId,
+            new ErpCreditBlock.Rules(accountStatus, creditLimit, limitPercent, tolerance, limitExpired, daysOverdue, daysThreshold, graceDays, overdueAmount, overdueThreshold, termsOfPayment, documents),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallback,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleShippingPackAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShippingPackService packs,
+        CancellationToken cancellationToken)
+    {
+        const string fallback = "/erp/invoices-app";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(fallback), "Admin ERP capability required for shipping documents.");
+        }
+
+        var action = "prepare";
+        var invoices = string.Empty;
+        var packages = 0;
+        var weight = 0m;
+        var carrier = string.Empty;
+        var tracking = string.Empty;
+        var shipTo = string.Empty;
+        var packId = 0L;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            action = LiveWriteFormBinder.Text(form, "action");
+            invoices = LiveWriteFormBinder.Text(form, "invoices");
+            packages = LiveWriteFormBinder.Int(form, "packages");
+            weight = LiveWriteFormBinder.Dec(form, "weight");
+            carrier = LiveWriteFormBinder.Text(form, "carrier");
+            tracking = LiveWriteFormBinder.Text(form, "tracking");
+            shipTo = LiveWriteFormBinder.Text(form, "ship_to", "shipTo");
+            packId = LiveWriteFormBinder.Long(form, "pack_id", "packId");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Confirm the shipping documents before they are prepared.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "confirm_writes_required", message = "Confirm the shipping documents before they are prepared.", session = SessionPayload(session) });
+        }
+
+        var release = string.Equals(action, "release", StringComparison.OrdinalIgnoreCase);
+        var written = release
+            ? await packs.ReleaseAsync(packId, cancellationToken)
+            : await packs.PrepareAsync(new ErpShippingPackPrepare(ErpShippingPack.Parse(invoices), packages, weight, carrier, tracking, shipTo), cancellationToken);
+        if (LiveWriteFormBinder.WantsHtml(context) && written.Succeeded && !release)
+        {
+            var dest = ClientErpPath.PrefixIfBound(context, "/erp/invoices-app?pack=" + written.Id.ToString(CultureInfo.InvariantCulture));
+            return Results.Redirect(dest + "&ok=" + Uri.EscapeDataString(written.Message ?? string.Empty));
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallback,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleOrderSplitAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpOrderSplitService splits,
+        CancellationToken cancellationToken)
+    {
+        var sales = context.Request.Path.Value?.Contains("/sales-orders/", StringComparison.OrdinalIgnoreCase) == true;
+        var side = sales ? ErpOrderSplit.Sales : ErpOrderSplit.Purchase;
+        var fallback = sales ? "/erp/sales-orders-app" : "/erp/purchase-orders-app";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(fallback), "Admin ERP capability required for a partial order.");
+        }
+
+        var action = string.Empty;
+        var linesText = string.Empty;
+        var orderId = 0L;
+        var lineId = 0L;
+        var qty = 0m;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            action = LiveWriteFormBinder.Text(form, "action");
+            linesText = LiveWriteFormBinder.Text(form, "lines");
+            orderId = LiveWriteFormBinder.Long(form, "order_id", "orderId");
+            lineId = LiveWriteFormBinder.Long(form, "line_id", "lineId");
+            qty = LiveWriteFormBinder.Dec(form, "qty");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        var moves = ErpOrderSplit.Parse(linesText).ToList();
+        if (moves.Count == 0 && orderId > 0 && lineId > 0 && qty > 0m)
+        {
+            moves.Add(new ErpOrderSplit.Move(orderId, lineId, qty));
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Confirm the partial order before it is posted.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "confirm_writes_required", message = "Confirm the partial order before it is posted.", session = SessionPayload(session) });
+        }
+
+        var written = await splits.PostAsync(new ErpOrderSplitPost(side, action, moves), cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallback,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleCreditApplicationAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCreditManagementService credit,
+        CancellationToken cancellationToken)
+    {
+        const string fallback = "/erp/credit-collections-workspace-app?tab=cc_credit_application";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(fallback), "Admin ERP capability required for a credit application.");
+        }
+
+        var customerId = 0L;
+        var party = "company";
+        var validUntil = string.Empty;
+        var requestedLimit = 0m;
+        var requestedTerms = 0;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            customerId = LiveWriteFormBinder.Long(form, "customer_id", "customerId");
+            party = LiveWriteFormBinder.Text(form, "party_kind", "party");
+            validUntil = LiveWriteFormBinder.Text(form, "valid_until", "validUntil");
+            requestedLimit = LiveWriteFormBinder.Dec(form, "requested_limit", "requestedLimit");
+            requestedTerms = LiveWriteFormBinder.Int(form, "requested_terms_days", "requestedTerms");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Confirm the credit application before it is saved.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "confirm_writes_required", message = "Confirm the credit application before it is saved.", session = SessionPayload(session) });
+        }
+
+        var written = await credit.SaveApplicationAsync(
+            new ErpCreditApplicationWrite(customerId, party, validUntil, requestedLimit, requestedTerms),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(context, fallback, written.Succeeded, written.Message, new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleCreditPartnerAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCreditManagementService credit,
+        CancellationToken cancellationToken)
+    {
+        const string fallback = "/erp/credit-collections-workspace-app?tab=cc_credit_application";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(fallback), "Admin ERP capability required for credit partners.");
+        }
+
+        var customerId = 0L;
+        var name = string.Empty;
+        var retire = 0L;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            customerId = LiveWriteFormBinder.Long(form, "customer_id", "customerId");
+            name = LiveWriteFormBinder.Text(form, "partner_name", "name");
+            retire = LiveWriteFormBinder.Long(form, "retire_partner_id", "retirePartnerId");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Confirm the partner before the credit application changes.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "confirm_writes_required", message = "Confirm the partner before the credit application changes.", session = SessionPayload(session) });
+        }
+
+        var written = await credit.SavePartnerAsync(customerId, name, retire, cancellationToken);
+        return LiveWriteFormBinder.Complete(context, fallback, written.Succeeded, written.Message, new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleCreditDocumentSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCreditManagementService credit,
+        CancellationToken cancellationToken)
+    {
+        const string fallback = "/erp/credit-collections-workspace-app?tab=cc_credit_application";
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=" + Uri.EscapeDataString(fallback), "Admin ERP capability required for credit documents.");
+        }
+
+        var customerId = 0L;
+        var partnerId = 0L;
+        var kind = string.Empty;
+        var number = string.Empty;
+        var expiry = string.Empty;
+        var confirm = false;
+        IFormFile? file = null;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            customerId = LiveWriteFormBinder.Long(form, "customer_id", "customerId");
+            partnerId = LiveWriteFormBinder.Long(form, "partner_id", "partnerId");
+            kind = LiveWriteFormBinder.Text(form, "doc_kind", "kind");
+            number = LiveWriteFormBinder.Text(form, "doc_number", "number");
+            expiry = LiveWriteFormBinder.Text(form, "expiry", "expiry");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            file = form.Files.GetFile("file");
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Confirm the document before it is attached.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "confirm_writes_required", message = "Confirm the document before it is attached.", session = SessionPayload(session) });
+        }
+
+        if (file is null || file.Length <= 0)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                false,
+                "Attach the file.",
+                new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid", message = "Attach the file.", session = SessionPayload(session) });
+        }
+
+        await using var stream = file.OpenReadStream();
+        var written = await credit.SaveDocumentAsync(
+            new ErpCreditDocumentWrite(customerId, partnerId, kind, number, expiry),
+            stream,
+            file.FileName,
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(context, fallback, written.Succeeded, written.Message, new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleCreditDocumentOpenAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCreditManagementService credit,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Unauthorized();
+        }
+
+        var id = 0L;
+        if (context.Request.Query.TryGetValue("id", out var raw))
+        {
+            long.TryParse(raw.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out id);
+        }
+
+        var file = await credit.OpenDocumentAsync(id, cancellationToken);
+        if (file is null)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.File(file.Content, file.ContentType, file.DownloadName);
+    }
+
+    private static long CompanyHint(HttpContext context)
+    {
+        if (context.Request.Query.TryGetValue("company", out var companyQ)
+            && long.TryParse(companyQ.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedCompany))
+        {
+            return parsedCompany;
+        }
+
+        return 0L;
+    }
+
     private static async Task<IResult> HandleBosWfDecideAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -19884,6 +20704,82 @@ public sealed class ErpModule : ISurfaceModule
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
+
+    private static async Task<IResult> HandleErpUserControlGrantAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPermissionGrantWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/user-control-app", "Admin ERP capability required to set user access.");
+        }
+
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Edit")
+            && !ErpCapabilityCatalog.CanAction(session, "administration", "New"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/user-control-app", "Administration edit is required to set user access.");
+        }
+
+        if (!context.Request.HasFormContentType)
+        {
+            return Results.Json(new { ok = false, message = "User access is posted from the User control form." }, statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken);
+        var intent = form["intent"].ToString();
+        var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes")
+            || string.Equals(intent, "post", StringComparison.OrdinalIgnoreCase);
+        if (string.Equals(intent, "validate", StringComparison.OrdinalIgnoreCase))
+        {
+            confirm = false;
+        }
+
+        if (!ErpPermissionGrantWriteService.TryParse(form, session.UserId, out var request, out var parseError))
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/user-control-app",
+                false,
+                parseError,
+                new { ok = false, writes = 0, validation_code = "invalid", message = parseError, session = SessionPayload(session) });
+        }
+
+        var preview = ErpPermissionGrantWriteService.Validate(request);
+        if (!confirm || preview is not null)
+        {
+            var message = preview?.Message ?? "Access is ready to post.";
+            return LiveWriteFormBinder.Complete(
+                context,
+                GrantReturn(request.UserId),
+                preview is null && !confirm,
+                message,
+                new
+                {
+                    ok = preview is null,
+                    writes = 0,
+                    phpAuthoritative = false,
+                    validation_code = preview?.Code ?? "confirm_required",
+                    message,
+                    session = SessionPayload(session),
+                });
+        }
+
+        var written = await writes.SaveAsync(request, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            GrantReturn(request.UserId),
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static string GrantReturn(int userId)
+        => userId > 0
+            ? "/erp/user-control-app?user_id=" + userId.ToString(CultureInfo.InvariantCulture)
+            : "/erp/user-control-app";
 
     private static async Task<IResult> HandleErpUsersPrepareAsync(
         HttpContext context,
@@ -24046,6 +24942,164 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandlePricingSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPricingService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/pricing-app", "Admin ERP capability required for pricing.");
+        }
+
+        if (!context.Request.HasFormContentType)
+        {
+            return Results.Json(new { ok = false, writes = 0, message = "Send the pricing form." }, statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken);
+        var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, writesBlocked = true, phpAuthoritative = true, message = "Confirm writes to save pricing." });
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpPricingSaveRequest(
+                LiveWriteFormBinder.Text(form, "action"),
+                MarginRequired(form, "unit_margin"),
+                MarginRequired(form, "offer_margin"),
+                MarginRequired(form, "actual_margin"),
+                MarginRequired(form, "msp_margin"),
+                LiveWriteFormBinder.Text(form, "currency_code", "currency"),
+                LiveWriteFormBinder.Text(form, "channel"),
+                LiveWriteFormBinder.Text(form, "country_code", "country"),
+                LiveWriteFormBinder.Text(form, "customer_group", "group"),
+                LiveWriteFormBinder.Text(form, "customer_code", "customer"),
+                LiveWriteFormBinder.Text(form, "item_code", "item"),
+                LiveWriteFormBinder.Dec(form, "min_qty", "qty"),
+                MarginOptional(form, "rule_unit_margin"),
+                MarginOptional(form, "rule_offer_margin"),
+                MarginOptional(form, "rule_actual_margin"),
+                MarginOptional(form, "rule_msp_margin"),
+                LiveWriteFormBinder.Text(form, "rule_currency"),
+                LiveWriteFormBinder.Long(form, "rule_id"),
+                LiveWriteFormBinder.Text(form, "note")),
+            cancellationToken).ConfigureAwait(false);
+        var tab = LiveWriteFormBinder.Text(form, "tab");
+        if (tab is not ("levels" or "quote"))
+        {
+            tab = "structure";
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/pricing-app?tab=" + Uri.EscapeDataString(tab),
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+    }
+
+    private static decimal MarginRequired(IFormCollection form, string name)
+    {
+        var text = LiveWriteFormBinder.Text(form, name);
+        return decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var value) ? value : -1m;
+    }
+
+    private static decimal MarginOptional(IFormCollection form, string name)
+    {
+        var text = LiveWriteFormBinder.Text(form, name);
+        if (text.Length == 0)
+        {
+            return -1m;
+        }
+
+        return decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var value) ? value : -1m;
+    }
+
+    private static async Task<IResult> HandleIntercompanySaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpIntercompanySetupService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/intercompany-app", "Admin ERP capability required for intercompany setup.");
+        }
+
+        if (!context.Request.HasFormContentType)
+        {
+            return Results.Json(new { ok = false, writes = 0, message = "Send the intercompany form." }, statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken);
+        var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = true, writes = 0, writesBlocked = true, phpAuthoritative = true, message = "Confirm writes to save intercompany setup." });
+        }
+
+        var current = (await writes.ReadAsync(cancellationToken).ConfigureAwait(false)).Policy;
+        var action = LiveWriteFormBinder.Text(form, "action");
+        var tax = string.Equals(action, "tax", StringComparison.OrdinalIgnoreCase);
+        var currency = string.Equals(action, "currency", StringComparison.OrdinalIgnoreCase);
+        var companyText = LiveWriteFormBinder.Text(form, "company");
+        _ = int.TryParse(companyText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var companyId);
+        var written = await writes.SaveAsync(
+            new ErpIntercompanySaveRequest(
+                action,
+                LiveWriteFormBinder.Text(form, "scope"),
+                LiveWriteFormBinder.Text(form, "from_code"),
+                LiveWriteFormBinder.Text(form, "to_code"),
+                LiveWriteFormBinder.Text(form, "role"),
+                LiveWriteFormBinder.Text(form, "purpose"),
+                LiveWriteFormBinder.Text(form, "coa_code"),
+                LiveWriteFormBinder.Text(form, "rule_code"),
+                LiveWriteFormBinder.Text(form, "rule_name"),
+                LiveWriteFormBinder.Text(form, "debit_purpose"),
+                LiveWriteFormBinder.Text(form, "credit_purpose"),
+                LiveWriteFormBinder.Text(form, "method"),
+                LiveWriteFormBinder.Flag(form, "rule_active"),
+                tax ? LiveWriteFormBinder.Flag(form, "vat_group") : current.VatGroup,
+                tax ? LiveWriteFormBinder.Flag(form, "ct_group") : current.CtGroup,
+                tax ? Rate(form, "sales_vat_rate", current.SalesVatRate) : current.SalesVatRate,
+                tax ? Rate(form, "purchase_vat_rate", current.PurchaseVatRate) : current.PurchaseVatRate,
+                tax ? LiveWriteFormBinder.Text(form, "tp_method") : current.TpMethod,
+                currency ? LiveWriteFormBinder.Text(form, "reporting_currency") : current.ReportingCurrency,
+                currency ? LiveWriteFormBinder.Text(form, "translation_method") : current.TranslationMethod,
+                currency ? LiveWriteFormBinder.Text(form, "transaction_currency") : current.TransactionCurrency,
+                companyId < 0 ? 0 : companyId),
+            cancellationToken).ConfigureAwait(false);
+        var tab = LiveWriteFormBinder.Text(form, "tab");
+        if (tab is not ("accounts" or "elimination" or "tax" or "currency"))
+        {
+            tab = "relationships";
+        }
+
+        var back = "/erp/intercompany-app?tab=" + Uri.EscapeDataString(tab);
+        if (companyText.Length > 0)
+        {
+            back += "&company=" + Uri.EscapeDataString(companyText);
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            back,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+    }
+
+    private static decimal Rate(IFormCollection form, string name, decimal fallback)
+    {
+        var text = LiveWriteFormBinder.Text(form, name);
+        return decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var rate) ? rate : fallback;
+    }
+
     private static async Task<IResult> HandleTenantConfigSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -24523,6 +25577,129 @@ public sealed class ErpModule : ISurfaceModule
                 + "-" + parameters.ToDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + ".csv");
     }
 
+    private static async Task<IResult> HandleTrialBalanceFileAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTrialBalanceReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/trial-balance-app", "Admin ERP capability required for trial-balance export.");
+        }
+
+        var parameters = TrialBalanceParametersFrom(context.Request);
+        var result = await read.ReadAsync(parameters, cancellationToken);
+        var debits = result.Lines
+            .Select(line => new ErpIfrs18Row("line", line.Code, line.Name, line.Debit, line.Credit))
+            .Append(new ErpIfrs18Row("total", "", "Total", result.DebitTotal, result.CreditTotal))
+            .ToList();
+        var balances = result.Lines
+            .Select(line => new ErpIfrs18Row("line", line.Code, line.Name, line.Opening, line.Closing))
+            .Append(new ErpIfrs18Row("total", "", "Total", result.OpeningTotal, result.ClosingTotal))
+            .ToList();
+        var document = new ErpFinancialReportDocument(
+            "Trial balance",
+            "Ledger source for the IFRS 18 primary statements. "
+                + parameters.FromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+                + " to " + parameters.ToDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+                + ". The trial balance is not itself a primary statement.",
+            [
+                new ErpFinancialReportSheet("Debit and credit", ["Code", "Name", "Debit", "Credit"], debits),
+                new ErpFinancialReportSheet("Balances", ["Code", "Name", "Opening", "Closing"], balances),
+            ]);
+        return ReportFile(context, document, "trial-balance");
+    }
+
+    private static async Task<IResult> HandleFinancialReportFileAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFinancialStatementReadService statements,
+        ISurfaceDashboardSummaryReporter dashboards,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/report-center-app", "Admin ERP capability required for financial reports.");
+        }
+
+        var tab = context.Request.Query["tab"].ToString();
+        var level = context.Request.Query["level"].ToString();
+        var company = context.Request.Query["company"].ToString();
+        var businessUnit = context.Request.Query["bu"].ToString();
+        var currency = context.Request.Query["currency"].ToString();
+        ErpFinancialReportDocument document;
+        if (tab.Equals("pl", StringComparison.OrdinalIgnoreCase)
+            || tab.Equals("balance_sheet", StringComparison.OrdinalIgnoreCase)
+            || string.IsNullOrWhiteSpace(tab)
+            || tab.Equals("statements", StringComparison.OrdinalIgnoreCase))
+        {
+            var profit = await statements.ReadAsync(
+                ErpFinancialStatementQuery.FromQuery("pl", level, company, businessUnit, currency),
+                cancellationToken).ConfigureAwait(false);
+            var position = await statements.ReadAsync(
+                ErpFinancialStatementQuery.FromQuery("balance_sheet", level, company, businessUnit, currency),
+                cancellationToken).ConfigureAwait(false);
+            document = ErpIfrs18Face.PrimaryStatements(profit, position);
+        }
+        else
+        {
+            var key = context.Request.Query["key"].ToString();
+            int? companyId = int.TryParse(company, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) && parsed > 0
+                ? parsed
+                : null;
+            var digest = await dashboards.BuildErpReportCenterDigestAsync(
+                string.IsNullOrWhiteSpace(key) ? null : key,
+                200,
+                cancellationToken,
+                companyId).ConfigureAwait(false);
+            var rows = digest.Rows.Count == 0
+                ? digest.Reports.Select(report => (IReadOnlyList<string>)[report.Key, report.Name, report.Area, report.Desc]).ToList()
+                : digest.Rows.Select(row =>
+                {
+                    var cells = digest.Columns.Select(column => row.TryGetValue(column, out var value) ? value : "").Take(4).ToList();
+                    while (cells.Count < 4)
+                    {
+                        cells.Add(string.Empty);
+                    }
+
+                    return (IReadOnlyList<string>)cells;
+                }).ToList();
+            var headers = digest.Rows.Count == 0
+                ? new[] { "Key", "Name", "Area", "Description" }
+                : digest.Columns.Take(4).ToArray();
+            document = ErpFinancialReportFile.Table(
+                "Financial reports",
+                "Report center listing. Primary statements are the statement of profit or loss and the statement of financial position under IFRS 18.",
+                "Reports",
+                headers,
+                rows);
+        }
+
+        return ReportFile(context, document, "ifrs18-financial-statements");
+    }
+
+    private static IResult ReportFile(HttpContext context, ErpFinancialReportDocument document, string stem)
+    {
+        var format = context.Request.Query["format"].ToString().Trim().ToLowerInvariant();
+        if (format is "print" or "html" or "screen")
+        {
+            return Results.Content(ErpFinancialReportFile.Html(document), "text/html; charset=utf-8");
+        }
+
+        if (format is "xlsx" or "excel")
+        {
+            return Results.File(
+                ErpFinancialReportFile.Xlsx(document),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                stem + ".xlsx");
+        }
+
+        return Results.File(ErpFinancialReportFile.Pdf(document), "application/pdf", stem + ".pdf");
+    }
+
     private static string Csv(string? value)
     {
         var text = value ?? string.Empty;
@@ -24600,6 +25777,71 @@ public sealed class ErpModule : ISurfaceModule
             });
     }
 
+    private static async Task<IResult> HandleSheetEntryAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpSheetEntryWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        const string fallback = "/erp/data-migrations-app?pm_view=entry";
+        if (!PhpParityDumpCatalog.HasStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/data-migrations-app",
+                "Staff ERP access is required.");
+        }
+
+        if (!context.Request.HasFormContentType)
+        {
+            return Results.Json(new { ok = false, writes = 0, message = "Form is required." }, statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken);
+        var sheet = LiveWriteFormBinder.Text(form, "sheet");
+        var intent = LiveWriteFormBinder.Text(form, "intent");
+        var fields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var key in form.Keys)
+        {
+            if (key is "returnUrl" or "return_url" or "confirmWrites" or "confirm_writes" or "intent" or "sheet")
+            {
+                continue;
+            }
+
+            fields[key] = form[key].ToString();
+        }
+
+        var post = string.Equals(intent, "post", StringComparison.OrdinalIgnoreCase);
+        if (!post)
+        {
+            var check = ErpSheetEntryCatalog.Check(sheet, fields);
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                check.Ok,
+                check.Message,
+                new { ok = check.Ok, writes = 0, phpAuthoritative = false, message = check.Message, session = SessionPayload(session) });
+        }
+
+        var written = await writes.PostAsync(sheet, fields, session.UserId, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallback,
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session),
+            });
+    }
+
     private static async Task<IResult> HandleD365WorkspaceSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -24637,6 +25879,7 @@ public sealed class ErpModule : ISurfaceModule
         var sourceId = 0L;
         var companyId = 0L;
         var confirm = false;
+        var fieldsJson = "";
         var returnUrl = "/erp/leave-absence-app";
         if (context.Request.HasFormContentType)
         {
@@ -24663,6 +25906,19 @@ public sealed class ErpModule : ISurfaceModule
             companyId = LiveWriteFormBinder.Long(form, "company_id", "companyId");
             confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+            if (ErpD365WorkspaceCatalog.TryGet(tab, out var axPage) && axPage.ExistingHref is null)
+            {
+                var axValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var key in form.Keys)
+                {
+                    if (key.StartsWith("ax_", StringComparison.OrdinalIgnoreCase) && key.Length > 3)
+                    {
+                        axValues[key[3..]] = LiveWriteFormBinder.Text(form, key);
+                    }
+                }
+
+                fieldsJson = ErpAxMenuFields.Pack(axValues, axPage);
+            }
         }
 
         if (companyId <= 0)
@@ -24672,7 +25928,7 @@ public sealed class ErpModule : ISurfaceModule
 
         var request = new ErpD365WorkspaceWriteRequest(
             area, tab, code, name, worker, party, kind, status, period, dateFrom, dateTo, qty, amount, extra, note, session.UserId,
-            sourceTab, sourceId, sourceCode, relation, companyId);
+            sourceTab, sourceId, sourceCode, relation, companyId, fieldsJson);
         if (!confirm)
         {
             return Results.Ok(dryRun.Evaluate(request, false).ToPayload(SessionPayload(session)));
@@ -25044,6 +26300,98 @@ public sealed class ErpModule : ISurfaceModule
         });
     }
 
+    private static async Task<IResult> HandleAmlPackDownloadAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!PhpParityDumpCatalog.HasStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/aml-compliance-app",
+                "Admin ERP capability required to download the AML pack.");
+        }
+
+        var format = (context.Request.Query["format"].ToString() ?? "pdf").Trim().ToLowerInvariant();
+        var code = context.Request.Query["doc"].ToString();
+        var utc = DateTime.UtcNow;
+        var stem = ErpAmlDocumentPack.FileStem(string.IsNullOrWhiteSpace(code) ? "full-pack" : code, utc);
+        if (format is "docx" or "word" or "doc")
+        {
+            return Results.File(
+                ErpAmlDocumentPack.Docx(code, utc),
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                stem + ".docx");
+        }
+
+        return Results.File(ErpAmlDocumentPack.Pdf(code, utc), "application/pdf", stem + ".pdf");
+    }
+
+    private static async Task<IResult> HandleRealEstateLawFetchAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpRealEstateLawFetchWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!PhpParityDumpCatalog.HasStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/real-estate-app?tab=compliance",
+                "Admin ERP capability required to fetch real-estate legislation.");
+        }
+
+        var confirm = false;
+        var force = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            force = LiveWriteFormBinder.Flag(form, "force");
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRealEstateLawFetchBody>(context, cancellationToken)
+                       ?? new ErpRealEstateLawFetchBody(false, false);
+            confirm = body.ConfirmWrites;
+            force = body.Force;
+        }
+
+        const string returnApp = "/erp/real-estate-app?tab=compliance";
+        if (!confirm)
+        {
+            var detail = "Fetch will stamp real-estate law pack " + ErpRealEstateLaw.PackVersion + " and check the public legislation pages. The pack text is not overwritten.";
+            if (LiveWriteFormBinder.WantsHtml(context))
+            {
+                return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), true, detail);
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                phpAuthoritative = false,
+                validation_code = "dry-run",
+                message = detail,
+                session = SessionPayload(session),
+            });
+        }
+
+        var written = await writes.FetchAsync(force, cancellationToken);
+        return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+        {
+            ok = written.Succeeded,
+            writes = written.Writes,
+            phpAuthoritative = false,
+            validation_code = written.Code,
+            message = written.Message,
+            session = SessionPayload(session),
+        });
+    }
+
     private static async Task<IResult> HandleRealEstateReportAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -25311,10 +26659,86 @@ public sealed class ErpModule : ISurfaceModule
         return Results.File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", name);
     }
 
+    private static async Task<IResult> HandleLandlordDocumentAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTenancyExpiryMail expiry,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/landlord-app?year=2025", "Admin ERP capability required for tenant documents.");
+        }
+
+        long.TryParse(context.Request.Query["id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id);
+        var opened = await expiry.OpenAsync(id, cancellationToken);
+        if (opened is null)
+        {
+            return Results.NotFound();
+        }
+
+        context.Response.Headers.XContentTypeOptions = "nosniff";
+        return Results.File(opened.Path, opened.ContentType, opened.Name);
+    }
+
+    private static async Task<IResult> HandleLandingSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpLandingPage landing,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp", "Admin ERP capability required to choose the page that opens after login.");
+        }
+
+        var form = context.Request.HasFormContentType
+            ? await context.Request.ReadFormAsync(cancellationToken)
+            : null;
+        if (form is null || !LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+        {
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                writesBlocked = true,
+                message = "Dry run — landing page blocked without confirmWrites=true",
+            });
+        }
+
+        var written = await landing.SaveAsync(LiveWriteFormBinder.Text(form, "path"), cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, message = written.Message, validation_code = written.Code });
+    }
+
+    private static string CategoryFrom(IFormCollection? form)
+    {
+        if (form is null)
+        {
+            return "";
+        }
+
+        var category = LiveWriteFormBinder.Text(form, "category");
+        var custom = LiveWriteFormBinder.Text(form, "categoryCustom");
+        if (string.IsNullOrWhiteSpace(category) || string.Equals(category, "other", StringComparison.OrdinalIgnoreCase))
+        {
+            return string.IsNullOrWhiteSpace(custom) ? category : custom;
+        }
+
+        return category;
+    }
+
     private static async Task<IResult> HandleLandlordSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
         IErpLandlordBook book,
+        IErpTenancyExpiryMail expiry,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -25358,14 +26782,56 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         await book.EnsureOpeningAsync(ClientErpPath.BoundSiteKey(context), cancellationToken);
+        var today = ErpTenancyExpiryMail.GulfToday(DateTime.UtcNow);
         var written = action switch
         {
+            "save_expiry_template" => await expiry.SaveTemplateAsync(new ErpTenancyExpiryTemplate(
+                form is null ? "" : LiveWriteFormBinder.Text(form, "subject"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "body"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "replyEmails"),
+                form is not null && LiveWriteFormBinder.Flag(form, "autoSend")), cancellationToken),
+            "prepare_expiry" => await expiry.PrepareAsync(today, cancellationToken),
+            "prepare_expiry_one" => await expiry.PrepareOneAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "leaseId"), today, cancellationToken),
+            "send_expiry_due" => await expiry.SendDueAsync(today, cancellationToken),
+            "send_expiry" => await expiry.SendOneAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id"), cancellationToken),
+            "edit_expiry" => await expiry.UpdateNoticeAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "id"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "toEmails"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "replyEmails"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "subject"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "body"),
+                cancellationToken),
+            "skip_expiry" => await expiry.SkipAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id"), cancellationToken),
+            "file_expiry_reply" => await expiry.FileReplyAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "id"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "fromEmail"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "replyBody"),
+                cancellationToken),
+            "attach_expiry_document" => await expiry.AttachToNoticeAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "id"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "title"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "docType"),
+                form?.Files.GetFile("document"),
+                cancellationToken),
+            "attach_tenant_document" => await expiry.AttachToTenantAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "tenantId"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "title"),
+                form is null ? "" : LiveWriteFormBinder.Text(form, "docType"),
+                form?.Files.GetFile("document"),
+                cancellationToken),
+            "include_expiry_document" => await expiry.IncludeOnNoticeAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "id"),
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "documentId"),
+                cancellationToken),
+            "remove_tenant_document" => await expiry.RemoveDocumentAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "documentId"),
+                cancellationToken),
             "save_line" => await book.SaveLineAsync(new ErpLandlordEntry(
                 propertyId,
                 unitId,
                 year,
                 form is null ? "" : LiveWriteFormBinder.Text(form, "kind"),
-                form is null ? "" : LiveWriteFormBinder.Text(form, "category"),
+                CategoryFrom(form),
                 form is null ? 0 : LiveWriteFormBinder.Dec(form, "amount"),
                 form is null ? "building" : LiveWriteFormBinder.Text(form, "spread"),
                 form is null ? "" : LiveWriteFormBinder.Text(form, "note"),
@@ -25375,8 +26841,24 @@ public sealed class ErpModule : ISurfaceModule
                 form is null ? 0 : LiveWriteFormBinder.Long(form, "id"),
                 form is null ? 0 : LiveWriteFormBinder.Long(form, "targetUnitId"),
                 cancellationToken),
-            "void" => await book.VoidAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id"), cancellationToken),
-            _ => ErpSimpleWriteResult.Fail("invalid", "Choose record, distribute or void."),
+            "edit" => await book.UpdateLineAsync(
+                form is null ? 0 : LiveWriteFormBinder.Long(form, "id", "lineId"),
+                new ErpLandlordEntry(
+                    propertyId,
+                    unitId,
+                    year,
+                    form is null ? "" : LiveWriteFormBinder.Text(form, "kind"),
+                    CategoryFrom(form),
+                    form is null ? 0 : LiveWriteFormBinder.Dec(form, "amount"),
+                    form is null ? "building" : LiveWriteFormBinder.Text(form, "spread"),
+                    form is null ? "" : LiveWriteFormBinder.Text(form, "note"),
+                    form is null ? null : LiveWriteFormBinder.Text(form, "date1"),
+                    form is null ? null : LiveWriteFormBinder.Text(form, "code")),
+                cancellationToken),
+            "delete" => await book.DeleteAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id", "lineId"), cancellationToken),
+            "void" => await book.VoidAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id", "lineId"), cancellationToken),
+            "reverse" => await book.ReverseAsync(form is null ? 0 : LiveWriteFormBinder.Long(form, "id", "lineId"), cancellationToken),
+            _ => ErpSimpleWriteResult.Fail("invalid", "Choose add, edit, delete, void, reverse, or a tenancy notice action."),
         };
         return LiveWriteFormBinder.Complete(
             context,
@@ -27194,7 +28676,8 @@ public sealed class ErpModule : ISurfaceModule
             AmlText(fields, "transaction_type"),
             AmlDec(fields, "amount"),
             AmlText(fields, "currency"),
-            AmlText(fields, "reference")), cancellationToken);
+            AmlText(fields, "reference"),
+            AmlText(fields, "country")), cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/aml-compliance-app",
@@ -28650,7 +30133,8 @@ public sealed class ErpModule : ISurfaceModule
         bool AutoAllocate = false,
         IReadOnlyList<long>? AllocInvoiceId = null,
         IReadOnlyList<decimal>? AllocAmount = null,
-        long Time = 0);
+        long Time = 0,
+        string? SupplyTreatment = null);
     private sealed record ErpPaymentVoucherBody(
         long SupplierId,
         long AccountId,
@@ -28664,7 +30148,9 @@ public sealed class ErpModule : ISurfaceModule
         bool AutoAllocate = false,
         IReadOnlyList<long>? AllocInvoiceId = null,
         IReadOnlyList<decimal>? AllocAmount = null,
-        long Time = 0);
+        long Time = 0,
+        string? SupplyTreatment = null,
+        bool SupplierTaxInvoice = true);
     private sealed record ErpSupplierCreateBody(
         string? Name, string? ContactEmail = null, bool ConfirmWrites = false, long StorageId = 0, string? ContactPhone = null, string? Trn = null,
         string? CurrencyCode = null, string? CountryCode = null, string? VatRegistered = null, string? VendorAccount = null, string? VendorGroup = null,
@@ -28973,7 +30459,10 @@ public sealed class ErpModule : ISurfaceModule
                 LiveWriteFormBinder.Long(form, $"lines[{index}].coaId", $"lines[{index}].coa_id"),
                 LiveWriteFormBinder.Dec(form, $"lines[{index}].debit"),
                 LiveWriteFormBinder.Dec(form, $"lines[{index}].credit"),
-                LiveWriteFormBinder.Text(form, $"lines[{index}].lineNote", $"lines[{index}].line_note")))
+                LiveWriteFormBinder.Text(form, $"lines[{index}].lineNote", $"lines[{index}].line_note"),
+                LiveWriteFormBinder.Long(form, $"lines[{index}].businessUnitId", $"lines[{index}].business_unit_id"),
+                LiveWriteFormBinder.Long(form, $"lines[{index}].legalEntityId", $"lines[{index}].legal_entity_id")))
+            .Where(line => line.CoaId > 0 || line.Debit != 0m || line.Credit != 0m)
             .ToList();
 
         return new ErpGlManualEntryBody(
@@ -28982,17 +30471,29 @@ public sealed class ErpModule : ISurfaceModule
             LiveWriteFormBinder.Text(form, "description"),
             LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"),
             LiveWriteFormBinder.Long(form, "journalDate", "journal_date"),
-            LiveWriteFormBinder.Text(form, "idempotencyKey", "idempotency_key", "idem_key"));
+            LiveWriteFormBinder.Text(form, "idempotencyKey", "idempotency_key", "idem_key"),
+            LiveWriteFormBinder.Long(form, "legal_entity_id", "company_id"),
+            LiveWriteFormBinder.Long(form, "business_unit_id"),
+            LiveWriteFormBinder.Text(form, "currency_code", "currency"));
     }
 
-    private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);
+    private sealed record ErpGlManualLineBody(
+        long CoaId,
+        decimal Debit,
+        decimal Credit,
+        string? LineNote = null,
+        long BusinessUnitId = 0,
+        long LegalEntityId = 0);
     private sealed record ErpGlManualEntryBody(
         IReadOnlyList<ErpGlManualLineBody>? Lines,
         string? Reference,
         string? Description,
         bool ConfirmWrites = false,
         long JournalDate = 0,
-        string? IdempotencyKey = null);
+        string? IdempotencyKey = null,
+        long CompanyId = 0,
+        long BusinessUnitId = 0,
+        string? CurrencyCode = null);
     private sealed record ErpGlReverseJournalBody(
         long JournalId,
         string? Note,
@@ -29700,6 +31201,7 @@ public sealed class ErpModule : ISurfaceModule
         bool Monthly = false,
         bool ConfirmWrites = false);
     private sealed record ErpFyCloseBody(long Id = 0, string? Code = null, bool ConfirmWrites = false, long YearId = 0);
+    private sealed record ErpFyActionBody(string? Action = null, long Id = 0, long YearId = 0, bool ConfirmWrites = false);
     private sealed record ErpFyReopenBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpFyPeriodStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false, int PeriodNo = 0);
     private sealed record ErpPltJobSaveBody(
@@ -30714,10 +32216,20 @@ public sealed class ErpModule : ISurfaceModule
         string? DepartureDate = null,
         decimal TotalAmount = 0,
         decimal VatAmount = 0,
-        decimal RefundPct = 85,
+        decimal RefundPct = 87,
         string? RefundProvider = null,
+        string? SupplyKind = null,
+        string? RefundMethod = null,
+        string? SupplyDate = null,
         bool ConfirmWrites = false);
     private sealed record ErpTouristRefundValidateBody(string? Barcode = null, bool ConfirmWrites = false);
+    private sealed record ErpTouristRefundPlanetBody(
+        int CompanyId = 0,
+        string? InvoiceNo = null,
+        string? InvoiceDate = null,
+        string? Barcodes = null,
+        string? PayFrom = null,
+        bool ConfirmWrites = false);
     private sealed record ErpRfidRegisterBody(
         int CompanyId = 0,
         string? RfidEpc = null,

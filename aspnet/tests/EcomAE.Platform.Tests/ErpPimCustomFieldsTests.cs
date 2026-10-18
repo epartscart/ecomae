@@ -213,6 +213,13 @@ public sealed class ErpPimCustomFieldsTests
         var info = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpProductInfoApp.razor"));
         Assert.Contains("(\"pim_attrs\", \"PIM attributes\")", info, StringComparison.Ordinal);
         Assert.Contains("EcomAeRoutes.ErpProductInfoPimAction", info, StringComparison.Ordinal);
+        Assert.Contains("_view is \"pim_entry\" or \"pim_attrs\"", info, StringComparison.Ordinal);
+        Assert.Contains("id=\"erp-module-new\"", info, StringComparison.Ordinal);
+        Assert.Contains("data-erp-new-field", info, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites\" value=\"true\"", info, StringComparison.Ordinal);
+        Assert.Contains("RibbonNewHref", info, StringComparison.Ordinal);
+        Assert.Contains("_view == \"pim_attrs\" ? null : _phpTab", info, StringComparison.Ordinal);
+        Assert.Contains("PimListHref", info, StringComparison.Ordinal);
         foreach (var action in ErpPimWriteService.Actions)
         {
             Assert.Contains("value=\"" + action + "\"", info, StringComparison.Ordinal);

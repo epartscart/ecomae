@@ -1,0 +1,97 @@
+@using System.Globalization
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
+
+<section class="re-guide" aria-label="Real estate guide">
+    @{ var tone = 0; }
+    @foreach (var lane in ErpRealEstateGuide.Lanes)
+    {
+        <div class="re-guide__lane">
+            <p class="re-guide__lane-name"><i class="fa @lane.Icon" aria-hidden="true"></i> @lane.Title</p>
+            <ol class="re-guide__track">
+                @for (var i = 0; i < lane.Steps.Count; i++)
+                {
+                    var step = lane.Steps[i];
+                    var paint = "tone-" + (tone % 5).ToString(CultureInfo.InvariantCulture);
+                    tone++;
+                    <li class="re-guide__step @paint">
+                        <a href="@Href(step.Href)">
+                            <span class="re-guide__badge">@step.Number.ToString(CultureInfo.InvariantCulture)</span>
+                            <span class="re-guide__icon" aria-hidden="true"><i class="fa @step.Icon"></i></span>
+                            <span class="re-guide__name">@step.Label</span>
+                        </a>
+                    </li>
+                    @if (i < lane.Steps.Count - 1)
+                    {
+                        <li class="re-guide__join" aria-hidden="true">
+                            <svg class="re-guide__svg" viewBox="0 0 56 16" focusable="false">
+                                <line class="re-guide__line" x1="2" y1="8" x2="44" y2="8" />
+                                <polyline class="re-guide__head" points="36,3 48,8 36,13" />
+                            </svg>
+                        </li>
+                    }
+                }
+            </ol>
+        </div>
+    }
+</section>
+
+<style>
+    .re-guide { margin: 0 0 16px; display: flex; flex-direction: column; gap: 14px; }
+    .re-guide__lane {
+        padding: 14px 16px 16px;
+        border: 1px solid #d5e3f2;
+        border-radius: 16px;
+        background:
+            radial-gradient(720px 120px at 8% 0%, rgba(37, 99, 235, .10), transparent 60%),
+            linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%);
+    }
+    .re-guide__lane-name {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: #1d4ed8;
+    }
+    .re-guide__track { list-style: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 6px 0; margin: 10px 0 0; padding: 4px 0 0; }
+    .re-guide__step { display: flex; align-items: center; }
+    .re-guide__step a { position: relative; display: flex; flex-direction: column; align-items: center; width: 118px; text-decoration: none; color: #1e3a5f; }
+    .re-guide__step a:hover .re-guide__icon, .re-guide__step a:focus-visible .re-guide__icon { transform: translateY(-2px); }
+    .re-guide__step a:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; border-radius: 12px; }
+    .re-guide__badge { position: absolute; top: -2px; left: 22px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: #fff; border: 1px solid #d5e3f2; color: #3d4f66; font-size: 10px; font-weight: 800; line-height: 16px; text-align: center; z-index: 1; }
+    .re-guide__icon { width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 8px 16px rgba(15, 39, 68, .14); transition: transform .16s ease; }
+    .re-guide__icon i { font-size: 22px; }
+    .re-guide__name { margin-top: 8px; font-size: 12px; font-weight: 700; line-height: 1.25; text-align: center; }
+    .tone-0 .re-guide__icon { background: linear-gradient(160deg, #3b82f6, #1d4ed8); }
+    .tone-1 .re-guide__icon { background: linear-gradient(160deg, #14b8a6, #0f766e); }
+    .tone-2 .re-guide__icon { background: linear-gradient(160deg, #f59e0b, #b45309); }
+    .tone-3 .re-guide__icon { background: linear-gradient(160deg, #8b5cf6, #6d28d9); }
+    .tone-4 .re-guide__icon { background: linear-gradient(160deg, #fb7185, #be123c); }
+    .re-guide__join { display: flex; align-items: center; justify-content: center; width: 44px; margin-top: 18px; }
+    .re-guide__svg { display: block; width: 52px; height: 16px; }
+    .re-guide__line { fill: none; stroke: #3b82f6; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 5 7; animation: re-guide-dash 1.05s linear infinite; }
+    .re-guide__head { fill: none; stroke: #1d4ed8; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    @@keyframes re-guide-dash { to { stroke-dashoffset: -24; } }
+    @@media (max-width: 720px) {
+        .re-guide__track { flex-direction: column; align-items: stretch; }
+        .re-guide__step { width: 100%; }
+        .re-guide__step a { flex-direction: row; width: auto; gap: 12px; }
+        .re-guide__name { margin-top: 0; text-align: left; }
+        .re-guide__badge { left: 0; top: -4px; }
+        .re-guide__join { transform: rotate(90deg); margin: 2px auto; width: auto; }
+    }
+    @@media (prefers-reduced-motion: reduce) {
+        .re-guide__line { animation: none; stroke-dasharray: none; }
+        .re-guide__step a:hover .re-guide__icon { transform: none; }
+    }
+</style>
+
+@code {
+    private string Href(string href)
+        => ClientErpPath.PrefixIfBound(Http.HttpContext, href);
+}

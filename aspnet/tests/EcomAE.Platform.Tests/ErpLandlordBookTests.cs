@@ -80,6 +80,43 @@ public sealed class ErpLandlordBookTests
     }
 
     [Fact]
+    public void VoidDropsOutAndReverseNetsToZero()
+    {
+        var kept = Line(1, 0, 0, "expense", "building", 80m);
+        var gone = Line(2, 0, 0, "expense", "building", 50m, "void");
+        var original = Line(3, 0, 0, "expense", "building", 100m, "reversed");
+        var contra = Line(4, 0, 0, "expense", "building", -100m, "reversal");
+        var totals = ErpLandlordCalc.Summarize([kept, gone, original, contra], 2025, 0, 0);
+        Assert.Equal(80m, totals.Expense);
+        Assert.Equal(-80m, totals.ReturnAmount);
+    }
+
+    [Fact]
+    public void EachExpenseHasItsOwnAccountAndNewOnesStayOnTheOtherAccount()
+    {
+        var reserved = ErpRealEstateIfrs.Accounts.Select(account => account.Code).ToHashSet(StringComparer.Ordinal);
+        var codes = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var line in ErpLandlordOpening.Lines.Where(line => line.Kind == "expense"))
+        {
+            var code = ErpLandlordCoa.CodeFor(line.Kind, line.Category);
+            Assert.StartsWith("62", code, StringComparison.Ordinal);
+            Assert.DoesNotContain(code, reserved);
+            codes.Add(code);
+            Assert.Equal(ErpLandlordCoa.Label(line.Category), ErpLandlordCoa.Expenses.Single(row => row.Category == line.Category).Name);
+        }
+
+        Assert.Equal(ErpLandlordOpening.Lines.Count(line => line.Kind == "expense"), 
+            ErpLandlordOpening.Lines.Where(line => line.Kind == "expense").Select(line => line.PropertyCode + ":" + line.Category).Distinct().Count());
+        Assert.Equal("4100", ErpLandlordCoa.CodeFor("income", "rental"));
+        Assert.Equal("1510", ErpLandlordCoa.CodeFor("investment", "cost"));
+        Assert.Equal("6295", ErpLandlordCoa.CodeFor("through_2024", "combined"));
+        Assert.Equal("6299", ErpLandlordCoa.CodeFor("expense", "pool cleaning"));
+        Assert.Equal("dewa", ErpLandlordCoa.Normalize("DEWA"));
+        Assert.Equal("camp_head_lease", ErpLandlordCoa.Normalize("Camp head lease"));
+        Assert.True(codes.Count >= 10);
+    }
+
+    [Fact]
     public void WorkbookAcceptsYearLinesAndOlderPropertySheets()
     {
         var year = ErpRealEstateWorkbook.Parse(
@@ -122,6 +159,6 @@ public sealed class ErpLandlordBookTests
     private static int Planned(string code)
         => ErpLandlordOpening.Properties.Single(property => property.Code == code).PlannedUnits;
 
-    private static ErpLandlordLine Line(long id, long unitId, long parentId, string kind, string spread, decimal amount)
-        => new(id, "C" + id.ToString(CultureInfo.InvariantCulture), 1, unitId, kind == "through_2024" ? 2024 : 2025, kind, kind, amount, spread, parentId, "2025-12-31", "", "recorded", "BLD", "Building", unitId == 0 ? "" : "U" + unitId.ToString(CultureInfo.InvariantCulture), "");
+    private static ErpLandlordLine Line(long id, long unitId, long parentId, string kind, string spread, decimal amount, string status = "recorded")
+        => new(id, "C" + id.ToString(CultureInfo.InvariantCulture), 1, unitId, kind == "through_2024" ? 2024 : 2025, kind, kind, amount, spread, parentId, "2025-12-31", "", status, "BLD", "Building", unitId == 0 ? "" : "U" + unitId.ToString(CultureInfo.InvariantCulture), "");
 }

@@ -23,6 +23,8 @@ public static class ErpLandlordSql
               `note` VARCHAR(255) NOT NULL DEFAULT '',
               `status` VARCHAR(20) NOT NULL DEFAULT 'recorded',
               `import_id` BIGINT NOT NULL DEFAULT 0,
+              `coa_code` VARCHAR(16) NOT NULL DEFAULT '',
+              `reversal_of` BIGINT NOT NULL DEFAULT 0,
               PRIMARY KEY (`id`),
               UNIQUE KEY `uk_re_year_line` (`code`),
               KEY `idx_re_year` (`line_year`,`property_id`,`unit_id`,`kind`)
@@ -33,6 +35,8 @@ public static class ErpLandlordSql
             "ALTER TABLE `epc_erp_properties` ADD COLUMN `rent_start_year` INT NOT NULL DEFAULT 0",
             "ALTER TABLE `epc_erp_properties` ADD COLUMN `planned_units` INT NOT NULL DEFAULT 0",
             "ALTER TABLE `epc_erp_properties` ADD COLUMN `holder_name` VARCHAR(190) NOT NULL DEFAULT ''",
+            "ALTER TABLE `epc_erp_re_year_lines` ADD COLUMN `coa_code` VARCHAR(16) NOT NULL DEFAULT ''",
+            "ALTER TABLE `epc_erp_re_year_lines` ADD COLUMN `reversal_of` BIGINT NOT NULL DEFAULT 0",
         })
         {
             try
@@ -133,6 +137,14 @@ public static class ErpLandlordSql
             return ErpSimpleWriteResult.Fail("invalid", "Choose the flat for this line.");
         }
 
+        var category = ErpLandlordCoa.Normalize(entry.Category);
+        if (category.Length == 0)
+        {
+            category = kind == "expense" ? "other" : kind;
+        }
+
+        category = Clip(category, 40);
+        var coa = ErpLandlordCoa.CodeFor(kind, category);
         var code = Clip(string.IsNullOrWhiteSpace(entry.Code) ? NewCode(year, kind, entry.PropertyId) : entry.Code, 40);
         var existing = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_year_lines` WHERE `code`=? LIMIT 1", cancellationToken, code).ConfigureAwait(false);
         if (existing > 0)
@@ -142,9 +154,9 @@ public static class ErpLandlordSql
 
         var unitId = spread == "flat" ? entry.UnitId : 0;
         await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
-            "INSERT INTO `epc_erp_re_year_lines` (`code`,`property_id`,`unit_id`,`line_year`,`kind`,`category`,`amount`,`spread`,`parent_id`,`movement_date`,`note`,`status`,`import_id`) VALUES (?,?,?,?,?,?,?,?,0,?,?,'recorded',?)"),
-            cancellationToken, code, entry.PropertyId, unitId, year, kind, Clip(entry.Category, 40, kind), entry.Amount, spread,
-            string.IsNullOrWhiteSpace(entry.MovementDate) ? null : entry.MovementDate, Clip(entry.Note, 255), importId).ConfigureAwait(false);
+            "INSERT INTO `epc_erp_re_year_lines` (`code`,`property_id`,`unit_id`,`line_year`,`kind`,`category`,`amount`,`spread`,`parent_id`,`movement_date`,`note`,`status`,`import_id`,`coa_code`) VALUES (?,?,?,?,?,?,?,?,0,?,?,'recorded',?,?)"),
+            cancellationToken, code, entry.PropertyId, unitId, year, kind, category, entry.Amount, spread,
+            string.IsNullOrWhiteSpace(entry.MovementDate) ? null : entry.MovementDate, Clip(entry.Note, 255), importId, coa).ConfigureAwait(false);
         var id = await ErpDb.LastInsertIdAsync(connection, tx, cancellationToken).ConfigureAwait(false);
         if (kind == "expense" && spread == "all_flats")
         {
@@ -213,9 +225,9 @@ public static class ErpLandlordSql
         for (var i = 0; i < units.Count; i++)
         {
             await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
-                "INSERT INTO `epc_erp_re_year_lines` (`code`,`property_id`,`unit_id`,`line_year`,`kind`,`category`,`amount`,`spread`,`parent_id`,`movement_date`,`note`,`status`,`import_id`) VALUES (?,?,?,?,?,?,?,'flat',?,?,?,'recorded',0)"),
+                "INSERT INTO `epc_erp_re_year_lines` (`code`,`property_id`,`unit_id`,`line_year`,`kind`,`category`,`amount`,`spread`,`parent_id`,`movement_date`,`note`,`status`,`import_id`,`coa_code`) VALUES (?,?,?,?,?,?,?,'flat',?,?,?,'recorded',0,?)"),
                 cancellationToken, ChildCode(line.Code, units[i].Id), line.PropertyId, units[i].Id, line.Year, line.Kind, line.Category, parts[i], lineId,
-                string.IsNullOrWhiteSpace(line.MovementDate) ? null : line.MovementDate, Clip("Equal share of " + line.Code, 255)).ConfigureAwait(false);
+                string.IsNullOrWhiteSpace(line.MovementDate) ? null : line.MovementDate, Clip("Equal share of " + line.Code, 255), ErpLandlordCoa.CodeFor(line.Kind, line.Category)).ConfigureAwait(false);
         }
 
         await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
@@ -231,10 +243,220 @@ public static class ErpLandlordSql
             return ErpSimpleWriteResult.Fail("invalid", "Choose the line to void.");
         }
 
+        var head = await HeadAsync(connection, tx, lineId, cancellationToken).ConfigureAwait(false);
+        if (head is null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "That line is not on the year book.");
+        }
+
+        if (string.Equals(head.Status, "void", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "That line is already void.");
+        }
+
+        if (head.ParentId > 0)
+        {
+            await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_re_year_lines` SET `status`='void' WHERE `id`=?"),
+                cancellationToken, lineId).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("That flat share is void and stays off this flat.", lineId);
+        }
+
+        var paired = head.ReversalOf > 0 ? head.ReversalOf : lineId;
         await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
-            "UPDATE `epc_erp_re_year_lines` SET `status`='void' WHERE `id`=? OR `parent_id`=?"),
-            cancellationToken, lineId, lineId).ConfigureAwait(false);
+            "UPDATE `epc_erp_re_year_lines` SET `status`='void' WHERE `id`=? OR `parent_id`=? OR `reversal_of`=? OR `id`=?"),
+            cancellationToken, lineId, lineId, lineId, paired).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("The line is void and stays off the return.", lineId);
+    }
+
+    public static async Task<ErpSimpleWriteResult> UpdateAsync(
+        DbConnection connection, DbTransaction tx, long lineId, ErpLandlordEntry entry, CancellationToken cancellationToken)
+    {
+        if (lineId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Choose the line to change.");
+        }
+
+        var head = await HeadAsync(connection, tx, lineId, cancellationToken).ConfigureAwait(false);
+        if (head is null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "That line is not on the year book.");
+        }
+
+        if (!string.Equals(head.Status, "recorded", StringComparison.OrdinalIgnoreCase) || head.ParentId != 0 || head.ReversalOf != 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Only a recorded line can be changed.");
+        }
+
+        var children = await LongAsync(connection, tx, "SELECT COUNT(*) FROM `epc_erp_re_year_lines` WHERE `parent_id`=? AND `status`<>'void'", cancellationToken, lineId).ConfigureAwait(false);
+        if (children > 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "This line is split across flats. Void or delete it, then record the shares you want.");
+        }
+
+        var kind = (entry.Kind ?? "").Trim().ToLowerInvariant();
+        if (kind is not ("income" or "expense" or "investment" or "recovery" or "through_2024"))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Choose income, expense, investment, recovery, or combined costs through 2024.");
+        }
+
+        if (entry.PropertyId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Choose the property.");
+        }
+
+        var property = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_properties` WHERE `id`=? LIMIT 1", cancellationToken, entry.PropertyId).ConfigureAwait(false);
+        if (property <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "That property is not on the register.");
+        }
+
+        var year = kind == "through_2024" ? 2024 : entry.Year;
+        if (kind != "through_2024" && (year < 1990 || year > 2100))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "The year is required.");
+        }
+
+        if (entry.Amount < 0 || (entry.Amount == 0 && kind is not "recovery"))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "The amount must be greater than zero. Recovery can stay at zero until the amount is known.");
+        }
+
+        var spread = (entry.Spread ?? "building").Trim().ToLowerInvariant();
+        if (spread is not ("building" or "flat" or "all_flats"))
+        {
+            spread = "building";
+        }
+
+        if (spread == "flat" && entry.UnitId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Choose the flat for this line.");
+        }
+
+        var category = ErpLandlordCoa.Normalize(entry.Category);
+        if (category.Length == 0)
+        {
+            category = kind == "expense" ? "other" : kind;
+        }
+
+        category = Clip(category, 40);
+        var unitId = spread == "flat" ? entry.UnitId : 0;
+        await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_re_year_lines` SET `property_id`=?,`unit_id`=?,`line_year`=?,`kind`=?,`category`=?,`amount`=?,`spread`=?,`movement_date`=?,`note`=?,`coa_code`=? WHERE `id`=?"),
+            cancellationToken, entry.PropertyId, unitId, year, kind, category, entry.Amount, spread == "all_flats" ? "building" : spread,
+            string.IsNullOrWhiteSpace(entry.MovementDate) ? null : entry.MovementDate, Clip(entry.Note, 255), ErpLandlordCoa.CodeFor(kind, category), lineId).ConfigureAwait(false);
+        if (spread == "all_flats")
+        {
+            var split = await DistributeAsync(connection, tx, lineId, 0, cancellationToken).ConfigureAwait(false);
+            return split.Succeeded
+                ? split
+                : ErpSimpleWriteResult.Ok(split.Message + " The amount stays on the building.", lineId);
+        }
+
+        return ErpSimpleWriteResult.Ok("Saved the change on this line.", lineId);
+    }
+
+    public static async Task<ErpSimpleWriteResult> DeleteAsync(
+        DbConnection connection, DbTransaction tx, long lineId, CancellationToken cancellationToken)
+    {
+        if (lineId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Choose the line to delete.");
+        }
+
+        var head = await HeadAsync(connection, tx, lineId, cancellationToken).ConfigureAwait(false);
+        if (head is null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "That line is not on the year book.");
+        }
+
+        if (head.ParentId > 0)
+        {
+            await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                "DELETE FROM `epc_erp_re_year_lines` WHERE `id`=?"),
+                cancellationToken, lineId).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Deleted that flat share.", lineId);
+        }
+
+        if (head.ReversalOf > 0)
+        {
+            await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                "UPDATE `epc_erp_re_year_lines` SET `status`='recorded' WHERE `id`=? AND `status`='reversed'"),
+                cancellationToken, head.ReversalOf).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+                "DELETE FROM `epc_erp_re_year_lines` WHERE `id`=?"),
+                cancellationToken, lineId).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Deleted the reversal. The original line is recorded again.", lineId);
+        }
+
+        await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+            "DELETE FROM `epc_erp_re_year_lines` WHERE `id`=? OR `parent_id`=? OR `reversal_of`=?"),
+            cancellationToken, lineId, lineId, lineId).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Deleted. The line is off the year book.", lineId);
+    }
+
+    public static async Task<ErpSimpleWriteResult> ReverseAsync(
+        DbConnection connection, DbTransaction tx, long lineId, CancellationToken cancellationToken)
+    {
+        if (lineId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Choose the line to reverse.");
+        }
+
+        var head = await HeadAsync(connection, tx, lineId, cancellationToken).ConfigureAwait(false);
+        if (head is null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "That line is not on the year book.");
+        }
+
+        if (head.ParentId != 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Reverse the building line. The flat shares follow it.");
+        }
+
+        if (head.ReversalOf != 0 || string.Equals(head.Status, "reversal", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "This line is already a reversal.");
+        }
+
+        if (!string.Equals(head.Status, "recorded", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Only a recorded line can be reversed.");
+        }
+
+        if (head.Amount == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "A zero line has nothing to reverse. Void or delete it.");
+        }
+
+        var children = await LongAsync(connection, tx, "SELECT COUNT(*) FROM `epc_erp_re_year_lines` WHERE `parent_id`=? AND `status`<>'void'", cancellationToken, lineId).ConfigureAwait(false);
+        if (children > 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "This line is split across flats. Void or delete it, then record the shares you want.");
+        }
+
+        var line = await ReadLineAsync(connection, tx, lineId, cancellationToken).ConfigureAwait(false);
+        if (line is null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "That line is not on the year book.");
+        }
+
+        var code = Clip("R" + line.Code, 40);
+        var existing = await LongAsync(connection, tx, "SELECT IFNULL(`id`,0) FROM `epc_erp_re_year_lines` WHERE `code`=? LIMIT 1", cancellationToken, code).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            code = Clip(code[..Math.Min(code.Length, 33)] + "-" + Guid.NewGuid().ToString("N")[..6], 40);
+        }
+
+        await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+            "INSERT INTO `epc_erp_re_year_lines` (`code`,`property_id`,`unit_id`,`line_year`,`kind`,`category`,`amount`,`spread`,`parent_id`,`movement_date`,`note`,`status`,`import_id`,`coa_code`,`reversal_of`) VALUES (?,?,?,?,?,?,?,?,0,?,?,'reversal',0,?,?)"),
+            cancellationToken, code, line.PropertyId, line.UnitId, line.Year, line.Kind, line.Category, -line.Amount, line.Spread,
+            string.IsNullOrWhiteSpace(line.MovementDate) ? null : line.MovementDate, Clip("Reversal of " + line.Code + ". " + line.Note, 255),
+            string.IsNullOrWhiteSpace(line.CoaCode) ? ErpLandlordCoa.CodeFor(line.Kind, line.Category) : line.CoaCode, lineId).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(connection, tx, ErpDb.Positional(
+            "UPDATE `epc_erp_re_year_lines` SET `status`='reversed' WHERE `id`=?"),
+            cancellationToken, lineId).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Reversed. The opposite amount is on the year, so this line no longer changes the return.", lineId);
     }
 
     public static async Task<ErpSimpleWriteResult> ImportYearRowAsync(
@@ -399,11 +621,10 @@ public static class ErpLandlordSql
         await using var command = connection.CreateCommand();
         command.CommandText = """
             SELECT l.`id`, l.`code`, l.`property_id`, l.`unit_id`, l.`line_year`, l.`kind`, l.`category`, l.`amount`, l.`spread`, l.`parent_id`,
-                   IFNULL(DATE_FORMAT(l.`movement_date`,'%Y-%m-%d'),''), l.`note`, l.`status`, p.`code`, p.`name`, IFNULL(u.`code`,''), IFNULL(u.`name`,'')
+                   IFNULL(DATE_FORMAT(l.`movement_date`,'%Y-%m-%d'),''), l.`note`, l.`status`, p.`code`, p.`name`, IFNULL(u.`code`,''), IFNULL(u.`name`,''), IFNULL(l.`coa_code`,'')
             FROM `epc_erp_re_year_lines` l
             JOIN `epc_erp_properties` p ON p.`id`=l.`property_id`
             LEFT JOIN `epc_erp_re_units` u ON u.`id`=l.`unit_id`
-            WHERE l.`status`<>'void'
             ORDER BY l.`line_year`, p.`name`, l.`kind`, l.`id`
             """;
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -415,12 +636,104 @@ public static class ErpLandlordSql
         return rows;
     }
 
+    public static async Task<ErpLandlordMeasure> MeasureLightAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var byYear = new Dictionary<int, (decimal Income, decimal Expense)>();
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT `line_year`, `kind`, IFNULL(SUM(`amount`),0)
+                FROM `epc_erp_re_year_lines`
+                WHERE `parent_id`=0 AND `status`<>'void' AND `kind` IN ('income','expense')
+                GROUP BY `line_year`, `kind`
+                """;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var year = ReadInt(reader, 0);
+                var kind = ReadText(reader, 1);
+                var amount = ReadMoney(reader, 2);
+                byYear.TryGetValue(year, out var pair);
+                if (string.Equals(kind, "income", StringComparison.OrdinalIgnoreCase))
+                {
+                    pair.Income += amount;
+                }
+                else
+                {
+                    pair.Expense += amount;
+                }
+
+                byYear[year] = pair;
+            }
+        }
+        catch (DbException)
+        {
+            return ErpLandlordMeasure.Empty;
+        }
+
+        if (byYear.Count == 0)
+        {
+            return ErpLandlordMeasure.Empty;
+        }
+
+        var latest = 0;
+        decimal allIncome = 0;
+        decimal allExpense = 0;
+        foreach (var row in byYear)
+        {
+            allIncome += row.Value.Income;
+            allExpense += row.Value.Expense;
+            if (row.Key > latest && (row.Value.Income != 0 || row.Value.Expense != 0))
+            {
+                latest = row.Key;
+            }
+        }
+
+        byYear.TryGetValue(latest, out var chosen);
+        var properties = 0;
+        try
+        {
+            await using var count = connection.CreateCommand();
+            count.CommandText = "SELECT COUNT(*) FROM `epc_erp_properties`";
+            var raw = await count.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            if (raw is not null and not DBNull)
+            {
+                properties = Convert.ToInt32(raw, CultureInfo.InvariantCulture);
+            }
+        }
+        catch (DbException)
+        {
+            properties = 0;
+        }
+
+        return new ErpLandlordMeasure(latest, chosen.Income, chosen.Expense, allIncome, allExpense, properties);
+    }
+
+    private sealed record LineHead(string Status, long ParentId, long ReversalOf, decimal Amount);
+
+    private static async Task<LineHead?> HeadAsync(DbConnection connection, DbTransaction tx, long id, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = tx;
+        command.CommandText = ErpDb.Positional(
+            "SELECT `status`,`parent_id`,IFNULL(`reversal_of`,0),`amount` FROM `epc_erp_re_year_lines` WHERE `id`=? LIMIT 1");
+        ErpDb.AddParameters(command, id);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        return new LineHead(ReadText(reader, 0), ReadLong(reader, 1), ReadLong(reader, 2), ReadMoney(reader, 3));
+    }
+
     private static async Task<ErpLandlordLine?> ReadLineAsync(DbConnection connection, DbTransaction tx, long id, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
         command.Transaction = tx;
         command.CommandText = ErpDb.Positional(
-            "SELECT `id`,`code`,`property_id`,`unit_id`,`line_year`,`kind`,`category`,`amount`,`spread`,`parent_id`,IFNULL(DATE_FORMAT(`movement_date`,'%Y-%m-%d'),''),`note`,`status`,'','','','' FROM `epc_erp_re_year_lines` WHERE `id`=? LIMIT 1");
+            "SELECT `id`,`code`,`property_id`,`unit_id`,`line_year`,`kind`,`category`,`amount`,`spread`,`parent_id`,IFNULL(DATE_FORMAT(`movement_date`,'%Y-%m-%d'),''),`note`,`status`,'','','','',IFNULL(`coa_code`,'') FROM `epc_erp_re_year_lines` WHERE `id`=? LIMIT 1");
         ErpDb.AddParameters(command, id);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -436,7 +749,7 @@ public static class ErpLandlordSql
             ReadLong(reader, 0), ReadText(reader, 1), ReadLong(reader, 2), ReadLong(reader, 3), ReadInt(reader, 4),
             ReadText(reader, 5), ReadText(reader, 6), ReadMoney(reader, 7), ReadText(reader, 8), ReadLong(reader, 9),
             ReadText(reader, 10), ReadText(reader, 11), ReadText(reader, 12), ReadText(reader, 13), ReadText(reader, 14),
-            ReadText(reader, 15), ReadText(reader, 16));
+            ReadText(reader, 15), ReadText(reader, 16), ReadText(reader, 17));
 
     private static long ReadLong(DbDataReader reader, int ordinal)
         => reader.IsDBNull(ordinal) ? 0 : Convert.ToInt64(reader.GetValue(ordinal), CultureInfo.InvariantCulture);
