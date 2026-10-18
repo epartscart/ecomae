@@ -440,7 +440,7 @@ public static class ErpD365Part1Catalog
         yield return P(a, "cons_online", "Consolidate online", "Consolidations", "Run a consolidation for the current period.", ErpD365Part3Catalog.FormKind.Action, app, "/erp/consolidations-app", "fa-play");
         yield return P(a, "cons_import", "Consolidate with import", "Consolidations", "Import balances from a subsidiary and consolidate.", ErpD365Part3Catalog.FormKind.Action, app, icon: "fa-download");
         yield return P(a, "cons_export", "Export company balances", "Consolidations", "Export balances for a parent to import.", ErpD365Part3Catalog.FormKind.Action, app, icon: "fa-upload");
-        yield return P(a, "cons_elimination", "Elimination journal", "Consolidations", "Elimination entries between consolidated entities.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/consolidations-app?tab=consolidation_ic", "fa-minus");
+        yield return P(a, "cons_elimination", "Elimination journal", "Consolidations", "Elimination entries between consolidated entities.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/intercompany-app?tab=elimination", "fa-minus");
         yield return P(a, "cons_transactions", "Consolidation transactions", "Consolidations", "Posted consolidation and elimination journals.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/gl-journals-app", "fa-list");
         yield return P(a, "cons_financial_reports", "Financial reports", "Consolidations", "Consolidated financial reports.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/report-center-app?tab=balance_sheet&level=consolidation", "fa-bar-chart");
         yield return P(a, "cons_detect_missing", "Detect and recreate missing consolidation transactions", "Consolidations", "Find subsidiaries that did not consolidate and recreate.", ErpD365Part3Catalog.FormKind.Action, app, icon: "fa-search");
@@ -525,7 +525,7 @@ public static class ErpD365Part1Catalog
         yield return P(a, "cc_hold_list", "Credit management hold list", "Credit management", "Documents waiting on a credit hold.", ErpD365Part3Catalog.FormKind.Queue, app, icon: "fa-lock");
         yield return P(a, "cc_open_holds", "Open credit holds", "Credit management", "Active credit holds.", ErpD365Part3Catalog.FormKind.Queue, app, icon: "fa-ban");
         yield return P(a, "cc_closed_holds", "Closed credit holds", "Credit management", "Released credit holds.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-unlock");
-        yield return P(a, "cc_credit_limit_adj", "Credit limit adjustments", "Credit management", "Temporary or permanent credit-limit changes.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-sliders");
+        yield return P(a, "cc_credit_limit_adj", "Credit limit adjustments", "Credit management", "Permanent credit limit and terms days, plus a temporary limit and terms that apply only between the from and until dates.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-sliders");
         yield return P(a, "cc_interest_codes", "Interest codes", "Interest", "Interest calculated on past-due invoices.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-percent");
         yield return P(a, "cc_create_interest", "Create interest notes", "Interest", "Generate interest notes from past-due invoices.", ErpD365Part3Catalog.FormKind.Action, app, icon: "fa-play");
         yield return P(a, "cc_interest_journal", "Interest journal", "Interest", "Posted interest notes.", ErpD365Part3Catalog.FormKind.Order, app, icon: "fa-book");
@@ -539,7 +539,8 @@ public static class ErpD365Part1Catalog
         yield return P(a, "cc_workflows", "Credit management workflows", "Setup", "Approval workflow for credit holds and limit changes.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/workflow-app", "fa-sitemap");
         yield return P(a, "cc_interest_setup", "Set up interest codes", "Setup", "Interest calculation method and ledger.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-cogs");
         yield return P(a, "cc_letter_sequence", "Set up collection letter sequence", "Setup", "Which letter is sent at each aging step.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-sort-numeric-asc");
-        yield return P(a, "cc_blocking_rules", "Blocking rules", "Setup", "Rules that place a customer or order on hold.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-ban");
+        yield return P(a, "cc_credit_application", "Credit application", "Credit management", "Credit application with a trade license and, for each partner, a passport, visa, and Emirates ID. Expired papers and papers inside one month block the invoice.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-id-card");
+        yield return P(a, "cc_blocking_rules", "Blocking rules", "Setup", "Invoice blocking by account hold, credit limit, limit expiry, days overdue, overdue amount, payment terms, and credit documents.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-ban");
         yield return P(a, "cc_scoring", "Scoring groups", "Setup", "Risk scores used to set a credit limit.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-star");
     }
 

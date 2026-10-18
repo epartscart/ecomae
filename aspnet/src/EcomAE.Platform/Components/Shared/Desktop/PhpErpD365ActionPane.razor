@@ -1,16 +1,39 @@
 @namespace EcomAE.Platform.Components.Shared
 @*
-  Minimal D365 / Suntech action-pane stub matching erp_action_pane_ribbon presentation.
-  Primary actions stay on ASP.NET. PHP reference is secondary compare only.
+  Command bar for the page you are on. The tabs are that page's own views.
+  New and Refresh do the work. Record verbs that do not post are not shown.
 *@
+@using System.Globalization
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
+
+<style>
+.epc-d365-ribbon{margin:0 0 12px;max-width:100%;min-width:0}
+.epc-d365-aptabs{display:flex;flex-wrap:wrap;align-items:flex-end;gap:0;background:#f8fafc;border:1px solid #dbe4ea;border-bottom:0;padding:0 4px}
+a.epc-d365-aptab{display:inline-flex;align-items:center;padding:8px 12px 7px;font-size:12px;font-weight:650;color:#475569;text-decoration:none;border:0;border-bottom:2px solid transparent;background:transparent;white-space:nowrap}
+a.epc-d365-aptab.is-active{color:#0e7490;border-bottom-color:#0e7490;background:#fff;font-weight:750}
+.epc-d365-ap-row.is-active{display:block}
+.epc-d365-ap-row .epc-d365-actionpane{display:flex;flex-wrap:wrap;align-items:flex-end;gap:0;margin:0;background:#fff;border:1px solid #dbe4ea;border-radius:0 0 2px 2px;padding:4px 2px 2px;max-width:100%}
+.epc-d365-ap-group{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:2px 10px 4px;border-right:1px solid #e6edf4;min-width:0}
+.epc-d365-ap-group:last-child{border-right:0}
+.epc-d365-ap-buttons{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px;min-height:28px}
+a.epc-d365-ap-btn{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;font-size:12px;line-height:18px;color:#0f172a;background:transparent;border:1px solid transparent;border-radius:2px;text-decoration:none;white-space:nowrap}
+a.epc-d365-ap-btn:hover{background:#f1f5f9;color:#0f172a}
+a.epc-d365-ap-btn.is-primary{font-weight:750;color:#0e7490}
+.epc-d365-ap-label{text-align:center;font-size:10px;color:#64748b;margin-top:2px}
+</style>
 
 <div class="epc-erp-d365" data-epc-aspnet-d365="1">
     <div class="epc-d365-ribbon" role="toolbar" aria-label="Action pane">
         <div class="epc-d365-aptabs" role="tablist">
-            <button type="button" class="epc-d365-aptab is-active" data-aptab="home" role="tab" aria-selected="true">Home</button>
+            @foreach (var view in _views)
+            {
+                var active = view.Key == _active;
+                <a class="epc-d365-aptab @(active ? "is-active" : "")" role="tab" aria-selected="@active" href="@ViewHref(view)">@view.Label</a>
+            }
         </div>
-        <div class="epc-d365-ap-row is-active" data-aptab="home">
+        <div class="epc-d365-ap-row is-active" data-aptab="@_active">
             <div class="epc-d365-actionpane" role="toolbar">
                 @if (!string.IsNullOrWhiteSpace(PhpTabHref))
                 {
@@ -25,22 +48,6 @@
                 }
                 <div class="epc-d365-ap-group">
                     <div class="epc-d365-ap-buttons">
-                        @foreach (var action in StandardActions)
-                        {
-                            <button type="button"
-                                    class="epc-d365-ap-btn"
-                                    data-erp-standard-action="@action.Key"
-                                    disabled
-                                    aria-disabled="true"
-                                    title="Select a record to use @action.Label">
-                                <i class="fa @action.Icon" aria-hidden="true"></i><span>@action.Label</span>
-                            </button>
-                        }
-                    </div>
-                    <div class="epc-d365-ap-label">Record</div>
-                </div>
-                <div class="epc-d365-ap-group">
-                    <div class="epc-d365-ap-buttons">
                         <a class="epc-d365-ap-btn" href="@RefreshHref">
                             <i class="fa fa-refresh" aria-hidden="true"></i><span>Refresh</span>
                         </a>
@@ -53,16 +60,29 @@
 </div>
 
 @code {
-    private static readonly (string Key, string Label, string Icon)[] StandardActions =
-    [
-        ("edit", "Edit", "fa-pencil"),
-        ("delete", "Delete", "fa-trash"),
-        ("void", "Void", "fa-ban"),
-        ("submit", "Submit", "fa-send"),
-        ("approve", "Approve", "fa-check"),
-        ("post", "Post", "fa-book")
-    ];
+    private IReadOnlyList<ErpActionPaneViews.View> _views = ErpActionPaneViews.ForPath(null);
+    private string _active = "home";
+    private int _company;
 
     [Parameter] public string? PhpTabHref { get; set; }
     [Parameter] public string RefreshHref { get; set; } = "?";
+
+    protected override void OnParametersSet()
+    {
+        var request = Http.HttpContext?.Request;
+        _views = ErpActionPaneViews.ForPath(request?.Path.Value);
+        _active = ErpActionPaneViews.ActiveKey(_views, request?.Query["tab"].ToString());
+        _company = ErpHostContext.ActiveCompanyIdFromQuery(request) ?? 0;
+    }
+
+    private string ViewHref(ErpActionPaneViews.View view)
+    {
+        var href = ClientErpPath.PrefixIfBound(Http.HttpContext, view.Href);
+        if (_company <= 0 || href.Contains("company=", StringComparison.OrdinalIgnoreCase))
+        {
+            return href;
+        }
+
+        return href + (href.Contains('?', StringComparison.Ordinal) ? "&" : "?") + "company=" + _company.ToString(CultureInfo.InvariantCulture);
+    }
 }
