@@ -16,9 +16,16 @@ public sealed class ErpRowWiseLayoutTests
         Assert.Contains(".epc-erp-facts", css, StringComparison.Ordinal);
         Assert.Contains("flex-wrap: wrap", css, StringComparison.Ordinal);
         Assert.Contains("--epc-field-min: 10.5rem", css, StringComparison.Ordinal);
+        Assert.Contains("minmax(var(--epc-field-min), 14rem)", css, StringComparison.Ordinal);
+        Assert.Contains("form[data-epc-inline=\"1\"] > label", css, StringComparison.Ordinal);
+        Assert.Contains("width: 7.25rem", css, StringComparison.Ordinal);
         Assert.Contains(".epc-erp-fact-row", css, StringComparison.Ordinal);
         Assert.Contains(".epc-erp-doc-header .epc-erp-doc-header", css, StringComparison.Ordinal);
         Assert.Contains(".epc-erp-content-body form > div", css, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-content-body form .row", css, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-content-body td form:not([data-epc-inline=\"1\"])", css, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-content-body form input[style]", css, StringComparison.Ordinal);
+        Assert.Contains("#erp-module-new.panel .panel-body > .row", css, StringComparison.Ordinal);
         Assert.Contains(".epc-item-part__books", css, StringComparison.Ordinal);
         Assert.Contains("display: contents", css, StringComparison.Ordinal);
         Assert.Contains(".epc-jw-panel[hidden]", css, StringComparison.Ordinal);
@@ -98,7 +105,7 @@ public sealed class ErpRowWiseLayoutTests
     {
         var assets = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs"));
-        Assert.Contains("epc-enterprise-design-system.css?v=20261016masters", assets, StringComparison.Ordinal);
+        Assert.Contains("epc-enterprise-design-system.css?v=20261016fit", assets, StringComparison.Ordinal);
         Assert.Contains("erp-document-workspace.css?v=20261013row1", assets, StringComparison.Ordinal);
     }
 

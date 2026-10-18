@@ -12,7 +12,7 @@ public sealed class ErpCostmItemSetPhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpCostModelsApp.razor"));
         Assert.Contains("action=\"/erp/cost-models/items/set\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"item_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"item_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"model\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"std_cost\"", text, StringComparison.Ordinal);
         Assert.Contains("Assign costing model", text, StringComparison.Ordinal);
