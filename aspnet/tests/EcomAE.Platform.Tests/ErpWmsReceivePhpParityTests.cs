@@ -16,7 +16,7 @@ public sealed class ErpWmsReceivePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpWarehouseWmsApp.razor"));
         Assert.Contains("action=\"/erp/wms/receive\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"item\"", text, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"item\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"qty\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"receive_location_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"putaway_location_id\"", text, StringComparison.Ordinal);

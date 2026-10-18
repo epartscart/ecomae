@@ -40,7 +40,7 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_returnHref" />
             <strong style="width:100%;font-size:.85rem">Add transaction</strong>
-            <label>Item id <input type="number" name="item_id" min="0" required style="width:7rem" value="@OpenedItemIdValue" /></label>
+            <ErpMasterPicker Kind="item" FieldName="item_id" InputId="cost-txn-item" Label="Item" Required="true" Min="1" Value="@(_openedItem is null ? 0 : _openedItem.ItemId)" />
             <label>Type
                 <select name="txn_type">
                     <option value="receipt">receipt</option>
@@ -57,7 +57,7 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_returnHref" />
             <strong style="width:100%;font-size:.85rem">Assign costing model</strong>
-            <label>Item id <input type="number" name="item_id" min="0" required style="width:7rem" value="@OpenedItemIdValue" /></label>
+            <ErpMasterPicker Kind="item" FieldName="item_id" InputId="cost-model-item" Label="Item" Required="true" Min="1" Value="@(_openedItem is null ? 0 : _openedItem.ItemId)" />
             <label>Model
                 <select name="model">
                     <option value="moving_avg" selected="@(OpenedModelValue == "moving_avg" || string.IsNullOrWhiteSpace(OpenedModelValue))">moving_avg</option>

@@ -155,8 +155,8 @@ public sealed class CpSmsOperatorsParityTests
         Assert.Contains("Select SMS operator", razor, StringComparison.Ordinal);
         Assert.Contains("id=\"system_selector\"", razor, StringComparison.Ordinal);
         Assert.Contains("id=\"mysql_options_div_fields\"", razor, StringComparison.Ordinal);
-        Assert.Contains("How messaging is structured", razor, StringComparison.Ordinal);
-        Assert.Contains("TDRA", razor, StringComparison.Ordinal);
+        Assert.Contains("How to use it", razor, StringComparison.Ordinal);
+        Assert.Contains("Etisalat", razor, StringComparison.Ordinal);
         Assert.Contains("Unifonic", razor, StringComparison.Ordinal);
         Assert.Contains("type=\"password\"", razor, StringComparison.Ordinal);
         Assert.Contains("Stored — leave blank to keep it.", razor, StringComparison.Ordinal);

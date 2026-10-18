@@ -2,33 +2,63 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IErpTouristRefundWriteService TouristRefunds
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
 <PageTitle>VAT · ERP · eParts Cart</PageTitle>
-<HeadContent>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="VAT" BreadcrumbArea="Tax" BreadcrumbTab="@_tabLabel">
     <style>
         .epc-vat-actionbar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin:0 0 14px;padding:10px;background:#f8fbff;border:1px solid #d8e3ef;border-radius:10px;}
         .epc-vat-actionbar__label{width:100%;color:#64748b;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
         .epc-vat-actionbar form{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin:0;padding:8px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;}
         .epc-vat-actionbar form label{margin:0;font-size:11px;font-weight:700;color:#334155;}
         .epc-vat-actionbar form button{white-space:nowrap;}
-        .epc-vat-position{display:grid;gap:8px;margin:0 0 14px;padding:12px 14px;border:1px solid #d8e3ef;border-radius:10px;background:linear-gradient(90deg,#f8fbff 0%,#fff 100%);}
+        .epc-vat-position{display:grid;gap:8px;margin:0 0 14px;padding:12px 14px;border:1px solid #d8e3ef;border-radius:10px;background:#f8fbff;}
         .epc-vat-position__head{display:flex;justify-content:space-between;gap:12px;color:#334155;font-size:12px;font-weight:700;}
         .epc-vat-position__value{color:#1d4ed8;font-size:14px;}
         .epc-vat-position__track{height:9px;overflow:hidden;border-radius:999px;background:#e2e8f0;}
-        .epc-vat-position__bar{height:100%;min-width:8px;border-radius:999px;background:linear-gradient(90deg,#2563eb,#0f766e);}
+        .epc-vat-position__bar{height:100%;min-width:8px;border-radius:999px;background:#2563eb;}
         .epc-vat-position__note{color:#64748b;font-size:11px;}
-        @@media (max-width:720px){.epc-vat-actionbar form{width:100%;}.epc-vat-actionbar form label{flex:1 1 150px;}}
+        .epc-vat-board{display:grid;grid-template-columns:1.4fr .8fr;gap:12px;margin:0 0 14px;}
+        .epc-vat-form{border:1px solid #d5dde6;border-radius:8px;overflow:hidden;background:#fff;}
+        .epc-vat-form h3{margin:0;padding:10px 12px;background:#1d2740;color:#fff;font-size:14px;}
+        .epc-vat-row{display:grid;grid-template-columns:72px 1fr 120px 110px auto;gap:8px;align-items:center;padding:8px 10px;border-top:1px solid #e6eaf1;font-size:12px;}
+        .epc-vat-row strong{color:#1d2740;}
+        .epc-vat-row.is-total{background:#f4f7fb;font-weight:700;}
+        .epc-vat-row.is-net{background:#eef6ff;}
+        .epc-vat-bars{padding:12px;border:1px solid #d5dde6;border-radius:8px;background:#fff;}
+        .epc-vat-bar{display:grid;grid-template-columns:92px 1fr 88px;gap:8px;align-items:center;margin:6px 0;font-size:12px;}
+        .epc-vat-bar i{display:block;height:12px;border-radius:6px;background:#e8eef6;}
+        .epc-vat-bar i span{display:block;height:12px;border-radius:6px;}
+        .epc-vat-guide{margin:0 0 14px;border:1px solid #cfe0f5;background:#f5f9ff;border-radius:8px;padding:8px 12px;}
+        .epc-vat-guide summary{cursor:pointer;font-weight:700;color:#1d4e89;}
+        .epc-tr-steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:10px 0 14px;}
+        .epc-tr-step{background:#fff;border:1px solid #d5dde6;border-radius:8px;padding:8px;min-height:108px;}
+        .epc-tr-step b{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#1f4e79;color:#fff;font-size:12px;margin-bottom:6px;}
+        .epc-tr-step strong{display:block;color:#1d2740;font-size:12px;}
+        .epc-tr-step span{display:block;color:#475569;font-size:11px;margin-top:4px;}
+        .epc-tr-board{display:grid;grid-template-columns:1.1fr .9fr;gap:12px;margin:0 0 14px;}
+        .epc-tr-card{background:#fff;border:1px solid #d5dde6;border-radius:8px;padding:12px;}
+        .epc-tr-card h3{margin:0 0 8px;color:#1d2740;font-size:14px;}
+        .epc-tr-fees{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0;}
+        .epc-tr-fees div{background:#f8fbff;border:1px solid #d5dde6;border-radius:8px;padding:8px;}
+        .epc-tr-fees span{display:block;color:#64748b;font-size:11px;}
+        .epc-tr-fees strong{color:#1d2740;font-size:16px;}
+        .epc-tr-barcode{margin:8px 0;padding:8px;background:#fff;border:1px dashed #1f4e79;text-align:center;}
+        .epc-tr-barcode figcaption{font-family:ui-monospace,monospace;letter-spacing:.12em;color:#1d2740;font-size:13px;}
+        .epc-tr-books{width:100%;border-collapse:collapse;font-size:12px;}
+        .epc-tr-books th,.epc-tr-books td{border:1px solid #e6eaf1;padding:6px 8px;text-align:left;}
+        .epc-tr-books th{background:#1d2740;color:#fff;}
+        @@media (max-width:900px){.epc-vat-board,.epc-tr-board,.epc-tr-steps,.epc-tr-fees{grid-template-columns:1fr;}.epc-vat-row{grid-template-columns:1fr 1fr;}.epc-vat-actionbar form{width:100%;}}
     </style>
-</HeadContent>
-<PhpChromeStyles Surface="erp" />
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="VAT" BreadcrumbArea="Tax" BreadcrumbTab="@_tabLabel">
 
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" ContextItems="@_headerContextItems" />
     <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
@@ -76,13 +106,28 @@
             <form method="post" action="/erp/tourist-refund/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/erp/vat-app?tab=tourist_refund" />
+                <input type="hidden" name="refund_provider" value="Planet" />
                 <label>Tourist name <input name="tourist_name" required /></label>
-                <label>Passport <input name="passport_no" /></label>
-                <label>Nationality <input name="nationality" /></label>
+                <label>Passport or GCC ID <input name="passport_no" required /></label>
+                <label>Nationality <input name="nationality" placeholder="Not a UAE resident" /></label>
                 <label>Invoice <input name="invoice_no" /></label>
-                <label>Total <input type="number" name="total_amount" step="0.01" min="0" /></label>
+                <label>Supply date <input name="supply_date" placeholder="yyyy-MM-dd" /></label>
+                <label>Departure <input name="departure_date" placeholder="yyyy-MM-dd" /></label>
+                <label>Goods
+                    <select name="supply_kind">
+                        <option value="goods">Goods in hand</option>
+                        <option value="services">Services</option>
+                        <option value="courier">Sent by courier</option>
+                    </select>
+                </label>
+                <label>Total incl. VAT <input type="number" name="total_amount" step="0.01" min="0" /></label>
                 <label>VAT <input type="number" name="vat_amount" step="0.01" min="0" /></label>
-                <label>Refund % <input type="number" name="refund_pct" step="0.01" value="85" /></label>
+                <label>Refund to tourist
+                    <select name="refund_method">
+                        <option value="card">Card</option>
+                        <option value="cash">Cash (max AED 35,000)</option>
+                    </select>
+                </label>
                 <button type="submit">Create tourist refund</button>
             </form>
             <form method="post" action="/erp/tourist-refund/validate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
@@ -90,6 +135,27 @@
                 <input type="hidden" name="returnUrl" value="/erp/vat-app?tab=tourist_refund" />
                 <label>Barcode <input name="barcode" required maxlength="100" /></label>
                 <button type="submit">Validate tourist refund</button>
+            </form>
+            <form method="post" action="/erp/tourist-refund/planet-invoice" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/vat-app?tab=tourist_refund" />
+                <label>Planet invoice <input name="planet_invoice_no" required /></label>
+                <label>Invoice date <input name="invoice_date" placeholder="yyyy-MM-dd" /></label>
+                <label>Tags <input name="barcodes" placeholder="Leave blank for every validated tag" /></label>
+                <button type="submit">Record Planet invoice</button>
+            </form>
+            <form method="post" action="/erp/tourist-refund/planet-pay" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/vat-app?tab=tourist_refund" />
+                <label>Planet invoice <input name="planet_invoice_no" required /></label>
+                <label>Pay date <input name="pay_date" placeholder="yyyy-MM-dd" /></label>
+                <label>From
+                    <select name="pay_from">
+                        <option value="bank">Bank</option>
+                        <option value="cash">Cash</option>
+                    </select>
+                </label>
+                <button type="submit">Pay Planet invoice</button>
             </form>
         }
         </div>
@@ -105,51 +171,131 @@
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="VAT return KPIs">
         <div class="kpi"><div class="lbl">Rate</div><div class="val">@_vat.VatRatePercent.ToString("0.00", CultureInfo.InvariantCulture)%</div></div>
         <div class="kpi"><div class="lbl">Sales ex VAT</div><div class="val">@_vat.SalesExVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Output VAT</div><div class="val">@_vat.OutputVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Output VAT</div><div class="val">@OutputAfterTourist.ToString("N2", CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Input VAT</div><div class="val">@_vat.InputVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Net (@_netLabel)</div><div class="val">@_vat.NetVatPayable.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Net (@_netLabel)</div><div class="val">@NetAfterTourist.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
     <div class="epc-vat-position" aria-label="VAT position">
         <div class="epc-vat-position__head">
             <span>VAT position</span>
-            <span class="epc-vat-position__value">@_netLabel · @_vat.NetVatPayable.ToString("N2", CultureInfo.InvariantCulture)</span>
+            <span class="epc-vat-position__value">@_netLabel · @NetAfterTourist.ToString("N2", CultureInfo.InvariantCulture)</span>
         </div>
         <div class="epc-vat-position__track" role="img" aria-label="Relative VAT position indicator">
             <div class="epc-vat-position__bar" style="width:@NetPositionWidth"></div>
         </div>
-        <div class="epc-vat-position__note">Output VAT @_vat.OutputVat.ToString("N2", CultureInfo.InvariantCulture) versus input VAT @_vat.InputVat.ToString("N2", CultureInfo.InvariantCulture) for the current ERP period.</div>
+        <div class="epc-vat-position__note">Output VAT @OutputAfterTourist.ToString("N2", CultureInfo.InvariantCulture) after tourist refunds, versus input VAT @_vat.InputVat.ToString("N2", CultureInfo.InvariantCulture) for the current ERP period. Box 2 is prepopulated by the Federal Tax Authority.</div>
     </div>
 
-    <div class="epc-erp-table-wrap">
-        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead>
-                <tr>
-                    <th>Box</th>
-                    <th class="text-right">Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td>Sales (ex VAT)</td><td class="text-right">@_vat.SalesExVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
-                <tr><td>Output VAT</td><td class="text-right">@_vat.OutputVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
-                <tr><td>Sales incl. VAT</td><td class="text-right">@_vat.SalesInclVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
-                <tr><td>Purchases (ex VAT)</td><td class="text-right">@_vat.PurchaseExVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
-                <tr><td>Input VAT</td><td class="text-right">@_vat.InputVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
-                <tr><td>Purchases incl. VAT</td><td class="text-right">@_vat.PurchaseInclVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
-                <tr>
-                    <td><strong>@_netLabel</strong> <span class="text-muted">(@_vat.Form)</span></td>
-                    <td class="text-right"><strong>@_vat.NetVatPayable.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
-                </tr>
-            </tbody>
-        </table>
+    @if (_tabLabel == "Tourist refund")
+    {
+        <section class="epc-tr-card" id="tourist-refund" aria-label="Tourist refund guide" style="margin:0 0 14px;">
+            <h3>Visual guide — Tourist VAT refund (Planet)</h3>
+            <p>@ErpTouristRefundLaw.Decision, as amended by @ErpTouristRefundLaw.Amendment. Planet is the operator appointed with the Federal Tax Authority. The tourist must be 18 or older, physically in the UAE, and not a UAE resident. The name on the tax invoice must match the original passport or GCC national ID. Copies are not accepted at the exit kiosk.</p>
+            <div class="epc-tr-steps" aria-label="Tourist refund process">
+                <div class="epc-tr-step"><b>1</b><strong>Tax invoice</strong><span>The tourist pays the gross price, including 5% VAT. Affix the Planet barcode to the back of the tax invoice, or issue the digital tax-free transaction.</span></div>
+                <div class="epc-tr-step"><b>2</b><strong>Export</strong><span>Goods only, taken by the tourist. Export within 90 days of the supply. Services and couriered goods stay outside the scheme.</span></div>
+                <div class="epc-tr-step"><b>3</b><strong>Planet validates</strong><span>At departure Planet scans the passport or GCC ID. Goods are shown if Planet asks. A mall or hotel kiosk needs a boarding pass departing within 24 hours.</span></div>
+                <div class="epc-tr-step"><b>4</b><strong>Tourist is paid</strong><span>Planet pays 87% of the VAT minus AED 3.60. Cash is capped at AED 35,000 per tourist per 24 hours. A card has no cash cap.</span></div>
+                <div class="epc-tr-step"><b>5</b><strong>Planet invoices</strong><span>Every 15 days Planet invoices the retailer's TRN for the VAT on the validated tags. Payment is due 15 days after that invoice.</span></div>
+                <div class="epc-tr-step"><b>6</b><strong>Box 2</strong><span>The Federal Tax Authority prepopulates Box 2. It is not typed on the return. The same VAT reduces output VAT in these books.</span></div>
+            </div>
+            <div class="epc-tr-fees" aria-label="Sample refund on AED 50 of VAT">
+                <div><span>VAT on the sale</span><strong>@_sample.Vat.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+                <div><span>Tourist receives</span><strong>@_sample.Refund.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+                <div><span>Retailer pays Planet</span><strong>@_sample.Vat.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+            </div>
+            <p>Sample on a sale with AED 50 of VAT. The tourist receives AED @_sample.Refund.ToString("N2", CultureInfo.InvariantCulture). The AED 3.60 fixed fee and the 13% administrative fee stay with the scheme. The retailer still pays Planet the full VAT, here AED @_sample.Vat.ToString("N2", CultureInfo.InvariantCulture). Unclaimed VAT is paid to the Authority by Planet. Article 5 sets the legal floor at AED 250 tax-inclusive from the same taxable person. Planet's published line, on the Authority's service page, is AED 250 before VAT, and this screen issues a tag only at that line.</p>
+            <div class="epc-tr-board">
+                <div>
+                    <h3>Barcode on the tax invoice</h3>
+                    <p>This specimen is what is printed on the tax invoice once a tag exists for that invoice number. It is not part of the electronic invoice file.</p>
+                    @((MarkupString)ErpTouristRefundLaw.BarcodeBlock(ErpTouristRefundLaw.SampleBarcode))
+                    <p>The electronic invoice file has no QR code. This barcode is the Planet tag only.</p>
+                </div>
+                <div>
+                    <h3>Accounting</h3>
+                    <table class="epc-tr-books">
+                        <thead><tr><th>When</th><th>Debit</th><th>Credit</th></tr></thead>
+                        <tbody>
+                            <tr><td>Sale</td><td>Cash or receivable, gross</td><td>Revenue ex VAT, and output VAT 2100</td></tr>
+                            <tr><td>Planet invoice</td><td>Output VAT 2100 (Box 2)</td><td>Accounts payable 2000, Planet</td></tr>
+                            <tr><td>Payment, due in 15 days</td><td>Accounts payable 2000</td><td>Bank 1010, or cash 1000</td></tr>
+                        </tbody>
+                    </table>
+                    <p>Validated VAT on this screen: @_tourist.ValidatedVat.ToString("N2", CultureInfo.InvariantCulture). Pending tags: @_tourist.PendingVat.ToString("N2", CultureInfo.InvariantCulture). Planet payable still open: @_tourist.OpenPayable.ToString("N2", CultureInfo.InvariantCulture). Filing stays on the Authority portal. Fetch FTA legislation remains on this page.</p>
+                </div>
+            </div>
+            @if (_tourist.Tags.Count > 0)
+            {
+                <div class="epc-erp-table-wrap">
+                    <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                        <thead><tr><th>Invoice</th><th>Tourist</th><th>Barcode</th><th>Status</th><th>VAT</th><th>Tourist receives</th><th>Planet invoice</th></tr></thead>
+                        <tbody>
+                            @foreach (var tag in _tourist.Tags)
+                            {
+                                <tr>
+                                    <td>@tag.InvoiceNo</td>
+                                    <td>@tag.Tourist</td>
+                                    <td>@tag.Barcode</td>
+                                    <td>@tag.Status</td>
+                                    <td>@tag.Vat.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td>@tag.Refund.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td>@tag.PlanetInvoice</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    }
+
+    <details class="epc-vat-guide" open>
+        <summary>Visual guide — FTA VAT 201</summary>
+        <p>Federal Decree-Law No. 8 of 2017. The return is form VAT 201. Output VAT on standard-rated supplies is netted against recoverable input VAT. Box 14 is what is payable to, or recoverable from, the Federal Tax Authority. For a person on the electronic invoicing system, Article 65(5) makes the electronic invoice the tax invoice. The VAT 201 is still the return. Boxes 1a to 1g split standard-rated supplies by the Emirate of supply. This screen keeps the posted total in Box 1 until each invoice carries that Emirate. Use Drill down to open the invoices or the bills.</p>
+    </details>
+
+    <div class="epc-vat-board" aria-label="FTA VAT 201">
+        <section class="epc-vat-form">
+            <h3>@_vat.Form</h3>
+            @VatRow("1", "Standard-rated supplies", _vat.SalesExVat, _vat.OutputVat, "/erp/invoices-app", false)
+            @VatRow("2", "Tax refunds to tourists", -_tourist.ValidatedExclusive, -_tourist.ValidatedVat, "/erp/vat-app?tab=tourist_refund", false)
+            @VatRow("3", "Reverse-charge supplies", 0m, 0m, "/erp/invoices-app", false)
+            @VatRow("4", "Zero-rated supplies", 0m, 0m, "/erp/invoices-app", false)
+            @VatRow("5", "Exempt supplies", 0m, 0m, "/erp/invoices-app", false)
+            @VatRow("6", "Goods imported into the UAE", 0m, 0m, "/erp/purchases-app", false)
+            @VatRow("7", "Adjustments to imports", 0m, 0m, "/erp/purchases-app", false)
+            @VatRow("8", "Totals — outputs", _vat.SalesExVat - _tourist.ValidatedExclusive, OutputAfterTourist, "/erp/invoices-app", true)
+            @VatRow("9", "Standard-rated expenses", _vat.PurchaseExVat, _vat.InputVat, "/erp/purchases-app", false)
+            @VatRow("10", "Reverse charge recoverable", 0m, 0m, "/erp/purchases-app", false)
+            @VatRow("11", "Totals — inputs", _vat.PurchaseExVat, _vat.InputVat, "/erp/purchases-app", true)
+            @VatRow("12", "Due tax for the period", OutputAfterTourist, OutputAfterTourist, "/erp/invoices-app", true)
+            @VatRow("13", "Recoverable tax for the period", _vat.InputVat, _vat.InputVat, "/erp/purchases-app", true)
+            <div class="epc-vat-row is-net">
+                <strong>14</strong>
+                <span>@_netLabel <span class="text-muted">(@_vat.Form)</span></span>
+                <strong>@Money(NetAfterTourist)</strong>
+                <span></span>
+                <a class="btn btn-xs btn-primary" href="/erp/tax-external-reporting-app?cat=tax&amp;rep=tax__vat_return&amp;fetch=1">Drill down</a>
+            </div>
+        </section>
+        <aside class="epc-vat-bars" aria-label="VAT composition">
+            <strong>Output, input, and net</strong>
+            @Bar("Output", OutputAfterTourist, "#2b6cb0")
+            @Bar("Input", _vat.InputVat, "#2f855a")
+            @Bar("Net", NetAfterTourist, "#c53030")
+            <p class="epc-vat-position__note">Sales incl. VAT @Money(_vat.SalesInclVat). Purchases incl. VAT @Money(_vat.PurchaseInclVat).</p>
+            <p><a class="btn btn-primary btn-sm" href="/erp/tax-external-reporting-app?cat=tax&amp;rep=tax__vat_return&amp;fetch=1">Fetch &amp; build</a></p>
+        </aside>
     </div>
 
-    @if (_showLegislation)
+    @if (_showFetch)
     {
         <h2 style="font-size:16px;margin-top:18px;">Tax legislation</h2>
         @if (_isAdmin)
         {
             <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/uae-tax/fta-fetch")" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 1rem;">
-                <input type="hidden" name="returnUrl" value="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/vat-app")" />
+                <input type="hidden" name="returnUrl" value="@ClientErpPath.PrefixIfBound(Http.HttpContext, _fetchReturn)" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label><input type="checkbox" name="force" value="1" /> Force refetch</label>
                 <button type="submit" class="btn btn-primary btn-sm">Fetch FTA legislation</button>
@@ -201,6 +347,7 @@
 @code {
     private bool _isAdmin;
     private bool _showLegislation = true;
+    private bool _showFetch = true;
     private string _tabLabel = "VAT";
     private string _title = "VAT return";
     private string _subtitle = "Operational output − input for the selected period. File on the tax authority portal.";
@@ -211,16 +358,21 @@
     private string _message = "";
     private string _taxMessage = "";
     private string _netLabel = "Payable";
+    private string _fetchReturn = "/erp/vat-app";
     private string _flashOk = "";
     private string _flashErr = "";
     private IReadOnlyList<string> _headerContextItems = [];
+    private ErpTouristRefundPosition _tourist = ErpTouristRefundPosition.Empty;
+    private readonly ErpTouristRefundQuote _sample = ErpTouristRefundLaw.Calculate(50m);
+    private decimal OutputAfterTourist => _vat.OutputVat - _tourist.ValidatedVat;
+    private decimal NetAfterTourist => OutputAfterTourist - _vat.InputVat;
     private string NetPositionWidth
     {
         get
         {
-            var total = Math.Abs(_vat.OutputVat) + Math.Abs(_vat.InputVat);
+            var total = Math.Abs(OutputAfterTourist) + Math.Abs(_vat.InputVat);
             if (total <= 0) return "0%";
-            var ratio = Math.Clamp(Math.Abs(_vat.NetVatPayable) / total * 100m, 8m, 100m);
+            var ratio = Math.Clamp(Math.Abs(NetAfterTourist) / total * 100m, 8m, 100m);
             return ratio.ToString("0.##", CultureInfo.InvariantCulture) + "%";
         }
     }
@@ -234,6 +386,7 @@
 
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
         _showLegislation = tab is "" or "vat";
+        _showFetch = tab is "" or "vat" or "vat_return" or "tourist_refund";
         _tabLabel = tab switch
         {
             "vat_refund" => "VAT refund",
@@ -245,7 +398,7 @@
         _subtitle = tab switch
         {
             "vat_refund" => "Refundable VAT from the operational return. Authority filing stays on ERP ajax.",
-            "tourist_refund" => "Tourist refund overlay on the operational VAT return. Filing stays on ERP ajax.",
+            "tourist_refund" => "Planet tax-free tag, VAT 201 Box 2, and the retailer's Planet invoice. Filing stays on the Authority portal.",
             _ => "Operational output − input for the selected period. File on the tax authority portal."
         };
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -260,9 +413,8 @@
         _vat = vat.Summary;
         _source = vat.Source;
         _message = vat.Message;
-        _netLabel = string.Equals(_vat.NetStatus, "recoverable_from_fta", StringComparison.OrdinalIgnoreCase)
-            ? "Recoverable"
-            : "Payable";
+        _tourist = await TouristRefunds.PositionAsync(ctx.RequestAborted);
+        _netLabel = NetAfterTourist < 0 ? "Recoverable" : "Payable";
         _headerContextItems =
         [
             "UAE registered country",
@@ -272,13 +424,49 @@
             string.IsNullOrWhiteSpace(_source) ? "ERP data" : _source,
         ];
 
-        if (_showLegislation)
+        _fetchReturn = tab switch
+        {
+            "vat_return" => "/erp/vat-app?tab=vat_return",
+            "tourist_refund" => "/erp/vat-app?tab=tourist_refund",
+            _ => "/erp/vat-app"
+        };
+        if (_showFetch)
         {
             var result = await Dashboards.BuildCpUaeTaxComplianceDigestAsync(100, ctx.RequestAborted);
             _tax = result.Summary;
             _items = result.Items;
             _taxMessage = result.Message;
         }
+    }
+
+    private RenderFragment VatRow(string box, string label, decimal amount, decimal vat, string href, bool total) => __builder =>
+    {
+        <div class="epc-vat-row @(total ? "is-total" : "")">
+            <strong>@box</strong>
+            <span>@label</span>
+            <span>@Money(amount)</span>
+            <span>@Money(vat)</span>
+            <a class="btn btn-xs btn-primary" href="@href">Drill down</a>
+        </div>
+    };
+
+    private RenderFragment Bar(string label, decimal amount, string color) => __builder =>
+    {
+        <div class="epc-vat-bar">
+            <span>@label</span>
+            <i><span style="width:@Width(amount);background:@color"></span></i>
+            <strong>@Money(amount)</strong>
+        </div>
+    };
+
+    private string Money(decimal amount) => amount.ToString("N2", CultureInfo.InvariantCulture);
+
+    private string Width(decimal amount)
+    {
+        var max = Math.Max(Math.Abs(OutputAfterTourist), Math.Max(Math.Abs(_vat.InputVat), Math.Abs(NetAfterTourist)));
+        if (max <= 0) return "0%";
+        var pct = Math.Clamp(Math.Abs(amount) / max * 100m, 8m, 100m);
+        return pct.ToString("0.#", CultureInfo.InvariantCulture) + "%";
     }
 
     private static string FormatDate(long unix)

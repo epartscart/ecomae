@@ -440,14 +440,14 @@ public static class ErpD365Part1Catalog
         yield return P(a, "cons_online", "Consolidate online", "Consolidations", "Run a consolidation for the current period.", ErpD365Part3Catalog.FormKind.Action, app, "/erp/consolidations-app", "fa-play");
         yield return P(a, "cons_import", "Consolidate with import", "Consolidations", "Import balances from a subsidiary and consolidate.", ErpD365Part3Catalog.FormKind.Action, app, icon: "fa-download");
         yield return P(a, "cons_export", "Export company balances", "Consolidations", "Export balances for a parent to import.", ErpD365Part3Catalog.FormKind.Action, app, icon: "fa-upload");
-        yield return P(a, "cons_elimination", "Elimination journal", "Consolidations", "Elimination entries between consolidated entities.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/consolidations-app?tab=consolidation_ic", "fa-minus");
-        yield return P(a, "cons_transactions", "Consolidation transactions", "Consolidations", "Posted consolidation and elimination journals.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-list");
-        yield return P(a, "cons_financial_reports", "Financial reports", "Consolidations", "Consolidated financial reports.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/report-center-app", "fa-bar-chart");
+        yield return P(a, "cons_elimination", "Elimination journal", "Consolidations", "Elimination entries between consolidated entities.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/intercompany-app?tab=elimination", "fa-minus");
+        yield return P(a, "cons_transactions", "Consolidation transactions", "Consolidations", "Posted consolidation and elimination journals.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/gl-journals-app", "fa-list");
+        yield return P(a, "cons_financial_reports", "Financial reports", "Consolidations", "Consolidated financial reports.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/report-center-app?tab=balance_sheet&level=consolidation", "fa-bar-chart");
         yield return P(a, "cons_detect_missing", "Detect and recreate missing consolidation transactions", "Consolidations", "Find subsidiaries that did not consolidate and recreate.", ErpD365Part3Catalog.FormKind.Action, app, icon: "fa-search");
         yield return P(a, "cons_elim_rules", "Elimination rules", "Setup", "Accounts eliminated when consolidating.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-filter");
         yield return P(a, "cons_account_groups", "Consolidation account groups", "Setup", "How subsidiary accounts map to the parent.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/consolidations-app?tab=consolidation_group", "fa-sitemap");
         yield return P(a, "cons_additional_accounts", "Additional consolidation accounts", "Setup", "Extra accounts included in a consolidation.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-plus");
-        yield return P(a, "cons_elim_report", "Elimination rules definition report", "Setup", "Print the active elimination rules.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-print");
+        yield return P(a, "cons_elim_report", "Elimination rules definition report", "Setup", "Print the active elimination rules.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/report-center-app?tab=balance_sheet&level=consolidation", "fa-print");
     }
 
     private static IEnumerable<ErpD365Part3Catalog.Page> CostAcctPages()
@@ -461,8 +461,8 @@ public static class ErpD365Part1Catalog
         yield return P(a, "ca_stat_templates", "Statistical measure provider templates", "Setup", "Templates that import statistical measures.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-table");
         yield return P(a, "ca_ledgers", "Cost accounting ledgers", "Ledger setup", "Named cost ledgers beside the general ledger.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-book");
         yield return P(a, "ca_fiscal", "Fiscal calendars", "Ledger setup", "Calendars used by a cost ledger.", ErpD365Part3Catalog.FormKind.Calendar, app, icon: "fa-calendar");
-        yield return P(a, "ca_currencies", "Currencies", "Currencies", "Currencies a cost ledger may post in.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-money");
-        yield return P(a, "ca_exch_types", "Exchange rate types", "Currencies", "Rate types used to translate cost entries.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-line-chart");
+        yield return P(a, "ca_currencies", "Currencies", "Currencies", "Currencies a cost ledger may post in.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/multi-currency-gl-app", "fa-money");
+        yield return P(a, "ca_exch_types", "Exchange rate types", "Currencies", "Rate types used to translate cost entries.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/multi-currency-gl-app", "fa-line-chart");
         yield return P(a, "ca_exch_rates", "Currency exchange rates", "Currencies", "Rates used by cost accounting.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/multi-currency-gl-app", "fa-exchange");
         yield return P(a, "ca_cost_elements", "Cost element dimensions", "Dimensions", "Cost-element dimension members.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-th");
         yield return P(a, "ca_cost_objects", "Cost object dimensions", "Dimensions", "Cost-object dimension members.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-cube");
@@ -476,8 +476,8 @@ public static class ErpD365Part1Catalog
         yield return P(a, "ca_rollup", "Cost rollup policies", "Policies", "How cost rolls up a hierarchy.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-level-up");
         yield return P(a, "ca_allocation_pol", "Cost allocation policies", "Policies", "How cost is allocated to objects.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-random");
         yield return P(a, "ca_overhead", "Overhead rate policies", "Policies", "Overhead rates applied to cost objects.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-percent");
-        yield return P(a, "ca_journals", "Journals", "Inquiries and reports", "Cost-accounting journals.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-book");
-        yield return P(a, "ca_cost_entries", "Cost entries", "Inquiries and reports", "Posted cost entries.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-list");
+        yield return P(a, "ca_journals", "Journals", "Inquiries and reports", "Cost-accounting journals.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/gl-journals-app", "fa-book");
+        yield return P(a, "ca_cost_entries", "Cost entries", "Inquiries and reports", "Posted cost entries.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/gl-journals-app", "fa-list");
         yield return P(a, "ca_stat_entries", "Statistical entries", "Inquiries and reports", "Posted statistical measures.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-bar-chart");
     }
 
@@ -486,7 +486,7 @@ public static class ErpD365Part1Catalog
         const string a = "cost_mgmt";
         const string app = CostMgmtApp;
         yield return P(a, "cm_cost_admin", "Cost administration", "Workspaces", "Workspace for inventory and manufacturing costing.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/cost-models-app", "fa-cogs");
-        yield return P(a, "cm_cost_analysis", "Cost analysis", "Workspaces", "Compare standard, actual, and manufactured cost.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-line-chart");
+        yield return P(a, "cm_cost_analysis", "Cost analysis", "Workspaces", "Compare standard, actual, and manufactured cost.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/report-center-app?tab=pl&level=business_unit", "fa-line-chart");
         yield return P(a, "cm_released_products", "Released products", "Inventory accounting", "Items with a costing version and cost group.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/product-info-app", "fa-cube");
         yield return P(a, "cm_closing", "Closing and adjustment", "Inventory accounting", "Inventory closing and adjustment for a period.", ErpD365Part3Catalog.FormKind.Action, app, icon: "fa-lock");
         yield return P(a, "cm_revaluation", "Revaluation for moving average", "Inventory accounting", "Revalue moving-average items.", ErpD365Part3Catalog.FormKind.Action, app, icon: "fa-refresh");
@@ -525,7 +525,7 @@ public static class ErpD365Part1Catalog
         yield return P(a, "cc_hold_list", "Credit management hold list", "Credit management", "Documents waiting on a credit hold.", ErpD365Part3Catalog.FormKind.Queue, app, icon: "fa-lock");
         yield return P(a, "cc_open_holds", "Open credit holds", "Credit management", "Active credit holds.", ErpD365Part3Catalog.FormKind.Queue, app, icon: "fa-ban");
         yield return P(a, "cc_closed_holds", "Closed credit holds", "Credit management", "Released credit holds.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-unlock");
-        yield return P(a, "cc_credit_limit_adj", "Credit limit adjustments", "Credit management", "Temporary or permanent credit-limit changes.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-sliders");
+        yield return P(a, "cc_credit_limit_adj", "Credit limit adjustments", "Credit management", "Permanent credit limit and terms days, plus a temporary limit and terms that apply only between the from and until dates.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-sliders");
         yield return P(a, "cc_interest_codes", "Interest codes", "Interest", "Interest calculated on past-due invoices.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-percent");
         yield return P(a, "cc_create_interest", "Create interest notes", "Interest", "Generate interest notes from past-due invoices.", ErpD365Part3Catalog.FormKind.Action, app, icon: "fa-play");
         yield return P(a, "cc_interest_journal", "Interest journal", "Interest", "Posted interest notes.", ErpD365Part3Catalog.FormKind.Order, app, icon: "fa-book");
@@ -539,7 +539,8 @@ public static class ErpD365Part1Catalog
         yield return P(a, "cc_workflows", "Credit management workflows", "Setup", "Approval workflow for credit holds and limit changes.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/workflow-app", "fa-sitemap");
         yield return P(a, "cc_interest_setup", "Set up interest codes", "Setup", "Interest calculation method and ledger.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-cogs");
         yield return P(a, "cc_letter_sequence", "Set up collection letter sequence", "Setup", "Which letter is sent at each aging step.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-sort-numeric-asc");
-        yield return P(a, "cc_blocking_rules", "Blocking rules", "Setup", "Rules that place a customer or order on hold.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-ban");
+        yield return P(a, "cc_credit_application", "Credit application", "Credit management", "Credit application with a trade license and, for each partner, a passport, visa, and Emirates ID. Expired papers and papers inside one month block the invoice.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-id-card");
+        yield return P(a, "cc_blocking_rules", "Blocking rules", "Setup", "Invoice blocking by account hold, credit limit, limit expiry, days overdue, overdue amount, payment terms, and credit documents.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-ban");
         yield return P(a, "cc_scoring", "Scoring groups", "Setup", "Risk scores used to set a credit limit.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-star");
     }
 
@@ -605,33 +606,33 @@ public static class ErpD365Part1Catalog
     {
         const string a = "gl";
         const string app = GeneralLedgerApp;
-        yield return P(a, "gl_account_recon", "Account reconciliation", "Workspaces", "Reconcile a main account to its subledger.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-balance-scale");
+        yield return P(a, "gl_account_recon", "Account reconciliation", "Workspaces", "Reconcile a main account to its subledger.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/trial-balance-app", "fa-balance-scale");
         yield return P(a, "gl_financial_period", "Financial period close", "Workspaces", "Period-close checklist and status.", ErpD365Part3Catalog.FormKind.Action, app, "/erp/period-close-app", "fa-lock");
         yield return P(a, "gl_financial_analysis", "Financial analysis — all companies", "Workspaces", "Financial analysis across legal entities.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/report-center-app", "fa-line-chart");
         yield return P(a, "gl_journals", "General journals", "Journal entries", "Daily general journals before posting.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/gl-journals-app", "fa-book");
-        yield return P(a, "gl_global_journals", "Global general journals", "Journal entries", "Journals shared across legal entities.", ErpD365Part3Catalog.FormKind.Order, app, icon: "fa-globe");
+        yield return P(a, "gl_global_journals", "Global general journals", "Journal entries", "Journals shared across legal entities.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/gl-journals-app", "fa-globe");
         yield return P(a, "gl_post_journals", "Post journals", "Journal entries", "Post approved general journals.", ErpD365Part3Catalog.FormKind.Action, app, "/erp/gl-journals-app", "fa-check");
-        yield return P(a, "gl_periodic_journals", "Periodic journals", "Journal entries", "Recurring journals generated each period.", ErpD365Part3Catalog.FormKind.Plan, app, icon: "fa-refresh");
-        yield return P(a, "gl_allocation_journals", "Allocation journals", "Journal entries", "Allocate an amount across dimensions.", ErpD365Part3Catalog.FormKind.Order, app, icon: "fa-pie-chart");
+        yield return P(a, "gl_periodic_journals", "Periodic journals", "Journal entries", "Recurring journals generated each period.", ErpD365Part3Catalog.FormKind.Plan, app, "/erp/fin-advanced-app", "fa-refresh");
+        yield return P(a, "gl_allocation_journals", "Allocation journals", "Journal entries", "Allocate an amount across dimensions.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/fin-advanced-app", "fa-pie-chart");
         yield return P(a, "gl_reporting_adj", "Reporting currency adjustment journal", "Journal entries", "Adjust reporting-currency amounts.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/multi-currency-gl-app", "fa-globe");
         yield return P(a, "gl_trial_balance", "Trial balance", "Inquiries and reports", "Opening, period, and closing by main account and posting layer.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/trial-balance-app", "fa-balance-scale");
         yield return P(a, "gl_coa", "Chart of accounts", "Inquiries and reports", "Main accounts used on every posting.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/coa-accounts-app", "fa-sitemap");
-        yield return P(a, "gl_voucher_tx", "Voucher transactions", "Inquiries and reports", "Posted voucher lines.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-list");
+        yield return P(a, "gl_voucher_tx", "Voucher transactions", "Inquiries and reports", "Posted voucher lines.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/gl-journals-app", "fa-list");
         yield return P(a, "gl_audit_trail", "Audit trail", "Inquiries and reports", "Posted ledger audit trail.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/audit-trail-app", "fa-history");
-        yield return P(a, "gl_financial_reports", "Financial reports", "Inquiries and reports", "Balance sheet, income statement, and custom reports.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/report-center-app", "fa-bar-chart");
-        yield return P(a, "gl_dimension_statement", "Dimension statement", "Inquiries and reports", "Balances by financial dimension.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-th");
-        yield return P(a, "gl_ledger_tx_list", "Ledger transaction list", "Inquiries and reports", "Posted ledger lines for a period.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-list-alt");
-        yield return P(a, "gl_account_explorer", "Balance explorer", "Inquiries and reports", "Drill from a main-account balance into vouchers.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-search");
+        yield return P(a, "gl_financial_reports", "Financial reports", "Inquiries and reports", "Balance sheet, income statement, and custom reports.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/report-center-app?tab=pl", "fa-bar-chart");
+        yield return P(a, "gl_dimension_statement", "Dimension statement", "Inquiries and reports", "Balances by financial dimension.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/report-center-app?tab=pl&level=business_unit", "fa-th");
+        yield return P(a, "gl_ledger_tx_list", "Ledger transaction list", "Inquiries and reports", "Posted ledger lines for a period.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/gl-journals-app", "fa-list-alt");
+        yield return P(a, "gl_account_explorer", "Balance explorer", "Inquiries and reports", "Drill from a main-account balance into vouchers.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/trial-balance-app", "fa-search");
         yield return P(a, "gl_fx_reval", "Foreign currency revaluation", "Periodic", "Revalue foreign-currency ledger balances.", ErpD365Part3Catalog.FormKind.Action, app, "/erp/multi-currency-gl-app", "fa-globe");
         yield return P(a, "gl_year_end", "Year end close", "Periodic", "Close income accounts into retained earnings.", ErpD365Part3Catalog.FormKind.Action, app, "/erp/period-close-app", "fa-flag-checkered");
         yield return P(a, "gl_opening", "Opening balances", "Periodic", "Opening balances for a new fiscal year.", ErpD365Part3Catalog.FormKind.Order, app, "/erp/opening-app", "fa-sign-in");
         yield return P(a, "gl_main_accounts", "Main accounts", "Chart of accounts", "Main account master: type, posting, and close.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/coa-accounts-app", "fa-book");
         yield return P(a, "gl_account_structures", "Account structures", "Chart of accounts", "Which dimensions a main account may use.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-sitemap");
-        yield return P(a, "gl_advanced_rules", "Advanced rule structures", "Chart of accounts", "Extra dimension rules for selected accounts.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-random");
+        yield return P(a, "gl_advanced_rules", "Advanced rule structures", "Chart of accounts", "Extra dimension rules for selected accounts.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/fin-advanced-app", "fa-random");
         yield return P(a, "gl_ledger", "Ledger", "Ledger setup", "Ledger, calendar, and accounting currency.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-university");
         yield return P(a, "gl_parameters", "Ledger parameters", "Ledger setup", "Company defaults for journals and posting.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-sliders");
         yield return P(a, "gl_fiscal_calendar", "Fiscal calendars", "Ledger setup", "Fiscal years and periods.", ErpD365Part3Catalog.FormKind.Calendar, app, "/erp/period-close-app", "fa-calendar");
-        yield return P(a, "gl_currencies", "Currencies", "Currencies", "Accounting, reporting, and transaction currencies.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-money");
+        yield return P(a, "gl_currencies", "Currencies", "Currencies", "Accounting, reporting, and transaction currencies.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/multi-currency-gl-app", "fa-money");
         yield return P(a, "gl_exch_rates", "Exchange rates", "Currencies", "Currency exchange rates used by journals.", ErpD365Part3Catalog.FormKind.Master, app, "/erp/multi-currency-gl-app", "fa-line-chart");
         yield return P(a, "gl_journal_names", "Journal names", "Journal setup", "Named journals with default voucher and offset.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-tags");
         yield return P(a, "gl_journal_descriptions", "Journal descriptions", "Journal setup", "Default descriptions for a journal name.", ErpD365Part3Catalog.FormKind.Master, app, icon: "fa-align-left");

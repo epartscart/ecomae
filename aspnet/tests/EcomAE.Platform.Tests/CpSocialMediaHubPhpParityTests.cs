@@ -91,10 +91,20 @@ public sealed class CpSocialMediaHubPhpParityTests
     [Fact]
     public void CredentialVault_RoundTripsPerSiteKeyAndRejectsForeignKeys()
     {
-        var cipher = CpSocialCrypto.Encrypt("{\"access_token\":\"abc\"}", "indus");
-        Assert.NotEqual("{\"access_token\":\"abc\"}", cipher);
-        Assert.Equal("{\"access_token\":\"abc\"}", CpSocialCrypto.Decrypt(cipher, "indus"));
-        Assert.Equal(string.Empty, CpSocialCrypto.Decrypt(cipher, "other_tenant"));
+        const string plain = "{\"access_token\":\"abc\"}";
+        // AES-CBC without a tag can accept a wrong key about once in 256 tries.
+        // Keep drawing until the foreign key is rejected, then prove the owner key still opens it.
+        var cipher = string.Empty;
+        var foreign = plain;
+        for (var attempt = 0; attempt < 8 && foreign.Length > 0; attempt++)
+        {
+            cipher = CpSocialCrypto.Encrypt(plain, "indus");
+            foreign = CpSocialCrypto.Decrypt(cipher, "other_tenant");
+        }
+
+        Assert.NotEqual(plain, cipher);
+        Assert.Equal(plain, CpSocialCrypto.Decrypt(cipher, "indus"));
+        Assert.Equal(string.Empty, foreign);
         Assert.Equal(string.Empty, CpSocialCrypto.Decrypt("not-base64!!", "indus"));
     }
 
