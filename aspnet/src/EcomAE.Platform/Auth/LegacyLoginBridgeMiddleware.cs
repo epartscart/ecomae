@@ -146,6 +146,7 @@ public sealed class LegacyLoginBridgeMiddleware
             }
 
             var dest = string.IsNullOrWhiteSpace(redirect) ? outcome.Success.RedirectPath : redirect;
+            dest = Erp.ErpLandingPage.Prefer(dest, outcome.Success.LandingPath);
             if (!dest.StartsWith('/') || dest.StartsWith("//", StringComparison.Ordinal))
             {
                 dest = outcome.Success.RedirectPath;

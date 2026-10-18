@@ -908,11 +908,17 @@ public static class EcomAeRoutes
     public const string ErpInvoicesCancel = "/erp/invoices/cancel";
     /// <summary>ERP so_cancel compatibility endpoint with dry-run and confirmed-write modes.</summary>
     public const string ErpSalesOrdersCancel = "/erp/sales-orders/cancel";
+    /// <summary>Post a partial confirmation, delivery, invoice, or backorder cancellation. One document can list several sales orders.</summary>
+    public const string ErpSalesOrderSplit = "/erp/sales-orders/split";
     /// <summary>Wave B dry-run draft PO delete (PHP po_delete remains authoritative).</summary>
     public const string ErpPurchaseOrdersDelete = "/erp/purchase-orders/delete";
+    /// <summary>Post a partial confirmation, delivery, invoice, or backorder cancellation. One document can list several purchase orders.</summary>
+    public const string ErpPurchaseOrderSplit = "/erp/purchase-orders/split";
     public const string ErpInvoices = "/erp/invoices";
     /// <summary>Invoices Blazor list (JSON digest remains <see cref="ErpInvoices"/>).</summary>
     public const string ErpInvoicesApp = "/erp/invoices-app";
+    /// <summary>Merge several customer invoices into one shipping invoice and one packing slip.</summary>
+    public const string ErpInvoiceShippingPack = "/erp/invoices/shipping-pack";
     /// <summary>Printable invoice document (HTML, admin-gated).</summary>
     public const string ErpInvoicePrint = "/erp/invoice-print";
     /// <summary>JSON open-balance readback for the receipt-voucher form.</summary>
@@ -1061,6 +1067,8 @@ public static class EcomAeRoutes
     public const string ErpUsersPrepare = "/erp/users/prepare";
     public const string ErpUsersCredentials = "/erp/users/credentials";
     public const string ErpUsersDepartment = "/erp/users/department";
+    /// <summary>Save module and action grants for one ERP user.</summary>
+    public const string ErpUserControlGrant = "/erp/user-control/grant";
     public const string ErpUsersSessions = "/erp/users/sessions";
     public const string ErpUsersAudit = "/erp/users/audit";
     public const string ErpContracts = "/erp/contracts";
@@ -1197,6 +1205,10 @@ public static class EcomAeRoutes
     public const string ErpTouristRefundCreateForm = "/erp/tourist-refund/create";
     /// <summary>PHP epc_tourist_refund_validate. <c>confirmWrites=true</c> marks a pending barcode validated.</summary>
     public const string ErpTouristRefundValidateForm = "/erp/tourist-refund/validate";
+    /// <summary>Records Planet's 15-day invoice for validated tourist tags and posts output VAT against Planet payable.</summary>
+    public const string ErpTouristRefundPlanetInvoiceForm = "/erp/tourist-refund/planet-invoice";
+    /// <summary>Pays a recorded Planet tourist-refund invoice from bank or cash.</summary>
+    public const string ErpTouristRefundPlanetPayForm = "/erp/tourist-refund/planet-pay";
     /// <summary>PHP epc_rfid_register_tag. <c>confirmWrites=true</c> inserts <c>epc_rfid_tags</c>.</summary>
     public const string ErpRfidRegisterForm = "/erp/rfid/register";
     /// <summary>PHP epc_rfid_start_scan_session. <c>confirmWrites=true</c> inserts <c>epc_rfid_scan_sessions</c>.</summary>
@@ -1211,6 +1223,10 @@ public static class EcomAeRoutes
     public const string ErpAmlKycSaveForm = "/erp/aml/kyc-save";
     /// <summary>PHP epc_aml_alert_set_status. <c>confirmWrites=true</c> updates <c>epc_aml_transactions.review_status</c>. Schema-ensure stays PHP.</summary>
     public const string ErpAmlAlertStatusForm = "/erp/aml/alert-status";
+    /// <summary>Stamps the workspace AML pack and checks the FATF public list. Country lists are not overwritten from the page.</summary>
+    public const string ErpAmlLegislationFetchForm = "/erp/aml/legislation-fetch";
+    /// <summary>GET PDF or Word of the AML pack. <c>format=pdf|docx</c> and optional <c>doc</c> code. Stamped at download time.</summary>
+    public const string ErpAmlPackDownload = "/erp/aml/pack";
     /// <summary>PHP epc_sla_create. <c>confirmWrites=true</c> inserts <c>epc_sla_agreements</c>.</summary>
     public const string ErpSlaCreateForm = "/erp/sla/create";
     /// <summary>PHP epc_tickets_create. <c>confirmWrites=true</c> inserts <c>epc_tickets</c>.</summary>
@@ -2868,6 +2884,18 @@ public static class EcomAeRoutes
     public const string ErpComplianceFilingSave = "/erp/compliance/filings/save";
     /// <summary>Live PHP fy_create twin (confirmWrites=true writes).</summary>
     public const string ErpFiscalYearCreate = "/erp/fiscal-years/create";
+    /// <summary>Hold, open, or close a fiscal year. Close posts the P&amp;L entry and opens the next year.</summary>
+    public const string ErpFiscalYearAction = "/erp/fiscal-years/action";
+    /// <summary>Save a customer's permanent credit limit and terms, and an optional temporary limit that replaces them between two dates.</summary>
+    public const string ErpCreditProfileSave = "/erp/credit-management/profile";
+    /// <summary>Save the invoice blocking rules for a company: hold, credit limit, expiry, days overdue, overdue amount, and payment terms.</summary>
+    public const string ErpCreditRulesSave = "/erp/credit-management/rules";
+    /// <summary>Save the credit application party, requested limit, and the date the application expires.</summary>
+    public const string ErpCreditApplicationSave = "/erp/credit-management/application";
+    /// <summary>Add or remove a partner on a credit application. Each partner keeps their own papers.</summary>
+    public const string ErpCreditPartnerSave = "/erp/credit-management/partner";
+    /// <summary>Attach or open a credit-application document. POST stores the file. GET opens one stored file.</summary>
+    public const string ErpCreditDocument = "/erp/credit-management/document";
     /// <summary>Live PHP bos_wf_decide twin (confirmWrites=true writes).</summary>
     public const string ErpApprovalsRequestDecide = "/erp/approvals/requests/decide";
     /// <summary>Live PHP epc_bos_wf_raise / bos_wf_raise_test twin (confirmWrites=true writes).</summary>
@@ -3054,11 +3082,15 @@ public static class EcomAeRoutes
     public const string ErpPmSave = "/erp/pm/save";
     public const string ErpRealEstateApp = "/erp/real-estate-app";
     public const string ErpRealEstateSave = "/erp/real-estate/save";
+    /// <summary>Stamp the real-estate law pack and check the public legislation pages. The pack text is not overwritten.</summary>
+    public const string ErpRealEstateLawFetch = "/erp/real-estate/legislation-fetch";
     public const string ErpRealEstateReport = "/erp/real-estate/report";
     public const string ErpRealEstateWorkbook = "/erp/real-estate/workbook";
     public const string ErpLandlordApp = "/erp/landlord-app";
     public const string ErpLandlordSave = "/erp/landlord/save";
     public const string ErpLandlordReport = "/erp/landlord/report";
+    public const string ErpLandlordDocument = "/erp/landlord/document";
+    public const string ErpLandingSave = "/erp/landing/save";
 
     /// <summary>PHP epc-erp-advanced-setup.php?industry=… → epc_erp_industry_apply(). confirmWrites=true applies the blueprint to the tenant DB.</summary>
     public const string ErpIndustryApply = "/erp/industry/apply";
@@ -3123,6 +3155,8 @@ public static class EcomAeRoutes
     public const string ErpCsDeleteDeclaration = "/erp/custom-shipping/delete";
     /// <summary>Dynamics-style workspace save for leave, planning, equipment, organization, payroll, and procurement pages.</summary>
     public const string ErpD365WorkspaceSave = "/erp/d365-workspace/save";
+    /// <summary>New-entry post for list-only ERP pages. intent=validate checks only. intent=post with confirmWrites writes the existing table.</summary>
+    public const string ErpSheetEntry = "/erp/sheet-entry";
     /// <summary>Official company parameter save for process lanes. confirmWrites=true writes epc_erp_d365_parameters.</summary>
     public const string ErpD365ParameterSave = "/erp/d365-parameters/save";
     /// <summary>Official document interlink or follow-next save. confirmWrites=true writes epc_erp_d365_link.</summary>
@@ -3133,5 +3167,14 @@ public static class EcomAeRoutes
     public const string ErpTrialBalanceApp = "/erp/trial-balance-app";
     public const string ErpTrialBalanceSnapshot = "/erp/trial-balance/snapshot";
     public const string ErpTrialBalanceExport = "/erp/trial-balance/export";
+    public const string ErpTrialBalanceFile = "/erp/trial-balance/file";
+    /// <summary>IFRS 18 statement print, PDF, and Excel.</summary>
+    public const string ErpFinancialReportFile = "/erp/financial-reports/file";
+    public const string ErpIntercompanyApp = "/erp/intercompany-app";
+    /// <summary>Intercompany relationship, account, elimination, tax, and currency setup. confirmWrites=true writes the setup tables.</summary>
+    public const string ErpIntercompanySave = "/erp/intercompany/save";
+    public const string ErpPricingApp = "/erp/pricing-app";
+    /// <summary>Margin structure and price levels. confirmWrites=true writes the structure and levels.</summary>
+    public const string ErpPricingSave = "/erp/pricing/save";
 
 }

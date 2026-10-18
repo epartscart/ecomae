@@ -32,7 +32,16 @@ public static class ErpIndustryNav
 
     private static readonly HashSet<string> JewelleryTabIds = new(StringComparer.OrdinalIgnoreCase)
     {
-        "gold_rate", "jewellery_tag", "gold_scheme", "aml_compliance",
+        "gold_rate", "jewellery_tag", "gold_scheme",
+    };
+
+    /// <summary>
+    /// The generated catalog still marks these as jewellery because the old pack lived there.
+    /// They are shared duties, so company 1 and every other company keep the top-menu link.
+    /// </summary>
+    private static readonly HashSet<string> SharedTabIds = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "aml_compliance",
     };
 
     public static bool IsJewelleryCompany(ErpCompanyDigest? company)
@@ -108,6 +117,7 @@ public static class ErpIndustryNav
         var href = tab.Href ?? string.Empty;
         return key.StartsWith("real_estate", StringComparison.OrdinalIgnoreCase)
             || href.Contains("/erp/real-estate-app", StringComparison.OrdinalIgnoreCase)
+            || href.Contains("/erp/landlord-app", StringComparison.OrdinalIgnoreCase)
             || href.Contains("tab=real_estate", StringComparison.OrdinalIgnoreCase);
     }
 
@@ -157,6 +167,11 @@ public static class ErpIndustryNav
 
     public static bool IsJewelleryTab(PhpModuleCatalog.ModuleLink tab)
     {
+        if (SharedTabIds.Contains(TabKey(tab)))
+        {
+            return false;
+        }
+
         if (tab.IsJewellery)
         {
             return true;

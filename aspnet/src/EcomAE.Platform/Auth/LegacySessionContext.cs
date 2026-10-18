@@ -18,7 +18,8 @@ public sealed record LegacySessionContext(
     string Email = "",
     IReadOnlyList<int>? GroupIds = null,
     bool HasBackendAccess = false,
-    IReadOnlyList<ModuleAclEntry>? ModuleAcl = null)
+    IReadOnlyList<ModuleAclEntry>? ModuleAcl = null,
+    IReadOnlyList<ErpSessionAreaGrant>? AreaGrants = null)
 {
     public IReadOnlyList<int> Groups => GroupIds ?? Array.Empty<int>();
 

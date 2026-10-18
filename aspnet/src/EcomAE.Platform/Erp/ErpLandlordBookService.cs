@@ -16,6 +16,12 @@ public interface IErpLandlordBook
 
     Task<ErpSimpleWriteResult> VoidAsync(long lineId, CancellationToken cancellationToken = default);
 
+    Task<ErpSimpleWriteResult> UpdateLineAsync(long lineId, ErpLandlordEntry entry, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> DeleteAsync(long lineId, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> ReverseAsync(long lineId, CancellationToken cancellationToken = default);
+
     Task<string> CsvAsync(int year, long propertyId, long unitId, CancellationToken cancellationToken = default);
 
     Task<ErpLandlordMeasure> MeasureAsync(CancellationToken cancellationToken = default);
@@ -138,11 +144,20 @@ public sealed class ErpLandlordBookService : IErpLandlordBook
     public async Task<ErpSimpleWriteResult> VoidAsync(long lineId, CancellationToken cancellationToken = default)
         => await WriteAsync((connection, tx, ct) => ErpLandlordSql.VoidAsync(connection, tx, lineId, ct), cancellationToken).ConfigureAwait(false);
 
+    public async Task<ErpSimpleWriteResult> UpdateLineAsync(long lineId, ErpLandlordEntry entry, CancellationToken cancellationToken = default)
+        => await WriteAsync((connection, tx, ct) => ErpLandlordSql.UpdateAsync(connection, tx, lineId, entry, ct), cancellationToken).ConfigureAwait(false);
+
+    public async Task<ErpSimpleWriteResult> DeleteAsync(long lineId, CancellationToken cancellationToken = default)
+        => await WriteAsync((connection, tx, ct) => ErpLandlordSql.DeleteAsync(connection, tx, lineId, ct), cancellationToken).ConfigureAwait(false);
+
+    public async Task<ErpSimpleWriteResult> ReverseAsync(long lineId, CancellationToken cancellationToken = default)
+        => await WriteAsync((connection, tx, ct) => ErpLandlordSql.ReverseAsync(connection, tx, lineId, ct), cancellationToken).ConfigureAwait(false);
+
     public async Task<string> CsvAsync(int year, long propertyId, long unitId, CancellationToken cancellationToken = default)
     {
         var board = await LoadAsync(year, propertyId, unitId, cancellationToken).ConfigureAwait(false);
         var csv = new StringBuilder();
-        csv.AppendLine("Year,Property,Holder,Flat,Kind,Category,Amount,Spread,Date,Note,Account");
+        csv.AppendLine("Year,Property,Holder,Flat,Kind,Category,Amount,Spread,Date,Note,Account,Status");
         foreach (var line in board.Lines.Where(line => ErpLandlordCalc.CountsInView(line, unitId)))
         {
             csv.Append(line.Year.ToString(CultureInfo.InvariantCulture)).Append(',')
@@ -155,7 +170,8 @@ public sealed class ErpLandlordBookService : IErpLandlordBook
                 .Append(Csv(line.Spread)).Append(',')
                 .Append(Csv(line.MovementDate)).Append(',')
                 .Append(Csv(line.Note)).Append(',')
-                .Append(Csv(string.IsNullOrWhiteSpace(line.CoaCode) ? ErpLandlordCoa.CodeFor(line.Kind, line.Category) : line.CoaCode)).AppendLine();
+                .Append(Csv(string.IsNullOrWhiteSpace(line.CoaCode) ? ErpLandlordCoa.CodeFor(line.Kind, line.Category) : line.CoaCode)).Append(',')
+                .Append(Csv(line.Status)).AppendLine();
         }
 
         return csv.ToString();

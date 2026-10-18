@@ -251,13 +251,17 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                 await LegacyLoginSecurity.RecordAsync(connection, clientIp, request.Contact ?? string.Empty, true, cancellationToken).ConfigureAwait(false);
             }
 
+            var landing = request.Surface == LegacyLoginSurface.Erp
+                ? await Erp.ErpLandingPageService.TryReadAsync(connection, cancellationToken).ConfigureAwait(false)
+                : "";
             return LegacyLoginOutcome.Succeeded(new LegacyLoginSuccess(
                 user.UserId,
                 user.Email,
                 sessionToken,
                 csrf,
                 adminSession,
-                RedirectFor(request.Surface)));
+                RedirectFor(request.Surface),
+                landing));
         }
         catch (Exception ex)
         {

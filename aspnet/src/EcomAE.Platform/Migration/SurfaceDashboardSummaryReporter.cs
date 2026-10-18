@@ -12988,12 +12988,135 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
 
             var summary = new ErpProcessFlowTasksSummary(tasks, open, done, overdue, cancelled, rejected, avgCycle, "database", string.Empty);
-            return new(summary, rows, rows.Count, "database", string.Empty);
+            var steps = await LoadProcessFlowStepsAsync(connection, cancellationToken).ConfigureAwait(false);
+            var templates = await LoadProcessFlowTemplatesAsync(connection, cancellationToken).ConfigureAwait(false);
+            var places = await LoadProcessFlowPlacesAsync(connection, cancellationToken).ConfigureAwait(false);
+            return new(summary, rows, rows.Count, "database", string.Empty)
+            {
+                Steps = steps,
+                TemplateSteps = templates,
+                Places = places,
+            };
         }
         catch (Exception ex)
         {
             var err = empty with { Source = "database-error", Message = ex.Message };
             return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    private static async Task<IReadOnlyList<ErpProcessFlowStepDigest>> LoadProcessFlowStepsAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var rows = new List<ErpProcessFlowStepDigest>();
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpProcessFlowCaseSteps;
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new ErpProcessFlowStepDigest(
+                        Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture),
+                        reader.GetString(2),
+                        reader.GetString(3),
+                        string.Empty,
+                        Convert.ToInt64(reader.GetValue(4), CultureInfo.InvariantCulture),
+                        reader.GetString(5),
+                        reader.GetString(6),
+                        reader.GetString(7),
+                        Convert.ToInt64(reader.GetValue(8), CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader.GetValue(9), CultureInfo.InvariantCulture),
+                        reader.GetString(10)));
+                }
+            }
+
+            try
+            {
+                await using var loc = connection.CreateCommand();
+                loc.CommandText = LegacySurfaceDashboardSql.SelectErpProcessFlowStepLocations;
+                await using var reader = await loc.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                var map = new Dictionary<(long, int), string>();
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    map[(Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture), Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture))] = reader.GetString(2);
+                }
+
+                for (var i = 0; i < rows.Count; i++)
+                {
+                    if (map.TryGetValue((rows[i].CaseId, rows[i].StepNo), out var location) && location.Length > 0)
+                    {
+                        rows[i] = rows[i] with { Location = location };
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // location is optional
+            }
+
+            return rows;
+        }
+        catch (Exception)
+        {
+            return [];
+        }
+    }
+
+    private static async Task<IReadOnlyList<ErpProcessFlowTemplateStep>> LoadProcessFlowTemplatesAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var rows = new List<ErpProcessFlowTemplateStep>();
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpProcessFlowTemplateSteps;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new ErpProcessFlowTemplateStep(
+                    Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture),
+                    reader.GetString(2),
+                    reader.GetString(3)));
+            }
+
+            return rows;
+        }
+        catch (Exception)
+        {
+            return [];
+        }
+    }
+
+    private static async Task<IReadOnlyList<ErpProcessFlowStaffPlace>> LoadProcessFlowPlacesAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var rows = new List<ErpProcessFlowStaffPlace>();
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpProcessFlowStaffPlaces;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new ErpProcessFlowStaffPlace(
+                    Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    reader.GetString(1),
+                    reader.GetString(2),
+                    reader.GetString(3)));
+            }
+
+            return rows;
+        }
+        catch (Exception)
+        {
+            return [];
         }
     }
 
