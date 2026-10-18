@@ -151,8 +151,13 @@ public static class ErpPurchaseDocumentPrint
             html.Append("<div class=\"epc-pi__note\">This document is not posted yet. Approve the PO or confirm the purchase invoice to print the official copy.</div>");
         }
 
+        var taxInvoice = doc.Kind is ErpPurchasePrintKind.PurchaseInvoice or ErpPurchasePrintKind.MetalPurchase;
         html.Append("<div class=\"epc-pi__co\"><h1>").Append(E(Blank(issuer.Name, "ECOM AE"))).Append("</h1>");
-        if (issuer.Address.Length > 0)
+        if (taxInvoice)
+        {
+            html.Append("<div>Buyer. Address: ").Append(E(Blank(issuer.Address))).Append("</div>");
+        }
+        else if (issuer.Address.Length > 0)
         {
             html.Append("<div>").Append(E(issuer.Address)).Append("</div>");
         }
@@ -171,6 +176,11 @@ public static class ErpPurchaseDocumentPrint
             .Append("</h2><div class=\"epc-pi__copy\">ACCOUNT'S COPY</div></div>");
 
         html.Append("<div class=\"epc-pi__boxes\"><div class=\"epc-pi__box\">");
+        if (taxInvoice)
+        {
+            html.Append("<div>Supplier</div>");
+        }
+
         html.Append("<strong>").Append(E(Join(" - ", party.Code, party.Name))).Append("</strong>");
         if (party.Address.Length > 0)
         {
@@ -263,6 +273,26 @@ public static class ErpPurchaseDocumentPrint
         html.Append("<tr><th>Total invoice amount</th><th class=\"r\">").Append(M(doc.TotalAmount)).Append("</th></tr>");
         html.Append("</tbody></table>");
         html.Append("<p class=\"epc-pi__words\"><strong>Amount in words:</strong> ").Append(E(words)).Append("</p>");
+        if (taxInvoice)
+        {
+            var endpoint = ErpEinvoiceLaw.Endpoint(issuer.Trn);
+            if (endpoint.Length == 0)
+            {
+                endpoint = "0235:";
+            }
+
+            var currency = string.IsNullOrWhiteSpace(doc.Currency) ? "AED" : doc.Currency;
+            html.Append("<p>Invoice number ").Append(E(doc.DocumentNumber))
+                .Append(". Issue date ").Append(E(doc.DocumentDate))
+                .Append(". Supply date ").Append(E(doc.DocumentDate))
+                .Append(". Payment due ").Append(E(Blank(doc.PaymentTerms, "on receipt")))
+                .Append(". Currency ").Append(E(currency))
+                .Append(". Discount 0.00. Quantity is the qty or the weight. Unit price is the rate. Tax amount in AED ")
+                .Append(M(doc.VatAmount)).Append(" AED. Exchange rate 1.</p>");
+            html.Append("<p>Legal registration —. Authority Federal Tax Authority. Electronic address ")
+                .Append(E(endpoint))
+                .Append(". UUID assigned when the electronic invoice is sent. Preceding invoice reference none. No QR code.</p>");
+        }
         if (!string.IsNullOrWhiteSpace(doc.Notes))
         {
             html.Append("<p>").Append(E(doc.Notes).Replace("\n", "<br>", StringComparison.Ordinal)).Append("</p>");

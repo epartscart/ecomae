@@ -1,0 +1,235 @@
+@page "/erp/pricing-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Components.Shared.Desktop
+@using EcomAE.Platform.Erp
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject IErpPricingService Pricing
+
+<PageTitle>Pricing · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Pricing" BreadcrumbArea="Order to Cash" BreadcrumbTab="Pricing">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="@ErpPricingService.AppPath" IsAdmin="_isAdmin" />
+    <PhpErpModulePageHeader Title="Pricing" Subtitle="Wholesale, retail, customer, customer group, country, item, and quantity. Unit, offer, actual, and minimum selling price come from the margin on cost." />
+
+    <style>
+        .epc-px-tabs { display:flex; flex-wrap:wrap; gap:.4rem; margin:0 0 .8rem; }
+        .epc-px-tabs a { padding:.35rem .7rem; border:1px solid #c5cdd6; border-radius:4px; text-decoration:none; }
+        .epc-px-tabs a.is-active { background:#1f4e79; color:#fff; border-color:#1f4e79; }
+        .epc-px-grid { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:.55rem .8rem; }
+        .epc-px-grid label { display:flex; flex-direction:column; gap:.2rem; font-size:12px; min-width:0; }
+        .epc-px-grid .wide, .epc-px-grid .form-actions { grid-column:1 / -1; }
+        .epc-px-note { margin:0 0 .7rem; }
+        .epc-px-prices { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:.5rem; margin:.6rem 0; }
+        .epc-px-prices div { border:1px solid #d5dde6; border-radius:4px; padding:.45rem .6rem; background:#f7fafc; }
+        .epc-px-prices strong { display:block; font-size:1.05rem; }
+        @@media (max-width: 800px) {
+            .epc-px-grid, .epc-px-prices { grid-template-columns:1fr; }
+        }
+    </style>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status">@_flashErr</div>
+    }
+
+    <nav class="epc-px-tabs" aria-label="Pricing">
+        <a class="@TabClass("structure")" href="@Href("structure")">Margin structure</a>
+        <a class="@TabClass("levels")" href="@Href("levels")">Price levels</a>
+        <a class="@TabClass("quote")" href="@Href("quote")">Quote</a>
+    </nav>
+
+    @if (_tab == "levels")
+    {
+        <section class="epc-erp-form-panel">
+            <p class="epc-px-note">The closest level wins: customer, then customer group, then country, then item, then wholesale or retail, then a quantity band or currency. Leave a margin blank to keep the company percent. A price never goes under the minimum selling price.</p>
+            <form method="post" action="/erp/pricing/save" class="epc-px-grid">
+                @Hidden("levels")
+                <input type="hidden" name="action" value="rule" />
+                <label>Channel
+                    <select class="form-control input-sm" name="channel">
+                        <option value="any">Any</option>
+                        <option value="wholesale">Wholesale</option>
+                        <option value="retail">Retail</option>
+                    </select>
+                </label>
+                <label>Country <input class="form-control input-sm" name="country_code" maxlength="4" placeholder="AE" /></label>
+                <label>Customer group <input class="form-control input-sm" name="customer_group" maxlength="40" placeholder="Wholesale" /></label>
+                <label>Customer <input class="form-control input-sm" name="customer_code" maxlength="40" /></label>
+                <label>Item <input class="form-control input-sm" name="item_code" maxlength="40" /></label>
+                <label>From quantity <input class="form-control input-sm" name="min_qty" value="0" /></label>
+                <label>Currency <input class="form-control input-sm" name="rule_currency" maxlength="3" placeholder="AED" /></label>
+                <label>Note <input class="form-control input-sm" name="note" maxlength="190" /></label>
+                <label>Unit margin % <input class="form-control input-sm" name="rule_unit_margin" placeholder="structure" /></label>
+                <label>Offer margin % <input class="form-control input-sm" name="rule_offer_margin" placeholder="structure" /></label>
+                <label>Actual margin % <input class="form-control input-sm" name="rule_actual_margin" placeholder="structure" /></label>
+                <label>MSP margin % <input class="form-control input-sm" name="rule_msp_margin" placeholder="structure" /></label>
+                <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save price level</button></div>
+            </form>
+            <div class="epc-erp-table-wrap">
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr><th>Level</th><th>Unit %</th><th>Offer %</th><th>Actual %</th><th>MSP %</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @if (_snapshot.Rules.Count == 0)
+                        {
+                            <tr><td colspan="6">No price levels yet. The company structure prices every sale.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var rule in _snapshot.Rules)
+                            {
+                                <tr>
+                                    <td>@ErpPriceMath.LevelName(rule)</td>
+                                    <td>@Margin(rule.UnitPercent)</td>
+                                    <td>@Margin(rule.OfferPercent)</td>
+                                    <td>@Margin(rule.ActualPercent)</td>
+                                    <td>@Margin(rule.MspPercent)</td>
+                                    <td>
+                                        <form method="post" action="/erp/pricing/save">
+                                            @Hidden("levels")
+                                            <input type="hidden" name="action" value="deactivate" />
+                                            <input type="hidden" name="rule_id" value="@rule.Id.ToString(CultureInfo.InvariantCulture)" />
+                                            <button type="submit" class="btn btn-xs btn-default">Turn off</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+    else if (_tab == "quote")
+    {
+        var quote = _quote;
+        <section class="epc-erp-form-panel">
+            <p class="epc-px-note">Enter the cost and who is buying. The four prices use the winning level. Markup is on cost, and nothing is priced under the minimum selling price.</p>
+            <form method="get" action="/erp/pricing-app" class="epc-px-grid">
+                <input type="hidden" name="tab" value="quote" />
+                <label>Cost <input class="form-control input-sm" name="cost" value="@_cost.ToString("0.##", CultureInfo.InvariantCulture)" /></label>
+                <label>Channel
+                    <select class="form-control input-sm" name="channel">
+                        <option value="">Any</option>
+                        <option value="wholesale" selected="@(_ask.Channel == "wholesale")">Wholesale</option>
+                        <option value="retail" selected="@(_ask.Channel == "retail")">Retail</option>
+                    </select>
+                </label>
+                <label>Country <input class="form-control input-sm" name="country" value="@_ask.CountryCode" maxlength="4" /></label>
+                <label>Customer group <input class="form-control input-sm" name="group" value="@_ask.CustomerGroup" maxlength="40" /></label>
+                <label>Customer <input class="form-control input-sm" name="customer" value="@_ask.CustomerCode" maxlength="40" /></label>
+                <label>Item <input class="form-control input-sm" name="item" value="@_ask.ItemCode" maxlength="40" /></label>
+                <label>Quantity <input class="form-control input-sm" name="qty" value="@_ask.Quantity.ToString("0.###", CultureInfo.InvariantCulture)" /></label>
+                <label>Currency <input class="form-control input-sm" name="currency" value="@_ask.CurrencyCode" maxlength="3" /></label>
+                <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Calculate prices</button></div>
+            </form>
+            <p class="epc-px-note">Level: @quote.Level</p>
+            <div class="epc-px-prices">
+                <div><span>Unit price</span><strong>@Money(quote.CurrencyCode, quote.UnitPrice)</strong></div>
+                <div><span>Offer price</span><strong>@Money(quote.CurrencyCode, quote.OfferPrice)</strong></div>
+                <div><span>Actual price</span><strong>@Money(quote.CurrencyCode, quote.ActualPrice)</strong></div>
+                <div><span>MSP</span><strong>@Money(quote.CurrencyCode, quote.MspPrice)</strong></div>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(quote.Note))
+            {
+                <p class="epc-px-note">@quote.Note</p>
+            }
+        </section>
+    }
+    else
+    {
+        var sample = ErpPriceMath.Quote(100m, _snapshot.Structure, "Company structure");
+        <section class="epc-erp-form-panel">
+            <p class="epc-px-note">The company structure is the price when no closer level matches. On a cost of 100 the four prices are the sample below. Unit is the list, offer is the promotion, actual is the document price, and MSP is the floor.</p>
+            <div class="epc-px-prices">
+                <div><span>Unit</span><strong>@Money(sample.CurrencyCode, sample.UnitPrice)</strong></div>
+                <div><span>Offer</span><strong>@Money(sample.CurrencyCode, sample.OfferPrice)</strong></div>
+                <div><span>Actual</span><strong>@Money(sample.CurrencyCode, sample.ActualPrice)</strong></div>
+                <div><span>MSP</span><strong>@Money(sample.CurrencyCode, sample.MspPrice)</strong></div>
+            </div>
+            <form method="post" action="/erp/pricing/save" class="epc-px-grid">
+                @Hidden("structure")
+                <input type="hidden" name="action" value="structure" />
+                <label>Unit margin % <input class="form-control input-sm" name="unit_margin" value="@Pct(_snapshot.Structure.UnitPercent)" required /></label>
+                <label>Offer margin % <input class="form-control input-sm" name="offer_margin" value="@Pct(_snapshot.Structure.OfferPercent)" required /></label>
+                <label>Actual margin % <input class="form-control input-sm" name="actual_margin" value="@Pct(_snapshot.Structure.ActualPercent)" required /></label>
+                <label>MSP margin % <input class="form-control input-sm" name="msp_margin" value="@Pct(_snapshot.Structure.MspPercent)" required /></label>
+                <label>Currency <input class="form-control input-sm" name="currency_code" value="@_snapshot.Structure.CurrencyCode" maxlength="3" required /></label>
+                <div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">Save margin structure</button></div>
+            </form>
+        </section>
+    }
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private string _tab = "structure";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private decimal _cost = 100m;
+    private ErpPriceAsk _ask = new(100m, "", "", "", "", "", 1m, "AED");
+    private ErpPriceQuote _quote = ErpPriceMath.Quote(100m, ErpMarginStructure.Standard, "Company structure");
+    private ErpPricingSnapshot _snapshot = new("migration", ErpMarginStructure.Standard, []);
+
+    private string TabClass(string tab) => _tab == tab ? "is-active" : "";
+
+    private string Href(string tab) => "/erp/pricing-app?tab=" + tab;
+
+    private static string Pct(decimal value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private static string Margin(decimal value) => value < 0m ? "structure" : Pct(value);
+
+    private static string Money(string currency, decimal value)
+        => currency + " " + value.ToString("0.00", CultureInfo.InvariantCulture);
+
+    private RenderFragment Hidden(string tab) => @<text>
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="tab" value="@tab" />
+    </text>;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        var tab = ctx.Request.Query["tab"].ToString();
+        _tab = tab is "levels" or "quote" ? tab : "structure";
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _snapshot = await Pricing.ReadAsync(ctx.RequestAborted);
+        _cost = ReadDec(ctx.Request.Query["cost"].ToString(), 100m);
+        _ask = new ErpPriceAsk(
+            _cost,
+            ctx.Request.Query["channel"].ToString() ?? "",
+            ctx.Request.Query["country"].ToString() ?? "",
+            ctx.Request.Query["group"].ToString() ?? "",
+            ctx.Request.Query["customer"].ToString() ?? "",
+            ctx.Request.Query["item"].ToString() ?? "",
+            ReadDec(ctx.Request.Query["qty"].ToString(), 1m),
+            string.IsNullOrWhiteSpace(ctx.Request.Query["currency"].ToString())
+                ? _snapshot.Structure.CurrencyCode
+                : ctx.Request.Query["currency"].ToString()!);
+        _quote = ErpPriceMath.Resolve(_snapshot.Structure, _snapshot.Rules, _ask);
+    }
+
+    private static decimal ReadDec(string? text, decimal fallback)
+        => decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var value) ? value : fallback;
+}
