@@ -31,6 +31,10 @@
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     @if (!_barcodePurchase)
     {
+        <ErpOrderSplitPanel Side="purchase" OrderId="_openedId" />
+    }
+    @if (!_barcodePurchase)
+    {
         <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     }
 

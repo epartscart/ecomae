@@ -22,8 +22,7 @@ else
                 <input type="hidden" name="company_id" value="@CompanyId.ToString(CultureInfo.InvariantCulture)" />
                 <input type="hidden" name="returnUrl" id="@("epc-sheet-return-" + sheet.Key)" value="@EntryHref" />
                 <input type="hidden" name="confirmWrites" id="@("epc-sheet-confirm-" + sheet.Key)" value="" />
-                <fieldset>
-                    <legend>@sheet.Title</legend>
+                <div class="epc-sheet-grid">
                     @foreach (var field in sheet.Fields)
                     {
                         if (!string.IsNullOrWhiteSpace(field.MasterKind))
@@ -63,7 +62,7 @@ else
                         <button type="submit" class="btn btn-default" name="intent" value="validate" formnovalidate>Validate</button>
                         <button type="submit" class="btn btn-primary" name="intent" value="post" id="@("epc-sheet-post-" + sheet.Key)">Post</button>
                     </p>
-                </fieldset>
+                </div>
             </form>
             <script>
                 (function () {

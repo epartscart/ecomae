@@ -17,7 +17,8 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Customer groups" Subtitle="Open a row for the 280-character description excerpt. Create and assign stay on this page." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Customer groups" Subtitle="Open a row for the 280-character description excerpt. Create and assign stay on this page. A group code is a price level on Pricing." PhpTabHref="@_phpTab" />
+    <p class="text-muted"><a href="/erp/pricing-app">Pricing</a> sets wholesale, retail, customer, country, and group margins.</p>
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
 

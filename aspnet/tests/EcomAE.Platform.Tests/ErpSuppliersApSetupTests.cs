@@ -27,7 +27,7 @@ public sealed class ErpSuppliersApSetupTests
         Assert.Contains("IErpApSetupReadService", page, StringComparison.Ordinal);
         Assert.Contains("IErpSupplierOnboardReadService", page, StringComparison.Ordinal);
         Assert.Contains("name=\"supplier_code\"", page, StringComparison.Ordinal);
-        Assert.Contains("name=\"ap_coa_id\"", page, StringComparison.Ordinal);
+        Assert.Contains("FieldName=\"ap_coa_id\"", page, StringComparison.Ordinal);
         Assert.Contains("name=\"supplier_group_type\"", page, StringComparison.Ordinal);
         Assert.Contains("name=\"supplier_category\"", page, StringComparison.Ordinal);
         Assert.Contains("name=\"owner_name\"", page, StringComparison.Ordinal);
