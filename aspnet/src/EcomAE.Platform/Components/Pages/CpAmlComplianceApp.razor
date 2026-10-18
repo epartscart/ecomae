@@ -2,6 +2,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
@@ -12,6 +13,45 @@
 <PageTitle>AML compliance · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin">
+    <style>
+        .epc-aml-pack{margin:0 0 14px;}
+        .epc-aml-lead{margin:0 0 10px;color:#334155;font-size:13px;line-height:1.45;}
+        .epc-aml-steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:10px 0 14px;}
+        .epc-aml-step{background:#fff;border:1px solid #d5dde6;border-radius:8px;padding:8px;min-height:108px;}
+        .epc-aml-step b{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#1f4e79;color:#fff;font-size:12px;margin-bottom:6px;}
+        .epc-aml-step strong{display:block;color:#1d2740;font-size:12px;}
+        .epc-aml-step span{display:block;color:#475569;font-size:11px;margin-top:4px;}
+        .epc-aml-docs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 12px;}
+        .epc-aml-doc{display:block;background:#fff;border:1px solid #d5dde6;border-radius:8px;padding:8px 10px;text-decoration:none;min-height:78px;}
+        .epc-aml-doc strong{display:block;color:#1d2740;font-size:12px;}
+        .epc-aml-doc span{display:block;color:#64748b;font-size:11px;margin-top:4px;}
+        .epc-aml-doc.is-open{border-color:#1f4e79;background:#eef4fa;}
+        .epc-aml-doc.is-open strong,.epc-aml-doc.is-open span,.epc-aml-doc.is-open a{color:#1d2740;}
+        .epc-aml-dl{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px;}
+        .epc-aml-pack .epc-aml-dl a{display:inline-block;background:#1f4e79 !important;color:#fff !important;text-decoration:none;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700;}
+        .epc-aml-mini{display:flex;gap:10px;margin-top:6px;}
+        .epc-aml-mini a{color:#1f4e79;font-size:11px;font-weight:700;}
+        .epc-aml-sheet{background:#fff;border:1px solid #d5dde6;border-radius:8px;padding:12px;margin:0 0 12px;}
+        .epc-aml-sheet h3{margin:0 0 6px;color:#1d2740;font-size:15px;}
+        .epc-aml-sheet h4{margin:10px 0 4px;color:#1d2740;font-size:13px;}
+        .epc-aml-sheet p{margin:0 0 6px;color:#334155;font-size:13px;line-height:1.45;}
+        .epc-aml-countries{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px;align-items:start;}
+        .epc-aml-country{border:1px solid #d5dde6;border-radius:8px;padding:8px 10px;background:#fff;}
+        .epc-aml-country h3{margin:0 0 6px;color:#1d2740;font-size:13px;}
+        .epc-aml-country ul{margin:0;padding-left:1.1rem;}
+        .epc-aml-country li{color:#1d2740;font-size:12px;margin:0 0 3px;}
+        .epc-aml-edd ul{columns:2;column-gap:12px;}
+        .epc-aml-refuse{background:#fef2f2;border-color:#fecaca;}
+        .epc-aml-hold{background:#fffbeb;border-color:#fde68a;}
+        .epc-aml-edd{background:#f8fbff;border-color:#dbe7f5;}
+        .epc-aml-screen{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 8px;}
+        .epc-aml-screen label{margin:0;font-size:12px;font-weight:700;color:#334155;}
+        .epc-aml-note{margin:0;padding:8px 10px;border-radius:8px;background:#f8fbff;border:1px solid #d5dde6;color:#1d2740;font-size:13px;}
+        .epc-aml-diary{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 0;}
+        .epc-aml-diary th,.epc-aml-diary td{border:1px solid #e6eaf1;padding:6px 8px;text-align:left;color:#1d2740;}
+        .epc-aml-diary th{background:#1d2740;color:#fff;}
+        @@media (max-width:900px){.epc-aml-steps,.epc-aml-docs,.epc-aml-countries{grid-template-columns:1fr;}.epc-aml-edd ul{columns:1;}}
+    </style>
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -21,6 +61,118 @@
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/erp/aml-compliance-app")</p>
                 <p>Save a KYC record or set an AML alert status here. Open a row to see notes, ID details, and customer transactions. Fetch FTA legislation for goAML / sanctions-adjacent tax instruments. A supplier buy at or above AED 55,000, including a buy above AED 100,000, needs the complete supplier file on <a href="/erp/suppliers-app">Suppliers</a> before it is saved.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12 epc-aml-pack">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Visual guide · AML programme · pack @ErpAmlProgramme.PackVersion</div>
+            <div class="panel-body">
+                <p class="epc-aml-lead">This is the workspace pack for every tenant where AML applies: a financial institution, a virtual-asset service provider, or a designated non-financial business. A dealer in precious metals and stones uses the same pack, and the cash and supply-chain annex, when a single or linked cash transaction reaches AED 55,000. A purchase above AED 100,000 is inside that line. The wording is original. It follows @ErpAmlProgramme.Decree and @ErpAmlProgramme.Resolution. Reports go to the Financial Intelligence Unit on goAML. Records are kept for five years. Fetch AML legislation when the Ministry or the FATF publishes an update. The country list does not replace name screening against the UN consolidated list and the UAE local terrorist list. Download PDF or Word at any time. Each file is stamped with the date and time it is prepared, and the reporting clocks are counted from that moment.</p>
+                <div class="epc-aml-dl">
+                    <a href="@DownloadHref(null, "pdf")">Download full pack PDF</a>
+                    <a href="@DownloadHref(null, "docx")">Download full pack Word</a>
+                </div>
+                <div class="epc-aml-steps" aria-label="AML process from registration to reporting">
+                    @foreach (var step in ErpAmlProgramme.Steps)
+                    {
+                        <div class="epc-aml-step">
+                            <b>@step.Number</b>
+                            <strong>@step.Title</strong>
+                            <span>@step.Body</span>
+                        </div>
+                    }
+                </div>
+                <div class="epc-aml-docs" aria-label="AML documents">
+                    @foreach (var doc in ErpAmlProgramme.Documents)
+                    {
+                        <div class="epc-aml-doc @(_pack?.Code == doc.Code ? "is-open" : "")">
+                            <a href="@WithQuery(doc.Code, _country)"><strong>@doc.Title</strong></a>
+                            <span>@doc.AppliesTo</span>
+                            <span class="epc-aml-mini">
+                                <a href="@DownloadHref(doc.Code, "pdf")">PDF</a>
+                                <a href="@DownloadHref(doc.Code, "docx")">Word</a>
+                            </span>
+                        </div>
+                    }
+                </div>
+                @if (_pack is not null)
+                {
+                    <article class="epc-aml-sheet">
+                        <h3>@_pack.Title</h3>
+                        <p><strong>@_pack.AppliesTo.</strong> @_pack.Lead</p>
+                        @foreach (var part in _pack.Sections)
+                        {
+                            <h4>@part.Heading</h4>
+                            <p>@part.Body</p>
+                        }
+                        <p class="epc-aml-mini">
+                            <a href="@DownloadHref(_pack.Code, "pdf")">Download this document PDF</a>
+                            <a href="@DownloadHref(_pack.Code, "docx")">Download this document Word</a>
+                            <a href="@WithQuery(null, _country)">All documents</a>
+                        </p>
+                    </article>
+                }
+                <div class="epc-aml-countries" aria-label="Invoice country monitor">
+                    <div class="epc-aml-country epc-aml-refuse">
+                        <h3>Refused · FATF countermeasures</h3>
+                        <ul>
+                            @foreach (var country in ErpAmlProgramme.Countermeasures)
+                            {
+                                <li>@country.Code · @country.Name</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="epc-aml-country epc-aml-hold">
+                        <h3>Held · call for action</h3>
+                        <ul>
+                            @foreach (var country in ErpAmlProgramme.CallForAction)
+                            {
+                                <li>@country.Code · @country.Name</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="epc-aml-country epc-aml-edd">
+                        <h3>Enhanced due diligence · not refused</h3>
+                        <ul>
+                            @foreach (var country in ErpAmlProgramme.IncreasedMonitoring)
+                            {
+                                <li>@country.Code · @country.Name</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+                <form class="epc-aml-screen" method="get" action="@_listHref">
+                    @if (_openedId > 0)
+                    {
+                        <input type="hidden" name="kyc_id" value="@_openedId.ToString(CultureInfo.InvariantCulture)" />
+                    }
+                    @if (_pack is not null)
+                    {
+                        <input type="hidden" name="pack" value="@_pack.Code" />
+                    }
+                    <label>Country code <input name="country" value="@_country" maxlength="8" /></label>
+                    <button type="submit">Screen country</button>
+                </form>
+                @if (_screen.Length > 0)
+                {
+                    <p class="epc-aml-note" role="status">@_screen</p>
+                }
+                <table class="epc-aml-diary">
+                    <thead>
+                        <tr><th>Report</th><th>When</th><th>Where</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Suspicious transaction</td><td>Without delay</td><td>goAML</td></tr>
+                        <tr><td>Confirmed sanctions match</td><td>Freeze within 24 hours, then report within five business days</td><td>goAML and the Executive Office</td></tr>
+                        <tr><td>Partial sanctions match</td><td>Suspend. Reject if identity is not received within 10 business days. Report within five business days</td><td>goAML</td></tr>
+                        <tr><td>Dealers' report (DPMSR)</td><td>This workspace diaries 14 days from the qualified cash transaction. Fetch checks the diary against the current Ministry circular</td><td>goAML</td></tr>
+                        <tr><td>Ministry file</td><td>When the supervisor asks, and when an officer or the risk assessment changes</td><td>Ministry of Economy and Tourism for a dealer</td></tr>
+                        <tr><td>Annual review</td><td>Once a year: risk assessment, training, senior-management report</td><td>This workspace</td></tr>
+                        <tr><td>Records</td><td>Five years after the relationship ends or the transaction is completed</td><td>This workspace</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -97,6 +249,12 @@
             <input type="hidden" name="returnUrl" value="@_returnHref" />
             <label><input type="checkbox" name="force" value="1" /> Force refetch</label>
             <button type="submit">Fetch FTA legislation</button>
+        </form>
+        <form method="post" action="@ClientErpPath.PrefixIfBound(Http.HttpContext, "/erp/aml/legislation-fetch")" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <label><input type="checkbox" name="force" value="1" /> Force refetch</label>
+            <button type="submit">Fetch AML legislation</button>
         </form>
     }
 
@@ -260,6 +418,41 @@
     private IReadOnlyList<CpAmlComplianceKycTxnDigest> _openedTxns = [];
     private string _listHref = "/erp/aml-compliance-app";
     private string _returnHref = "/erp/aml-compliance-app";
+    private ErpAmlDocument? _pack;
+    private string _country = "";
+    private string _screen = "";
+
+    private string DownloadHref(string? code, string format)
+    {
+        var path = "/erp/aml/pack?format=" + format;
+        if (!string.IsNullOrWhiteSpace(code))
+        {
+            path += "&doc=" + Uri.EscapeDataString(code.Trim());
+        }
+
+        return ClientErpPath.PrefixIfBound(Http.HttpContext, path);
+    }
+
+    private string WithQuery(string? pack, string? country)
+    {
+        var query = new List<string>();
+        if (_openedId > 0)
+        {
+            query.Add("kyc_id=" + _openedId.ToString(CultureInfo.InvariantCulture));
+        }
+
+        if (!string.IsNullOrWhiteSpace(pack))
+        {
+            query.Add("pack=" + Uri.EscapeDataString(pack.Trim()));
+        }
+
+        if (!string.IsNullOrWhiteSpace(country))
+        {
+            query.Add("country=" + Uri.EscapeDataString(country.Trim()));
+        }
+
+        return query.Count == 0 ? _listHref : _listHref + "?" + string.Join("&", query);
+    }
 
     private string OpenedCaption => _openedDetail is null
         ? ""
@@ -301,6 +494,9 @@
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _listHref = ClientErpPath.PrefixIfBound(ctx, "/erp/aml-compliance-app");
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "kyc_id", "kyc");
+        _country = (ctx.Request.Query["country"].ToString() ?? "").Trim();
+        _pack = ErpAmlProgramme.Find(ctx.Request.Query["pack"].ToString());
+        _screen = _country.Length == 0 ? "" : ErpAmlProgramme.ScreenSummary(_country);
         _returnHref = _openedId > 0
             ? ErpRecordOpen.Href(_listHref, "kyc_id", _openedId).Split('#')[0]
             : _listHref;

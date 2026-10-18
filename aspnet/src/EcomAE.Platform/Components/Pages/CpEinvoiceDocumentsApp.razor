@@ -39,8 +39,22 @@
         .epc-ei-steps { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:.45rem; margin:0; padding:0; list-style:none; }
         .epc-ei-steps li { border:1px solid #d5dde6; border-radius:4px; padding:.45rem .55rem; background:#fff; }
         .epc-ei-steps a { font-weight:700; }
+        .epc-ei-board { margin:0 0 .8rem; padding:.7rem .8rem; border:1px solid #d5dde6; border-radius:8px; background:#f7fafc; }
+        .epc-ei-lanes { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:.45rem; margin:.45rem 0; }
+        .epc-ei-lanes article { background:#fff; border:1px solid #d5dde6; border-radius:6px; padding:.45rem .55rem; }
+        .epc-ei-lanes strong { display:block; font-size:18px; color:#1f4e79; }
+        .epc-ei-mix { display:flex; height:12px; overflow:hidden; border-radius:6px; background:#e8eef6; }
+        .epc-ei-mix span { display:block; height:12px; }
+        .epc-ei-cards { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:.45rem; margin:0 0 .8rem; }
+        .epc-ei-cards article { border:1px solid #d5dde6; border-radius:6px; padding:.5rem .6rem; background:#fff; }
+        .epc-ei-cards .amt { font-weight:700; color:#1d2740; }
+        .epc-ei-drill { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:.45rem; margin:0 0 .8rem; }
+        .epc-ei-drill article { border:1px solid #d5dde6; border-radius:6px; padding:.45rem .55rem; background:#fff; }
+        .epc-ei-drill strong { display:block; font-size:16px; }
+        .epc-ei-track { height:10px; border-radius:6px; background:#e8eef6; overflow:hidden; margin-top:.35rem; }
+        .epc-ei-track i { display:block; height:10px; background:#1f4e79; }
         @@media (max-width: 900px) {
-            .epc-ei-corners, .epc-ei-phases, .epc-ei-steps, .epc-ei-grid { grid-template-columns:1fr; }
+            .epc-ei-corners, .epc-ei-phases, .epc-ei-steps, .epc-ei-grid, .epc-ei-lanes, .epc-ei-cards, .epc-ei-drill { grid-template-columns:1fr; }
         }
     </style>
 
@@ -126,8 +140,41 @@
     }
     else if (_tab == "documents")
     {
+        <section class="epc-ei-board" aria-label="E-invoice summary">
+            <strong>Overall summary</strong>
+            <div class="epc-ei-lanes">
+                <article><span>Open</span><strong>@_summary.OpenCount.ToString(CultureInfo.InvariantCulture)</strong></article>
+                <article><span>Submitted</span><strong>@_summary.SubmittedCount.ToString(CultureInfo.InvariantCulture)</strong></article>
+                <article><span>Total incl VAT</span><strong>@_summary.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture)</strong></article>
+            </div>
+            <div class="epc-ei-mix" role="img" aria-label="Open and submitted share">
+                <span style="width:@Mix(_summary.OpenCount);background:#b7791f"></span>
+                <span style="width:@Mix(_summary.SubmittedCount);background:#2f855a"></span>
+            </div>
+            <p style="margin:.55rem 0 0;">Each document opens its tax, lines, and events. <a class="btn btn-xs btn-primary" href="@(Href("documents") + "#ei-records")">Drill down</a></p>
+        </section>
+        @if (_rows.Count > 0)
+        {
+            <div class="epc-ei-cards" aria-label="E-invoice cards">
+                @foreach (var row in _rows.Take(8))
+                {
+                    <article>
+                        <strong>@Text(row.InvoiceNumber)</strong>
+                        <div>@Text(row.Status) · @Text(row.DocCategory)</div>
+                        <div class="amt">@row.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture) @Text(row.CurrencyCode)</div>
+                        <a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "ei_id", row.Id)">Drill down</a>
+                    </article>
+                }
+            </div>
+        }
         @if (_openedDocument is not null)
         {
+            <section class="epc-ei-drill" aria-label="Invoice drill down">
+                <article><span>Ex VAT</span><strong>@_openedDocument.SubtotalExVat.ToString("N2", CultureInfo.InvariantCulture)</strong><div class="epc-ei-track"><i style="width:@Share(_openedDocument.SubtotalExVat, _openedDocument.TotalInclVat)"></i></div></article>
+                <article><span>VAT</span><strong>@_openedDocument.TotalVat.ToString("N2", CultureInfo.InvariantCulture)</strong><div class="epc-ei-track"><i style="width:@Share(_openedDocument.TotalVat, _openedDocument.TotalInclVat)"></i></div></article>
+                <article><span>Incl VAT</span><strong>@_openedDocument.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture)</strong><div class="epc-ei-track"><i style="width:100%"></i></div></article>
+                <article><span>Amount due</span><strong>@_openedDocument.AmountDue.ToString("N2", CultureInfo.InvariantCulture)</strong><div class="epc-ei-track"><i style="width:@Share(_openedDocument.AmountDue, _openedDocument.TotalInclVat)"></i></div></article>
+            </section>
             <ErpDocumentWorkspace
                 DocumentKind="E-invoice"
                 Title="@(!string.IsNullOrWhiteSpace(_openedDocument.InvoiceNumber) ? _openedDocument.InvoiceNumber : $"E-invoice #{_openedDocument.Id.ToString(CultureInfo.InvariantCulture)}")"
@@ -183,7 +230,7 @@
             </div>
         }
 
-        <div class="hpanel">
+        <div class="hpanel" id="ei-records">
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="epc-erp-table-wrap">
@@ -208,7 +255,7 @@
                                         <td>@Text(row.CurrencyCode)</td>
                                         <td>@row.TotalInclVat.ToString("0.00", CultureInfo.InvariantCulture)</td>
                                         <td>@(row.ValidationOk ? "yes" : "no")</td>
-                                        <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "ei_id", row.Id)">Open</a></td>
+                                        <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "ei_id", row.Id)">Drill down</a></td>
                                     </tr>
                                 }
                             }
@@ -364,6 +411,20 @@
         .ToList();
 
     private string TabClass(string tab) => _tab == tab ? "is-active" : "";
+
+    private string Mix(int count)
+    {
+        var total = Math.Max(1, _summary.DocumentCount);
+        var pct = Math.Clamp(count * 100m / total, count > 0 ? 8m : 0m, 100m);
+        return pct.ToString("0.#", CultureInfo.InvariantCulture) + "%";
+    }
+
+    private static string Share(decimal part, decimal whole)
+    {
+        if (whole <= 0) return "0%";
+        var pct = Math.Clamp(part / whole * 100m, 0m, 100m);
+        return pct.ToString("0.#", CultureInfo.InvariantCulture) + "%";
+    }
 
     private string Href(string tab) => _listHref + "?tab=" + tab;
 
